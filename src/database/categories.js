@@ -166,13 +166,13 @@ export function createCategoriesDB(ctx) {
     // Contact-category relationship management
     async addContactToCategory(contactId, categoryId) {
       try {
-        await execute(
-          'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+        const res = await execute(
+          'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
           [contactId, categoryId]
         );
-        return true;
+        return (res && res.rowsAffected) ? res.rowsAffected > 0 : false;
       } catch (error) {
-        // Handle duplicate key constraint
+        // If any UNIQUE constraint error still bubbles up, treat as duplicate
         if (error.message && error.message.includes('UNIQUE constraint')) {
           return false; // Already exists
         }

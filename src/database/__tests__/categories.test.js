@@ -326,7 +326,7 @@ describe('createCategoriesDB', () => {
 
       expect(result).toBe(true);
       expect(mockCtx.execute).toHaveBeenCalledWith(
-        'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+        'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
         [1, 2]
       );
     });
