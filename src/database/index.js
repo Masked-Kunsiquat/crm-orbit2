@@ -186,6 +186,7 @@ export async function transaction(work) {
     try {
       let workResult;
       let workError;
+      let workPromise = null;
       db.transaction(
         (tx) => {
           const wrappedTx = {
@@ -215,14 +216,8 @@ export async function transaction(work) {
           try {
             const maybePromise = work(wrappedTx);
             if (maybePromise && typeof maybePromise.then === 'function') {
-              // Do not await here; attach handlers to capture result/error.
-              maybePromise
-                .then((val) => {
-                  workResult = val;
-                })
-                .catch((err) => {
-                  workError = err;
-                });
+              // Capture for adoption after commit/rollback; do not await here.
+              workPromise = maybePromise;
             } else {
               workResult = maybePromise;
             }
@@ -230,14 +225,30 @@ export async function transaction(work) {
             workError = err;
           }
         },
-        (txError) => reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError)),
+        (txError) => {
+          // Ensure the user's returned promise settles before we reject,
+          // so callers see consistent behavior.
+          if (workPromise && typeof workPromise.finally === 'function') {
+            workPromise.finally(() => {
+              reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError));
+            });
+          } else {
+            reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError));
+          }
+        },
         () => {
-          // Resolve with user work result if set, else undefined
-          // If user code errored without causing SQL error, propagate that error
-          // to signal the caller but note that SQL may have committed.
-          // This is a limitation of WebSQL-style transactions.
+          // Adopt the user's returned promise after commit to ensure we
+          // resolve/reject only after the user work has settled.
           if (workError) {
-            reject(workError);
+            if (workPromise && typeof workPromise.finally === 'function') {
+              workPromise.finally(() => reject(workError));
+            } else {
+              reject(workError);
+            }
+            return;
+          }
+          if (workPromise && typeof workPromise.then === 'function') {
+            workPromise.then(resolve).catch(reject);
           } else {
             resolve(workResult);
           }
