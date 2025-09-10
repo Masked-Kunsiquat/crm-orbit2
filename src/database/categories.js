@@ -174,6 +174,17 @@ export function createCategoriesDB(ctx) {
         throw new DatabaseError('Cannot modify system category name', 'SYSTEM_CATEGORY_PROTECTED');
       }
 
+      // Normalize and validate incoming name like create()
+      if (Object.prototype.hasOwnProperty.call(data, 'name')) {
+        if (typeof data.name !== 'string') {
+          throw new DatabaseError('name is required', 'VALIDATION_ERROR');
+        }
+        data.name = data.name.trim();
+        if (!data.name) {
+          throw new DatabaseError('name is required', 'VALIDATION_ERROR');
+        }
+      }
+
       const categoryData = pick(data, CATEGORY_FIELDS);
       
       // Prevent changing is_system flag
@@ -315,12 +326,14 @@ export function createCategoriesDB(ctx) {
       }
 
       const statements = sortOrderUpdates.map(({ id, sort_order }) => {
-        if (!id || sort_order === undefined) {
-          throw new DatabaseError('Each update must have id and sort_order', 'VALIDATION_ERROR');
+        const idNum = Number(id);
+        const sortNum = Number(sort_order);
+        if (!Number.isInteger(idNum) || !Number.isInteger(sortNum)) {
+          throw new DatabaseError('Each update must have integer id and sort_order', 'VALIDATION_ERROR');
         }
         return {
           sql: 'UPDATE categories SET sort_order = ? WHERE id = ?;',
-          params: [sort_order, id]
+          params: [sortNum, idNum]
         };
       });
 
