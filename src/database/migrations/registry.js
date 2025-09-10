@@ -29,7 +29,9 @@ MIGRATIONS.forEach((m, idx) => {
   ) {
     throw new DatabaseError(
       `Invalid migration entry for version ${m?.version}: require { name, up, down }`,
-      'MIGRATION_ENTRY_INVALID'
+      'MIGRATION_ENTRY_INVALID',
+      null,
+      { entry: m }
     );
   }
   if (seen.has(m.version)) {
