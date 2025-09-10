@@ -90,7 +90,12 @@ export async function batch(statements) {
   // statements: Array<{ sql: string, params?: any[] }>
   const db = getDB();
   return new Promise((resolve, reject) => {
+    if (!Array.isArray(statements) || statements.length === 0) {
+      resolve([]);
+      return;
+    }
     const results = new Array(statements.length);
+    let stepError = null;
     try {
       db.transaction(
         (tx) => {
@@ -102,19 +107,17 @@ export async function batch(statements) {
                 results[index] = normalizeResult(result);
               },
               (_tx, error) => {
-                reject(
-                  new DatabaseError('SQL batch step failed', 'SQL_ERROR', error, {
-                    index,
-                    sql,
-                    params,
-                  })
-                );
-                return true;
+                stepError = new DatabaseError('SQL batch step failed', 'SQL_ERROR', error, {
+                  index,
+                  sql,
+                  params,
+                });
+                // Do not return true; abort and rollback the transaction.
               }
             );
           });
         },
-        (txError) => reject(new DatabaseError('Batch transaction failed', 'TX_ERROR', txError)),
+        (txError) => reject(stepError || new DatabaseError('Batch transaction failed', 'TX_ERROR', txError)),
         () => resolve(results)
       );
     } catch (err) {
