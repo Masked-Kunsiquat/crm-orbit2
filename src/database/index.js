@@ -151,17 +151,28 @@ export async function transaction(work) {
               }),
           };
 
-          // Schedule user work (note: errors from user code after scheduling cannot rollback already-run SQL)
-          Promise.resolve()
-            .then(() => work(wrappedTx))
-            .then((val) => {
-              // keep result to resolve on success
-              workResult = val;
-            })
-            .catch((err) => {
-              // We can only reject; rollback occurs when a SQL step fails
-              workError = err;
-            });
+          // Important: Call work synchronously so all tx.executeSql calls are
+          // scheduled inside this callback. Callers must schedule all
+          // wrappedTx.execute calls synchronously (no await between them)
+          // because WebSQL requires synchronous scheduling. Consider migrating
+          // to an async transaction API in a future PR for true async/await semantics.
+          try {
+            const maybePromise = work(wrappedTx);
+            if (maybePromise && typeof maybePromise.then === 'function') {
+              // Do not await here; attach handlers to capture result/error.
+              maybePromise
+                .then((val) => {
+                  workResult = val;
+                })
+                .catch((err) => {
+                  workError = err;
+                });
+            } else {
+              workResult = maybePromise;
+            }
+          } catch (err) {
+            workError = err;
+          }
         },
         (txError) => reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError)),
         () => {
