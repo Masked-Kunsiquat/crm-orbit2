@@ -28,9 +28,11 @@ export async function runMigrations({ db, execute, batch, transaction, onLog }) 
   try {
     await execute(
       `CREATE TABLE IF NOT EXISTS migrations (
-        version INTEGER PRIMARY KEY,
-        name TEXT,
-        applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        version INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        PRIMARY KEY (version),
+        CONSTRAINT uq_migrations UNIQUE (version, name)
       );`
     );
   } catch (err) {
