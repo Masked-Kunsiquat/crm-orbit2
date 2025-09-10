@@ -20,6 +20,16 @@ MIGRATIONS.forEach((m) => {
       'MIGRATION_ENTRY_INVALID'
     );
   }
+  if (
+    typeof m.name !== 'string' ||
+    typeof m.up !== 'function' ||
+    typeof m.down !== 'function'
+  ) {
+    throw new DatabaseError(
+      `Invalid migration entry for version ${m?.version}: require { name, up, down }`,
+      'MIGRATION_ENTRY_INVALID'
+    );
+  }
   if (seen.has(m.version)) {
     throw new DatabaseError(
       `Duplicate migration version detected: ${m.version}`,
