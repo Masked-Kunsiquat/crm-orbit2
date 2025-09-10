@@ -1,0 +1,1 @@
+[![CodeQL](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql/badge.svg?branch=master)](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql)
