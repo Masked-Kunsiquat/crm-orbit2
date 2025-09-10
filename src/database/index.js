@@ -105,7 +105,7 @@ export async function execute(sql, params = []) {
             (_tx, result) => resolve(normalizeResult(result)),
             (_tx, error) => {
               reject(new DatabaseError('SQL execution failed', 'SQL_ERROR', error, { sql, params }));
-              return true; // signal error handled
+              // Do not return true; allow the transaction to abort.
             }
           );
         },
@@ -197,7 +197,7 @@ export async function transaction(work) {
                     (_t, result) => res(normalizeResult(result)),
                     (_t, error) => {
                       rej(new DatabaseError('SQL execution failed', 'SQL_ERROR', error, { sql, params }));
-                      return true;
+                      // Do not return true; allow the transaction to abort.
                     }
                   );
                 } catch (e) {
