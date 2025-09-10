@@ -21,22 +21,47 @@ function getExec(dbOrCtx) {
 }
 
 /**
- * Execute a list of SQL statements using batch when available,
- * otherwise fall back to sequential execute.
+ * Execute a list of statements using batch when available; otherwise sequential execute.
+ * Each item may be one of:
+ * - string: raw SQL
+ * - [sql, params]: tuple
+ * - { sql, params? }: object
  * @param {{batch?: Function, execute?: Function}} exec
- * @param {string[]} sqls
+ * @param {Array<string | [string, any[]] | {sql: string, params?: any[]}>} items
  */
-async function runAll(exec, sqls) {
-  if (exec.batch) {
-    const statements = sqls.map((sql) => ({ sql }));
+async function runAll(exec, items) {
+  const hasBatch = !!exec.batch;
+  const hasExecute = !!exec.execute;
+
+  if (!hasBatch && !hasExecute) {
+    throw new Error('No execute/batch helpers available for migration.');
+  }
+
+  if (hasBatch) {
+    const statements = items.map((entry) => {
+      if (entry && typeof entry === 'object') {
+        // { sql, params } or already normalized object
+        if (Array.isArray(entry)) {
+          return { sql: entry[0], params: entry[1] };
+        }
+        if ('sql' in entry) return entry;
+      }
+      // string
+      return { sql: entry };
+    });
     await exec.batch(statements);
     return;
   }
-  if (!exec.execute) {
-    throw new Error('No execute/batch helpers available for migration.');
-  }
-  for (const sql of sqls) {
-    await exec.execute(sql);
+
+  // Fallback to sequential execute
+  for (const entry of items) {
+    if (Array.isArray(entry)) {
+      await exec.execute(entry[0], entry[1]);
+    } else if (entry && typeof entry === 'object' && 'sql' in entry) {
+      await exec.execute(entry.sql, entry.params);
+    } else {
+      await exec.execute(entry);
+    }
   }
 }
 
