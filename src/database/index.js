@@ -3,11 +3,31 @@
 // - Manages DB lifecycle and helpers
 // - Prepares and triggers migrations
 // - Exports unified API surface for DB modules
+/**
+ * Database Orchestrator for Expo SQLite.
+ *
+ * Responsibilities:
+ * - Initialize SQLite connection and configure PRAGMAs
+ * - Provide Promise-friendly helpers: `execute`, `batch`, `transaction`
+ * - Run migrations during initialization
+ * - Export a unified API surface for feature modules
+ *
+ * Notes:
+ * - WebSQL transaction callbacks are synchronous. See `transaction()` docs for details
+ *   on how to schedule SQL calls to ensure they run inside the same transaction.
+ */
 
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
 
 // Custom error for database operations
+/**
+ * Typed error for database operations.
+ * @extends Error
+ * @property {string} code Stable, machine-readable error code.
+ * @property {any} [originalError] Underlying error object from SQLite/WebSQL.
+ * @property {object} [context] Optional contextual data (e.g. sql, params).
+ */
 export class DatabaseError extends Error {
   constructor(message, code = 'DB_ERROR', originalError = null, context = null) {
     super(message);
@@ -23,6 +43,12 @@ let _initialized = false;
 
 const DEFAULT_DB_NAME = 'crm_orbit.db';
 
+/**
+ * Normalize the Expo SQLite/WebSQL result shape to a simple object.
+ * @private
+ * @param {any} result WebSQL/SQLite result set
+ * @returns {{rows: any[], rowsAffected: number, insertId: (number|null)}}
+ */
 function normalizeResult(result) {
   const rowsArray = result?.rows?._array
     ? result.rows._array
@@ -42,6 +68,11 @@ function normalizeResult(result) {
   };
 }
 
+/**
+ * Get the open database instance.
+ * @throws {DatabaseError} If database has not been initialized.
+ * @returns {any} SQLite database instance
+ */
 function getDB() {
   if (!_db) {
     throw new DatabaseError(
@@ -52,6 +83,13 @@ function getDB() {
   return _db;
 }
 
+/**
+ * Open (or reuse) the SQLite database.
+ * @private
+ * @param {string} [dbName]
+ * @returns {any} SQLite database instance
+ * @throws {DatabaseError} When opening fails
+ */
 function openDatabase(dbName = DEFAULT_DB_NAME) {
   try {
     // expo-sqlite returns a Database object compatible with `transaction`
@@ -62,6 +100,13 @@ function openDatabase(dbName = DEFAULT_DB_NAME) {
   }
 }
 
+/**
+ * Execute a single SQL statement inside a short-lived transaction.
+ * @param {string} sql SQL string with `?` placeholders.
+ * @param {any[]} [params=[]] Values for placeholders.
+ * @returns {Promise<{rows:any[], rowsAffected:number, insertId:number|null}>}
+ * @throws {DatabaseError}
+ */
 export async function execute(sql, params = []) {
   const db = getDB();
   return new Promise((resolve, reject) => {
@@ -86,6 +131,13 @@ export async function execute(sql, params = []) {
   });
 }
 
+/**
+ * Execute multiple SQL statements inside a single transaction.
+ * If any step fails, the transaction aborts and changes roll back.
+ * @param {{sql: string, params?: any[]}[]} statements Ordered list of statements.
+ * @returns {Promise<Array<{rows:any[], rowsAffected:number, insertId:number|null}>>}
+ * @throws {DatabaseError}
+ */
 export async function batch(statements) {
   // statements: Array<{ sql: string, params?: any[] }>
   const db = getDB();
@@ -126,6 +178,20 @@ export async function batch(statements) {
   });
 }
 
+/**
+ * Run a WebSQL transaction and provide a Promise-based `tx.execute` helper.
+ *
+ * Important: WebSQL requires that all `tx.executeSql` calls are scheduled
+ * synchronously inside the transaction callback. Callers must schedule all
+ * `wrappedTx.execute(...)` calls synchronously (avoid `await` between them),
+ * or calls may be scheduled outside the transaction. Consider migrating to an
+ * async transaction API in a future PR for true async/await semantics.
+ *
+ * @template T
+ * @param {(tx: { execute: (sql: string, params?: any[]) => Promise<any> }) => (T|Promise<T>)} work
+ * @returns {Promise<T>}
+ * @throws {DatabaseError}
+ */
 export async function transaction(work) {
   // work: async (tx) => { await tx.execute(sql, params) ... }
   const db = getDB();
@@ -196,6 +262,17 @@ export async function transaction(work) {
   });
 }
 
+/**
+ * Initialize the database connection, configure PRAGMAs, and run migrations.
+ * @param {Object} [options]
+ * @param {string} [options.name] Database file name.
+ * @param {boolean} [options.enableForeignKeys=true] Enable foreign key checks.
+ * @param {boolean} [options.enableWAL=true] Attempt to enable WAL journal mode.
+ * @param {boolean} [options.runMigrationsOnInit=true] Run migrations during init.
+ * @param {(msg: string) => void} [options.onLog] Optional logger.
+ * @returns {Promise<any>} The underlying SQLite database instance.
+ * @throws {DatabaseError}
+ */
 export async function initDatabase(options = {}) {
   const {
     name = DEFAULT_DB_NAME,
@@ -237,11 +314,19 @@ export async function initDatabase(options = {}) {
   return db;
 }
 
+/**
+ * Whether the database has been successfully initialized.
+ * @returns {boolean}
+ */
 export function isInitialized() {
   return _initialized && !!_db;
 }
 
 // Unified API surface (module placeholders until implemented)
+/**
+ * Create a placeholder proxy for not-yet-implemented database modules.
+ * @private
+ */
 const notImplemented = (moduleName) =>
   new Proxy(
     {},
@@ -261,6 +346,9 @@ export const notesDB = notImplemented('notes');
 export const attachmentsDB = notImplemented('attachments');
 export const settingsDB = notImplemented('settings');
 
+/**
+ * Unified database API surface available to the rest of the app.
+ */
 const database = {
   // lifecycle
   init: initDatabase,
