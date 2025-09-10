@@ -43,7 +43,7 @@ export async function runMigrations({ db, execute, batch, transaction, onLog }) 
   }
 
   // No-op for now; concrete migrations will be implemented later
-  onLog && onLog('No migrations to run.');
+  onLog && onLog('[migrations] No migrations to run (migrations table ensured).');
 }
 
 export default { runMigrations };
