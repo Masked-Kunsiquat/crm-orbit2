@@ -239,6 +239,12 @@ describe('createCategoriesDB', () => {
 
       expect(result).toBeNull();
     });
+    it('should return existing category when update data is empty', async () => {
+      const existing = { id: 1, name: 'Keep', is_system: false };
+      mockCtx.executeResults.push({ rows: [existing] });
+      const res = await categoriesDB.update(1, {});
+      expect(res).toEqual(existing);
+    });
 
     it('should filter out is_system field from updates', async () => {
       const existing = { id: 1, name: 'Category', is_system: false };
