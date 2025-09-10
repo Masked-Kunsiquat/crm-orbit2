@@ -88,18 +88,18 @@ export async function runMigrations(ctx) {
   let applied = await getAppliedVersions(ctx);
   const appliedSet = new Set(applied);
 
-  // Sort ascending by version (registry already sorted, but enforce)
-  const toRun = MIGRATIONS
-    .slice()
-    .sort((a, b) => a.version - b.version)
-    .filter((m) => !appliedSet.has(m.version));
+  // Registry is already sorted; filter pending only
+  const toRun = MIGRATIONS.filter((m) => !appliedSet.has(m.version));
+
+  // Centralized logger
+  const log = onLog || (() => {});
 
   if (!toRun.length) {
-    onLog && onLog('[migrations] No pending migrations.');
+    log('[migrations] No pending migrations.');
     return;
   }
 
-  onLog && onLog(`[migrations] Pending: ${toRun.map((m) => m.version).join(', ')}`);
+  log(`[migrations] Pending: ${toRun.map((m) => m.version).join(', ')}`);
 
   // 3) Apply each migration sequentially
   for (const migration of toRun) {
