@@ -104,7 +104,7 @@ export async function runMigrations(ctx) {
   // 3) Apply each migration sequentially
   for (const migration of toRun) {
     const name = migration.name || `migration_${migration.version}`;
-    onLog && onLog(`[migrations] Applying v${migration.version} (${name})...`);
+    log(`[migrations] Applying v${migration.version} (${name})...`);
     try {
       if (typeof transaction === 'function') {
         // Wrap migration + recording in one atomic transaction
@@ -143,7 +143,7 @@ export async function runMigrations(ctx) {
         await migration.up({ execute, batch, transaction });
         await recordApplied(ctx, migration);
       }
-      onLog && onLog(`[migrations] Applied v${migration.version} (${name}).`);
+      log(`[migrations] Applied v${migration.version} (${name}).`);
     } catch (err) {
       throw new DatabaseError(
         `Migration v${migration.version} (${name}) failed`,
