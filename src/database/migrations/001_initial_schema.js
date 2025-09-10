@@ -217,6 +217,7 @@ const CREATE_INDEXES = [
   // Contact Info
   `CREATE INDEX IF NOT EXISTS idx_contact_info_contact_id ON contact_info (contact_id);`,
   `CREATE INDEX IF NOT EXISTS idx_contact_info_contact_type ON contact_info (contact_id, type);`,
+  `CREATE INDEX IF NOT EXISTS idx_contact_info_value ON contact_info (value);`,
 
   // Events
   `CREATE INDEX IF NOT EXISTS idx_events_contact_id ON events (contact_id);`,
@@ -298,6 +299,7 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_events_event_date;',
   'DROP INDEX IF EXISTS idx_events_contact_id;',
   'DROP INDEX IF EXISTS idx_contact_info_contact_type;',
+  'DROP INDEX IF EXISTS idx_contact_info_value;',
   'DROP INDEX IF EXISTS idx_contact_info_contact_id;',
   'DROP INDEX IF EXISTS idx_contacts_is_favorite;',
   'DROP INDEX IF EXISTS idx_contacts_last_name;',
