@@ -22,7 +22,11 @@ async function ensureMeta({ execute }) {
 async function getAppliedVersions({ execute }) {
   try {
     const res = await execute('SELECT version FROM migrations ORDER BY version ASC;');
-    return (res?.rows || []).map((r) => r.version);
+    const rows =
+      (res && Array.isArray(res) && res) ||
+      (res?.rows?._array) ||
+      (Array.isArray(res?.rows) ? res.rows : []);
+    return rows.map((r) => r.version);
   } catch (err) {
     throw new DatabaseError('Failed to read applied migrations', 'MIGRATION_QUERY_FAILED', err);
   }
