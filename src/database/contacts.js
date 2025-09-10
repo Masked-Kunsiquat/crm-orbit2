@@ -312,34 +312,41 @@ export function createContactsDB(ctx) {
         const res = await execute('SELECT * FROM contact_info WHERE id = ?;', [infoId]);
         return res.rows[0] || null;
       }
-      const currentRes = await execute('SELECT contact_id, type FROM contact_info WHERE id = ?;', [infoId]);
+      const currentRes = await execute('SELECT contact_id, type, is_primary FROM contact_info WHERE id = ?;', [infoId]);
       const current = currentRes.rows[0];
       if (!current) return null;
 
       const infoData = pick(data, INFO_FIELDS);
       const sets = Object.keys(infoData).map((k) => `${k} = ?`);
       const vals = Object.keys(infoData).map((k) => infoData[k]);
+      
+      // Build batch statements
+      const statements = [];
+      
       if (sets.length) {
-        await batch([
-          { sql: `UPDATE contact_info SET ${sets.join(', ')} WHERE id = ?;`, params: [...vals, infoId] },
-          ...(infoData.is_primary
-            ? [
-                {
-                  sql: 'UPDATE contact_info SET is_primary = 0 WHERE contact_id = ? AND type = ? AND id <> ?;',
-                  params: [current.contact_id, infoData.type || current.type, infoId],
-                },
-              ]
-            : []),
-          { sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;', params: [current.contact_id] },
-        ]);
-      } else if (infoData.is_primary) {
-        await batch([
-          {
-            sql: 'UPDATE contact_info SET is_primary = 0 WHERE contact_id = ? AND type = ? AND id <> ?;',
-            params: [current.contact_id, infoData.type || current.type, infoId],
-          },
-          { sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;', params: [current.contact_id] },
-        ]);
+        statements.push({ sql: `UPDATE contact_info SET ${sets.join(', ')} WHERE id = ?;`, params: [...vals, infoId] });
+      }
+      
+      // Handle primary uniqueness
+      if (infoData.is_primary) {
+        // Explicitly setting as primary - clear others for the new/current type
+        statements.push({
+          sql: 'UPDATE contact_info SET is_primary = 0 WHERE contact_id = ? AND type = ? AND id <> ?;',
+          params: [current.contact_id, infoData.type || current.type, infoId],
+        });
+      } else if (infoData.type && current.is_primary && infoData.is_primary === undefined) {
+        // Type is changing and current record is primary, but is_primary not explicitly provided
+        // Clear other primaries for the new type to preserve uniqueness
+        statements.push({
+          sql: 'UPDATE contact_info SET is_primary = 0 WHERE contact_id = ? AND type = ? AND id <> ?;',
+          params: [current.contact_id, infoData.type, infoId],
+        });
+      }
+      
+      // Always update last interaction when contact info is modified
+      if (statements.length > 0) {
+        statements.push({ sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;', params: [current.contact_id] });
+        await batch(statements);
       }
       const res = await execute('SELECT * FROM contact_info WHERE id = ?;', [infoId]);
       return res.rows[0] || null;
