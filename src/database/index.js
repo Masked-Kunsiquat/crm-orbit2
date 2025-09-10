@@ -345,8 +345,13 @@ const notImplemented = (moduleName) =>
   new Proxy(
     {},
     {
-      get: (_target, prop) => () => {
-        throw new DatabaseError(`${moduleName}.${String(prop)} not implemented`, 'MODULE_NOT_IMPLEMENTED');
+      get: (_t, prop) => {
+        if (prop === Symbol.toStringTag) return `${moduleName}DB`;
+        // Named stub for better stack traces and devtools
+        const fn = function notImplementedStub() {
+          throw new DatabaseError(`${moduleName}.${String(prop)} not implemented`, 'MODULE_NOT_IMPLEMENTED');
+        };
+        return fn;
       },
     }
   );
