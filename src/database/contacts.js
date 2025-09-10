@@ -7,6 +7,7 @@ const CONTACT_FIELDS = [
   'first_name',
   'last_name',
   'middle_name',
+  'display_name',
   'avatar_uri',
   'company_id',
   'job_title',
@@ -38,6 +39,33 @@ function nowISO() {
   return new Date().toISOString();
 }
 
+function computeDisplayName(data) {
+  const nameParts = [
+    data.first_name?.trim(),
+    data.middle_name?.trim(),
+    data.last_name?.trim()
+  ].filter(Boolean);
+  
+  if (nameParts.length > 0) {
+    return nameParts.join(' ');
+  }
+  
+  // Fall back to contact info if no name parts available
+  const contactInfo = data.contactInfo || data.contact_info || [];
+  for (const info of contactInfo) {
+    if (info?.type === 'email' && info.value?.trim()) {
+      return info.value.trim();
+    }
+  }
+  for (const info of contactInfo) {
+    if (info?.type === 'phone' && info.value?.trim()) {
+      return info.value.trim();
+    }
+  }
+  
+  return 'Unnamed Contact';
+}
+
 /**
  * Create a contacts DB API bound to provided DB helpers.
  * @param {{ execute: Function, batch: Function, transaction?: Function }} ctx
@@ -62,6 +90,8 @@ export function createContactsDB(ctx) {
         : [];
 
       const contactData = pick(data, CONTACT_FIELDS);
+      // Compute and assign display_name before building columns/values
+      contactData.display_name = computeDisplayName(data);
       const cols = keys(contactData);
       const vals = cols.map((k) => contactData[k]);
 
