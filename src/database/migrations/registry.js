@@ -13,11 +13,13 @@ const MIGRATIONS = [
 
 // Ensure unique, sorted by version
 const seen = new Set();
-MIGRATIONS.forEach((m) => {
-  if (!m || typeof m.version !== 'number') {
+MIGRATIONS.forEach((m, idx) => {
+  if (!m || !Number.isInteger(m.version)) {
     throw new DatabaseError(
-      'Invalid migration entry: missing numeric version',
-      'MIGRATION_ENTRY_INVALID'
+      'Invalid migration entry: missing integer version',
+      'MIGRATION_ENTRY_INVALID',
+      null,
+      { entry: m, index: idx }
     );
   }
   if (
