@@ -26,6 +26,7 @@ export { DatabaseError } from './errors';
 
 let _db = null;
 let _initialized = false;
+let _initPromise = null;
 
 const DEFAULT_DB_NAME = 'crm_orbit.db';
 
@@ -269,35 +270,41 @@ export async function initDatabase(options = {}) {
   } = options;
 
   if (_initialized) return _db;
+  if (_initPromise) return _initPromise;
 
-  const db = openDatabase(name);
+  const startInit = async () => {
+    const db = openDatabase(name);
 
-  // Basic PRAGMA setup
-  try {
-    if (enableWAL) {
-      // journal_mode may not be supported on some platforms; ignore failure
-      try { await execute('PRAGMA journal_mode = WAL;'); } catch (_) {}
-    }
-    if (enableForeignKeys) {
-      await execute('PRAGMA foreign_keys = ON;');
-    }
-  } catch (err) {
-    throw new DatabaseError('Failed to configure database PRAGMAs', 'PRAGMA_FAILED', err);
-  }
-
-  // Run migrations if requested
-  if (runMigrationsOnInit && typeof runMigrations === 'function') {
+    // Basic PRAGMA setup
     try {
-      onLog && onLog('Running database migrations...');
-      await runMigrations({ db, execute, batch, transaction, onLog });
-      onLog && onLog('Migrations complete.');
+      if (enableWAL) {
+        // journal_mode may not be supported on some platforms; ignore failure
+        try { await execute('PRAGMA journal_mode = WAL;'); } catch (_) {}
+      }
+      if (enableForeignKeys) {
+        await execute('PRAGMA foreign_keys = ON;');
+      }
     } catch (err) {
-      throw new DatabaseError('Migration execution failed', 'MIGRATION_FAILED', err);
+      throw new DatabaseError('Failed to configure database PRAGMAs', 'PRAGMA_FAILED', err);
     }
-  }
 
-  _initialized = true;
-  return db;
+    // Run migrations if requested
+    if (runMigrationsOnInit && typeof runMigrations === 'function') {
+      try {
+        onLog && onLog('Running database migrations...');
+        await runMigrations({ db, execute, batch, transaction, onLog });
+        onLog && onLog('Migrations complete.');
+      } catch (err) {
+        throw new DatabaseError('Migration execution failed', 'MIGRATION_FAILED', err);
+      }
+    }
+
+    _initialized = true;
+    return db;
+  };
+
+  _initPromise = startInit().finally(() => { _initPromise = null; });
+  return _initPromise;
 }
 
 /**
