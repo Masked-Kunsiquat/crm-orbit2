@@ -215,13 +215,23 @@ export function createContactsDB(ctx) {
       if (!data || Object.keys(data).length === 0) {
         return this.getById(id);
       }
+      const existing = await this.getById(id);
       const contactData = pick(data, CONTACT_FIELDS);
+      const nameKeys = ['first_name', 'middle_name', 'last_name'];
+      if (nameKeys.some((k) => k in data) && !('display_name' in data)) {
+        const fn = ({ first_name, middle_name, last_name }) =>
+          [first_name, middle_name, last_name].filter(Boolean).join(' ').trim();
+        contactData.display_name = fn({ ...(existing || {}), ...contactData });
+      }
       if (Object.keys(contactData).length === 0) {
         return this.getById(id);
       }
       const sets = Object.keys(contactData).map((k) => `${k} = ?`);
       const vals = Object.keys(contactData).map((k) => contactData[k]);
-      await execute(`UPDATE contacts SET ${sets.join(', ')} WHERE id = ?;`, [...vals, id]);
+      await execute(
+        `UPDATE contacts SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
+        [...vals, id]
+      );
       const updated = await this.getById(id);
       return updated;
     },
