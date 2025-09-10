@@ -294,6 +294,11 @@ export async function initDatabase(options = {}) {
       }
       if (enableForeignKeys) {
         await execute('PRAGMA foreign_keys = ON;');
+        try {
+          const check = await execute('PRAGMA foreign_keys;');
+          const enabled = check.rows?.[0]?.foreign_keys === 1;
+          if (!enabled) onLog && onLog('Warning: PRAGMA foreign_keys not enabled.');
+        } catch {}
       }
     } catch (err) {
       throw new DatabaseError('Failed to configure database PRAGMAs', 'PRAGMA_FAILED', err);
