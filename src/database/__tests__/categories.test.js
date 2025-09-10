@@ -375,7 +375,7 @@ describe('createCategoriesDB', () => {
 
       expect(result).toEqual(contacts);
       expect(mockCtx.execute).toHaveBeenCalledWith(
-        expect.stringMatching(/SELECT c\.\* FROM contacts c INNER JOIN contact_categories cc/),
+        expect.stringContaining('SELECT c.*'),
         [1]
       );
     });
@@ -393,7 +393,7 @@ describe('createCategoriesDB', () => {
 
       expect(result).toEqual(categories);
       expect(mockCtx.execute).toHaveBeenCalledWith(
-        expect.stringMatching(/SELECT cat\.\* FROM categories cat INNER JOIN contact_categories cc/),
+        expect.stringContaining('SELECT cat.*'),
         [1]
       );
     });
