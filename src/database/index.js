@@ -324,8 +324,8 @@ const notImplemented = (moduleName) =>
   new Proxy(
     {},
     {
-      get: () => () => {
-        throw new DatabaseError(`${moduleName} module not implemented`, 'MODULE_NOT_IMPLEMENTED');
+      get: (_target, prop) => () => {
+        throw new DatabaseError(`${moduleName}.${String(prop)} not implemented`, 'MODULE_NOT_IMPLEMENTED');
       },
     }
   );
