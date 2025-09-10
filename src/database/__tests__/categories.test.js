@@ -332,8 +332,7 @@ describe('createCategoriesDB', () => {
     });
 
     it('should handle duplicate relationship gracefully', async () => {
-      const duplicateError = new Error('UNIQUE constraint failed');
-      mockCtx.execute.mockRejectedValueOnce(duplicateError);
+      mockCtx.execute.mockResolvedValueOnce({ rowsAffected: 0 });
 
       const result = await categoriesDB.addContactToCategory(1, 2);
 
