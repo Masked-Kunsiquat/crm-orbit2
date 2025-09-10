@@ -289,15 +289,20 @@ export async function initDatabase(options = {}) {
     }
 
     // Run migrations if requested
-    if (runMigrationsOnInit && typeof runMigrations === 'function') {
-      try {
-        onLog && onLog('Running database migrations...');
-        await runMigrations({ db, execute, batch, transaction, onLog });
-        onLog && onLog('Migrations complete.');
-      } catch (err) {
-        throw new DatabaseError('Migration execution failed', 'MIGRATION_FAILED', err);
-      }
+  if (runMigrationsOnInit && typeof runMigrations === 'function') {
+    try {
+      onLog && onLog('Running database migrations...');
+      await runMigrations({ db, execute, batch, transaction, onLog });
+      onLog && onLog('Migrations complete.');
+    } catch (err) {
+      throw new DatabaseError(
+        'Migration execution failed',
+        'MIGRATION_FAILED',
+        err,
+        { originalCode: err?.code }
+      );
     }
+  }
 
     _initialized = true;
     return db;
