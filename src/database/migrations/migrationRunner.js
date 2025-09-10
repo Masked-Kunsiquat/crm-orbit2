@@ -10,9 +10,8 @@ async function ensureMeta({ execute }) {
       `CREATE TABLE IF NOT EXISTS migrations (
         version INTEGER NOT NULL,
         name TEXT NOT NULL,
-        applied_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-        PRIMARY KEY (version),
-        CONSTRAINT uq_migrations UNIQUE (version, name)
+        applied_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        PRIMARY KEY (version)
       );`
     );
   } catch (err) {
