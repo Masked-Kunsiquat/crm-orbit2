@@ -68,7 +68,7 @@ async function runAll(exec, items) {
 const CREATE_TABLES = [
   // 8. Attachments (referenced by companies.logo_attachment_id)
   `CREATE TABLE IF NOT EXISTS attachments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     entity_type TEXT NOT NULL,
     entity_id INTEGER NOT NULL,
     file_name TEXT NOT NULL,
@@ -84,7 +84,7 @@ const CREATE_TABLES = [
 
   // 9. Companies (referenced by contacts.company_id and references attachments)
   `CREATE TABLE IF NOT EXISTS companies (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     industry TEXT,
     website TEXT,
@@ -97,7 +97,7 @@ const CREATE_TABLES = [
 
   // 1. Contacts (references companies)
   `CREATE TABLE IF NOT EXISTS contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT,
     middle_name TEXT,
@@ -113,7 +113,7 @@ const CREATE_TABLES = [
 
   // 2. Contact Info
   `CREATE TABLE IF NOT EXISTS contact_info (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     contact_id INTEGER NOT NULL,
     type TEXT NOT NULL,
     subtype TEXT,
@@ -126,7 +126,7 @@ const CREATE_TABLES = [
 
   // 3. Events
   `CREATE TABLE IF NOT EXISTS events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     contact_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     event_type TEXT NOT NULL,
@@ -140,7 +140,7 @@ const CREATE_TABLES = [
 
   // 4. Event Reminders
   `CREATE TABLE IF NOT EXISTS event_reminders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     event_id INTEGER NOT NULL,
     reminder_datetime DATETIME NOT NULL,
     reminder_type TEXT DEFAULT 'notification',
@@ -151,7 +151,7 @@ const CREATE_TABLES = [
 
   // 5. Interactions
   `CREATE TABLE IF NOT EXISTS interactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     contact_id INTEGER NOT NULL,
     datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
     title TEXT NOT NULL,
@@ -165,7 +165,7 @@ const CREATE_TABLES = [
 
   // 6. Notes
   `CREATE TABLE IF NOT EXISTS notes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     contact_id INTEGER,
     title TEXT,
     content TEXT NOT NULL,
@@ -177,7 +177,7 @@ const CREATE_TABLES = [
 
   // 7a. Categories
   `CREATE TABLE IF NOT EXISTS categories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
     color TEXT DEFAULT '#007AFF',
     icon TEXT DEFAULT 'folder',
@@ -197,7 +197,7 @@ const CREATE_TABLES = [
 
   // 10. User Preferences
   `CREATE TABLE IF NOT EXISTS user_preferences (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     category TEXT NOT NULL,
     setting_key TEXT NOT NULL,
     setting_value TEXT,
