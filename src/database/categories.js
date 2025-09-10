@@ -172,19 +172,11 @@ export function createCategoriesDB(ctx) {
 
     // Contact-category relationship management
     async addContactToCategory(contactId, categoryId) {
-      try {
-        const res = await execute(
-          'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
-          [contactId, categoryId]
-        );
-        return (res && res.rowsAffected) ? res.rowsAffected > 0 : false;
-      } catch (error) {
-        // If any UNIQUE constraint error still bubbles up, treat as duplicate
-        if (error.message && error.message.includes('UNIQUE constraint')) {
-          return false; // Already exists
-        }
-        throw error;
-      }
+      const res = await execute(
+        'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+        [contactId, categoryId]
+      );
+      return res && res.rowsAffected ? res.rowsAffected > 0 : false;
     },
 
     async removeContactFromCategory(contactId, categoryId) {
