@@ -19,24 +19,10 @@
 
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
+import { DatabaseError } from './errors';
 
-// Custom error for database operations
-/**
- * Typed error for database operations.
- * @extends Error
- * @property {string} code Stable, machine-readable error code.
- * @property {any} [originalError] Underlying error object from SQLite/WebSQL.
- * @property {object} [context] Optional contextual data (e.g. sql, params).
- */
-export class DatabaseError extends Error {
-  constructor(message, code = 'DB_ERROR', originalError = null, context = null) {
-    super(message);
-    this.name = 'DatabaseError';
-    this.code = code;
-    this.originalError = originalError;
-    this.context = context || undefined;
-  }
-}
+// Re-export for consumers that import from this module
+export { DatabaseError } from './errors';
 
 let _db = null;
 let _initialized = false;

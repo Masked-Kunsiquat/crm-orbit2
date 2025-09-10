@@ -8,7 +8,8 @@
  * applied version.
  */
 
-// Avoid importing from ../index to prevent circular dependencies at init time.
+// Import DatabaseError from a dedicated module to avoid circular deps.
+import { DatabaseError } from '../errors';
 
 /**
  * Run pending database migrations.
@@ -36,10 +37,11 @@ export async function runMigrations({ db, execute, batch, transaction, onLog }) 
       );`
     );
   } catch (err) {
-    const e = new Error('Failed to ensure migrations table');
-    e.code = 'MIGRATION_META_FAILED';
-    e.originalError = err;
-    throw e;
+    throw new DatabaseError(
+      'Failed to ensure migrations table',
+      'MIGRATION_META_FAILED',
+      err
+    );
   }
 
   // No-op for now; concrete migrations will be implemented later
