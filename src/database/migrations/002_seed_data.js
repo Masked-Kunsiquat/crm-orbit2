@@ -78,7 +78,9 @@ const SYSTEM_CATEGORIES = [
 ];
 
 const INSERT_CATEGORIES = SYSTEM_CATEGORIES.map((c) => ({
-  sql: 'INSERT OR IGNORE INTO categories (name, color, icon, is_system, sort_order) VALUES (?, ?, ?, 1, ?);',
+  sql:
+    'INSERT INTO categories (name, color, icon, is_system, sort_order) VALUES (?, ?, ?, 1, ?) ' +
+    'ON CONFLICT(name) DO UPDATE SET color = excluded.color, icon = excluded.icon, sort_order = excluded.sort_order, is_system = 1;',
   params: [c.name, c.color, c.icon, c.sort_order],
 }));
 
@@ -145,4 +147,3 @@ export default {
     await runAll(exec, [...DELETE_PREFERENCES, ...DELETE_CATEGORIES]);
   },
 };
-
