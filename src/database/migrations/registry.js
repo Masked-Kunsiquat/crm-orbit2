@@ -37,7 +37,9 @@ MIGRATIONS.forEach((m, idx) => {
   if (seen.has(m.version)) {
     throw new DatabaseError(
       `Duplicate migration version detected: ${m.version}`,
-      'MIGRATION_DUPLICATE'
+      'MIGRATION_DUPLICATE',
+      null,
+      { version: m.version }
     );
   }
   seen.add(m.version);
