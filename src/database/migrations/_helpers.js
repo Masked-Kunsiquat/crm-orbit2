@@ -35,31 +35,24 @@ export async function runAll(exec, items) {
     throw new Error('No execute/batch helpers available for migration.');
   }
 
-  if (hasBatch) {
-    const statements = items.map((entry) => {
-      if (entry && typeof entry === 'object') {
-        // { sql, params } or already normalized object
-        if (Array.isArray(entry)) {
-          return { sql: entry[0], params: entry[1] };
-        }
-        if ('sql' in entry) return entry;
-      }
-      // string
-      return { sql: entry };
+  // Normalize entries to a consistent shape
+  function normalizeStatements(list) {
+    return (Array.isArray(list) ? list : []).map((entry) => {
+      if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
+      if (entry && typeof entry === 'object' && 'sql' in entry) return { sql: entry.sql, params: entry.params };
+      return { sql: entry, params: undefined };
     });
+  }
+
+  if (hasBatch) {
+    const statements = normalizeStatements(items);
     await exec.batch(statements);
     return;
   }
 
   // Fallback to sequential execute
-  for (const entry of items) {
-    if (Array.isArray(entry)) {
-      await exec.execute(entry[0], entry[1]);
-    } else if (entry && typeof entry === 'object' && 'sql' in entry) {
-      await exec.execute(entry.sql, entry.params);
-    } else {
-      await exec.execute(entry);
-    }
+  for (const { sql, params } of normalizeStatements(items)) {
+    await exec.execute(sql, params);
   }
 }
 
@@ -73,13 +66,14 @@ export async function runAllSequential(exec, items) {
   if (!exec || typeof exec.execute !== 'function') {
     throw new Error('runAllSequential: exec.execute is not available');
   }
-  for (const entry of items) {
-    if (Array.isArray(entry)) {
-      await exec.execute(entry[0], entry[1]);
-    } else if (entry && typeof entry === 'object' && 'sql' in entry) {
-      await exec.execute(entry.sql, entry.params);
-    } else {
-      await exec.execute(entry);
-    }
+  // Reuse the same normalization as runAll
+  const normalizeStatements = (list) =>
+    (Array.isArray(list) ? list : []).map((entry) => {
+      if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
+      if (entry && typeof entry === 'object' && 'sql' in entry) return { sql: entry.sql, params: entry.params };
+      return { sql: entry, params: undefined };
+    });
+  for (const { sql, params } of normalizeStatements(items)) {
+    await exec.execute(sql, params);
   }
 }
