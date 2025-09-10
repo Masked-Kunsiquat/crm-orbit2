@@ -20,6 +20,7 @@
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
+import { createCategoriesDB } from './categories';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
@@ -358,7 +359,7 @@ const notImplemented = (moduleName) =>
   );
 
 export const contactsDB = createContactsDB({ execute, batch, transaction });
-export const categoriesDB = notImplemented('categories');
+export const categoriesDB = createCategoriesDB({ execute, batch, transaction });
 export const companiesDB = notImplemented('companies');
 export const eventsDB = notImplemented('events');
 export const interactionsDB = notImplemented('interactions');
