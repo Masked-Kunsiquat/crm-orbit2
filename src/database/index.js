@@ -26,7 +26,7 @@ export { DatabaseError } from './errors';
 
 let _db = null;
 let _initialized = false;
-let _initPromise = null;
+let _initInflight = null;
 
 const DEFAULT_DB_NAME = 'crm_orbit.db';
 
@@ -280,8 +280,8 @@ export async function initDatabase(options = {}) {
     onLog = null,
   } = options;
 
-  if (_initialized) return _db;
-  if (_initPromise) return _initPromise;
+  if (_initialized && _db) return _db;
+  if (_initInflight) return _initInflight;
 
   const startInit = async () => {
     const db = openDatabase(name);
@@ -319,8 +319,8 @@ export async function initDatabase(options = {}) {
     return db;
   };
 
-  _initPromise = startInit().finally(() => { _initPromise = null; });
-  return _initPromise;
+  _initInflight = startInit().finally(() => { _initInflight = null; });
+  return _initInflight;
 }
 
 /**
