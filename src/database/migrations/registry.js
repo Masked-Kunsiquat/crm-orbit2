@@ -24,7 +24,5 @@ MIGRATIONS.forEach((m) => {
   seen.add(m.version);
 });
 
-MIGRATIONS.sort((a, b) => a.version - b.version);
-
-export default MIGRATIONS;
-
+const SORTED = Object.freeze([...MIGRATIONS].sort((a, b) => a.version - b.version));
+export default SORTED;
