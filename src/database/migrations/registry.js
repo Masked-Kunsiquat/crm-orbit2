@@ -3,13 +3,11 @@
 // This pattern works reliably with Metro/Expo bundlers.
 
 import m001 from './001_initial_schema';
-
-// Add future migrations below, e.g.:
-// import m002 from './002_seed_data';
+import m002 from './002_seed_data';
 
 const MIGRATIONS = [
   m001,
-  // m002,
+  m002,
 ];
 
 // Ensure unique, sorted by version

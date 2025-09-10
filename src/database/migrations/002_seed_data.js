@@ -1,0 +1,148 @@
+// Seed data migration
+// Follows the format outlined in migrations/AGENTS.md
+// Exports: { version, name, up(dbOrCtx), down(dbOrCtx) }
+
+/**
+ * Normalize execution helpers from various contexts.
+ * Supports either a context with { batch, execute } or a plain object exposing those.
+ * @param {any} dbOrCtx
+ */
+function getExec(dbOrCtx) {
+  const hasBatch = dbOrCtx && typeof dbOrCtx.batch === 'function';
+  const hasExecute = dbOrCtx && typeof dbOrCtx.execute === 'function';
+  if (hasBatch || hasExecute) {
+    return {
+      batch: hasBatch ? dbOrCtx.batch.bind(dbOrCtx) : null,
+      execute: hasExecute ? dbOrCtx.execute.bind(dbOrCtx) : null,
+    };
+  }
+  // Fallback no-op; caller must provide helpers via migration runner
+  return { batch: null, execute: null };
+}
+
+/**
+ * Execute a list of statements using batch when available; otherwise sequential execute.
+ * Each item may be one of:
+ * - string: raw SQL
+ * - [sql, params]: tuple
+ * - { sql, params? }: object
+ * @param {{batch?: Function, execute?: Function}} exec
+ * @param {Array<string | [string, any[]] | {sql: string, params?: any[]}>} items
+ */
+async function runAll(exec, items) {
+  const hasBatch = !!exec.batch;
+  const hasExecute = !!exec.execute;
+
+  if (!hasBatch && !hasExecute) {
+    throw new Error('No execute/batch helpers available for migration.');
+  }
+
+  if (hasBatch) {
+    const statements = items.map((entry) => {
+      if (entry && typeof entry === 'object') {
+        // { sql, params } or already normalized object
+        if (Array.isArray(entry)) {
+          return { sql: entry[0], params: entry[1] };
+        }
+        if ('sql' in entry) return entry;
+      }
+      // string
+      return { sql: entry };
+    });
+    await exec.batch(statements);
+    return;
+  }
+
+  // Fallback to sequential execute
+  for (const entry of items) {
+    if (Array.isArray(entry)) {
+      await exec.execute(entry[0], entry[1]);
+    } else if (entry && typeof entry === 'object' && 'sql' in entry) {
+      await exec.execute(entry.sql, entry.params);
+    } else {
+      await exec.execute(entry);
+    }
+  }
+}
+
+// 1) System categories that cannot be deleted (is_system = 1)
+const SYSTEM_CATEGORIES = [
+  { name: 'Family', color: '#FF6B6B', icon: 'home', sort_order: 10 },
+  { name: 'Friends', color: '#4ECDC4', icon: 'people', sort_order: 20 },
+  { name: 'Work', color: '#5E72E4', icon: 'briefcase', sort_order: 30 },
+  { name: 'VIP', color: '#F4C430', icon: 'star', sort_order: 40 },
+  { name: 'Clients', color: '#2DCE89', icon: 'handshake', sort_order: 50 },
+  { name: 'Leads', color: '#11CDEF', icon: 'person-add', sort_order: 60 },
+  { name: 'Vendors', color: '#FB6340', icon: 'cart', sort_order: 70 },
+  { name: 'Personal', color: '#8965E0', icon: 'person', sort_order: 80 },
+];
+
+const INSERT_CATEGORIES = SYSTEM_CATEGORIES.map((c) => ({
+  sql: 'INSERT OR IGNORE INTO categories (name, color, icon, is_system, sort_order) VALUES (?, ?, ?, 1, ?);',
+  params: [c.name, c.color, c.icon, c.sort_order],
+}));
+
+// 2) Default user preferences
+const DEFAULT_PREFERENCES = [
+  // Notifications
+  { category: 'notifications', key: 'enable_push', value: 'true', data_type: 'boolean', is_enabled: 1 },
+  { category: 'notifications', key: 'daily_summary', value: 'true', data_type: 'boolean', is_enabled: 1 },
+  { category: 'notifications', key: 'reminder_lead_time_minutes', value: '30', data_type: 'number', is_enabled: 1 },
+  { category: 'notifications', key: 'interaction_notifications', value: 'true', data_type: 'boolean', is_enabled: 1 },
+
+  // Display
+  { category: 'display', key: 'theme', value: 'system', data_type: 'string', is_enabled: 1 },
+  { category: 'display', key: 'compact_mode', value: 'false', data_type: 'boolean', is_enabled: 1 },
+  { category: 'display', key: 'items_per_page', value: '25', data_type: 'number', is_enabled: 1 },
+
+  // Security
+  { category: 'security', key: 'biometrics_enabled', value: 'false', data_type: 'boolean', is_enabled: 1 },
+  { category: 'security', key: 'auto_lock_minutes', value: '5', data_type: 'number', is_enabled: 1 },
+
+  // Backup
+  { category: 'backup', key: 'auto_backup_enabled', value: 'true', data_type: 'boolean', is_enabled: 1 },
+  { category: 'backup', key: 'backup_frequency_days', value: '7', data_type: 'number', is_enabled: 1 },
+  { category: 'backup', key: 'include_attachments', value: 'true', data_type: 'boolean', is_enabled: 1 },
+];
+
+const INSERT_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
+  sql: 'INSERT OR IGNORE INTO user_preferences (category, setting_key, setting_value, data_type, is_enabled) VALUES (?, ?, ?, ?, ?);',
+  params: [p.category, p.key, p.value, p.data_type, p.is_enabled],
+}));
+
+// Build targeted deletes for down migration
+const CATEGORY_NAMES = SYSTEM_CATEGORIES.map((c) => c.name);
+const DELETE_CATEGORIES = [
+  {
+    sql: `DELETE FROM categories WHERE is_system = 1 AND name IN (${CATEGORY_NAMES.map(() => '?').join(', ')});`,
+    params: CATEGORY_NAMES,
+  },
+];
+
+const DELETE_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
+  sql: 'DELETE FROM user_preferences WHERE category = ? AND setting_key = ?;',
+  params: [p.category, p.key],
+}));
+
+export default {
+  version: 2,
+  name: '002_seed_data',
+  /**
+   * Insert system categories and default user preferences.
+   * @param {any} dbOrCtx Migration context: expected to provide { batch, execute } helpers.
+   */
+  up: async (dbOrCtx) => {
+    const exec = getExec(dbOrCtx);
+    await runAll(exec, [...INSERT_CATEGORIES, ...INSERT_PREFERENCES]);
+  },
+
+  /**
+   * Remove only the seeded data (system categories inserted here and default preferences).
+   * @param {any} dbOrCtx Migration context: expected to provide { batch, execute } helpers.
+   */
+  down: async (dbOrCtx) => {
+    const exec = getExec(dbOrCtx);
+    await runAll(exec, [...DELETE_PREFERENCES, ...DELETE_CATEGORIES]);
+  },
+};
+
