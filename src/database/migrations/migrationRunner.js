@@ -103,9 +103,43 @@ export async function runMigrations(ctx) {
     const name = migration.name || `migration_${migration.version}`;
     onLog && onLog(`[migrations] Applying v${migration.version} (${name})...`);
     try {
-      // Provide helpers to the migration
-      await migration.up({ execute, batch, transaction });
-      await recordApplied(ctx, migration);
+      if (typeof transaction === 'function') {
+        // Wrap migration + recording in one atomic transaction
+        await transaction(async (tx) => {
+          // tx-aware batch that schedules all statements synchronously
+          const txBatch = async (stmts) => {
+            const items = Array.isArray(stmts) ? stmts : [];
+            const promises = [];
+            for (const entry of items) {
+              let sql, params;
+              if (Array.isArray(entry)) {
+                sql = entry[0];
+                params = entry[1];
+              } else if (entry && typeof entry === 'object' && 'sql' in entry) {
+                sql = entry.sql;
+                params = entry.params;
+              } else {
+                sql = entry;
+                params = undefined;
+              }
+              // Schedule inside this transaction; do not await here
+              promises.push(tx.execute(sql, params));
+            }
+            // Adopt results after commit via outer transaction wrapper
+            return Promise.all(promises);
+          };
+
+          // Run migration using transactional context
+          await migration.up({ execute: tx.execute, batch: txBatch, transaction });
+
+          // Record as applied within the same transaction
+          await recordApplied({ execute: tx.execute }, migration);
+        });
+      } else {
+        // No transaction helper; use non-atomic fallback
+        await migration.up({ execute, batch, transaction });
+        await recordApplied(ctx, migration);
+      }
       onLog && onLog(`[migrations] Applied v${migration.version} (${name}).`);
     } catch (err) {
       throw new DatabaseError(
