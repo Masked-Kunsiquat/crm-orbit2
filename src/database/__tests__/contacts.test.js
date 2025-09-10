@@ -90,6 +90,7 @@ function createSchema(db) {
     first_name TEXT NOT NULL,
     last_name TEXT,
     middle_name TEXT,
+    display_name TEXT,
     avatar_uri TEXT,
     company_id INTEGER,
     job_title TEXT,

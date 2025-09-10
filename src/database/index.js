@@ -19,7 +19,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
-import createContactsDB from './contacts';
+import { createContactsDB } from './contacts';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
