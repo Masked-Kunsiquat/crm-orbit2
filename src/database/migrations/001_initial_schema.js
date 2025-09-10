@@ -92,7 +92,7 @@ const CREATE_TABLES = [
     notes TEXT,
     logo_attachment_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (logo_attachment_id) REFERENCES attachments (id)
+    FOREIGN KEY (logo_attachment_id) REFERENCES attachments (id) ON DELETE SET NULL
   );`,
 
   // 1. Contacts (references companies)
@@ -108,7 +108,7 @@ const CREATE_TABLES = [
     last_interaction_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES companies (id)
+    FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE SET NULL
   );`,
 
   // 2. Contact Info
@@ -251,6 +251,36 @@ const CREATE_INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_user_preferences_category ON user_preferences (category);`,
 ];
 
+// Ensure updated_at stays fresh without app-side updates
+const CREATE_TRIGGERS = [
+  // Contacts updated_at
+  `CREATE TRIGGER IF NOT EXISTS trg_contacts_updated_at
+   AFTER UPDATE ON contacts
+   FOR EACH ROW
+   WHEN NEW.updated_at = OLD.updated_at
+   BEGIN
+     UPDATE contacts SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+   END;`,
+
+  // Notes updated_at
+  `CREATE TRIGGER IF NOT EXISTS trg_notes_updated_at
+   AFTER UPDATE ON notes
+   FOR EACH ROW
+   WHEN NEW.updated_at = OLD.updated_at
+   BEGIN
+     UPDATE notes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+   END;`,
+
+  // User Preferences updated_at
+  `CREATE TRIGGER IF NOT EXISTS trg_user_preferences_updated_at
+   AFTER UPDATE ON user_preferences
+   FOR EACH ROW
+   WHEN NEW.updated_at = OLD.updated_at
+   BEGIN
+     UPDATE user_preferences SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+   END;`,
+];
+
 const DROP_INDEXES = [
   // Drop in any order (SQLite drops with table too, but explicit for clarity)
   'DROP INDEX IF EXISTS idx_user_preferences_category;',
@@ -272,6 +302,12 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_contacts_is_favorite;',
   'DROP INDEX IF EXISTS idx_contacts_last_name;',
   'DROP INDEX IF EXISTS idx_contacts_company_id;',
+];
+
+const DROP_TRIGGERS = [
+  'DROP TRIGGER IF EXISTS trg_user_preferences_updated_at;',
+  'DROP TRIGGER IF EXISTS trg_notes_updated_at;',
+  'DROP TRIGGER IF EXISTS trg_contacts_updated_at;',
 ];
 
 const DROP_TABLES_REVERSED = [
@@ -301,6 +337,7 @@ export default {
     // Create tables first, then indexes
     await runAll(exec, CREATE_TABLES);
     await runAll(exec, CREATE_INDEXES);
+    await runAll(exec, CREATE_TRIGGERS);
   },
 
   /**
@@ -311,6 +348,8 @@ export default {
     const exec = getExec(dbOrCtx);
     // Drop indexes explicitly (SQLite would drop with tables, but do it for clarity)
     await runAll(exec, DROP_INDEXES);
+    // Drop triggers explicitly
+    await runAll(exec, DROP_TRIGGERS);
     // Drop tables respecting dependencies
     await runAll(exec, DROP_TABLES_REVERSED);
   },
