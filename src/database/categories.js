@@ -38,11 +38,18 @@ export function createCategoriesDB(ctx) {
   return {
     // Core CRUD
     async create(data) {
-      if (!data || !data.name) {
+      // Validate and normalize name
+      if (!data || typeof data.name !== 'string') {
+        throw new DatabaseError('name is required', 'VALIDATION_ERROR');
+      }
+      const trimmedName = data.name.trim();
+      if (!trimmedName) {
         throw new DatabaseError('name is required', 'VALIDATION_ERROR');
       }
 
       const categoryData = pick(data, CATEGORY_FIELDS);
+      // Ensure we insert the trimmed name rather than raw input
+      categoryData.name = trimmedName;
       
       // Set defaults
       if (!categoryData.color) categoryData.color = '#007AFF';
@@ -87,7 +94,7 @@ export function createCategoriesDB(ctx) {
         where.push('is_system = 0');
       }
 
-      const order = ['name', 'sort_order', 'created_at'].includes(orderBy) ? orderBy : 'sort_order';
+      const order = ['name', 'sort_order'].includes(orderBy) ? orderBy : 'sort_order';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
       
       const sql = `SELECT * FROM categories ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
