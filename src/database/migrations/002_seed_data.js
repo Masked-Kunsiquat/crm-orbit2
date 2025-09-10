@@ -108,7 +108,9 @@ const DEFAULT_PREFERENCES = [
 ];
 
 const INSERT_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
-  sql: 'INSERT OR IGNORE INTO user_preferences (category, setting_key, setting_value, data_type, is_enabled) VALUES (?, ?, ?, ?, ?);',
+  sql:
+    'INSERT INTO user_preferences (category, setting_key, setting_value, data_type, is_enabled) VALUES (?, ?, ?, ?, ?) ' +
+    'ON CONFLICT(category, setting_key) DO UPDATE SET setting_value = excluded.setting_value, data_type = excluded.data_type, is_enabled = excluded.is_enabled;',
   params: [p.category, p.key, p.value, p.data_type, p.is_enabled],
 }));
 
