@@ -353,8 +353,37 @@ export function createContactsDB(ctx) {
     },
 
     async deleteContactInfo(infoId) {
-      const res = await execute('DELETE FROM contact_info WHERE id = ?;', [infoId]);
-      return res.rowsAffected || 0;
+      if (!transaction) {
+        // Fallback to batch if transaction not available
+        const currentRes = await execute('SELECT contact_id FROM contact_info WHERE id = ?;', [infoId]);
+        const current = currentRes.rows[0];
+        if (!current) return 0;
+        
+        const results = await batch([
+          { sql: 'DELETE FROM contact_info WHERE id = ?;', params: [infoId] },
+          { sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;', params: [current.contact_id] },
+        ]);
+        return results[0]?.rowsAffected || 0;
+      }
+      
+      // Use transaction for atomic operation
+      return await transaction(async (tx) => {
+        // Get contact_id before deletion
+        const currentRes = await tx.execute('SELECT contact_id FROM contact_info WHERE id = ?;', [infoId]);
+        const current = currentRes.rows[0];
+        if (!current) return 0;
+        
+        // Delete contact info record
+        const deleteRes = await tx.execute('DELETE FROM contact_info WHERE id = ?;', [infoId]);
+        const rowsAffected = deleteRes.rowsAffected || 0;
+        
+        // Update parent contact's last interaction timestamp
+        if (rowsAffected > 0) {
+          await tx.execute('UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;', [current.contact_id]);
+        }
+        
+        return rowsAffected;
+      });
     },
   };
 }
