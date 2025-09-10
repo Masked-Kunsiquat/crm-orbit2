@@ -27,17 +27,12 @@ function pick(obj, fields) {
   return out;
 }
 
-function keys(obj) {
-  return Object.keys(obj);
-}
 
 function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
-function nowISO() {
-  return new Date().toISOString();
-}
+// (reserved for future helpers)
 
 function computeDisplayName(data) {
   const nameParts = [
@@ -92,10 +87,51 @@ export function createContactsDB(ctx) {
       const contactData = pick(data, CONTACT_FIELDS);
       // Compute and assign display_name before building columns/values
       contactData.display_name = computeDisplayName(data);
-      const cols = keys(contactData);
+      const cols = Object.keys(contactData);
       const vals = cols.map((k) => contactData[k]);
 
-      // Insert contact
+      // If a transaction helper is available, perform the contact insert and
+      // any contact_info inserts atomically within a single transaction.
+      if (transaction) {
+        return await transaction(async (tx) => {
+          const insertRes = await tx.execute(
+            `INSERT INTO contacts (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
+            vals
+          );
+          const id = insertRes.insertId;
+          if (!id) {
+            throw new DatabaseError('Failed to create contact', 'INSERT_FAILED');
+          }
+
+          if (infoList && infoList.length) {
+            const insertedIds = [];
+            for (const info of infoList) {
+              const row = pick(info || {}, INFO_FIELDS);
+              const infoCols = Object.keys(row);
+              const infoVals = infoCols.map((k) => row[k]);
+              // Ensure primary uniqueness per (contact_id, type)
+              if (row.is_primary) {
+                await tx.execute(
+                  'UPDATE contact_info SET is_primary = 0 WHERE contact_id = ? AND type = ?;',
+                  [id, row.type]
+                );
+              }
+              const res = await tx.execute(
+                `INSERT INTO contact_info (contact_id, ${infoCols.join(', ')}) VALUES (?, ${placeholders(
+                  infoCols.length
+                )});`,
+                [id, ...infoVals]
+              );
+              if (res?.insertId) insertedIds.push(res.insertId);
+            }
+            return { id, contact_info_ids: insertedIds };
+          }
+
+          return { id };
+        });
+      }
+
+      // Fallback: no transaction available. Perform inserts separately as before.
       const insertRes = await execute(
         `INSERT INTO contacts (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
         vals
@@ -105,13 +141,12 @@ export function createContactsDB(ctx) {
         throw new DatabaseError('Failed to create contact', 'INSERT_FAILED');
       }
 
-      // Optional: insert contact info in a batch
       if (infoList && infoList.length) {
         const statements = [];
         const insertPositions = [];
         infoList.forEach((info) => {
           const row = pick(info || {}, INFO_FIELDS);
-          const infoCols = keys(row);
+          const infoCols = Object.keys(row);
           const infoVals = infoCols.map((k) => row[k]);
           // Ensure primary uniqueness per (contact_id, type)
           if (row.is_primary) {
@@ -132,7 +167,6 @@ export function createContactsDB(ctx) {
         const insertedIds = insertPositions
           .map((idx) => results[idx]?.insertId)
           .filter((x) => !!x);
-        // Not strictly needed to return, but useful
         return { id, contact_info_ids: insertedIds };
       }
 
@@ -198,7 +232,9 @@ export function createContactsDB(ctx) {
     },
 
     async search(query) {
-      const q = `%${String(query || '').trim()}%`;
+      const term = String(query || '').trim();
+      if (!term) return [];
+      const q = `%${term}%`;
       const res = await execute(
         `SELECT DISTINCT c.*
          FROM contacts c
@@ -277,7 +313,7 @@ export function createContactsDB(ctx) {
       const insertIdx = [];
       items.forEach((info) => {
         const row = pick(info || {}, INFO_FIELDS);
-        const cols = keys(row);
+        const cols = Object.keys(row);
         const vals = cols.map((k) => row[k]);
         if (!row.type || !row.value) {
           throw new DatabaseError('Contact info requires type and value', 'VALIDATION_ERROR');
