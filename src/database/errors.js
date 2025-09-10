@@ -17,8 +17,9 @@ export class DatabaseError extends Error {
     this.code = code;
     this.originalError = originalError;
     this.context = context || undefined;
+    // Preserve causal chain where supported (Node 16+/modern runtimes)
+    try { this.cause = originalError ?? undefined; } catch (_) {}
   }
 }
 
 export default DatabaseError;
-
