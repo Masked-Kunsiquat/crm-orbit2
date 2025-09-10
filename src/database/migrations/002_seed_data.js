@@ -65,6 +65,19 @@ async function runAll(exec, items) {
   }
 }
 
+// Optional helper for strictly ordered execution (ignores batch on purpose)
+async function runAllSequential(exec, items) {
+  for (const entry of items) {
+    if (Array.isArray(entry)) {
+      await exec.execute(entry[0], entry[1]);
+    } else if (entry && typeof entry === 'object' && 'sql' in entry) {
+      await exec.execute(entry.sql, entry.params);
+    } else {
+      await exec.execute(entry);
+    }
+  }
+}
+
 // 1) System categories that cannot be deleted (is_system = 1)
 const SYSTEM_CATEGORIES = [
   { name: 'Family', color: '#FF6B6B', icon: 'home', sort_order: 10 },
@@ -128,6 +141,18 @@ const DELETE_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
   params: [p.category, p.key],
 }));
 
+// Pre-delete links to avoid FK violations on categories deletion
+const DELETE_CONTACT_CATEGORY_LINKS = [
+  {
+    sql: `DELETE FROM contact_categories
+          WHERE category_id IN (
+            SELECT id FROM categories
+            WHERE is_system = 1 AND name IN (${CATEGORY_NAMES.map(() => '?').join(', ')})
+          );`,
+    params: CATEGORY_NAMES,
+  },
+];
+
 export default {
   version: 2,
   name: '002_seed_data',
@@ -146,6 +171,11 @@ export default {
    */
   down: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
-    await runAll(exec, [...DELETE_PREFERENCES, ...DELETE_CATEGORIES]);
+    // 1) Remove preferences (by exact keys)
+    await runAllSequential(exec, DELETE_PREFERENCES);
+    // 2) Unlink any contact-category references for these system categories
+    await runAllSequential(exec, DELETE_CONTACT_CATEGORY_LINKS);
+    // 3) Remove categories
+    await runAllSequential(exec, DELETE_CATEGORIES);
   },
 };
