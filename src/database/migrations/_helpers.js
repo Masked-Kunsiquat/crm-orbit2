@@ -70,6 +70,9 @@ export async function runAll(exec, items) {
  * @param {Array<string | [string, any[]] | {sql: string, params?: any[]}>} items
  */
 export async function runAllSequential(exec, items) {
+  if (!exec || typeof exec.execute !== 'function') {
+    throw new Error('runAllSequential: exec.execute is not available');
+  }
   for (const entry of items) {
     if (Array.isArray(entry)) {
       await exec.execute(entry[0], entry[1]);
@@ -80,4 +83,3 @@ export async function runAllSequential(exec, items) {
     }
   }
 }
-
