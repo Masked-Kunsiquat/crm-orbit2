@@ -27,6 +27,13 @@ function normalizeDateRange(startDate, endDate) {
   return { start, end, endOp };
 }
 
+function clampLimit(n, min = 1, max = 200) {
+  const num = Number(n);
+  if (isNaN(num) || num < min) return min;
+  if (num > max) return max;
+  return Math.floor(num);
+}
+
 /**
  * Create the interactions statistics module
  * @param {Object} deps - Database dependencies
@@ -172,7 +179,8 @@ export function createInteractionsStatsDB({ execute }) {
         params.push(end);
       }
       if (interactionType) {
-        conditions.push('i.interaction_type = ?');
+        conditions.push('(i.interaction_type = ? OR i.custom_type = ?)');
+        params.push(interactionType);
         params.push(interactionType);
       }
       
@@ -193,7 +201,7 @@ export function createInteractionsStatsDB({ execute }) {
                    ORDER BY interaction_count DESC
                    LIMIT ?;`;
       
-      params.push(limit);
+      params.push(clampLimit(limit));
       const res = await execute(sql, params);
       return res.rows;
     }
