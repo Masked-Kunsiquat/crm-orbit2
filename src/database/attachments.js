@@ -33,12 +33,24 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
   };
 
+  const validateFileSize = (fileSize) => {
+    if (fileSize !== null && fileSize !== undefined) {
+      if (typeof fileSize !== 'number' || !Number.isFinite(fileSize) || fileSize < 0) {
+        throw new DatabaseError(
+          'Invalid file_size. Must be a finite number >= 0',
+          'VALIDATION_ERROR'
+        );
+      }
+    }
+  };
+
   return {
     async create(data) {
       try {
         validateRequiredFields(data, ['entity_type', 'entity_id', 'file_name', 'original_name', 'file_path', 'file_type']);
         validateEntityType(data.entity_type);
         validateFileType(data.file_type);
+        validateFileSize(data.file_size);
 
         const result = await execute(
           `INSERT INTO attachments (
@@ -53,7 +65,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
             data.file_path,
             data.file_type,
             data.mime_type || null,
-            data.file_size || null,
+            data.file_size !== undefined ? data.file_size : null,
             data.thumbnail_path || null,
             data.description || null
           ]
@@ -118,6 +130,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
       try {
         if (data.entity_type) validateEntityType(data.entity_type);
         if (data.file_type) validateFileType(data.file_type);
+        if ('file_size' in data) validateFileSize(data.file_size);
 
         const setParts = [];
         const params = [];

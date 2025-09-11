@@ -203,6 +203,44 @@ describe('createAttachmentsDB', () => {
       });
     });
 
+    test('create() accepts valid file_size values', async () => {
+      // Test zero size
+      const zeroSize = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'empty.txt',
+        original_name: 'empty.txt',
+        file_path: '/empty.txt',
+        file_type: 'document',
+        file_size: 0
+      });
+      expect(zeroSize.file_size).toBe(0);
+
+      // Test positive size
+      const positiveSize = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'large.jpg',
+        original_name: 'large.jpg',
+        file_path: '/large.jpg',
+        file_type: 'image',
+        file_size: 1048576
+      });
+      expect(positiveSize.file_size).toBe(1048576);
+
+      // Test null/undefined (should be accepted)
+      const nullSize = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'unknown.doc',
+        original_name: 'unknown.doc',
+        file_path: '/unknown.doc',
+        file_type: 'document',
+        file_size: null
+      });
+      expect(nullSize.file_size).toBeNull();
+    });
+
     test('getById() returns attachment when it exists', async () => {
       const created = await attachmentsDB.create({
         entity_type: 'event',
@@ -353,6 +391,38 @@ describe('createAttachmentsDB', () => {
       })).rejects.toThrow('Invalid file_type');
     });
 
+    test('create() throws error for invalid file_size', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image',
+        file_size: -100
+      })).rejects.toThrow('Invalid file_size');
+
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image',
+        file_size: 'not a number'
+      })).rejects.toThrow('Invalid file_size');
+
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image',
+        file_size: Infinity
+      })).rejects.toThrow('Invalid file_size');
+    });
+
     test('update() throws error when attachment not found', async () => {
       await expect(attachmentsDB.update(999, { description: 'test' }))
         .rejects
@@ -372,6 +442,29 @@ describe('createAttachmentsDB', () => {
       await expect(attachmentsDB.update(created.id, {}))
         .rejects
         .toThrow('No valid fields to update');
+    });
+
+    test('update() throws error for invalid file_size', async () => {
+      const created = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      });
+
+      await expect(attachmentsDB.update(created.id, { file_size: -50 }))
+        .rejects
+        .toThrow('Invalid file_size');
+
+      await expect(attachmentsDB.update(created.id, { file_size: 'invalid' }))
+        .rejects
+        .toThrow('Invalid file_size');
+
+      await expect(attachmentsDB.update(created.id, { file_size: NaN }))
+        .rejects
+        .toThrow('Invalid file_size');
     });
 
     test('delete() throws error when attachment not found', async () => {
