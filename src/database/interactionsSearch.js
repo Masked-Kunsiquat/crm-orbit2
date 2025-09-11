@@ -118,7 +118,7 @@ export function createInteractionsSearchDB({ execute }) {
       return res.rows;
     },
 
-    async advancedSearch(criteria, options = {}) {
+    async advancedSearch(criteria = {}, options = {}) {
       const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
       const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
