@@ -69,18 +69,23 @@ export default {
     }
 
     if (ftsReady) {
-      await runAll(exec, [
-        `CREATE TRIGGER IF NOT EXISTS interactions_ai AFTER INSERT ON interactions BEGIN
-           INSERT INTO interactions_fts(rowid, title, note) VALUES (new.id, new.title, new.note);
-         END;`,
-        `CREATE TRIGGER IF NOT EXISTS interactions_ad AFTER DELETE ON interactions BEGIN
-           INSERT INTO interactions_fts(interactions_fts, rowid, title, note) VALUES ('delete', old.id, old.title, old.note);
-         END;`,
-        `CREATE TRIGGER IF NOT EXISTS interactions_au AFTER UPDATE ON interactions BEGIN
-           INSERT INTO interactions_fts(interactions_fts, rowid, title, note) VALUES ('delete', old.id, old.title, old.note);
-           INSERT INTO interactions_fts(rowid, title, note) VALUES (new.id, new.title, new.note);
-         END;`,
-      ]);
+      try {
+        await runAll(exec, [
+          `CREATE TRIGGER IF NOT EXISTS interactions_ai AFTER INSERT ON interactions BEGIN
+             INSERT INTO interactions_fts(rowid, title, note) VALUES (new.id, new.title, new.note);
+           END;`,
+          `CREATE TRIGGER IF NOT EXISTS interactions_ad AFTER DELETE ON interactions BEGIN
+             INSERT INTO interactions_fts(interactions_fts, rowid, title, note) VALUES ('delete', old.id, old.title, old.note);
+           END;`,
+          `CREATE TRIGGER IF NOT EXISTS interactions_au AFTER UPDATE ON interactions BEGIN
+             INSERT INTO interactions_fts(interactions_fts, rowid, title, note) VALUES ('delete', old.id, old.title, old.note);
+             INSERT INTO interactions_fts(rowid, title, note) VALUES (new.id, new.title, new.note);
+           END;`,
+        ]);
+      } catch (error) {
+        // Log warning but continue migration - trigger creation is non-critical
+        console.warn('Warning: Failed to create FTS5 triggers:', error?.message || error);
+      }
     }
   },
 
