@@ -23,6 +23,7 @@ import { createContactsDB } from './contacts';
 import { createCategoriesDB } from './categories';
 import { createCompaniesDB } from './companies';
 import { createEventsDB } from './events';
+import { createInteractionsDB } from './interactions';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
@@ -364,7 +365,7 @@ export const contactsDB = createContactsDB({ execute, batch, transaction });
 export const categoriesDB = createCategoriesDB({ execute, batch, transaction });
 export const companiesDB = createCompaniesDB({ execute, batch, transaction });
 export const eventsDB = createEventsDB({ execute, batch, transaction });
-export const interactionsDB = notImplemented('interactions');
+export const interactionsDB = createInteractionsDB({ execute, batch, transaction });
 export const notesDB = notImplemented('notes');
 export const attachmentsDB = notImplemented('attachments');
 export const settingsDB = notImplemented('settings');
