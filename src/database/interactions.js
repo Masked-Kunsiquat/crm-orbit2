@@ -258,8 +258,10 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
-      const sql = `SELECT * FROM interactions WHERE interaction_type = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [interactionType, clampLimit(limit), clampOffset(offset)]);
+      const sql = `SELECT * FROM interactions
+                   WHERE interaction_type = ? OR (custom_type IS NOT NULL AND custom_type = ?)
+                   ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
+      const res = await execute(sql, [interactionType, interactionType, clampLimit(limit), clampOffset(offset)]);
       return res.rows;
     },
 
