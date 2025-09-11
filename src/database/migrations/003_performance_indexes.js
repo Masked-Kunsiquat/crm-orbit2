@@ -8,9 +8,11 @@ const CREATE_INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_interactions_contact_datetime ON interactions(contact_id, datetime DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_interactions_datetime_desc ON interactions(datetime DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_interactions_type_datetime ON interactions(interaction_type, datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_custom_type_datetime ON interactions(custom_type, datetime DESC);`,
 ];
 
 const DROP_INDEXES = [
+  'DROP INDEX IF EXISTS idx_interactions_custom_type_datetime;',
   'DROP INDEX IF EXISTS idx_interactions_type_datetime;',
   'DROP INDEX IF EXISTS idx_interactions_datetime_desc;',
   'DROP INDEX IF EXISTS idx_interactions_contact_datetime;',
