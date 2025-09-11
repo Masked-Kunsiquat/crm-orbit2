@@ -68,6 +68,29 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     return numericValue;
   };
 
+  const validatePagination = (options) => {
+    const { limit, offset } = options;
+
+    // Parse and validate limit
+    let parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedLimit) || parsedLimit === null || parsedLimit === undefined) {
+      parsedLimit = 10; // Default limit
+    }
+    // Clamp limit between 1 and 100
+    parsedLimit = Math.max(1, Math.min(100, parsedLimit));
+
+    // Parse and validate offset
+    let parsedOffset = parseInt(offset, 10);
+    if (isNaN(parsedOffset) || parsedOffset === null || parsedOffset === undefined || parsedOffset < 0) {
+      parsedOffset = 0; // Default offset
+    }
+
+    return {
+      limit: parsedLimit,
+      offset: parsedOffset
+    };
+  };
+
   return {
     async create(data) {
       try {
@@ -121,11 +144,12 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     async getAll(options = {}) {
       try {
         const {
-          limit = 50,
-          offset = 0,
           sortBy = 'created_at',
           sortOrder = 'DESC'
         } = options;
+
+        // Validate pagination parameters
+        const { limit, offset } = validatePagination(options);
 
         const validSortColumns = ['id', 'entity_type', 'file_name', 'original_name', 'file_type', 'file_size', 'created_at'];
         if (!validSortColumns.includes(sortBy)) {
@@ -345,11 +369,12 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         validateFileType(fileType);
 
         const {
-          limit = 50,
-          offset = 0,
           sortBy = 'created_at',
           sortOrder = 'DESC'
         } = options;
+
+        // Validate pagination parameters
+        const { limit, offset } = validatePagination(options);
 
         const validSortColumns = ['id', 'entity_type', 'file_name', 'original_name', 'file_size', 'created_at'];
         if (!validSortColumns.includes(sortBy)) {

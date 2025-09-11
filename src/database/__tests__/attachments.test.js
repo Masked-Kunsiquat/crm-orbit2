@@ -615,6 +615,86 @@ describe('createAttachmentsDB', () => {
       const result = await attachmentsDB.update(created.id, { entity_id: '456' });
       expect(result.entity_id).toBe(456); // Should be converted to number
     });
+
+    test('getAll() handles pagination validation', async () => {
+      // Create some test data
+      await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test1.jpg',
+        original_name: 'test1.jpg',
+        file_path: '/test1.jpg',
+        file_type: 'image'
+      });
+
+      // Test with default pagination (should use limit=10, offset=0)
+      const defaultResult = await attachmentsDB.getAll();
+      expect(defaultResult.length).toBeGreaterThan(0);
+
+      // Test with valid pagination values
+      const validResult = await attachmentsDB.getAll({ limit: 5, offset: 0 });
+      expect(validResult.length).toBeGreaterThan(0);
+
+      // Test negative limit (should default to 10)
+      const negLimitResult = await attachmentsDB.getAll({ limit: -5 });
+      expect(negLimitResult).toBeDefined();
+
+      // Test negative offset (should default to 0)
+      const negOffsetResult = await attachmentsDB.getAll({ offset: -1 });
+      expect(negOffsetResult).toBeDefined();
+
+      // Test excessively large limit (should be clamped to 100)
+      const largeLimitResult = await attachmentsDB.getAll({ limit: 1000 });
+      expect(largeLimitResult).toBeDefined();
+
+      // Test zero limit (should be set to 1)
+      const zeroLimitResult = await attachmentsDB.getAll({ limit: 0 });
+      expect(zeroLimitResult).toBeDefined();
+
+      // Test string numbers for pagination
+      const stringParamsResult = await attachmentsDB.getAll({ limit: '15', offset: '2' });
+      expect(stringParamsResult).toBeDefined();
+
+      // Test invalid string values (should use defaults)
+      const invalidStringResult = await attachmentsDB.getAll({ limit: 'invalid', offset: 'bad' });
+      expect(invalidStringResult).toBeDefined();
+
+      // Test null/undefined values (should use defaults)
+      const nullResult = await attachmentsDB.getAll({ limit: null, offset: undefined });
+      expect(nullResult).toBeDefined();
+    });
+
+    test('getByFileType() handles pagination validation', async () => {
+      // Create test data
+      await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test1.jpg',
+        original_name: 'test1.jpg',
+        file_path: '/test1.jpg',
+        file_type: 'image'
+      });
+
+      // Test with default pagination
+      const defaultResult = await attachmentsDB.getByFileType('image');
+      expect(defaultResult.length).toBeGreaterThan(0);
+
+      // Test with valid pagination values
+      const validResult = await attachmentsDB.getByFileType('image', { limit: 5, offset: 0 });
+      expect(validResult.length).toBeGreaterThan(0);
+
+      // Test negative values (should use defaults)
+      const negativeResult = await attachmentsDB.getByFileType('image', { limit: -10, offset: -5 });
+      expect(negativeResult).toBeDefined();
+
+      // Test excessive values (should be clamped)
+      const excessiveResult = await attachmentsDB.getByFileType('image', { limit: 500, offset: 0 });
+      expect(excessiveResult).toBeDefined();
+
+      // Test string numbers
+      const stringResult = await attachmentsDB.getByFileType('image', { limit: '8', offset: '1' });
+      expect(stringResult).toBeDefined();
+    });
   });
 
   describe('entity-specific operations', () => {
