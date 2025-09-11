@@ -4,21 +4,17 @@ This document outlines the testing conventions and patterns used in the database
 
 ## Overview
 
-The database tests ensure comprehensive coverage of all CRUD operations, edge cases, and business logic for each database module. Tests use both mocked contexts and real in-memory SQLite databases to validate functionality.
+The database tests ensure comprehensive coverage of all CRUD operations, edge cases, and business logic for each database module. All tests use real in-memory SQLite databases to validate functionality for maximum consistency and reliability.
 
 ## Test Architecture
 
-### Two Testing Approaches
+### Unified Testing Approach
 
-1. **Mock Context Testing** (`categories.test.js`)
-   - Uses Jest mocks to simulate database operations
-   - Fast execution, isolated unit tests
-   - Good for testing business logic without database complexity
-
-2. **In-Memory SQLite Testing** (`contacts.test.js`, `events.test.js`, `interactions.test.js`, etc.)
-   - Uses `sql.js` for real SQLite database operations
-   - More comprehensive integration testing
-   - Validates actual SQL queries and database constraints
+**In-Memory SQLite Testing** (all test files)
+- Uses `sql.js` for real SQLite database operations
+- Comprehensive integration testing across all modules
+- Validates actual SQL queries and database constraints
+- Ensures consistent behavior with production SQLite environment
 
 ## File Structure
 
@@ -29,62 +25,15 @@ The database tests ensure comprehensive coverage of all CRUD operations, edge ca
 
 ### Import Patterns
 ```javascript
-// For in-memory tests
+// Standard import pattern for all tests
 import initSqlJs from 'sql.js';
 import path from 'path';
 import { createModuleDB } from '../module';
 import { createHelperDB } from '../moduleHelper'; // if applicable
-
-// For mock tests
-import { createModuleDB } from '../module';
 import { DatabaseError } from '../errors';
 ```
 
 ## Testing Utilities
-
-### Mock Context (categories.test.js pattern)
-```javascript
-const createMockContext = () => {
-  const executeResults = [];
-  const batchResults = [];
-  const transactionResults = [];
-
-  const execute = jest.fn().mockImplementation(() => {
-    if (executeResults.length > 0) {
-      return Promise.resolve(executeResults.shift());
-    }
-    return Promise.resolve({ rows: [], rowsAffected: 0, insertId: null });
-  });
-
-  const batch = jest.fn().mockImplementation(() => {
-    if (batchResults.length > 0) {
-      return Promise.resolve(batchResults.shift());
-    }
-    return Promise.resolve([]);
-  });
-
-  const transaction = jest.fn().mockImplementation((work) => {
-    const mockTx = {
-      execute: jest.fn().mockImplementation(() => {
-        if (transactionResults.length > 0) {
-          return Promise.resolve(transactionResults.shift());
-        }
-        return Promise.resolve({ rows: [], rowsAffected: 0, insertId: null });
-      })
-    };
-    return work(mockTx);
-  });
-
-  return {
-    execute,
-    batch,
-    transaction,
-    executeResults,
-    batchResults,
-    transactionResults
-  };
-};
-```
 
 ### In-Memory SQLite Context
 ```javascript
@@ -252,9 +201,9 @@ test('throws VALIDATION_ERROR for invalid data', async () => {
 
 ## Current Test Coverage
 
-- **112 tests passing** across 5 test suites
-- Covers all major database modules:
-  - `categories.test.js` - Mock-based testing
+- **117 tests passing** across 5 test suites
+- Covers all major database modules with consistent in-memory SQLite testing:
+  - `categories.test.js` - In-memory SQLite with categoriesRelations helper
   - `contacts.test.js` - In-memory SQLite with contactsInfo helper
   - `events.test.js` - In-memory SQLite with eventsRecurring and eventsReminders helpers
   - `interactions.test.js` - In-memory SQLite with interactionsStats and interactionsSearch helpers
