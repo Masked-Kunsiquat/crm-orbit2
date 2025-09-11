@@ -484,6 +484,137 @@ describe('createAttachmentsDB', () => {
         .rejects
         .toThrow('Invalid sort order');
     });
+
+    test('create() throws error for missing entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Missing required fields: entity_id');
+    });
+
+    test('create() throws error for null entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: null,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Missing required fields: entity_id');
+    });
+
+    test('create() throws error for negative entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: -1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+    });
+
+    test('create() throws error for zero entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 0,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+    });
+
+    test('create() throws error for non-integer entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1.5,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+    });
+
+    test('create() accepts string numbers for entity_id', async () => {
+      const result = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: '123',
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      });
+
+      expect(result).toBeDefined();
+      expect(result.entity_id).toBe(123); // Should be converted to number
+    });
+
+    test('create() throws error for invalid string entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 'not-a-number',
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+    });
+
+    test('create() throws error for empty string entity_id', async () => {
+      await expect(attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: '',
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      })).rejects.toThrow('Missing required fields: entity_id');
+    });
+
+    test('update() throws error for invalid entity_id', async () => {
+      const created = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      });
+
+      await expect(attachmentsDB.update(created.id, { entity_id: -1 }))
+        .rejects
+        .toThrow('Invalid entity_id. Must be a positive integer');
+
+      await expect(attachmentsDB.update(created.id, { entity_id: 0 }))
+        .rejects
+        .toThrow('Invalid entity_id. Must be a positive integer');
+
+      await expect(attachmentsDB.update(created.id, { entity_id: 1.5 }))
+        .rejects
+        .toThrow('Invalid entity_id. Must be a positive integer');
+
+      await expect(attachmentsDB.update(created.id, { entity_id: 'invalid' }))
+        .rejects
+        .toThrow('Invalid entity_id. Must be a positive integer');
+    });
+
+    test('update() accepts string numbers for entity_id', async () => {
+      const created = await attachmentsDB.create({
+        entity_type: 'contact',
+        entity_id: 1,
+        file_name: 'test.jpg',
+        original_name: 'test.jpg',
+        file_path: '/test.jpg',
+        file_type: 'image'
+      });
+
+      const result = await attachmentsDB.update(created.id, { entity_id: '456' });
+      expect(result.entity_id).toBe(456); // Should be converted to number
+    });
   });
 
   describe('entity-specific operations', () => {

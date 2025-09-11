@@ -44,11 +44,36 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
   };
 
+  const validateEntityId = (entityId) => {
+    if (entityId === null || entityId === undefined) {
+      throw new DatabaseError(
+        'entity_id is required',
+        'VALIDATION_ERROR'
+      );
+    }
+
+    // Convert string numbers to actual numbers
+    let numericValue = entityId;
+    if (typeof entityId === 'string' && !isNaN(entityId) && entityId.trim() !== '') {
+      numericValue = Number(entityId);
+    }
+
+    if (typeof numericValue !== 'number' || !Number.isInteger(numericValue) || numericValue <= 0) {
+      throw new DatabaseError(
+        'Invalid entity_id. Must be a positive integer',
+        'VALIDATION_ERROR'
+      );
+    }
+
+    return numericValue;
+  };
+
   return {
     async create(data) {
       try {
         validateRequiredFields(data, ['entity_type', 'entity_id', 'file_name', 'original_name', 'file_path', 'file_type']);
         validateEntityType(data.entity_type);
+        const validatedEntityId = validateEntityId(data.entity_id);
         validateFileType(data.file_type);
         validateFileSize(data.file_size);
 
@@ -59,7 +84,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
           [
             data.entity_type,
-            data.entity_id,
+            validatedEntityId,
             data.file_name,
             data.original_name,
             data.file_path,
@@ -129,6 +154,9 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     async update(id, data) {
       try {
         if (data.entity_type) validateEntityType(data.entity_type);
+        if (data.entity_id !== undefined) {
+          data.entity_id = validateEntityId(data.entity_id);
+        }
         if (data.file_type) validateFileType(data.file_type);
         if ('file_size' in data) validateFileSize(data.file_size);
 
