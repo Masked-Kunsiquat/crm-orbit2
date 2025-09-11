@@ -72,17 +72,64 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     const { limit, offset } = options;
 
     // Parse and validate limit
-    let parsedLimit = parseInt(limit, 10);
-    if (isNaN(parsedLimit) || parsedLimit === null || parsedLimit === undefined) {
+    let parsedLimit = limit;
+    
+    // Handle undefined/null gracefully with defaults
+    if (parsedLimit === undefined || parsedLimit === null) {
       parsedLimit = 10; // Default limit
+    } else {
+      // Convert to integer
+      parsedLimit = parseInt(parsedLimit, 10);
+      
+      // Throw error for invalid numeric values
+      if (isNaN(parsedLimit)) {
+        throw new DatabaseError(
+          'Invalid limit parameter. Must be a number',
+          'VALIDATION_ERROR'
+        );
+      }
+      
+      // Enforce bounds
+      if (parsedLimit < 1) {
+        throw new DatabaseError(
+          'Invalid limit parameter. Must be >= 1',
+          'VALIDATION_ERROR'
+        );
+      }
+      
+      if (parsedLimit > 100) {
+        throw new DatabaseError(
+          'Invalid limit parameter. Must be <= 100',
+          'VALIDATION_ERROR'
+        );
+      }
     }
-    // Clamp limit between 1 and 100
-    parsedLimit = Math.max(1, Math.min(100, parsedLimit));
 
     // Parse and validate offset
-    let parsedOffset = parseInt(offset, 10);
-    if (isNaN(parsedOffset) || parsedOffset === null || parsedOffset === undefined || parsedOffset < 0) {
+    let parsedOffset = offset;
+    
+    // Handle undefined/null gracefully with defaults
+    if (parsedOffset === undefined || parsedOffset === null) {
       parsedOffset = 0; // Default offset
+    } else {
+      // Convert to integer
+      parsedOffset = parseInt(parsedOffset, 10);
+      
+      // Throw error for invalid numeric values
+      if (isNaN(parsedOffset)) {
+        throw new DatabaseError(
+          'Invalid offset parameter. Must be a number',
+          'VALIDATION_ERROR'
+        );
+      }
+      
+      // Enforce bounds
+      if (parsedOffset < 0) {
+        throw new DatabaseError(
+          'Invalid offset parameter. Must be >= 0',
+          'VALIDATION_ERROR'
+        );
+      }
     }
 
     return {

@@ -635,33 +635,44 @@ describe('createAttachmentsDB', () => {
       const validResult = await attachmentsDB.getAll({ limit: 5, offset: 0 });
       expect(validResult.length).toBeGreaterThan(0);
 
-      // Test negative limit (should default to 10)
-      const negLimitResult = await attachmentsDB.getAll({ limit: -5 });
-      expect(negLimitResult).toBeDefined();
-
-      // Test negative offset (should default to 0)
-      const negOffsetResult = await attachmentsDB.getAll({ offset: -1 });
-      expect(negOffsetResult).toBeDefined();
-
-      // Test excessively large limit (should be clamped to 100)
-      const largeLimitResult = await attachmentsDB.getAll({ limit: 1000 });
-      expect(largeLimitResult).toBeDefined();
-
-      // Test zero limit (should be set to 1)
-      const zeroLimitResult = await attachmentsDB.getAll({ limit: 0 });
-      expect(zeroLimitResult).toBeDefined();
-
       // Test string numbers for pagination
       const stringParamsResult = await attachmentsDB.getAll({ limit: '15', offset: '2' });
       expect(stringParamsResult).toBeDefined();
 
-      // Test invalid string values (should use defaults)
-      const invalidStringResult = await attachmentsDB.getAll({ limit: 'invalid', offset: 'bad' });
-      expect(invalidStringResult).toBeDefined();
-
       // Test null/undefined values (should use defaults)
       const nullResult = await attachmentsDB.getAll({ limit: null, offset: undefined });
       expect(nullResult).toBeDefined();
+    });
+
+    test('getAll() throws errors for invalid pagination', async () => {
+      // Test negative limit (should throw error)
+      await expect(attachmentsDB.getAll({ limit: -5 }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be >= 1');
+
+      // Test zero limit (should throw error)
+      await expect(attachmentsDB.getAll({ limit: 0 }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be >= 1');
+
+      // Test negative offset (should throw error)
+      await expect(attachmentsDB.getAll({ offset: -1 }))
+        .rejects
+        .toThrow('Invalid offset parameter. Must be >= 0');
+
+      // Test excessively large limit (should throw error)
+      await expect(attachmentsDB.getAll({ limit: 1000 }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be <= 100');
+
+      // Test invalid string values (should throw error)
+      await expect(attachmentsDB.getAll({ limit: 'invalid' }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be a number');
+
+      await expect(attachmentsDB.getAll({ offset: 'bad' }))
+        .rejects
+        .toThrow('Invalid offset parameter. Must be a number');
     });
 
     test('getByFileType() handles pagination validation', async () => {
@@ -683,17 +694,34 @@ describe('createAttachmentsDB', () => {
       const validResult = await attachmentsDB.getByFileType('image', { limit: 5, offset: 0 });
       expect(validResult.length).toBeGreaterThan(0);
 
-      // Test negative values (should use defaults)
-      const negativeResult = await attachmentsDB.getByFileType('image', { limit: -10, offset: -5 });
-      expect(negativeResult).toBeDefined();
-
-      // Test excessive values (should be clamped)
-      const excessiveResult = await attachmentsDB.getByFileType('image', { limit: 500, offset: 0 });
-      expect(excessiveResult).toBeDefined();
-
       // Test string numbers
       const stringResult = await attachmentsDB.getByFileType('image', { limit: '8', offset: '1' });
       expect(stringResult).toBeDefined();
+    });
+
+    test('getByFileType() throws errors for invalid pagination', async () => {
+      // Test negative values (should throw errors)
+      await expect(attachmentsDB.getByFileType('image', { limit: -10 }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be >= 1');
+
+      await expect(attachmentsDB.getByFileType('image', { offset: -5 }))
+        .rejects
+        .toThrow('Invalid offset parameter. Must be >= 0');
+
+      // Test excessive values (should throw error)
+      await expect(attachmentsDB.getByFileType('image', { limit: 500 }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be <= 100');
+
+      // Test invalid string values
+      await expect(attachmentsDB.getByFileType('image', { limit: 'invalid' }))
+        .rejects
+        .toThrow('Invalid limit parameter. Must be a number');
+
+      await expect(attachmentsDB.getByFileType('image', { offset: 'bad' }))
+        .rejects
+        .toThrow('Invalid offset parameter. Must be a number');
     });
   });
 
