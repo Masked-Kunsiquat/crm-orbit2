@@ -125,22 +125,36 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
       const sets = Object.keys(interactionData).map(k => `${k} = ?`);
       const vals = Object.values(interactionData);
-      
-      await execute(
-        `UPDATE interactions SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
-        [...vals, id]
-      );
 
-      // Recalculate last_interaction_at for affected contacts
-      const contactChanged = Object.prototype.hasOwnProperty.call(interactionData, 'contact_id') && interactionData.contact_id !== existing.contact_id;
-      if (contactChanged) {
-        // Recalc for both old and new contacts
-        await recalcContactLastInteraction(existing.contact_id);
-        await recalcContactLastInteraction(interactionData.contact_id);
-      } else if (Object.prototype.hasOwnProperty.call(interactionData, 'datetime')) {
-        // Datetime changed but contact not changed
-        await recalcContactLastInteraction(existing.contact_id);
+      if (!transaction) {
+        throw new DatabaseError('Transaction support required for update', 'TRANSACTION_REQUIRED');
       }
+
+      await transaction((tx) => {
+        // 1) Update the interaction row
+        const updateSql = `UPDATE interactions SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`;
+        const updatePromise = tx.execute(updateSql, [...vals, id]);
+
+        // 2) Determine old/new contact IDs
+        const oldContactId = existing.contact_id;
+        const newContactId = Object.prototype.hasOwnProperty.call(interactionData, 'contact_id')
+          ? interactionData.contact_id
+          : oldContactId;
+
+        // 3) Recompute last_interaction_at via MAX(datetime) for each distinct affected contact
+        const contactIds = new Set([oldContactId, newContactId]);
+        const recalcPromises = [];
+        for (const contactId of contactIds) {
+          recalcPromises.push(
+            tx.execute(
+              'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+              [contactId, contactId]
+            )
+          );
+        }
+
+        return Promise.all([updatePromise, ...recalcPromises]).then(() => true);
+      });
 
       return this.getById(id);
     },
