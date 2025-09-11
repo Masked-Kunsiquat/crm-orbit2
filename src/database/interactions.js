@@ -36,6 +36,15 @@ function placeholders(n) {
  * @returns {Object} Interactions database API
  */
 export function createInteractionsDB({ execute, batch, transaction }) {
+  // Helper to recalculate a contact's last_interaction_at based on existing interactions
+  async function recalcContactLastInteraction(contactId) {
+    // Set last_interaction_at to MAX(datetime) for the contact, or NULL if none
+    await execute(
+      'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+      [contactId, contactId]
+    );
+  }
+
   return {
     // Core CRUD operations
     async create(data) {
@@ -61,11 +70,8 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         throw new DatabaseError('Failed to create interaction', 'CREATE_FAILED');
       }
       
-      // Auto-update contact's last_interaction_at
-      await execute(
-        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
-        [data.contact_id]
-      );
+      // Recalculate contact's last_interaction_at
+      await recalcContactLastInteraction(data.contact_id);
       
       return this.getById(res.insertId);
     },
@@ -108,17 +114,27 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         [...vals, id]
       );
 
-      // Update contact's last_interaction_at when interaction is modified
-      await execute(
-        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
-        [existing.contact_id]
-      );
+      // Recalculate last_interaction_at for affected contacts
+      const contactChanged = Object.prototype.hasOwnProperty.call(interactionData, 'contact_id') && interactionData.contact_id !== existing.contact_id;
+      if (contactChanged) {
+        // Recalc for both old and new contacts
+        await recalcContactLastInteraction(existing.contact_id);
+        await recalcContactLastInteraction(interactionData.contact_id);
+      } else if (Object.prototype.hasOwnProperty.call(interactionData, 'datetime')) {
+        // Datetime changed but contact not changed
+        await recalcContactLastInteraction(existing.contact_id);
+      }
 
       return this.getById(id);
     },
 
     async delete(id) {
+      // Find the contact for this interaction to recalc after deletion
+      const existing = await this.getById(id);
       const res = await execute('DELETE FROM interactions WHERE id = ?;', [id]);
+      if (existing && res.rowsAffected) {
+        await recalcContactLastInteraction(existing.contact_id);
+      }
       return res.rowsAffected || 0;
     },
 
@@ -282,11 +298,11 @@ export function createInteractionsDB({ execute, batch, transaction }) {
           executePromises.push(executePromise);
         }
         
-        // Schedule contact update calls synchronously (now that we have all contactIds)
+        // Schedule contact recalculation calls synchronously (now that we have all contactIds)
         for (const contactId of contactIds) {
           const updatePromise = tx.execute(
-            'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
-            [contactId]
+            'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+            [contactId, contactId]
           );
           executePromises.push(updatePromise);
         }

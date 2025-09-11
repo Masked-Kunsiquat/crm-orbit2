@@ -547,6 +547,97 @@ describe('interactionsDB (in-memory)', () => {
       .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
+  test("updating an interaction's contact_id recalculates last_interaction_at for both contacts", async () => {
+    // Create interactions for two contacts with known datetimes
+    const movedDatetime = '2024-06-02T10:00:00Z';
+    const otherForContact1 = '2024-05-01T09:00:00Z';
+    const existingForContact2 = '2024-05-15T11:00:00Z';
+
+    const other1 = await interactions.create({
+      contact_id: contactId,
+      title: 'Other for C1',
+      interaction_type: 'call',
+      datetime: otherForContact1
+    });
+
+    const toMove = await interactions.create({
+      contact_id: contactId,
+      title: 'To Move',
+      interaction_type: 'email',
+      datetime: movedDatetime
+    });
+
+    const c2existing = await interactions.create({
+      contact_id: contact2Id,
+      title: 'Existing for C2',
+      interaction_type: 'meeting',
+      datetime: existingForContact2
+    });
+
+    // Record both contacts' last_interaction_at before the update
+    const beforeC1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    const beforeC2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
+    const beforeC1Last = beforeC1.rows[0].last_interaction_at;
+    const beforeC2Last = beforeC2.rows[0].last_interaction_at;
+    expect(beforeC1Last).toBeTruthy();
+    expect(beforeC2Last).toBeTruthy();
+
+    // Transfer the interaction to the second contact
+    await interactions.update(toMove.id, { contact_id: contact2Id });
+
+    // Fetch contacts after transfer
+    const afterC1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    const afterC2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
+
+    const afterC1Last = afterC1.rows[0].last_interaction_at;
+    const afterC2Last = afterC2.rows[0].last_interaction_at;
+
+    // Old contact should no longer reflect the moved interaction's datetime
+    expect(afterC1Last).not.toBe(movedDatetime);
+
+    // New contact should reflect the moved interaction's datetime
+    expect(afterC2Last).toBe(movedDatetime);
+  });
+
+  test("deleting an interaction recalculates contact's last_interaction_at to next most recent or null", async () => {
+    const d1 = '2024-01-01T10:00:00Z';
+    const d2 = '2024-06-01T10:00:00Z';
+    const d3 = '2024-07-01T10:00:00Z'; // most recent
+
+    const i1 = await interactions.create({
+      contact_id: contactId,
+      title: 'Oldest',
+      interaction_type: 'call',
+      datetime: d1
+    });
+    const i2 = await interactions.create({
+      contact_id: contactId,
+      title: 'Middle',
+      interaction_type: 'email',
+      datetime: d2
+    });
+    const i3 = await interactions.create({
+      contact_id: contactId,
+      title: 'Latest',
+      interaction_type: 'meeting',
+      datetime: d3
+    });
+
+    // Delete the most recent one
+    await interactions.delete(i3.id);
+
+    // After deletion, last_interaction_at should be d2
+    const afterDeleteOne = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    expect(afterDeleteOne.rows[0].last_interaction_at).toBe(d2);
+
+    // Delete remaining interactions and expect null
+    await interactions.delete(i2.id);
+    await interactions.delete(i1.id);
+
+    const afterDeleteAll = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    expect(afterDeleteAll.rows[0].last_interaction_at || null).toBeNull();
+  });
+
   // Additional utility method tests
   test('getContactInteractionSummary returns summary by type', async () => {
     await interactions.create({
