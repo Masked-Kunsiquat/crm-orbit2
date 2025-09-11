@@ -205,6 +205,7 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
      */
     async getUpcomingBirthdays(days = 30) {
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const birthdays = [];
       
       // Get all birthday events
@@ -220,8 +221,9 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       for (const event of res.rows) {
         const nextDate = calculateNextOccurrence(event.event_date, 'yearly');
         if (nextDate) {
-          const nextBirthday = new Date(nextDate + 'T00:00:00');
-          const daysDiff = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+          const nextBirthday = new Date(nextDate);
+          nextBirthday.setHours(0, 0, 0, 0);
+          const daysDiff = Math.round((nextBirthday - today) / (1000 * 60 * 60 * 24));
           
           if (daysDiff >= 0 && daysDiff <= days) {
             birthdays.push({
@@ -244,6 +246,7 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
      */
     async getUpcomingRecurring(days = 30) {
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const upcoming = [];
       
       const sql = 'SELECT * FROM events WHERE recurring = 1 ORDER BY event_date ASC;';
@@ -252,8 +255,9 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       for (const event of res.rows) {
         const nextDate = calculateNextOccurrence(event.event_date, event.recurrence_pattern);
         if (nextDate) {
-          const nextEvent = new Date(nextDate + 'T00:00:00');
-          const daysDiff = Math.ceil((nextEvent - today) / (1000 * 60 * 60 * 24));
+          const nextEvent = new Date(nextDate);
+          nextEvent.setHours(0, 0, 0, 0);
+          const daysDiff = Math.round((nextEvent - today) / (1000 * 60 * 60 * 24));
           
           if (daysDiff >= 0 && daysDiff <= days) {
             upcoming.push({
