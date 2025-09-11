@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # JavaScript/Expo app (npm) located in /crm-orbit
+  # JavaScript/Expo app (npm) in repository root
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
