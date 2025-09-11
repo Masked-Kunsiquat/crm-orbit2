@@ -1,4 +1,5 @@
 [![CodeQL](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql/badge.svg?branch=master)](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql)
+[![Database Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Masked-Kunsiquat/6939328496751d752fecb83a9cd612ab/raw/expo-crm-database-tests.json)](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/test-badge.yml)
 
 # CRM Orbit
 
@@ -51,6 +52,7 @@ The application uses a modular database architecture with the following implemen
 - **interactionsStats**: Interaction analytics and statistics
 - **interactionsSearch**: Advanced interaction search and filtering
 - **notes**: Note management for contacts and general notes
+- **attachments**: Universal attachment system for all entities
 
 ### Database Features
 - Foreign key constraints with cascading deletes
@@ -93,7 +95,7 @@ npm test -- --watch
 ```
 
 ### Database Testing
-- **144 tests** across 6 test suites
+- **179 tests** across 7 test suites
 - In-memory SQLite testing with sql.js
 - Complete coverage of CRUD operations, business logic, and error handling
 - Integration testing between database modules
@@ -103,7 +105,7 @@ npm test -- --watch
 **Phase 1: Database Foundation** - COMPLETED
 - All core database modules implemented and tested
 - Migration system with schema versioning
-- Comprehensive test coverage (144 passing tests)
+- Comprehensive test coverage (179 passing tests)
 
 **Phase 2: Services Layer** - PLANNED
 - File management services
