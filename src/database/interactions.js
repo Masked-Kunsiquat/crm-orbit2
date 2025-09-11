@@ -72,15 +72,6 @@ function normalizeDateRange(startDate, endDate) {
  * @returns {Object} Interactions database API
  */
 export function createInteractionsDB({ execute, batch, transaction }) {
-  // Helper to recalculate a contact's last_interaction_at based on existing interactions
-  async function recalcContactLastInteraction(contactId) {
-    // Set last_interaction_at to MAX(datetime) for the contact, or NULL if none
-    await execute(
-      'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
-      [contactId, contactId]
-    );
-  }
-
   return {
     // Core CRUD operations
     async create(data) {
