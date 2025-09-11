@@ -160,13 +160,31 @@ export function createInteractionsDB({ execute, batch, transaction }) {
     },
 
     async delete(id) {
-      // Find the contact for this interaction to recalc after deletion
-      const existing = await this.getById(id);
-      const res = await execute('DELETE FROM interactions WHERE id = ?;', [id]);
-      if (existing && res.rowsAffected) {
-        await recalcContactLastInteraction(existing.contact_id);
+      if (!transaction) {
+        throw new DatabaseError('Transaction support required for delete', 'TRANSACTION_REQUIRED');
       }
-      return res.rowsAffected || 0;
+
+      // Perform a transactional delete with atomic recalc of the affected contact's last_interaction_at
+      // Strategy: compute the post-delete last_interaction_at by taking MAX(datetime) excluding
+      // the soon-to-be-deleted interaction, then delete the interaction. This yields the same
+      // final state as delete-then-recalc while keeping all operations inside one transaction
+      // without needing to await between execute calls.
+      const rowsAffected = await transaction((tx) => {
+        const updateSql = `UPDATE contacts
+                             SET last_interaction_at = (
+                               SELECT MAX(datetime) FROM interactions
+                               WHERE contact_id = (SELECT contact_id FROM interactions WHERE id = ?)
+                                 AND id != ?
+                             )
+                           WHERE id = (SELECT contact_id FROM interactions WHERE id = ?);`;
+
+        const updatePromise = tx.execute(updateSql, [id, id, id]);
+        const deletePromise = tx.execute('DELETE FROM interactions WHERE id = ?;', [id]);
+
+        return Promise.all([updatePromise, deletePromise]).then(([_u, delRes]) => delRes.rowsAffected || 0);
+      });
+
+      return rowsAffected;
     },
 
     // Search & Filter operations
