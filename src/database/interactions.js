@@ -61,19 +61,36 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
       const fields = Object.keys(interactionData);
       const values = Object.values(interactionData);
-      
-      const sql = `INSERT INTO interactions (${fields.join(', ')}, created_at) 
-                   VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
-      
-      const res = await execute(sql, values);
-      if (!res.insertId) {
-        throw new DatabaseError('Failed to create interaction', 'CREATE_FAILED');
+
+      // Perform INSERT + last_interaction_at update atomically in a single transaction
+      if (!transaction) {
+        throw new DatabaseError('Transaction support required for create', 'TRANSACTION_REQUIRED');
       }
-      
-      // Recalculate contact's last_interaction_at
-      await recalcContactLastInteraction(data.contact_id);
-      
-      return this.getById(res.insertId);
+
+      const insertedId = await transaction((tx) => {
+        // Schedule both statements synchronously to ensure they execute in the same transaction
+        const insertSql = `INSERT INTO interactions (${fields.join(', ')}, created_at)
+                           VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
+
+        let newId = null;
+        const insertPromise = tx.execute(insertSql, values).then((res) => {
+          if (!res.insertId) {
+            throw new DatabaseError('Failed to create interaction', 'CREATE_FAILED');
+          }
+          newId = res.insertId;
+          return res;
+        });
+
+        // Recompute last_interaction_at from interactions to avoid bumping on backfilled records
+        const updateContactPromise = tx.execute(
+          'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+          [data.contact_id, data.contact_id]
+        );
+
+        return Promise.all([insertPromise, updateContactPromise]).then(() => newId);
+      });
+
+      return this.getById(insertedId);
     },
 
     async getById(id) {
