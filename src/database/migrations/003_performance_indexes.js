@@ -43,15 +43,17 @@ export default {
     await runAll(exec, CREATE_INDEXES);
 
     // Conditionally create contacts(display_name) index if the column exists
-    try {
-      const res = await exec.execute("PRAGMA table_info('contacts');");
-      const cols = rowsFromExecuteResult(res).map((r) => r.name || r.column_name || r.Column || r.column || r[1]);
-      const hasDisplayName = cols && cols.some((n) => String(n).toLowerCase() === 'display_name');
-      if (hasDisplayName) {
-        await exec.execute('CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name);');
+    if (typeof exec.execute === 'function') {
+      try {
+        const res = await exec.execute("PRAGMA table_info('contacts');");
+        const cols = rowsFromExecuteResult(res).map((r) => r.name || r.column_name || r.Column || r.column || r[1]);
+        const hasDisplayName = cols && cols.some((n) => String(n).toLowerCase() === 'display_name');
+        if (hasDisplayName) {
+          await exec.execute('CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name);');
+        }
+      } catch (_) {
+        // Ignore pragma errors in environments that do not support it
       }
-    } catch (_) {
-      // Ignore pragma errors in environments that do not support it
     }
 
     // Optionally enable FTS5 for interactions(title, note) if available
