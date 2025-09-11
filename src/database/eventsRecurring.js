@@ -13,34 +13,110 @@ import { DatabaseError } from './errors';
 function calculateNextOccurrence(eventDate, recurrencePattern, fromDate = null) {
   if (!eventDate || !recurrencePattern) return null;
   
-  const baseDate = new Date(eventDate + 'T00:00:00');
+  // Parse original event date components
+  const [eventYear, eventMonth, eventDay] = eventDate.split('-').map(Number);
+  
+  // Get today's local date components
   const today = fromDate ? new Date(fromDate + 'T00:00:00') : new Date();
   today.setHours(0, 0, 0, 0);
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth() + 1; // getMonth() is 0-based
+  const todayDay = today.getDate();
   
   if (recurrencePattern === 'yearly') {
-    const nextDate = new Date(baseDate);
-    nextDate.setFullYear(today.getFullYear());
+    let nextYear = todayYear;
+    let nextMonth = eventMonth;
+    let nextDay = eventDay;
+    
+    // Handle Feb 29 on non-leap years
+    if (eventMonth === 2 && eventDay === 29) {
+      if (!isLeapYear(nextYear)) {
+        nextDay = 28;
+      }
+    }
+    
+    // Create candidate date for this year
+    const thisYearDate = new Date(nextYear, nextMonth - 1, nextDay);
+    thisYearDate.setHours(0, 0, 0, 0);
     
     // If this year's occurrence has passed, move to next year
-    if (nextDate < today) {
-      nextDate.setFullYear(today.getFullYear() + 1);
+    if (thisYearDate < today) {
+      nextYear += 1;
+      // Re-check Feb 29 for the new year
+      if (eventMonth === 2 && eventDay === 29 && !isLeapYear(nextYear)) {
+        nextDay = 28;
+      } else {
+        nextDay = eventDay; // Reset to original day
+      }
     }
     
-    return nextDate.toISOString().split('T')[0];
+    return formatLocalDate(nextYear, nextMonth, nextDay);
+    
   } else if (recurrencePattern === 'monthly') {
-    const nextDate = new Date(baseDate);
-    nextDate.setFullYear(today.getFullYear());
-    nextDate.setMonth(today.getMonth());
+    let nextYear = todayYear;
+    let nextMonth = todayMonth;
+    let nextDay = eventDay;
+    
+    // Adjust day if target month has fewer days than event day
+    const daysInMonth = getDaysInMonth(nextYear, nextMonth);
+    if (nextDay > daysInMonth) {
+      nextDay = daysInMonth;
+    }
+    
+    // Create candidate date for this month
+    const thisMonthDate = new Date(nextYear, nextMonth - 1, nextDay);
+    thisMonthDate.setHours(0, 0, 0, 0);
     
     // If this month's occurrence has passed, move to next month
-    if (nextDate < today) {
-      nextDate.setMonth(nextDate.getMonth() + 1);
+    if (thisMonthDate < today) {
+      nextMonth += 1;
+      if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear += 1;
+      }
+      
+      // Re-check days in the new month
+      const newDaysInMonth = getDaysInMonth(nextYear, nextMonth);
+      nextDay = eventDay > newDaysInMonth ? newDaysInMonth : eventDay;
     }
     
-    return nextDate.toISOString().split('T')[0];
+    return formatLocalDate(nextYear, nextMonth, nextDay);
   }
   
   return null;
+}
+
+/**
+ * Check if a year is a leap year
+ * @param {number} year - Year to check
+ * @returns {boolean} True if leap year
+ */
+function isLeapYear(year) {
+  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+}
+
+/**
+ * Get number of days in a month
+ * @param {number} year - Year
+ * @param {number} month - Month (1-12)
+ * @returns {number} Number of days in the month
+ */
+function getDaysInMonth(year, month) {
+  return new Date(year, month, 0).getDate();
+}
+
+/**
+ * Format local date as YYYY-MM-DD string
+ * @param {number} year - Year
+ * @param {number} month - Month (1-12)
+ * @param {number} day - Day
+ * @returns {string} Formatted date string
+ */
+function formatLocalDate(year, month, day) {
+  const yearStr = String(year).padStart(4, '0');
+  const monthStr = String(month).padStart(2, '0');
+  const dayStr = String(day).padStart(2, '0');
+  return `${yearStr}-${monthStr}-${dayStr}`;
 }
 
 /**
