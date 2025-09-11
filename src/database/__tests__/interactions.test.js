@@ -63,19 +63,44 @@ function makeCtx(db) {
   };
 
   const tx = async (work) => {
-    // Simple transaction wrapper sufficient for these tests
+    // Transaction wrapper that enforces synchronous scheduling to match production WebSQL semantics.
+    // In production, all tx.executeSql calls must be scheduled synchronously inside the callback.
+    // While callers can return a Promise to handle async results, all execute calls must be scheduled
+    // synchronously without awaiting between them.
     let result;
+    let workError;
+    let workPromise = null;
     const wrapped = {
       execute: (sql, params = []) => exec(sql, params),
     };
+    
     db.prepare('BEGIN').run();
     try {
-      result = await work(wrapped);
+      // Call work synchronously - it may return a Promise to handle async results,
+      // but all execute() calls must be scheduled before the Promise resolves
+      const maybePromise = work(wrapped);
+      if (maybePromise && typeof maybePromise.then === 'function') {
+        // It's a Promise - capture it but don't resolve until after commit
+        workPromise = maybePromise;
+      } else {
+        result = maybePromise;
+      }
       db.prepare('COMMIT').run();
     } catch (e) {
+      workError = e;
       try { db.prepare('ROLLBACK').run(); } catch (_) {}
-      throw e;
+      throw workError;
     }
+    
+    // If work returned a Promise, wait for it after commit
+    if (workPromise) {
+      try {
+        result = await workPromise;
+      } catch (e) {
+        throw e;
+      }
+    }
+    
     return result;
   };
 

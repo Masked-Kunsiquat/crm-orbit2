@@ -243,15 +243,21 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         throw new DatabaseError('Transaction support required for bulkCreate', 'TRANSACTION_REQUIRED');
       }
 
-      return await transaction(async (tx) => {
+      return await transaction((tx) => {
         const results = [];
         const contactIds = new Set();
+        const executePromises = [];
         
+        // Collect contact IDs first (synchronously)
         for (const data of interactions) {
           if (!data || !data.contact_id || !data.title || !data.interaction_type) {
             throw new DatabaseError('Each interaction must have contact_id, title, and interaction_type', 'VALIDATION_ERROR');
           }
-
+          contactIds.add(data.contact_id);
+        }
+        
+        // Schedule all SQL calls synchronously to match WebSQL semantics
+        for (const data of interactions) {
           const interactionData = pick(data, INTERACTION_FIELDS);
           
           // Set default datetime if not provided
@@ -265,24 +271,28 @@ export function createInteractionsDB({ execute, batch, transaction }) {
           const sql = `INSERT INTO interactions (${fields.join(', ')}, created_at) 
                        VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
           
-          const res = await tx.execute(sql, values);
-          if (!res.insertId) {
-            throw new DatabaseError('Failed to create interaction in bulk operation', 'CREATE_FAILED');
-          }
-          
-          results.push({ id: res.insertId, ...interactionData });
-          contactIds.add(data.contact_id);
+          // Schedule execute call synchronously - do not await here
+          const executePromise = tx.execute(sql, values).then(res => {
+            if (!res.insertId) {
+              throw new DatabaseError('Failed to create interaction in bulk operation', 'CREATE_FAILED');
+            }
+            results.push({ id: res.insertId, ...interactionData });
+            return res;
+          });
+          executePromises.push(executePromise);
         }
         
-        // Update last_interaction_at for all affected contacts
+        // Schedule contact update calls synchronously (now that we have all contactIds)
         for (const contactId of contactIds) {
-          await tx.execute(
+          const updatePromise = tx.execute(
             'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
             [contactId]
           );
+          executePromises.push(updatePromise);
         }
         
-        return results;
+        // Return a promise that resolves after all operations complete
+        return Promise.all(executePromises).then(() => results);
       });
     },
 
