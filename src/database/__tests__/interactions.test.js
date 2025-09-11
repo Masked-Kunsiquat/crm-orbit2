@@ -294,23 +294,25 @@ describe('interactionsDB (in-memory)', () => {
   });
 
   test('getAll returns interactions with pagination', async () => {
-    // Create multiple interactions
+    // Create multiple interactions with deterministic, unique datetimes to avoid tie ordering
+    const base = new Date('2024-01-01T00:00:00.000Z').getTime();
     for (let i = 0; i < 5; i++) {
       await interactions.create({
         contact_id: contactId,
         title: `Interaction ${i}`,
         interaction_type: 'email',
-        datetime: new Date(Date.now() + i * 1000).toISOString()
+        datetime: new Date(base + i * 1000).toISOString()
       });
     }
 
     const all = await interactions.getAll({ limit: 3 });
     expect(all.length).toBe(3);
-    // Should be in DESC order by default
-    expect(all[0].title).toBe('Interaction 4');
+    // Should be in DESC order by default (most recent first)
+    expect(all.map(i => i.title)).toEqual(['Interaction 4', 'Interaction 3', 'Interaction 2']);
 
     const page2 = await interactions.getAll({ limit: 3, offset: 3 });
     expect(page2.length).toBe(2);
+    expect(page2.map(i => i.title)).toEqual(['Interaction 1', 'Interaction 0']);
   });
 
   // Search & Filter tests
@@ -393,7 +395,8 @@ describe('interactionsDB (in-memory)', () => {
   test('getByDateRange returns interactions in specified range', async () => {
     const date1 = '2024-06-01T10:00:00Z';
     const date2 = '2024-06-15T10:00:00Z';
-    const date3 = '2024-07-01T10:00:00Z';
+    const dateBoundaryInclusive = '2024-06-30T23:59:59Z';
+    const dateOutside = '2024-07-01T00:00:00Z';
     
     await interactions.create({
       contact_id: contactId,
@@ -409,17 +412,28 @@ describe('interactionsDB (in-memory)', () => {
       datetime: date2
     });
 
+    // Edge of day boundary (should be included when using end-exclusive normalization)
+    await interactions.create({
+      contact_id: contactId,
+      title: 'End of June Interaction',
+      interaction_type: 'meeting',
+      datetime: dateBoundaryInclusive
+    });
+
+    // Outside the range (should be excluded)
     await interactions.create({
       contact_id: contactId,
       title: 'July Interaction',
       interaction_type: 'meeting',
-      datetime: date3
+      datetime: dateOutside
     });
 
     const juneInteractions = await interactions.getByDateRange('2024-06-01', '2024-06-30');
-    expect(juneInteractions.length).toBe(2);
+    expect(juneInteractions.length).toBe(3);
     expect(juneInteractions.some(i => i.title === 'June Interaction')).toBe(true);
     expect(juneInteractions.some(i => i.title === 'Mid June Interaction')).toBe(true);
+    expect(juneInteractions.some(i => i.title === 'End of June Interaction')).toBe(true);
+    expect(juneInteractions.some(i => i.title === 'July Interaction')).toBe(false);
   });
 
   // Statistics tests
@@ -517,26 +531,42 @@ describe('interactionsDB (in-memory)', () => {
 
   test('bulkCreate updates last_interaction_at for all affected contacts', async () => {
     const interactionList = [
+      // Two for contact 1: latest should be Aug 02 09:00:00Z
       {
         contact_id: contactId,
-        title: 'Bulk Call',
-        interaction_type: 'call'
+        title: 'Bulk Call (older)',
+        interaction_type: 'call',
+        datetime: '2024-08-01T12:00:00.000Z'
+      },
+      {
+        contact_id: contactId,
+        title: 'Bulk Meeting (newer)',
+        interaction_type: 'meeting',
+        datetime: '2024-08-02T09:00:00.000Z'
+      },
+      // Two for contact 2: latest should be Aug 03 00:00:00Z
+      {
+        contact_id: contact2Id,
+        title: 'Bulk Email (older)',
+        interaction_type: 'email',
+        datetime: '2024-08-01T12:00:00.000Z'
       },
       {
         contact_id: contact2Id,
-        title: 'Bulk Email',
-        interaction_type: 'email'
+        title: 'Bulk Call (newer)',
+        interaction_type: 'call',
+        datetime: '2024-08-03T00:00:00.000Z'
       }
     ];
 
     await interactions.bulkCreate(interactionList);
 
-    // Check both contacts were updated
+    // Check both contacts were updated to the actual MAX(datetime) among their interactions
     const contact1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
     const contact2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
     
-    expect(contact1.rows[0].last_interaction_at).toBeTruthy();
-    expect(contact2.rows[0].last_interaction_at).toBeTruthy();
+    expect(contact1.rows[0].last_interaction_at).toBe('2024-08-02T09:00:00.000Z');
+    expect(contact2.rows[0].last_interaction_at).toBe('2024-08-03T00:00:00.000Z');
   });
 
   test('bulkCreate validates input', async () => {
