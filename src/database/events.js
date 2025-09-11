@@ -118,7 +118,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       return res.rowsAffected || 0;
     },
 
-    // Search & filter operations
+    // Search and filter operations
     async getByContact(contactId, options = {}) {
       const { limit = 50, offset = 0, orderBy = 'event_date', orderDir = 'ASC' } = options;
       const order = ['event_date', 'title', 'event_type', 'created_at'].includes(orderBy) ? orderBy : 'event_date';
