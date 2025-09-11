@@ -1,5 +1,5 @@
 // Interactions database module
-// Follows the API pattern defined in src/database/AGENTS.md
+// Focused on core CRUD operations and basic filtering
 
 import { DatabaseError } from './errors';
 
@@ -12,6 +12,8 @@ const INTERACTION_FIELDS = [
   'custom_type',
   'duration',
 ];
+
+const MAX_PAGE_SIZE = 500;
 
 function pick(obj, fields) {
   const out = {};
@@ -27,9 +29,6 @@ function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
-// Clamp helpers and date range normalization
-const MAX_PAGE_SIZE = 500;
-
 function clampLimit(n, max = MAX_PAGE_SIZE) {
   const num = Number(n) || 0;
   if (num < 1) return 1;
@@ -39,28 +38,6 @@ function clampLimit(n, max = MAX_PAGE_SIZE) {
 function clampOffset(n) {
   const num = Number(n) || 0;
   return num < 0 ? 0 : num;
-}
-
-function isDateOnlyString(s) {
-  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
-}
-
-function normalizeDateRange(startDate, endDate) {
-  let start = startDate;
-  let end = endDate;
-  let endOp = '<='; // default inclusive end
-
-  if (start && isDateOnlyString(start)) {
-    start = new Date(start).toISOString();
-  }
-  if (end && isDateOnlyString(end)) {
-    const d = new Date(end);
-    d.setUTCDate(d.getUTCDate() + 1);
-    end = d.toISOString();
-    endOp = '<';
-  }
-
-  return { start, end, endOp };
 }
 
 /**
@@ -217,125 +194,6 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       return rowsAffected;
     },
 
-    // Search & Filter operations
-    async getByContact(contactId, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
-      const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-      
-      const sql = `SELECT * FROM interactions WHERE contact_id = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [contactId, clampLimit(limit), clampOffset(offset)]);
-      return res.rows;
-    },
-
-    async getRecent(options = {}) {
-      const { limit = 20, days = 7 } = options;
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoff = cutoffDate.toISOString();
-      
-      const sql = `SELECT i.*, c.first_name, c.last_name, c.display_name 
-                   FROM interactions i 
-                   JOIN contacts c ON i.contact_id = c.id 
-                   WHERE i.datetime >= ? 
-                   ORDER BY i.datetime DESC 
-                   LIMIT ?;`;
-      const res = await execute(sql, [cutoff, clampLimit(limit)]);
-      return res.rows;
-    },
-
-    async getByType(interactionType, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
-      const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-      
-      const sql = `SELECT * FROM interactions
-                   WHERE interaction_type = ? OR (custom_type IS NOT NULL AND custom_type = ?)
-                   ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [interactionType, interactionType, clampLimit(limit), clampOffset(offset)]);
-      return res.rows;
-    },
-
-    async getByDateRange(startDate, endDate, options = {}) {
-      const { limit = 100, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
-      const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-      
-      const { start, end, endOp } = normalizeDateRange(startDate, endDate);
-      const conds = [];
-      const params = [];
-      if (start) { conds.push('datetime >= ?'); params.push(start); }
-      if (end)   { conds.push(`datetime ${endOp} ?`); params.push(end); }
-      const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
-      const sql = `SELECT * FROM interactions ${where} ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      params.push(clampLimit(limit), clampOffset(offset));
-      const res = await execute(sql, params);
-      return res.rows;
-    },
-
-    // Statistics operations
-    async getStatistics(options = {}) {
-      const { contactId, startDate, endDate } = options;
-      const conditions = [];
-      const params = [];
-      
-      if (contactId) {
-        conditions.push('contact_id = ?');
-        params.push(contactId);
-      }
-      
-      const { start, end, endOp } = normalizeDateRange(startDate, endDate);
-      if (start) {
-        conditions.push('datetime >= ?');
-        params.push(start);
-      }
-      if (end) {
-        conditions.push(`datetime ${endOp} ?`);
-        params.push(end);
-      }
-      
-      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-      
-      // Get count by type
-      const typeCountSql = `SELECT interaction_type, COUNT(*) as count 
-                           FROM interactions ${whereClause} 
-                           GROUP BY interaction_type 
-                           ORDER BY count DESC;`;
-      const typeCountRes = await execute(typeCountSql, params);
-      
-      // Get average duration for calls and meetings
-      const avgDurationSql = `SELECT interaction_type, AVG(duration) as avg_duration 
-                             FROM interactions 
-                             ${whereClause} 
-                             ${whereClause ? 'AND' : 'WHERE'} interaction_type IN ('call', 'meeting') 
-                             AND duration IS NOT NULL 
-                             GROUP BY interaction_type;`;
-      const avgDurationRes = await execute(avgDurationSql, params);
-      
-      // Get total counts
-      const totalSql = `SELECT COUNT(*) as total_interactions,
-                               COUNT(DISTINCT contact_id) as unique_contacts,
-                               MIN(datetime) as earliest_interaction,
-                               MAX(datetime) as latest_interaction
-                        FROM interactions ${whereClause};`;
-      const totalRes = await execute(totalSql, params);
-      
-      return {
-        totalInteractions: totalRes.rows[0]?.total_interactions || 0,
-        uniqueContacts: totalRes.rows[0]?.unique_contacts || 0,
-        earliestInteraction: totalRes.rows[0]?.earliest_interaction,
-        latestInteraction: totalRes.rows[0]?.latest_interaction,
-        countByType: typeCountRes.rows.reduce((acc, row) => {
-          acc[row.interaction_type] = row.count;
-          return acc;
-        }, {}),
-        averageDuration: avgDurationRes.rows.reduce((acc, row) => {
-          acc[row.interaction_type] = Math.round(row.avg_duration);
-          return acc;
-        }, {})
-      };
-    },
-
     // Bulk operations
     async bulkCreate(interactions) {
       if (!Array.isArray(interactions) || interactions.length === 0) {
@@ -403,39 +261,6 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         // Return a promise that resolves after all operations complete
         return Promise.all(executePromises).then(() => results);
       });
-    },
-
-    // Additional utility methods
-    async getContactInteractionSummary(contactId) {
-      const sql = `SELECT 
-                     interaction_type,
-                     COUNT(*) as count,
-                     MAX(datetime) as last_interaction,
-                     AVG(duration) as avg_duration
-                   FROM interactions 
-                   WHERE contact_id = ? 
-                   GROUP BY interaction_type 
-                   ORDER BY count DESC;`;
-      
-      const res = await execute(sql, [contactId]);
-      return res.rows;
-    },
-
-    async searchInteractions(query, options = {}) {
-      const { limit = 50, offset = 0 } = options;
-      const term = String(query || '').trim();
-      if (!term || term.length < 2) return [];
-      
-      const searchTerm = `%${term}%`;
-      const sql = `SELECT i.*, c.first_name, c.last_name, c.display_name 
-                   FROM interactions i 
-                   JOIN contacts c ON i.contact_id = c.id 
-                   WHERE i.title LIKE ? OR i.note LIKE ? OR c.display_name LIKE ?
-                   ORDER BY i.datetime DESC 
-                   LIMIT ? OFFSET ?;`;
-      
-      const res = await execute(sql, [searchTerm, searchTerm, searchTerm, clampLimit(limit), clampOffset(offset)]);
-      return res.rows;
     }
   };
 }

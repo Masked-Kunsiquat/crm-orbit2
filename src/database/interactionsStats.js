@@ -1,0 +1,201 @@
+// Interactions statistics module
+// Focused on analytics and reporting operations for interactions
+
+import { DatabaseError } from './errors';
+
+function isDateOnlyString(s) {
+  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+}
+
+function normalizeDateRange(startDate, endDate) {
+  let start = startDate;
+  let end = endDate;
+  let endOp = '<='; // default inclusive end
+
+  if (start && isDateOnlyString(start)) {
+    start = new Date(start).toISOString();
+  }
+  if (end && isDateOnlyString(end)) {
+    const d = new Date(end);
+    d.setUTCDate(d.getUTCDate() + 1);
+    end = d.toISOString();
+    endOp = '<';
+  }
+
+  return { start, end, endOp };
+}
+
+/**
+ * Create the interactions statistics module
+ * @param {Object} deps - Database dependencies
+ * @param {Function} deps.execute - Execute SQL function
+ * @returns {Object} Interactions statistics API
+ */
+export function createInteractionsStatsDB({ execute }) {
+  return {
+    async getStatistics(options = {}) {
+      const { contactId, startDate, endDate } = options;
+      const conditions = [];
+      const params = [];
+      
+      if (contactId) {
+        conditions.push('contact_id = ?');
+        params.push(contactId);
+      }
+      
+      const { start, end, endOp } = normalizeDateRange(startDate, endDate);
+      if (start) {
+        conditions.push('datetime >= ?');
+        params.push(start);
+      }
+      if (end) {
+        conditions.push(`datetime ${endOp} ?`);
+        params.push(end);
+      }
+      
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      
+      // Get count by type
+      const typeCountSql = `SELECT interaction_type, COUNT(*) as count 
+                           FROM interactions ${whereClause} 
+                           GROUP BY interaction_type 
+                           ORDER BY count DESC;`;
+      const typeCountRes = await execute(typeCountSql, params);
+      
+      // Get average duration for calls and meetings
+      const avgDurationSql = `SELECT interaction_type, AVG(duration) as avg_duration 
+                             FROM interactions 
+                             ${whereClause} 
+                             ${whereClause ? 'AND' : 'WHERE'} interaction_type IN ('call', 'meeting') 
+                             AND duration IS NOT NULL 
+                             GROUP BY interaction_type;`;
+      const avgDurationRes = await execute(avgDurationSql, params);
+      
+      // Get total counts
+      const totalSql = `SELECT COUNT(*) as total_interactions,
+                               COUNT(DISTINCT contact_id) as unique_contacts,
+                               MIN(datetime) as earliest_interaction,
+                               MAX(datetime) as latest_interaction
+                        FROM interactions ${whereClause};`;
+      const totalRes = await execute(totalSql, params);
+      
+      return {
+        totalInteractions: totalRes.rows[0]?.total_interactions || 0,
+        uniqueContacts: totalRes.rows[0]?.unique_contacts || 0,
+        earliestInteraction: totalRes.rows[0]?.earliest_interaction,
+        latestInteraction: totalRes.rows[0]?.latest_interaction,
+        countByType: typeCountRes.rows.reduce((acc, row) => {
+          acc[row.interaction_type] = row.count;
+          return acc;
+        }, {}),
+        averageDuration: avgDurationRes.rows.reduce((acc, row) => {
+          acc[row.interaction_type] = Math.round(row.avg_duration);
+          return acc;
+        }, {})
+      };
+    },
+
+    async getContactInteractionSummary(contactId) {
+      const sql = `SELECT 
+                     interaction_type,
+                     COUNT(*) as count,
+                     MAX(datetime) as last_interaction,
+                     AVG(duration) as avg_duration
+                   FROM interactions 
+                   WHERE contact_id = ? 
+                   GROUP BY interaction_type 
+                   ORDER BY count DESC;`;
+      
+      const res = await execute(sql, [contactId]);
+      return res.rows;
+    },
+
+    async getInteractionTrends(options = {}) {
+      const { contactId, period = 'daily', days = 30 } = options;
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+      const cutoff = cutoffDate.toISOString();
+      
+      const conditions = ['datetime >= ?'];
+      const params = [cutoff];
+      
+      if (contactId) {
+        conditions.push('contact_id = ?');
+        params.push(contactId);
+      }
+      
+      const whereClause = `WHERE ${conditions.join(' AND ')}`;
+      
+      let dateFormat;
+      switch (period) {
+        case 'hourly':
+          dateFormat = "strftime('%Y-%m-%d %H:00:00', datetime)";
+          break;
+        case 'weekly':
+          dateFormat = "strftime('%Y-W%W', datetime)";
+          break;
+        case 'monthly':
+          dateFormat = "strftime('%Y-%m', datetime)";
+          break;
+        default: // daily
+          dateFormat = "strftime('%Y-%m-%d', datetime)";
+      }
+      
+      const sql = `SELECT 
+                     ${dateFormat} as period,
+                     COUNT(*) as interaction_count,
+                     COUNT(DISTINCT contact_id) as unique_contacts,
+                     AVG(duration) as avg_duration
+                   FROM interactions 
+                   ${whereClause}
+                   GROUP BY ${dateFormat}
+                   ORDER BY period ASC;`;
+      
+      const res = await execute(sql, params);
+      return res.rows;
+    },
+
+    async getTopContacts(options = {}) {
+      const { limit = 10, startDate, endDate, interactionType } = options;
+      const conditions = [];
+      const params = [];
+      
+      const { start, end, endOp } = normalizeDateRange(startDate, endDate);
+      if (start) {
+        conditions.push('i.datetime >= ?');
+        params.push(start);
+      }
+      if (end) {
+        conditions.push(`i.datetime ${endOp} ?`);
+        params.push(end);
+      }
+      if (interactionType) {
+        conditions.push('i.interaction_type = ?');
+        params.push(interactionType);
+      }
+      
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      
+      const sql = `SELECT 
+                     c.id,
+                     c.first_name,
+                     c.last_name,
+                     c.display_name,
+                     COUNT(i.id) as interaction_count,
+                     MAX(i.datetime) as last_interaction,
+                     AVG(i.duration) as avg_duration
+                   FROM interactions i
+                   JOIN contacts c ON i.contact_id = c.id
+                   ${whereClause}
+                   GROUP BY c.id, c.first_name, c.last_name, c.display_name
+                   ORDER BY interaction_count DESC
+                   LIMIT ?;`;
+      
+      params.push(limit);
+      const res = await execute(sql, params);
+      return res.rows;
+    }
+  };
+}
+
+export default createInteractionsStatsDB;

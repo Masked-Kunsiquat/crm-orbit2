@@ -4,6 +4,8 @@
 import initSqlJs from 'sql.js';
 import path from 'path';
 import { createInteractionsDB } from '../interactions';
+import { createInteractionsStatsDB } from '../interactionsStats';
+import { createInteractionsSearchDB } from '../interactionsSearch';
 
 function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
@@ -152,6 +154,8 @@ describe('interactionsDB (in-memory)', () => {
   let db;
   let ctx;
   let interactions;
+  let interactionsStats;
+  let interactionsSearch;
   let contactId;
   let contact2Id;
 
@@ -170,6 +174,8 @@ describe('interactionsDB (in-memory)', () => {
     createSchema(db);
     ctx = makeCtx(db);
     interactions = createInteractionsDB(ctx);
+    interactionsStats = createInteractionsStatsDB(ctx);
+    interactionsSearch = createInteractionsSearchDB(ctx);
     
     // Create test contacts
     const contactRes = await ctx.execute(
@@ -330,11 +336,11 @@ describe('interactionsDB (in-memory)', () => {
       interaction_type: 'email'
     });
 
-    const johnInteractions = await interactions.getByContact(contactId);
+    const johnInteractions = await interactionsSearch.getByContact(contactId);
     expect(johnInteractions.length).toBe(1);
     expect(johnInteractions[0].title).toBe('John Call');
 
-    const janeInteractions = await interactions.getByContact(contact2Id);
+    const janeInteractions = await interactionsSearch.getByContact(contact2Id);
     expect(janeInteractions.length).toBe(1);
     expect(janeInteractions[0].title).toBe('Jane Email');
   });
@@ -357,7 +363,7 @@ describe('interactionsDB (in-memory)', () => {
       datetime: oldTime
     });
 
-    const recent = await interactions.getRecent({ days: 7 });
+    const recent = await interactionsSearch.getRecent({ days: 7 });
     expect(recent.length).toBe(1);
     expect(recent[0].title).toBe('Recent Call');
     expect(recent[0].first_name).toBe('John');
@@ -383,11 +389,11 @@ describe('interactionsDB (in-memory)', () => {
       interaction_type: 'call'
     });
 
-    const calls = await interactions.getByType('call');
+    const calls = await interactionsSearch.getByType('call');
     expect(calls.length).toBe(2);
     expect(calls.every(i => i.interaction_type === 'call')).toBe(true);
 
-    const emails = await interactions.getByType('email');
+    const emails = await interactionsSearch.getByType('email');
     expect(emails.length).toBe(1);
     expect(emails[0].title).toBe('Email Thread');
   });
@@ -428,7 +434,7 @@ describe('interactionsDB (in-memory)', () => {
       datetime: dateOutside
     });
 
-    const juneInteractions = await interactions.getByDateRange('2024-06-01', '2024-06-30');
+    const juneInteractions = await interactionsSearch.getByDateRange('2024-06-01', '2024-06-30');
     expect(juneInteractions.length).toBe(3);
     expect(juneInteractions.some(i => i.title === 'June Interaction')).toBe(true);
     expect(juneInteractions.some(i => i.title === 'Mid June Interaction')).toBe(true);
@@ -466,7 +472,7 @@ describe('interactionsDB (in-memory)', () => {
       duration: 60
     });
 
-    const stats = await interactions.getStatistics();
+    const stats = await interactionsStats.getStatistics();
     
     expect(stats.totalInteractions).toBe(4);
     expect(stats.uniqueContacts).toBe(2);
@@ -490,7 +496,7 @@ describe('interactionsDB (in-memory)', () => {
       interaction_type: 'call'
     });
 
-    const stats = await interactions.getStatistics({ contactId });
+    const stats = await interactionsStats.getStatistics({ contactId });
     expect(stats.totalInteractions).toBe(1);
     expect(stats.uniqueContacts).toBe(1);
     expect(stats.countByType.call).toBe(1);
@@ -690,7 +696,7 @@ describe('interactionsDB (in-memory)', () => {
       interaction_type: 'email'
     });
 
-    const summary = await interactions.getContactInteractionSummary(contactId);
+    const summary = await interactionsStats.getContactInteractionSummary(contactId);
     expect(summary.length).toBe(2);
     
     const callSummary = summary.find(s => s.interaction_type === 'call');
@@ -717,17 +723,17 @@ describe('interactionsDB (in-memory)', () => {
     });
 
     // Search by title
-    const titleResults = await interactions.searchInteractions('important');
+    const titleResults = await interactionsSearch.searchInteractions('important');
     expect(titleResults.length).toBe(1);
     expect(titleResults[0].title).toBe('Important meeting');
 
     // Search by note
-    const noteResults = await interactions.searchInteractions('budget');
+    const noteResults = await interactionsSearch.searchInteractions('budget');
     expect(noteResults.length).toBe(1);
     expect(noteResults[0].note).toBe('Discussed budget');
 
     // Search by contact name
-    const contactResults = await interactions.searchInteractions('Jane');
+    const contactResults = await interactionsSearch.searchInteractions('Jane');
     expect(contactResults.length).toBe(1);
     expect(contactResults[0].title).toBe('Follow up call');
     expect(contactResults[0].display_name).toBe('Jane Smith');
@@ -740,7 +746,7 @@ describe('interactionsDB (in-memory)', () => {
       interaction_type: 'call'
     });
 
-    const results = await interactions.searchInteractions('');
+    const results = await interactionsSearch.searchInteractions('');
     expect(results).toEqual([]);
   });
 });

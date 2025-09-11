@@ -24,6 +24,8 @@ import { createCategoriesDB } from './categories';
 import { createCompaniesDB } from './companies';
 import { createEventsDB } from './events';
 import { createInteractionsDB } from './interactions';
+import { createInteractionsStatsDB } from './interactionsStats';
+import { createInteractionsSearchDB } from './interactionsSearch';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
@@ -366,6 +368,8 @@ export const categoriesDB = createCategoriesDB({ execute, batch, transaction });
 export const companiesDB = createCompaniesDB({ execute, batch, transaction });
 export const eventsDB = createEventsDB({ execute, batch, transaction });
 export const interactionsDB = createInteractionsDB({ execute, batch, transaction });
+export const interactionsStatsDB = createInteractionsStatsDB({ execute });
+export const interactionsSearchDB = createInteractionsSearchDB({ execute });
 export const notesDB = notImplemented('notes');
 export const attachmentsDB = notImplemented('attachments');
 export const settingsDB = notImplemented('settings');
@@ -390,6 +394,8 @@ const database = {
   companies: companiesDB,
   events: eventsDB,
   interactions: interactionsDB,
+  interactionsStats: interactionsStatsDB,
+  interactionsSearch: interactionsSearchDB,
   notes: notesDB,
   attachments: attachmentsDB,
   settings: settingsDB,
