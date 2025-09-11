@@ -36,6 +36,11 @@ function clampLimit(n, max = MAX_PAGE_SIZE) {
   return Math.min(num, max);
 }
 
+function clampOffset(n) {
+  const num = Number(n) || 0;
+  return num < 0 ? 0 : num;
+}
+
 function isDateOnlyString(s) {
   return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
@@ -135,7 +140,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [clampLimit(limit), offset]);
+      const res = await execute(sql, [clampLimit(limit), clampOffset(offset)]);
       return res.rows;
     },
 
@@ -228,7 +233,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions WHERE contact_id = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [contactId, clampLimit(limit), offset]);
+      const res = await execute(sql, [contactId, clampLimit(limit), clampOffset(offset)]);
       return res.rows;
     },
 
@@ -254,7 +259,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions WHERE interaction_type = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [interactionType, clampLimit(limit), offset]);
+      const res = await execute(sql, [interactionType, clampLimit(limit), clampOffset(offset)]);
       return res.rows;
     },
 
@@ -270,7 +275,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       if (end)   { conds.push(`datetime ${endOp} ?`); params.push(end); }
       const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
       const sql = `SELECT * FROM interactions ${where} ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      params.push(clampLimit(limit), offset);
+      params.push(clampLimit(limit), clampOffset(offset));
       const res = await execute(sql, params);
       return res.rows;
     },
@@ -286,14 +291,14 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         params.push(contactId);
       }
       
-      if (startDate) {
+      const { start, end, endOp } = normalizeDateRange(startDate, endDate);
+      if (start) {
         conditions.push('datetime >= ?');
-        params.push(startDate);
+        params.push(start);
       }
-      
-      if (endDate) {
-        conditions.push('datetime <= ?');
-        params.push(endDate);
+      if (end) {
+        conditions.push(`datetime ${endOp} ?`);
+        params.push(end);
       }
       
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -436,7 +441,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
                    ORDER BY i.datetime DESC 
                    LIMIT ? OFFSET ?;`;
       
-      const res = await execute(sql, [searchTerm, searchTerm, searchTerm, clampLimit(limit), offset]);
+      const res = await execute(sql, [searchTerm, searchTerm, searchTerm, clampLimit(limit), clampOffset(offset)]);
       return res.rows;
     }
   };
