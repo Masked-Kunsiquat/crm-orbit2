@@ -27,6 +27,37 @@ function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
+// Clamp helpers and date range normalization
+const MAX_PAGE_SIZE = 500;
+
+function clampLimit(n, max = MAX_PAGE_SIZE) {
+  const num = Number(n) || 0;
+  if (num < 1) return 1;
+  return Math.min(num, max);
+}
+
+function isDateOnlyString(s) {
+  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+}
+
+function normalizeDateRange(startDate, endDate) {
+  let start = startDate;
+  let end = endDate;
+  let endOp = '<='; // default inclusive end
+
+  if (start && isDateOnlyString(start)) {
+    start = new Date(start).toISOString();
+  }
+  if (end && isDateOnlyString(end)) {
+    const d = new Date(end);
+    d.setUTCDate(d.getUTCDate() + 1);
+    end = d.toISOString();
+    endOp = '<';
+  }
+
+  return { start, end, endOp };
+}
+
 /**
  * Create the interactions database module
  * @param {Object} deps - Database dependencies
@@ -104,7 +135,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [limit, offset]);
+      const res = await execute(sql, [clampLimit(limit), offset]);
       return res.rows;
     },
 
@@ -194,7 +225,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions WHERE contact_id = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [contactId, limit, offset]);
+      const res = await execute(sql, [contactId, clampLimit(limit), offset]);
       return res.rows;
     },
 
@@ -210,7 +241,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
                    WHERE i.datetime >= ? 
                    ORDER BY i.datetime DESC 
                    LIMIT ?;`;
-      const res = await execute(sql, [cutoff, limit]);
+      const res = await execute(sql, [cutoff, clampLimit(limit)]);
       return res.rows;
     },
 
@@ -220,7 +251,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions WHERE interaction_type = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [interactionType, limit, offset]);
+      const res = await execute(sql, [interactionType, clampLimit(limit), offset]);
       return res.rows;
     },
 
@@ -229,9 +260,10 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
-      const sql = `SELECT * FROM interactions WHERE datetime >= ? AND datetime <= ? 
+      const { start, end, endOp } = normalizeDateRange(startDate, endDate);
+      const sql = `SELECT * FROM interactions WHERE datetime >= ? AND datetime ${endOp} ? 
                    ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [startDate, endDate, limit, offset]);
+      const res = await execute(sql, [start, end, clampLimit(limit), offset]);
       return res.rows;
     },
 
@@ -386,7 +418,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
     async searchInteractions(query, options = {}) {
       const { limit = 50, offset = 0 } = options;
       const term = String(query || '').trim();
-      if (!term) return [];
+      if (!term || term.length < 2) return [];
       
       const searchTerm = `%${term}%`;
       const sql = `SELECT i.*, c.first_name, c.last_name, c.display_name 
@@ -396,7 +428,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
                    ORDER BY i.datetime DESC 
                    LIMIT ? OFFSET ?;`;
       
-      const res = await execute(sql, [searchTerm, searchTerm, searchTerm, limit, offset]);
+      const res = await execute(sql, [searchTerm, searchTerm, searchTerm, clampLimit(limit), offset]);
       return res.rows;
     }
   };
