@@ -1,5 +1,5 @@
 // Categories database module
-// Follows the API pattern defined in src/database/AGENTS.md
+// Focused on core category CRUD operations
 
 import { DatabaseError } from './errors';
 
@@ -51,10 +51,6 @@ function placeholders(n) {
  *  delete(id: number): Promise<number>,
  *  getSystemCategories(): Promise<object[]>,
  *  getUserCategories(): Promise<object[]>,
- *  addContactToCategory(contactId: number, categoryId: number): Promise<boolean>,
- *  removeContactFromCategory(contactId: number, categoryId: number): Promise<number>,
- *  getContactsByCategory(categoryId: number): Promise<object[]>,
- *  getCategoriesForContact(contactId: number): Promise<object[]>,
  *  updateSortOrder(updates: Array<{ id: number, sort_order: number }>): Promise<boolean>
  * }}
  */
@@ -250,69 +246,6 @@ export function createCategoriesDB(ctx) {
       return res.rows;
     },
 
-    // Contact-category relationship management
-    /**
-     * Create a contact-category relationship.
-     * Duplicate pairs are ignored.
-     * @param {number} contactId
-     * @param {number} categoryId
-     * @returns {Promise<boolean>} True if a new link was created, false if it already existed
-     */
-    async addContactToCategory(contactId, categoryId) {
-      const res = await execute(
-        'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
-        [contactId, categoryId]
-      );
-      return res && res.rowsAffected ? res.rowsAffected > 0 : false;
-    },
-
-    /**
-     * Remove a contact-category relationship.
-     * @param {number} contactId
-     * @param {number} categoryId
-     * @returns {Promise<number>} Number of rows removed (0 or 1)
-     */
-    async removeContactFromCategory(contactId, categoryId) {
-      const res = await execute(
-        'DELETE FROM contact_categories WHERE contact_id = ? AND category_id = ?;',
-        [contactId, categoryId]
-      );
-      return res.rowsAffected || 0;
-    },
-
-    /**
-     * Get contacts that belong to a given category.
-     * @param {number} categoryId
-     * @returns {Promise<object[]>}
-     */
-    async getContactsByCategory(categoryId) {
-      const res = await execute(
-        `SELECT c.*
-         FROM contacts c
-         INNER JOIN contact_categories cc ON cc.contact_id = c.id
-         WHERE cc.category_id = ?
-         ORDER BY c.last_name ASC, c.first_name ASC;`,
-        [categoryId]
-      );
-      return res.rows;
-    },
-
-    /**
-     * Get categories that a given contact belongs to.
-     * @param {number} contactId
-     * @returns {Promise<object[]>}
-     */
-    async getCategoriesForContact(contactId) {
-      const res = await execute(
-        `SELECT cat.*
-         FROM categories cat
-         INNER JOIN contact_categories cc ON cc.category_id = cat.id
-         WHERE cc.contact_id = ?
-         ORDER BY cat.sort_order ASC, cat.name ASC;`,
-        [contactId]
-      );
-      return res.rows;
-    },
 
     /**
      * Batch update multiple category sort orders in a single call.

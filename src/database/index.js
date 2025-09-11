@@ -20,9 +20,13 @@
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
+import { createContactsInfoDB } from './contactsInfo';
 import { createCategoriesDB } from './categories';
+import { createCategoriesRelationsDB } from './categoriesRelations';
 import { createCompaniesDB } from './companies';
 import { createEventsDB } from './events';
+import { createEventsRecurringDB } from './eventsRecurring';
+import { createEventsRemindersDB } from './eventsReminders';
 import { createInteractionsDB } from './interactions';
 import { createInteractionsStatsDB } from './interactionsStats';
 import { createInteractionsSearchDB } from './interactionsSearch';
@@ -364,9 +368,13 @@ const notImplemented = (moduleName) =>
   );
 
 export const contactsDB = createContactsDB({ execute, batch, transaction });
+export const contactsInfoDB = createContactsInfoDB({ execute, batch, transaction });
 export const categoriesDB = createCategoriesDB({ execute, batch, transaction });
+export const categoriesRelationsDB = createCategoriesRelationsDB({ execute, batch, transaction });
 export const companiesDB = createCompaniesDB({ execute, batch, transaction });
 export const eventsDB = createEventsDB({ execute, batch, transaction });
+export const eventsRecurringDB = createEventsRecurringDB({ execute, batch, transaction });
+export const eventsRemindersDB = createEventsRemindersDB({ execute, batch, transaction });
 export const interactionsDB = createInteractionsDB({ execute, batch, transaction });
 export const interactionsStatsDB = createInteractionsStatsDB({ execute });
 export const interactionsSearchDB = createInteractionsSearchDB({ execute });
@@ -390,9 +398,13 @@ const database = {
 
   // modules
   contacts: contactsDB,
+  contactsInfo: contactsInfoDB,
   categories: categoriesDB,
+  categoriesRelations: categoriesRelationsDB,
   companies: companiesDB,
   events: eventsDB,
+  eventsRecurring: eventsRecurringDB,
+  eventsReminders: eventsRemindersDB,
   interactions: interactionsDB,
   interactionsStats: interactionsStatsDB,
   interactionsSearch: interactionsSearchDB,

@@ -4,6 +4,8 @@
 import initSqlJs from 'sql.js';
 import path from 'path';
 import { createEventsDB } from '../events';
+import { createEventsRecurringDB } from '../eventsRecurring';
+import { createEventsRemindersDB } from '../eventsReminders';
 
 function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
@@ -140,6 +142,8 @@ describe('eventsDB (in-memory)', () => {
   let db;
   let ctx;
   let events;
+  let eventsRecurring;
+  let eventsReminders;
   let contactId;
 
   beforeAll(async () => {
@@ -157,6 +161,8 @@ describe('eventsDB (in-memory)', () => {
     createSchema(db);
     ctx = makeCtx(db);
     events = createEventsDB(ctx);
+    eventsRecurring = createEventsRecurringDB(ctx);
+    eventsReminders = createEventsRemindersDB(ctx);
     
     // Create a test contact
     const contactRes = await ctx.execute(
@@ -403,7 +409,7 @@ describe('eventsDB (in-memory)', () => {
       }
     ];
 
-    const result = await events.createWithReminders(eventData, reminders);
+    const result = await eventsReminders.createEventWithReminders(eventData, reminders);
     expect(result.title).toBe('Meeting with Reminders');
     expect(result.reminders.length).toBe(2);
     expect(result.reminders[0].reminder_type).toBe('notification');
@@ -420,7 +426,7 @@ describe('eventsDB (in-memory)', () => {
     });
 
     // Add initial reminders
-    await events.updateReminders(created.id, [
+    await eventsReminders.updateEventReminders(created.id, [
       { reminder_datetime: '2024-06-14 10:00:00', reminder_type: 'notification' }
     ]);
 
@@ -430,14 +436,14 @@ describe('eventsDB (in-memory)', () => {
       { reminder_datetime: '2024-06-15 08:00:00', reminder_type: 'sms' }
     ];
 
-    const updated = await events.updateReminders(created.id, newReminders);
+    const updated = await eventsReminders.updateEventReminders(created.id, newReminders);
     expect(updated.length).toBe(2);
     expect(updated[0].reminder_type).toBe('email');
     expect(updated[1].reminder_type).toBe('sms');
   });
 
   test('updateReminders for non-existent event throws error', async () => {
-    await expect(events.updateReminders(9999, []))
+    await expect(eventsReminders.updateEventReminders(9999, []))
       .rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
@@ -452,12 +458,12 @@ describe('eventsDB (in-memory)', () => {
       recurrence_pattern: 'yearly'
     });
 
-    const nextOccurrence = await events.getNextOccurrence(birthdayEvent.id, '2024-01-01');
+    const nextOccurrence = await eventsRecurring.getNextOccurrence(birthdayEvent.id, '2024-01-01');
     expect(nextOccurrence.event_date).toBe('2024-06-15');
     expect(nextOccurrence.is_calculated).toBe(true);
 
     // If past this year's date, should return next year
-    const nextOccurrence2 = await events.getNextOccurrence(birthdayEvent.id, '2024-07-01');
+    const nextOccurrence2 = await eventsRecurring.getNextOccurrence(birthdayEvent.id, '2024-07-01');
     expect(nextOccurrence2.event_date).toBe('2025-06-15');
   });
 
@@ -470,7 +476,7 @@ describe('eventsDB (in-memory)', () => {
       recurring: 0
     });
 
-    const nextOccurrence = await events.getNextOccurrence(normalEvent.id);
+    const nextOccurrence = await eventsRecurring.getNextOccurrence(normalEvent.id);
     expect(nextOccurrence).toBeNull();
   });
 
@@ -495,7 +501,7 @@ describe('eventsDB (in-memory)', () => {
       event_date: '1990-01-01'
     });
 
-    const todaysBirthdays = await events.getTodaysBirthdays();
+    const todaysBirthdays = await eventsRecurring.getTodaysBirthdays();
     expect(todaysBirthdays.length).toBe(1);
     expect(todaysBirthdays[0].title).toBe('John Birthday');
     expect(todaysBirthdays[0].first_name).toBe('John');
@@ -518,7 +524,7 @@ describe('eventsDB (in-memory)', () => {
       event_date: futureBirthday
     });
 
-    const upcomingBirthdays = await events.getUpcomingBirthdays(15);
+    const upcomingBirthdays = await eventsRecurring.getUpcomingBirthdays(15);
     expect(upcomingBirthdays.length).toBe(1);
     expect(upcomingBirthdays[0].title).toBe('John Birthday');
     expect(upcomingBirthdays[0].days_until).toBe(10);

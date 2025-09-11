@@ -1,6 +1,7 @@
 // Unit tests for categories database module
 
 import { createCategoriesDB } from '../categories';
+import { createCategoriesRelationsDB } from '../categoriesRelations';
 import { DatabaseError } from '../errors';
 
 // Mock database helpers
@@ -48,10 +49,12 @@ const createMockContext = () => {
 describe('createCategoriesDB', () => {
   let mockCtx;
   let categoriesDB;
+  let categoriesRelationsDB;
 
   beforeEach(() => {
     mockCtx = createMockContext();
     categoriesDB = createCategoriesDB(mockCtx);
+    categoriesRelationsDB = createCategoriesRelationsDB(mockCtx);
   });
 
   afterEach(() => {
@@ -77,11 +80,12 @@ describe('createCategoriesDB', () => {
       expect(categoriesDB).toHaveProperty('delete');
       expect(categoriesDB).toHaveProperty('getSystemCategories');
       expect(categoriesDB).toHaveProperty('getUserCategories');
-      expect(categoriesDB).toHaveProperty('addContactToCategory');
-      expect(categoriesDB).toHaveProperty('removeContactFromCategory');
-      expect(categoriesDB).toHaveProperty('getContactsByCategory');
-      expect(categoriesDB).toHaveProperty('getCategoriesForContact');
       expect(categoriesDB).toHaveProperty('updateSortOrder');
+      
+      expect(categoriesRelationsDB).toHaveProperty('addContactToCategory');
+      expect(categoriesRelationsDB).toHaveProperty('removeContactFromCategory');
+      expect(categoriesRelationsDB).toHaveProperty('getContactsByCategory');
+      expect(categoriesRelationsDB).toHaveProperty('getCategoriesForContact');
     });
   });
 
@@ -328,7 +332,7 @@ describe('createCategoriesDB', () => {
     it('should add contact to category successfully', async () => {
       mockCtx.executeResults.push({ rowsAffected: 1 });
 
-      const result = await categoriesDB.addContactToCategory(1, 2);
+      const result = await categoriesRelationsDB.addContactToCategory(1, 2);
 
       expect(result).toBe(true);
       expect(mockCtx.execute).toHaveBeenCalledWith(
@@ -340,7 +344,7 @@ describe('createCategoriesDB', () => {
     it('should handle duplicate relationship gracefully', async () => {
       mockCtx.execute.mockResolvedValueOnce({ rowsAffected: 0 });
 
-      const result = await categoriesDB.addContactToCategory(1, 2);
+      const result = await categoriesRelationsDB.addContactToCategory(1, 2);
 
       expect(result).toBe(false);
     });
@@ -350,7 +354,7 @@ describe('createCategoriesDB', () => {
     it('should remove contact from category', async () => {
       mockCtx.executeResults.push({ rowsAffected: 1 });
 
-      const result = await categoriesDB.removeContactFromCategory(1, 2);
+      const result = await categoriesRelationsDB.removeContactFromCategory(1, 2);
 
       expect(result).toBe(1);
       expect(mockCtx.execute).toHaveBeenCalledWith(
@@ -362,7 +366,7 @@ describe('createCategoriesDB', () => {
     it('should return 0 when relationship not found', async () => {
       mockCtx.executeResults.push({ rowsAffected: 0 });
 
-      const result = await categoriesDB.removeContactFromCategory(1, 999);
+      const result = await categoriesRelationsDB.removeContactFromCategory(1, 999);
 
       expect(result).toBe(0);
     });
@@ -376,7 +380,7 @@ describe('createCategoriesDB', () => {
       ];
       mockCtx.executeResults.push({ rows: contacts });
 
-      const result = await categoriesDB.getContactsByCategory(1);
+      const result = await categoriesRelationsDB.getContactsByCategory(1);
 
       expect(result).toEqual(contacts);
       expect(mockCtx.execute).toHaveBeenCalledWith(
@@ -394,7 +398,7 @@ describe('createCategoriesDB', () => {
       ];
       mockCtx.executeResults.push({ rows: categories });
 
-      const result = await categoriesDB.getCategoriesForContact(1);
+      const result = await categoriesRelationsDB.getCategoriesForContact(1);
 
       expect(result).toEqual(categories);
       expect(mockCtx.execute).toHaveBeenCalledWith(
