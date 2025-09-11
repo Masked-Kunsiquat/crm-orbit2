@@ -140,16 +140,19 @@ export function createInteractionsDB({ execute, batch, transaction }) {
     },
 
     async update(id, data) {
-      if (!data || Object.keys(data).length === 0) {
-        return this.getById(id);
-      }
-
+      // Ensure the record exists first; throw if not found
       const existing = await this.getById(id);
       if (!existing) {
         throw new DatabaseError('Interaction not found', 'NOT_FOUND');
       }
 
+      // If payload is empty, return existing as a no-op
+      if (!data || Object.keys(data).length === 0) {
+        return existing;
+      }
+
       const interactionData = pick(data, INTERACTION_FIELDS);
+      // If no updatable fields after filtering, return existing as a no-op
       if (Object.keys(interactionData).length === 0) {
         return existing;
       }
@@ -261,9 +264,14 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const { start, end, endOp } = normalizeDateRange(startDate, endDate);
-      const sql = `SELECT * FROM interactions WHERE datetime >= ? AND datetime ${endOp} ? 
-                   ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
-      const res = await execute(sql, [start, end, clampLimit(limit), offset]);
+      const conds = [];
+      const params = [];
+      if (start) { conds.push('datetime >= ?'); params.push(start); }
+      if (end)   { conds.push(`datetime ${endOp} ?`); params.push(end); }
+      const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
+      const sql = `SELECT * FROM interactions ${where} ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
+      params.push(clampLimit(limit), offset);
+      const res = await execute(sql, params);
       return res.rows;
     },
 
