@@ -134,7 +134,8 @@ export function createInteractionsSearchDB({ execute }) {
       
       if (criteria.interactionTypes && Array.isArray(criteria.interactionTypes) && criteria.interactionTypes.length > 0) {
         const placeholders = criteria.interactionTypes.map(() => '?').join(', ');
-        conditions.push(`interaction_type IN (${placeholders})`);
+        // Check both built-in and custom interaction types using COALESCE
+        conditions.push(`COALESCE(interaction_type, custom_type) IN (${placeholders})`);
         params.push(...criteria.interactionTypes);
       }
       
