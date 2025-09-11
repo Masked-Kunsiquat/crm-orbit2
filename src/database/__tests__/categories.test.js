@@ -431,14 +431,14 @@ describe('createCategoriesDB', () => {
 
     it('should throw error when id is missing', async () => {
       await expect(categoriesDB.updateSortOrder([{ sort_order: 1 }]))
-        .rejects.toThrow('Each update must have id and sort_order');
+        .rejects.toThrow('Each update must have integer id and sort_order');
     });
 
     it('should throw error for invalid update objects', async () => {
       const updates = [{ id: 1 }]; // missing sort_order
 
       await expect(categoriesDB.updateSortOrder(updates))
-        .rejects.toThrow('Each update must have id and sort_order');
+        .rejects.toThrow('Each update must have integer id and sort_order');
     });
   });
 });

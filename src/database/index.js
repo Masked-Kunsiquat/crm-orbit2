@@ -22,6 +22,7 @@ import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
 import { createCategoriesDB } from './categories';
 import { createCompaniesDB } from './companies';
+import { createEventsDB } from './events';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
@@ -362,7 +363,7 @@ const notImplemented = (moduleName) =>
 export const contactsDB = createContactsDB({ execute, batch, transaction });
 export const categoriesDB = createCategoriesDB({ execute, batch, transaction });
 export const companiesDB = createCompaniesDB({ execute, batch, transaction });
-export const eventsDB = notImplemented('events');
+export const eventsDB = createEventsDB({ execute, batch, transaction });
 export const interactionsDB = notImplemented('interactions');
 export const notesDB = notImplemented('notes');
 export const attachmentsDB = notImplemented('attachments');
