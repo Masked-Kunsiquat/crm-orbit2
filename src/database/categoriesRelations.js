@@ -99,9 +99,12 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
           [contactId]
         );
 
+        // Deduplicate categoryIds to prevent primary key conflicts
+        const uniqueCategoryIds = [...new Set(categoryIds)];
+
         // Add new relationships
         const insertPromises = [];
-        for (const categoryId of categoryIds) {
+        for (const categoryId of uniqueCategoryIds) {
           insertPromises.push(
             tx.execute(
               'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
