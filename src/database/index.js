@@ -30,6 +30,7 @@ import { createEventsRemindersDB } from './eventsReminders';
 import { createInteractionsDB } from './interactions';
 import { createInteractionsStatsDB } from './interactionsStats';
 import { createInteractionsSearchDB } from './interactionsSearch';
+import { createNotesDB } from './notes';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
@@ -378,7 +379,7 @@ export const eventsRemindersDB = createEventsRemindersDB({ execute, batch, trans
 export const interactionsDB = createInteractionsDB({ execute, batch, transaction });
 export const interactionsStatsDB = createInteractionsStatsDB({ execute });
 export const interactionsSearchDB = createInteractionsSearchDB({ execute });
-export const notesDB = notImplemented('notes');
+export const notesDB = createNotesDB({ execute, batch, transaction });
 export const attachmentsDB = notImplemented('attachments');
 export const settingsDB = notImplemented('settings');
 
