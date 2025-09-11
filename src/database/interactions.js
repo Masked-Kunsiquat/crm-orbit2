@@ -347,13 +347,19 @@ export function createInteractionsDB({ execute, batch, transaction }) {
           executePromises.push(executePromise);
         }
         
-        // Schedule contact recalculation calls synchronously (now that we have all contactIds)
-        for (const contactId of contactIds) {
-          const updatePromise = tx.execute(
-            'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
-            [contactId, contactId]
-          );
-          executePromises.push(updatePromise);
+        // Schedule a single contacts recalc update for all affected contacts
+        if (contactIds.size > 0) {
+          const ids = Array.from(contactIds);
+          const placeholdersList = ids.map(() => '?').join(', ');
+          const bulkUpdateSql = `UPDATE contacts
+                                   SET last_interaction_at = (
+                                     SELECT MAX(i.datetime)
+                                     FROM interactions i
+                                     WHERE i.contact_id = contacts.id
+                                   )
+                                 WHERE id IN (${placeholdersList});`;
+          const bulkUpdatePromise = tx.execute(bulkUpdateSql, ids);
+          executePromises.push(bulkUpdatePromise);
         }
         
         // Return a promise that resolves after all operations complete
