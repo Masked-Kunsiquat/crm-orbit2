@@ -13,10 +13,12 @@ function normalizeDateRange(startDate, endDate) {
   let endOp = '<='; // default inclusive end
 
   if (start && isDateOnlyString(start)) {
-    start = new Date(start).toISOString();
+    const [year, month, day] = start.split('-').map(Number);
+    start = new Date(Date.UTC(year, month - 1, day)).toISOString();
   }
   if (end && isDateOnlyString(end)) {
-    const d = new Date(end);
+    const [year, month, day] = end.split('-').map(Number);
+    const d = new Date(Date.UTC(year, month - 1, day));
     d.setUTCDate(d.getUTCDate() + 1);
     end = d.toISOString();
     endOp = '<';
