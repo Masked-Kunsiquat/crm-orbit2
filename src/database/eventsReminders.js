@@ -35,6 +35,21 @@ function placeholders(n) {
 }
 
 /**
+ * Format date for SQLite comparison (YYYY-MM-DD HH:MM:SS)
+ * @param {Date} date - Date to format
+ * @returns {string} Formatted date string
+ */
+function formatSQLiteDateTime(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
  * Create the events reminders database module
  * @param {Object} deps - Database dependencies
  * @param {Function} deps.execute - Execute SQL function
@@ -208,7 +223,8 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<object[]>} Pending reminders with event details
      */
     async getPendingReminders(beforeDateTime = null) {
-      const cutoff = beforeDateTime || new Date().toISOString();
+      const cutoffDate = beforeDateTime ? new Date(beforeDateTime) : new Date();
+      const cutoff = formatSQLiteDateTime(cutoffDate);
       
       const sql = `SELECT r.*, e.title, e.event_date, e.contact_id, c.display_name as contact_name
                    FROM event_reminders r
@@ -237,7 +253,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    WHERE r.is_sent = 0 AND r.reminder_datetime BETWEEN ? AND ?
                    ORDER BY r.reminder_datetime ASC;`;
       
-      const res = await execute(sql, [now.toISOString(), future.toISOString()]);
+      const res = await execute(sql, [formatSQLiteDateTime(now), formatSQLiteDateTime(future)]);
       return res.rows;
     }
   };
