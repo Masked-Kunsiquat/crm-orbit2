@@ -5,10 +5,12 @@
 import { DatabaseError } from '../errors';
 import m001 from './001_initial_schema';
 import m002 from './002_seed_data';
+import m003 from './003_performance_indexes';
 
 const MIGRATIONS = [
   m001,
   m002,
+  m003,
 ];
 
 // Ensure unique, sorted by version

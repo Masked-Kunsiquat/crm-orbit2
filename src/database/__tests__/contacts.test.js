@@ -4,6 +4,7 @@
 import initSqlJs from 'sql.js';
 import path from 'path';
 import { createContactsDB } from '../contacts';
+import { createContactsInfoDB } from '../contactsInfo';
 
 function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
@@ -147,6 +148,7 @@ describe('contactsDB (in-memory)', () => {
   let db;
   let ctx;
   let contacts;
+  let contactsInfo;
 
   beforeAll(async () => {
     SQL = await initSqlJs({
@@ -163,6 +165,7 @@ describe('contactsDB (in-memory)', () => {
     createSchema(db);
     ctx = makeCtx(db);
     contacts = createContactsDB(ctx);
+    contactsInfo = createContactsInfoDB(ctx);
   });
 
   afterEach(() => {
@@ -184,17 +187,18 @@ describe('contactsDB (in-memory)', () => {
   });
 
   test('create contact with info batch and retrieve with info', async () => {
-    const payload = {
+    // Create contact first
+    const { id } = await contacts.create({
       first_name: 'Alan',
-      last_name: 'Turing',
-      contactInfo: [
-        { type: 'mobile', value: '+111', is_primary: 1 },
-        { type: 'email', value: 'alan@example.com', is_primary: 1 },
-        { type: 'mobile', value: '+222', is_primary: 0 },
-      ],
-    };
-    const { id } = await contacts.create(payload);
-    const detailed = await contacts.getWithContactInfo(id);
+      last_name: 'Turing'
+    });
+    
+    // Add contact info separately
+    await contactsInfo.addContactInfo(id, { type: 'mobile', value: '+111', is_primary: 1 });
+    await contactsInfo.addContactInfo(id, { type: 'email', value: 'alan@example.com', is_primary: 1 });
+    await contactsInfo.addContactInfo(id, { type: 'mobile', value: '+222', is_primary: 0 });
+    
+    const detailed = await contactsInfo.getWithContactInfo(id);
     expect(detailed.contact_info.length).toBe(3);
     const mobiles = detailed.contact_info.filter((ci) => ci.type === 'mobile');
     expect(mobiles.some((m) => m.is_primary === 1)).toBe(true);
@@ -240,7 +244,7 @@ describe('contactsDB (in-memory)', () => {
 
   test('add/update/delete contact info with primary enforcement', async () => {
     const { id } = await contacts.create({ first_name: 'Margaret', last_name: 'Hamilton' });
-    const created = await contacts.addContactInfo(id, [
+    const created = await contactsInfo.addContactInfo(id, [
       { type: 'email', value: 'margaret@apollo.com', is_primary: 1 },
       { type: 'email', value: 'margaret@mit.edu', is_primary: 0 },
     ]);
@@ -254,7 +258,7 @@ describe('contactsDB (in-memory)', () => {
     expect(firstInfo.is_primary).toBe(1);
 
     // Promote second to primary; first should be reset
-    const updatedInfo = await contacts.updateContactInfo(secondInfo.id, { is_primary: 1 });
+    const updatedInfo = await contactsInfo.updateContactInfo(secondInfo.id, { is_primary: 1 });
     expect(updatedInfo.is_primary).toBe(1);
     const afterUpdate = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?;', [id]);
     expect(afterUpdate.rows[0].last_interaction_at).toBeTruthy();
@@ -262,7 +266,7 @@ describe('contactsDB (in-memory)', () => {
     expect(check.rows[0].is_primary + check.rows[1].is_primary).toBe(1);
 
     // Delete one info
-    const removed = await contacts.deleteContactInfo(firstInfo.id);
+    const removed = await contactsInfo.deleteContactInfo(firstInfo.id);
     expect(removed).toBe(1);
     const remaining = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
     expect(remaining.rows[0].cnt).toBe(1);
@@ -285,11 +289,15 @@ describe('contactsDB (in-memory)', () => {
   });
 
   test('delete contact cascades to contact_info', async () => {
+    // Create contact first
     const { id } = await contacts.create({
       first_name: 'Barbara',
-      last_name: 'Liskov',
-      contactInfo: [{ type: 'mobile', value: '+333', is_primary: 1 }],
+      last_name: 'Liskov'
     });
+    
+    // Add contact info separately
+    await contactsInfo.addContactInfo(id, { type: 'mobile', value: '+333', is_primary: 1 });
+    
     const before = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
     expect(before.rows[0].cnt).toBe(1);
     const removed = await contacts.delete(id);
