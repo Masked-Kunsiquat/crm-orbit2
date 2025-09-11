@@ -59,9 +59,9 @@ export default {
     // Optionally enable FTS5 for interactions(title, note) if available
     let ftsReady = false;
     try {
-      await exec.execute(
+      await runAll(exec, [
         "CREATE VIRTUAL TABLE IF NOT EXISTS interactions_fts USING fts5(title, note, content='interactions', content_rowid='id');"
-      );
+      ]);
       ftsReady = true;
     } catch (_) {
       // FTS5 not available; skip without failing the migration
