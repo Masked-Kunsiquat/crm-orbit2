@@ -151,6 +151,7 @@ const CREATE_INDEXES = [
   // Contacts
   `CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts (company_id);`,
   `CREATE INDEX IF NOT EXISTS idx_contacts_last_name ON contacts (last_name);`,
+  `CREATE INDEX IF NOT EXISTS idx_contacts_last_first ON contacts (last_name, first_name);`,
   `CREATE INDEX IF NOT EXISTS idx_contacts_is_favorite ON contacts (is_favorite);`,
 
   // Contact Info
@@ -178,9 +179,11 @@ const CREATE_INDEXES = [
 
   // Categories
   `CREATE INDEX IF NOT EXISTS idx_categories_sort_order ON categories (sort_order);`,
+  `CREATE INDEX IF NOT EXISTS idx_categories_sort_order_name ON categories (sort_order, name);`,
 
   // Contact-Categories
   `CREATE INDEX IF NOT EXISTS idx_contact_categories_category_id ON contact_categories (category_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_contact_categories_contact_id ON contact_categories (contact_id);`,
 
   // Attachments
   `CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments (entity_type, entity_id);`,
@@ -229,7 +232,9 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_companies_name;',
   'DROP INDEX IF EXISTS idx_companies_logo_attachment_id;',
   'DROP INDEX IF EXISTS idx_attachments_entity;',
+  'DROP INDEX IF EXISTS idx_contact_categories_contact_id;',
   'DROP INDEX IF EXISTS idx_contact_categories_category_id;',
+  'DROP INDEX IF EXISTS idx_categories_sort_order_name;',
   'DROP INDEX IF EXISTS idx_categories_sort_order;',
   'DROP INDEX IF EXISTS idx_notes_is_pinned;',
   'DROP INDEX IF EXISTS idx_notes_contact_id;',
@@ -245,6 +250,7 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_contact_info_value;',
   'DROP INDEX IF EXISTS idx_contact_info_contact_id;',
   'DROP INDEX IF EXISTS idx_contacts_is_favorite;',
+  'DROP INDEX IF EXISTS idx_contacts_last_first;',
   'DROP INDEX IF EXISTS idx_contacts_last_name;',
   'DROP INDEX IF EXISTS idx_contacts_company_id;',
 ];
