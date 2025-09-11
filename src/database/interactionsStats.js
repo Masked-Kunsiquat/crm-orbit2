@@ -58,9 +58,9 @@ export function createInteractionsStatsDB({ execute }) {
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
       
       // Get count by type
-      const typeCountSql = `SELECT interaction_type, COUNT(*) as count 
+      const typeCountSql = `SELECT COALESCE(custom_type, interaction_type) as effective_type, COUNT(*) as count 
                            FROM interactions ${whereClause} 
-                           GROUP BY interaction_type 
+                           GROUP BY COALESCE(custom_type, interaction_type) 
                            ORDER BY count DESC;`;
       const typeCountRes = await execute(typeCountSql, params);
       
@@ -87,7 +87,7 @@ export function createInteractionsStatsDB({ execute }) {
         earliestInteraction: totalRes.rows[0]?.earliest_interaction,
         latestInteraction: totalRes.rows[0]?.latest_interaction,
         countByType: typeCountRes.rows.reduce((acc, row) => {
-          acc[row.interaction_type] = row.count;
+          acc[row.effective_type] = row.count;
           return acc;
         }, {}),
         averageDuration: avgDurationRes.rows.reduce((acc, row) => {
