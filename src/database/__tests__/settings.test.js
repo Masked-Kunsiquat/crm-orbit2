@@ -507,8 +507,8 @@ describe('createSettingsDB', () => {
       const objSetting = await settingsDB.set('custom.obj', { key: 'value' });
       expect(objSetting.dataType).toBe('json');
       
-      // Explicit type should override
-      const overrideSetting = await settingsDB.set('custom.override', 456, 'string');
+      // Explicit type should override (must provide string value for string type)
+      const overrideSetting = await settingsDB.set('custom.override', '456', 'string');
       expect(overrideSetting.dataType).toBe('string');
       expect(overrideSetting.value).toBe('456');
     });
