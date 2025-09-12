@@ -29,6 +29,17 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
     },
 
     /**
+     * Alias for addContactToCategory for compatibility.
+     * Create a contact-category relationship.
+     * @param {number} contactId
+     * @param {number} categoryId
+     * @returns {Promise<boolean>} True if a new link was created, false if it already existed
+     */
+    async addToCategory(contactId, categoryId) {
+      return this.addContactToCategory(contactId, categoryId);
+    },
+
+    /**
      * Remove a contact-category relationship.
      * @param {number} contactId
      * @param {number} categoryId
@@ -74,6 +85,16 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
         [contactId]
       );
       return res.rows;
+    },
+
+    /**
+     * Alias for getCategoriesForContact for compatibility.
+     * Get categories that a given contact belongs to.
+     * @param {number} contactId
+     * @returns {Promise<object[]>}
+     */
+    async getCategoriesByContactId(contactId) {
+      return this.getCategoriesForContact(contactId);
     },
 
     /**
