@@ -6,11 +6,13 @@ import { DatabaseError } from '../errors';
 import m001 from './001_initial_schema';
 import m002 from './002_seed_data';
 import m003 from './003_performance_indexes';
+import m004 from './004_add_display_name_column';
 
 const MIGRATIONS = [
   m001,
   m002,
   m003,
+  m004,
 ];
 
 // Ensure unique, sorted by version
