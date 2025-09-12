@@ -5,41 +5,39 @@ export default {
   name: 'add_display_name_column',
   
   async up(ctx) {
-    const { execute, transaction } = ctx;
-    const run = async (db) => {
-      await db.execute(`
-        ALTER TABLE contacts 
-        ADD COLUMN display_name TEXT;
-      `);
-      // Backfill with collapsed internal whitespace
-      await db.execute(`
-        UPDATE contacts 
-        SET display_name = TRIM(
+    const { execute } = ctx;
+    
+    // Add display_name column to contacts table
+    await execute(`
+      ALTER TABLE contacts 
+      ADD COLUMN display_name TEXT;
+    `);
+    
+    // Backfill with collapsed internal whitespace
+    await execute(`
+      UPDATE contacts 
+      SET display_name = TRIM(
+        REPLACE(
           REPLACE(
-            REPLACE(
-              TRIM(
-                COALESCE(TRIM(first_name), '') || ' ' ||
-                COALESCE(NULLIF(TRIM(middle_name), ''), '') || ' ' ||
-                COALESCE(TRIM(last_name), '')
-              ),
-              '  ', ' '
+            TRIM(
+              COALESCE(TRIM(first_name), '') || ' ' ||
+              COALESCE(NULLIF(TRIM(middle_name), ''), '') || ' ' ||
+              COALESCE(TRIM(last_name), '')
             ),
             '  ', ' '
-          )
+          ),
+          '  ', ' '
         )
-        WHERE display_name IS NULL;
-      `);
-      await db.execute(`
-        UPDATE contacts 
-        SET display_name = 'Unnamed Contact'
-        WHERE display_name IS NULL OR display_name = '';
-      `);
-    };
-    if (transaction) {
-      await transaction(run);
-    } else {
-      await run({ execute });
-    }
+      )
+      WHERE display_name IS NULL;
+    `);
+    
+    // Handle empty display names
+    await execute(`
+      UPDATE contacts 
+      SET display_name = 'Unnamed Contact'
+      WHERE display_name IS NULL OR display_name = '';
+    `);
   },
   
   async down(ctx) {

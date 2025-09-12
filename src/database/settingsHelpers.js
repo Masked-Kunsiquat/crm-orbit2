@@ -3,6 +3,7 @@ import { DatabaseError } from './errors';
 export const DEFAULT_SETTINGS = {
   // Notifications
   'notifications.enabled': { value: true, type: 'boolean' },
+  'notifications.sound_enabled': { value: true, type: 'boolean' },
   'notifications.birthday_reminders': { value: true, type: 'boolean' },
   'notifications.event_reminders': { value: true, type: 'boolean' },
   'notifications.reminder_advance_days': { value: 1, type: 'number' },

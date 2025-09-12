@@ -402,7 +402,7 @@ describe('Database Integration Tests', () => {
       expect(contactWithInfoBefore.contact_info).toHaveLength(1);
       expect(await events.getByContact(contact.id)).toHaveLength(1);
       expect(await interactions.getAll({ contactId: contact.id })).toHaveLength(1);
-      expect(await notes.getAllByContactId(contact.id)).toHaveLength(1);
+      expect(await notes.getByContact(contact.id)).toHaveLength(1);
       expect(await attachments.getByEntity('contact', contact.id)).toHaveLength(1);
 
       // 4. Delete contact
@@ -413,7 +413,7 @@ describe('Database Integration Tests', () => {
       expect(contactWithInfoAfter).toBeNull(); // Contact should be deleted
       expect(await events.getByContact(contact.id)).toHaveLength(0);
       expect(await interactions.getAll({ contactId: contact.id })).toHaveLength(0);
-      expect(await notes.getAllByContactId(contact.id)).toHaveLength(0);
+      expect(await notes.getByContact(contact.id)).toHaveLength(0);
       expect(await attachments.getByEntity('contact', contact.id)).toHaveLength(0);
       
       // 6. Verify category relationship is removed
@@ -797,7 +797,7 @@ describe('Database Integration Tests', () => {
       expect(contactInteractions).toHaveLength(1);
       expect(contactInteractions[0].duration).toBe(45);
 
-      const contactNotes = await notes.getAllByContactId(contact.id);
+      const contactNotes = await notes.getByContact(contact.id);
       expect(contactNotes).toHaveLength(1);
 
       const noteAttachments = await attachments.getByEntity('note', note.id);
@@ -810,7 +810,7 @@ describe('Database Integration Tests', () => {
       expect(finalContactInfo).toBeNull(); // Contact deleted, so should return null
       expect(await events.getByContact(contact.id)).toHaveLength(0);
       expect(await interactions.getAll({ contactId: contact.id })).toHaveLength(0);
-      expect(await notes.getAllByContactId(contact.id)).toHaveLength(0);
+      expect(await notes.getByContact(contact.id)).toHaveLength(0);
       
       // Categories should still exist but with no contact relationships
       const clientsCategory = await categories.getById(category1.id);

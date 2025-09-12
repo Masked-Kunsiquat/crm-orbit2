@@ -21,11 +21,24 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      * @returns {Promise<boolean>} True if a new link was created, false if it already existed
      */
     async addContactToCategory(contactId, categoryId) {
-      const res = await execute(
-        'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
-        [contactId, categoryId]
-      );
-      return res && res.rowsAffected ? res.rowsAffected > 0 : false;
+      try {
+        const res = await execute(
+          'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+          [contactId, categoryId]
+        );
+        return res && res.rowsAffected ? res.rowsAffected > 0 : false;
+      } catch (error) {
+        // Handle foreign key constraint errors
+        if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+          throw new DatabaseError('Contact or category not found', 'NOT_FOUND', error);
+        }
+        // Handle unique constraint violations (duplicate relationships)
+        if (error.message && error.message.includes('UNIQUE constraint failed')) {
+          return false; // Relationship already exists
+        }
+        // Re-throw other errors as-is
+        throw error;
+      }
     },
 
     /**
