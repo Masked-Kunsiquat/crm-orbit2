@@ -120,6 +120,20 @@ function formatLocalDate(year, month, day) {
 }
 
 /**
+ * Parse a YYYY-MM-DD string as a local Date at midnight.
+ * Avoids UTC parsing quirks of Date('YYYY-MM-DD').
+ * @param {string} ymd
+ * @returns {Date}
+ */
+function parseLocalYMD(ymd) {
+  if (!ymd || typeof ymd !== 'string') return new Date(NaN);
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(y, (m || 1) - 1, d || 1);
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+/**
  * Create the events recurring database module
  * @param {Object} deps - Database dependencies
  * @param {Function} deps.execute - Execute SQL function
@@ -221,8 +235,7 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       for (const event of res.rows) {
         const nextDate = calculateNextOccurrence(event.event_date, 'yearly');
         if (nextDate) {
-          const nextBirthday = new Date(nextDate);
-          nextBirthday.setHours(0, 0, 0, 0);
+          const nextBirthday = parseLocalYMD(nextDate);
           const daysDiff = Math.round((nextBirthday - today) / (1000 * 60 * 60 * 24));
           
           if (daysDiff >= 0 && daysDiff <= days) {
@@ -255,8 +268,7 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       for (const event of res.rows) {
         const nextDate = calculateNextOccurrence(event.event_date, event.recurrence_pattern);
         if (nextDate) {
-          const nextEvent = new Date(nextDate);
-          nextEvent.setHours(0, 0, 0, 0);
+          const nextEvent = parseLocalYMD(nextDate);
           const daysDiff = Math.round((nextEvent - today) / (1000 * 60 * 60 * 24));
           
           if (daysDiff >= 0 && daysDiff <= days) {

@@ -201,13 +201,13 @@ test('throws VALIDATION_ERROR for invalid data', async () => {
 
 ## Current Test Coverage
 
-- **117 tests passing** across 5 test suites
 - Covers all major database modules with consistent in-memory SQLite testing:
   - `categories.test.js` - In-memory SQLite with categoriesRelations helper
   - `contacts.test.js` - In-memory SQLite with contactsInfo helper
   - `events.test.js` - In-memory SQLite with eventsRecurring and eventsReminders helpers
   - `interactions.test.js` - In-memory SQLite with interactionsStats and interactionsSearch helpers
   - `companies.test.js` - In-memory SQLite testing
+  - `attachments.test.js` - In-memory SQLite with universal attachment system
 
 ## Dependencies
 

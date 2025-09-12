@@ -1,0 +1,110 @@
+name: Database Tests & Badge
+
+on:
+  push:
+    branches: [master, main, feat/*]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      
+      - name: Run database tests
+        id: test
+        run: |
+          npm test -- --ci --runInBand --testTimeout=15000 --json --outputFile=test-results.json --testPathPattern="src/database/__tests__" > test-output.txt 2>&1 || true
+          
+          # Parse test results
+          if [ -f test-results.json ]; then
+            TOTAL=$(cat test-results.json | jq -r '.numTotalTests // 0')
+            PASSED=$(cat test-results.json | jq -r '.numPassedTests // 0')
+            FAILED=$(cat test-results.json | jq -r '.numFailedTests // 0')
+            SUITES=$(cat test-results.json | jq -r '.numTotalTestSuites // 0')
+          else
+            # Fallback parsing from output
+            TOTAL=$(grep -o "Tests:.*total" test-output.txt | grep -o "[0-9]\+ total" | grep -o "[0-9]\+" || echo "0")
+            PASSED=$(grep -o "[0-9]\+ passed" test-output.txt | grep -o "[0-9]\+" || echo "0")
+            FAILED=$(grep -o "[0-9]\+ failed" test-output.txt | grep -o "[0-9]\+" || echo "0")
+            SUITES=$(grep -o "Test Suites:.*total" test-output.txt | grep -o "[0-9]\+ total" | grep -o "[0-9]\+" || echo "0")
+          fi
+          
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "suites=$SUITES" >> $GITHUB_OUTPUT
+          
+          # Determine badge color
+          if [ "$FAILED" -eq "0" ] && [ "$TOTAL" -gt "0" ]; then
+            echo "color=brightgreen" >> $GITHUB_OUTPUT
+          elif [ "$TOTAL" -eq "0" ]; then
+            echo "color=lightgrey" >> $GITHUB_OUTPUT
+          else
+            echo "color=red" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Database Tests: $PASSED/$TOTAL passing across $SUITES suites"
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-test-logs
+          if-no-files-found: ignore
+          path: |
+            test-output.txt
+            test-results.json
+      
+      - name: Create test badge
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ secrets.GIST_ID }}
+          filename: expo-crm-database-tests.json
+          label: Database Tests
+          message: ${{ steps.test.outputs.passed }}/${{ steps.test.outputs.total }} passing
+          color: ${{ steps.test.outputs.color }}
+      
+      - name: Warn on test failures (non-blocking)
+        if: github.event_name == 'pull_request' && steps.test.outputs.passed != steps.test.outputs.total
+        run: |
+          echo "Tests passed: ${{ steps.test.outputs.passed }} / ${{ steps.test.outputs.total }}"
+          echo "::warning title=Database Tests::${{ steps.test.outputs.failed }} failing out of ${{ steps.test.outputs.total }}. See attached artifacts (database-test-logs)."
+      
+      - name: Update documentation
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Update documentation files with current test counts
+          node scripts/update-test-counts.js
+          
+          # Check if there are changes to commit
+          if git diff --quiet; then
+            echo "No documentation updates needed"
+          else
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add README.md src/database/__tests__/AGENTS.md
+            git commit -m "docs: auto-update test counts to ${{ steps.test.outputs.passed }}/${{ steps.test.outputs.total }}" || exit 0
+            git push

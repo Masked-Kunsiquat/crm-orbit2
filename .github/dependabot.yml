@@ -1,13 +1,13 @@
 version: 2
 updates:
-  # JavaScript/Expo app (npm) located in /crm-orbit
+  # JavaScript/Expo app (npm) in repository root
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "08:00"
-      timezone: "UTC"
+      time: "02:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -27,8 +27,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "08:00"
-      timezone: "UTC"
+      time: "02:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
