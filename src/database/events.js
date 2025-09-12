@@ -31,9 +31,12 @@ function placeholders(n) {
 function convertBooleanFields(row) {
   if (!row) return row;
   const converted = { ...row };
-  // Convert SQLite integer boolean fields to JavaScript booleans
-  if (typeof converted.recurring === 'number') {
-    converted.recurring = Boolean(converted.recurring);
+  const booleanFields = ['recurring'];
+  for (const key of booleanFields) {
+    if (key in converted) {
+      const v = converted[key];
+      converted[key] = v === true || v === 1 || v === '1';
+    }
   }
   return converted;
 }
