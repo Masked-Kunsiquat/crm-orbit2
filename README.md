@@ -95,7 +95,7 @@ npm test -- --watch
 ```
 
 ### Database Testing
-- **179 tests** across 7 test suites
+- **238 tests** across 8 test suites
 - In-memory SQLite testing with sql.js
 - Complete coverage of CRUD operations, business logic, and error handling
 - Integration testing between database modules
@@ -105,7 +105,7 @@ npm test -- --watch
 **Phase 1: Database Foundation** - COMPLETED
 - All core database modules implemented and tested
 - Migration system with schema versioning
-- Comprehensive test coverage (193 passing tests)
+- Comprehensive test coverage (238 passing tests)
 
 **Phase 2: Services Layer** - PLANNED
 - File management services
