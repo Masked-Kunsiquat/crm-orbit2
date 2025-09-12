@@ -108,3 +108,4 @@ jobs:
             git add README.md src/database/__tests__/AGENTS.md
             git commit -m "docs: auto-update test counts to ${{ steps.test.outputs.passed }}/${{ steps.test.outputs.total }}" || exit 0
             git push
+          fi
