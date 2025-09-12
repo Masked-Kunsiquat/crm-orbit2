@@ -259,6 +259,9 @@ export function createSettingsDB({ execute, batch, transaction }) {
         if (!setting.key || typeof setting.key !== 'string') {
           throw new DatabaseError('Each setting must have a valid key', 'VALIDATION_ERROR', null, { setting });
         }
+        if (!setting.key.includes('.') || setting.key.split('.').some(p => !p)) {
+          throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey: setting.key });
+        }
         validateSettingValue(setting.key, setting.value, setting.dataType || 'string');
       }
 
@@ -282,13 +285,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       try {
         await batch(statements);
         
-        const updatedSettings = [];
-        for (const setting of settings) {
-          const updated = await this.get(setting.key);
-          updatedSettings.push(updated);
-        }
-        
-        return updatedSettings;
+        return await Promise.all(settings.map(s => this.get(s.key)));
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
         throw new DatabaseError('Failed to set multiple settings', 'SET_MULTIPLE_FAILED', error, { settings });
