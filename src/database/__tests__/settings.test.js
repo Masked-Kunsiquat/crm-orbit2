@@ -512,5 +512,35 @@ describe('createSettingsDB', () => {
       expect(overrideSetting.dataType).toBe('string');
       expect(overrideSetting.value).toBe('456');
     });
+
+    test('handles various is_enabled database formats correctly', async () => {
+      // Insert settings directly into DB with different is_enabled values
+      await ctx.execute(
+        `INSERT INTO user_preferences (category, setting_key, setting_value, data_type, is_enabled) 
+         VALUES 
+         ('test', 'test.enabled_1', 'value', 'string', 1),
+         ('test', 'test.enabled_true', 'value', 'string', 'true'),
+         ('test', 'test.enabled_t', 'value', 'string', 't'),
+         ('test', 'test.enabled_string1', 'value', 'string', '1'),
+         ('test', 'test.disabled_0', 'value', 'string', 0),
+         ('test', 'test.disabled_false', 'value', 'string', 'false'),
+         ('test', 'test.disabled_f', 'value', 'string', 'f'),
+         ('test', 'test.disabled_string0', 'value', 'string', '0')`
+      );
+
+      const result = await settingsDB.getByCategory('test');
+      
+      // Should be enabled
+      expect(result.find(s => s.key === 'test.enabled_1').isEnabled).toBe(true);
+      expect(result.find(s => s.key === 'test.enabled_true').isEnabled).toBe(true);
+      expect(result.find(s => s.key === 'test.enabled_t').isEnabled).toBe(true);
+      expect(result.find(s => s.key === 'test.enabled_string1').isEnabled).toBe(true);
+      
+      // Should be disabled
+      expect(result.find(s => s.key === 'test.disabled_0').isEnabled).toBe(false);
+      expect(result.find(s => s.key === 'test.disabled_false').isEnabled).toBe(false);
+      expect(result.find(s => s.key === 'test.disabled_f').isEnabled).toBe(false);
+      expect(result.find(s => s.key === 'test.disabled_string0').isEnabled).toBe(false);
+    });
   });
 });

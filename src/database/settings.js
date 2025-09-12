@@ -47,7 +47,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           key: row.setting_key,
           value: castedValue,
           dataType: row.data_type,
-          isEnabled: castValue(row.is_enabled, 'boolean'),
+          isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true,
           isDefault: false
         };
       } catch (error) {
@@ -140,7 +140,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           key: row.setting_key,
           value: castValue(row.setting_value, row.data_type),
           dataType: row.data_type,
-          isEnabled: castValue(row.is_enabled, 'boolean'),
+          isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true,
           isDefault: false
         }));
 
@@ -256,7 +256,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           key: row.setting_key,
           value: castValue(row.setting_value, row.data_type),
           dataType: row.data_type,
-          isEnabled: castValue(row.is_enabled, 'boolean'),
+          isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true,
           category: row.category,
           isDefault: false
         }));
