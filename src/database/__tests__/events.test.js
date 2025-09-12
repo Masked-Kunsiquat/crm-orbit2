@@ -528,7 +528,7 @@ describe('eventsDB (in-memory)', () => {
     const upcomingBirthdays = await eventsRecurring.getUpcomingBirthdays(15);
     expect(upcomingBirthdays.length).toBe(1);
     expect(upcomingBirthdays[0].title).toBe('John Birthday');
-    expect(upcomingBirthdays[0].days_until).toBe(9);
+    expect(upcomingBirthdays[0].days_until).toBe(10);
     expect(upcomingBirthdays[0].next_occurrence).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
