@@ -2,6 +2,7 @@ import initSqlJs from 'sql.js';
 import path from 'path';
 import { createAttachmentsDB } from '../attachments';
 import { DatabaseError } from '../errors';
+import { runMigrations } from '../migrations/migrationRunner';
 
 function rowsFromResult(result) {
   if (!result || !result.length) return [];
@@ -76,69 +77,23 @@ describe('createAttachmentsDB', () => {
     ctx = makeCtx(db);
     attachmentsDB = createAttachmentsDB(ctx);
 
-    // Create schema
-    await ctx.execute(`
-      CREATE TABLE attachments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        entity_type TEXT NOT NULL,
-        entity_id INTEGER NOT NULL,
-        file_name TEXT NOT NULL,
-        original_name TEXT NOT NULL,
-        file_path TEXT NOT NULL,
-        file_type TEXT NOT NULL,
-        mime_type TEXT,
-        file_size INTEGER,
-        thumbnail_path TEXT,
-        description TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Create related tables for orphan testing
-    await ctx.execute(`
-      CREATE TABLE contacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        first_name TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    await ctx.execute(`
-      CREATE TABLE interactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        contact_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        interaction_type TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    await ctx.execute(`
-      CREATE TABLE events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        contact_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        event_type TEXT NOT NULL,
-        event_date DATE NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    await ctx.execute(`
-      CREATE TABLE notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+    // Apply all migrations to create the real schema
+    await runMigrations(ctx);
   });
 
   beforeEach(async () => {
+    // Clean up data from all relevant tables (order matters due to foreign keys)
+    await ctx.execute('DELETE FROM contact_categories');
+    await ctx.execute('DELETE FROM event_reminders');
+    await ctx.execute('DELETE FROM contact_info');
     await ctx.execute('DELETE FROM attachments');
-    await ctx.execute('DELETE FROM contacts');
+    await ctx.execute('DELETE FROM notes');
     await ctx.execute('DELETE FROM interactions');
     await ctx.execute('DELETE FROM events');
-    await ctx.execute('DELETE FROM notes');
+    await ctx.execute('DELETE FROM contacts');
+    await ctx.execute('DELETE FROM companies');
+    await ctx.execute('DELETE FROM categories');
+    await ctx.execute('DELETE FROM user_preferences');
   });
 
   afterAll(() => {
