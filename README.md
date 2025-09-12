@@ -95,7 +95,7 @@ npm test -- --watch
 ```
 
 ### Database Testing
-- **179 tests** across 7 test suites
+- **193 tests** across 7 test suites
 - In-memory SQLite testing with sql.js
 - Complete coverage of CRUD operations, business logic, and error handling
 - Integration testing between database modules
