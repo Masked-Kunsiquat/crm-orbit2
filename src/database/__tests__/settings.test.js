@@ -2,6 +2,7 @@ import initSqlJs from 'sql.js';
 import path from 'path';
 import { createSettingsDB } from '../settings';
 import { DatabaseError } from '../errors';
+import { runMigrations } from '../migrations/migrationRunner';
 
 function rowsFromResult(result) {
   if (!result || !result.length) return [];
@@ -71,26 +72,14 @@ describe('createSettingsDB', () => {
   let db, ctx, settingsDB;
 
   beforeAll(async () => {
-    const SQL = await initSqlJs({
-      locateFile: (file) => path.join(__dirname, '../../../node_modules/sql.js/dist', file)
-    });
+    const wasmPath = path.join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm');
+    const SQL = await initSqlJs({ locateFile: () => wasmPath });
     db = new SQL.Database();
     ctx = makeCtx(db);
     settingsDB = createSettingsDB(ctx);
 
-    // Create the user_preferences table
-    await ctx.execute(`
-      CREATE TABLE user_preferences (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category TEXT NOT NULL,
-        setting_key TEXT NOT NULL,
-        setting_value TEXT,
-        data_type TEXT DEFAULT 'string',
-        is_enabled BOOLEAN DEFAULT 1,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(category, setting_key)
-      )
-    `);
+    // Apply all migrations to create the real schema
+    await runMigrations(ctx);
   });
 
   beforeEach(async () => {
@@ -175,9 +164,9 @@ describe('createSettingsDB', () => {
     });
 
     test('throws error for invalid setting key', async () => {
-      await expect(settingsDB.get('')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.get(null)).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.get(123)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.get('')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.get(null)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.get(123)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
@@ -202,20 +191,20 @@ describe('createSettingsDB', () => {
     });
 
     test('validates string values', async () => {
-      await expect(settingsDB.set('test.key', 123, 'string')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.set('test.key', 123, 'string')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     test('validates number values', async () => {
-      await expect(settingsDB.set('test.key', 'not a number', 'number')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.set('test.key', NaN, 'number')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.set('test.key', 'not a number', 'number')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.set('test.key', NaN, 'number')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     test('validates boolean values', async () => {
-      await expect(settingsDB.set('test.key', 'not a boolean', 'boolean')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.set('test.key', 'not a boolean', 'boolean')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     test('validates JSON values', async () => {
-      await expect(settingsDB.set('test.key', 'invalid json', 'json')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.set('test.key', 'invalid json', 'json')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
       
       // Valid JSON should work
       await settingsDB.set('test.key', { valid: 'json' }, 'json');
@@ -223,13 +212,13 @@ describe('createSettingsDB', () => {
     });
 
     test('throws error for null/undefined values', async () => {
-      await expect(settingsDB.set('test.key', null, 'string')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.set('test.key', undefined, 'string')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.set('test.key', null, 'string')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.set('test.key', undefined, 'string')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     test('throws error for invalid setting key', async () => {
-      await expect(settingsDB.set('', 'value')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.set(null, 'value')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.set('', 'value')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.set(null, 'value')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
@@ -269,8 +258,8 @@ describe('createSettingsDB', () => {
     });
 
     test('throws error for invalid category', async () => {
-      await expect(settingsDB.getByCategory('')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.getByCategory(null)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.getByCategory('')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.getByCategory(null)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
@@ -296,7 +285,7 @@ describe('createSettingsDB', () => {
         { key: 'notifications.enabled', value: 'not a boolean', dataType: 'boolean' }
       ];
 
-      await expect(settingsDB.setMultiple(settings)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.setMultiple(settings)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
       
       // Verify no settings were created
       const themes = await settingsDB.get('display.theme');
@@ -304,8 +293,8 @@ describe('createSettingsDB', () => {
     });
 
     test('throws error for empty or invalid input', async () => {
-      await expect(settingsDB.setMultiple([])).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.setMultiple([{ key: '', value: 'test' }])).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.setMultiple([])).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.setMultiple([{ key: '', value: 'test' }])).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
@@ -326,12 +315,12 @@ describe('createSettingsDB', () => {
     });
 
     test('throws error for setting without default', async () => {
-      await expect(settingsDB.reset('unknown.setting')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.reset('unknown.setting')).rejects.toMatchObject({ code: 'NO_DEFAULT_VALUE' });
     });
 
     test('throws error for invalid setting key', async () => {
-      await expect(settingsDB.reset('')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.reset(null)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.reset('')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.reset(null)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
@@ -386,16 +375,16 @@ describe('createSettingsDB', () => {
     test('throws error for non-boolean setting', async () => {
       await settingsDB.set('display.theme', 'dark', 'string');
       
-      await expect(settingsDB.toggle('display.theme')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.toggle('display.theme')).rejects.toMatchObject({ code: 'INVALID_TYPE_FOR_TOGGLE' });
     });
 
     test('throws error for non-existent setting', async () => {
-      await expect(settingsDB.toggle('unknown.setting')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.toggle('unknown.setting')).rejects.toMatchObject({ code: 'SETTING_NOT_FOUND' });
     });
 
     test('throws error for invalid setting key', async () => {
-      await expect(settingsDB.toggle('')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.toggle(null)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.toggle('')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.toggle(null)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
@@ -433,21 +422,21 @@ describe('createSettingsDB', () => {
     test('throws error for non-number setting', async () => {
       await settingsDB.set('display.theme', 'dark', 'string');
       
-      await expect(settingsDB.increment('display.theme')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.increment('display.theme')).rejects.toMatchObject({ code: 'INVALID_TYPE_FOR_INCREMENT' });
     });
 
     test('throws error for non-existent setting', async () => {
-      await expect(settingsDB.increment('unknown.setting')).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.increment('unknown.setting')).rejects.toMatchObject({ code: 'SETTING_NOT_FOUND' });
     });
 
     test('throws error for invalid amount', async () => {
-      await expect(settingsDB.increment('display.contacts_per_page', 'not a number')).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.increment('display.contacts_per_page', NaN)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.increment('display.contacts_per_page', 'not a number')).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.increment('display.contacts_per_page', NaN)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     test('throws error for invalid setting key', async () => {
-      await expect(settingsDB.increment('', 5)).rejects.toThrow(DatabaseError);
-      await expect(settingsDB.increment(null, 5)).rejects.toThrow(DatabaseError);
+      await expect(settingsDB.increment('', 5)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(settingsDB.increment(null, 5)).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
   });
 
