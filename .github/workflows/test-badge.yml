@@ -45,7 +45,7 @@ jobs:
       - name: Run database tests
         id: test
         run: |
-          npm test -- --ci --runInBand --testTimeout=15000 --json --outputFile=test-results.json --testPathPattern="src/database/__tests__" > test-output.txt 2>&1 || true
+          npm test -- --ci --runInBand --coverage --testTimeout=15000 --json --outputFile=test-results.json --testPathPattern="src/database/__tests__" > test-output.txt 2>&1 || true
           
           # Parse test results
           if [ -f test-results.json ]; then
@@ -87,16 +87,13 @@ jobs:
             test-output.txt
             test-results.json
       
-      - name: Create test badge
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-        uses: schneegans/dynamic-badges-action@v1.7.0
+      - name: Generate coverage badges
+        if: always()
+        uses: jpb06/coverage-badges-action@latest
         with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: ${{ secrets.GIST_ID }}
-          filename: expo-crm-database-tests.json
-          label: Database Tests
-          message: ${{ steps.test.outputs.passed }}/${{ steps.test.outputs.total }} passing
-          color: ${{ steps.test.outputs.color }}
+          branches: '*'
+          target-branch: badges
+          badges-icon: jest
       
       - name: Warn on test failures (non-blocking)
         if: github.event_name == 'pull_request' && steps.test.outputs.passed != steps.test.outputs.total
