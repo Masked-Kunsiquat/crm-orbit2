@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: UTC
-    defaults:
-      run:
-        working-directory: "/"
     steps:
       - uses: actions/checkout@v4
         with:
