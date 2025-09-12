@@ -28,6 +28,16 @@ function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
+function convertBooleanFields(row) {
+  if (!row) return row;
+  const converted = { ...row };
+  // Convert SQLite integer boolean fields to JavaScript booleans
+  if (typeof converted.recurring === 'number') {
+    converted.recurring = Boolean(converted.recurring);
+  }
+  return converted;
+}
+
 
 /**
  * Create the events database module
@@ -68,7 +78,7 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     async getById(id) {
       const res = await execute('SELECT * FROM events WHERE id = ?;', [id]);
-      return res.rows[0] || null;
+      return convertBooleanFields(res.rows[0]) || null;
     },
 
     async getAll(options = {}) {
@@ -78,7 +88,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       
       const sql = `SELECT * FROM events ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async update(id, data) {
@@ -126,7 +136,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       
       const sql = `SELECT * FROM events WHERE contact_id = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [contactId, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async getUpcoming(options = {}) {
@@ -139,7 +149,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ? 
                    ORDER BY event_date ASC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, future, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async getPast(options = {}) {
@@ -152,7 +162,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ? 
                    ORDER BY event_date DESC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, past, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async getByDateRange(startDate, endDate, options = {}) {
@@ -163,7 +173,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ? 
                    ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [startDate, endDate, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     // Event type filtering
@@ -174,7 +184,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       
       const sql = `SELECT * FROM events WHERE event_type = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [eventType, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     }
   };
 }
