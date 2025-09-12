@@ -96,8 +96,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Update documentation files with current test counts
-          node scripts/update-test-counts.js
+          node "scripts/update-test-counts.js"
           
           # Check if there are changes to commit
           if git diff --quiet; then
