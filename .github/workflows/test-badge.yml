@@ -9,28 +9,33 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      TZ: UTC
+    defaults:
+      run:
+        working-directory: crm-orbit
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-          
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
-          
+          cache-dependency-path: crm-orbit/package-lock.json
+      
       - name: Install dependencies
         run: npm ci
-          
+      
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-          
+      
       - name: Run database tests
         id: test
         run: |
-          npm test -- --json --outputFile=test-results.json --testPathPattern="src/database/__tests__" > test-output.txt 2>&1 || true
+          npm test -- --ci --runInBand --testTimeout=15000 --json --outputFile=test-results.json --testPathPattern="src/database/__tests__" > test-output.txt 2>&1 || true
           
           # Parse test results
           if [ -f test-results.json ]; then
@@ -61,7 +66,7 @@ jobs:
           fi
           
           echo "Database Tests: $PASSED/$TOTAL passing across $SUITES suites"
-          
+      
       - name: Create test badge
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         uses: schneegans/dynamic-badges-action@v1.7.0
@@ -72,15 +77,15 @@ jobs:
           label: Database Tests
           message: ${{ steps.test.outputs.passed }}/${{ steps.test.outputs.total }} passing
           color: ${{ steps.test.outputs.color }}
-          
+      
       - name: Fail PR on test failures
         if: github.event_name == 'pull_request'
         run: |
           echo "Checking test results for PR..."
           echo "Tests passed: ${{ steps.test.outputs.passed }}"
           echo "Total tests: ${{ steps.test.outputs.total }}"
-          [ "${{ steps.test.outputs.passed }}" -eq "${{ steps.test.outputs.total }}" ] || exit 1
-          
+          [ "${{ steps.test.outputs.passed }}" -eq "${{ steps.test.outputs.total }}" ] || (echo "\n---- Jest output ----" && sed -n '1,200p' test-output.txt && exit 1)
+      
       - name: Update documentation
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         env:
