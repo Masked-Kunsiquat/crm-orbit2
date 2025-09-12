@@ -319,6 +319,7 @@ describe('createSettingsDB', () => {
         key: 'display.theme',
         value: 'system',
         dataType: 'string',
+        category: 'display',
         isEnabled: true,
         isDefault: true
       });
