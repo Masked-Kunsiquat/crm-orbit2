@@ -47,7 +47,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           key: row.setting_key,
           value: castedValue,
           dataType: row.data_type,
-          isEnabled: Boolean(row.is_enabled),
+          isEnabled: castValue(row.is_enabled, 'boolean'),
           isDefault: false
         };
       } catch (error) {
@@ -112,7 +112,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           key: row.setting_key,
           value: castValue(row.setting_value, row.data_type),
           dataType: row.data_type,
-          isEnabled: Boolean(row.is_enabled),
+          isEnabled: castValue(row.is_enabled, 'boolean'),
           isDefault: false
         }));
 
@@ -228,7 +228,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           key: row.setting_key,
           value: castValue(row.setting_value, row.data_type),
           dataType: row.data_type,
-          isEnabled: Boolean(row.is_enabled),
+          isEnabled: castValue(row.is_enabled, 'boolean'),
           category: row.category,
           isDefault: false
         }));
