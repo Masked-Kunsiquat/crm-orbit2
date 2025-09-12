@@ -491,5 +491,26 @@ describe('createSettingsDB', () => {
       expect(typeof booleanSetting.value).toBe('boolean');
       expect(typeof jsonSetting.value).toBe('object');
     });
+
+    test('automatically resolves types from DEFAULT_SETTINGS and JS values', async () => {
+      // Should use type from DEFAULT_SETTINGS
+      const knownSetting = await settingsDB.set('display.theme', 'custom');
+      expect(knownSetting.dataType).toBe('string');
+      
+      // Should infer from JS type
+      const numberSetting = await settingsDB.set('custom.number', 123);
+      expect(numberSetting.dataType).toBe('number');
+      
+      const boolSetting = await settingsDB.set('custom.bool', false);
+      expect(boolSetting.dataType).toBe('boolean');
+      
+      const objSetting = await settingsDB.set('custom.obj', { key: 'value' });
+      expect(objSetting.dataType).toBe('json');
+      
+      // Explicit type should override
+      const overrideSetting = await settingsDB.set('custom.override', 456, 'string');
+      expect(overrideSetting.dataType).toBe('string');
+      expect(overrideSetting.value).toBe('456');
+    });
   });
 });

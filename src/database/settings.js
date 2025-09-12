@@ -56,7 +56,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       }
     },
 
-    async set(settingKey, value, dataType = 'string') {
+    async set(settingKey, value, dataType = null) {
       if (!settingKey || typeof settingKey !== 'string') {
         throw new DatabaseError('Setting key must be a non-empty string', 'VALIDATION_ERROR', null, { settingKey });
       }
@@ -70,8 +70,36 @@ export function createSettingsDB({ execute, batch, transaction }) {
         throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey });
       }
 
-      validateSettingValue(settingKey, value, dataType);
-      const serializedValue = serializeValue(value, dataType);
+      // Resolve data type automatically if not provided
+      let resolvedType = dataType;
+      if (!resolvedType) {
+        // First, check if we have a default setting with a known type
+        const defaultSetting = DEFAULT_SETTINGS[settingKey];
+        if (defaultSetting?.type) {
+          resolvedType = defaultSetting.type;
+        } else {
+          // Fallback to JS type inference
+          const jsType = typeof value;
+          switch (jsType) {
+            case 'number':
+              resolvedType = 'number';
+              break;
+            case 'boolean':
+              resolvedType = 'boolean';
+              break;
+            case 'object':
+              resolvedType = value === null ? 'string' : 'json';
+              break;
+            case 'string':
+            default:
+              resolvedType = 'string';
+              break;
+          }
+        }
+      }
+
+      validateSettingValue(settingKey, value, resolvedType);
+      const serializedValue = serializeValue(value, resolvedType);
 
       const sql = `
         INSERT INTO user_preferences (category, setting_key, setting_value, data_type, updated_at)
@@ -83,7 +111,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       `;
       
       try {
-        const result = await execute(sql, [category, settingKey, serializedValue, dataType]);
+        const result = await execute(sql, [category, settingKey, serializedValue, resolvedType]);
         
         const setting = await this.get(settingKey);
         return setting;
