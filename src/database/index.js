@@ -32,6 +32,7 @@ import { createInteractionsStatsDB } from './interactionsStats';
 import { createInteractionsSearchDB } from './interactionsSearch';
 import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
+import { createSettingsDB } from './settings';
 import { DatabaseError } from './errors';
 
 // Re-export for consumers that import from this module
@@ -382,7 +383,7 @@ export const interactionsStatsDB = createInteractionsStatsDB({ execute });
 export const interactionsSearchDB = createInteractionsSearchDB({ execute });
 export const notesDB = createNotesDB({ execute, batch, transaction });
 export const attachmentsDB = createAttachmentsDB({ execute, batch, transaction });
-export const settingsDB = notImplemented('settings');
+export const settingsDB = createSettingsDB({ execute, batch, transaction });
 
 /**
  * Unified database API surface available to the rest of the app.

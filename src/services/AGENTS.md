@@ -1,7 +1,11 @@
 # Services Layer Agent Instructions
 
 ## Overview
-The services layer handles business logic, orchestrates database operations, and manages system integrations. Build after completing the database layer.
+The services layer handles business logic, orchestrates database operations, and manages system integrations. 
+
+**STATUS: 🚧 NOT STARTED - Ready to implement**
+**Prerequisites:** ✅ Database layer is complete
+**Next Steps:** Implement the four core services below
 
 ## Service Modules
 
@@ -327,6 +331,7 @@ export async function initializeServices() {
 
 ## Implementation Checklist
 
+### Priority 1: Core Services
 - [ ] Create fileService.js with UUID generation
 - [ ] Implement thumbnail generation
 - [ ] Create authService.js with biometric support
@@ -335,10 +340,17 @@ export async function initializeServices() {
 - [ ] Implement reminder scheduling
 - [ ] Create backupService.js
 - [ ] Implement JSON export/import
+
+### Priority 2: Advanced Features  
 - [ ] Add CSV export functionality
 - [ ] Implement auto-backup
-- [ ] Create service orchestrator
-- [ ] Add error handling
-- [ ] Write unit tests
+- [ ] Create service orchestrator (services/index.js)
+- [ ] Add comprehensive error handling
+
+### Priority 3: Testing & Optimization
+- [ ] Write unit tests for each service
 - [ ] Write integration tests
 - [ ] Performance optimization
+- [ ] Mock Expo modules for testing
+
+**Note:** All services depend on completed database layer. Each service should follow the error handling patterns established in the database layer.
