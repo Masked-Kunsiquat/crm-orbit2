@@ -31,6 +31,16 @@ function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
+function convertNullableFields(row) {
+  if (!row) return row;
+  const converted = { ...row };
+  // Convert undefined nullable fields to null for consistent API
+  if (converted.last_interaction_at === undefined) {
+    converted.last_interaction_at = null;
+  }
+  return converted;
+}
+
 // (reserved for future helpers)
 
 function computeDisplayName(data) {
@@ -79,12 +89,12 @@ export function createContactsDB(ctx) {
         throw new DatabaseError('Failed to create contact', 'INSERT_FAILED');
       }
 
-      return { id };
+      return this.getById(id);
     },
 
     async getById(id) {
       const res = await execute('SELECT * FROM contacts WHERE id = ?;', [id]);
-      return res.rows[0] || null;
+      return convertNullableFields(res.rows[0]) || null;
     },
 
     async getAll(options = {}) {
@@ -117,7 +127,7 @@ export function createContactsDB(ctx) {
                    ORDER BY ${order} ${dir}
                    LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [...params, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertNullableFields);
     },
 
     async update(id, data) {
@@ -146,8 +156,23 @@ export function createContactsDB(ctx) {
     },
 
     async delete(id) {
-      const res = await execute('DELETE FROM contacts WHERE id = ?;', [id]);
-      return res.rowsAffected || 0;
+      if (!transaction) {
+        // Fallback: delete contact and let foreign keys cascade
+        // Note: Attachments need manual cleanup since they don't use FK constraints
+        await execute('DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+        const res = await execute('DELETE FROM contacts WHERE id = ?;', [id]);
+        return res.rowsAffected || 0;
+      }
+
+      // Use transaction to ensure atomic deletion
+      return await transaction(async (tx) => {
+        // Delete attachments first (no FK constraints)
+        await tx.execute('DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+        
+        // Delete contact (other related data cascades via FK constraints)
+        const res = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
+        return res.rowsAffected || 0;
+      });
     },
 
     async search(query) {
@@ -165,7 +190,7 @@ export function createContactsDB(ctx) {
          ORDER BY c.last_name ASC, c.first_name ASC;`,
         [q, q, q, q, q]
       );
-      return res.rows;
+      return res.rows.map(convertNullableFields);
     },
 
     async getByCategory(categoryId) {
@@ -177,14 +202,14 @@ export function createContactsDB(ctx) {
          ORDER BY c.last_name ASC, c.first_name ASC;`,
         [categoryId]
       );
-      return res.rows;
+      return res.rows.map(convertNullableFields);
     },
 
     async getFavorites() {
       const res = await execute(
         `SELECT * FROM contacts WHERE is_favorite = 1 ORDER BY last_name ASC, first_name ASC;`
       );
-      return res.rows;
+      return res.rows.map(convertNullableFields);
     },
 
 
@@ -200,7 +225,7 @@ export function createContactsDB(ctx) {
           [id]
         ),
       ]);
-      const contact = cRes.rows[0] || null;
+      const contact = convertNullableFields(cRes.rows[0]) || null;
       if (!contact) return null;
       return { ...contact, categories: catRes.rows };
     },

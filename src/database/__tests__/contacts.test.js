@@ -141,6 +141,24 @@ function createSchema(db) {
 
   run(`CREATE INDEX IF NOT EXISTS idx_contact_categories_contact ON contact_categories(contact_id);`);
   run(`CREATE INDEX IF NOT EXISTS idx_contact_categories_category ON contact_categories(category_id);`);
+
+  // Attachments table (for contact deletion tests)
+  run(`CREATE TABLE attachments (
+    id INTEGER PRIMARY KEY,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('company','contact','note','event','interaction')),
+    entity_id INTEGER NOT NULL,
+    file_name TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    mime_type TEXT,
+    file_size INTEGER,
+    thumbnail_path TEXT,
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );`);
+
+  run(`CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);`);
 }
 
 describe('contactsDB (in-memory)', () => {

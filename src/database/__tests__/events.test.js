@@ -220,7 +220,7 @@ describe('eventsDB (in-memory)', () => {
     };
     
     const created = await events.create(eventData);
-    expect(created.recurring).toBe(1);
+    expect(created.recurring).toBe(true);
     expect(created.recurrence_pattern).toBe('yearly');
   });
 
