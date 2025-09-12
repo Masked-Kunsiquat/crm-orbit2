@@ -158,7 +158,7 @@ describe('createNotesDB', () => {
       const created = await notesDB.getById(result.id);
       expect(created.title).toBe('Test Note');
       expect(created.content).toBe('This is test content');
-      expect(created.is_pinned).toBe(0);
+      expect(created.is_pinned).toBe(false);
       expect(created.contact_id).toBeNull();
     });
 
@@ -180,7 +180,7 @@ describe('createNotesDB', () => {
       
       expect(created.contact_id).toBe(contactId);
       expect(created.title).toBe('Contact Note');
-      expect(created.is_pinned).toBe(1);
+      expect(created.is_pinned).toBe(true);
     });
 
     test('create() - throws error when content is missing', async () => {
@@ -219,7 +219,7 @@ describe('createNotesDB', () => {
       expect(all).toHaveLength(3);
       // Should be ordered by pinned first, then created_at DESC
       expect(all[0].title).toBe('Third'); // Pinned note first
-      expect(all[0].is_pinned).toBe(1);
+      expect(all[0].is_pinned).toBe(true);
       expect(all[1].title).toBe('Second');
       expect(all[2].title).toBe('First');
     });
@@ -263,7 +263,7 @@ describe('createNotesDB', () => {
       
       expect(updated.title).toBe('Updated');
       expect(updated.content).toBe('Updated content');
-      expect(updated.is_pinned).toBe(1);
+      expect(updated.is_pinned).toBe(true);
       expect(updated.updated_at).toBeTruthy();
     });
 
@@ -369,7 +369,7 @@ describe('createNotesDB', () => {
       const pinnedNotes = await notesDB.getPinned();
       expect(pinnedNotes).toHaveLength(2);
       pinnedNotes.forEach(note => {
-        expect(note.is_pinned).toBe(1);
+        expect(note.is_pinned).toBe(true);
       });
     });
 
@@ -467,11 +467,11 @@ describe('createNotesDB', () => {
       
       // Toggle to pinned
       const pinned = await notesDB.togglePin(id);
-      expect(pinned.is_pinned).toBe(1);
+      expect(pinned.is_pinned).toBe(true);
       
       // Toggle back to unpinned
       const unpinned = await notesDB.togglePin(id);
-      expect(unpinned.is_pinned).toBe(0);
+      expect(unpinned.is_pinned).toBe(false);
     });
 
     test('bulkDelete() - deletes multiple notes', async () => {
@@ -549,7 +549,7 @@ describe('createNotesDB', () => {
       
       const allNotes = await notesDB.getAll();
       expect(allNotes[0].title).toBe('Pinned');
-      expect(allNotes[0].is_pinned).toBe(1);
+      expect(allNotes[0].is_pinned).toBe(true);
     });
   });
 });

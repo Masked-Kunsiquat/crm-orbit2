@@ -62,18 +62,27 @@ export function createEventsDB({ execute, batch, transaction }) {
       const sql = `INSERT INTO events (${fields.join(', ')}, created_at) 
                    VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
       
-      const res = await execute(sql, values);
-      if (!res.insertId) {
-        throw new DatabaseError('Failed to create event', 'CREATE_FAILED');
+      try {
+        const res = await execute(sql, values);
+        if (!res.insertId) {
+          throw new DatabaseError('Failed to create event', 'CREATE_FAILED');
+        }
+        
+        // Update contact's last_interaction_at
+        await execute(
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          [data.contact_id]
+        );
+        
+        return this.getById(res.insertId);
+      } catch (error) {
+        // Handle foreign key constraint errors
+        if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+          throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
+        }
+        // Re-throw other errors as-is
+        throw error;
       }
-      
-      // Update contact's last_interaction_at
-      await execute(
-        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
-        [data.contact_id]
-      );
-      
-      return this.getById(res.insertId);
     },
 
     async getById(id) {

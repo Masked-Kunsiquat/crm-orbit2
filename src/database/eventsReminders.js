@@ -140,13 +140,22 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       const sql = `INSERT INTO event_reminders (${fields.join(', ')}, created_at) 
                   VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
       
-      const res = await execute(sql, values);
-      if (!res.insertId) {
-        throw new DatabaseError('Failed to create reminder', 'CREATE_FAILED');
+      try {
+        const res = await execute(sql, values);
+        if (!res.insertId) {
+          throw new DatabaseError('Failed to create reminder', 'CREATE_FAILED');
+        }
+        
+        const created = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
+        return created.rows[0];
+      } catch (error) {
+        // Handle foreign key constraint errors
+        if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+          throw new DatabaseError('Event not found', 'NOT_FOUND', error);
+        }
+        // Re-throw other errors as-is
+        throw error;
       }
-      
-      const created = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
-      return created.rows[0];
     },
 
     /**

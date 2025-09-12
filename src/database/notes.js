@@ -24,6 +24,16 @@ function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
+function convertBooleanFields(row) {
+  if (!row) return row;
+  const converted = { ...row };
+  // Convert SQLite integer boolean fields to JavaScript booleans
+  if (typeof converted.is_pinned === 'number') {
+    converted.is_pinned = Boolean(converted.is_pinned);
+  }
+  return converted;
+}
+
 /**
  * Create a notes DB API bound to provided DB helpers.
  * @param {{ execute: Function, batch: Function, transaction?: Function }} ctx
@@ -59,12 +69,12 @@ export function createNotesDB(ctx) {
         throw new DatabaseError('Failed to create note', 'INSERT_FAILED');
       }
 
-      return { id };
+      return this.getById(id);
     },
 
     async getById(id) {
       const res = await execute('SELECT * FROM notes WHERE id = ?;', [id]);
-      return res.rows[0] || null;
+      return convertBooleanFields(res.rows[0]) || null;
     },
 
     async getAll(options = {}) {
@@ -105,7 +115,7 @@ export function createNotesDB(ctx) {
                    LIMIT ? OFFSET ?;`;
       
       const res = await execute(sql, [...params, limit, offset]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async update(id, data) {
@@ -148,7 +158,7 @@ export function createNotesDB(ctx) {
          ORDER BY is_pinned DESC, created_at DESC;`,
         [contactId]
       );
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async getGeneralNotes(options = {}) {
@@ -171,7 +181,7 @@ export function createNotesDB(ctx) {
          LIMIT ? OFFSET ?;`,
         [limit, offset]
       );
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async getPinned(options = {}) {
@@ -200,7 +210,7 @@ export function createNotesDB(ctx) {
          LIMIT ? OFFSET ?;`,
         [...params, limit, offset]
       );
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async search(query, options = {}) {
@@ -235,7 +245,7 @@ export function createNotesDB(ctx) {
          LIMIT ? OFFSET ?;`,
         [...params, q, limit, offset]
       );
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     async togglePin(id) {
