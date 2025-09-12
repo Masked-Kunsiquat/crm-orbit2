@@ -6,13 +6,26 @@ on:
   pull_request:
     branches: [master, main]
 
+permissions:
+  contents: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
     env:
       TZ: UTC
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (PR head)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          submodules: true
+          fetch-depth: 0
+      
+      - name: Checkout
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
         with:
           submodules: true
       
@@ -91,8 +104,8 @@ jobs:
           echo "Tests passed: ${{ steps.test.outputs.passed }} / ${{ steps.test.outputs.total }}"
           echo "::warning title=Database Tests::${{ steps.test.outputs.failed }} failing out of ${{ steps.test.outputs.total }}. See attached artifacts (database-test-logs)."
       
-      - name: Update documentation
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      - name: Update documentation (commit to PR branch)
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -106,5 +119,6 @@ jobs:
             git config --local user.name "GitHub Action"
             git add README.md src/database/__tests__/AGENTS.md
             git commit -m "docs: auto-update test counts to ${{ steps.test.outputs.passed }}/${{ steps.test.outputs.total }}" || exit 0
-            git push
+            # Push back to the PR head branch (respects branch protection on main)
+            git push origin HEAD:${GITHUB_HEAD_REF}
           fi
