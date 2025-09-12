@@ -542,5 +542,36 @@ describe('createSettingsDB', () => {
       expect(result.find(s => s.key === 'test.disabled_f').isEnabled).toBe(false);
       expect(result.find(s => s.key === 'test.disabled_string0').isEnabled).toBe(false);
     });
+
+    test('setMultiple automatically resolves types and enforces consistency', async () => {
+      const settings = [
+        // Should use type from DEFAULT_SETTINGS
+        { key: 'display.theme', value: 'custom' },
+        // Should infer from JS type
+        { key: 'custom.number', value: 123 },
+        { key: 'custom.bool', value: false },
+        { key: 'custom.obj', value: { test: 'data' } },
+        // Explicit type should work when consistent
+        { key: 'custom.explicit', value: 'test', dataType: 'string' }
+      ];
+
+      const result = await settingsDB.setMultiple(settings);
+      
+      expect(result[0].dataType).toBe('string'); // From DEFAULT_SETTINGS
+      expect(result[1].dataType).toBe('number'); // Inferred
+      expect(result[2].dataType).toBe('boolean'); // Inferred
+      expect(result[3].dataType).toBe('json'); // Inferred
+      expect(result[4].dataType).toBe('string'); // Explicit
+    });
+
+    test('setMultiple throws error for type conflicts with defaults', async () => {
+      const settings = [
+        { key: 'display.theme', value: 'test', dataType: 'number' } // Conflicts with string default
+      ];
+
+      await expect(settingsDB.setMultiple(settings)).rejects.toMatchObject({ 
+        code: 'TYPE_CONFLICT_ERROR' 
+      });
+    });
   });
 });

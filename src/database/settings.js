@@ -174,12 +174,53 @@ export function createSettingsDB({ execute, batch, transaction }) {
         if (!setting.key.includes('.') || setting.key.split('.').some(p => !p)) {
           throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey: setting.key });
         }
-        validateSettingValue(setting.key, setting.value, setting.dataType || 'string');
+
+        // Resolve data type if not provided
+        let resolvedType = setting.dataType;
+        if (!resolvedType) {
+          // First, check if we have a default setting with a known type
+          const defaultSetting = DEFAULT_SETTINGS[setting.key];
+          if (defaultSetting?.type) {
+            resolvedType = defaultSetting.type;
+          } else {
+            // Fallback to JS type inference
+            const jsType = typeof setting.value;
+            switch (jsType) {
+              case 'number':
+                resolvedType = 'number';
+                break;
+              case 'boolean':
+                resolvedType = 'boolean';
+                break;
+              case 'object':
+                resolvedType = setting.value === null ? 'string' : 'json';
+                break;
+              case 'string':
+              default:
+                resolvedType = 'string';
+                break;
+            }
+          }
+          setting.dataType = resolvedType; // Update the setting object
+        } else {
+          // If explicit dataType is provided, check for conflicts with defaults
+          const defaultSetting = DEFAULT_SETTINGS[setting.key];
+          if (defaultSetting?.type && defaultSetting.type !== setting.dataType) {
+            throw new DatabaseError(
+              `Data type '${setting.dataType}' conflicts with default type '${defaultSetting.type}' for setting '${setting.key}'`,
+              'TYPE_CONFLICT_ERROR',
+              null,
+              { settingKey: setting.key, providedType: setting.dataType, defaultType: defaultSetting.type }
+            );
+          }
+        }
+
+        validateSettingValue(setting.key, setting.value, setting.dataType);
       }
 
       const statements = settings.map(setting => {
         const category = setting.key.split('.')[0] || 'general';
-        const serializedValue = serializeValue(setting.value, setting.dataType || 'string');
+        const serializedValue = serializeValue(setting.value, setting.dataType);
         
         return {
           sql: `
@@ -190,7 +231,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
               data_type = excluded.data_type,
               updated_at = CURRENT_TIMESTAMP
           `,
-          params: [category, setting.key, serializedValue, setting.dataType || 'string']
+          params: [category, setting.key, serializedValue, setting.dataType]
         };
       });
 
