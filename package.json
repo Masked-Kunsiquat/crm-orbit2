@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "test": "jest",
     "test:db": "jest --testPathPattern=\"src/database/__tests__\"",
-    "update-docs": "node ../scripts/update-test-counts.js"
+    "update-docs": "node scripts/update-test-counts.js"
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",

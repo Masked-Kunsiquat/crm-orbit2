@@ -6,28 +6,50 @@ const { execSync } = require('child_process');
 
 // Run tests and capture output
 function getTestCounts() {
+  const cwd = path.join(__dirname, '..');
+  const outputFile = path.join(cwd, 'test-results.json');
+  
   try {
-    // Since this script is now in crm-orbit/scripts/, we need to go up one level
-    const cwd = path.join(__dirname, '..');
-    const result = execSync('npm test -- --json --testPathPattern="src/database/__tests__"', 
+    // Remove any existing output file
+    if (fs.existsSync(outputFile)) {
+      fs.unlinkSync(outputFile);
+    }
+    
+    // Run tests with deterministic output file
+    execSync('npm test -- --json --outputFile=test-results.json --testPathPattern="src/database/__tests__"', 
       { encoding: 'utf8', stdio: 'pipe', cwd });
     
-    const lines = result.split('\n');
-    const jsonLine = lines.find(line => line.startsWith('{') && line.includes('numTotalTests'));
-    
-    if (jsonLine) {
-      const testResult = JSON.parse(jsonLine);
-      return {
-        total: testResult.numTotalTests,
-        passed: testResult.numPassedTests,
-        suites: testResult.numTotalTestSuites
-      };
+    // Check if output file was created
+    if (!fs.existsSync(outputFile)) {
+      console.error('Test output file was not created');
+      return null;
     }
+    
+    // Read and parse the JSON file
+    const fileContent = fs.readFileSync(outputFile, 'utf8');
+    const testResult = JSON.parse(fileContent);
+    
+    // Clean up the temp file
+    fs.unlinkSync(outputFile);
+    
+    return {
+      total: testResult.numTotalTests,
+      passed: testResult.numPassedTests,
+      suites: testResult.numTotalTestSuites
+    };
   } catch (error) {
-    console.error('Failed to run tests:', error.message);
+    // Clean up temp file if it exists
+    if (fs.existsSync(outputFile)) {
+      fs.unlinkSync(outputFile);
+    }
+    
+    if (error.message.includes('JSON.parse')) {
+      console.error('Failed to parse test results JSON:', error.message);
+    } else {
+      console.error('Failed to run tests:', error.message);
+    }
+    return null;
   }
-  
-  return null;
 }
 
 // Update file with new test counts
