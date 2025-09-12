@@ -390,7 +390,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       }
 
       const newValue = !currentSetting.value;
-      return await this.set(settingKey, newValue, 'boolean');
+      return this.set(settingKey, newValue, 'boolean');
     },
 
     async increment(settingKey, amount = 1) {
@@ -415,7 +415,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       }
 
       const newValue = currentSetting.value + amount;
-      return await this.set(settingKey, newValue, 'number');
+      return this.set(settingKey, newValue, 'number');
     }
   };
 }
