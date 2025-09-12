@@ -79,7 +79,7 @@ export function createContactsDB(ctx) {
         throw new DatabaseError('Failed to create contact', 'INSERT_FAILED');
       }
 
-      return { id };
+      return this.getById(id);
     },
 
     async getById(id) {
