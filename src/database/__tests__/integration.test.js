@@ -58,11 +58,23 @@ function makeCtx(db) {
 
   const doBatch = async (statements) => {
     const results = [];
-    for (const stmt of statements) {
-      const result = await exec(stmt.sql, stmt.params || []);
-      results.push(result);
+    try {
+      await exec('BEGIN TRANSACTION');
+      for (const stmt of statements) {
+        const result = await exec(stmt.sql, stmt.params || []);
+        results.push(result);
+      }
+      await exec('COMMIT');
+      return results;
+    } catch (error) {
+      try {
+        await exec('ROLLBACK');
+      } catch (rollbackError) {
+        // Log rollback error but throw original error
+        console.error('Rollback failed:', rollbackError);
+      }
+      throw error;
     }
-    return results;
   };
 
   const doTransaction = async (fn) => {
@@ -171,8 +183,8 @@ describe('Database Integration Tests', () => {
       });
 
       // 5. Associate contact with categories
-      await categoriesRelations.addToCategory(contact.id, workCategory.id);
-      await categoriesRelations.addToCategory(contact.id, vipCategory.id);
+      await categoriesRelations.addContactToCategory(contact.id, workCategory.id);
+      await categoriesRelations.addContactToCategory(contact.id, vipCategory.id);
 
       // 6. Verify complete contact with all relationships
       const fullContact = await contacts.getById(contact.id);
@@ -197,7 +209,7 @@ describe('Database Integration Tests', () => {
       });
 
       // 8. Verify category relationships
-      const contactCategories = await categoriesRelations.getCategoriesByContactId(contact.id);
+      const contactCategories = await categoriesRelations.getCategoriesForContact(contact.id);
       expect(contactCategories).toHaveLength(2);
       expect(contactCategories.map(cat => cat.name)).toContain(`Work Contacts ${timestamp}`);
       expect(contactCategories.map(cat => cat.name)).toContain(`VIP ${timestamp}`);
@@ -226,13 +238,13 @@ describe('Database Integration Tests', () => {
       expect(birthdayEvent.recurring).toBe(true);
 
       // 3. Create multiple reminders
-      const reminder1 = await eventsReminders.create({
+      const reminder1 = await eventsReminders.createReminder({
         event_id: birthdayEvent.id,
         reminder_datetime: '2024-05-14 09:00:00',
         reminder_type: 'notification'
       });
 
-      const reminder2 = await eventsReminders.create({
+      const reminder2 = await eventsReminders.createReminder({
         event_id: birthdayEvent.id,
         reminder_datetime: '2024-05-15 08:00:00',
         reminder_type: 'notification'
@@ -248,14 +260,14 @@ describe('Database Integration Tests', () => {
         notes: 'Discuss Q2 performance'
       });
 
-      const meetingReminder = await eventsReminders.create({
+      const meetingReminder = await eventsReminders.createReminder({
         event_id: meetingEvent.id,
         reminder_datetime: '2024-06-15 08:30:00',
         reminder_type: 'notification'
       });
 
       // 5. Verify events for contact
-      const contactEvents = await events.getAllByContactId(contact.id);
+      const contactEvents = await events.getByContact(contact.id);
       expect(contactEvents).toHaveLength(2);
       
       const birthday = contactEvents.find(e => e.event_type === 'birthday');
@@ -264,10 +276,10 @@ describe('Database Integration Tests', () => {
       expect(meeting.recurring).toBe(false);
 
       // 6. Verify reminders
-      const birthdayReminders = await eventsReminders.getAllByEventId(birthdayEvent.id);
+      const birthdayReminders = await eventsReminders.getEventReminders(birthdayEvent.id);
       expect(birthdayReminders).toHaveLength(2);
 
-      const meetingReminders = await eventsReminders.getAllByEventId(meetingEvent.id);
+      const meetingReminders = await eventsReminders.getEventReminders(meetingEvent.id);
       expect(meetingReminders).toHaveLength(1);
 
       // 7. Test recurring event calculation
@@ -321,7 +333,7 @@ describe('Database Integration Tests', () => {
         .toBeGreaterThan(new Date(updatedContact1.last_interaction_at).getTime());
 
       // 7. Verify all interactions are recorded
-      const allInteractions = await interactions.getAllByContactId(contact.id);
+      const allInteractions = await interactions.getAll({ contactId: contact.id });
       expect(allInteractions).toHaveLength(2);
       expect(allInteractions.map(i => i.interaction_type)).toContain('call');
       expect(allInteractions.map(i => i.interaction_type)).toContain('email');
@@ -348,7 +360,7 @@ describe('Database Integration Tests', () => {
         value: '+1-555-9999'
       });
 
-      await categoriesRelations.addToCategory(contact.id, category.id);
+      await categoriesRelations.addContactToCategory(contact.id, category.id);
 
       const event = await events.create({
         contact_id: contact.id,
@@ -357,7 +369,7 @@ describe('Database Integration Tests', () => {
         event_date: '2024-07-01'
       });
 
-      await eventsReminders.create({
+      await eventsReminders.createReminder({
         event_id: event.id,
         reminder_datetime: '2024-07-01 09:00:00'
       });
@@ -388,10 +400,10 @@ describe('Database Integration Tests', () => {
       // 3. Verify data exists
       const contactWithInfoBefore = await contactsInfo.getWithContactInfo(contact.id);
       expect(contactWithInfoBefore.contact_info).toHaveLength(1);
-      expect(await events.getAllByContactId(contact.id)).toHaveLength(1);
-      expect(await interactions.getAllByContactId(contact.id)).toHaveLength(1);
+      expect(await events.getByContact(contact.id)).toHaveLength(1);
+      expect(await interactions.getAll({ contactId: contact.id })).toHaveLength(1);
       expect(await notes.getAllByContactId(contact.id)).toHaveLength(1);
-      expect(await attachments.getAllByEntity('contact', contact.id)).toHaveLength(1);
+      expect(await attachments.getByEntity('contact', contact.id)).toHaveLength(1);
 
       // 4. Delete contact
       await contacts.delete(contact.id);
@@ -399,13 +411,13 @@ describe('Database Integration Tests', () => {
       // 5. Verify cascading deletes worked
       const contactWithInfoAfter = await contactsInfo.getWithContactInfo(contact.id);
       expect(contactWithInfoAfter).toBeNull(); // Contact should be deleted
-      expect(await events.getAllByContactId(contact.id)).toHaveLength(0);
-      expect(await interactions.getAllByContactId(contact.id)).toHaveLength(0);
+      expect(await events.getByContact(contact.id)).toHaveLength(0);
+      expect(await interactions.getAll({ contactId: contact.id })).toHaveLength(0);
       expect(await notes.getAllByContactId(contact.id)).toHaveLength(0);
-      expect(await attachments.getAllByEntity('contact', contact.id)).toHaveLength(0);
+      expect(await attachments.getByEntity('contact', contact.id)).toHaveLength(0);
       
       // 6. Verify category relationship is removed
-      const contactsInCategory = await categoriesRelations.getContactsByCategoryId(category.id);
+      const contactsInCategory = await categoriesRelations.getContactsByCategory(category.id);
       expect(contactsInCategory).toHaveLength(0);
     });
   });
@@ -427,7 +439,7 @@ describe('Database Integration Tests', () => {
       })).rejects.toThrow(DatabaseError);
 
       // 3. Try to create reminder for non-existent event
-      await expect(eventsReminders.create({
+      await expect(eventsReminders.createReminder({
         event_id: 99999,
         reminder_datetime: '2024-01-01 09:00:00'
       })).rejects.toThrow(DatabaseError);
@@ -438,7 +450,7 @@ describe('Database Integration Tests', () => {
         last_name: 'User'
       });
 
-      await expect(categoriesRelations.addToCategory(contact.id, 99999))
+      await expect(categoriesRelations.addContactToCategory(contact.id, 99999))
         .rejects.toThrow(DatabaseError);
     });
   });
@@ -551,7 +563,7 @@ describe('Database Integration Tests', () => {
       });
 
       // 4. Verify attachments for note
-      const noteAttachments = await attachments.getAllByEntity('note', note.id);
+      const noteAttachments = await attachments.getByEntity('note', note.id);
       expect(noteAttachments).toHaveLength(2);
 
       const pdfAttachment = noteAttachments.find(att => att.file_type === 'document');
@@ -725,8 +737,8 @@ describe('Database Integration Tests', () => {
       });
 
       // 5. Associate with categories
-      await categoriesRelations.addToCategory(contact.id, category1.id);
-      await categoriesRelations.addToCategory(contact.id, category2.id);
+      await categoriesRelations.addContactToCategory(contact.id, category1.id);
+      await categoriesRelations.addContactToCategory(contact.id, category2.id);
 
       // 6. Create events
       const event = await events.create({
@@ -736,7 +748,7 @@ describe('Database Integration Tests', () => {
         event_date: '2024-08-15'
       });
 
-      await eventsReminders.create({
+      await eventsReminders.createReminder({
         event_id: event.id,
         reminder_datetime: '2024-08-15 09:00:00'
       });
@@ -775,20 +787,20 @@ describe('Database Integration Tests', () => {
       const contactInfo = await contactsInfo.getWithContactInfo(contact.id);
       expect(contactInfo.contact_info).toHaveLength(1);
 
-      const contactCategories = await categoriesRelations.getCategoriesByContactId(contact.id);
+      const contactCategories = await categoriesRelations.getCategoriesForContact(contact.id);
       expect(contactCategories).toHaveLength(2);
 
-      const contactEvents = await events.getAllByContactId(contact.id);
+      const contactEvents = await events.getByContact(contact.id);
       expect(contactEvents).toHaveLength(1);
 
-      const contactInteractions = await interactions.getAllByContactId(contact.id);
+      const contactInteractions = await interactions.getAll({ contactId: contact.id });
       expect(contactInteractions).toHaveLength(1);
       expect(contactInteractions[0].duration).toBe(45);
 
       const contactNotes = await notes.getAllByContactId(contact.id);
       expect(contactNotes).toHaveLength(1);
 
-      const noteAttachments = await attachments.getAllByEntity('note', note.id);
+      const noteAttachments = await attachments.getByEntity('note', note.id);
       expect(noteAttachments).toHaveLength(1);
 
       // 10. Test final cleanup - delete contact and verify cascade
@@ -796,15 +808,15 @@ describe('Database Integration Tests', () => {
 
       const finalContactInfo = await contactsInfo.getWithContactInfo(contact.id);
       expect(finalContactInfo).toBeNull(); // Contact deleted, so should return null
-      expect(await events.getAllByContactId(contact.id)).toHaveLength(0);
-      expect(await interactions.getAllByContactId(contact.id)).toHaveLength(0);
+      expect(await events.getByContact(contact.id)).toHaveLength(0);
+      expect(await interactions.getAll({ contactId: contact.id })).toHaveLength(0);
       expect(await notes.getAllByContactId(contact.id)).toHaveLength(0);
       
       // Categories should still exist but with no contact relationships
       const clientsCategory = await categories.getById(category1.id);
       expect(clientsCategory).toBeDefined();
       
-      const contactsInCategory = await categoriesRelations.getContactsByCategoryId(category1.id);
+      const contactsInCategory = await categoriesRelations.getContactsByCategory(category1.id);
       expect(contactsInCategory).toHaveLength(0);
     });
   });
