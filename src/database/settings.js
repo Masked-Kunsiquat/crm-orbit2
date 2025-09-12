@@ -72,11 +72,19 @@ export function createSettingsDB({ execute, batch, transaction }) {
 
       // Resolve data type automatically if not provided
       let resolvedType = dataType;
+      const defaultType = DEFAULT_SETTINGS[settingKey]?.type;
+      if (dataType && defaultType && defaultType !== dataType) {
+        throw new DatabaseError(
+          `Data type '${dataType}' conflicts with default type '${defaultType}' for setting '${settingKey}'`,
+          'TYPE_CONFLICT_ERROR',
+          null,
+          { settingKey, providedType: dataType, defaultType }
+        );
+      }
       if (!resolvedType) {
         // First, check if we have a default setting with a known type
-        const defaultSetting = DEFAULT_SETTINGS[settingKey];
-        if (defaultSetting?.type) {
-          resolvedType = defaultSetting.type;
+        if (defaultType) {
+          resolvedType = defaultType;
         } else {
           // Fallback to JS type inference
           const jsType = typeof value;
@@ -111,7 +119,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       `;
       
       try {
-        const result = await execute(sql, [category, settingKey, serializedValue, resolvedType]);
+        await execute(sql, [category, settingKey, serializedValue, resolvedType]);
         
         const setting = await this.get(settingKey);
         return setting;
