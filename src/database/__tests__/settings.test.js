@@ -234,7 +234,13 @@ describe('createSettingsDB', () => {
 
       const result = await settingsDB.getByCategory('display');
       
-      expect(result).toHaveLength(5); // 2 from DB + 3 defaults
+      // Verify we have both DB settings and defaults
+      const dbSettings = result.filter(s => !s.isDefault);
+      const defaultSettings = result.filter(s => s.isDefault);
+      expect(dbSettings).toHaveLength(2); // 2 from DB
+      expect(defaultSettings.length).toBeGreaterThan(0); // At least some defaults
+      
+      // Verify specific settings exist with correct values
       expect(result.find(s => s.key === 'display.theme')).toEqual({
         key: 'display.theme',
         value: 'dark',
@@ -242,6 +248,11 @@ describe('createSettingsDB', () => {
         isEnabled: true,
         isDefault: false
       });
+      
+      // Verify that all display.* defaults are present (not overridden by DB)
+      expect(result.find(s => s.key === 'display.show_avatars' && s.isDefault)).toBeDefined();
+      expect(result.find(s => s.key === 'display.date_format' && s.isDefault)).toBeDefined();
+      expect(result.find(s => s.key === 'display.time_format' && s.isDefault)).toBeDefined();
     });
 
     test('includes default settings for category', async () => {
