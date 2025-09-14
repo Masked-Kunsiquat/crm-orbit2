@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
-
-// PIN constraints
-const MIN_PIN_LENGTH = 4;
-const MAX_PIN_LENGTH = 8; // Adjust if project requires a different max
+import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../../constants/auth';
 
 const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const [newPin, setNewPin] = useState('');

@@ -2,6 +2,7 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/auth';
 
 const AUTH_STORAGE_KEYS = {
   PIN: 'auth_pin',
@@ -191,8 +192,12 @@ class AuthService {
   // PIN management
   async setPIN(pin) {
     try {
-      if (!pin || pin.length < 4) {
-        throw new Error('PIN must be at least 4 digits');
+      if (!pin || pin.length < MIN_PIN_LENGTH || pin.length > MAX_PIN_LENGTH) {
+        if (!pin || pin.length < MIN_PIN_LENGTH) {
+          throw new Error(`PIN must be at least ${MIN_PIN_LENGTH} digits`);
+        } else {
+          throw new Error(`PIN must be at most ${MAX_PIN_LENGTH} digits`);
+        }
       }
       
       // Basic strength checks to prevent weak PINs
