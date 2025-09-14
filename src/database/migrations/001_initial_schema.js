@@ -15,7 +15,7 @@ const CREATE_TABLES = [
     file_path TEXT NOT NULL,
     file_type TEXT NOT NULL,
     mime_type TEXT,
-    file_size INTEGER,
+    file_size INTEGER CHECK (file_size >= 0),
     thumbnail_path TEXT,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -286,15 +286,12 @@ export default {
   up: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
     // Use sequential execution to avoid transaction visibility issues
-    console.log('[migration] Creating tables...');
     await runAllSequential(exec, CREATE_TABLES);
 
     // Then create indexes
-    console.log('[migration] Creating indexes...');
     await runAllSequential(exec, CREATE_INDEXES);
 
     // Finally create triggers
-    console.log('[migration] Creating triggers...');
     await runAllSequential(exec, CREATE_TRIGGERS);
   },
 
