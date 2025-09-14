@@ -19,6 +19,7 @@ import {
   useTheme 
 } from 'react-native-paper';
 import authService from '../services/authService';
+import PinSetupModal from './settings/PinSetupModal';
 
 // useWindowDimensions hook inside component for rotation responsiveness
 
@@ -30,6 +31,8 @@ const AuthGate = ({ children }) => {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [showPinInput, setShowPinInput] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
+  const [hasPIN, setHasPIN] = useState(false);
+  const [showPinSetupModal, setShowPinSetupModal] = useState(false);
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const styles = getStyles(theme, width); // theme-aware, responsive styles
@@ -70,6 +73,10 @@ const AuthGate = ({ children }) => {
       // Check biometric availability
       const capabilities = await authService.checkAuthenticationCapabilities();
       setBiometricAvailable(capabilities.canUseBiometric);
+      
+      // Check if a PIN has been configured
+      const pinExists = await authService.hasPIN();
+      setHasPIN(pinExists);
       
       // If locked and biometric available, try auto-authentication
       if (locked && capabilities.canUseBiometric) {
@@ -115,8 +122,14 @@ const AuthGate = ({ children }) => {
       if (result.method === 'pin_required') {
         setShowPinInput(true);
       } else if (result.error) {
-        setAuthError(result.error);
-        setShowPinInput(true);
+        // If no method is configured yet, guide user to set a PIN
+        if ((result.error || '').toLowerCase().includes('no authentication method')) {
+          setShowPinInput(false);
+          setShowPinSetupModal(true);
+        } else {
+          setAuthError(result.error);
+          setShowPinInput(true);
+        }
       }
       
     } catch (error) {
@@ -155,6 +168,26 @@ const AuthGate = ({ children }) => {
 
   const handleManualLock = () => {
     authService.lock();
+  };
+
+  const handleUsePinPress = () => {
+    if (hasPIN) {
+      setShowPinInput(true);
+    } else {
+      setShowPinSetupModal(true);
+    }
+  };
+
+  const handlePinSetupSuccess = async () => {
+    setHasPIN(true);
+    setShowPinSetupModal(false);
+    // Consider the user authenticated after setting a new PIN on first setup
+    try {
+      await authService.unlock('pin_setup');
+    } catch (e) {
+      // Fallback: show PIN input if unlock fails for any reason
+      setShowPinInput(true);
+    }
   };
 
   // PIN input component
@@ -233,9 +266,9 @@ const AuthGate = ({ children }) => {
       <Button
         style={styles.pinButton}
         mode="text"
-        onPress={() => setShowPinInput(true)}
+        onPress={handleUsePinPress}
       >
-        Use PIN
+        {hasPIN ? 'Use PIN' : 'Set up PIN'}
       </Button>
       
       {authError ? (
@@ -263,6 +296,11 @@ const AuthGate = ({ children }) => {
         <Card style={styles.authCard}>
           {showPinInput ? renderPinInput() : renderBiometricPrompt()}
         </Card>
+        <PinSetupModal
+          visible={showPinSetupModal}
+          onClose={() => setShowPinSetupModal(false)}
+          onSuccess={handlePinSetupSuccess}
+        />
       </KeyboardAvoidingView>
     </Surface>
   );
