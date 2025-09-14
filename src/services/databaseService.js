@@ -46,6 +46,7 @@ class DatabaseService {
       // Set recommended pragmas for better reliability and performance
       await this.db.execAsync('PRAGMA journal_mode = WAL;');
       await this.db.execAsync('PRAGMA synchronous = NORMAL;');
+      await this.db.execAsync('PRAGMA recursive_triggers = OFF;');
       // Enable foreign key constraints
       await this.db.execAsync('PRAGMA foreign_keys = ON;');
       
