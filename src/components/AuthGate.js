@@ -20,6 +20,7 @@ import {
 } from 'react-native-paper';
 import authService from '../services/authService';
 import PinSetupModal from './settings/PinSetupModal';
+import { MIN_PIN_LENGTH } from '../constants/auth';
 
 // useWindowDimensions hook inside component for rotation responsiveness
 
@@ -140,8 +141,8 @@ const AuthGate = ({ children }) => {
   };
 
   const handlePinSubmit = async () => {
-    if (!pin || pin.length < 4) {
-      setAuthError('Please enter your PIN');
+    if (!pin || pin.length < MIN_PIN_LENGTH) {
+      setAuthError(`Please enter your PIN (at least ${MIN_PIN_LENGTH} digits)`);
       return;
     }
 
@@ -227,7 +228,7 @@ const AuthGate = ({ children }) => {
         style={styles.unlockButton}
         mode="contained"
         onPress={handlePinSubmit}
-        disabled={!pin || pin.length < 4}
+        disabled={!pin || pin.length < MIN_PIN_LENGTH}
       >
         Unlock
       </Button>
