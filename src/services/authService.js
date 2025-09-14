@@ -1,7 +1,7 @@
 // Authentication service for biometric and PIN-based app security
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 const AUTH_STORAGE_KEYS = {
   PIN: 'auth_pin',
@@ -10,7 +10,31 @@ const AUTH_STORAGE_KEYS = {
   AUTO_LOCK_TIMEOUT: 'auth_auto_lock_timeout',
   LAST_UNLOCK_TIME: 'auth_last_unlock_time',
   IS_LOCKED: 'auth_is_locked',
-  PIN_ENABLED: 'auth_pin_enabled'
+  PIN_ENABLED: 'auth_pin_enabled',
+  FAILED_ATTEMPTS: 'auth_failed_attempts',
+  LOCKOUT_UNTIL: 'auth_lockout_until'
+};
+
+// Brute-force protection configuration
+const LOCKOUT_CONFIG = {
+  MAX_ATTEMPTS_TIER_1: 3,  // 3 attempts -> 30s lockout
+  MAX_ATTEMPTS_TIER_2: 5,  // 5 attempts -> 5m lockout
+  MAX_ATTEMPTS_TIER_3: 10, // 10 attempts -> 30m lockout
+  LOCKOUT_DURATION_1: 30 * 1000,      // 30 seconds
+  LOCKOUT_DURATION_2: 5 * 60 * 1000,  // 5 minutes
+  LOCKOUT_DURATION_3: 30 * 60 * 1000  // 30 minutes
+};
+
+// Biometric error taxonomy
+const BIOMETRIC_ERROR_CODES = {
+  USER_CANCELLED: 'user_cancelled',
+  USER_FALLBACK: 'user_fallback',
+  SYSTEM_CANCELLED: 'system_cancelled',
+  LOCKOUT: 'biometric_lockout',
+  LOCKOUT_PERMANENT: 'biometric_lockout_permanent',
+  NOT_AVAILABLE: 'biometric_not_available',
+  NOT_ENROLLED: 'biometric_not_enrolled',
+  UNKNOWN: 'biometric_unknown_error'
 };
 
 class AuthService {
@@ -19,6 +43,123 @@ class AuthService {
     this.lockTimer = null;
     this.lastUnlockTime = null;
     this.isLocked = true;
+    this.failedAttempts = 0;
+    this.lockoutUntil = null;
+  }
+
+  // Brute-force protection methods
+  async checkLockoutStatus() {
+    try {
+      const lockoutUntil = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL);
+      if (lockoutUntil) {
+        const lockoutTime = parseInt(lockoutUntil, 10);
+        const now = Date.now();
+
+        if (now < lockoutTime) {
+          return {
+            isLockedOut: true,
+            remainingTime: lockoutTime - now
+          };
+        } else {
+          // Lockout expired, clear it
+          await this.clearLockout();
+        }
+      }
+
+      return { isLockedOut: false, remainingTime: 0 };
+    } catch (error) {
+      console.error('Error checking lockout status:', error);
+      return { isLockedOut: false, remainingTime: 0 };
+    }
+  }
+
+  async incrementFailedAttempts() {
+    try {
+      const attemptsStr = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
+      const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+      const newAttempts = attempts + 1;
+
+      await AsyncStorage.setItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS, newAttempts.toString());
+      this.failedAttempts = newAttempts;
+
+      // Check if lockout should be applied
+      let lockoutDuration = 0;
+      if (newAttempts >= LOCKOUT_CONFIG.MAX_ATTEMPTS_TIER_3) {
+        lockoutDuration = LOCKOUT_CONFIG.LOCKOUT_DURATION_3;
+      } else if (newAttempts >= LOCKOUT_CONFIG.MAX_ATTEMPTS_TIER_2) {
+        lockoutDuration = LOCKOUT_CONFIG.LOCKOUT_DURATION_2;
+      } else if (newAttempts >= LOCKOUT_CONFIG.MAX_ATTEMPTS_TIER_1) {
+        lockoutDuration = LOCKOUT_CONFIG.LOCKOUT_DURATION_1;
+      }
+
+      if (lockoutDuration > 0) {
+        const lockoutUntil = Date.now() + lockoutDuration;
+        await AsyncStorage.setItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL, lockoutUntil.toString());
+        this.lockoutUntil = lockoutUntil;
+
+        return {
+          isLockedOut: true,
+          remainingTime: lockoutDuration,
+          attempts: newAttempts
+        };
+      }
+
+      return {
+        isLockedOut: false,
+        remainingTime: 0,
+        attempts: newAttempts
+      };
+    } catch (error) {
+      console.error('Error incrementing failed attempts:', error);
+      return { isLockedOut: false, remainingTime: 0, attempts: 0 };
+    }
+  }
+
+  async clearFailedAttempts() {
+    try {
+      await AsyncStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
+      this.failedAttempts = 0;
+    } catch (error) {
+      console.error('Error clearing failed attempts:', error);
+    }
+  }
+
+  async clearLockout() {
+    try {
+      await AsyncStorage.multiRemove([
+        AUTH_STORAGE_KEYS.FAILED_ATTEMPTS,
+        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL
+      ]);
+      this.failedAttempts = 0;
+      this.lockoutUntil = null;
+    } catch (error) {
+      console.error('Error clearing lockout:', error);
+    }
+  }
+
+  mapBiometricError(error) {
+    if (!error) return BIOMETRIC_ERROR_CODES.UNKNOWN;
+
+    const errorMessage = error.message?.toLowerCase() || '';
+
+    if (errorMessage.includes('user_cancel') || errorMessage.includes('user cancel')) {
+      return BIOMETRIC_ERROR_CODES.USER_CANCELLED;
+    } else if (errorMessage.includes('user_fallback') || errorMessage.includes('fallback')) {
+      return BIOMETRIC_ERROR_CODES.USER_FALLBACK;
+    } else if (errorMessage.includes('system_cancel') || errorMessage.includes('system cancel')) {
+      return BIOMETRIC_ERROR_CODES.SYSTEM_CANCELLED;
+    } else if (errorMessage.includes('biometric_lockout') || errorMessage.includes('lockout')) {
+      if (errorMessage.includes('permanent')) {
+        return BIOMETRIC_ERROR_CODES.LOCKOUT_PERMANENT;
+      }
+      return BIOMETRIC_ERROR_CODES.LOCKOUT;
+    } else if (errorMessage.includes('not_enrolled') || errorMessage.includes('not enrolled')) {
+      return BIOMETRIC_ERROR_CODES.NOT_ENROLLED;
+    } else if (errorMessage.includes('not_available') || errorMessage.includes('not available')) {
+      return BIOMETRIC_ERROR_CODES.NOT_AVAILABLE;
+    }
+
+    return BIOMETRIC_ERROR_CODES.UNKNOWN;
   }
 
   // Authentication capabilities check
@@ -52,7 +193,7 @@ class AuthService {
         throw new Error('PIN must be at least 4 digits');
       }
       
-      await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN, pin);
+      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.PIN, pin);
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN_ENABLED, 'true');
       return true;
     } catch (error) {
@@ -63,7 +204,7 @@ class AuthService {
 
   async verifyPIN(pin) {
     try {
-      const storedPIN = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.PIN);
+      const storedPIN = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.PIN);
       return storedPIN === pin;
     } catch (error) {
       console.error('Error verifying PIN:', error);
@@ -74,7 +215,7 @@ class AuthService {
   async hasPIN() {
     try {
       const pinEnabled = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.PIN_ENABLED);
-      const storedPIN = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.PIN);
+      const storedPIN = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.PIN);
       return pinEnabled === 'true' && !!storedPIN;
     } catch (error) {
       console.error('Error checking PIN status:', error);
@@ -84,7 +225,7 @@ class AuthService {
 
   async removePIN() {
     try {
-      await AsyncStorage.removeItem(AUTH_STORAGE_KEYS.PIN);
+      await SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.PIN);
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN_ENABLED, 'false');
       return true;
     } catch (error) {
@@ -110,31 +251,66 @@ class AuthService {
         ...options
       });
 
-      return result;
+      return {
+        ...result,
+        errorCode: result.success ? undefined : this.mapBiometricError(result.error)
+      };
     } catch (error) {
       console.error('Biometric authentication error:', error);
-      throw error;
+      const mappedError = {
+        ...error,
+        errorCode: this.mapBiometricError(error)
+      };
+      throw mappedError;
     }
   }
 
   // PIN authentication
   async authenticateWithPIN(pin, options = {}) {
     try {
+      // Check if user is locked out
+      const lockoutStatus = await this.checkLockoutStatus();
+      if (lockoutStatus.isLockedOut) {
+        return {
+          success: false,
+          error: 'Too many failed attempts. Try again later.',
+          errorCode: 'PIN_LOCKOUT',
+          remainingTime: lockoutStatus.remainingTime
+        };
+      }
+
       if (!await this.hasPIN()) {
         throw new Error('No PIN configured');
       }
 
       const isValid = await this.verifyPIN(pin);
-      
-      return {
-        success: isValid,
-        error: isValid ? undefined : 'Invalid PIN'
-      };
+
+      if (isValid) {
+        // Clear failed attempts on successful authentication
+        await this.clearFailedAttempts();
+        return {
+          success: true
+        };
+      } else {
+        // Increment failed attempts
+        const lockoutResult = await this.incrementFailedAttempts();
+
+        return {
+          success: false,
+          error: lockoutResult.isLockedOut
+            ? `Too many failed attempts. Locked out for ${Math.ceil(lockoutResult.remainingTime / 60000)} minutes.`
+            : 'Invalid PIN',
+          errorCode: lockoutResult.isLockedOut ? 'PIN_LOCKOUT' : 'INVALID_PIN',
+          attempts: lockoutResult.attempts,
+          remainingTime: lockoutResult.remainingTime
+        };
+      }
     } catch (error) {
       console.error('PIN authentication error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
+        errorCode: 'PIN_AUTH_ERROR'
       };
     }
   }
@@ -384,7 +560,7 @@ class AuthService {
   }
 
   notifyListeners(event) {
-    this.listeners.forEach(callback => {
+    Array.from(this.listeners).forEach(callback => {
       try {
         callback(event);
       } catch (error) {
@@ -397,14 +573,22 @@ class AuthService {
   async resetAuth() {
     try {
       await AsyncStorage.multiRemove([
-        AUTH_STORAGE_KEYS.PIN,
         AUTH_STORAGE_KEYS.BIOMETRIC_ENABLED,
         AUTH_STORAGE_KEYS.AUTO_LOCK_ENABLED,
         AUTH_STORAGE_KEYS.AUTO_LOCK_TIMEOUT,
         AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME,
         AUTH_STORAGE_KEYS.IS_LOCKED,
-        AUTH_STORAGE_KEYS.PIN_ENABLED
+        AUTH_STORAGE_KEYS.PIN_ENABLED,
+        AUTH_STORAGE_KEYS.FAILED_ATTEMPTS,
+        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL
       ]);
+
+      // Remove PIN from secure storage
+      try {
+        await SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.PIN);
+      } catch (secureStoreError) {
+        // Ignore errors if PIN doesn't exist in SecureStore
+      }
       
       this.clearAutoLockTimer();
       this.isLocked = true;
