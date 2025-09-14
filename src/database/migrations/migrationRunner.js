@@ -136,7 +136,27 @@ export async function runMigrations(ctx) {
           await migration.up({ execute: tx.execute, batch: txBatch, transaction });
 
           // Record as applied within the same transaction
-          await recordApplied({ execute: tx.execute }, migration);
+          // Use direct SQL execution instead of recordApplied function to avoid context issues
+          try {
+            await tx.execute('INSERT INTO migrations (version, name) VALUES (?, ?);', [
+              migration.version,
+              migration.name || `migration_${migration.version}`,
+            ]);
+          } catch (recordError) {
+            // Add debug logging for record error
+            console.error('Failed to record migration as applied:', {
+              version: migration.version,
+              name: migration.name,
+              error: recordError.message,
+              code: recordError.code,
+              sql: 'INSERT INTO migrations (version, name) VALUES (?, ?)',
+              params: [migration.version, migration.name || `migration_${migration.version}`]
+            });
+            throw new DatabaseError('Failed to record applied migration', 'MIGRATION_RECORD_FAILED', recordError, {
+              version: migration.version,
+              name: migration.name,
+            });
+          }
         });
       } else {
         // No transaction helper; use non-atomic fallback
