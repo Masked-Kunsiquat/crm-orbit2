@@ -2,9 +2,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   Alert,
   AppState,
   StyleSheet,
@@ -12,7 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { Layout, Button, Input, Text as KittenText, Card, Icon } from '@ui-kitten/components';
+import { 
+  Surface, 
+  Button, 
+  TextInput, 
+  Text, 
+  Card, 
+  IconButton,
+  useTheme 
+} from 'react-native-paper';
 import authService from '../services/authService';
 
 const { width, height } = Dimensions.get('window');
@@ -25,6 +30,7 @@ const AuthGate = ({ children }) => {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [showPinInput, setShowPinInput] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
+  const theme = useTheme();
 
   // Initialize auth service and check lock status
   useEffect(() => {
@@ -151,11 +157,11 @@ const AuthGate = ({ children }) => {
   // PIN input component
   const renderPinInput = () => (
     <View style={styles.pinContainer}>
-      <KittenText category="h5" style={styles.pinTitle}>
+      <Text variant="headlineSmall" style={styles.pinTitle}>
         Enter PIN
-      </KittenText>
+      </Text>
       
-      <Input
+      <TextInput
         style={styles.pinInput}
         placeholder="Enter your PIN"
         value={pin}
@@ -166,16 +172,18 @@ const AuthGate = ({ children }) => {
         onSubmitEditing={handlePinSubmit}
         autoFocus
         textAlign="center"
+        mode="outlined"
       />
       
       {authError ? (
-        <KittenText status="danger" style={styles.errorText}>
+        <Text style={[styles.errorText, { color: theme.colors.error }]}>
           {authError}
-        </KittenText>
+        </Text>
       ) : null}
       
       <Button
         style={styles.unlockButton}
+        mode="contained"
         onPress={handlePinSubmit}
         disabled={!pin || pin.length < 4}
       >
@@ -187,26 +195,27 @@ const AuthGate = ({ children }) => {
   // Biometric prompt component
   const renderBiometricPrompt = () => (
     <View style={styles.biometricContainer}>
-      <Icon
-        name="lock-outline"
+      <IconButton
+        icon="lock-outline"
+        size={64}
+        iconColor={theme.colors.outline}
         style={styles.lockIcon}
-        fill="#8F9BB3"
       />
       
-      <KittenText category="h4" style={styles.lockTitle}>
+      <Text variant="headlineMedium" style={styles.lockTitle}>
         App Locked
-      </KittenText>
+      </Text>
       
-      <KittenText category="p1" style={styles.lockSubtitle}>
+      <Text variant="bodyLarge" style={styles.lockSubtitle}>
         Authenticate to unlock CRM
-      </KittenText>
+      </Text>
       
       {biometricAvailable && (
         <Button
           style={styles.biometricButton}
-          appearance="outline"
+          mode="outlined"
           onPress={handleBiometricPress}
-          accessoryLeft={(props) => <Icon {...props} name="fingerprint-outline" />}
+          icon="fingerprint"
         >
           Use Biometric
         </Button>
@@ -214,30 +223,30 @@ const AuthGate = ({ children }) => {
       
       <Button
         style={styles.pinButton}
-        appearance="ghost"
+        mode="text"
         onPress={() => setShowPinInput(true)}
       >
         Use PIN
       </Button>
       
       {authError ? (
-        <KittenText status="danger" style={styles.errorText}>
+        <Text style={[styles.errorText, { color: theme.colors.error }]}>
           {authError}
-        </KittenText>
+        </Text>
       ) : null}
     </View>
   );
 
   // Loading screen
   const renderLoading = () => (
-    <Layout style={styles.loadingContainer}>
-      <KittenText category="h6">Loading...</KittenText>
-    </Layout>
+    <Surface style={styles.loadingContainer}>
+      <Text variant="titleLarge">Loading...</Text>
+    </Surface>
   );
 
   // Lock screen
   const renderLockScreen = () => (
-    <Layout style={styles.lockScreen}>
+    <Surface style={styles.lockScreen}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -246,7 +255,7 @@ const AuthGate = ({ children }) => {
           {showPinInput ? renderPinInput() : renderBiometricPrompt()}
         </Card>
       </KeyboardAvoidingView>
-    </Layout>
+    </Surface>
   );
 
   // Debug controls for development (remove in production)
@@ -255,8 +264,8 @@ const AuthGate = ({ children }) => {
       return (
         <View style={styles.debugControls}>
           <Button
-            size="tiny"
-            appearance="ghost"
+            mode="text"
+            compact
             onPress={handleManualLock}
           >
             🔒 Lock App

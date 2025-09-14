@@ -1,7 +1,7 @@
 // App initialization component that handles database setup and loading states
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Layout, Text, Spinner } from '@ui-kitten/components';
+import { Surface, Text, ActivityIndicator } from 'react-native-paper';
 import databaseService from '../services/databaseService';
 
 const AppInitializer = ({ children }) => {
@@ -37,40 +37,40 @@ const AppInitializer = ({ children }) => {
   // Loading screen
   if (isInitializing) {
     return (
-      <Layout style={styles.container}>
+      <Surface style={styles.container}>
         <View style={styles.content}>
-          <Spinner size="large" />
-          <Text category="h6" style={styles.loadingText}>
+          <ActivityIndicator size="large" />
+          <Text variant="titleLarge" style={styles.loadingText}>
             Initializing CRM...
           </Text>
-          <Text category="p2" style={styles.subText}>
+          <Text variant="bodyMedium" style={styles.subText}>
             Setting up database and services
           </Text>
         </View>
-      </Layout>
+      </Surface>
     );
   }
 
   // Error screen
   if (initializationError) {
     return (
-      <Layout style={styles.container}>
+      <Surface style={styles.container}>
         <View style={styles.content}>
-          <Text category="h5" status="danger" style={styles.errorTitle}>
+          <Text variant="headlineSmall" style={styles.errorTitle}>
             Initialization Failed
           </Text>
-          <Text category="p1" style={styles.errorMessage}>
+          <Text variant="bodyLarge" style={styles.errorMessage}>
             {initializationError}
           </Text>
           <Text 
-            category="p2" 
+            variant="bodyMedium" 
             style={styles.retryText}
             onPress={handleRetry}
           >
             Tap to retry
           </Text>
         </View>
-      </Layout>
+      </Surface>
     );
   }
 
