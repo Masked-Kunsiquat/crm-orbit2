@@ -30,8 +30,18 @@ jest.mock('expo-local-authentication', () => ({
   authenticateAsync: jest.fn(() => Promise.resolve({ success: true })),
 }));
 
+// Mock Expo SecureStore
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(),
+  setItemAsync: jest.fn(),
+  deleteItemAsync: jest.fn(),
+}));
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authService from '../authService';
+
+// Use fake timers to avoid flakiness and orphaned timeouts
+jest.useFakeTimers();
 
 describe('AuthService Core Logic', () => {
   beforeEach(() => {
@@ -39,16 +49,20 @@ describe('AuthService Core Logic', () => {
     // Reset service state
     authService.isLocked = true;
     authService.lastUnlockTime = null;
+    authService.failedAttempts = 0;
+    authService.lockoutUntil = null;
   });
 
   describe('PIN Management', () => {
     test('setPIN stores PIN and enables PIN authentication', async () => {
       const pin = '1234';
+      const SecureStore = require('expo-secure-store');
+      SecureStore.setItemAsync.mockResolvedValue();
       AsyncStorage.setItem.mockResolvedValue();
 
       await authService.setPIN(pin);
 
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_pin', pin);
+      expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_pin', pin);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_pin_enabled', 'true');
     });
 
@@ -59,16 +73,18 @@ describe('AuthService Core Logic', () => {
 
     test('verifyPIN returns true for correct PIN', async () => {
       const pin = '1234';
-      AsyncStorage.getItem.mockResolvedValue(pin);
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockResolvedValue(pin);
 
       const result = await authService.verifyPIN(pin);
 
       expect(result).toBe(true);
-      expect(AsyncStorage.getItem).toHaveBeenCalledWith('auth_pin');
+      expect(SecureStore.getItemAsync).toHaveBeenCalledWith('auth_pin');
     });
 
     test('verifyPIN returns false for incorrect PIN', async () => {
-      AsyncStorage.getItem.mockResolvedValue('1234');
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockResolvedValue('1234');
 
       const result = await authService.verifyPIN('5678');
 
@@ -76,9 +92,9 @@ describe('AuthService Core Logic', () => {
     });
 
     test('hasPIN returns true when PIN is enabled and exists', async () => {
-      AsyncStorage.getItem
-        .mockResolvedValueOnce('true') // pin_enabled
-        .mockResolvedValueOnce('1234'); // stored PIN
+      const SecureStore = require('expo-secure-store');
+      AsyncStorage.getItem.mockResolvedValueOnce('true'); // pin_enabled
+      SecureStore.getItemAsync.mockResolvedValueOnce('1234'); // stored PIN
 
       const result = await authService.hasPIN();
 
@@ -165,6 +181,9 @@ describe('AuthService Core Logic', () => {
       expect(authService.isLocked).toBe(true);
       expect(authService.lockTimer).toBe(null);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_is_locked', 'true');
+
+      jest.runOnlyPendingTimers();
+      jest.clearAllMocks();
     });
 
     test('onSuccessfulAuth unlocks and updates timestamps', async () => {
@@ -204,6 +223,9 @@ describe('AuthService Core Logic', () => {
       expect(result).toBe(true);
       expect(authService.lockTimer).toBe(null);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_auto_lock_enabled', 'false');
+
+      jest.runOnlyPendingTimers();
+      jest.clearAllMocks();
     });
 
     test('isAutoLockEnabled returns stored setting', async () => {
@@ -270,14 +292,18 @@ describe('AuthService Core Logic', () => {
       expect(authService.lastUnlockTime).toBe(null);
       expect(authService.lockTimer).toBe(null);
       expect(AsyncStorage.multiRemove).toHaveBeenCalledWith([
-        'auth_pin',
         'auth_biometric_enabled',
         'auth_auto_lock_enabled',
         'auth_auto_lock_timeout',
         'auth_last_unlock_time',
         'auth_is_locked',
-        'auth_pin_enabled'
+        'auth_pin_enabled',
+        'auth_failed_attempts',
+        'auth_lockout_until'
       ]);
+
+      jest.runOnlyPendingTimers();
+      jest.clearAllMocks();
     });
   });
 
