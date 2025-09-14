@@ -1,6 +1,19 @@
 // Database initialization service
 import * as SQLite from 'expo-sqlite';
 
+// Versioned migrations: each function migrates from version N to N+1
+// Migrations must be idempotent and set PRAGMA user_version to the new version on success
+// Note: Keep these minimal; base tables are created separately via _createTables()
+const MIGRATIONS = [
+  // 0 -> 1: Establish baseline versioning (no-op, mark as v1)
+  async (db) => {
+    // Idempotent: simply set the user_version to 1. This establishes a baseline
+    // for future migrations without altering schema (schema uses IF NOT EXISTS elsewhere).
+    await db.execAsync('PRAGMA user_version = 1;');
+  },
+  // Add future migrations here, e.g. 1 -> 2, 2 -> 3, ...
+];
+
 class DatabaseService {
   constructor() {
     this.db = null;
@@ -49,6 +62,9 @@ class DatabaseService {
       await this.db.execAsync('PRAGMA recursive_triggers = OFF;');
       // Enable foreign key constraints
       await this.db.execAsync('PRAGMA foreign_keys = ON;');
+
+      // Run migrations to latest version before creating base tables
+      await this._runMigrations({ signal });
       
       // Create tables (minimal schema for now)
       await this._createTables();
@@ -76,6 +92,96 @@ class DatabaseService {
       this.isInitialized = false;
       this.initializationPromise = null;
       throw error;
+    }
+  }
+
+  async _runMigrations(options = {}) {
+    const { signal } = options || {};
+    if (!this.db) {
+      throw new Error('Database not open');
+    }
+
+    // Helper to respect abort signal
+    const throwIfAborted = () => {
+      if (signal && signal.aborted) {
+        const abortError = new Error('Initialization aborted');
+        abortError.name = 'AbortError';
+        throw abortError;
+      }
+    };
+
+    throwIfAborted();
+
+    // Read current user_version
+    let currentVersion = 0;
+    try {
+      // expo-sqlite returns first row with a property named after the pragma
+      const row = (await this.db.getFirstAsync?.('PRAGMA user_version;'))
+        || null;
+      if (row && typeof row.user_version === 'number') {
+        currentVersion = row.user_version;
+      } else {
+        // Fallback: attempt to read via SELECT
+        const fallback = (await this.db.getFirstAsync?.('SELECT PRAGMA_USER_VERSION.user_version FROM pragma_user_version AS PRAGMA_USER_VERSION;')) || null;
+        if (fallback && typeof fallback.user_version === 'number') {
+          currentVersion = fallback.user_version;
+        }
+      }
+    } catch (_) {
+      // If read method is unavailable, assume version 0 and proceed
+      currentVersion = 0;
+    }
+
+    const targetVersion = MIGRATIONS.length; // final version equals number of migrations
+
+    if (currentVersion > targetVersion) {
+      console.warn(`Database user_version (${currentVersion}) is newer than supported (${targetVersion}).`);
+      // Do not attempt to downgrade; proceed without applying migrations
+      return;
+    }
+
+    // Apply pending migrations sequentially
+    while (currentVersion < targetVersion) {
+      throwIfAborted();
+
+      const migrate = MIGRATIONS[currentVersion];
+      if (typeof migrate !== 'function') {
+        throw new Error(`Missing migration function for version ${currentVersion} -> ${currentVersion + 1}`);
+      }
+
+      try {
+        await this.db.execAsync('BEGIN TRANSACTION;');
+
+        await migrate(this.db);
+
+        // Verify migration set the expected user_version; enforce if not
+        let newVersion = currentVersion;
+        try {
+          const post = (await this.db.getFirstAsync?.('PRAGMA user_version;')) || null;
+          if (post && typeof post.user_version === 'number') {
+            newVersion = post.user_version;
+          }
+        } catch (_) {
+          // If we cannot read, set proactively
+          newVersion = currentVersion; // will be corrected below
+        }
+
+        if (newVersion !== currentVersion + 1) {
+          // Ensure version bump even if migration forgot to set it
+          await this.db.execAsync(`PRAGMA user_version = ${currentVersion + 1};`);
+        }
+
+        await this.db.execAsync('COMMIT;');
+        currentVersion += 1;
+      } catch (migrationError) {
+        try {
+          await this.db.execAsync('ROLLBACK;');
+        } catch (rollbackError) {
+          console.error('Error during migration rollback:', rollbackError);
+        }
+        console.error(`Migration ${currentVersion} -> ${currentVersion + 1} failed:`, migrationError);
+        throw migrationError; // Propagate to initialization handler
+      }
     }
   }
 
