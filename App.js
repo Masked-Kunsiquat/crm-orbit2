@@ -1,48 +1,36 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-gesture-handler'; // Must be at top for navigation
 import * as eva from '@eva-design/eva';
-import { ApplicationProvider, Layout } from '@ui-kitten/components';
+import { ApplicationProvider } from '@ui-kitten/components';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+// App components
+import AppInitializer from './src/components/AppInitializer';
 import AuthGate from './src/components/AuthGate';
+import MainNavigator from './src/navigation/MainNavigator';
 
-// Main app content (placeholder - will be replaced with actual screens)
-const AppContent = () => {
-  return (
-    <Layout style={styles.container}>
-      <Text style={styles.text}>Welcome to CRM App!</Text>
-      <Text style={styles.subText}>Authentication system is active</Text>
-      <StatusBar style="auto" />
-    </Layout>
-  );
-};
-
+/**
+ * Main App Component
+ * 
+ * Initialization Flow:
+ * 1. UI Kitten Theme Provider
+ * 2. Safe Area Provider for proper screen handling
+ * 3. AppInitializer - Database setup with loading screen
+ * 4. AuthGate - Authentication wrapper
+ * 5. MainNavigator - App navigation (only when authenticated)
+ */
 export default function App() {
   return (
     <ApplicationProvider {...eva} theme={eva.light}>
-      <AuthGate>
-        <AppContent />
-      </AuthGate>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <AppInitializer>
+          <AuthGate>
+            <MainNavigator />
+          </AuthGate>
+        </AppInitializer>
+      </SafeAreaProvider>
     </ApplicationProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f7f9fc',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#222B45',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subText: {
-    fontSize: 16,
-    color: '#8F9BB3',
-    textAlign: 'center',
-  },
-});

@@ -278,10 +278,10 @@ const AuthGate = ({ children }) => {
 
   // App is unlocked - render children with debug controls
   return (
-    <View style={styles.unlockedContainer}>
+    <>
       {children}
       {renderDebugControls()}
-    </View>
+    </>
   );
 };
 
