@@ -105,7 +105,8 @@ const AuthGate = ({ children }) => {
       const result = await authService.authenticate();
       
       if (result.success) {
-        // Authentication successful
+        // Authentication successful - unlock the app
+        await authService.unlock('biometric');
         return;
       }
       
