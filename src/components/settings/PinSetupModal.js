@@ -7,6 +7,7 @@ import authService from '../../services/authService';
 const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleSetPIN = async () => {
     const normalizedNew = newPin.replace(/\D+/g, '');
@@ -22,6 +23,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
     }
 
     try {
+      setSaving(true);
       await authService.setPIN(normalizedNew);
       setNewPin('');
       setConfirmPin('');
@@ -31,6 +33,8 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
     } catch (error) {
       console.error('Failed to set PIN:', error);
       Alert.alert('Error', 'Failed to set PIN');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -72,7 +76,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleClose}>Cancel</Button>
-            <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin}>
+            <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin || saving}>
               Set PIN
             </Button>
           </Dialog.Actions>
