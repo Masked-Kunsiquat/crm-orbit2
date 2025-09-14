@@ -192,11 +192,6 @@ class DatabaseService {
       );`
     ];
 
-    // Execute all table creation statements
-    for (const statement of createTableStatements) {
-      await this.db.execAsync(statement);
-    }
-
     // Create indexes
     const indexStatements = [
       'CREATE INDEX IF NOT EXISTS idx_contacts_last_first ON contacts(last_name, first_name);',
@@ -210,8 +205,31 @@ class DatabaseService {
       'CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);'
     ];
 
-    for (const statement of indexStatements) {
-      await this.db.execAsync(statement);
+    // Execute all DDL statements in a single transaction for atomicity
+    try {
+      await this.db.execAsync('BEGIN TRANSACTION;');
+
+      // Execute all table creation statements
+      for (const statement of createTableStatements) {
+        await this.db.execAsync(statement);
+      }
+
+      // Execute all index creation statements
+      for (const statement of indexStatements) {
+        await this.db.execAsync(statement);
+      }
+
+      await this.db.execAsync('COMMIT;');
+    } catch (error) {
+      // Rollback transaction on any error to maintain database consistency
+      try {
+        await this.db.execAsync('ROLLBACK;');
+      } catch (rollbackError) {
+        console.error('Error during rollback:', rollbackError);
+      }
+
+      console.error('Error creating database schema:', error);
+      throw error;
     }
   }
 
