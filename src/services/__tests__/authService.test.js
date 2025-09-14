@@ -136,11 +136,10 @@ describe('AuthService Core Logic', () => {
   describe('Lock State Management', () => {
     test('lock state can be checked from storage', async () => {
       AsyncStorage.getItem.mockResolvedValue('false');
-      // Create a fresh service instance to avoid property conflicts
-      const freshService = { ...authService, isLocked: null };
+      // Clear in-memory state to force storage check
+      authService.isLocked = null;
       
-      // Test the method directly with proper binding
-      const result = await authService.constructor.prototype.isLocked.call(freshService);
+      const result = await authService.getLockState();
 
       expect(result).toBe(false);
       expect(AsyncStorage.getItem).toHaveBeenCalledWith('auth_is_locked');
@@ -148,10 +147,10 @@ describe('AuthService Core Logic', () => {
 
     test('lock state defaults to true when no stored state', async () => {
       AsyncStorage.getItem.mockResolvedValue(null);
-      // Create a fresh service instance to avoid property conflicts
-      const freshService = { ...authService, isLocked: null };
+      // Clear in-memory state to force storage check
+      authService.isLocked = null;
 
-      const result = await authService.constructor.prototype.isLocked.call(freshService);
+      const result = await authService.getLockState();
 
       expect(result).toBe(true);
     });

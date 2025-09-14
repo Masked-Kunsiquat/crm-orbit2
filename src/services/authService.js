@@ -195,6 +195,24 @@ class AuthService {
   }
 
   // Lock/unlock management
+  async getLockState() {
+    try {
+      // Check in-memory state first
+      if (this.isLocked !== null) {
+        return this.isLocked;
+      }
+
+      // Check stored state
+      const storedState = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.IS_LOCKED);
+      this.isLocked = storedState !== 'false'; // Default to locked
+      
+      return this.isLocked;
+    } catch (error) {
+      console.error('Error checking lock status:', error);
+      return true; // Default to locked for security
+    }
+  }
+
   async lock() {
     try {
       this.isLocked = true;
@@ -213,21 +231,7 @@ class AuthService {
   }
 
   async isLocked() {
-    try {
-      // Check in-memory state first
-      if (this.isLocked !== null) {
-        return this.isLocked;
-      }
-
-      // Check stored state
-      const storedState = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.IS_LOCKED);
-      this.isLocked = storedState !== 'false'; // Default to locked
-      
-      return this.isLocked;
-    } catch (error) {
-      console.error('Error checking lock status:', error);
-      return true; // Default to locked for security
-    }
+    return this.getLockState();
   }
 
   // Auto-lock functionality
