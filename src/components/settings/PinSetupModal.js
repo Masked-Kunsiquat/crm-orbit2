@@ -9,18 +9,20 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const [confirmPin, setConfirmPin] = useState('');
 
   const handleSetPIN = async () => {
-    if (newPin.length < 4) {
+    const normalizedNew = newPin.replace(/\D+/g, '');
+    const normalizedConfirm = confirmPin.replace(/\D+/g, '');
+    if (normalizedNew.length < 4) {
       Alert.alert('Error', 'PIN must be at least 4 digits');
       return;
     }
 
-    if (newPin !== confirmPin) {
+    if (normalizedNew !== normalizedConfirm) {
       Alert.alert('Error', 'PINs do not match');
       return;
     }
 
     try {
-      await authService.setPIN(newPin);
+      await authService.setPIN(normalizedNew);
       setNewPin('');
       setConfirmPin('');
       onSuccess?.();
@@ -50,7 +52,8 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
               value={newPin}
               onChangeText={setNewPin}
               secureTextEntry
-              keyboardType="numeric"
+              keyboardType="number-pad"
+              inputMode="numeric"
               maxLength={6}
               contentStyle={{ textAlign: 'center' }}
             />
@@ -61,7 +64,8 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
               value={confirmPin}
               onChangeText={setConfirmPin}
               secureTextEntry
-              keyboardType="numeric"
+              keyboardType="number-pad"
+              inputMode="numeric"
               maxLength={6}
               contentStyle={{ textAlign: 'center' }}
             />
