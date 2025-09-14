@@ -76,22 +76,37 @@ class DatabaseService {
       await this.db.execAsync('PRAGMA foreign_keys = ON;');
 
       // Clear any existing problematic database state for development
-      if (__DEV__) {
+      // Requires explicit flag to prevent accidental data loss
+      if (typeof __DEV__ !== 'undefined' && __DEV__ && process.env.DROP_DEV_TABLES === 'true') {
         try {
-          // Drop all tables to ensure clean slate
+          console.log('DROP_DEV_TABLES flag detected - dropping all tables for fresh start');
+
+          // Drop all tables in a single transaction for atomicity
           const tables = [
             'user_preferences', 'contact_categories', 'notes', 'interactions',
             'event_reminders', 'events', 'contact_info', 'contacts',
             'categories', 'companies', 'attachments', 'migrations'
           ];
 
-          for (const table of tables) {
-            await this.db.execAsync(`DROP TABLE IF EXISTS ${table};`);
+          await this.db.execAsync('BEGIN TRANSACTION;');
+          try {
+            for (const table of tables) {
+              await this.db.execAsync(`DROP TABLE IF EXISTS ${table};`);
+            }
+            await this.db.execAsync('COMMIT;');
+            console.log('Successfully cleared all existing tables for fresh database start');
+          } catch (dropError) {
+            await this.db.execAsync('ROLLBACK;');
+            throw dropError;
           }
-          console.log('Cleared all existing tables for fresh database start');
         } catch (e) {
-          console.warn('Error clearing tables (this is normal on first run):', e.message);
+          console.error('Error clearing tables:', e);
+          // Re-throw to prevent silent failures
+          throw new Error(`Database table clearing failed: ${e.message}`);
         }
+      } else if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('Development mode detected but DROP_DEV_TABLES not set - preserving existing data');
+        console.log('To drop tables for fresh start, set environment variable: DROP_DEV_TABLES=true');
       }
 
       // Run canonical migrations to establish complete schema
@@ -158,22 +173,27 @@ class DatabaseService {
       },
       batch: async (statements) => {
         throwIfAborted();
+        const items = Array.isArray(statements) ? statements : [];
+        const normalize = (entry) => {
+          if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
+          if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
+          return { sql: String(entry), params: [] };
+        };
         const results = [];
         try {
           await this.db.execAsync('BEGIN TRANSACTION;');
-          for (const stmt of statements) {
-            const { sql, params = [] } = stmt;
-            const result = params.length > 0
+          for (const entry of items) {
+            throwIfAborted();
+            const { sql, params = [] } = normalize(entry);
+            const res = params.length
               ? await this.db.runAsync(sql, params)
               : await this.db.execAsync(sql);
-            results.push(result);
+            results.push(res);
           }
           await this.db.execAsync('COMMIT;');
           return results;
         } catch (error) {
-          try {
-            await this.db.execAsync('ROLLBACK;');
-          } catch (rollbackError) {
+          try { await this.db.execAsync('ROLLBACK;'); } catch (rollbackError) {
             console.error('Migration rollback error:', rollbackError);
           }
           throw error;
@@ -184,20 +204,87 @@ class DatabaseService {
         try {
           await this.db.execAsync('BEGIN TRANSACTION;');
           const txContext = {
-            execute: async (sql, params = []) => {
-              return params.length > 0
-                ? await this.db.runAsync(sql, params)
-                : await this.db.execAsync(sql);
-            },
-            batch: async (statements) => {
-              // Execute statements sequentially within transaction
-              const results = [];
-              for (const stmt of statements) {
-                const { sql, params = [] } = stmt;
+            execute: async (sql, params = [], options = {}) => {
+              const contextSignal = options.signal || signal;
+              // Check abort status before starting
+              if (contextSignal && contextSignal.aborted) {
+                const abortError = new Error('Transaction execute operation aborted');
+                abortError.name = 'AbortError';
+                throw abortError;
+              }
+
+              try {
                 const result = params.length > 0
                   ? await this.db.runAsync(sql, params)
                   : await this.db.execAsync(sql);
-                results.push(result);
+
+                // Check abort status after operation
+                if (contextSignal && contextSignal.aborted) {
+                  const abortError = new Error('Transaction execute operation aborted');
+                  abortError.name = 'AbortError';
+                  throw abortError;
+                }
+
+                return result;
+              } catch (error) {
+                // Re-check abort status in case operation was cancelled
+                if (contextSignal && contextSignal.aborted) {
+                  const abortError = new Error('Transaction execute operation aborted');
+                  abortError.name = 'AbortError';
+                  throw abortError;
+                }
+                throw error;
+              }
+            },
+            batch: async (statements, options = {}) => {
+              const contextSignal = options.signal || signal;
+              // Check abort status before starting batch
+              if (contextSignal && contextSignal.aborted) {
+                const abortError = new Error('Transaction batch operation aborted');
+                abortError.name = 'AbortError';
+                throw abortError;
+              }
+
+              // Execute statements sequentially within transaction
+              const items = Array.isArray(statements) ? statements : [];
+              const normalize = (entry) => {
+                if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
+                if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
+                return { sql: String(entry), params: [] };
+              };
+              const results = [];
+
+              for (const entry of items) {
+                // Check abort status before each statement
+                if (contextSignal && contextSignal.aborted) {
+                  const abortError = new Error('Transaction batch operation aborted');
+                  abortError.name = 'AbortError';
+                  throw abortError;
+                }
+
+                const { sql, params = [] } = normalize(entry);
+                try {
+                  const result = params.length > 0
+                    ? await this.db.runAsync(sql, params)
+                    : await this.db.execAsync(sql);
+
+                  // Check abort status after each operation
+                  if (contextSignal && contextSignal.aborted) {
+                    const abortError = new Error('Transaction batch operation aborted');
+                    abortError.name = 'AbortError';
+                    throw abortError;
+                  }
+
+                  results.push(result);
+                } catch (error) {
+                  // Break out of loop on abort to avoid executing further statements
+                  if (contextSignal && contextSignal.aborted) {
+                    const abortError = new Error('Transaction batch operation aborted');
+                    abortError.name = 'AbortError';
+                    throw abortError;
+                  }
+                  throw error;
+                }
               }
               return results;
             }
@@ -255,10 +342,28 @@ class DatabaseService {
 
   async close() {
     if (this.db) {
-      await this.db.closeAsync();
-      this.db = null;
-      this.isInitialized = false;
-      this.initializationPromise = null;
+      try {
+        // Handle both async and sync close implementations
+        if (typeof this.db.closeAsync === 'function') {
+          await this.db.closeAsync();
+        } else if (typeof this.db.close === 'function') {
+          const result = this.db.close();
+          // Await if it returns a promise
+          if (result && typeof result.then === 'function') {
+            await result;
+          }
+        } else {
+          console.warn('Database close method not available - connection may not be properly closed');
+        }
+      } catch (error) {
+        console.error('Error closing database connection:', error);
+        // Don't throw - we still want to clear state even if close fails
+      } finally {
+        // Always clear internal state regardless of close success/failure
+        this.db = null;
+        this.isInitialized = false;
+        this.initializationPromise = null;
+      }
     }
   }
 }
