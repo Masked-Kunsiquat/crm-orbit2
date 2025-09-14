@@ -1,20 +1,62 @@
+import 'react-native-gesture-handler'; // Must be first import for navigation
+import React from 'react';
+import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, Button } from 'react-native-paper';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ErrorBoundary } from 'react-error-boundary';
 
-export default function App() {
+// App components
+import AppInitializer from './src/components/AppInitializer';
+import AuthGate from './src/components/AuthGate';
+import MainNavigator from './src/navigation/MainNavigator';
+import { ThemeProvider, useAppTheme } from './src/contexts/ThemeContext';
+
+/**
+ * Main App Component
+ * 
+ * Initialization Flow:
+ * 1. React Native Paper Theme Provider
+ * 2. Safe Area Provider for proper screen handling
+ * 3. AppInitializer - Database setup with loading screen
+ * 4. AuthGate - Authentication wrapper
+ * 5. MainNavigator - App navigation (only when authenticated)
+ */
+function ErrorFallback({ error, resetErrorBoundary }) {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+      <Text variant="titleMedium">Something went wrong</Text>
+      <Text variant="bodyMedium" style={{ marginTop: 8, textAlign: 'center' }}>{error?.message}</Text>
+      <Button style={{ marginTop: 16 }} mode="contained" onPress={resetErrorBoundary}>Try again</Button>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  const AppContent = () => {
+    const { isDark } = useAppTheme();
+    return (
+      <>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <AppInitializer>
+          <AuthGate>
+            <MainNavigator />
+          </AuthGate>
+        </AppInitializer>
+      </>
+    );
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <AppContent />
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
+  );
+}

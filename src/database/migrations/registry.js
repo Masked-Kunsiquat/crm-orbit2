@@ -2,11 +2,11 @@
 // Import migration modules here and export as an ordered array.
 // This pattern works reliably with Metro/Expo bundlers.
 
-import { DatabaseError } from '../errors';
-import m001 from './001_initial_schema';
-import m002 from './002_seed_data';
-import m003 from './003_performance_indexes';
-import m004 from './004_add_display_name_column';
+import { DatabaseError } from '../errors.js';
+import m001 from './001_initial_schema.js';
+import m002 from './002_seed_data.js';
+import m003 from './003_performance_indexes.js';
+import m004 from './004_add_display_name_column.js';
 
 const MIGRATIONS = [
   m001,

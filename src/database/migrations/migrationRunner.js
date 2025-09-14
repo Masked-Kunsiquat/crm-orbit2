@@ -1,8 +1,8 @@
 // Migration runner
 // Discovers versioned migration modules and applies pending ones in order.
 
-import { DatabaseError } from '../errors';
-import MIGRATIONS from './registry';
+import { DatabaseError } from '../errors.js';
+import MIGRATIONS from './registry.js';
 
 async function ensureMeta({ execute }) {
   try {
@@ -38,7 +38,7 @@ function validateMigrations(list) {
   }
   const seen = new Set();
   list.forEach((m) => {
-    if (!m || typeof m.version !== 'number' || typeof m.up !== 'function') {
+    if (!m || typeof m.version !== 'number' || typeof m.up !== 'function' || typeof m.down !== 'function') {
       throw new DatabaseError('Invalid migration entry', 'MIGRATION_ENTRY_INVALID');
     }
     if (seen.has(m.version)) {
@@ -136,7 +136,34 @@ export async function runMigrations(ctx) {
           await migration.up({ execute: tx.execute, batch: txBatch, transaction });
 
           // Record as applied within the same transaction
-          await recordApplied({ execute: tx.execute }, migration);
+          // Use direct SQL execution instead of recordApplied function to avoid context issues
+          try {
+            await tx.execute('INSERT INTO migrations (version, name) VALUES (?, ?);', [
+              migration.version,
+              migration.name || `migration_${migration.version}`,
+            ]);
+          } catch (recordError) {
+            // Handle UNIQUE constraint violations gracefully - migration may have been recorded previously
+            if (recordError?.message?.includes('UNIQUE constraint failed') ||
+                recordError?.code === 'ERR_INTERNAL_SQLITE_ERROR') {
+              console.warn(`Migration v${migration.version} appears to already be recorded, but was detected as pending. This may indicate a previous incomplete migration run.`);
+              // Log but don't throw - the migration itself was successfully applied above
+            } else {
+              // For other errors, add debug logging and re-throw
+              console.error('Failed to record migration as applied:', {
+                version: migration.version,
+                name: migration.name,
+                error: recordError.message,
+                code: recordError.code,
+                sql: 'INSERT INTO migrations (version, name) VALUES (?, ?)',
+                params: [migration.version, migration.name || `migration_${migration.version}`]
+              });
+              throw new DatabaseError('Failed to record applied migration', 'MIGRATION_RECORD_FAILED', recordError, {
+                version: migration.version,
+                name: migration.name,
+              });
+            }
+          }
         });
       } else {
         // No transaction helper; use non-atomic fallback

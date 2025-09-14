@@ -1,88 +1,44 @@
 # CRM App Development Agent Instructions
 
 ## Project Overview
-Build an offline-first CRM mobile application using Expo/React Native for Android. Focus on robust backend architecture first, then UI development.
+Build an offline-first CRM mobile application using Expo/React Native. Prioritize the database and services layers, then complete UI components using React Native Paper.
 
 ## Technology Stack
-- **Framework**: Expo (React Native)
-- **UI Library**: UI Kitten
-- **Database**: SQLite (expo-sqlite)
-- **Authentication**: Expo Local Authentication
-- **Notifications**: Expo Notifications
-- **File System**: Expo FileSystem
-- **Storage**: AsyncStorage for settings
+- Framework: Expo (React Native)
+- UI Library: React Native Paper
+- Navigation: React Navigation + react-native-gesture-handler
+- Animations: react-native-reanimated (Babel plugin: react-native-worklets/plugin)
+- Database: SQLite (expo-sqlite)
+- Authentication: Expo Local Authentication + SecureStore
+- Notifications: Expo Notifications
+- File System: Expo FileSystem
+- Storage: AsyncStorage for settings
 
 ## Project Structure
 ```
 src/
-├── components/           # Reusable UI components
-├── screens/             # Screen components
-├── database/            # Database layer (modular)
-│   ├── index.js        # Database orchestrator
-│   ├── contacts.js     # Contact operations
-│   ├── events.js       # Events operations
-│   ├── interactions.js # Interaction operations
-│   ├── notes.js        # Notes operations
-│   ├── categories.js   # Categories operations
-│   ├── attachments.js  # Attachments operations
-│   ├── companies.js    # Companies operations
-│   ├── settings.js     # Settings & preferences
-│   └── migrations/     # Database migrations
-├── services/           # Business logic services
-│   ├── fileService.js  # File management
-│   ├── authService.js  # Local authentication
-│   ├── notificationService.js # Push notifications
-│   └── backupService.js # Data backup/restore
-├── utils/              # Utility functions
-├── constants/          # App constants
-├── contexts/           # React contexts
-└── hooks/              # Custom hooks
+- components/           # Reusable UI components (Paper)
+- screens/              # Screen components
+- navigation/           # Navigation setup
+- services/             # Business logic services
+- services/__tests__/   # Service tests
+- database/             # Database layer (modular)
+  - migrations/         # Database migrations
+- constants/            # App constants
 ```
-
-## Global Naming Conventions
-
-### Files and Directories
-- **camelCase**: JavaScript files (`contactService.js`)
-- **PascalCase**: React components (`ContactCard.js`)
-- **kebab-case**: Directories (`contact-management/`)
-- **UPPER_SNAKE_CASE**: Constants (`API_ENDPOINTS.js`)
-
-### Database
-- **snake_case**: Table and column names (`contact_info`, `first_name`)
-- **id**: Primary keys always named `id`
-- **{table}_id**: Foreign keys (`contact_id`, `event_id`)
-
-### Code
-- **camelCase**: Variables and functions (`getUserById`)
-- **PascalCase**: React components (`ContactList`)
-- **UPPER_SNAKE_CASE**: Constants (`MAX_CONTACTS`)
 
 ## Development Phases
 
-### ✅ Phase 1: Database Foundation (COMPLETE)
-Database layer with all modules and migration system is complete and tested.
-See: `./src/database/AGENTS.md`
+### Phase 1: Database Foundation (COMPLETE)
+Database layer with all modules and migration system is complete and tested. See: `./src/database/AGENTS.md`
 
-**Completed modules:**
-- Database orchestrator (`index.js`) with transaction support
-- Migration system with 3 migrations applied
-- All core modules: `contacts`, `contactsInfo`, `events`, `eventsRecurring`, `eventsReminders`, `interactions`, `interactionsStats`, `interactionsSearch`, `categories`, `categoriesRelations`, `companies`, `attachments`, `notes`, `settings`, `settingsHelpers`
-- Comprehensive error handling with `DatabaseError` class
-- Full test coverage with in-memory SQLite testing
+Completed modules include: contacts, contactsInfo, events, eventsRecurring, eventsReminders, interactions, interactionsStats, interactionsSearch, categories, categoriesRelations, companies, attachments, notes, settings, settingsHelpers.
 
-### 🚧 Phase 2: Services Layer (NEXT - NOT STARTED)
-Implement business logic services for file management, authentication, notifications, and backup.
-See: `./src/services/AGENTS.md`
+### Phase 2: Services Layer (IN PROGRESS)
+Auth service implemented: PIN + biometric auth, auto-lock timer, brute-force lockout, listeners, reset helpers. Next: file service, notifications, backup. See: `./src/services/AGENTS.md`
 
-**To implement:**
-- `fileService.js` - File storage and thumbnail management
-- `authService.js` - Local authentication with biometric/PIN support  
-- `notificationService.js` - Event reminder scheduling
-- `backupService.js` - Data export/import functionality
-
-### ⏳ Phase 3: UI Development (PENDING PHASE 2)
-Create user interface with screens and components.
-See: `./src/components/AGENTS.md`
+### Phase 3: UI Development (IN PROGRESS)
+Initial UI using React Native Paper: app shell, navigation scaffold, and Settings screen with authentication controls (PIN setup, biometric toggle, auto-lock). See: `./src/components/AGENTS.md`
 
 ## Key Implementation Requirements
 
@@ -100,38 +56,9 @@ See: `./src/components/AGENTS.md`
 
 ### Testing Strategy
 - Unit tests for each database module
-- Integration tests for services
-- Mock SQLite for testing
+- Service tests (e.g., authService)
+- Mock Expo modules for testing
 - Test migration system thoroughly
-
-## Business Rules Overview
-
-### Contacts
-- First name is required, others optional
-- Display name auto-computed from name fields
-- Can belong to multiple categories
-- Company relationship is optional
-
-### Categories
-- System categories cannot be deleted
-- Each contact can have multiple categories
-- Categories have colors and icons for UI
-
-### Attachments
-- Universal system works with any entity
-- Auto-generate thumbnails for images
-- Validate file types and sizes
-- Clean up orphaned files
-
-### Events
-- Birthday events auto-recur yearly
-- Support multiple reminders per event
-- Reminder scheduling via Expo Notifications
-
-### Settings
-- Hierarchical organization (category.setting_key)
-- Type-safe value storage
-- Default system settings
 
 ## Module Communication
 
@@ -143,8 +70,9 @@ Each layer should communicate through well-defined interfaces:
 
 ## Development Guidelines
 
-1. **Start with Phase 1** - Complete database foundation
-2. **Module Size** - Keep modules ~150-200 lines max
-3. **Test Coverage** - Write tests alongside implementation
-4. **Documentation** - Document complex business logic
-5. **Code Review** - Each module should be reviewable in isolation
+1. Start with Phase 1 — Complete
+2. Phase 2 — Implement remaining services
+3. Phase 3 — Finish UI with Paper components
+4. Keep modules small and focused (~150–200 LOC)
+5. Maintain tests and documentation alongside implementation
+

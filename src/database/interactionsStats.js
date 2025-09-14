@@ -54,11 +54,11 @@ export function createInteractionsStatsDB({ execute }) {
       
       const { start, end, endOp } = normalizeDateRange(startDate, endDate);
       if (start) {
-        conditions.push('datetime >= ?');
+        conditions.push('interaction_datetime >= ?');
         params.push(start);
       }
       if (end) {
-        conditions.push(`datetime ${endOp} ?`);
+        conditions.push(`interaction_datetime ${endOp} ?`);
         params.push(end);
       }
       
@@ -83,8 +83,8 @@ export function createInteractionsStatsDB({ execute }) {
       // Get total counts
       const totalSql = `SELECT COUNT(*) as total_interactions,
                                COUNT(DISTINCT contact_id) as unique_contacts,
-                               MIN(datetime) as earliest_interaction,
-                               MAX(datetime) as latest_interaction
+                               MIN(interaction_datetime) as earliest_interaction,
+                               MAX(interaction_datetime) as latest_interaction
                         FROM interactions ${whereClause};`;
       const totalRes = await execute(totalSql, params);
       
@@ -108,7 +108,7 @@ export function createInteractionsStatsDB({ execute }) {
       const sql = `SELECT 
                      interaction_type,
                      COUNT(*) as count,
-                     MAX(datetime) as last_interaction,
+                     MAX(interaction_datetime) as last_interaction,
                      AVG(duration) as avg_duration
                    FROM interactions 
                    WHERE contact_id = ? 
@@ -125,7 +125,7 @@ export function createInteractionsStatsDB({ execute }) {
       cutoffDate.setDate(cutoffDate.getDate() - days);
       const cutoff = cutoffDate.toISOString();
       
-      const conditions = ['datetime >= ?'];
+      const conditions = ['interaction_datetime >= ?'];
       const params = [cutoff];
       
       if (contactId) {
@@ -138,16 +138,16 @@ export function createInteractionsStatsDB({ execute }) {
       let dateFormat;
       switch (period) {
         case 'hourly':
-          dateFormat = "strftime('%Y-%m-%d %H:00:00', datetime)";
+          dateFormat = "strftime('%Y-%m-%d %H:00:00', interaction_datetime)";
           break;
         case 'weekly':
-          dateFormat = "strftime('%Y-W%W', datetime)";
+          dateFormat = "strftime('%Y-W%W', interaction_datetime)";
           break;
         case 'monthly':
-          dateFormat = "strftime('%Y-%m', datetime)";
+          dateFormat = "strftime('%Y-%m', interaction_datetime)";
           break;
         default: // daily
-          dateFormat = "strftime('%Y-%m-%d', datetime)";
+          dateFormat = "strftime('%Y-%m-%d', interaction_datetime)";
       }
       
       const sql = `SELECT 
@@ -171,11 +171,11 @@ export function createInteractionsStatsDB({ execute }) {
       
       const { start, end, endOp } = normalizeDateRange(startDate, endDate);
       if (start) {
-        conditions.push('i.datetime >= ?');
+        conditions.push('i.interaction_datetime >= ?');
         params.push(start);
       }
       if (end) {
-        conditions.push(`i.datetime ${endOp} ?`);
+        conditions.push(`i.interaction_datetime ${endOp} ?`);
         params.push(end);
       }
       if (interactionType) {
@@ -192,7 +192,7 @@ export function createInteractionsStatsDB({ execute }) {
                      c.last_name,
                      c.display_name,
                      COUNT(i.id) as interaction_count,
-                     MAX(i.datetime) as last_interaction,
+                     MAX(i.interaction_datetime) as last_interaction,
                      AVG(i.duration) as avg_duration
                    FROM interactions i
                    JOIN contacts c ON i.contact_id = c.id

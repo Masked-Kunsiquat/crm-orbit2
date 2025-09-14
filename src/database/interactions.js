@@ -5,7 +5,7 @@ import { DatabaseError } from './errors';
 
 const INTERACTION_FIELDS = [
   'contact_id',
-  'datetime',
+  'interaction_datetime',
   'title',
   'note',
   'interaction_type',
@@ -58,9 +58,9 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
       const interactionData = pick(data, INTERACTION_FIELDS);
       
-      // Set default datetime if not provided
-      if (!interactionData.datetime) {
-        interactionData.datetime = new Date().toISOString();
+      // Set default interaction_datetime if not provided
+      if (!interactionData.interaction_datetime) {
+        interactionData.interaction_datetime = new Date().toISOString();
       }
 
       const fields = Object.keys(interactionData);
@@ -87,7 +87,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
         // Recompute last_interaction_at from interactions to avoid bumping on backfilled records
         const updateContactPromise = tx.execute(
-          'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = (SELECT MAX(interaction_datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
           [data.contact_id, data.contact_id]
         );
 
@@ -103,8 +103,8 @@ export function createInteractionsDB({ execute, batch, transaction }) {
     },
 
     async getAll(options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
+      const { limit = 50, offset = 0, orderBy = 'interaction_datetime', orderDir = 'DESC' } = options;
+      const order = ['interaction_datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'interaction_datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
@@ -154,7 +154,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         for (const contactId of contactIds) {
           recalcPromises.push(
             tx.execute(
-              'UPDATE contacts SET last_interaction_at = (SELECT MAX(datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+              'UPDATE contacts SET last_interaction_at = (SELECT MAX(interaction_datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
               [contactId, contactId]
             )
           );
@@ -179,7 +179,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const rowsAffected = await transaction((tx) => {
         const updateSql = `UPDATE contacts
                              SET last_interaction_at = (
-                               SELECT MAX(datetime) FROM interactions
+                               SELECT MAX(interaction_datetime) FROM interactions
                                WHERE contact_id = (SELECT contact_id FROM interactions WHERE id = ?)
                                  AND id != ?
                              )
@@ -221,9 +221,9 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         for (const data of interactions) {
           const interactionData = pick(data, INTERACTION_FIELDS);
           
-          // Set default datetime if not provided
-          if (!interactionData.datetime) {
-            interactionData.datetime = new Date().toISOString();
+          // Set default interaction_datetime if not provided
+          if (!interactionData.interaction_datetime) {
+            interactionData.interaction_datetime = new Date().toISOString();
           }
 
           const fields = Object.keys(interactionData);
@@ -249,7 +249,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
           const placeholdersList = ids.map(() => '?').join(', ');
           const bulkUpdateSql = `UPDATE contacts
                                    SET last_interaction_at = (
-                                     SELECT MAX(i.datetime)
+                                     SELECT MAX(i.interaction_datetime)
                                      FROM interactions i
                                      WHERE i.contact_id = contacts.id
                                    )

@@ -55,16 +55,16 @@ export function createInteractionsSearchDB({ execute }) {
       const sql = `SELECT i.*, c.first_name, c.last_name, c.display_name 
                    FROM interactions i 
                    JOIN contacts c ON i.contact_id = c.id 
-                   WHERE i.datetime >= ? 
-                   ORDER BY i.datetime DESC 
+                   WHERE i.interaction_datetime >= ? 
+                   ORDER BY i.interaction_datetime DESC 
                    LIMIT ?;`;
       const res = await execute(sql, [cutoff, clampLimit(limit)]);
       return res.rows;
     },
 
     async getByType(interactionType, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
+      const { limit = 50, offset = 0, orderBy = 'interaction_datetime', orderDir = 'DESC' } = options;
+      const order = ['interaction_datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'interaction_datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions
@@ -75,15 +75,15 @@ export function createInteractionsSearchDB({ execute }) {
     },
 
     async getByDateRange(startDate, endDate, options = {}) {
-      const { limit = 100, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
+      const { limit = 100, offset = 0, orderBy = 'interaction_datetime', orderDir = 'DESC' } = options;
+      const order = ['interaction_datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'interaction_datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const { start, end, endOp } = normalizeDateRange(startDate, endDate);
       const conds = [];
       const params = [];
-      if (start) { conds.push('datetime >= ?'); params.push(start); }
-      if (end)   { conds.push(`datetime ${endOp} ?`); params.push(end); }
+      if (start) { conds.push('interaction_datetime >= ?'); params.push(start); }
+      if (end)   { conds.push(`interaction_datetime ${endOp} ?`); params.push(end); }
       const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
       const sql = `SELECT * FROM interactions ${where} ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       params.push(clampLimit(limit), clampOffset(offset));
@@ -101,7 +101,7 @@ export function createInteractionsSearchDB({ execute }) {
                    FROM interactions i 
                    JOIN contacts c ON i.contact_id = c.id 
                    WHERE i.title LIKE ? OR i.note LIKE ? OR c.display_name LIKE ?
-                   ORDER BY i.datetime DESC 
+                   ORDER BY i.interaction_datetime DESC 
                    LIMIT ? OFFSET ?;`;
       
       const res = await execute(sql, [searchTerm, searchTerm, searchTerm, clampLimit(limit), clampOffset(offset)]);
@@ -109,8 +109,8 @@ export function createInteractionsSearchDB({ execute }) {
     },
 
     async getByContact(contactId, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
+      const { limit = 50, offset = 0, orderBy = 'interaction_datetime', orderDir = 'DESC' } = options;
+      const order = ['interaction_datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'interaction_datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const sql = `SELECT * FROM interactions WHERE contact_id = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
@@ -119,8 +119,8 @@ export function createInteractionsSearchDB({ execute }) {
     },
 
     async advancedSearch(criteria = {}, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'datetime', orderDir = 'DESC' } = options;
-      const order = ['datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'datetime';
+      const { limit = 50, offset = 0, orderBy = 'interaction_datetime', orderDir = 'DESC' } = options;
+      const order = ['interaction_datetime', 'title', 'interaction_type', 'created_at'].includes(orderBy) ? orderBy : 'interaction_datetime';
       const dir = String(orderDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       
       const conditions = [];
@@ -152,11 +152,11 @@ export function createInteractionsSearchDB({ execute }) {
       if (criteria.startDate || criteria.endDate) {
         const { start, end, endOp } = normalizeDateRange(criteria.startDate, criteria.endDate);
         if (start) {
-          conditions.push('datetime >= ?');
+          conditions.push('interaction_datetime >= ?');
           params.push(start);
         }
         if (end) {
-          conditions.push(`datetime ${endOp} ?`);
+          conditions.push(`interaction_datetime ${endOp} ?`);
           params.push(end);
         }
       }

@@ -1,14 +1,14 @@
 // Performance indexes and optional FTS for interactions/search hotspots
 // Exports: { version, name, up, down }
 
-import { getExec, runAll } from './_helpers';
+import { getExec, runAll } from './_helpers.js';
 
 const CREATE_INDEXES = [
   // Composite indexes to accelerate common filters + ordering
-  `CREATE INDEX IF NOT EXISTS idx_interactions_contact_datetime ON interactions(contact_id, datetime DESC);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_datetime_desc ON interactions(datetime DESC);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_type_datetime ON interactions(interaction_type, datetime DESC);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_custom_type_datetime ON interactions(custom_type, datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_contact_datetime ON interactions(contact_id, interaction_datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_datetime_desc ON interactions(interaction_datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_type_datetime ON interactions(interaction_type, interaction_datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_custom_type_datetime ON interactions(custom_type, interaction_datetime DESC);`,
 ];
 
 const DROP_INDEXES = [
@@ -16,7 +16,6 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_interactions_type_datetime;',
   'DROP INDEX IF EXISTS idx_interactions_datetime_desc;',
   'DROP INDEX IF EXISTS idx_interactions_contact_datetime;',
-  'DROP INDEX IF EXISTS idx_contacts_display_name;',
 ];
 
 const DROP_FTS = [
@@ -25,13 +24,6 @@ const DROP_FTS = [
   'DROP TRIGGER IF EXISTS interactions_ai;',
   'DROP TABLE IF EXISTS interactions_fts;',
 ];
-
-function rowsFromExecuteResult(res) {
-  if (Array.isArray(res)) return res; // sql.js variant sometimes returns array
-  if (res?.rows?._array) return res.rows._array;
-  if (Array.isArray(res?.rows)) return res.rows;
-  return [];
-}
 
 export default {
   version: 3,
@@ -42,19 +34,6 @@ export default {
     // Create core indexes
     await runAll(exec, CREATE_INDEXES);
 
-    // Conditionally create contacts(display_name) index if the column exists
-    if (typeof exec.execute === 'function') {
-      try {
-        const res = await exec.execute("PRAGMA table_info('contacts');");
-        const cols = rowsFromExecuteResult(res).map((r) => r.name || r.column_name || r.Column || r.column || r[1]);
-        const hasDisplayName = cols && cols.some((n) => String(n).toLowerCase() === 'display_name');
-        if (hasDisplayName) {
-          await exec.execute('CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name);');
-        }
-      } catch (_) {
-        // Ignore pragma errors in environments that do not support it
-      }
-    }
 
     // Optionally enable FTS5 for interactions(title, note) if available
     let ftsReady = false;

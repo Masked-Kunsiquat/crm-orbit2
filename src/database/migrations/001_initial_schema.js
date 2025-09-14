@@ -2,10 +2,10 @@
 // Follows the format outlined in migrations/AGENTS.md
 // Exports: { version, up(dbOrCtx), down(dbOrCtx) }
 
-import { getExec, runAll } from './_helpers';
+import { getExec, runAll, runAllSequential } from './_helpers.js';
 
 const CREATE_TABLES = [
-  // 8. Attachments (referenced by companies.logo_attachment_id)
+  // 1. Attachments (must be created before companies due to foreign key)
   `CREATE TABLE IF NOT EXISTS attachments (
     id INTEGER PRIMARY KEY,
     entity_type TEXT NOT NULL CHECK (entity_type IN ('company','contact','note','event','interaction')),
@@ -15,13 +15,13 @@ const CREATE_TABLES = [
     file_path TEXT NOT NULL,
     file_type TEXT NOT NULL,
     mime_type TEXT,
-    file_size INTEGER,
+    file_size INTEGER CHECK (file_size >= 0),
     thumbnail_path TEXT,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );`,
 
-  // 9. Companies (referenced by contacts.company_id and references attachments)
+  // 2. Companies (references attachments, must be created before contacts)
   `CREATE TABLE IF NOT EXISTS companies (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -34,7 +34,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (logo_attachment_id) REFERENCES attachments (id) ON DELETE SET NULL
   );`,
 
-  // 1. Contacts (references companies)
+  // 3. Contacts (references companies)
   `CREATE TABLE IF NOT EXISTS contacts (
     id INTEGER PRIMARY KEY,
     first_name TEXT NOT NULL,
@@ -50,7 +50,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE SET NULL
   );`,
 
-  // 2. Contact Info
+  // 4. Contact Info
   `CREATE TABLE IF NOT EXISTS contact_info (
     id INTEGER PRIMARY KEY,
     contact_id INTEGER NOT NULL,
@@ -63,7 +63,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
   );`,
 
-  // 3. Events
+  // 5. Events
   `CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY,
     contact_id INTEGER NOT NULL,
@@ -77,7 +77,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
   );`,
 
-  // 4. Event Reminders
+  // 6. Event Reminders
   `CREATE TABLE IF NOT EXISTS event_reminders (
     id INTEGER PRIMARY KEY,
     event_id INTEGER NOT NULL,
@@ -88,11 +88,11 @@ const CREATE_TABLES = [
     FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
   );`,
 
-  // 5. Interactions
+  // 7. Interactions
   `CREATE TABLE IF NOT EXISTS interactions (
     id INTEGER PRIMARY KEY,
     contact_id INTEGER NOT NULL,
-    datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    interaction_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
     title TEXT NOT NULL,
     note TEXT,
     interaction_type TEXT NOT NULL,
@@ -102,7 +102,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
   );`,
 
-  // 6. Notes
+  // 8. Notes
   `CREATE TABLE IF NOT EXISTS notes (
     id INTEGER PRIMARY KEY,
     contact_id INTEGER,
@@ -114,7 +114,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
   );`,
 
-  // 7a. Categories
+  // 9. Categories
   `CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
@@ -125,7 +125,7 @@ const CREATE_TABLES = [
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );`,
 
-  // 7b. Contact-Categories (junction)
+  // 10. Contact-Categories (junction)
   `CREATE TABLE IF NOT EXISTS contact_categories (
     contact_id INTEGER,
     category_id INTEGER,
@@ -134,7 +134,7 @@ const CREATE_TABLES = [
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
   );`,
 
-  // 10. User Preferences
+  // 11. User Preferences
   `CREATE TABLE IF NOT EXISTS user_preferences (
     id INTEGER PRIMARY KEY,
     category TEXT NOT NULL,
@@ -171,7 +171,6 @@ const CREATE_INDEXES = [
 
   // Interactions
   `CREATE INDEX IF NOT EXISTS idx_interactions_contact_id ON interactions (contact_id);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_datetime ON interactions (datetime);`,
 
   // Notes
   `CREATE INDEX IF NOT EXISTS idx_notes_contact_id ON notes (contact_id);`,
@@ -238,7 +237,6 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_categories_sort_order;',
   'DROP INDEX IF EXISTS idx_notes_is_pinned;',
   'DROP INDEX IF EXISTS idx_notes_contact_id;',
-  'DROP INDEX IF EXISTS idx_interactions_datetime;',
   'DROP INDEX IF EXISTS idx_interactions_contact_id;',
   'DROP INDEX IF EXISTS idx_event_reminders_datetime;',
   'DROP INDEX IF EXISTS idx_event_reminders_event_id;',
@@ -285,10 +283,16 @@ export default {
    */
   up: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
-    // Create tables first, then indexes
-    await runAll(exec, CREATE_TABLES);
-    await runAll(exec, CREATE_INDEXES);
-    await runAll(exec, CREATE_TRIGGERS);
+
+    // Use sequential execution to avoid transaction visibility issues
+    // Note: Transaction handling is done by the migration runner
+    await runAllSequential(exec, CREATE_TABLES);
+
+    // Then create indexes
+    await runAllSequential(exec, CREATE_INDEXES);
+
+    // Finally create triggers
+    await runAllSequential(exec, CREATE_TRIGGERS);
   },
 
   /**
