@@ -45,6 +45,8 @@ class AuthService {
     this.isLocked = true;
     this.failedAttempts = 0;
     this.lockoutUntil = null;
+    // Guard for concurrent auto-lock timer starts
+    this._autoLockStartToken = 0;
   }
 
   // Brute-force protection methods
@@ -467,6 +469,8 @@ class AuthService {
   }
 
   async startAutoLockTimer() {
+    // Create a start token to ensure only the latest invocation schedules a timer
+    const token = ++this._autoLockStartToken;
     this.clearAutoLockTimer();
     
     try {
@@ -477,10 +481,17 @@ class AuthService {
       }
 
       const timeoutMinutes = await this.getAutoLockTimeout();
+      // If a newer start was requested while awaiting, abort scheduling
+      if (token !== this._autoLockStartToken) return;
+
       if (timeoutMinutes > 0) {
+        const timeoutMs = timeoutMinutes * 60 * 1000;
         this.lockTimer = setTimeout(() => {
-          this.lock();
-        }, timeoutMinutes * 60 * 1000);
+          // Only act if this timer belongs to the latest start
+          if (token === this._autoLockStartToken) {
+            this.lock();
+          }
+        }, timeoutMs);
       }
     } catch (error) {
       console.error('Error starting auto-lock timer:', error);
