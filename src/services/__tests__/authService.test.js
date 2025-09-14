@@ -114,10 +114,15 @@ describe('AuthService Core Logic', () => {
 
   describe('PIN Authentication', () => {
     test('authenticateWithPIN returns success for correct PIN', async () => {
+      const SecureStore = require('expo-secure-store');
       AsyncStorage.getItem
-        .mockResolvedValueOnce('true') // hasPIN check
-        .mockResolvedValueOnce('1234') // hasPIN check
+        .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout
+        .mockResolvedValueOnce('true') // hasPIN - PIN enabled check
+        .mockResolvedValue(); // any other AsyncStorage calls
+      SecureStore.getItemAsync
+        .mockResolvedValueOnce('1234') // hasPIN - stored PIN
         .mockResolvedValueOnce('1234'); // verifyPIN
+      AsyncStorage.removeItem.mockResolvedValue(); // clear failed attempts
 
       const result = await authService.authenticateWithPIN('1234');
 
@@ -126,10 +131,15 @@ describe('AuthService Core Logic', () => {
     });
 
     test('authenticateWithPIN returns error for incorrect PIN', async () => {
+      const SecureStore = require('expo-secure-store');
       AsyncStorage.getItem
-        .mockResolvedValueOnce('true') // hasPIN check
-        .mockResolvedValueOnce('1234') // hasPIN check
+        .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout
+        .mockResolvedValueOnce('true') // hasPIN - PIN enabled check
+        .mockResolvedValue(); // any other AsyncStorage calls
+      SecureStore.getItemAsync
+        .mockResolvedValueOnce('1234') // hasPIN - stored PIN
         .mockResolvedValueOnce('1234'); // verifyPIN
+      AsyncStorage.setItem.mockResolvedValue(); // increment failed attempts
 
       const result = await authService.authenticateWithPIN('5678');
 
@@ -138,23 +148,75 @@ describe('AuthService Core Logic', () => {
     });
 
     test('authenticateWithPIN fails when no PIN configured', async () => {
+      const SecureStore = require('expo-secure-store');
       AsyncStorage.getItem
-        .mockResolvedValueOnce('false') // pin_enabled
-        .mockResolvedValueOnce(null); // stored PIN
+        .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout
+        .mockResolvedValueOnce('false'); // hasPIN - PIN enabled check
+      SecureStore.getItemAsync.mockResolvedValueOnce(null); // hasPIN - stored PIN
 
       const result = await authService.authenticateWithPIN('1234');
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('No PIN configured');
     });
+
+    test('authenticateWithPIN enforces lockout after multiple failed attempts', async () => {
+      const SecureStore = require('expo-secure-store');
+      AsyncStorage.getItem
+        .mockResolvedValueOnce(null) // lockout check - no lockout initially
+        .mockResolvedValueOnce('true') // PIN enabled check
+        .mockResolvedValueOnce('2') // failed attempts count (2 attempts already)
+        .mockResolvedValueOnce(null); // no lockout time initially
+      SecureStore.getItemAsync
+        .mockResolvedValueOnce('1234') // hasPIN check
+        .mockResolvedValueOnce('1234'); // verifyPIN
+      AsyncStorage.setItem.mockResolvedValue();
+
+      const result = await authService.authenticateWithPIN('5678');
+
+      expect(result.success).toBe(false);
+      expect(result.errorCode).toBe('PIN_LOCKOUT');
+      expect(result.remainingTime).toBeGreaterThan(0);
+    });
+
+    test('authenticateWithPIN is blocked when user is locked out', async () => {
+      const futureTime = Date.now() + 30000; // 30 seconds from now
+      AsyncStorage.getItem.mockResolvedValueOnce(futureTime.toString()); // lockout until future
+
+      const result = await authService.authenticateWithPIN('1234');
+
+      expect(result.success).toBe(false);
+      expect(result.errorCode).toBe('PIN_LOCKOUT');
+      expect(result.remainingTime).toBeGreaterThan(0);
+    });
+
+    test('checkLockoutStatus returns correct lockout state', async () => {
+      const futureTime = Date.now() + 30000; // 30 seconds from now
+      AsyncStorage.getItem.mockResolvedValueOnce(futureTime.toString());
+
+      const result = await authService.checkLockoutStatus();
+
+      expect(result.isLockedOut).toBe(true);
+      expect(result.remainingTime).toBeGreaterThan(0);
+    });
+
+    test('biometric error mapping returns correct error codes', () => {
+      const userCancelError = new Error('User canceled authentication');
+      const lockoutError = new Error('Biometric lockout occurred');
+      const unknownError = new Error('Unknown error');
+
+      expect(authService.mapBiometricError(userCancelError)).toBe('user_cancelled');
+      expect(authService.mapBiometricError(lockoutError)).toBe('biometric_lockout');
+      expect(authService.mapBiometricError(unknownError)).toBe('biometric_unknown_error');
+    });
   });
 
   describe('Lock State Management', () => {
     test('lock state can be checked from storage', async () => {
       AsyncStorage.getItem.mockResolvedValue('false');
-      // Clear in-memory state to force storage check
+      // Clear in-memory state to force storage check - do this AFTER the beforeEach runs
       authService.isLocked = null;
-      
+
       const result = await authService.getLockState();
 
       expect(result).toBe(false);
@@ -163,7 +225,7 @@ describe('AuthService Core Logic', () => {
 
     test('lock state defaults to true when no stored state', async () => {
       AsyncStorage.getItem.mockResolvedValue(null);
-      // Clear in-memory state to force storage check
+      // Clear in-memory state to force storage check - do this AFTER the beforeEach runs
       authService.isLocked = null;
 
       const result = await authService.getLockState();
