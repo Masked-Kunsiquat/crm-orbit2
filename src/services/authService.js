@@ -232,7 +232,7 @@ class AuthService {
     return this.onSuccessfulAuth();
   }
 
-  async isLocked() {
+  async checkIsLocked() {
     return this.getLockState();
   }
 
@@ -368,7 +368,7 @@ class AuthService {
       }
 
       // Initialize lock state
-      this.isLocked = await this.isLocked();
+      this.isLocked = await this.checkIsLocked();
       
       return true;
     } catch (error) {

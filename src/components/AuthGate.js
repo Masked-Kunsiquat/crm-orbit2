@@ -62,7 +62,7 @@ const AuthGate = ({ children }) => {
       await authService.initialize();
       
       // Check current lock status
-      const locked = await authService.isLocked();
+      const locked = await authService.checkIsLocked();
       setIsLocked(locked);
       
       // Check biometric availability
