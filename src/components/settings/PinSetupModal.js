@@ -1,5 +1,5 @@
 // PIN Setup Modal component for authentication settings
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
@@ -9,6 +9,25 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Track mounted state to avoid setState on unmounted component
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Clear PIN fields whenever the modal hides to avoid lingering secrets
+  useEffect(() => {
+    if (!visible) {
+      if (isMountedRef.current) {
+        setNewPin('');
+        setConfirmPin('');
+      }
+    }
+  }, [visible]);
 
   const handleSetPIN = async () => {
     const normalizedNew = newPin.replace(/\D+/g, '');
@@ -28,18 +47,20 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
     }
 
     try {
-      setSaving(true);
+      if (isMountedRef.current) setSaving(true);
       await authService.setPIN(normalizedNew);
-      setNewPin('');
-      setConfirmPin('');
-      onSuccess?.();
-      onClose();
+      if (isMountedRef.current) {
+        setNewPin('');
+        setConfirmPin('');
+      }
+      if (isMountedRef.current) onSuccess?.();
+      if (isMountedRef.current) onClose?.();
       Alert.alert('Success', 'PIN has been set successfully');
     } catch (error) {
       console.error('Failed to set PIN:', error);
       Alert.alert('Error', 'Failed to set PIN');
     } finally {
-      setSaving(false);
+      if (isMountedRef.current) setSaving(false);
     }
   };
 
