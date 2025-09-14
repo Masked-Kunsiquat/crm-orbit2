@@ -37,8 +37,23 @@ export function createMigrationContext(db, options = {}) {
           return await db.execAsync(sql);
         }
       } catch (error) {
-        console.error('Migration SQL error:', { sql, params, error });
-        throw error;
+        // Wrap in DatabaseError with original error and context
+        const wrappedError = new DatabaseError(
+          `Migration SQL execution failed: ${error.message}`,
+          'MIGRATION_SQL_ERROR',
+          error,
+          { sql, params }
+        );
+
+        // Log through the onLog handler instead of console.error
+        onLog(`[ERROR] Migration SQL error: ${wrappedError.message}`, {
+          level: 'error',
+          sql,
+          params,
+          error: wrappedError
+        });
+
+        throw wrappedError;
       }
     },
     batch: async (statements) => {
