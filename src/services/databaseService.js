@@ -29,7 +29,10 @@ class DatabaseService {
       
       // Open database connection
       this.db = await SQLite.openDatabaseAsync('crm.db');
-      
+
+      // Set recommended pragmas for better reliability and performance
+      await this.db.execAsync('PRAGMA journal_mode = WAL;');
+      await this.db.execAsync('PRAGMA synchronous = NORMAL;');
       // Enable foreign key constraints
       await this.db.execAsync('PRAGMA foreign_keys = ON;');
       
@@ -205,6 +208,44 @@ class DatabaseService {
       'CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);'
     ];
 
+    // Create triggers to auto-update updated_at columns
+    const triggerStatements = [
+      `CREATE TRIGGER IF NOT EXISTS update_contacts_updated_at
+       AFTER UPDATE ON contacts
+       FOR EACH ROW
+       BEGIN
+         UPDATE contacts SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END;`,
+
+      `CREATE TRIGGER IF NOT EXISTS update_notes_updated_at
+       AFTER UPDATE ON notes
+       FOR EACH ROW
+       BEGIN
+         UPDATE notes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END;`,
+
+      `CREATE TRIGGER IF NOT EXISTS update_events_updated_at
+       AFTER UPDATE ON events
+       FOR EACH ROW
+       BEGIN
+         UPDATE events SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END;`,
+
+      `CREATE TRIGGER IF NOT EXISTS update_companies_updated_at
+       AFTER UPDATE ON companies
+       FOR EACH ROW
+       BEGIN
+         UPDATE companies SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END;`,
+
+      `CREATE TRIGGER IF NOT EXISTS update_settings_updated_at
+       AFTER UPDATE ON settings
+       FOR EACH ROW
+       BEGIN
+         UPDATE settings SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END;`
+    ];
+
     // Execute all DDL statements in a single transaction for atomicity
     try {
       await this.db.execAsync('BEGIN TRANSACTION;');
@@ -216,6 +257,11 @@ class DatabaseService {
 
       // Execute all index creation statements
       for (const statement of indexStatements) {
+        await this.db.execAsync(statement);
+      }
+
+      // Execute all trigger creation statements
+      for (const statement of triggerStatements) {
         await this.db.execAsync(statement);
       }
 
