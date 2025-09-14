@@ -316,7 +316,10 @@ class DatabaseService {
     }
   }
 
-  getDatabase() {
+  async getDatabase() {
+    if (this.initializationPromise) {
+      await this.initializationPromise;
+    }
     if (!this.isInitialized) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
