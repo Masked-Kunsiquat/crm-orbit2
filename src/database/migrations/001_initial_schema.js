@@ -283,14 +283,30 @@ export default {
    */
   up: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
-    // Use sequential execution to avoid transaction visibility issues
-    await runAllSequential(exec, CREATE_TABLES);
 
-    // Then create indexes
-    await runAllSequential(exec, CREATE_INDEXES);
+    // Wrap entire schema creation in a transaction for atomicity
+    try {
+      await exec('BEGIN TRANSACTION;');
 
-    // Finally create triggers
-    await runAllSequential(exec, CREATE_TRIGGERS);
+      // Use sequential execution to avoid transaction visibility issues
+      await runAllSequential(exec, CREATE_TABLES);
+
+      // Then create indexes
+      await runAllSequential(exec, CREATE_INDEXES);
+
+      // Finally create triggers
+      await runAllSequential(exec, CREATE_TRIGGERS);
+
+      await exec('COMMIT;');
+    } catch (error) {
+      try {
+        await exec('ROLLBACK;');
+      } catch (rollbackError) {
+        // Log rollback error but throw original error
+        console.error('Schema migration rollback failed:', rollbackError);
+      }
+      throw error;
+    }
   },
 
   /**
