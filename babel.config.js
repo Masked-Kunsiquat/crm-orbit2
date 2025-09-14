@@ -3,9 +3,9 @@ module.exports = function (api) {
   return {
     // Use Expo's preset so Metro can parse TS/Flow and dynamic import
     presets: ['babel-preset-expo'],
-    // Babel plugins (reanimated must be last)
+    // Babel plugins (worklets/reanimated plugin must be last)
     plugins: [
-      'react-native-reanimated/plugin'
+      'react-native-worklets/plugin'
     ],
     // Keep Node-friendly transforms during Jest runs
     env: {
