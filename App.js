@@ -1,8 +1,7 @@
+import 'react-native-gesture-handler'; // Must be first import for navigation
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-gesture-handler'; // Must be at top for navigation
-import * as eva from '@eva-design/eva';
-import { ApplicationProvider } from '@ui-kitten/components';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // App components
@@ -14,7 +13,7 @@ import MainNavigator from './src/navigation/MainNavigator';
  * Main App Component
  * 
  * Initialization Flow:
- * 1. UI Kitten Theme Provider
+ * 1. React Native Paper Theme Provider
  * 2. Safe Area Provider for proper screen handling
  * 3. AppInitializer - Database setup with loading screen
  * 4. AuthGate - Authentication wrapper
@@ -22,7 +21,7 @@ import MainNavigator from './src/navigation/MainNavigator';
  */
 export default function App() {
   return (
-    <ApplicationProvider {...eva} theme={eva.light}>
+    <PaperProvider>
       <SafeAreaProvider>
         <StatusBar style="auto" />
         <AppInitializer>
@@ -31,6 +30,6 @@ export default function App() {
           </AuthGate>
         </AppInitializer>
       </SafeAreaProvider>
-    </ApplicationProvider>
+    </PaperProvider>
   );
 }
