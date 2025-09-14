@@ -31,6 +31,7 @@ const AuthGate = ({ children }) => {
   const [showPinInput, setShowPinInput] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
   const theme = useTheme();
+  const styles = getStyles(theme); // theme-aware styles
 
   // Initialize auth service and check lock status
   useEffect(() => {
@@ -301,7 +302,8 @@ const AuthGate = ({ children }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function getStyles(theme) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f7f9fc',
+    backgroundColor: theme.colors?.background || '#f7f9fc',
   },
   unlockedContainer: {
     flex: 1,
@@ -343,12 +345,12 @@ const styles = StyleSheet.create({
   lockTitle: {
     textAlign: 'center',
     marginBottom: 8,
-    color: '#222B45',
+    color: theme.colors?.onSurface || '#222B45',
   },
   lockSubtitle: {
     textAlign: 'center',
     marginBottom: 24,
-    color: '#8F9BB3',
+    color: theme.colors?.onSurfaceVariant || '#8F9BB3',
   },
   pinTitle: {
     textAlign: 'center',
@@ -394,6 +396,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
   },
-});
+  });
+}
 
 export default AuthGate;
