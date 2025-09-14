@@ -26,12 +26,12 @@ function placeholders(n) {
 
 function convertBooleanFields(row) {
   if (!row) return row;
-  const converted = { ...row };
-  // Convert SQLite integer boolean fields to JavaScript booleans
-  if (typeof converted.is_pinned === 'number') {
-    converted.is_pinned = Boolean(converted.is_pinned);
+  const out = { ...row };
+  if ('is_pinned' in out) {
+    const v = out.is_pinned;
+    out.is_pinned = v === true || v === 1 || v === '1';
   }
-  return converted;
+  return out;
 }
 
 /**
@@ -60,16 +60,26 @@ export function createNotesDB(ctx) {
       const cols = Object.keys(noteData);
       const vals = cols.map((k) => noteData[k]);
 
-      const insertRes = await execute(
-        `INSERT INTO notes (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
-        vals
-      );
-      const id = insertRes.insertId;
-      if (!id) {
-        throw new DatabaseError('Failed to create note', 'INSERT_FAILED');
-      }
+      try {
+        const insertRes = await execute(
+          `INSERT INTO notes (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
+          vals
+        );
+        const id = insertRes.insertId;
+        if (!id) {
+          throw new DatabaseError('Failed to create note', 'INSERT_FAILED');
+        }
 
-      return this.getById(id);
+        return this.getById(id);
+      } catch (error) {
+        // Handle foreign key constraint errors - check message and nested error properties
+        const errorMessage = error.message || error.cause?.message || error.originalError?.message;
+        if (errorMessage && errorMessage.includes('FOREIGN KEY constraint failed')) {
+          throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
+        }
+        // Re-throw other errors as-is
+        throw error;
+      }
     },
 
     async getById(id) {

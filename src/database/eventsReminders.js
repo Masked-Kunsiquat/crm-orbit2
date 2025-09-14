@@ -34,6 +34,13 @@ function placeholders(n) {
   return new Array(n).fill('?').join(', ');
 }
 
+function convertBooleanFields(row) {
+  if (!row) return row;
+  const out = { ...row };
+  if ('is_sent' in out) out.is_sent = out.is_sent === 1 || out.is_sent === '1' || out.is_sent === true;
+  return out;
+}
+
 /**
  * Format date for SQLite comparison (YYYY-MM-DD HH:MM:SS)
  * @param {Date} date - Date to format
@@ -120,7 +127,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      */
     async getEventReminders(eventId) {
       const res = await execute('SELECT * FROM event_reminders WHERE event_id = ? ORDER BY reminder_datetime ASC;', [eventId]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     /**
@@ -147,7 +154,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         }
         
         const created = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
-        return created.rows[0];
+        return convertBooleanFields(created.rows[0]);
       } catch (error) {
         // Handle foreign key constraint errors - check nested error properties
         const checkForFKError = (err) => {
@@ -213,7 +220,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         
         // Return updated reminders
         const res = await tx.execute('SELECT * FROM event_reminders WHERE event_id = ?;', [eventId]);
-        return res.rows;
+        return res.rows.map(convertBooleanFields);
       });
     },
 
@@ -235,7 +242,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
     async markReminderSent(reminderId) {
       await execute('UPDATE event_reminders SET is_sent = 1 WHERE id = ?;', [reminderId]);
       const res = await execute('SELECT * FROM event_reminders WHERE id = ?;', [reminderId]);
-      return res.rows[0] || null;
+      return convertBooleanFields(res.rows[0]) || null;
     },
 
     /**
@@ -255,7 +262,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    ORDER BY r.reminder_datetime ASC;`;
       
       const res = await execute(sql, [cutoff]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     },
 
     /**
@@ -275,7 +282,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    ORDER BY r.reminder_datetime ASC;`;
       
       const res = await execute(sql, [formatSQLiteDateTime(now), formatSQLiteDateTime(future)]);
-      return res.rows;
+      return res.rows.map(convertBooleanFields);
     }
   };
 }

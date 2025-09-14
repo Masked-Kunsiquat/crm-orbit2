@@ -332,4 +332,31 @@ describe('contactsDB (in-memory)', () => {
     const after = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
     expect(after.rows[0].cnt).toBe(0);
   });
+
+  test('delete contact removes associated attachments', async () => {
+    // Create contact first
+    const { id } = await contacts.create({
+      first_name: 'Alice',
+      last_name: 'Cooper'
+    });
+    
+    // Add attachment for the contact
+    await ctx.execute(
+      `INSERT INTO attachments (entity_type, entity_id, file_name, original_name, file_path, file_type, mime_type, file_size) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+      ['contact', id, 'profile.jpg', 'Profile Photo.jpg', '/uploads/profile.jpg', 'image', 'image/jpeg', 2048]
+    );
+    
+    // Verify attachment exists
+    const before = await ctx.execute('SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+    expect(before.rows[0].cnt).toBe(1);
+    
+    // Delete contact
+    const removed = await contacts.delete(id);
+    expect(removed).toBe(1);
+    
+    // Verify attachment was also deleted
+    const after = await ctx.execute('SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+    expect(after.rows[0].cnt).toBe(0);
+  });
 });
