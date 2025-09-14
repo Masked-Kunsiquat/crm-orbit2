@@ -149,13 +149,30 @@ describe('AuthService Core Logic', () => {
     test('authenticateWithPIN returns success for correct PIN', async () => {
       const SecureStore = require('expo-secure-store');
 
-      // Exact sequence: checkLockoutStatus, hasPIN, verifyPIN, clearFailedAttempts
-      AsyncStorage.getItem
-        .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout
-        .mockResolvedValueOnce('true'); // hasPIN - PIN enabled check
-      SecureStore.getItemAsync
-        .mockResolvedValueOnce('2580') // hasPIN - stored PIN
-        .mockResolvedValueOnce('2580'); // verifyPIN - stored PIN for comparison
+      // Use mockImplementation for full control over call sequences
+      let asyncStorageCallCount = 0;
+      let secureStoreCallCount = 0;
+
+      AsyncStorage.getItem.mockImplementation((key) => {
+        if (key === 'auth_lockout_until') {
+          asyncStorageCallCount++;
+          return Promise.resolve(null); // checkLockoutStatus - no lockout
+        }
+        if (key === 'auth_pin_enabled') {
+          asyncStorageCallCount++;
+          return Promise.resolve('true'); // hasPIN - PIN enabled check
+        }
+        return Promise.resolve(null);
+      });
+
+      SecureStore.getItemAsync.mockImplementation((key) => {
+        if (key === 'auth_pin') {
+          secureStoreCallCount++;
+          return Promise.resolve('2580'); // Both hasPIN and verifyPIN calls
+        }
+        return Promise.resolve(null);
+      });
+
       AsyncStorage.removeItem.mockResolvedValueOnce(); // clearFailedAttempts
 
       const result = await authService.authenticateWithPIN('2580');
@@ -167,15 +184,20 @@ describe('AuthService Core Logic', () => {
     test('authenticateWithPIN returns error for incorrect PIN', async () => {
       const SecureStore = require('expo-secure-store');
 
-      // Exact sequence: checkLockoutStatus, hasPIN, verifyPIN, incrementFailedAttempts
-      AsyncStorage.getItem
-        .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout
-        .mockResolvedValueOnce('true') // hasPIN - PIN enabled check
-        .mockResolvedValueOnce('0'); // incrementFailedAttempts - current attempts (0)
-      SecureStore.getItemAsync
-        .mockResolvedValueOnce('2580') // hasPIN - stored PIN
-        .mockResolvedValueOnce('2580'); // verifyPIN - stored PIN for comparison
-      AsyncStorage.setItem.mockResolvedValueOnce(); // incrementFailedAttempts - set new count
+      // Use mockImplementation for deterministic behavior
+      AsyncStorage.getItem.mockImplementation((key) => {
+        if (key === 'auth_lockout_until') return Promise.resolve(null); // checkLockoutStatus
+        if (key === 'auth_pin_enabled') return Promise.resolve('true'); // hasPIN
+        if (key === 'auth_failed_attempts') return Promise.resolve('0'); // incrementFailedAttempts
+        return Promise.resolve(null);
+      });
+
+      SecureStore.getItemAsync.mockImplementation((key) => {
+        if (key === 'auth_pin') return Promise.resolve('2580'); // Both hasPIN and verifyPIN
+        return Promise.resolve(null);
+      });
+
+      AsyncStorage.setItem.mockResolvedValue(); // incrementFailedAttempts set
 
       const result = await authService.authenticateWithPIN('5678');
 
@@ -201,17 +223,19 @@ describe('AuthService Core Logic', () => {
     test('authenticateWithPIN enforces lockout after multiple failed attempts', async () => {
       const SecureStore = require('expo-secure-store');
 
-      // Exact sequence: checkLockoutStatus, hasPIN, verifyPIN, incrementFailedAttempts (hits tier 1 threshold)
-      AsyncStorage.getItem
-        .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout initially
-        .mockResolvedValueOnce('true') // hasPIN - PIN enabled check
-        .mockResolvedValueOnce('2'); // incrementFailedAttempts - current attempts (2, will become 3)
-      SecureStore.getItemAsync
-        .mockResolvedValueOnce('1234') // hasPIN - stored PIN
-        .mockResolvedValueOnce('1234'); // verifyPIN - stored PIN for comparison
-      AsyncStorage.setItem
-        .mockResolvedValueOnce() // incrementFailedAttempts - set failed attempts count
-        .mockResolvedValueOnce(); // incrementFailedAttempts - set lockout time
+      AsyncStorage.getItem.mockImplementation((key) => {
+        if (key === 'auth_lockout_until') return Promise.resolve(null); // checkLockoutStatus - no lockout initially
+        if (key === 'auth_pin_enabled') return Promise.resolve('true'); // hasPIN - PIN enabled check
+        if (key === 'auth_failed_attempts') return Promise.resolve('2'); // incrementFailedAttempts - current attempts (2, will become 3)
+        return Promise.resolve(null);
+      });
+
+      SecureStore.getItemAsync.mockImplementation((key) => {
+        if (key === 'auth_pin') return Promise.resolve('1234'); // Both hasPIN and verifyPIN calls
+        return Promise.resolve(null);
+      });
+
+      AsyncStorage.setItem.mockResolvedValue(); // incrementFailedAttempts operations
 
       const result = await authService.authenticateWithPIN('5678');
 
@@ -223,8 +247,10 @@ describe('AuthService Core Logic', () => {
     test('authenticateWithPIN is blocked when user is locked out', async () => {
       const futureTime = Date.now() + 30000; // 30 seconds from now
 
-      // Only checkLockoutStatus is called, then early return
-      AsyncStorage.getItem.mockResolvedValueOnce(futureTime.toString()); // checkLockoutStatus - lockout until future
+      AsyncStorage.getItem.mockImplementation((key) => {
+        if (key === 'auth_lockout_until') return Promise.resolve(futureTime.toString()); // checkLockoutStatus - lockout until future
+        return Promise.resolve(null);
+      });
 
       const result = await authService.authenticateWithPIN('2580');
 
@@ -236,7 +262,10 @@ describe('AuthService Core Logic', () => {
     test('checkLockoutStatus returns correct lockout state', async () => {
       const futureTime = Date.now() + 30000; // 30 seconds from now
 
-      AsyncStorage.getItem.mockResolvedValueOnce(futureTime.toString());
+      AsyncStorage.getItem.mockImplementation((key) => {
+        if (key === 'auth_lockout_until') return Promise.resolve(futureTime.toString());
+        return Promise.resolve(null);
+      });
 
       const result = await authService.checkLockoutStatus();
 
@@ -257,7 +286,10 @@ describe('AuthService Core Logic', () => {
 
   describe('Lock State Management', () => {
     test('lock state can be checked from storage', async () => {
-      AsyncStorage.getItem.mockResolvedValueOnce('false');
+      AsyncStorage.getItem.mockImplementation((key) => {
+        if (key === 'auth_is_locked') return Promise.resolve('false');
+        return Promise.resolve(null);
+      });
 
       const result = await authService.getLockState();
 
