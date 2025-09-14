@@ -1,7 +1,7 @@
 // Performance indexes and optional FTS for interactions/search hotspots
 // Exports: { version, name, up, down }
 
-import { getExec, runAll } from './_helpers';
+import { getExec, runAll } from './_helpers.js';
 
 const CREATE_INDEXES = [
   // Composite indexes to accelerate common filters + ordering

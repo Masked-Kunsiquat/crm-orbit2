@@ -1,8 +1,8 @@
 // Migration runner
 // Discovers versioned migration modules and applies pending ones in order.
 
-import { DatabaseError } from '../errors';
-import MIGRATIONS from './registry';
+import { DatabaseError } from '../errors.js';
+import MIGRATIONS from './registry.js';
 
 async function ensureMeta({ execute }) {
   try {

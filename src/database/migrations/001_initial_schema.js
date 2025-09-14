@@ -2,7 +2,7 @@
 // Follows the format outlined in migrations/AGENTS.md
 // Exports: { version, up(dbOrCtx), down(dbOrCtx) }
 
-import { getExec, runAll } from './_helpers';
+import { getExec, runAll } from './_helpers.js';
 
 const CREATE_TABLES = [
   // 8. Attachments (referenced by companies.logo_attachment_id)

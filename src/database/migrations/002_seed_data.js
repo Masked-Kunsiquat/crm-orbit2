@@ -2,7 +2,7 @@
 // Follows the format outlined in migrations/AGENTS.md
 // Exports: { version, name, up(dbOrCtx), down(dbOrCtx) }
 
-import { getExec, runAll, runAllSequential } from './_helpers';
+import { getExec, runAll, runAllSequential } from './_helpers.js';
 
 // 1) System categories that cannot be deleted (is_system = 1)
 const SYSTEM_CATEGORIES = [
