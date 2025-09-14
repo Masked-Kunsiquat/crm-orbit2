@@ -79,7 +79,10 @@ export function createMigrationContext(db, options = {}) {
         return results;
       } catch (error) {
         try { await db.execAsync('ROLLBACK;'); } catch (rollbackError) {
-          console.error('Migration rollback error:', rollbackError);
+          onLog(`[ERROR] Migration rollback error: ${rollbackError?.message || rollbackError}`, {
+            level: 'error',
+            error: rollbackError
+          });
         }
         throw error;
       }
@@ -167,7 +170,10 @@ export function createMigrationContext(db, options = {}) {
         try {
           await db.execAsync('ROLLBACK;');
         } catch (rollbackError) {
-          console.error('Migration transaction rollback error:', rollbackError);
+          onLog(`[ERROR] Migration transaction rollback error: ${rollbackError?.message || rollbackError}`, {
+            level: 'error',
+            error: rollbackError
+          });
         }
         throw error;
       }
