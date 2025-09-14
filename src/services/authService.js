@@ -185,7 +185,9 @@ class AuthService {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME, this.lastUnlockTime.toString());
       
       this.notifyListeners({ type: 'unlock' });
-      this.startAutoLockTimer();
+      this.startAutoLockTimer().catch(error => {
+        console.error('Error starting auto-lock timer after unlock:', error);
+      });
       
       return true;
     } catch (error) {
@@ -239,7 +241,7 @@ class AuthService {
     try {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.AUTO_LOCK_ENABLED, 'true');
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.AUTO_LOCK_TIMEOUT, timeoutMinutes.toString());
-      this.startAutoLockTimer();
+      await this.startAutoLockTimer();
       return true;
     } catch (error) {
       console.error('Error enabling auto-lock:', error);
@@ -278,16 +280,25 @@ class AuthService {
     }
   }
 
-  startAutoLockTimer() {
+  async startAutoLockTimer() {
     this.clearAutoLockTimer();
     
-    this.getAutoLockTimeout().then(timeoutMinutes => {
+    try {
+      // Check if auto-lock is enabled first
+      const autoLockEnabled = await this.isAutoLockEnabled();
+      if (!autoLockEnabled) {
+        return; // Auto-lock is disabled, don't start timer
+      }
+
+      const timeoutMinutes = await this.getAutoLockTimeout();
       if (timeoutMinutes > 0) {
         this.lockTimer = setTimeout(() => {
           this.lock();
         }, timeoutMinutes * 60 * 1000);
       }
-    });
+    } catch (error) {
+      console.error('Error starting auto-lock timer:', error);
+    }
   }
 
   clearAutoLockTimer() {
@@ -409,8 +420,10 @@ class AuthService {
   // App state change handlers
   onAppStateChange(nextAppState) {
     if (nextAppState === 'background' || nextAppState === 'inactive') {
-      // App going to background - start/continue auto-lock timer
-      this.startAutoLockTimer();
+      // App going to background - start/continue auto-lock timer if enabled
+      this.startAutoLockTimer().catch(error => {
+        console.error('Error starting auto-lock timer on app state change:', error);
+      });
     } else if (nextAppState === 'active') {
       // App coming to foreground - check if should be locked
       this.checkAutoLock();
