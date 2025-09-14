@@ -1,18 +1,30 @@
 // Database initialization service
+//
+// MIGRATION STRATEGY:
+// This service uses the canonical migration system located at database/migrations/
+// to ensure consistency and prevent schema drift. All CREATE TABLE, CREATE INDEX,
+// and CREATE TRIGGER statements are defined in versioned migration files:
+//
+// - database/migrations/001_initial_schema.js - Base schema (tables, indexes, triggers)
+// - database/migrations/002_seed_data.js - Initial data population
+// - database/migrations/003_performance_indexes.js - Performance optimizations
+// - database/migrations/004_add_display_name_column.js - Schema updates
+//
+// The migration runner (database/migrations/migrationRunner.js) handles:
+// - Sequential migration execution with proper transaction management
+// - Migration state tracking via the 'migrations' metadata table
+// - Error handling and rollback on failure
+// - Integration with expo-sqlite database adapters
+//
+// This approach eliminates duplicate schema definitions and ensures that all
+// database initialization paths (new installs, upgrades, tests) use identical
+// schema definitions from a single source of truth.
 import * as SQLite from 'expo-sqlite';
+import { runMigrations } from '../database/migrations/migrationRunner.js';
 
-// Versioned migrations: each function migrates from version N to N+1
-// Migrations must be idempotent and set PRAGMA user_version to the new version on success
-// Note: Keep these minimal; base tables are created separately via _createTables()
-const MIGRATIONS = [
-  // 0 -> 1: Establish baseline versioning (no-op, mark as v1)
-  async (db) => {
-    // Idempotent: simply set the user_version to 1. This establishes a baseline
-    // for future migrations without altering schema (schema uses IF NOT EXISTS elsewhere).
-    await db.execAsync('PRAGMA user_version = 1;');
-  },
-  // Add future migrations here, e.g. 1 -> 2, 2 -> 3, ...
-];
+// Note: Schema migrations are now handled by the canonical migration system
+// located at database/migrations/. This prevents schema drift and ensures
+// consistency across different initialization paths.
 
 class DatabaseService {
   constructor() {
@@ -63,11 +75,8 @@ class DatabaseService {
       // Enable foreign key constraints
       await this.db.execAsync('PRAGMA foreign_keys = ON;');
 
-      // Run migrations to latest version before creating base tables
-      await this._runMigrations({ signal });
-      
-      // Create tables (minimal schema for now)
-      await this._createTables();
+      // Run canonical migrations to establish complete schema
+      await this._runCanonicalMigrations({ signal });
       
       console.log('Database initialized successfully');
       this.isInitialized = true;
@@ -95,7 +104,7 @@ class DatabaseService {
     }
   }
 
-  async _runMigrations(options = {}) {
+  async _runCanonicalMigrations(options = {}) {
     const { signal } = options || {};
     if (!this.db) {
       throw new Error('Database not open');
@@ -112,315 +121,82 @@ class DatabaseService {
 
     throwIfAborted();
 
-    // Read current user_version
-    let currentVersion = 0;
-    try {
-      // expo-sqlite returns first row with a property named after the pragma
-      const row = (await this.db.getFirstAsync?.('PRAGMA user_version;'))
-        || null;
-      if (row && typeof row.user_version === 'number') {
-        currentVersion = row.user_version;
-      } else {
-        // Fallback: attempt to read via SELECT
-        const fallback = (await this.db.getFirstAsync?.('SELECT PRAGMA_USER_VERSION.user_version FROM pragma_user_version AS PRAGMA_USER_VERSION;')) || null;
-        if (fallback && typeof fallback.user_version === 'number') {
-          currentVersion = fallback.user_version;
-        }
-      }
-    } catch (_) {
-      // If read method is unavailable, assume version 0 and proceed
-      currentVersion = 0;
-    }
-
-    const targetVersion = MIGRATIONS.length; // final version equals number of migrations
-
-    if (currentVersion > targetVersion) {
-      console.warn(`Database user_version (${currentVersion}) is newer than supported (${targetVersion}).`);
-      // Do not attempt to downgrade; proceed without applying migrations
-      return;
-    }
-
-    // Apply pending migrations sequentially
-    while (currentVersion < targetVersion) {
-      throwIfAborted();
-
-      const migrate = MIGRATIONS[currentVersion];
-      if (typeof migrate !== 'function') {
-        throw new Error(`Missing migration function for version ${currentVersion} -> ${currentVersion + 1}`);
-      }
-
-      try {
-        await this.db.execAsync('BEGIN TRANSACTION;');
-
-        await migrate(this.db);
-
-        // Verify migration set the expected user_version; enforce if not
-        let newVersion = currentVersion;
+    // Create migration context with expo-sqlite compatibility helpers
+    const migrationContext = {
+      db: this.db,
+      execute: async (sql, params = []) => {
+        throwIfAborted();
         try {
-          const post = (await this.db.getFirstAsync?.('PRAGMA user_version;')) || null;
-          if (post && typeof post.user_version === 'number') {
-            newVersion = post.user_version;
+          if (params && params.length > 0) {
+            return await this.db.runAsync(sql, params);
+          } else {
+            return await this.db.execAsync(sql);
           }
-        } catch (_) {
-          // If we cannot read, set proactively
-          newVersion = currentVersion; // will be corrected below
+        } catch (error) {
+          console.error('Migration SQL error:', { sql, params, error });
+          throw error;
         }
-
-        if (newVersion !== currentVersion + 1) {
-          // Ensure version bump even if migration forgot to set it
-          await this.db.execAsync(`PRAGMA user_version = ${currentVersion + 1};`);
-        }
-
-        await this.db.execAsync('COMMIT;');
-        currentVersion += 1;
-      } catch (migrationError) {
+      },
+      batch: async (statements) => {
+        throwIfAborted();
+        const results = [];
         try {
-          await this.db.execAsync('ROLLBACK;');
-        } catch (rollbackError) {
-          console.error('Error during migration rollback:', rollbackError);
+          await this.db.execAsync('BEGIN TRANSACTION;');
+          for (const stmt of statements) {
+            const { sql, params = [] } = stmt;
+            const result = params.length > 0
+              ? await this.db.runAsync(sql, params)
+              : await this.db.execAsync(sql);
+            results.push(result);
+          }
+          await this.db.execAsync('COMMIT;');
+          return results;
+        } catch (error) {
+          try {
+            await this.db.execAsync('ROLLBACK;');
+          } catch (rollbackError) {
+            console.error('Migration rollback error:', rollbackError);
+          }
+          throw error;
         }
-        console.error(`Migration ${currentVersion} -> ${currentVersion + 1} failed:`, migrationError);
-        throw migrationError; // Propagate to initialization handler
-      }
-    }
-  }
+      },
+      transaction: async (work) => {
+        throwIfAborted();
+        try {
+          await this.db.execAsync('BEGIN TRANSACTION;');
+          const txContext = {
+            execute: async (sql, params = []) => {
+              return params.length > 0
+                ? await this.db.runAsync(sql, params)
+                : await this.db.execAsync(sql);
+            }
+          };
+          const result = await work(txContext);
+          await this.db.execAsync('COMMIT;');
+          return result;
+        } catch (error) {
+          try {
+            await this.db.execAsync('ROLLBACK;');
+          } catch (rollbackError) {
+            console.error('Migration transaction rollback error:', rollbackError);
+          }
+          throw error;
+        }
+      },
+      onLog: (msg) => console.log(`[migrations] ${msg}`)
+    };
 
-  async _createTables() {
-    const createTableStatements = [
-      // Companies table
-      `CREATE TABLE IF NOT EXISTS companies (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        industry TEXT,
-        website TEXT,
-        phone TEXT,
-        email TEXT,
-        address TEXT,
-        notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );`,
-      
-      // Contacts table
-      `CREATE TABLE IF NOT EXISTS contacts (
-        id INTEGER PRIMARY KEY,
-        first_name TEXT NOT NULL,
-        last_name TEXT,
-        middle_name TEXT,
-        display_name TEXT,
-        avatar_uri TEXT,
-        company_id INTEGER,
-        job_title TEXT,
-        is_favorite BOOLEAN DEFAULT 0,
-        last_interaction_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE SET NULL
-      );`,
-      
-      // Contact info table
-      `CREATE TABLE IF NOT EXISTS contact_info (
-        id INTEGER PRIMARY KEY,
-        contact_id INTEGER NOT NULL,
-        type TEXT NOT NULL,
-        subtype TEXT,
-        value TEXT NOT NULL,
-        label TEXT,
-        is_primary BOOLEAN DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
-      );`,
-      
-      // Categories table
-      `CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        color TEXT DEFAULT '#007AFF',
-        icon TEXT DEFAULT 'folder',
-        is_system BOOLEAN DEFAULT 0,
-        sort_order INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );`,
-      
-      // Contact categories junction table
-      `CREATE TABLE IF NOT EXISTS contact_categories (
-        contact_id INTEGER,
-        category_id INTEGER,
-        PRIMARY KEY (contact_id, category_id),
-        FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE,
-        FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
-      );`,
-      
-      // Notes table
-      `CREATE TABLE IF NOT EXISTS notes (
-        id INTEGER PRIMARY KEY,
-        contact_id INTEGER,
-        title TEXT,
-        content TEXT NOT NULL,
-        is_pinned BOOLEAN DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
-      );`,
-      
-      // Events table
-      `CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY,
-        contact_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        event_type TEXT NOT NULL,
-        event_date DATE NOT NULL,
-        recurring BOOLEAN DEFAULT 0,
-        recurrence_pattern TEXT,
-        notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
-      );`,
-      
-      // Event reminders table
-      `CREATE TABLE IF NOT EXISTS event_reminders (
-        id INTEGER PRIMARY KEY,
-        event_id INTEGER NOT NULL,
-        reminder_datetime DATETIME NOT NULL,
-        reminder_type TEXT DEFAULT 'notification',
-        is_sent BOOLEAN DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
-      );`,
-      
-      // Interactions table
-      `CREATE TABLE IF NOT EXISTS interactions (
-        id INTEGER PRIMARY KEY,
-        contact_id INTEGER NOT NULL,
-        type TEXT NOT NULL,
-        channel TEXT,
-        content TEXT,
-        interaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
-      );`,
-      
-      
-      // Attachments table
-      `CREATE TABLE IF NOT EXISTS attachments (
-        id INTEGER PRIMARY KEY,
-        entity_type TEXT NOT NULL CHECK (entity_type IN ('company','contact','note','event','interaction')),
-        entity_id INTEGER NOT NULL,
-        file_name TEXT NOT NULL,
-        original_name TEXT NOT NULL,
-        file_path TEXT NOT NULL,
-        file_type TEXT NOT NULL,
-        mime_type TEXT,
-        file_size INTEGER,
-        thumbnail_path TEXT,
-        description TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );`,
-      
-      // Settings table
-      `CREATE TABLE IF NOT EXISTS settings (
-        id INTEGER PRIMARY KEY,
-        category TEXT NOT NULL,
-        setting_key TEXT NOT NULL,
-        value TEXT,
-        data_type TEXT DEFAULT 'string',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(category, setting_key)
-      );`
-    ];
-
-    // Create indexes
-    const indexStatements = [
-      'CREATE INDEX IF NOT EXISTS idx_contacts_last_first ON contacts(last_name, first_name);',
-      'CREATE INDEX IF NOT EXISTS idx_contacts_is_favorite ON contacts(is_favorite);',
-      'CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company_id);',
-      'CREATE INDEX IF NOT EXISTS idx_contact_info_contact ON contact_info(contact_id);',
-      'CREATE INDEX IF NOT EXISTS idx_contact_info_primary ON contact_info(contact_id, type, is_primary);',
-      'CREATE INDEX IF NOT EXISTS idx_contact_categories_contact ON contact_categories(contact_id);',
-      'CREATE INDEX IF NOT EXISTS idx_contact_categories_category ON contact_categories(category_id);',
-      'CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);',
-      'CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);',
-      // New indexes for common date/text queries
-      'CREATE INDEX IF NOT EXISTS idx_events_event_date ON events(event_date);',
-      'CREATE INDEX IF NOT EXISTS idx_interactions_contact_date ON interactions(contact_id, interaction_date);',
-      'CREATE INDEX IF NOT EXISTS idx_contact_info_value ON contact_info(value);',
-      'CREATE INDEX IF NOT EXISTS idx_contact_info_type_value ON contact_info(type, value);',
-      'CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at);',
-      'CREATE INDEX IF NOT EXISTS idx_contacts_updated_at ON contacts(updated_at);'
-    ];
-
-    // Create triggers to auto-update updated_at columns
-    const triggerStatements = [
-      `CREATE TRIGGER IF NOT EXISTS update_contacts_updated_at
-       AFTER UPDATE ON contacts
-       FOR EACH ROW
-       BEGIN
-         UPDATE contacts SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-       END;`,
-
-      `CREATE TRIGGER IF NOT EXISTS update_notes_updated_at
-       AFTER UPDATE ON notes
-       FOR EACH ROW
-       BEGIN
-         UPDATE notes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-       END;`,
-
-      `CREATE TRIGGER IF NOT EXISTS update_events_updated_at
-       AFTER UPDATE ON events
-       FOR EACH ROW
-       BEGIN
-         UPDATE events SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-       END;`,
-
-      `CREATE TRIGGER IF NOT EXISTS update_companies_updated_at
-       AFTER UPDATE ON companies
-       FOR EACH ROW
-       BEGIN
-         UPDATE companies SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-       END;`,
-
-      `CREATE TRIGGER IF NOT EXISTS update_settings_updated_at
-       AFTER UPDATE ON settings
-       FOR EACH ROW
-       BEGIN
-         UPDATE settings SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-       END;`
-    ];
-
-    // Execute all DDL statements in a single transaction for atomicity
     try {
-      await this.db.execAsync('BEGIN TRANSACTION;');
-
-      // Execute all table creation statements
-      for (const statement of createTableStatements) {
-        await this.db.execAsync(statement);
-      }
-
-      // Execute all index creation statements
-      for (const statement of indexStatements) {
-        await this.db.execAsync(statement);
-      }
-
-      // Execute all trigger creation statements
-      for (const statement of triggerStatements) {
-        await this.db.execAsync(statement);
-      }
-
-      await this.db.execAsync('COMMIT;');
+      await runMigrations(migrationContext);
     } catch (error) {
-      // Rollback transaction on any error to maintain database consistency
-      try {
-        await this.db.execAsync('ROLLBACK;');
-      } catch (rollbackError) {
-        console.error('Error during rollback:', rollbackError);
-      }
-
-      console.error('Error creating database schema:', error);
+      console.error('Canonical migration execution failed:', error);
       throw error;
     }
   }
+
+  // Schema creation is now handled entirely by the canonical migration system.
+  // All CREATE TABLE, CREATE INDEX, and CREATE TRIGGER statements have been
+  // moved to database/migrations/001_initial_schema.js to prevent schema drift.
 
   async getDatabase() {
     if (this.initializationPromise) {
