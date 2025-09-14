@@ -21,6 +21,8 @@
 // schema definitions from a single source of truth.
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from '../database/migrations/migrationRunner.js';
+import { DatabaseError } from '../database/errors.js';
+import { createMigrationContext } from '../database/adapters/expoSqliteAdapter.js';
 
 // Note: Schema migrations are now handled by the canonical migration system
 // located at database/migrations/. This prevents schema drift and ensures
@@ -37,9 +39,7 @@ class DatabaseService {
     const { signal } = options || {};
     // Respect a pre-aborted signal to fail fast
     if (signal && signal.aborted) {
-      const abortError = new Error('Database initialization aborted');
-      abortError.name = 'AbortError';
-      throw abortError;
+      throw new DatabaseError('Database initialization aborted', 'INITIALIZATION_ABORTED');
     }
     // Return existing promise if initialization is already in progress
     if (this.initializationPromise) {
@@ -58,9 +58,7 @@ class DatabaseService {
   async _performInitialization(options = {}) {
     const { signal } = options || {};
     if (signal && signal.aborted) {
-      const abortError = new Error('Initialization aborted');
-      abortError.name = 'AbortError';
-      throw abortError;
+      throw new DatabaseError('Initialization aborted', 'INITIALIZATION_ABORTED');
     }
     try {
       console.log('Initializing database...');
@@ -114,6 +112,7 @@ class DatabaseService {
       
       console.log('Database initialized successfully');
       this.isInitialized = true;
+      this.initializationPromise = null;
       return true;
       
     } catch (error) {
@@ -144,165 +143,11 @@ class DatabaseService {
       throw new Error('Database not open');
     }
 
-    // Helper to respect abort signal
-    const throwIfAborted = () => {
-      if (signal && signal.aborted) {
-        const abortError = new Error('Initialization aborted');
-        abortError.name = 'AbortError';
-        throw abortError;
-      }
-    };
-
-    throwIfAborted();
-
-    // Create migration context with expo-sqlite compatibility helpers
-    const migrationContext = {
-      db: this.db,
-      execute: async (sql, params = []) => {
-        throwIfAborted();
-        try {
-          if (params && params.length > 0) {
-            return await this.db.runAsync(sql, params);
-          } else {
-            return await this.db.execAsync(sql);
-          }
-        } catch (error) {
-          console.error('Migration SQL error:', { sql, params, error });
-          throw error;
-        }
-      },
-      batch: async (statements) => {
-        throwIfAborted();
-        const items = Array.isArray(statements) ? statements : [];
-        const normalize = (entry) => {
-          if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
-          if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
-          return { sql: String(entry), params: [] };
-        };
-        const results = [];
-        try {
-          await this.db.execAsync('BEGIN TRANSACTION;');
-          for (const entry of items) {
-            throwIfAborted();
-            const { sql, params = [] } = normalize(entry);
-            const res = params.length
-              ? await this.db.runAsync(sql, params)
-              : await this.db.execAsync(sql);
-            results.push(res);
-          }
-          await this.db.execAsync('COMMIT;');
-          return results;
-        } catch (error) {
-          try { await this.db.execAsync('ROLLBACK;'); } catch (rollbackError) {
-            console.error('Migration rollback error:', rollbackError);
-          }
-          throw error;
-        }
-      },
-      transaction: async (work) => {
-        throwIfAborted();
-        try {
-          await this.db.execAsync('BEGIN TRANSACTION;');
-          const txContext = {
-            execute: async (sql, params = [], options = {}) => {
-              const contextSignal = options.signal || signal;
-              // Check abort status before starting
-              if (contextSignal && contextSignal.aborted) {
-                const abortError = new Error('Transaction execute operation aborted');
-                abortError.name = 'AbortError';
-                throw abortError;
-              }
-
-              try {
-                const result = params.length > 0
-                  ? await this.db.runAsync(sql, params)
-                  : await this.db.execAsync(sql);
-
-                // Check abort status after operation
-                if (contextSignal && contextSignal.aborted) {
-                  const abortError = new Error('Transaction execute operation aborted');
-                  abortError.name = 'AbortError';
-                  throw abortError;
-                }
-
-                return result;
-              } catch (error) {
-                // Re-check abort status in case operation was cancelled
-                if (contextSignal && contextSignal.aborted) {
-                  const abortError = new Error('Transaction execute operation aborted');
-                  abortError.name = 'AbortError';
-                  throw abortError;
-                }
-                throw error;
-              }
-            },
-            batch: async (statements, options = {}) => {
-              const contextSignal = options.signal || signal;
-              // Check abort status before starting batch
-              if (contextSignal && contextSignal.aborted) {
-                const abortError = new Error('Transaction batch operation aborted');
-                abortError.name = 'AbortError';
-                throw abortError;
-              }
-
-              // Execute statements sequentially within transaction
-              const items = Array.isArray(statements) ? statements : [];
-              const normalize = (entry) => {
-                if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
-                if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
-                return { sql: String(entry), params: [] };
-              };
-              const results = [];
-
-              for (const entry of items) {
-                // Check abort status before each statement
-                if (contextSignal && contextSignal.aborted) {
-                  const abortError = new Error('Transaction batch operation aborted');
-                  abortError.name = 'AbortError';
-                  throw abortError;
-                }
-
-                const { sql, params = [] } = normalize(entry);
-                try {
-                  const result = params.length > 0
-                    ? await this.db.runAsync(sql, params)
-                    : await this.db.execAsync(sql);
-
-                  // Check abort status after each operation
-                  if (contextSignal && contextSignal.aborted) {
-                    const abortError = new Error('Transaction batch operation aborted');
-                    abortError.name = 'AbortError';
-                    throw abortError;
-                  }
-
-                  results.push(result);
-                } catch (error) {
-                  // Break out of loop on abort to avoid executing further statements
-                  if (contextSignal && contextSignal.aborted) {
-                    const abortError = new Error('Transaction batch operation aborted');
-                    abortError.name = 'AbortError';
-                    throw abortError;
-                  }
-                  throw error;
-                }
-              }
-              return results;
-            }
-          };
-          const result = await work(txContext);
-          await this.db.execAsync('COMMIT;');
-          return result;
-        } catch (error) {
-          try {
-            await this.db.execAsync('ROLLBACK;');
-          } catch (rollbackError) {
-            console.error('Migration transaction rollback error:', rollbackError);
-          }
-          throw error;
-        }
-      },
-      onLog: (msg) => console.log(`[migrations] ${msg}`)
-    };
+    // Create migration context using the extracted adapter
+    const migrationContext = createMigrationContext(this.db, {
+      signal,
+      onLog: (msg) => console.log(msg)
+    });
 
     try {
       await runMigrations(migrationContext);
@@ -331,7 +176,7 @@ class DatabaseService {
       await this.initializationPromise;
     }
     if (!this.isInitialized) {
-      throw new Error('Database not initialized. Call initialize() first.');
+      throw new DatabaseError('Database not initialized. Call initialize() first.', 'NOT_INITIALIZED');
     }
     return this.db;
   }
