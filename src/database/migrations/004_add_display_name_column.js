@@ -1,6 +1,6 @@
 // Migration: Add display_name column to contacts table
 
-import { getExec, runAll } from './_helpers.js';
+import { getExec } from './_helpers.js';
 
 export default {
   version: 4,
@@ -66,7 +66,7 @@ export default {
         'DROP TRIGGER IF EXISTS contacts_display_name_update;',
 
         // Create INSERT trigger to auto-compute display_name
-        `CREATE TRIGGER contacts_display_name_insert
+        `CREATE TRIGGER IF NOT EXISTS contacts_display_name_insert
          AFTER INSERT ON contacts
          FOR EACH ROW
          BEGIN
@@ -109,7 +109,7 @@ export default {
          END;`,
 
         // Create UPDATE trigger to auto-compute display_name when name fields change
-        `CREATE TRIGGER contacts_display_name_update
+        `CREATE TRIGGER IF NOT EXISTS contacts_display_name_update
          AFTER UPDATE OF first_name, middle_name, last_name ON contacts
          FOR EACH ROW
          BEGIN
@@ -155,12 +155,11 @@ export default {
         'DROP INDEX IF EXISTS idx_contacts_display_name;',
 
         // Create case-insensitive index on display_name for performance
-        `CREATE INDEX idx_contacts_display_name ON contacts(display_name COLLATE NOCASE);`
+        `CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name COLLATE NOCASE);`
       );
 
-    // Use runAll for atomic batch execution when available, fallback to sequential
     try {
-      await runAll(exec, statements);
+      await exec.batch(statements);
     } catch (error) {
       // Handle duplicate column errors gracefully - this can happen if migration was partially applied
       if (error?.message?.includes('duplicate column name: display_name')) {
@@ -171,7 +170,7 @@ export default {
           !stmt.includes('ADD COLUMN display_name')
         );
         if (safeStatements.length > 0) {
-          await runAll(exec, safeStatements);
+          await exec.batch(safeStatements);
         }
       } else {
         throw error;
