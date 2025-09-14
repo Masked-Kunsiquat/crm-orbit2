@@ -4,7 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { Surface, Text, ActivityIndicator, Button } from 'react-native-paper';
 import databaseService from '../services/databaseService';
 
-const AppInitializer = ({ children }) => {
+const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [initializationError, setInitializationError] = useState(null);
   const mountedRef = useRef(true);
@@ -17,7 +17,27 @@ const AppInitializer = ({ children }) => {
 
       // Initialize database
       console.log('Starting app initialization...');
-      await databaseService.initialize();
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      let timeoutId;
+
+      const initPromise =
+        // Pass AbortSignal only if initialize supports a parameter
+        (databaseService.initialize.length >= 1 && controller)
+          ? databaseService.initialize({ signal: controller.signal })
+          : databaseService.initialize();
+
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          if (controller && typeof controller.abort === 'function') {
+            controller.abort();
+          }
+          reject(new Error(`Initialization timed out after ${initTimeoutMs}ms`));
+        }, initTimeoutMs);
+      });
+
+      await Promise.race([initPromise, timeoutPromise]);
+
+      if (timeoutId) clearTimeout(timeoutId);
       console.log('App initialization complete');
 
       if (!mountedRef.current) return;
