@@ -290,3 +290,57 @@ const ContactDetailScreen = ({ route }) => {
 3. ⏳ **UI Layer** - Wait for services completion
 
 The UI layer implementation should begin only after the services layer is complete, as UI components will depend heavily on service functionality for file handling, authentication, notifications, and data operations.
+
+## Theming
+
+### Summary
+- Uses a central `ThemeProvider` to support System/Light/Dark modes and keep React Native Paper and React Navigation in sync.
+- Default follows system appearance; user preference persists and applies instantly.
+
+### Key Files
+- `crm-orbit/src/contexts/ThemeContext.js:1` — Provides `ThemeProvider` and `useAppTheme` (exposes `mode`, `setMode`, `isDark`, `paperTheme`, `navigationTheme`).
+- `crm-orbit/App.js:1` — Wraps app with `ThemeProvider` and sets `StatusBar` style from theme.
+- `crm-orbit/src/navigation/MainNavigator.js:1` — Injects `navigationTheme` into `NavigationContainer`.
+- `crm-orbit/src/components/settings/ThemeSection.js:1` — Settings UI to select System/Light/Dark.
+- `crm-orbit/src/screens/SettingsScreen.js:1` — Renders `ThemeSection` at top of Settings.
+- `crm-orbit/app.json:1` — `userInterfaceStyle: "automatic"` to enable system theme switching.
+
+### Behavior
+- Default mode: `system` (mirrors OS). Users can switch to `light` or `dark` from Settings → Appearance.
+- Persistence: Stored in `AsyncStorage` under key `display.theme`.
+- Android UI: Background color synced via `expo-system-ui` for proper edge‑to‑edge.
+- Libraries: Paper MD3 (`MD3LightTheme`/`MD3DarkTheme`) merged with a matching React Navigation theme.
+
+### Component Guidelines
+- Use Paper’s `useTheme()` for colors, spacing, and elevation — avoid hard‑coded colors.
+  - Common tokens: `theme.colors.background`, `surface`, `onSurface`, `primary`, `secondary`, `outlineVariant`, `elevation.levelX`.
+- Prefer Paper components (`Surface`, `Card`, `Button`, etc.) to inherit proper theming automatically.
+- Navigation and headers pick up colors from `navigationTheme`; avoid overriding with constants.
+
+### Example (Themed Component)
+```js
+import { Surface, Text, useTheme } from 'react-native-paper';
+
+function ExampleCard() {
+  const theme = useTheme();
+  return (
+    <Surface style={{
+      padding: 16,
+      backgroundColor: theme.colors.surface,
+      elevation: 1,
+    }}>
+      <Text style={{ color: theme.colors.onSurface }}>Hello, theme!</Text>
+    </Surface>
+  );
+}
+```
+
+### Settings UX
+- Path: Settings → Appearance
+- Options: System, Light, Dark
+- Applies immediately; persists across app restarts.
+
+### Notes / Future Enhancements
+- DB settings: `src/database/settingsHelpers.js:1` defines `'display.theme'` default; current implementation uses `AsyncStorage`. We can migrate to `settingsDB` later for unified storage if desired.
+- Custom palette: If needed, extend `paperTheme.colors` in `ThemeContext` to add brand colors; keep Nav theme in sync.
+- Status bar: Managed at `App.js` via `isDark` from `useAppTheme()`.

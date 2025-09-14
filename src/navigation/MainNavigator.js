@@ -9,6 +9,7 @@ import { Text } from 'react-native-paper';
 
 // Screens
 import SettingsScreen from '../screens/SettingsScreen';
+import { useAppTheme } from '../contexts/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -83,12 +84,15 @@ const MainTabs = () => (
 );
 
 // Main navigator (could add stack screens later for detail views)
-const MainNavigator = () => (
-  <NavigationContainer>
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={MainTabs} />
-    </Stack.Navigator>
-  </NavigationContainer>
-);
+const MainNavigator = () => {
+  const { navigationTheme } = useAppTheme();
+  return (
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
 
 export default MainNavigator;

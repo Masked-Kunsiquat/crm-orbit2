@@ -6,6 +6,7 @@ import authService from '../services/authService';
 import AuthSection from '../components/settings/AuthSection';
 import DangerZone from '../components/settings/DangerZone';
 import PinSetupModal from '../components/settings/PinSetupModal';
+import ThemeSection from '../components/settings/ThemeSection';
 
 const SettingsScreen = () => {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
@@ -82,6 +83,8 @@ const SettingsScreen = () => {
     <Surface style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Text variant="headlineSmall" style={styles.title}>Settings</Text>
+
+        <ThemeSection />
 
         <AuthSection
           biometricEnabled={biometricEnabled}
