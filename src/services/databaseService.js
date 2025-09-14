@@ -81,6 +81,20 @@ class DatabaseService {
 
   async _createTables() {
     const createTableStatements = [
+      // Companies table
+      `CREATE TABLE IF NOT EXISTS companies (
+        id INTEGER PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL,
+        industry TEXT,
+        website TEXT,
+        phone TEXT,
+        email TEXT,
+        address TEXT,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );`,
+      
       // Contacts table
       `CREATE TABLE IF NOT EXISTS contacts (
         id INTEGER PRIMARY KEY,
@@ -94,7 +108,8 @@ class DatabaseService {
         is_favorite BOOLEAN DEFAULT 0,
         last_interaction_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE SET NULL
       );`,
       
       // Contact info table
@@ -180,19 +195,6 @@ class DatabaseService {
         FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
       );`,
       
-      // Companies table
-      `CREATE TABLE IF NOT EXISTS companies (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        industry TEXT,
-        website TEXT,
-        phone TEXT,
-        email TEXT,
-        address TEXT,
-        notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );`,
       
       // Attachments table
       `CREATE TABLE IF NOT EXISTS attachments (
