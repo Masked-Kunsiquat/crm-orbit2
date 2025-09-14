@@ -345,6 +345,7 @@ class AuthService {
           const biometricResult = await this.authenticateWithBiometric(options);
           
           if (biometricResult.success) {
+            await this.onSuccessfulAuth();
             return { success: true, method: 'biometric' };
           }
         } catch (error) {
