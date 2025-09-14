@@ -28,10 +28,13 @@ export default {
           SET display_name = TRIM(
             REPLACE(
               REPLACE(
-                TRIM(
-                  COALESCE(TRIM(first_name), '') || ' ' ||
-                  COALESCE(NULLIF(TRIM(middle_name), ''), '') || ' ' ||
-                  COALESCE(TRIM(last_name), '')
+                REPLACE(
+                  TRIM(
+                    COALESCE(TRIM(first_name), '') || ' ' ||
+                    COALESCE(NULLIF(TRIM(middle_name), ''), '') || ' ' ||
+                    COALESCE(TRIM(last_name), '')
+                  ),
+                  '  ', ' '
                 ),
                 '  ', ' '
               ),
@@ -63,10 +66,13 @@ export default {
               WHEN TRIM(
                 REPLACE(
                   REPLACE(
-                    TRIM(
-                      COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                      COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                      COALESCE(TRIM(NEW.last_name), '')
+                    REPLACE(
+                      TRIM(
+                        COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                        COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                        COALESCE(TRIM(NEW.last_name), '')
+                      ),
+                      '  ', ' '
                     ),
                     '  ', ' '
                   ),
@@ -76,10 +82,13 @@ export default {
               ELSE TRIM(
                 REPLACE(
                   REPLACE(
-                    TRIM(
-                      COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                      COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                      COALESCE(TRIM(NEW.last_name), '')
+                    REPLACE(
+                      TRIM(
+                        COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                        COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                        COALESCE(TRIM(NEW.last_name), '')
+                      ),
+                      '  ', ' '
                     ),
                     '  ', ' '
                   ),
@@ -102,10 +111,13 @@ export default {
               WHEN TRIM(
                 REPLACE(
                   REPLACE(
-                    TRIM(
-                      COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                      COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                      COALESCE(TRIM(NEW.last_name), '')
+                    REPLACE(
+                      TRIM(
+                        COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                        COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                        COALESCE(TRIM(NEW.last_name), '')
+                      ),
+                      '  ', ' '
                     ),
                     '  ', ' '
                   ),
@@ -115,10 +127,13 @@ export default {
               ELSE TRIM(
                 REPLACE(
                   REPLACE(
-                    TRIM(
-                      COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                      COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                      COALESCE(TRIM(NEW.last_name), '')
+                    REPLACE(
+                      TRIM(
+                        COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                        COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                        COALESCE(TRIM(NEW.last_name), '')
+                      ),
+                      '  ', ' '
                     ),
                     '  ', ' '
                   ),
@@ -163,10 +178,13 @@ export default {
          SET display_name = TRIM(
            REPLACE(
              REPLACE(
-               TRIM(
-                 COALESCE(TRIM(first_name), '') || ' ' ||
-                 COALESCE(NULLIF(TRIM(middle_name), ''), '') || ' ' ||
-                 COALESCE(TRIM(last_name), '')
+               REPLACE(
+                 TRIM(
+                   COALESCE(TRIM(first_name), '') || ' ' ||
+                   COALESCE(NULLIF(TRIM(middle_name), ''), '') || ' ' ||
+                   COALESCE(TRIM(last_name), '')
+                 ),
+                 '  ', ' '
                ),
                '  ', ' '
              ),
@@ -194,10 +212,13 @@ export default {
              WHEN TRIM(
                REPLACE(
                  REPLACE(
-                   TRIM(
-                     COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                     COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                     COALESCE(TRIM(NEW.last_name), '')
+                   REPLACE(
+                     TRIM(
+                       COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                       COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                       COALESCE(TRIM(NEW.last_name), '')
+                     ),
+                     '  ', ' '
                    ),
                    '  ', ' '
                  ),
@@ -207,10 +228,13 @@ export default {
              ELSE TRIM(
                REPLACE(
                  REPLACE(
-                   TRIM(
-                     COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                     COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                     COALESCE(TRIM(NEW.last_name), '')
+                   REPLACE(
+                     TRIM(
+                       COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                       COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                       COALESCE(TRIM(NEW.last_name), '')
+                     ),
+                     '  ', ' '
                    ),
                    '  ', ' '
                  ),
@@ -231,10 +255,13 @@ export default {
              WHEN TRIM(
                REPLACE(
                  REPLACE(
-                   TRIM(
-                     COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                     COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                     COALESCE(TRIM(NEW.last_name), '')
+                   REPLACE(
+                     TRIM(
+                       COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                       COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                       COALESCE(TRIM(NEW.last_name), '')
+                     ),
+                     '  ', ' '
                    ),
                    '  ', ' '
                  ),
@@ -244,10 +271,13 @@ export default {
              ELSE TRIM(
                REPLACE(
                  REPLACE(
-                   TRIM(
-                     COALESCE(TRIM(NEW.first_name), '') || ' ' ||
-                     COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
-                     COALESCE(TRIM(NEW.last_name), '')
+                   REPLACE(
+                     TRIM(
+                       COALESCE(TRIM(NEW.first_name), '') || ' ' ||
+                       COALESCE(NULLIF(TRIM(NEW.middle_name), ''), '') || ' ' ||
+                       COALESCE(TRIM(NEW.last_name), '')
+                     ),
+                     '  ', ' '
                    ),
                    '  ', ' '
                  ),
