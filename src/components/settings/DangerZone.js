@@ -6,17 +6,21 @@ import authService from '../../services/authService';
 
 const DangerZone = ({ onResetComplete }) => {
   const isResettingRef = useRef(false);
+  const isConfirmOpenRef = useRef(false);
   const handleResetAuth = () => {
+    // Prevent multiple stacked confirm dialogs
+    if (isConfirmOpenRef.current) return;
+    isConfirmOpenRef.current = true;
     Alert.alert(
       'Reset Authentication',
       'This will remove all authentication settings. Are you sure?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel', onPress: () => { isConfirmOpenRef.current = false; } },
         {
           text: 'Reset',
           style: 'destructive',
           onPress: async () => {
-            if (isResettingRef.current) return;
+            if (isResettingRef.current) { isConfirmOpenRef.current = false; return; }
             isResettingRef.current = true;
             try {
               await authService.resetAuth();
@@ -27,6 +31,8 @@ const DangerZone = ({ onResetComplete }) => {
               Alert.alert('Error', 'Failed to reset authentication');
             } finally {
               isResettingRef.current = false;
+              // Release confirm-open guard in all paths
+              isConfirmOpenRef.current = false;
             }
           }
         }
