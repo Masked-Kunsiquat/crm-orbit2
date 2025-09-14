@@ -115,7 +115,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         
         return {
           ...event.rows[0],
-          reminders: reminderRes.rows
+          reminders: reminderRes.rows.map(convertBooleanFields)
         };
       });
     },
@@ -248,29 +248,41 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
     /**
      * Get pending reminders (not sent and past due)
      * @param {string} [beforeDateTime] - Get reminders before this datetime (defaults to now)
+     * @param {number} [limit=100] - Maximum number of results
+     * @param {number} [offset=0] - Number of results to skip
      * @returns {Promise<object[]>} Pending reminders with event details
      */
-    async getPendingReminders(beforeDateTime = null) {
-      const cutoffDate = beforeDateTime ? new Date(beforeDateTime) : new Date();
+    async getPendingReminders(beforeDateTime = null, limit = 100, offset = 0) {
+      const parsed = beforeDateTime ? new Date(beforeDateTime) : new Date();
+      const cutoffDate = Number.isNaN(parsed.getTime()) ? new Date() : parsed; // graceful fallback
       const cutoff = formatSQLiteDateTime(cutoffDate);
+      // sanitize paging
+      limit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 100;
+      offset = Number.isFinite(offset) && offset >= 0 ? Math.floor(offset) : 0;
       
       const sql = `SELECT r.*, e.title, e.event_date, e.contact_id, c.display_name as contact_name
                    FROM event_reminders r
                    JOIN events e ON r.event_id = e.id
                    JOIN contacts c ON e.contact_id = c.id
                    WHERE r.is_sent = 0 AND r.reminder_datetime <= ?
-                   ORDER BY r.reminder_datetime ASC;`;
+                   ORDER BY r.reminder_datetime ASC
+                   LIMIT ? OFFSET ?;`;
       
-      const res = await execute(sql, [cutoff]);
+      const res = await execute(sql, [cutoff, limit, offset]);
       return res.rows.map(convertBooleanFields);
     },
 
     /**
      * Get upcoming reminders within specified hours
      * @param {number} [hours=24] - Number of hours to look ahead
+     * @param {number} [limit=100] - Maximum number of results
+     * @param {number} [offset=0] - Number of results to skip
      * @returns {Promise<object[]>} Upcoming reminders with event details
      */
-    async getUpcomingReminders(hours = 24) {
+    async getUpcomingReminders(hours = 24, limit = 100, offset = 0) {
+      hours = Number.isFinite(hours) && hours > 0 ? hours : 24;
+      limit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 100;
+      offset = Number.isFinite(offset) && offset >= 0 ? Math.floor(offset) : 0;
       const now = new Date();
       const future = new Date(now.getTime() + (hours * 60 * 60 * 1000));
       
@@ -279,9 +291,10 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    JOIN events e ON r.event_id = e.id
                    JOIN contacts c ON e.contact_id = c.id
                    WHERE r.is_sent = 0 AND r.reminder_datetime BETWEEN ? AND ?
-                   ORDER BY r.reminder_datetime ASC;`;
+                   ORDER BY r.reminder_datetime ASC
+                   LIMIT ? OFFSET ?;`;
       
-      const res = await execute(sql, [formatSQLiteDateTime(now), formatSQLiteDateTime(future)]);
+      const res = await execute(sql, [formatSQLiteDateTime(now), formatSQLiteDateTime(future), limit, offset]);
       return res.rows.map(convertBooleanFields);
     }
   };
