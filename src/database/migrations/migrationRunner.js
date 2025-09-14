@@ -38,7 +38,7 @@ function validateMigrations(list) {
   }
   const seen = new Set();
   list.forEach((m) => {
-    if (!m || typeof m.version !== 'number' || typeof m.up !== 'function') {
+    if (!m || typeof m.version !== 'number' || typeof m.up !== 'function' || typeof m.down !== 'function') {
       throw new DatabaseError('Invalid migration entry', 'MIGRATION_ENTRY_INVALID');
     }
     if (seen.has(m.version)) {

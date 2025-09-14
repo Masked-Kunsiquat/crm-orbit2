@@ -34,15 +34,23 @@ export default {
     
     // Handle empty display names
     await execute(`
-      UPDATE contacts 
+      UPDATE contacts
       SET display_name = 'Unnamed Contact'
       WHERE display_name IS NULL OR display_name = '';
+    `);
+
+    // Create index on display_name for performance
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name);
     `);
   },
   
   async down(ctx) {
     const { execute } = ctx;
-    
+
+    // Drop the display_name index first
+    await execute('DROP INDEX IF EXISTS idx_contacts_display_name;');
+
     // Remove display_name column
     // Note: SQLite doesn't support DROP COLUMN directly
     // This would require recreating the table in a real rollback scenario
