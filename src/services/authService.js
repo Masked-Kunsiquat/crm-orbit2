@@ -193,6 +193,16 @@ class AuthService {
         throw new Error('PIN must be at least 4 digits');
       }
       
+      // Basic strength checks to prevent weak PINs
+      // 1) Disallow all-identical digits like 0000, 1111, 2222
+      if (/^(\d)\1+$/.test(pin)) {
+        throw new Error('PIN cannot contain all identical digits');
+      }
+      // 2) Disallow simple sequential patterns (ascending/descending)
+      if (/^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/.test(pin)) {
+        throw new Error('PIN cannot be a sequential pattern');
+      }
+      
       await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.PIN, pin);
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN_ENABLED, 'true');
       return true;

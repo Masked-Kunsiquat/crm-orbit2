@@ -68,7 +68,7 @@ describe('AuthService Core Logic', () => {
 
   describe('PIN Management', () => {
     test('setPIN stores PIN and enables PIN authentication', async () => {
-      const pin = '1234';
+      const pin = '2580';
       const SecureStore = require('expo-secure-store');
       SecureStore.setItemAsync.mockResolvedValueOnce();
       AsyncStorage.setItem.mockResolvedValueOnce();
@@ -85,7 +85,7 @@ describe('AuthService Core Logic', () => {
     });
 
     test('verifyPIN returns true for correct PIN', async () => {
-      const pin = '1234';
+      const pin = '2580';
       const SecureStore = require('expo-secure-store');
       SecureStore.getItemAsync.mockResolvedValueOnce(pin);
 
@@ -97,7 +97,7 @@ describe('AuthService Core Logic', () => {
 
     test('verifyPIN returns false for incorrect PIN', async () => {
       const SecureStore = require('expo-secure-store');
-      SecureStore.getItemAsync.mockResolvedValueOnce('1234');
+      SecureStore.getItemAsync.mockResolvedValueOnce('2580');
 
       const result = await authService.verifyPIN('5678');
 
@@ -107,7 +107,7 @@ describe('AuthService Core Logic', () => {
     test('hasPIN returns true when PIN is enabled and exists', async () => {
       const SecureStore = require('expo-secure-store');
       AsyncStorage.getItem.mockResolvedValueOnce('true'); // pin_enabled
-      SecureStore.getItemAsync.mockResolvedValueOnce('1234'); // stored PIN
+      SecureStore.getItemAsync.mockResolvedValueOnce('2580'); // stored PIN
 
       const result = await authService.hasPIN();
 
@@ -117,7 +117,7 @@ describe('AuthService Core Logic', () => {
     test('hasPIN returns false when PIN is disabled', async () => {
       AsyncStorage.getItem
         .mockResolvedValueOnce('false') // pin_enabled
-        .mockResolvedValueOnce('1234'); // stored PIN
+        .mockResolvedValueOnce('2580'); // stored PIN
 
       const result = await authService.hasPIN();
 
@@ -145,11 +145,11 @@ describe('AuthService Core Logic', () => {
         .mockResolvedValueOnce(null) // checkLockoutStatus - no lockout
         .mockResolvedValueOnce('true'); // hasPIN - PIN enabled check
       SecureStore.getItemAsync
-        .mockResolvedValueOnce('1234') // hasPIN - stored PIN
-        .mockResolvedValueOnce('1234'); // verifyPIN - stored PIN for comparison
+        .mockResolvedValueOnce('2580') // hasPIN - stored PIN
+        .mockResolvedValueOnce('2580'); // verifyPIN - stored PIN for comparison
       AsyncStorage.removeItem.mockResolvedValueOnce(); // clearFailedAttempts
 
-      const result = await authService.authenticateWithPIN('1234');
+      const result = await authService.authenticateWithPIN('2580');
 
       expect(result.success).toBe(true);
       expect(result.error).toBeUndefined();
@@ -164,8 +164,8 @@ describe('AuthService Core Logic', () => {
         .mockResolvedValueOnce('true') // hasPIN - PIN enabled check
         .mockResolvedValueOnce('0'); // incrementFailedAttempts - current attempts (0)
       SecureStore.getItemAsync
-        .mockResolvedValueOnce('1234') // hasPIN - stored PIN
-        .mockResolvedValueOnce('1234'); // verifyPIN - stored PIN for comparison
+        .mockResolvedValueOnce('2580') // hasPIN - stored PIN
+        .mockResolvedValueOnce('2580'); // verifyPIN - stored PIN for comparison
       AsyncStorage.setItem.mockResolvedValueOnce(); // incrementFailedAttempts - set new count
 
       const result = await authService.authenticateWithPIN('5678');
@@ -182,7 +182,7 @@ describe('AuthService Core Logic', () => {
         .mockResolvedValueOnce('false'); // hasPIN - PIN enabled check
       SecureStore.getItemAsync.mockResolvedValueOnce(null); // hasPIN - stored PIN
 
-      const result = await authService.authenticateWithPIN('1234');
+      const result = await authService.authenticateWithPIN('2580');
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('No PIN configured');
@@ -217,7 +217,7 @@ describe('AuthService Core Logic', () => {
       // Only checkLockoutStatus is called, then early return
       AsyncStorage.getItem.mockResolvedValueOnce(futureTime.toString()); // checkLockoutStatus - lockout until future
 
-      const result = await authService.authenticateWithPIN('1234');
+      const result = await authService.authenticateWithPIN('2580');
 
       expect(result.success).toBe(false);
       expect(result.errorCode).toBe('PIN_LOCKOUT');
