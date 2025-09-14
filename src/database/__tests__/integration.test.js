@@ -80,7 +80,16 @@ function makeCtx(db) {
   const doTransaction = async (fn) => {
     try {
       await exec('BEGIN TRANSACTION');
-      const result = await fn({ execute: exec, batch: doBatch, transaction: doTransaction });
+      // Provide batch method for transaction context that doesn't handle its own transactions
+      const txBatch = async (statements) => {
+        const results = [];
+        for (const stmt of statements) {
+          const result = await exec(stmt.sql, stmt.params || []);
+          results.push(result);
+        }
+        return results;
+      };
+      const result = await fn({ execute: exec, batch: txBatch, transaction: doTransaction });
       await exec('COMMIT');
       return result;
     } catch (error) {

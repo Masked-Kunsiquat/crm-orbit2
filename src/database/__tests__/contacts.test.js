@@ -68,6 +68,15 @@ function makeCtx(db) {
     let result;
     const wrapped = {
       execute: (sql, params = []) => exec(sql, params),
+      batch: async (statements) => {
+        // Batch within transaction - no BEGIN/COMMIT needed
+        const results = [];
+        for (const stmt of statements) {
+          const result = await exec(stmt.sql, stmt.params || []);
+          results.push(result);
+        }
+        return results;
+      }
     };
     db.prepare('BEGIN').run();
     try {
