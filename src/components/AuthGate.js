@@ -69,8 +69,8 @@ const AuthGate = ({ children }) => {
       const capabilities = await authService.checkAuthenticationCapabilities();
       setBiometricAvailable(capabilities.canUseBiometric);
       
-      // If unlocked and biometric available, try auto-authentication
-      if (!locked && capabilities.canUseBiometric) {
+      // If locked and biometric available, try auto-authentication
+      if (locked && capabilities.canUseBiometric) {
         const biometricEnabled = await authService.isBiometricEnabled();
         if (biometricEnabled) {
           tryBiometricAuth();
