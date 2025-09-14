@@ -1,10 +1,7 @@
 // Settings screen with authentication controls
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Alert } from 'react-native';
-import {
-  Layout,
-  Text
-} from '@ui-kitten/components';
+import { Surface, Text } from 'react-native-paper';
 import authService from '../services/authService';
 import AuthSection from '../components/settings/AuthSection';
 import DangerZone from '../components/settings/DangerZone';
@@ -82,9 +79,9 @@ const SettingsScreen = () => {
   };
 
   return (
-    <Layout style={styles.container}>
+    <Surface style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Text category="h4" style={styles.title}>Settings</Text>
+        <Text variant="headlineSmall" style={styles.title}>Settings</Text>
 
         <AuthSection
           biometricEnabled={biometricEnabled}
@@ -109,7 +106,7 @@ const SettingsScreen = () => {
         onClose={() => setShowPinModal(false)}
         onSuccess={handlePinSetupSuccess}
       />
-    </Layout>
+    </Surface>
   );
 };
 

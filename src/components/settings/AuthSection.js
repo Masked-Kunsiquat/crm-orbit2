@@ -1,14 +1,7 @@
 // Authentication settings section component
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import {
-  Text,
-  Card,
-  Toggle,
-  Button,
-  Divider,
-  Input
-} from '@ui-kitten/components';
+import { Text, Card, Switch, Button, Divider, TextInput } from 'react-native-paper';
 import authService from '../../services/authService';
 
 const AuthSection = ({
@@ -79,20 +72,19 @@ const AuthSection = ({
 
   return (
     <Card style={styles.card}>
-      <Text category="h6" style={styles.sectionTitle}>Authentication</Text>
+      <Text variant="titleMedium" style={styles.sectionTitle}>Authentication</Text>
 
       {/* PIN Settings */}
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
-          <Text category="s1">PIN Authentication</Text>
-          <Text category="p2" appearance="hint">
+          <Text variant="bodyLarge">PIN Authentication</Text>
+          <Text variant="bodySmall" style={{ opacity: 0.7 }}>
             {hasPIN ? 'PIN is configured' : 'No PIN configured'}
           </Text>
         </View>
         <Button
-          size="small"
-          appearance={hasPIN ? 'ghost' : 'outline'}
-          status={hasPIN ? 'danger' : 'primary'}
+          mode={hasPIN ? 'text' : 'outlined'}
+          compact
           onPress={hasPIN ? handleRemovePIN : onSetPIN}
         >
           {hasPIN ? 'Remove' : 'Set PIN'}
@@ -104,17 +96,17 @@ const AuthSection = ({
       {/* Biometric Settings */}
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
-          <Text category="s1">Biometric Authentication</Text>
-          <Text category="p2" appearance="hint">
+          <Text variant="bodyLarge">Biometric Authentication</Text>
+          <Text variant="bodySmall" style={{ opacity: 0.7 }}>
             {biometricAvailable
               ? 'Use fingerprint or face recognition'
               : 'Not available on this device'}
           </Text>
         </View>
-        <Toggle
-          checked={biometricEnabled}
+        <Switch
+          value={biometricEnabled}
           disabled={!biometricAvailable}
-          onChange={handleBiometricToggle}
+          onValueChange={handleBiometricToggle}
         />
       </View>
 
@@ -123,23 +115,23 @@ const AuthSection = ({
       {/* Auto-lock Settings */}
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
-          <Text category="s1">Auto-lock</Text>
-          <Text category="p2" appearance="hint">
+          <Text variant="bodyLarge">Auto-lock</Text>
+          <Text variant="bodySmall" style={{ opacity: 0.7 }}>
             Lock app when in background
           </Text>
         </View>
-        <Toggle
-          checked={autoLockEnabled}
-          onChange={handleAutoLockToggle}
+        <Switch
+          value={autoLockEnabled}
+          onValueChange={handleAutoLockToggle}
         />
       </View>
 
       {autoLockEnabled && (
         <View style={styles.timeoutSetting}>
-          <Text category="s2" style={styles.timeoutLabel}>
+          <Text variant="titleSmall" style={styles.timeoutLabel}>
             Auto-lock timeout (minutes)
           </Text>
-          <Input
+          <TextInput
             style={styles.timeoutInput}
             value={autoLockTimeoutInput}
             keyboardType="number-pad"

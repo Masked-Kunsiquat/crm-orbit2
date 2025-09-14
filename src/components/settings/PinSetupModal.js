@@ -1,13 +1,7 @@
 // PIN Setup Modal component for authentication settings
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import {
-  Text,
-  Card,
-  Button,
-  Input,
-  Modal
-} from '@ui-kitten/components';
+import { Text, Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
 
 const PinSetupModal = ({ visible, onClose, onSuccess }) => {
@@ -45,59 +39,46 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   };
 
   return (
-    <Modal
-      visible={visible}
-      backdropStyle={styles.backdrop}
-      onBackdropPress={handleClose}
-    >
-      <Card disabled={true} style={styles.modal}>
-        <Text category="h6" style={styles.modalTitle}>Set PIN</Text>
+    <Portal>
+      {visible && (
+        <Dialog visible onDismiss={handleClose} style={styles.modal}>
+          <Dialog.Title style={styles.modalTitle}>Set PIN</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter new PIN"
+              value={newPin}
+              onChangeText={setNewPin}
+              secureTextEntry
+              keyboardType="numeric"
+              maxLength={6}
+              contentStyle={{ textAlign: 'center' }}
+            />
 
-        <Input
-          style={styles.input}
-          placeholder="Enter new PIN"
-          value={newPin}
-          onChangeText={setNewPin}
-          secureTextEntry
-          keyboardType="numeric"
-          maxLength={6}
-        />
-
-        <Input
-          style={styles.input}
-          placeholder="Confirm PIN"
-          value={confirmPin}
-          onChangeText={setConfirmPin}
-          secureTextEntry
-          keyboardType="numeric"
-          maxLength={6}
-        />
-
-        <View style={styles.modalButtons}>
-          <Button
-            style={styles.modalButton}
-            appearance="ghost"
-            onPress={handleClose}
-          >
-            Cancel
-          </Button>
-          <Button
-            style={styles.modalButton}
-            onPress={handleSetPIN}
-            disabled={!newPin || !confirmPin}
-          >
-            Set PIN
-          </Button>
-        </View>
-      </Card>
-    </Modal>
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm PIN"
+              value={confirmPin}
+              onChangeText={setConfirmPin}
+              secureTextEntry
+              keyboardType="numeric"
+              maxLength={6}
+              contentStyle={{ textAlign: 'center' }}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleClose}>Cancel</Button>
+            <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin}>
+              Set PIN
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      )}
+    </Portal>
   );
 };
 
 const styles = StyleSheet.create({
-  backdrop: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
   modal: {
     margin: 16,
     minWidth: 300,

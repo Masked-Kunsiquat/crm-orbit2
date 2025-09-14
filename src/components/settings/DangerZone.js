@@ -1,11 +1,7 @@
 // Danger zone section component for destructive actions
 import React from 'react';
 import { StyleSheet, Alert } from 'react-native';
-import {
-  Text,
-  Card,
-  Button
-} from '@ui-kitten/components';
+import { Text, Card, Button, useTheme } from 'react-native-paper';
 import authService from '../../services/authService';
 
 const DangerZone = ({ onResetComplete }) => {
@@ -33,16 +29,17 @@ const DangerZone = ({ onResetComplete }) => {
     );
   };
 
+  const theme = useTheme();
+
   return (
     <Card style={styles.card}>
-      <Text category="h6" style={styles.sectionTitle} status="danger">
+      <Text
+        variant="titleMedium"
+        style={[styles.sectionTitle, { color: theme.colors.error }]}
+      >
         Danger Zone
       </Text>
-      <Button
-        status="danger"
-        appearance="outline"
-        onPress={handleResetAuth}
-      >
+      <Button mode="outlined" onPress={handleResetAuth}>
         Reset All Authentication Settings
       </Button>
     </Card>
