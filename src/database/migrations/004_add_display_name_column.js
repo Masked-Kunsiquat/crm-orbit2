@@ -39,9 +39,11 @@ export default {
       WHERE display_name IS NULL OR display_name = '';
     `);
 
-    // Create index on display_name for performance
+    // Create case-insensitive index on display_name for performance
+    // Drop any existing index first to ensure we get the NOCASE collation
+    await execute('DROP INDEX IF EXISTS idx_contacts_display_name;');
     await execute(`
-      CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name);
+      CREATE INDEX idx_contacts_display_name ON contacts(display_name COLLATE NOCASE);
     `);
   },
   
