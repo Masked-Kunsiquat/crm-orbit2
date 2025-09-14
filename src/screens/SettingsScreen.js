@@ -49,13 +49,13 @@ const SettingsScreen = () => {
     setAutoLockTimeoutInput(text.replace(/[^0-9]/g, ''));
   };
 
-  const commitAutoLockTimeout = async () => {
-    const parsed = parseInt(autoLockTimeoutInput, 10);
-    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 60) {
-      Alert.alert('Invalid timeout', 'Enter a value between 1 and 60 minutes');
-      setAutoLockTimeoutInput(String(autoLockTimeout));
-      return;
-    }
+  const commitAutoLockTimeout = async (valueStr) => {
+    const source = typeof valueStr === 'string' ? valueStr : autoLockTimeoutInput;
+    let parsed = parseInt(source, 10);
+    if (!Number.isFinite(parsed)) parsed = autoLockTimeout;
+    // Clamp to 1..1440 minutes
+    parsed = Math.min(1440, Math.max(1, parsed));
+    setAutoLockTimeoutInput(String(parsed));
     setAutoLockTimeout(parsed);
     if (autoLockEnabled) {
       try {

@@ -135,8 +135,12 @@ const AuthSection = ({
             style={styles.timeoutInput}
             value={autoLockTimeoutInput}
             keyboardType="number-pad"
-            onChangeText={onTimeoutChange}
-            onEndEditing={onTimeoutCommit}
+            inputMode="numeric"
+            onChangeText={(t) => onTimeoutChange(t.replace(/\D+/g, ''))}
+            onEndEditing={() => {
+              const n = Math.min(1440, Math.max(1, parseInt(autoLockTimeoutInput || '0', 10)));
+              onTimeoutCommit(String(n));
+            }}
             placeholder="5"
           />
         </View>
