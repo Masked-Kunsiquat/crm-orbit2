@@ -3,63 +3,51 @@
 
 # CRM Orbit
 
-An offline-first mobile Customer Relationship Management (CRM) application built with Expo and React Native. Designed for contact management, event tracking, and interaction logging with complete offline functionality.
+An offline-first mobile Customer Relationship Management (CRM) application built with Expo and React Native. It includes a robust SQLite data layer, authentication with PIN and biometrics, and a React Native Paper UI.
 
 ## Features
 
-- **Contact Management**: Store and organize contacts with comprehensive information
-- **Event Scheduling**: Track birthdays, meetings, and custom events with reminders
-- **Interaction Logging**: Record calls, texts, meetings, and other interactions
-- **Category System**: Organize contacts with customizable categories
-- **Company Management**: Associate contacts with companies and organizations
-- **Note Taking**: Create general notes or contact-specific notes with search functionality
-- **Offline-First Architecture**: Full functionality without internet connection
-- **Data Persistence**: Local SQLite database with migration system
+- Authentication & Security: App lock with PIN and biometrics, auto-lock timer, lockout after failed attempts
+- Contact Management: Store and organize contacts with comprehensive information
+- Event Scheduling: Track birthdays, meetings, and custom events with reminders
+- Interaction Logging: Record calls, texts, meetings, and other interactions
+- Category System: Organize contacts with customizable categories
+- Company Management: Associate contacts with companies and organizations
+- Note Taking: Create general notes or contact-specific notes with search functionality
+- Offline-First Architecture: Full functionality without internet connection
+- Data Persistence: Local SQLite database with migration system
 
 ## Technology Stack
 
-- **Frontend**: Expo SDK 52, React Native, React Native Paper
-- **Database**: SQLite with expo-sqlite
-- **Testing**: Jest with sql.js for in-memory database testing
-- **Architecture**: Modular layered design with strict separation of concerns
+- Frontend: Expo SDK 54, React Native 0.81, React Native Paper
+- Navigation: React Navigation + react-native-gesture-handler
+- Animations: react-native-reanimated (Babel plugin: `react-native-worklets/plugin`)
+- Icons: @expo/vector-icons
+- Database: SQLite with expo-sqlite (migrations, helpers, tests)
+- Auth: expo-local-authentication + expo-secure-store
+- Testing: Jest with sql.js for in-memory database testing
+- Architecture: Modular layered design with strict separation of concerns
 
 ## Project Structure
 
 ```
 src/
-├── database/           # SQLite database layer
-│   ├── migrations/     # Schema migrations and versioning
-│   ├── __tests__/      # Comprehensive database tests
-│   └── *.js           # Database modules for each entity
-├── services/          # Business logic layer (planned)
-└── components/        # React Native UI components (planned)
+- components/           # UI components (React Native Paper)
+- screens/              # App screens
+- navigation/           # React Navigation
+- services/             # Business logic (auth, database wrapper, etc.)
+- services/__tests__/   # Service tests (e.g., authService)
+- database/             # SQLite database layer
+  - migrations/         # Schema migrations and versioning
+  - __tests__/          # Database tests
+- constants/            # App constants (e.g., auth constants)
 ```
 
 ## Database Architecture
 
-The application uses a modular database architecture with the following implemented modules:
+Implemented modules include: contacts, contactsInfo, categories, categoriesRelations, companies, events, eventsRecurring, eventsReminders, interactions, interactionsStats, interactionsSearch, notes, attachments, and settings.
 
-### Core Modules
-- **contacts**: Contact management with display name computation
-- **contactsInfo**: Contact information (phone, email, address) management
-- **categories**: Category system with contact associations
-- **categoriesRelations**: Contact-category relationship management
-- **companies**: Company management with contact relationships
-- **events**: Event scheduling with recurring support
-- **eventsRecurring**: Recurring event and birthday calculations
-- **eventsReminders**: Event reminder management
-- **interactions**: Contact interaction logging and tracking
-- **interactionsStats**: Interaction analytics and statistics
-- **interactionsSearch**: Advanced interaction search and filtering
-- **notes**: Note management for contacts and general notes
-- **attachments**: Universal attachment system for all entities
-
-### Database Features
-- Foreign key constraints with cascading deletes
-- Automatic timestamp management (created_at, updated_at)
-- Transaction support for atomic operations
-- Migration system for schema evolution
-- Comprehensive indexing for query performance
+Database features: foreign keys, cascading deletes, timestamps, transactions, migrations, and performance indexes.
 
 ## Development
 
@@ -94,40 +82,32 @@ npm test -- database/__tests__
 npm test -- --watch
 ```
 
-### Database Testing
-- **254 tests** across 9 test suites
-- In-memory SQLite testing with sql.js
-- Complete coverage of CRUD operations, business logic, and error handling
-- Integration testing between database modules
+## Current Status
 
-## Development Status
+- Phase 1: Database Foundation — COMPLETE
+  - All core database modules implemented and tested
+  - Migration system with schema versioning
+  - Comprehensive test coverage (database)
 
-**Phase 1: Database Foundation** - COMPLETED
-- All core database modules implemented and tested
-- Migration system with schema versioning
-- Comprehensive test coverage (254 passing tests)
+- Phase 2: Services Layer — IN PROGRESS
+  - Auth service implemented: PIN/biometric auth, auto-lock, lockout, listeners
+  - Additional services planned (files, notifications, backup)
 
-**Phase 2: Services Layer** - PLANNED
-- File management services
-- Authentication and security
-- Notification system
-- Backup and sync services
-
-**Phase 3: UI Development** - PLANNED
-- Contact management screens
-- Event and interaction interfaces
-- Category and company management
-- Search and filtering capabilities
+- Phase 3: UI — IN PROGRESS
+  - App shell with React Native Paper + Safe Area
+  - Navigation scaffold (tabs + stack) with @expo/vector-icons
+  - Settings screen with authentication controls (PIN setup, biometric toggle, auto-lock)
 
 ## Architecture Principles
 
-- **Offline-First**: All functionality works without internet connection
-- **Modular Design**: Clear separation between database, services, and UI layers
-- **Test-Driven**: Comprehensive testing at every layer
-- **Performance-Focused**: Optimized queries with proper indexing
-- **Type-Safe**: Consistent error handling with typed database errors
-- **Migration-Safe**: Schema evolution through versioned migrations
+- Offline-First: All functionality works without internet connection
+- Modular Design: Clear separation between database, services, and UI layers
+- Test-Driven: Database and service tests
+- Performance-Focused: Optimized queries with proper indexing
+- Robust Security: Secure storage, brute-force protection, app lock
+- Migration-Safe: Schema evolution through versioned migrations
 
 ## License
 
 This project is proprietary software. All rights reserved.
+
