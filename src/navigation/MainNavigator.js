@@ -1,9 +1,11 @@
 // Main navigation component for authenticated users
 import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { BottomNavigation, BottomNavigationTab, Icon, Layout, Text } from '@ui-kitten/components';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Text } from 'react-native-paper';
 
 // Screens
 import SettingsScreen from '../screens/SettingsScreen';
@@ -13,71 +15,65 @@ const Stack = createStackNavigator();
 
 // Placeholder screens for now
 const ContactsScreen = () => (
-  <Layout style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-    <Text category="h4">Contacts</Text>
-    <Text category="p1" style={{ textAlign: 'center', marginTop: 8 }}>
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+    <Text variant="headlineSmall">Contacts</Text>
+    <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
       Contact management coming soon...
     </Text>
-    <Text category="p2" appearance="hint" style={{ textAlign: 'center', marginTop: 16 }}>
+    <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}>
       This will include contact CRUD, categories, and company relationships.
     </Text>
-  </Layout>
+  </View>
 );
 
 const EventsScreen = () => (
-  <Layout style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-    <Text category="h4">Events</Text>
-    <Text category="p1" style={{ textAlign: 'center', marginTop: 8 }}>
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+    <Text variant="headlineSmall">Events</Text>
+    <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
       Event scheduling coming soon...
     </Text>
-    <Text category="p2" appearance="hint" style={{ textAlign: 'center', marginTop: 16 }}>
+    <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}>
       This will include event management, reminders, and recurring events.
     </Text>
-  </Layout>
+  </View>
 );
 
 const NotesScreen = () => (
-  <Layout style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-    <Text category="h4">Notes</Text>
-    <Text category="p1" style={{ textAlign: 'center', marginTop: 8 }}>
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+    <Text variant="headlineSmall">Notes</Text>
+    <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
       Note taking coming soon...
     </Text>
-    <Text category="p2" appearance="hint" style={{ textAlign: 'center', marginTop: 16 }}>
+    <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}>
       This will include general notes, contact notes, and pinned notes.
     </Text>
-  </Layout>
-);
-
-// Custom tab bar component using UI Kitten
-const BottomTabBar = ({ navigation, state }) => (
-  <BottomNavigation
-    selectedIndex={state.index}
-    onSelect={index => navigation.navigate(state.routeNames[index])}
-  >
-    <BottomNavigationTab 
-      title="Contacts"
-      icon={props => <Icon {...props} name="person-outline" />}
-    />
-    <BottomNavigationTab 
-      title="Events"
-      icon={props => <Icon {...props} name="calendar-outline" />}
-    />
-    <BottomNavigationTab 
-      title="Notes"
-      icon={props => <Icon {...props} name="edit-outline" />}
-    />
-    <BottomNavigationTab 
-      title="Settings"
-      icon={props => <Icon {...props} name="settings-outline" />}
-    />
-  </BottomNavigation>
+  </View>
 );
 
 // Main tab navigator
 const MainTabs = () => (
   <Tab.Navigator
-    tabBar={props => <BottomTabBar {...props} />}
-    screenOptions={{ headerShown: false }}
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      tabBarIcon: ({ color, size }) => {
+        let iconName = 'help-circle-outline';
+        switch (route.name) {
+          case 'Contacts':
+            iconName = 'person-outline';
+            break;
+          case 'Events':
+            iconName = 'calendar-outline';
+            break;
+          case 'Notes':
+            iconName = 'create-outline';
+            break;
+          case 'Settings':
+            iconName = 'settings-outline';
+            break;
+        }
+        return <Ionicons name={iconName} size={size} color={color} />;
+      },
+    })}
   >
     <Tab.Screen name="Contacts" component={ContactsScreen} />
     <Tab.Screen name="Events" component={EventsScreen} />
