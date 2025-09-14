@@ -84,16 +84,39 @@ export function createMigrationContext(db, options = {}) {
             : await db.execAsync(sql);
           results.push(res);
         }
+        throwIfAborted();
         await db.execAsync('COMMIT;');
         return results;
       } catch (error) {
         try { await db.execAsync('ROLLBACK;'); } catch (rollbackError) {
-          onLog(`[ERROR] Migration rollback error: ${rollbackError?.message || rollbackError}`, {
+          const wrappedRollbackError = new DatabaseError(
+            `Batch rollback failed: ${rollbackError?.message || rollbackError}`,
+            'BATCH_ROLLBACK_ERROR',
+            rollbackError,
+            { statements }
+          );
+          onLog(`[ERROR] Batch rollback error: ${wrappedRollbackError.message}`, {
             level: 'error',
-            error: rollbackError
+            error: wrappedRollbackError,
+            context: { statements }
           });
         }
-        throw error;
+
+        // Wrap the original error
+        const wrappedError = new DatabaseError(
+          `Batch operation failed: ${error?.message ?? String(error)}`,
+          'BATCH_FAILED',
+          error,
+          { statements }
+        );
+
+        onLog(`[ERROR] Batch operation error: ${wrappedError.message}`, {
+          level: 'error',
+          error: wrappedError,
+          context: { statements }
+        });
+
+        throw wrappedError;
       }
     },
     transaction: async (work) => {
