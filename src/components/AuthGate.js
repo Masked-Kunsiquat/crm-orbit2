@@ -31,7 +31,6 @@ const AuthGate = ({ children }) => {
   const [authError, setAuthError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [showPinInput, setShowPinInput] = useState(false);
-  const [appState, setAppState] = useState(AppState.currentState);
   const [hasPIN, setHasPIN] = useState(false);
   const [showPinSetupModal, setShowPinSetupModal] = useState(false);
   const theme = useTheme();
@@ -47,7 +46,6 @@ const AuthGate = ({ children }) => {
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
       authService.onAppStateChange(nextAppState);
-      setAppState(nextAppState);
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -115,8 +113,7 @@ const AuthGate = ({ children }) => {
       const result = await authService.authenticate();
       
       if (result.success) {
-        // Authentication successful - unlock the app
-        await authService.unlock('biometric');
+        // Already unlocked by authService.authenticate()
         return;
       }
       
@@ -395,7 +392,7 @@ function getStyles(theme, width) {
   pinTitle: {
     textAlign: 'center',
     marginBottom: 16,
-    color: '#222B45',
+    color: theme.colors?.onSurface || '#222B45',
   },
   pinInput: {
     width: '100%',
