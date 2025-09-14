@@ -5,5 +5,11 @@ module.exports = {
     '^.+\\.[jt]sx?$': 'babel-jest',
   },
   moduleFileExtensions: ['js', 'jsx', 'json'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(expo-secure-store)/)'
+  ],
+  moduleNameMapper: {
+    '^expo-secure-store$': '<rootDir>/__mocks__/expo-secure-store.js'
+  },
 };
 
