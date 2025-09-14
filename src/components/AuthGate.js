@@ -20,7 +20,7 @@ import {
 } from 'react-native-paper';
 import authService from '../services/authService';
 import PinSetupModal from './settings/PinSetupModal';
-import { MIN_PIN_LENGTH } from '../constants/auth';
+import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/auth';
 
 // useWindowDimensions hook inside component for rotation responsiveness
 
@@ -210,10 +210,10 @@ const AuthGate = ({ children }) => {
         onChangeText={(t) => setPin(t.replace(/\D/g, ''))}
         secureTextEntry
         keyboardType="numeric"
-        maxLength={6}
+        maxLength={MAX_PIN_LENGTH}
         onSubmitEditing={handlePinSubmit}
         autoFocus
-        textAlign="center"
+        contentStyle={{ textAlign: 'center' }}
         mode="outlined"
         disabled={authError && authError.includes('Locked out')}
       />
