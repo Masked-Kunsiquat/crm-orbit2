@@ -161,6 +161,11 @@ const AuthGate = ({ children }) => {
       <Text variant="headlineSmall" style={styles.pinTitle}>
         Enter PIN
       </Text>
+      {authError && authError.includes('Locked out') && (
+        <Text style={[styles.warningText, { color: (theme.colors.warning || theme.colors.error) }]}>
+          {authError}
+        </Text>
+      )}
       
       <TextInput
         style={styles.pinInput}
@@ -174,6 +179,7 @@ const AuthGate = ({ children }) => {
         autoFocus
         textAlign="center"
         mode="outlined"
+        disabled={authError && authError.includes('Locked out')}
       />
       
       {authError ? (
@@ -371,6 +377,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 16,
+    fontSize: 14,
+  },
+  warningText: {
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 8,
     fontSize: 14,
   },
   debugControls: {
