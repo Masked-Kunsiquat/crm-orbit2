@@ -22,7 +22,7 @@ export function createMigrationContext(db, options = {}) {
   // Helper to respect abort signal
   const throwIfAborted = () => {
     if (signal && signal.aborted) {
-      throw new DatabaseError('Initialization aborted', 'INITIALIZATION_ABORTED');
+      throw new DatabaseError('Operation aborted', 'ABORT_ERR');
     }
   };
 
@@ -43,7 +43,7 @@ export function createMigrationContext(db, options = {}) {
       } catch (error) {
         // Wrap in DatabaseError with original error and context
         const wrappedError = new DatabaseError(
-          `Migration SQL execution failed: ${error.message}`,
+          `Migration SQL execution failed: ${error?.message ?? String(error)}`,
           'MIGRATION_SQL_ERROR',
           error,
           { sql, params }
@@ -62,7 +62,12 @@ export function createMigrationContext(db, options = {}) {
     },
     batch: async (statements) => {
       throwIfAborted();
-      const items = Array.isArray(statements) ? statements : [];
+      if (!Array.isArray(statements)) {
+        const err = new DatabaseError('Batch expects an array of statements', 'BATCH_INVALID_INPUT', null, { statements });
+        onLog(`[ERROR] ${err.message}`, { level: 'error', context: { statements } });
+        throw err;
+      }
+      const items = statements;
       const normalize = (entry) => {
         if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
         if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
@@ -114,7 +119,7 @@ export function createMigrationContext(db, options = {}) {
             const contextSignal = options.signal || signal;
             // Check abort status before starting
             if (contextSignal && contextSignal.aborted) {
-              throw new DatabaseError('Transaction execute operation aborted', 'INITIALIZATION_ABORTED');
+              throw new DatabaseError('Operation aborted', 'ABORT_ERR');
             }
 
             try {
@@ -124,14 +129,14 @@ export function createMigrationContext(db, options = {}) {
 
               // Check abort status after operation
               if (contextSignal && contextSignal.aborted) {
-                throw new DatabaseError('Transaction execute operation aborted', 'INITIALIZATION_ABORTED');
+                throw new DatabaseError('Operation aborted', 'ABORT_ERR');
               }
 
               return result;
             } catch (error) {
               // Re-check abort status in case operation was cancelled
               if (contextSignal && contextSignal.aborted) {
-                throw new DatabaseError('Transaction execute operation aborted', 'INITIALIZATION_ABORTED');
+                throw new DatabaseError('Operation aborted', 'ABORT_ERR');
               }
               throw error;
             }
@@ -140,7 +145,7 @@ export function createMigrationContext(db, options = {}) {
             const contextSignal = options.signal || signal;
             // Check abort status before starting batch
             if (contextSignal && contextSignal.aborted) {
-              throw new DatabaseError('Transaction batch operation aborted', 'INITIALIZATION_ABORTED');
+              throw new DatabaseError('Operation aborted', 'ABORT_ERR');
             }
 
             // Execute statements sequentially within transaction
@@ -155,7 +160,7 @@ export function createMigrationContext(db, options = {}) {
             for (const entry of items) {
               // Check abort status before each statement
               if (contextSignal && contextSignal.aborted) {
-                throw new DatabaseError('Transaction batch operation aborted', 'INITIALIZATION_ABORTED');
+                throw new DatabaseError('Operation aborted', 'ABORT_ERR');
               }
 
               const { sql, params = [] } = normalize(entry);
@@ -166,14 +171,14 @@ export function createMigrationContext(db, options = {}) {
 
                 // Check abort status after each operation
                 if (contextSignal && contextSignal.aborted) {
-                  throw new DatabaseError('Transaction batch operation aborted', 'INITIALIZATION_ABORTED');
+                  throw new DatabaseError('Operation aborted', 'ABORT_ERR');
                 }
 
                 results.push(result);
               } catch (error) {
                 // Break out of loop on abort to avoid executing further statements
                 if (contextSignal && contextSignal.aborted) {
-                  throw new DatabaseError('Transaction batch operation aborted', 'INITIALIZATION_ABORTED');
+                  throw new DatabaseError('Operation aborted', 'ABORT_ERR');
                 }
                 throw error;
               }
