@@ -5,7 +5,7 @@ Build an offline-first CRM mobile application using Expo/React Native for Androi
 
 ## Technology Stack
 - **Framework**: Expo (React Native)
-- **UI Library**: UI Kitten
+- **UI Library**: React Native Paper
 - **Database**: SQLite (expo-sqlite)
 - **Authentication**: Expo Local Authentication
 - **Notifications**: Expo Notifications

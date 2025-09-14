@@ -18,7 +18,7 @@ An offline-first mobile Customer Relationship Management (CRM) application built
 
 ## Technology Stack
 
-- **Frontend**: Expo SDK 52, React Native, UI Kitten
+- **Frontend**: Expo SDK 52, React Native, React Native Paper
 - **Database**: SQLite with expo-sqlite
 - **Testing**: Jest with sql.js for in-memory database testing
 - **Architecture**: Modular layered design with strict separation of concerns

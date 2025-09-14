@@ -1,7 +1,7 @@
 # UI Components Layer Agent Instructions
 
 ## Overview
-The UI layer provides the user interface using React Native, Expo, and UI Kitten.
+The UI layer provides the user interface using React Native, Expo, and React Native Paper.
 
 **STATUS: ⏳ PENDING - Waiting for Services Layer**
 **Prerequisites:** 
@@ -55,8 +55,8 @@ screens/
 ### Base Component Pattern
 ```javascript
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Layout, Text, useTheme } from '@ui-kitten/components';
+import { StyleSheet } from 'react-native';
+import { Surface, Text, useTheme } from 'react-native-paper';
 
 const ComponentName = ({ prop1, prop2, onAction }) => {
   const theme = useTheme();
@@ -67,9 +67,9 @@ const ComponentName = ({ prop1, prop2, onAction }) => {
   }, []);
   
   return (
-    <Layout style={styles.container}>
+    <Surface style={styles.container}>
       {/* Component content */}
-    </Layout>
+    </Surface>
   );
 };
 
