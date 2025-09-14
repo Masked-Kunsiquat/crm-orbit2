@@ -45,6 +45,7 @@ jest.useFakeTimers();
 
 describe('AuthService Core Logic', () => {
   beforeEach(() => {
+    // Clear only specific mocks, not the global jest.mock() ones
     jest.clearAllMocks();
 
     // Reset service state
@@ -53,7 +54,7 @@ describe('AuthService Core Logic', () => {
     authService.failedAttempts = 0;
     authService.lockoutUntil = null;
 
-    // Set persistent default mock returns that individual tests can override with mockResolvedValueOnce
+    // Set fresh persistent default mock returns that individual tests can override with mockResolvedValueOnce
     AsyncStorage.getItem.mockResolvedValue(null);
     AsyncStorage.setItem.mockResolvedValue();
     AsyncStorage.removeItem.mockResolvedValue();
@@ -125,6 +126,17 @@ describe('AuthService Core Logic', () => {
   });
 
   describe('PIN Authentication', () => {
+    // Additional beforeEach for this specific describe block
+    beforeEach(() => {
+      // These tests need completely fresh mocks due to complex call sequences
+      AsyncStorage.getItem.mockClear().mockResolvedValue(null);
+      AsyncStorage.setItem.mockClear().mockResolvedValue();
+      AsyncStorage.removeItem.mockClear().mockResolvedValue();
+
+      const SecureStore = require('expo-secure-store');
+      SecureStore.getItemAsync.mockClear().mockResolvedValue(null);
+      SecureStore.setItemAsync.mockClear().mockResolvedValue();
+    });
     test('authenticateWithPIN returns success for correct PIN', async () => {
       const SecureStore = require('expo-secure-store');
 
@@ -214,6 +226,7 @@ describe('AuthService Core Logic', () => {
 
     test('checkLockoutStatus returns correct lockout state', async () => {
       const futureTime = Date.now() + 30000; // 30 seconds from now
+
       AsyncStorage.getItem.mockResolvedValueOnce(futureTime.toString());
 
       const result = await authService.checkLockoutStatus();
