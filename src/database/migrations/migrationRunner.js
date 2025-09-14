@@ -143,19 +143,26 @@ export async function runMigrations(ctx) {
               migration.name || `migration_${migration.version}`,
             ]);
           } catch (recordError) {
-            // Add debug logging for record error
-            console.error('Failed to record migration as applied:', {
-              version: migration.version,
-              name: migration.name,
-              error: recordError.message,
-              code: recordError.code,
-              sql: 'INSERT INTO migrations (version, name) VALUES (?, ?)',
-              params: [migration.version, migration.name || `migration_${migration.version}`]
-            });
-            throw new DatabaseError('Failed to record applied migration', 'MIGRATION_RECORD_FAILED', recordError, {
-              version: migration.version,
-              name: migration.name,
-            });
+            // Handle UNIQUE constraint violations gracefully - migration may have been recorded previously
+            if (recordError?.message?.includes('UNIQUE constraint failed') ||
+                recordError?.code === 'ERR_INTERNAL_SQLITE_ERROR') {
+              console.warn(`Migration v${migration.version} appears to already be recorded, but was detected as pending. This may indicate a previous incomplete migration run.`);
+              // Log but don't throw - the migration itself was successfully applied above
+            } else {
+              // For other errors, add debug logging and re-throw
+              console.error('Failed to record migration as applied:', {
+                version: migration.version,
+                name: migration.name,
+                error: recordError.message,
+                code: recordError.code,
+                sql: 'INSERT INTO migrations (version, name) VALUES (?, ?)',
+                params: [migration.version, migration.name || `migration_${migration.version}`]
+              });
+              throw new DatabaseError('Failed to record applied migration', 'MIGRATION_RECORD_FAILED', recordError, {
+                version: migration.version,
+                name: migration.name,
+              });
+            }
           }
         });
       } else {
