@@ -1,19 +1,17 @@
 // App initialization component that handles database setup and loading states
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Surface, Text, ActivityIndicator } from 'react-native-paper';
+import { Surface, Text, ActivityIndicator, Button } from 'react-native-paper';
 import databaseService from '../services/databaseService';
 
 const AppInitializer = ({ children }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [initializationError, setInitializationError] = useState(null);
+  const mountedRef = useRef(true);
 
-  useEffect(() => {
-    initializeApp();
-  }, []);
-
-  const initializeApp = async () => {
+  const initializeApp = useCallback(async () => {
     try {
+      if (!mountedRef.current) return;
       setIsInitializing(true);
       setInitializationError(null);
 
@@ -22,13 +20,20 @@ const AppInitializer = ({ children }) => {
       await databaseService.initialize();
       console.log('App initialization complete');
 
+      if (!mountedRef.current) return;
       setIsInitializing(false);
     } catch (error) {
       console.error('App initialization failed:', error);
+      if (!mountedRef.current) return;
       setInitializationError(error.message);
       setIsInitializing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    initializeApp();
+    return () => { mountedRef.current = false; };
+  }, [initializeApp]);
 
   const handleRetry = () => {
     initializeApp();
@@ -62,13 +67,9 @@ const AppInitializer = ({ children }) => {
           <Text variant="bodyLarge" style={styles.errorMessage}>
             {initializationError}
           </Text>
-          <Text 
-            variant="bodyMedium" 
-            style={styles.retryText}
-            onPress={handleRetry}
-          >
+          <Button mode="text" onPress={handleRetry}>
             Tap to retry
-          </Text>
+          </Button>
         </View>
       </Surface>
     );
@@ -105,10 +106,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: 'center',
     paddingHorizontal: 16,
-  },
-  retryText: {
-    textDecorationLine: 'underline',
-    color: '#007AFF',
   },
 });
 

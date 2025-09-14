@@ -3,6 +3,7 @@ import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // App components
 import AppInitializer from './src/components/AppInitializer';
@@ -21,15 +22,17 @@ import MainNavigator from './src/navigation/MainNavigator';
  */
 export default function App() {
   return (
-    <PaperProvider>
-      <SafeAreaProvider>
-        <StatusBar style="auto" />
-        <AppInitializer>
-          <AuthGate>
-            <MainNavigator />
-          </AuthGate>
-        </AppInitializer>
-      </SafeAreaProvider>
-    </PaperProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PaperProvider>
+        <SafeAreaProvider>
+          <StatusBar style="auto" />
+          <AppInitializer>
+            <AuthGate>
+              <MainNavigator />
+            </AuthGate>
+          </AppInitializer>
+        </SafeAreaProvider>
+      </PaperProvider>
+    </GestureHandlerRootView>
   );
 }
