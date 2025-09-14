@@ -26,12 +26,16 @@ export function createMigrationContext(db, options = {}) {
     }
   };
 
+  // Helper to detect if parameters are provided (array or object)
+  const hasParams = (p) =>
+    p != null && ((Array.isArray(p) && p.length > 0) || (typeof p === 'object' && Object.keys(p).length > 0));
+
   return {
     db,
     execute: async (sql, params = []) => {
       throwIfAborted();
       try {
-        if (params && params.length > 0) {
+        if (hasParams(params)) {
           return await db.runAsync(sql, params);
         } else {
           return await db.execAsync(sql);
@@ -70,7 +74,7 @@ export function createMigrationContext(db, options = {}) {
         for (const entry of items) {
           throwIfAborted();
           const { sql, params = [] } = normalize(entry);
-          const res = params.length
+          const res = hasParams(params)
             ? await db.runAsync(sql, params)
             : await db.execAsync(sql);
           results.push(res);
@@ -91,6 +95,20 @@ export function createMigrationContext(db, options = {}) {
       throwIfAborted();
       try {
         await db.execAsync('BEGIN TRANSACTION;');
+      } catch (error) {
+        const wrappedError = new DatabaseError(
+          `Transaction BEGIN failed: ${error.message}`,
+          'TRANSACTION_BEGIN_ERROR',
+          error
+        );
+        onLog(`[ERROR] Transaction BEGIN error: ${wrappedError.message}`, {
+          level: 'error',
+          error: wrappedError
+        });
+        throw wrappedError;
+      }
+
+      try {
         const txContext = {
           execute: async (sql, params = [], options = {}) => {
             const contextSignal = options.signal || signal;
@@ -100,7 +118,7 @@ export function createMigrationContext(db, options = {}) {
             }
 
             try {
-              const result = params.length > 0
+              const result = hasParams(params)
                 ? await db.runAsync(sql, params)
                 : await db.execAsync(sql);
 
@@ -142,7 +160,7 @@ export function createMigrationContext(db, options = {}) {
 
               const { sql, params = [] } = normalize(entry);
               try {
-                const result = params.length > 0
+                const result = hasParams(params)
                   ? await db.runAsync(sql, params)
                   : await db.execAsync(sql);
 
@@ -164,18 +182,58 @@ export function createMigrationContext(db, options = {}) {
           }
         };
         const result = await work(txContext);
-        await db.execAsync('COMMIT;');
+
+        // Check abort signal before committing
+        if (signal && signal.aborted) {
+          throw new DatabaseError('Transaction aborted before commit', 'COMMIT_ABORTED');
+        }
+
+        try {
+          await db.execAsync('COMMIT;');
+        } catch (error) {
+          const wrappedError = new DatabaseError(
+            `Transaction COMMIT failed: ${error.message}`,
+            'TRANSACTION_COMMIT_ERROR',
+            error
+          );
+          onLog(`[ERROR] Transaction COMMIT error: ${wrappedError.message}`, {
+            level: 'error',
+            error: wrappedError
+          });
+          throw wrappedError;
+        }
+
         return result;
       } catch (error) {
         try {
           await db.execAsync('ROLLBACK;');
         } catch (rollbackError) {
-          onLog(`[ERROR] Migration transaction rollback error: ${rollbackError?.message || rollbackError}`, {
+          const wrappedRollbackError = new DatabaseError(
+            `Transaction ROLLBACK failed: ${rollbackError.message}`,
+            'TRANSACTION_ROLLBACK_ERROR',
+            rollbackError
+          );
+          onLog(`[ERROR] Transaction ROLLBACK error: ${wrappedRollbackError.message}`, {
             level: 'error',
-            error: rollbackError
+            error: wrappedRollbackError
           });
         }
-        throw error;
+
+        // Ensure we throw a DatabaseError
+        if (error instanceof DatabaseError) {
+          throw error;
+        } else {
+          const wrappedError = new DatabaseError(
+            `Transaction failed: ${error.message}`,
+            'TRANSACTION_ERROR',
+            error
+          );
+          onLog(`[ERROR] Transaction error: ${wrappedError.message}`, {
+            level: 'error',
+            error: wrappedError
+          });
+          throw wrappedError;
+        }
       }
     },
     onLog
