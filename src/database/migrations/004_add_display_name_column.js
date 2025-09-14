@@ -13,7 +13,14 @@ export default {
     // Check if display_name column already exists
     const tableInfo = await ctx.execute('PRAGMA table_info(contacts);');
     // Handle both SQL.js format (array) and Expo SQLite format (rows property)
-    const columns = Array.isArray(tableInfo) ? tableInfo : (tableInfo?.rows || []);
+    let columns = [];
+    if (Array.isArray(tableInfo)) {
+      columns = tableInfo;
+    } else if (tableInfo?.rows) {
+      // Handle Expo SQLite format with rows property
+      columns = Array.isArray(tableInfo.rows) ? tableInfo.rows : [];
+    }
+
     const hasDisplayNameColumn = columns.some(col => col.name === 'display_name');
 
     // Build statements array conditionally
@@ -152,7 +159,24 @@ export default {
       );
 
     // Use runAll for atomic batch execution when available, fallback to sequential
-    await runAll(exec, statements);
+    try {
+      await runAll(exec, statements);
+    } catch (error) {
+      // Handle duplicate column errors gracefully - this can happen if migration was partially applied
+      if (error?.message?.includes('duplicate column name: display_name')) {
+        console.warn('Migration 004: display_name column already exists, continuing with other operations...');
+
+        // Re-run only the non-ADD COLUMN statements
+        const safeStatements = statements.filter(stmt =>
+          !stmt.includes('ADD COLUMN display_name')
+        );
+        if (safeStatements.length > 0) {
+          await runAll(exec, safeStatements);
+        }
+      } else {
+        throw error;
+      }
+    }
   },
   
   async down(ctx) {
