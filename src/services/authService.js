@@ -556,10 +556,14 @@ class AuthService {
         if (timeSinceUnlock > timeoutMs) {
           await this.lock();
         } else {
-          // Start timer for remaining time
+          // Start timer for remaining time (guard against concurrent starts)
           const remainingTime = timeoutMs - timeSinceUnlock;
+          const token = ++this._autoLockStartToken;
+          this.clearAutoLockTimer();
           this.lockTimer = setTimeout(() => {
-            this.lock();
+            if (token === this._autoLockStartToken) {
+              this.lock();
+            }
           }, remainingTime);
         }
       }
