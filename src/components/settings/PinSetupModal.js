@@ -4,6 +4,10 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
 
+// PIN constraints
+const MIN_PIN_LENGTH = 4;
+const MAX_PIN_LENGTH = 8; // Adjust if project requires a different max
+
 const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -12,8 +16,12 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const handleSetPIN = async () => {
     const normalizedNew = newPin.replace(/\D+/g, '');
     const normalizedConfirm = confirmPin.replace(/\D+/g, '');
-    if (normalizedNew.length < 4) {
-      Alert.alert('Error', 'PIN must be at least 4 digits');
+    if (normalizedNew.length < MIN_PIN_LENGTH || normalizedNew.length > MAX_PIN_LENGTH) {
+      Alert.alert('Error', `PIN must be ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digits`);
+      return;
+    }
+    if (normalizedConfirm.length < MIN_PIN_LENGTH || normalizedConfirm.length > MAX_PIN_LENGTH) {
+      Alert.alert('Error', `Confirm PIN must be ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digits`);
       return;
     }
 
@@ -58,7 +66,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
               secureTextEntry
               keyboardType="number-pad"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={MAX_PIN_LENGTH}
               contentStyle={{ textAlign: 'center' }}
             />
 
@@ -70,7 +78,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
               secureTextEntry
               keyboardType="number-pad"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={MAX_PIN_LENGTH}
               contentStyle={{ textAlign: 'center' }}
             />
           </Dialog.Content>

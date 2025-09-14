@@ -9,32 +9,40 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [initializationError, setInitializationError] = useState(null);
   const mountedRef = useRef(true);
+  const controllerRef = useRef(null);
 
   const initializeApp = useCallback(async () => {
     try {
       if (!mountedRef.current) return;
+      // Abort any in-flight init before starting a new one
+      if (controllerRef.current && typeof controllerRef.current.abort === 'function') {
+        try { controllerRef.current.abort(); } catch (e) { /* noop */ }
+      }
+      // Fresh controller for this run
+      controllerRef.current = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const signal = controllerRef.current?.signal;
+
       setIsInitializing(true);
       setInitializationError(null);
 
       // Initialize database
       console.log('Starting app initialization...');
-      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
       let timeoutId;
+      try {
+        const initPromise = databaseService.initialize({ signal });
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            if (controllerRef.current && typeof controllerRef.current.abort === 'function') {
+              controllerRef.current.abort();
+            }
+            reject(new Error(`Initialization timed out after ${initTimeoutMs}ms`));
+          }, initTimeoutMs);
+        });
 
-      const initPromise = databaseService.initialize({ signal: controller?.signal });
-
-      const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(() => {
-          if (controller && typeof controller.abort === 'function') {
-            controller.abort();
-          }
-          reject(new Error(`Initialization timed out after ${initTimeoutMs}ms`));
-        }, initTimeoutMs);
-      });
-
-      await Promise.race([initPromise, timeoutPromise]);
-
-      if (timeoutId) clearTimeout(timeoutId);
+        await Promise.race([initPromise, timeoutPromise]);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
       
       // After DB init, bootstrap other core services
       try {
@@ -52,19 +60,29 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
 
       console.log('App initialization complete');
 
-      if (!mountedRef.current) return;
+      // Avoid state updates if aborted/unmounted
+      if (!mountedRef.current || (controllerRef.current && controllerRef.current.signal?.aborted)) return;
       setIsInitializing(false);
     } catch (error) {
       console.error('App initialization failed:', error);
-      if (!mountedRef.current) return;
-      setInitializationError(error.message);
+      // Ignore AbortError from explicit aborts (unmount or retry)
+      if (error?.name === 'AbortError' || !mountedRef.current) {
+        return;
+      }
+      setInitializationError(error.message || 'Initialization failed');
       setIsInitializing(false);
     }
   }, [initTimeoutMs]);
 
   useEffect(() => {
     initializeApp();
-    return () => { mountedRef.current = false; };
+    return () => {
+      // Mark unmounted and abort any in-flight work
+      if (controllerRef.current && typeof controllerRef.current.abort === 'function') {
+        try { controllerRef.current.abort(); } catch (e) { /* noop */ }
+      }
+      mountedRef.current = false;
+    };
   }, [initializeApp]);
 
   const handleRetry = () => {
