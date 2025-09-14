@@ -20,11 +20,7 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
       let timeoutId;
 
-      const initPromise =
-        // Pass AbortSignal only if initialize supports a parameter
-        (databaseService.initialize.length >= 1 && controller)
-          ? databaseService.initialize({ signal: controller.signal })
-          : databaseService.initialize();
+      const initPromise = databaseService.initialize({ signal: controller?.signal });
 
       const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(() => {

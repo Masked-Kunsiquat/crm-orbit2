@@ -8,7 +8,14 @@ class DatabaseService {
     this.initializationPromise = null;
   }
 
-  async initialize() {
+  async initialize(options = {}) {
+    const { signal } = options || {};
+    // Respect a pre-aborted signal to fail fast
+    if (signal && signal.aborted) {
+      const abortError = new Error('Initialization aborted');
+      abortError.name = 'AbortError';
+      throw abortError;
+    }
     // Return existing promise if initialization is already in progress
     if (this.initializationPromise) {
       return this.initializationPromise;
@@ -19,11 +26,17 @@ class DatabaseService {
       return true;
     }
 
-    this.initializationPromise = this._performInitialization();
+    this.initializationPromise = this._performInitialization({ signal });
     return this.initializationPromise;
   }
 
-  async _performInitialization() {
+  async _performInitialization(options = {}) {
+    const { signal } = options || {};
+    if (signal && signal.aborted) {
+      const abortError = new Error('Initialization aborted');
+      abortError.name = 'AbortError';
+      throw abortError;
+    }
     try {
       console.log('Initializing database...');
       
@@ -45,6 +58,20 @@ class DatabaseService {
       
     } catch (error) {
       console.error('Database initialization failed:', error);
+      // Attempt to close any opened DB connection without masking the original error
+      if (this.db) {
+        try {
+          if (typeof this.db.closeAsync === 'function') {
+            await this.db.closeAsync();
+          } else if (typeof this.db.close === 'function') {
+            await this.db.close();
+          }
+        } catch (closeError) {
+          console.error('Error closing database after failed initialization:', closeError);
+        } finally {
+          this.db = null;
+        }
+      }
       this.isInitialized = false;
       this.initializationPromise = null;
       throw error;
@@ -205,7 +232,14 @@ class DatabaseService {
       'CREATE INDEX IF NOT EXISTS idx_contact_categories_contact ON contact_categories(contact_id);',
       'CREATE INDEX IF NOT EXISTS idx_contact_categories_category ON contact_categories(category_id);',
       'CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);',
-      'CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);'
+      'CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);',
+      // New indexes for common date/text queries
+      'CREATE INDEX IF NOT EXISTS idx_events_event_date ON events(event_date);',
+      'CREATE INDEX IF NOT EXISTS idx_interactions_contact_date ON interactions(contact_id, interaction_date);',
+      'CREATE INDEX IF NOT EXISTS idx_contact_info_value ON contact_info(value);',
+      'CREATE INDEX IF NOT EXISTS idx_contact_info_type_value ON contact_info(type, value);',
+      'CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at);',
+      'CREATE INDEX IF NOT EXISTS idx_contacts_updated_at ON contacts(updated_at);'
     ];
 
     // Create triggers to auto-update updated_at columns
