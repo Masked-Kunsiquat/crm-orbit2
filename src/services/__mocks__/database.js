@@ -1,0 +1,16 @@
+// Jest mock for the unified database API used by services
+
+const mockDb = {
+  attachments: {
+    create: jest.fn(async (data) => ({ id: 1, ...data })),
+    getById: jest.fn(async () => null),
+    delete: jest.fn(async () => ({ success: true })),
+    getAll: jest.fn(async () => []),
+    cleanupOrphaned: jest.fn(async () => ({ success: true, deletedCount: 0 })),
+    getTotalSize: jest.fn(async () => 0),
+  },
+};
+
+export default mockDb;
+module.exports = mockDb; // Support both ESM/CJS import styles in tests
+
