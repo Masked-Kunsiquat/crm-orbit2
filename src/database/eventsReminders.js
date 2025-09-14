@@ -149,8 +149,20 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         const created = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
         return created.rows[0];
       } catch (error) {
-        // Handle foreign key constraint errors
-        if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+        // Handle foreign key constraint errors - check nested error properties
+        const checkForFKError = (err) => {
+          if (!err) return false;
+          // Check direct message
+          if (err.message && err.message.includes('FOREIGN KEY constraint failed')) return true;
+          // Check errno for FK constraint violation
+          if (err.errno === 787) return true; // SQLITE_CONSTRAINT_FOREIGNKEY
+          // Check nested error properties
+          if (err.cause && checkForFKError(err.cause)) return true;
+          if (err.originalError && checkForFKError(err.originalError)) return true;
+          return false;
+        };
+
+        if (checkForFKError(error)) {
           throw new DatabaseError('Event not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is

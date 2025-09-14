@@ -28,15 +28,13 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
         );
         return res && res.rowsAffected ? res.rowsAffected > 0 : false;
       } catch (error) {
-        // Handle foreign key constraint errors
-        if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+        const msg = String(error?.originalError?.message ?? error?.cause?.message ?? error?.message ?? '');
+        if (msg.includes('FOREIGN KEY constraint failed')) {
           throw new DatabaseError('Contact or category not found', 'NOT_FOUND', error);
         }
-        // Handle unique constraint violations (duplicate relationships)
-        if (error.message && error.message.includes('UNIQUE constraint failed')) {
+        if (msg.includes('UNIQUE constraint failed')) {
           return false; // Relationship already exists
         }
-        // Re-throw other errors as-is
         throw error;
       }
     },

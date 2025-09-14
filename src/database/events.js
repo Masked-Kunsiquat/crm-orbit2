@@ -79,8 +79,9 @@ export function createEventsDB({ execute, batch, transaction }) {
         
         return this.getById(res.insertId);
       } catch (error) {
-        // Handle foreign key constraint errors
-        if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+        // Handle foreign key constraint errors - check message and nested error properties
+        const errorMessage = error.message || error.cause?.message || error.originalError?.message;
+        if (errorMessage && errorMessage.includes('FOREIGN KEY constraint failed')) {
           throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is
