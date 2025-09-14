@@ -5,7 +5,7 @@ import {
   Alert,
   AppState,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
@@ -20,7 +20,7 @@ import {
 } from 'react-native-paper';
 import authService from '../services/authService';
 
-const { width, height } = Dimensions.get('window');
+// useWindowDimensions hook inside component for rotation responsiveness
 
 const AuthGate = ({ children }) => {
   const [isLocked, setIsLocked] = useState(true);
@@ -31,7 +31,8 @@ const AuthGate = ({ children }) => {
   const [showPinInput, setShowPinInput] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
   const theme = useTheme();
-  const styles = getStyles(theme); // theme-aware styles
+  const { width } = useWindowDimensions();
+  const styles = getStyles(theme, width); // theme-aware, responsive styles
 
   // Initialize auth service and check lock status
   useEffect(() => {
@@ -172,7 +173,7 @@ const AuthGate = ({ children }) => {
         style={styles.pinInput}
         placeholder="Enter your PIN"
         value={pin}
-        onChangeText={setPin}
+        onChangeText={(t) => setPin(t.replace(/\D/g, ''))}
         secureTextEntry
         keyboardType="numeric"
         maxLength={6}
@@ -302,7 +303,7 @@ const AuthGate = ({ children }) => {
   );
 };
 
-function getStyles(theme) {
+function getStyles(theme, width) {
   return StyleSheet.create({
   container: {
     flex: 1,
