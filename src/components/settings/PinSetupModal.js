@@ -1,10 +1,39 @@
-// PIN Setup Modal component for authentication settings
+/**
+ * PIN Setup Modal component for authentication settings
+ *
+ * Provides a secure PIN setup interface with:
+ * - PIN entry with confirmation validation
+ * - Strength validation according to AUTH constants
+ * - Secure input handling (numeric only, masked)
+ * - Automatic field clearing on modal hide
+ * - Error handling and user feedback
+ * - Integration with authService for secure PIN storage
+ *
+ * @component
+ * @example
+ * <PinSetupModal
+ *   visible={showSetup}
+ *   onClose={() => setShowSetup(false)}
+ *   onSuccess={() => {
+ *     setShowSetup(false);
+ *     console.log('PIN setup successful');
+ *   }}
+ * />
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
 import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../../constants/AUTH';
 
+/**
+ * PinSetupModal functional component
+ * @param {Object} props - Component props
+ * @param {boolean} props.visible - Whether the modal is visible
+ * @param {Function} props.onClose - Callback when modal should be closed
+ * @param {Function} props.onSuccess - Callback when PIN setup is successful
+ * @returns {JSX.Element} PIN setup modal UI
+ */
 const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');

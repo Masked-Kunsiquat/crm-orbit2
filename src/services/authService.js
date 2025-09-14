@@ -1,56 +1,123 @@
-// Authentication service for biometric and PIN-based app security
+/**
+ * Authentication service for biometric and PIN-based app security
+ *
+ * Provides comprehensive authentication management including:
+ * - PIN-based authentication with strength validation
+ * - Biometric authentication (fingerprint, face recognition)
+ * - Brute-force protection with progressive lockouts
+ * - Auto-lock functionality with configurable timeouts
+ * - Secure credential storage using Expo SecureStore
+ * - Authentication state management and event broadcasting
+ *
+ * @module AuthService
+ */
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/AUTH';
 
+/**
+ * Storage keys for authentication-related data in AsyncStorage and SecureStore
+ * @constant {Object}
+ */
 const AUTH_STORAGE_KEYS = {
+  /** PIN hash stored in SecureStore */
   PIN: 'auth_pin',
+  /** Boolean flag for biometric authentication preference */
   BIOMETRIC_ENABLED: 'auth_biometric_enabled',
+  /** Boolean flag for auto-lock feature */
   AUTO_LOCK_ENABLED: 'auth_auto_lock_enabled',
+  /** Auto-lock timeout in minutes */
   AUTO_LOCK_TIMEOUT: 'auth_auto_lock_timeout',
+  /** Timestamp of last successful unlock */
   LAST_UNLOCK_TIME: 'auth_last_unlock_time',
+  /** Current lock state */
   IS_LOCKED: 'auth_is_locked',
+  /** Boolean flag indicating if PIN is configured */
   PIN_ENABLED: 'auth_pin_enabled',
+  /** Count of consecutive failed authentication attempts */
   FAILED_ATTEMPTS: 'auth_failed_attempts',
+  /** Timestamp when lockout expires */
   LOCKOUT_UNTIL: 'auth_lockout_until'
 };
 
-// Brute-force protection configuration
+/**
+ * Brute-force protection configuration with progressive lockout tiers
+ * @constant {Object}
+ */
 const LOCKOUT_CONFIG = {
-  MAX_ATTEMPTS_TIER_1: 3,  // 3 attempts -> 30s lockout
-  MAX_ATTEMPTS_TIER_2: 5,  // 5 attempts -> 5m lockout
-  MAX_ATTEMPTS_TIER_3: 10, // 10 attempts -> 30m lockout
-  LOCKOUT_DURATION_1: 30 * 1000,      // 30 seconds
-  LOCKOUT_DURATION_2: 5 * 60 * 1000,  // 5 minutes
-  LOCKOUT_DURATION_3: 30 * 60 * 1000  // 30 minutes
+  /** Tier 1: 3 failed attempts triggers 30-second lockout */
+  MAX_ATTEMPTS_TIER_1: 3,
+  /** Tier 2: 5 failed attempts triggers 5-minute lockout */
+  MAX_ATTEMPTS_TIER_2: 5,
+  /** Tier 3: 10 failed attempts triggers 30-minute lockout */
+  MAX_ATTEMPTS_TIER_3: 10,
+  /** Duration for tier 1 lockout (30 seconds) */
+  LOCKOUT_DURATION_1: 30 * 1000,
+  /** Duration for tier 2 lockout (5 minutes) */
+  LOCKOUT_DURATION_2: 5 * 60 * 1000,
+  /** Duration for tier 3 lockout (30 minutes) */
+  LOCKOUT_DURATION_3: 30 * 60 * 1000
 };
 
-// Biometric error taxonomy
+/**
+ * Standardized biometric error codes for consistent error handling
+ * @constant {Object}
+ */
 const BIOMETRIC_ERROR_CODES = {
+  /** User cancelled the biometric prompt */
   USER_CANCELLED: 'user_cancelled',
+  /** User chose to use fallback method (PIN) */
   USER_FALLBACK: 'user_fallback',
+  /** System cancelled the authentication */
   SYSTEM_CANCELLED: 'system_cancelled',
+  /** Biometric authentication temporarily locked */
   LOCKOUT: 'biometric_lockout',
+  /** Biometric authentication permanently locked */
   LOCKOUT_PERMANENT: 'biometric_lockout_permanent',
+  /** Biometric hardware not available */
   NOT_AVAILABLE: 'biometric_not_available',
+  /** No biometric credentials enrolled */
   NOT_ENROLLED: 'biometric_not_enrolled',
+  /** Unknown or unmapped error */
   UNKNOWN: 'biometric_unknown_error'
 };
 
+/**
+ * Authentication service class providing comprehensive security features
+ *
+ * Features:
+ * - PIN and biometric authentication
+ * - Progressive lockout protection
+ * - Auto-lock with configurable timeouts
+ * - Event-driven state management
+ * - Secure credential storage
+ */
 class AuthService {
+  /**
+   * Initialize the authentication service
+   */
   constructor() {
+    /** Set of event listeners for auth state changes */
     this.listeners = new Set();
+    /** Timer for auto-lock functionality */
     this.lockTimer = null;
+    /** Timestamp of last successful unlock */
     this.lastUnlockTime = null;
+    /** Current lock state */
     this.isLocked = true;
+    /** Count of consecutive failed attempts */
     this.failedAttempts = 0;
+    /** Timestamp when current lockout expires */
     this.lockoutUntil = null;
-    // Guard for concurrent auto-lock timer starts
+    /** Token to prevent concurrent auto-lock timer starts */
     this._autoLockStartToken = 0;
   }
 
-  // Brute-force protection methods
+  /**
+   * Check if user is currently locked out due to failed attempts
+   * @returns {Promise<{isLockedOut: boolean, remainingTime: number}>} Lockout status and time remaining
+   */
   async checkLockoutStatus() {
     try {
       const lockoutUntil = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL);
@@ -76,6 +143,10 @@ class AuthService {
     }
   }
 
+  /**
+   * Increment failed authentication attempts and apply progressive lockout
+   * @returns {Promise<{isLockedOut: boolean, remainingTime: number, attempts: number}>} Updated lockout state
+   */
   async incrementFailedAttempts() {
     try {
       const attemptsStr = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
@@ -118,6 +189,10 @@ class AuthService {
     }
   }
 
+  /**
+   * Clear failed authentication attempts counter
+   * @returns {Promise<void>}
+   */
   async clearFailedAttempts() {
     try {
       await AsyncStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
@@ -140,6 +215,11 @@ class AuthService {
     }
   }
 
+  /**
+   * Map biometric authentication errors to standardized error codes
+   * @param {Error} error - The original error from biometric authentication
+   * @returns {string} Standardized error code from BIOMETRIC_ERROR_CODES
+   */
   mapBiometricError(error) {
     if (!error) return BIOMETRIC_ERROR_CODES.UNKNOWN;
 
@@ -165,7 +245,10 @@ class AuthService {
     return BIOMETRIC_ERROR_CODES.UNKNOWN;
   }
 
-  // Authentication capabilities check
+  /**
+   * Check device biometric authentication capabilities
+   * @returns {Promise<{hasHardware: boolean, isEnrolled: boolean, supportedTypes: Array, canUseBiometric: boolean}>} Device capabilities
+   */
   async checkAuthenticationCapabilities() {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -189,7 +272,12 @@ class AuthService {
     }
   }
 
-  // PIN management
+  /**
+   * Set a new PIN with strength validation
+   * @param {string} pin - The PIN to set (must meet length and strength requirements)
+   * @returns {Promise<boolean>} True if PIN was set successfully
+   * @throws {Error} If PIN doesn't meet security requirements
+   */
   async setPIN(pin) {
     try {
       if (!pin || pin.length < MIN_PIN_LENGTH || pin.length > MAX_PIN_LENGTH) {
@@ -219,6 +307,11 @@ class AuthService {
     }
   }
 
+  /**
+   * Verify a PIN against the stored hash
+   * @param {string} pin - The PIN to verify
+   * @returns {Promise<boolean>} True if PIN matches stored hash
+   */
   async verifyPIN(pin) {
     try {
       const storedPIN = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.PIN);
@@ -332,7 +425,12 @@ class AuthService {
     }
   }
 
-  // Combined authentication (biometric with PIN fallback)
+  /**
+   * Attempt authentication using available methods (biometric first, then PIN fallback)
+   * @param {Object} options - Authentication options
+   * @param {string} [options.promptMessage] - Custom message for biometric prompt
+   * @returns {Promise<{success: boolean, method?: string, error?: string, hasPIN?: boolean}>} Authentication result
+   */
   async authenticate(options = {}) {
     try {
       const capabilities = await this.checkAuthenticationCapabilities();
@@ -546,7 +644,11 @@ class AuthService {
     }
   }
 
-  // Initialization and cleanup
+  /**
+   * Initialize the authentication service
+   * Sets up auto-lock timers and restores authentication state
+   * @returns {Promise<boolean>} True if initialization succeeded
+   */
   async initialize() {
     try {
       // Check if app should be locked on startup
@@ -583,7 +685,11 @@ class AuthService {
     }
   }
 
-  // Event listeners for UI updates
+  /**
+   * Add an event listener for authentication state changes
+   * @param {Function} callback - Callback function to invoke on auth events
+   * @returns {Function} Function to remove the listener
+   */
   addListener(callback) {
     this.listeners.add(callback);
     return () => this.listeners.delete(callback);

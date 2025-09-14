@@ -1,4 +1,23 @@
-// AuthGate component - App-wide authentication wrapper with lock screen
+/**
+ * AuthGate component - App-wide authentication wrapper with lock screen
+ *
+ * Provides comprehensive authentication flow management:
+ * - Automatic biometric authentication attempts
+ * - PIN input fallback with validation
+ * - PIN setup wizard for first-time users
+ * - Auto-lock functionality with app state monitoring
+ * - Responsive lock screen UI with theme support
+ * - Progressive error handling and user feedback
+ *
+ * The component wraps the entire app and only renders children when
+ * the user is successfully authenticated and unlocked.
+ *
+ * @component
+ * @example
+ * <AuthGate>
+ *   <App />
+ * </AuthGate>
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -24,6 +43,12 @@ import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/AUTH';
 
 // useWindowDimensions hook inside component for rotation responsiveness
 
+/**
+ * AuthGate functional component
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to render when authenticated
+ * @returns {JSX.Element} Authentication UI or children when unlocked
+ */
 const AuthGate = ({ children }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +83,12 @@ const AuthGate = ({ children }) => {
     return removeListener;
   }, []);
 
+  /**
+   * Initialize authentication service and determine initial state
+   * - Sets up auth service with timeout protection
+   * - Checks lock status and biometric availability
+   * - Attempts automatic biometric authentication if enabled
+   */
   const initializeAuth = async () => {
     try {
       setIsLoading(true);
@@ -118,6 +149,12 @@ const AuthGate = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Attempt biometric authentication with fallback handling
+   * - Tries biometric authentication through auth service
+   * - Handles various error cases and fallback scenarios
+   * - Shows PIN input or setup modal as needed
+   */
   const tryBiometricAuth = async () => {
     try {
       setAuthError('');

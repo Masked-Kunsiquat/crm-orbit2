@@ -1,9 +1,48 @@
-// Authentication settings section component
+/**
+ * Authentication settings section component
+ *
+ * Provides UI controls for managing authentication settings:
+ * - Biometric authentication toggle
+ * - Auto-lock configuration with timeout settings
+ * - PIN management (setup/removal)
+ * - Real-time setting synchronization with auth service
+ *
+ * @component
+ * @example
+ * <AuthSection
+ *   biometricEnabled={true}
+ *   biometricAvailable={true}
+ *   autoLockEnabled={false}
+ *   autoLockTimeout={5}
+ *   hasPIN={true}
+ *   onBiometricToggle={(enabled) => console.log('Biometric:', enabled)}
+ *   onAutoLockToggle={(enabled) => console.log('Auto-lock:', enabled)}
+ *   onSetPIN={() => console.log('Setup PIN')}
+ *   onRemovePIN={() => console.log('Remove PIN')}
+ * />
+ */
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Card, Switch, Button, Divider, TextInput } from 'react-native-paper';
 import authService from '../../services/authService';
 
+/**
+ * AuthSection functional component
+ * @param {Object} props - Component props
+ * @param {boolean} props.biometricEnabled - Whether biometric auth is enabled
+ * @param {boolean} props.biometricAvailable - Whether biometric hardware is available
+ * @param {boolean} props.autoLockEnabled - Whether auto-lock is enabled
+ * @param {number} props.autoLockTimeout - Auto-lock timeout in minutes
+ * @param {string} props.autoLockTimeoutInput - Current timeout input value
+ * @param {boolean} props.hasPIN - Whether PIN is configured
+ * @param {Function} props.onBiometricToggle - Callback for biometric toggle
+ * @param {Function} props.onAutoLockToggle - Callback for auto-lock toggle
+ * @param {Function} props.onTimeoutChange - Callback for timeout input change
+ * @param {Function} props.onTimeoutCommit - Callback for timeout commit
+ * @param {Function} props.onSetPIN - Callback for PIN setup
+ * @param {Function} props.onRemovePIN - Callback for PIN removal
+ * @returns {JSX.Element} Authentication settings UI
+ */
 const AuthSection = ({
   biometricEnabled,
   biometricAvailable,
