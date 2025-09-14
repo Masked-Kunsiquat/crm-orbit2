@@ -68,6 +68,15 @@ function makeCtx(db) {
     let result;
     const wrapped = {
       execute: (sql, params = []) => exec(sql, params),
+      batch: async (statements) => {
+        // Batch within transaction - no BEGIN/COMMIT needed
+        const results = [];
+        for (const stmt of statements) {
+          const result = await exec(stmt.sql, stmt.params || []);
+          results.push(result);
+        }
+        return results;
+      }
     };
     db.prepare('BEGIN').run();
     try {
@@ -141,6 +150,24 @@ function createSchema(db) {
 
   run(`CREATE INDEX IF NOT EXISTS idx_contact_categories_contact ON contact_categories(contact_id);`);
   run(`CREATE INDEX IF NOT EXISTS idx_contact_categories_category ON contact_categories(category_id);`);
+
+  // Attachments table (for contact deletion tests)
+  run(`CREATE TABLE attachments (
+    id INTEGER PRIMARY KEY,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('company','contact','note','event','interaction')),
+    entity_id INTEGER NOT NULL,
+    file_name TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    mime_type TEXT,
+    file_size INTEGER,
+    thumbnail_path TEXT,
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );`);
+
+  run(`CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);`);
 }
 
 describe('contactsDB (in-memory)', () => {
@@ -303,6 +330,33 @@ describe('contactsDB (in-memory)', () => {
     const removed = await contacts.delete(id);
     expect(removed).toBe(1);
     const after = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
+    expect(after.rows[0].cnt).toBe(0);
+  });
+
+  test('delete contact removes associated attachments', async () => {
+    // Create contact first
+    const { id } = await contacts.create({
+      first_name: 'Alice',
+      last_name: 'Cooper'
+    });
+    
+    // Add attachment for the contact
+    await ctx.execute(
+      `INSERT INTO attachments (entity_type, entity_id, file_name, original_name, file_path, file_type, mime_type, file_size) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+      ['contact', id, 'profile.jpg', 'Profile Photo.jpg', '/uploads/profile.jpg', 'image', 'image/jpeg', 2048]
+    );
+    
+    // Verify attachment exists
+    const before = await ctx.execute('SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+    expect(before.rows[0].cnt).toBe(1);
+    
+    // Delete contact
+    const removed = await contacts.delete(id);
+    expect(removed).toBe(1);
+    
+    // Verify attachment was also deleted
+    const after = await ctx.execute('SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
     expect(after.rows[0].cnt).toBe(0);
   });
 });

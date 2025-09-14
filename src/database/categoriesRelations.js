@@ -21,11 +21,33 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      * @returns {Promise<boolean>} True if a new link was created, false if it already existed
      */
     async addContactToCategory(contactId, categoryId) {
-      const res = await execute(
-        'INSERT OR IGNORE INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
-        [contactId, categoryId]
-      );
-      return res && res.rowsAffected ? res.rowsAffected > 0 : false;
+      try {
+        const res = await execute(
+          'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+          [contactId, categoryId]
+        );
+        return res && res.rowsAffected ? res.rowsAffected > 0 : false;
+      } catch (error) {
+        const msg = String(error?.originalError?.message ?? error?.cause?.message ?? error?.message ?? '');
+        if (msg.includes('FOREIGN KEY constraint failed')) {
+          throw new DatabaseError('Contact or category not found', 'NOT_FOUND', error);
+        }
+        if (msg.includes('UNIQUE constraint failed')) {
+          return false; // Relationship already exists
+        }
+        throw error;
+      }
+    },
+
+    /**
+     * Alias for addContactToCategory for compatibility.
+     * Create a contact-category relationship.
+     * @param {number} contactId
+     * @param {number} categoryId
+     * @returns {Promise<boolean>} True if a new link was created, false if it already existed
+     */
+    async addToCategory(contactId, categoryId) {
+      return this.addContactToCategory(contactId, categoryId);
     },
 
     /**
@@ -74,6 +96,16 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
         [contactId]
       );
       return res.rows;
+    },
+
+    /**
+     * Alias for getCategoriesForContact for compatibility.
+     * Get categories that a given contact belongs to.
+     * @param {number} contactId
+     * @returns {Promise<object[]>}
+     */
+    async getCategoriesByContactId(contactId) {
+      return this.getCategoriesForContact(contactId);
     },
 
     /**
