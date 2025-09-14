@@ -3,7 +3,7 @@
  *
  * Provides a secure PIN setup interface with:
  * - PIN entry with confirmation validation
- * - Strength validation according to AUTH constants
+ * - Length validation according to AUTH constants
  * - Secure input handling (numeric only, masked)
  * - Automatic field clearing on modal hide
  * - Error handling and user feedback
@@ -101,8 +101,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
 
   return (
     <Portal>
-      {visible && (
-        <Dialog visible onDismiss={handleClose} style={styles.modal}>
+        <Dialog visible={visible} dismissable={!saving} onDismiss={handleClose} style={styles.modal}>
           <Dialog.Title style={styles.modalTitle}>Set PIN</Dialog.Title>
           <Dialog.Content>
             <TextInput
@@ -143,12 +142,11 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleClose} disabled={saving}>Cancel</Button>
-            <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin || saving}>
+            <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin || saving} loading={saving}>
               Set PIN
             </Button>
           </Dialog.Actions>
         </Dialog>
-      )}
     </Portal>
   );
 };
@@ -164,14 +162,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modalButton: {
-    flex: 1,
-    marginHorizontal: 4,
   },
 });
 
