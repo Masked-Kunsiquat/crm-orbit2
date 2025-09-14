@@ -50,12 +50,18 @@ export default {
   async down(ctx) {
     const { execute } = ctx;
 
+    // Import DatabaseError for proper error handling
+    const { DatabaseError } = await import('../errors.js');
+
     // Drop the display_name index first
     await execute('DROP INDEX IF EXISTS idx_contacts_display_name;');
 
-    // Remove display_name column
-    // Note: SQLite doesn't support DROP COLUMN directly
-    // This would require recreating the table in a real rollback scenario
-    console.warn('Rollback for display_name column not implemented - requires table recreation');
+    // SQLite doesn't support DROP COLUMN directly - would require full table recreation
+    // This migration is effectively irreversible without data loss risk
+    throw new DatabaseError(
+      'Migration 004 rollback not supported: SQLite cannot drop columns. ' +
+      'Rolling back would require recreating the contacts table with potential data loss.',
+      'MIGRATION_ROLLBACK_UNSUPPORTED'
+    );
   }
 };

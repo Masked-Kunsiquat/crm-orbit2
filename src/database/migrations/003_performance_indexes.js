@@ -16,7 +16,6 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_interactions_type_datetime;',
   'DROP INDEX IF EXISTS idx_interactions_datetime_desc;',
   'DROP INDEX IF EXISTS idx_interactions_contact_datetime;',
-  'DROP INDEX IF EXISTS idx_contacts_display_name;',
 ];
 
 const DROP_FTS = [
@@ -25,13 +24,6 @@ const DROP_FTS = [
   'DROP TRIGGER IF EXISTS interactions_ai;',
   'DROP TABLE IF EXISTS interactions_fts;',
 ];
-
-function rowsFromExecuteResult(res) {
-  if (Array.isArray(res)) return res; // sql.js variant sometimes returns array
-  if (res?.rows?._array) return res.rows._array;
-  if (Array.isArray(res?.rows)) return res.rows;
-  return [];
-}
 
 export default {
   version: 3,

@@ -171,7 +171,6 @@ const CREATE_INDEXES = [
 
   // Interactions
   `CREATE INDEX IF NOT EXISTS idx_interactions_contact_id ON interactions (contact_id);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_datetime ON interactions (interaction_datetime);`,
 
   // Notes
   `CREATE INDEX IF NOT EXISTS idx_notes_contact_id ON notes (contact_id);`,
@@ -238,7 +237,6 @@ const DROP_INDEXES = [
   'DROP INDEX IF EXISTS idx_categories_sort_order;',
   'DROP INDEX IF EXISTS idx_notes_is_pinned;',
   'DROP INDEX IF EXISTS idx_notes_contact_id;',
-  'DROP INDEX IF EXISTS idx_interactions_datetime;',
   'DROP INDEX IF EXISTS idx_interactions_contact_id;',
   'DROP INDEX IF EXISTS idx_event_reminders_datetime;',
   'DROP INDEX IF EXISTS idx_event_reminders_event_id;',
