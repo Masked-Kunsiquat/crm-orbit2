@@ -132,7 +132,7 @@ function createSchema(db) {
   run(`CREATE TABLE interactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     contact_id INTEGER NOT NULL,
-    datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    interaction_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
     title TEXT NOT NULL,
     note TEXT,
     interaction_type TEXT NOT NULL,
@@ -145,7 +145,7 @@ function createSchema(db) {
 
   // Create indexes
   run(`CREATE INDEX IF NOT EXISTS idx_interactions_contact ON interactions(contact_id);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_interactions_datetime ON interactions(datetime);`);
+  run(`CREATE INDEX IF NOT EXISTS idx_interactions_datetime ON interactions(interaction_datetime);`);
   run(`CREATE INDEX IF NOT EXISTS idx_interactions_type ON interactions(interaction_type);`);
 }
 
@@ -222,7 +222,7 @@ describe('interactionsDB (in-memory)', () => {
     expect(created.interaction_type).toBe('call');
     expect(created.duration).toBe(15);
     expect(created.note).toBe('Discussed project requirements');
-    expect(created.datetime).toBeTruthy();
+    expect(created.interaction_datetime).toBeTruthy();
 
     const found = await interactions.getById(created.id);
     expect(found.title).toBe('Phone call');
@@ -237,11 +237,11 @@ describe('interactionsDB (in-memory)', () => {
     };
     
     const created = await interactions.create(interactionData);
-    expect(created.datetime).toBeTruthy();
+    expect(created.interaction_datetime).toBeTruthy();
     
     // Should be recent (within last minute)
     const now = new Date();
-    const createdTime = new Date(created.datetime);
+    const createdTime = new Date(created.interaction_datetime);
     const diffMs = Math.abs(now - createdTime);
     expect(diffMs).toBeLessThan(60000); // Less than 1 minute
   });
@@ -300,14 +300,14 @@ describe('interactionsDB (in-memory)', () => {
   });
 
   test('getAll returns interactions with pagination', async () => {
-    // Create multiple interactions with deterministic, unique datetimes to avoid tie ordering
+    // Create multiple interactions with deterministic, unique interaction_datetimes to avoid tie ordering
     const base = new Date('2024-01-01T00:00:00.000Z').getTime();
     for (let i = 0; i < 5; i++) {
       await interactions.create({
         contact_id: contactId,
         title: `Interaction ${i}`,
         interaction_type: 'email',
-        datetime: new Date(base + i * 1000).toISOString()
+        interaction_datetime: new Date(base + i * 1000).toISOString()
       });
     }
 
@@ -353,14 +353,14 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Recent Call',
       interaction_type: 'call',
-      datetime: recentTime
+      interaction_datetime: recentTime
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Old Call',
       interaction_type: 'call',
-      datetime: oldTime
+      interaction_datetime: oldTime
     });
 
     const recent = await interactionsSearch.getRecent({ days: 7 });
@@ -408,14 +408,14 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'June Interaction',
       interaction_type: 'call',
-      datetime: date1
+      interaction_datetime: date1
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Mid June Interaction',
       interaction_type: 'email',
-      datetime: date2
+      interaction_datetime: date2
     });
 
     // Edge of day boundary (should be included when using end-exclusive normalization)
@@ -423,7 +423,7 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'End of June Interaction',
       interaction_type: 'meeting',
-      datetime: dateBoundaryInclusive
+      interaction_datetime: dateBoundaryInclusive
     });
 
     // Outside the range (should be excluded)
@@ -431,7 +431,7 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'July Interaction',
       interaction_type: 'meeting',
-      datetime: dateOutside
+      interaction_datetime: dateOutside
     });
 
     const juneInteractions = await interactionsSearch.getByDateRange('2024-06-01', '2024-06-30');
@@ -542,32 +542,32 @@ describe('interactionsDB (in-memory)', () => {
         contact_id: contactId,
         title: 'Bulk Call (older)',
         interaction_type: 'call',
-        datetime: '2024-08-01T12:00:00.000Z'
+        interaction_datetime: '2024-08-01T12:00:00.000Z'
       },
       {
         contact_id: contactId,
         title: 'Bulk Meeting (newer)',
         interaction_type: 'meeting',
-        datetime: '2024-08-02T09:00:00.000Z'
+        interaction_datetime: '2024-08-02T09:00:00.000Z'
       },
       // Two for contact 2: latest should be Aug 03 00:00:00Z
       {
         contact_id: contact2Id,
         title: 'Bulk Email (older)',
         interaction_type: 'email',
-        datetime: '2024-08-01T12:00:00.000Z'
+        interaction_datetime: '2024-08-01T12:00:00.000Z'
       },
       {
         contact_id: contact2Id,
         title: 'Bulk Call (newer)',
         interaction_type: 'call',
-        datetime: '2024-08-03T00:00:00.000Z'
+        interaction_datetime: '2024-08-03T00:00:00.000Z'
       }
     ];
 
     await interactions.bulkCreate(interactionList);
 
-    // Check both contacts were updated to the actual MAX(datetime) among their interactions
+    // Check both contacts were updated to the actual MAX(interaction_datetime) among their interactions
     const contact1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
     const contact2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
     
@@ -584,7 +584,7 @@ describe('interactionsDB (in-memory)', () => {
   });
 
   test("updating an interaction's contact_id recalculates last_interaction_at for both contacts", async () => {
-    // Create interactions for two contacts with known datetimes
+    // Create interactions for two contacts with known interaction_datetimes
     const movedDatetime = '2024-06-02T10:00:00Z';
     const otherForContact1 = '2024-05-01T09:00:00Z';
     const existingForContact2 = '2024-05-15T11:00:00Z';
@@ -593,21 +593,21 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Other for C1',
       interaction_type: 'call',
-      datetime: otherForContact1
+      interaction_datetime: otherForContact1
     });
 
     const toMove = await interactions.create({
       contact_id: contactId,
       title: 'To Move',
       interaction_type: 'email',
-      datetime: movedDatetime
+      interaction_datetime: movedDatetime
     });
 
     const c2existing = await interactions.create({
       contact_id: contact2Id,
       title: 'Existing for C2',
       interaction_type: 'meeting',
-      datetime: existingForContact2
+      interaction_datetime: existingForContact2
     });
 
     // Record both contacts' last_interaction_at before the update
@@ -628,10 +628,10 @@ describe('interactionsDB (in-memory)', () => {
     const afterC1Last = afterC1.rows[0].last_interaction_at;
     const afterC2Last = afterC2.rows[0].last_interaction_at;
 
-    // Old contact should no longer reflect the moved interaction's datetime
+    // Old contact should no longer reflect the moved interaction's interaction_datetime
     expect(afterC1Last).not.toBe(movedDatetime);
 
-    // New contact should reflect the moved interaction's datetime
+    // New contact should reflect the moved interaction's interaction_datetime
     expect(afterC2Last).toBe(movedDatetime);
   });
 
@@ -644,19 +644,19 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Oldest',
       interaction_type: 'call',
-      datetime: d1
+      interaction_datetime: d1
     });
     const i2 = await interactions.create({
       contact_id: contactId,
       title: 'Middle',
       interaction_type: 'email',
-      datetime: d2
+      interaction_datetime: d2
     });
     const i3 = await interactions.create({
       contact_id: contactId,
       title: 'Latest',
       interaction_type: 'meeting',
-      datetime: d3
+      interaction_datetime: d3
     });
 
     // Delete the most recent one
