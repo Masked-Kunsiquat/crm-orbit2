@@ -5,10 +5,10 @@ import { getExec, runAll } from './_helpers.js';
 
 const CREATE_INDEXES = [
   // Composite indexes to accelerate common filters + ordering
-  `CREATE INDEX IF NOT EXISTS idx_interactions_contact_datetime ON interactions(contact_id, datetime DESC);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_datetime_desc ON interactions(datetime DESC);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_type_datetime ON interactions(interaction_type, datetime DESC);`,
-  `CREATE INDEX IF NOT EXISTS idx_interactions_custom_type_datetime ON interactions(custom_type, datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_contact_datetime ON interactions(contact_id, interaction_datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_datetime_desc ON interactions(interaction_datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_type_datetime ON interactions(interaction_type, interaction_datetime DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_interactions_custom_type_datetime ON interactions(custom_type, interaction_datetime DESC);`,
 ];
 
 const DROP_INDEXES = [

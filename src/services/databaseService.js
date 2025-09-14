@@ -75,6 +75,25 @@ class DatabaseService {
       // Enable foreign key constraints
       await this.db.execAsync('PRAGMA foreign_keys = ON;');
 
+      // Clear any existing problematic database state for development
+      if (__DEV__) {
+        try {
+          // Drop all tables to ensure clean slate
+          const tables = [
+            'user_preferences', 'contact_categories', 'notes', 'interactions',
+            'event_reminders', 'events', 'contact_info', 'contacts',
+            'categories', 'companies', 'attachments', 'migrations'
+          ];
+
+          for (const table of tables) {
+            await this.db.execAsync(`DROP TABLE IF EXISTS ${table};`);
+          }
+          console.log('Cleared all existing tables for fresh database start');
+        } catch (e) {
+          console.warn('Error clearing tables (this is normal on first run):', e.message);
+        }
+      }
+
       // Run canonical migrations to establish complete schema
       await this._runCanonicalMigrations({ signal });
       
@@ -169,6 +188,18 @@ class DatabaseService {
               return params.length > 0
                 ? await this.db.runAsync(sql, params)
                 : await this.db.execAsync(sql);
+            },
+            batch: async (statements) => {
+              // Execute statements sequentially within transaction
+              const results = [];
+              for (const stmt of statements) {
+                const { sql, params = [] } = stmt;
+                const result = params.length > 0
+                  ? await this.db.runAsync(sql, params)
+                  : await this.db.execAsync(sql);
+                results.push(result);
+              }
+              return results;
             }
           };
           const result = await work(txContext);
@@ -190,6 +221,16 @@ class DatabaseService {
       await runMigrations(migrationContext);
     } catch (error) {
       console.error('Canonical migration execution failed:', error);
+      console.error('Error details:', {
+        name: error?.name,
+        message: error?.message,
+        code: error?.code,
+        originalError: error?.originalError,
+        context: error?.context
+      });
+      if (error?.originalError) {
+        console.error('Original error:', error.originalError);
+      }
       throw error;
     }
   }
