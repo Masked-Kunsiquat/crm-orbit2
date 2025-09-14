@@ -32,15 +32,28 @@ export function createMigrationContext(db, options = {}) {
 
   return {
     db,
-    execute: async (sql, params = []) => {
-      throwIfAborted();
+    execute: async (sql, params, options = {}) => {
+      const contextSignal = options.signal || signal;
+      if (contextSignal && contextSignal.aborted) {
+        throw new DatabaseError('Operation aborted', 'ABORT_ERR');
+      }
       try {
+        let result;
         if (hasParams(params)) {
-          return await db.runAsync(sql, params);
+          result = await db.runAsync(sql, params);
         } else {
-          return await db.execAsync(sql);
+          result = await db.execAsync(sql);
         }
+        if (contextSignal && contextSignal.aborted) {
+          throw new DatabaseError('Operation aborted', 'ABORT_ERR');
+        }
+        return result;
       } catch (error) {
+        // Re-check abort status in case operation was cancelled
+        if (contextSignal && contextSignal.aborted) {
+          throw new DatabaseError('Operation aborted', 'ABORT_ERR');
+        }
+
         // Wrap in DatabaseError with original error and context
         const wrappedError = new DatabaseError(
           `Migration SQL execution failed: ${error?.message ?? String(error)}`,
@@ -125,7 +138,7 @@ export function createMigrationContext(db, options = {}) {
         await db.execAsync('BEGIN TRANSACTION;');
       } catch (error) {
         const wrappedError = new DatabaseError(
-          `Transaction BEGIN failed: ${error.message}`,
+          `Transaction BEGIN failed: ${error?.message ?? String(error)}`,
           'TRANSACTION_BEGIN_ERROR',
           error
         );
@@ -171,8 +184,13 @@ export function createMigrationContext(db, options = {}) {
               throw new DatabaseError('Operation aborted', 'ABORT_ERR');
             }
 
-            // Execute statements sequentially within transaction
-            const items = Array.isArray(statements) ? statements : [];
+            // Validate input and execute sequentially within transaction
+            if (!Array.isArray(statements)) {
+              const err = new DatabaseError('Batch expects an array of statements', 'BATCH_INVALID_INPUT', null, { statements });
+              onLog(`[ERROR] ${err.message}`, { level: 'error', context: { statements } });
+              throw err;
+            }
+            const items = statements;
             const normalize = (entry) => {
               if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
               if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
@@ -220,7 +238,7 @@ export function createMigrationContext(db, options = {}) {
           await db.execAsync('COMMIT;');
         } catch (error) {
           const wrappedError = new DatabaseError(
-            `Transaction COMMIT failed: ${error.message}`,
+            `Transaction COMMIT failed: ${error?.message ?? String(error)}`,
             'TRANSACTION_COMMIT_ERROR',
             error
           );
@@ -237,7 +255,7 @@ export function createMigrationContext(db, options = {}) {
           await db.execAsync('ROLLBACK;');
         } catch (rollbackError) {
           const wrappedRollbackError = new DatabaseError(
-            `Transaction ROLLBACK failed: ${rollbackError.message}`,
+            `Transaction ROLLBACK failed: ${rollbackError?.message ?? String(rollbackError)}`,
             'TRANSACTION_ROLLBACK_ERROR',
             rollbackError
           );
@@ -252,7 +270,7 @@ export function createMigrationContext(db, options = {}) {
           throw error;
         } else {
           const wrappedError = new DatabaseError(
-            `Transaction failed: ${error.message}`,
+            `Transaction failed: ${error?.message ?? String(error)}`,
             'TRANSACTION_ERROR',
             error
           );
