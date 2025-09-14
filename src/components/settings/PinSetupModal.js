@@ -1,7 +1,7 @@
 // PIN Setup Modal component for authentication settings
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, Button, TextInput, Portal, Dialog } from 'react-native-paper';
+import { Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
 import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../../constants/AUTH';
 
@@ -67,7 +67,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const handleClose = () => {
     setNewPin('');
     setConfirmPin('');
-    onClose();
+    onClose?.();
   };
 
   return (
@@ -113,7 +113,7 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
             />
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={handleClose}>Cancel</Button>
+            <Button onPress={handleClose} disabled={saving}>Cancel</Button>
             <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin || saving}>
               Set PIN
             </Button>
