@@ -48,8 +48,8 @@ describe('AuthService Core Logic', () => {
     // Clear only specific mocks, not the global jest.mock() ones
     jest.clearAllMocks();
 
-    // Reset service state
-    authService.isLocked = true;
+    // Reset service state to null to allow storage-based tests
+    authService.isLocked = null;
     authService.lastUnlockTime = null;
     authService.failedAttempts = 0;
     authService.lockoutUntil = null;
@@ -129,13 +129,22 @@ describe('AuthService Core Logic', () => {
     // Additional beforeEach for this specific describe block
     beforeEach(() => {
       // These tests need completely fresh mocks due to complex call sequences
-      AsyncStorage.getItem.mockClear().mockResolvedValue(null);
-      AsyncStorage.setItem.mockClear().mockResolvedValue();
-      AsyncStorage.removeItem.mockClear().mockResolvedValue();
+      jest.clearAllMocks();
+
+      // Reset to clean defaults for this block
+      AsyncStorage.getItem.mockResolvedValue(null);
+      AsyncStorage.setItem.mockResolvedValue();
+      AsyncStorage.removeItem.mockResolvedValue();
 
       const SecureStore = require('expo-secure-store');
-      SecureStore.getItemAsync.mockClear().mockResolvedValue(null);
-      SecureStore.setItemAsync.mockClear().mockResolvedValue();
+      SecureStore.getItemAsync.mockResolvedValue(null);
+      SecureStore.setItemAsync.mockResolvedValue();
+
+      // Reset internal state
+      authService.isLocked = null;
+      authService.lastUnlockTime = null;
+      authService.failedAttempts = 0;
+      authService.lockoutUntil = null;
     });
     test('authenticateWithPIN returns success for correct PIN', async () => {
       const SecureStore = require('expo-secure-store');
@@ -249,8 +258,6 @@ describe('AuthService Core Logic', () => {
   describe('Lock State Management', () => {
     test('lock state can be checked from storage', async () => {
       AsyncStorage.getItem.mockResolvedValueOnce('false');
-      // Clear in-memory state to force storage check - do this AFTER the beforeEach runs
-      authService.isLocked = null;
 
       const result = await authService.getLockState();
 
@@ -260,8 +267,6 @@ describe('AuthService Core Logic', () => {
 
     test('lock state defaults to true when no stored state', async () => {
       AsyncStorage.getItem.mockResolvedValueOnce(null);
-      // Clear in-memory state to force storage check - do this AFTER the beforeEach runs
-      authService.isLocked = null;
 
       const result = await authService.getLockState();
 

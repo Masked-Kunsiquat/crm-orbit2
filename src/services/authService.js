@@ -390,7 +390,11 @@ class AuthService {
       }
 
       if (!await this.hasPIN()) {
-        throw new Error('No PIN configured');
+        return {
+          success: false,
+          error: 'No PIN configured',
+          errorCode: 'PIN_AUTH_ERROR'
+        };
       }
 
       const isValid = await this.verifyPIN(pin);
