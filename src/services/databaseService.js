@@ -37,7 +37,7 @@ class DatabaseService {
     const { signal } = options || {};
     // Respect a pre-aborted signal to fail fast
     if (signal && signal.aborted) {
-      const abortError = new Error('Initialization aborted');
+      const abortError = new Error('Database initialization aborted');
       abortError.name = 'AbortError';
       throw abortError;
     }

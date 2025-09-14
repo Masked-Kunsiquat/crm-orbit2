@@ -61,30 +61,41 @@ const AuthGate = ({ children }) => {
   const initializeAuth = async () => {
     try {
       setIsLoading(true);
-      
-      // Initialize auth service
-      await authService.initialize();
-      
+
+      // Initialize auth service with timeout
+      const authInitPromise = authService.initialize();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Auth initialization timeout')), 5000);
+      });
+
+      await Promise.race([authInitPromise, timeoutPromise]);
+
       // Check current lock status
       const locked = await authService.checkIsLocked();
       setIsLocked(locked);
-      
-      // Check biometric availability
-      const capabilities = await authService.checkAuthenticationCapabilities();
-      setBiometricAvailable(capabilities.canUseBiometric);
-      
-      // Check if a PIN has been configured
-      const pinExists = await authService.hasPIN();
-      setHasPIN(pinExists);
-      
-      // If locked and biometric available, try auto-authentication
-      if (locked && capabilities.canUseBiometric) {
-        const biometricEnabled = await authService.isBiometricEnabled();
-        if (biometricEnabled) {
-          tryBiometricAuth();
+
+      // Check biometric availability (non-blocking)
+      Promise.resolve().then(async () => {
+        try {
+          const capabilities = await authService.checkAuthenticationCapabilities();
+          setBiometricAvailable(capabilities.canUseBiometric);
+
+          // Check if a PIN has been configured
+          const pinExists = await authService.hasPIN();
+          setHasPIN(pinExists);
+
+          // If locked and biometric available, try auto-authentication
+          if (locked && capabilities.canUseBiometric) {
+            const biometricEnabled = await authService.isBiometricEnabled();
+            if (biometricEnabled) {
+              tryBiometricAuth();
+            }
+          }
+        } catch (error) {
+          console.warn('Secondary auth initialization failed:', error);
         }
-      }
-      
+      });
+
     } catch (error) {
       console.error('Auth initialization error:', error);
       setIsLocked(true); // Default to locked for security
