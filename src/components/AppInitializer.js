@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Surface, Text, ActivityIndicator, Button } from 'react-native-paper';
 import databaseService from '../services/databaseService';
+import authService from '../services/authService';
 
 const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
   const [isInitializing, setIsInitializing] = useState(true);
@@ -34,6 +35,21 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
       await Promise.race([initPromise, timeoutPromise]);
 
       if (timeoutId) clearTimeout(timeoutId);
+      
+      // After DB init, bootstrap other core services
+      try {
+        // Initialize authentication service (auto-lock timers, lock state)
+        await authService.initialize();
+        
+        // Future hooks: permissions, notifications, reminders, backups
+        // e.g., notificationService.requestPermissions();
+        //       notificationService.reschedulePendingReminders();
+        //       backupService.checkAutoBackup();
+      } catch (bootError) {
+        console.warn('Post-initialization service bootstrap encountered an issue:', bootError);
+        // Continue; non-critical services failing should not block app load
+      }
+
       console.log('App initialization complete');
 
       if (!mountedRef.current) return;
@@ -44,7 +60,7 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
       setInitializationError(error.message);
       setIsInitializing(false);
     }
-  }, []);
+  }, [initTimeoutMs]);
 
   useEffect(() => {
     initializeApp();
