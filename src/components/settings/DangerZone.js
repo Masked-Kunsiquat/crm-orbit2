@@ -1,10 +1,11 @@
 // Danger zone section component for destructive actions
-import React from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, Alert } from 'react-native';
 import { Text, Card, Button, useTheme } from 'react-native-paper';
 import authService from '../../services/authService';
 
 const DangerZone = ({ onResetComplete }) => {
+  const isResettingRef = useRef(false);
   const handleResetAuth = () => {
     Alert.alert(
       'Reset Authentication',
@@ -15,6 +16,8 @@ const DangerZone = ({ onResetComplete }) => {
           text: 'Reset',
           style: 'destructive',
           onPress: async () => {
+            if (isResettingRef.current) return;
+            isResettingRef.current = true;
             try {
               await authService.resetAuth();
               onResetComplete?.();
@@ -22,6 +25,8 @@ const DangerZone = ({ onResetComplete }) => {
             } catch (error) {
               console.error('Failed to reset authentication:', error);
               Alert.alert('Error', 'Failed to reset authentication');
+            } finally {
+              isResettingRef.current = false;
             }
           }
         }
@@ -39,7 +44,12 @@ const DangerZone = ({ onResetComplete }) => {
       >
         Danger Zone
       </Text>
-      <Button mode="outlined" onPress={handleResetAuth}>
+      <Button
+        mode="contained"
+        buttonColor={theme.colors?.error}
+        textColor={theme.colors?.onError || 'white'}
+        onPress={handleResetAuth}
+      >
         Reset All Authentication Settings
       </Button>
     </Card>
