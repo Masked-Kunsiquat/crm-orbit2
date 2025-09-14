@@ -98,10 +98,16 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
               style={styles.input}
               placeholder="Confirm PIN"
               value={confirmPin}
-              onChangeText={setConfirmPin}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/\D+/g, '').slice(0, MAX_PIN_LENGTH);
+                if (isMountedRef.current) setConfirmPin(cleaned);
+              }}
               secureTextEntry
               keyboardType="number-pad"
               inputMode="numeric"
+              autoCorrect={false}
+              autoCapitalize="none"
+              contextMenuHidden={true}
               maxLength={MAX_PIN_LENGTH}
               contentStyle={{ textAlign: 'center' }}
             />
