@@ -9,6 +9,18 @@ const mockDb = {
     cleanupOrphaned: jest.fn(async () => ({ success: true, deletedCount: 0 })),
     getTotalSize: jest.fn(async () => 0),
   },
+  events: {
+    getById: jest.fn(async () => null),
+    getRecurringEvents: jest.fn(async () => []),
+  },
+  eventsReminders: {
+    getUnsentRemindersByEvent: jest.fn(async () => []),
+    getUnsentReminders: jest.fn(async () => []),
+    markReminderSent: jest.fn(async () => ({ success: true })),
+  },
+  settings: {
+    getValue: jest.fn(async () => null),
+  },
 };
 
 module.exports = mockDb;
