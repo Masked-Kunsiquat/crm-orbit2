@@ -70,6 +70,12 @@ describe('fileService', () => {
 
       expect(Image.manipulateAsync).toHaveBeenCalled();
       expect(attachment).toEqual(expect.objectContaining({ id: 2 }));
+      const expectedImgDir = `${FS.documentDirectory}attachments/images`;
+      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(expectedImgDir, { intermediates: true });
+      expect(FS.copyAsync).toHaveBeenCalledWith({
+        from: 'file:///input/photo.jpg',
+        to: expect.stringContaining(`${expectedImgDir}/`),
+      });
       expect(db.attachments.create).toHaveBeenCalledWith(
         expect.objectContaining({
           original_name: 'photo.jpg',
@@ -129,6 +135,7 @@ describe('fileService', () => {
       await expect(fileService.saveFile('file:///x', 'x.txt', 'note', 1)).rejects.toMatchObject({
         service: 'fileService',
         operation: 'saveFile',
+        message: expect.stringContaining('FS failure'),
       });
     });
   });
@@ -195,6 +202,9 @@ describe('fileService', () => {
 
       db.attachments.getById.mockResolvedValueOnce(null);
       await expect(fileService.getThumbnailUri(2)).resolves.toBeNull();
+
+      db.attachments.getById.mockResolvedValueOnce({ thumbnail_path: null });
+      await expect(fileService.getThumbnailUri(3)).resolves.toBeNull();
     });
   });
 
@@ -232,6 +242,7 @@ describe('fileService', () => {
       const deleted = await fileService.cleanOrphanedFiles();
 
       expect(FS.deleteAsync).toHaveBeenCalledWith(`${attachmentsDir}/remove.pdf`, { idempotent: true });
+      expect(db.attachments.cleanupOrphaned).toHaveBeenCalled();
       expect(deleted).toBe(1 + 2); // 1 FS orphan + 2 DB orphans
     });
 
@@ -279,6 +290,10 @@ describe('fileService', () => {
       // Should delete orphaned files from multiple directories
       expect(typeof deleted).toBe('number');
       expect(deleted).toBeGreaterThanOrEqual(1); // At least the DB cleanup count
+      const calls = require('expo-file-system').deleteAsync.mock.calls.map(([p]) => p);
+      expect(calls.some(p => p.endsWith('/images/orphan.jpg'))).toBe(true);
+      expect(calls.some(p => p.endsWith('/documents/orphan.pdf'))).toBe(true);
+      expect(calls.some(p => p.endsWith('/orphan.txt'))).toBe(true);
     });
   });
 
@@ -287,6 +302,7 @@ describe('fileService', () => {
       const db = require('../database');
       db.attachments.getTotalSize.mockResolvedValueOnce(12345);
       await expect(fileService.calculateStorageUsed()).resolves.toBe(12345);
+      expect(db.attachments.getTotalSize).toHaveBeenCalled();
     });
   });
 
@@ -298,7 +314,11 @@ describe('fileService', () => {
 
     test('validateFileType allows known types', () => {
       expect(fileService.validateFileType('image/jpeg')).toBe(true);
+      expect(fileService.validateFileType('image/webp')).toBe(true);
+      expect(fileService.validateFileType('image/heic')).toBe(true);
       expect(fileService.validateFileType('application/pdf')).toBe(true);
+      expect(fileService.validateFileType('audio/mpeg')).toBe(true);
+      expect(fileService.validateFileType('video/mp4')).toBe(true);
       expect(fileService.validateFileType('application/octet-stream')).toBe(false);
     });
   });
