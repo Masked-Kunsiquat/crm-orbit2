@@ -46,8 +46,12 @@ const freshFileService = () => {
   jest.resetModules();
   // database mock is mapped in jest.config.js; ensure other mocks stay active
   // errors and expo modules are already mocked at top
-  // Re-require after mocks are in place
-  return require('../fileService').fileService;
+  // Re-require after mocks are in place in isolated module scope
+  let fileService;
+  jest.isolateModules(() => {
+    fileService = require('../fileService').fileService;
+  });
+  return fileService;
 };
 
 describe('fileService', () => {

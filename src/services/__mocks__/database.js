@@ -11,6 +11,6 @@ const mockDb = {
   },
 };
 
-export default mockDb;
-module.exports = mockDb; // Support both ESM/CJS import styles in tests
+module.exports = mockDb;
+module.exports.default = mockDb; // Support both ESM/CJS import styles in tests
 
