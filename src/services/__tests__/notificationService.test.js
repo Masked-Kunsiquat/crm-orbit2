@@ -231,7 +231,7 @@ describe('notificationService', () => {
 
       db.settings.getValue.mockResolvedValue(30); // 30 minute lead time
 
-      const scheduledIds = await notificationService.scheduleRecurringReminders(event, 1);
+      const scheduledIds = await notificationService.scheduleRecurringReminders(event, 2);
 
       expect(scheduledIds.length).toBeGreaterThan(0);
       expect(Notifications.scheduleNotificationAsync).toHaveBeenCalled();

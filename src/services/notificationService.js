@@ -213,7 +213,7 @@ export const notificationService = {
       // Get default reminder settings from user preferences
       const reminderLeadTime = await this.getReminderLeadTime();
 
-      for (let year = 0; year <= yearsAhead; year++) {
+      for (let year = 0; year < yearsAhead; year++) {
         const eventDate = new Date(baseDate);
         eventDate.setFullYear(now.getFullYear() + year);
 
@@ -537,7 +537,7 @@ export const notificationService = {
           const baseDate = new Date(event.event_date);
 
           // Create reminders for next 2 years
-          for (let year = 0; year <= 2; year++) {
+          for (let year = 0; year < 2; year++) {
             const eventDate = new Date(baseDate);
             eventDate.setFullYear(now.getFullYear() + year);
 
