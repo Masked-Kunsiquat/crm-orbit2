@@ -9,7 +9,9 @@ module.exports = {
     'node_modules/(?!(expo-secure-store)/)'
   ],
   moduleNameMapper: {
-    '^expo-secure-store$': '<rootDir>/__mocks__/expo-secure-store.js'
+    '^expo-secure-store$': '<rootDir>/__mocks__/expo-secure-store.js',
+    // Map relative '../database' imports (from services) to a test mock
+    '^\.\./database$': '<rootDir>/src/services/__mocks__/database.js'
   },
 };
 

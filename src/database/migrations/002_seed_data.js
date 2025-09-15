@@ -2,7 +2,7 @@
 // Follows the format outlined in migrations/AGENTS.md
 // Exports: { version, name, up(dbOrCtx), down(dbOrCtx) }
 
-import { getExec, runAll, runAllSequential } from './_helpers.js';
+import { getExec } from './_helpers.js';
 
 // 1) System categories that cannot be deleted (is_system = 1)
 const SYSTEM_CATEGORIES = [
@@ -88,7 +88,7 @@ export default {
    */
   up: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
-    await runAll(exec, [...INSERT_CATEGORIES, ...INSERT_PREFERENCES]);
+    await exec.batch([...INSERT_CATEGORIES, ...INSERT_PREFERENCES]);
   },
 
   /**
@@ -97,11 +97,11 @@ export default {
    */
   down: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
-    // 1) Remove preferences (by exact keys)
-    await runAllSequential(exec, DELETE_PREFERENCES);
-    // 2) Unlink any contact-category references for these system categories
-    await runAllSequential(exec, DELETE_CONTACT_CATEGORY_LINKS);
-    // 3) Remove categories
-    await runAllSequential(exec, DELETE_CATEGORIES);
+    // Run all deletions atomically in a single transaction
+    await exec.batch([
+      ...DELETE_PREFERENCES,
+      ...DELETE_CONTACT_CATEGORY_LINKS,
+      ...DELETE_CATEGORIES,
+    ]);
   },
 };
