@@ -393,18 +393,48 @@ describe('notificationService', () => {
       expect(message).toContain('Birthday reminder: John Doe');
     });
 
-    test('formats recurring birthday with age calculation', () => {
+    test('formats recurring birthday with correct age calculation', () => {
       const event = {
         id: 1,
         title: 'John Doe',
         event_type: 'birthday',
-        event_date: '1990-06-15T00:00:00Z',
+        event_date: '1990-06-15T00:00:00Z', // Born June 15, 1990
       };
-      const eventDate = new Date('2023-06-15T00:00:00Z');
 
-      const message = notificationService.formatRecurringReminderMessage(event, eventDate);
+      // Test birthday on the exact birthday (should be 33)
+      const exactBirthday = new Date('2023-06-15T00:00:00Z');
+      const messageOnBirthday = notificationService.formatRecurringReminderMessage(event, exactBirthday);
+      expect(messageOnBirthday).toContain('Birthday reminder: John Doe (33 years old)');
 
-      expect(message).toContain('Birthday reminder: John Doe (33 years old)');
+      // Test before birthday in 2023 (should be 32)
+      const beforeBirthday = new Date('2023-06-14T00:00:00Z');
+      const messageBeforeBirthday = notificationService.formatRecurringReminderMessage(event, beforeBirthday);
+      expect(messageBeforeBirthday).toContain('Birthday reminder: John Doe (32 years old)');
+
+      // Test after birthday in 2023 (should be 33)
+      const afterBirthday = new Date('2023-06-16T00:00:00Z');
+      const messageAfterBirthday = notificationService.formatRecurringReminderMessage(event, afterBirthday);
+      expect(messageAfterBirthday).toContain('Birthday reminder: John Doe (33 years old)');
+    });
+
+    test('handles edge case birthdays correctly', () => {
+      // Test December birthday in following January (common edge case)
+      const decemberBirthdayEvent = {
+        id: 2,
+        title: 'Jane Smith',
+        event_type: 'birthday',
+        event_date: '1995-12-25T00:00:00Z', // Born December 25, 1995
+      };
+
+      // January reminder in 2024 (birthday hasn't occurred yet this year)
+      const januaryReminder = new Date('2024-01-15T00:00:00Z');
+      const messageInJanuary = notificationService.formatRecurringReminderMessage(decemberBirthdayEvent, januaryReminder);
+      expect(messageInJanuary).toContain('Birthday reminder: Jane Smith (28 years old)');
+
+      // December reminder in 2024 (birthday has occurred)
+      const decemberReminder = new Date('2024-12-25T00:00:00Z');
+      const messageInDecember = notificationService.formatRecurringReminderMessage(decemberBirthdayEvent, decemberReminder);
+      expect(messageInDecember).toContain('Birthday reminder: Jane Smith (29 years old)');
     });
   });
 

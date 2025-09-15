@@ -460,7 +460,18 @@ export const notificationService = {
     let message = '';
 
     if (event.event_type === 'birthday') {
-      const age = eventDate.getFullYear() - new Date(event.event_date).getFullYear();
+      const birthDate = new Date(event.event_date);
+      const currentYear = eventDate.getFullYear();
+
+      // Calculate age properly by checking if birthday has occurred this year
+      let age = currentYear - birthDate.getFullYear();
+
+      // Check if birthday hasn't occurred yet this year
+      const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+      if (eventDate < birthdayThisYear) {
+        age -= 1;
+      }
+
       message = `Birthday reminder: ${event.title} (${age} years old) - ${eventTime}`;
     } else {
       message = `Recurring event: ${event.title} - ${eventTime}`;
