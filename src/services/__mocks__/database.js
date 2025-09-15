@@ -17,6 +17,7 @@ const mockDb = {
     getUnsentRemindersByEvent: jest.fn(async () => []),
     getUnsentReminders: jest.fn(async () => []),
     markReminderSent: jest.fn(async () => ({ success: true })),
+    updateReminderDateTime: jest.fn(async (id, datetime) => ({ id, reminder_datetime: datetime })),
   },
   settings: {
     getValue: jest.fn(async () => null),

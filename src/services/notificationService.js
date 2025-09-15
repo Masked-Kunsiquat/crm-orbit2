@@ -108,20 +108,33 @@ export const notificationService = {
    */
   async scheduleReminder(reminder, event) {
     try {
-      const reminderTime = new Date(reminder.reminder_datetime);
+      const originalReminderTime = new Date(reminder.reminder_datetime);
       const now = new Date();
 
       // Don't schedule past reminders
-      if (reminderTime <= now) {
-        console.warn(`Reminder time ${reminderTime.toISOString()} is in the past, skipping`);
+      if (originalReminderTime <= now) {
+        console.warn(`Reminder time ${originalReminderTime.toISOString()} is in the past, skipping`);
         return null;
       }
 
-      // Check quiet hours
-      if (await this.isInQuietHours(reminderTime)) {
-        reminderTime.setHours(await this.getQuietHoursEnd());
-        reminderTime.setMinutes(0);
-        reminderTime.setSeconds(0);
+      // Create a copy for scheduling (do not mutate the original)
+      let scheduledTime = new Date(originalReminderTime);
+
+      // Check quiet hours and adjust if necessary
+      if (await this.isInQuietHours(originalReminderTime)) {
+        // Create adjusted time for quiet hours
+        scheduledTime = new Date(originalReminderTime);
+        scheduledTime.setHours(await this.getQuietHoursEnd());
+        scheduledTime.setMinutes(0);
+        scheduledTime.setSeconds(0);
+
+        // Persist the adjusted time back to the database
+        await db.eventsReminders.updateReminderDateTime(
+          reminder.id,
+          scheduledTime.toISOString()
+        );
+
+        console.log(`Reminder ${reminder.id} adjusted for quiet hours from ${originalReminderTime.toISOString()} to ${scheduledTime.toISOString()}`);
       }
 
       const content = {
@@ -135,7 +148,7 @@ export const notificationService = {
       };
 
       const trigger = {
-        date: reminderTime,
+        date: scheduledTime,
         channelId: Platform.OS === 'android' ? 'event-reminders' : undefined,
       };
 
