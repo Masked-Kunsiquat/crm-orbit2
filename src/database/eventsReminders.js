@@ -285,7 +285,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       offset = Number.isFinite(offset) && offset >= 0 ? Math.floor(offset) : 0;
       const now = new Date();
       const future = new Date(now.getTime() + (hours * 60 * 60 * 1000));
-      
+
       const sql = `SELECT r.*, e.title, e.event_date, e.contact_id, c.display_name as contact_name
                    FROM event_reminders r
                    JOIN events e ON r.event_id = e.id
@@ -293,9 +293,140 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    WHERE r.is_sent = 0 AND r.reminder_datetime BETWEEN ? AND ?
                    ORDER BY r.reminder_datetime ASC
                    LIMIT ? OFFSET ?;`;
-      
+
       const res = await execute(sql, [formatSQLiteDateTime(now), formatSQLiteDateTime(future), limit, offset]);
       return res.rows.map(convertBooleanFields);
+    },
+
+    /**
+     * Get all unsent reminders for a specific event
+     * @param {number} eventId - Event ID
+     * @returns {Promise<object[]>} Unsent reminders for the event
+     */
+    async getUnsentRemindersByEvent(eventId) {
+      const sql = `SELECT * FROM event_reminders
+                   WHERE event_id = ? AND is_sent = 0
+                   ORDER BY reminder_datetime ASC;`;
+
+      const res = await execute(sql, [eventId]);
+      return res.rows.map(convertBooleanFields);
+    },
+
+    /**
+     * Get all unsent reminders across all events
+     * @returns {Promise<object[]>} All unsent reminders
+     */
+    async getUnsentReminders() {
+      const sql = `SELECT r.*, e.title, e.event_date, e.contact_id
+                   FROM event_reminders r
+                   JOIN events e ON r.event_id = e.id
+                   WHERE r.is_sent = 0
+                   ORDER BY r.reminder_datetime ASC;`;
+
+      const res = await execute(sql);
+      return res.rows.map(convertBooleanFields);
+    },
+
+    /**
+     * Update a specific reminder's datetime
+     * @param {number} reminderId - Reminder ID
+     * @param {string} newDateTime - New reminder datetime (ISO string)
+     * @returns {Promise<object|null>} Updated reminder
+     */
+    async updateReminderDateTime(reminderId, newDateTime) {
+      if (!reminderId || !newDateTime) {
+        throw new DatabaseError('Missing required fields: reminderId, newDateTime', 'VALIDATION_ERROR');
+      }
+
+      try {
+        await execute(
+          'UPDATE event_reminders SET reminder_datetime = ? WHERE id = ?;',
+          [newDateTime, reminderId]
+        );
+
+        const res = await execute('SELECT * FROM event_reminders WHERE id = ?;', [reminderId]);
+        return convertBooleanFields(res.rows[0]) || null;
+      } catch (error) {
+        throw new DatabaseError('Failed to update reminder datetime', 'UPDATE_FAILED', error);
+      }
+    },
+
+    /**
+     * Mark reminders as scheduled with notification IDs
+     * @param {Array<{reminderId: number, notificationId: string}>} scheduledItems - Reminders to mark as scheduled
+     * @returns {Promise<number>} Number of reminders marked as scheduled
+     */
+    async markRemindersScheduled(scheduledItems) {
+      if (!Array.isArray(scheduledItems) || scheduledItems.length === 0) {
+        return 0;
+      }
+
+      let updated = 0;
+      for (const { reminderId, notificationId } of scheduledItems) {
+        if (reminderId && notificationId) {
+          await execute(
+            'UPDATE event_reminders SET notification_id = ?, is_sent = 0 WHERE id = ?;',
+            [notificationId, reminderId]
+          );
+          updated++;
+        }
+      }
+      return updated;
+    },
+
+    /**
+     * Mark reminders as failed to schedule
+     * @param {number[]} reminderIds - Array of reminder IDs that failed to schedule
+     * @returns {Promise<number>} Number of reminders marked as failed
+     */
+    async markRemindersFailed(reminderIds) {
+      if (!Array.isArray(reminderIds) || reminderIds.length === 0) {
+        return 0;
+      }
+
+      let updated = 0;
+      for (const reminderId of reminderIds) {
+        if (reminderId) {
+          // We could add a 'failed_at' timestamp or 'status' field in future migrations
+          // For now, just keep them as not sent (is_sent = 0) so they can be retried
+          await execute(
+            'UPDATE event_reminders SET notification_id = NULL WHERE id = ?;',
+            [reminderId]
+          );
+          updated++;
+        }
+      }
+      return updated;
+    },
+
+    /**
+     * Create reminders for recurring events in batch
+     * @param {Array<{event_id: number, reminder_datetime: string, reminder_type: string}>} reminderData - Array of reminder data
+     * @returns {Promise<object[]>} Created reminders
+     */
+    async createRecurringReminders(reminderData) {
+      if (!Array.isArray(reminderData) || reminderData.length === 0) {
+        return [];
+      }
+
+      const created = [];
+      for (const data of reminderData) {
+        const reminder = pick(data, REMINDER_FIELDS);
+        reminder.is_sent = false; // Ensure new reminders are not marked as sent
+
+        const fields = Object.keys(reminder);
+        const values = Object.values(reminder);
+
+        const sql = `INSERT INTO event_reminders (${fields.join(', ')}, created_at)
+                     VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
+
+        const res = await execute(sql, values);
+        if (res.insertId) {
+          const newReminder = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
+          created.push(convertBooleanFields(newReminder.rows[0]));
+        }
+      }
+      return created;
     }
   };
 }

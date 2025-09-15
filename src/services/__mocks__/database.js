@@ -9,6 +9,42 @@ const mockDb = {
     cleanupOrphaned: jest.fn(async () => ({ success: true, deletedCount: 0 })),
     getTotalSize: jest.fn(async () => 0),
   },
+  events: {
+    getById: jest.fn(async () => null),
+    getRecurringEvents: jest.fn(async () => []),
+  },
+  eventsReminders: {
+    getUnsentRemindersByEvent: jest.fn(async () => []),
+    getUnsentReminders: jest.fn(async () => []),
+    markReminderSent: jest.fn(async () => ({ success: true })),
+    updateReminderDateTime: jest.fn(async (id, datetime) => ({ id, reminder_datetime: datetime })),
+    markRemindersScheduled: jest.fn(async (items) => items.length),
+    markRemindersFailed: jest.fn(async (ids) => ids.length),
+    createRecurringReminders: jest.fn(async (data) => data.map((d, i) => ({ id: i + 1, ...d }))),
+  },
+  settings: {
+    getValue: jest.fn(async () => null),
+    getValues: jest.fn(async (category, keys) => {
+      // Return an object with null values for all requested keys
+      const result = {};
+      const normalizedKeys = keys.map(k => typeof k === 'string' ? k : k.key);
+      normalizedKeys.forEach(key => {
+        result[key] = null;
+      });
+      return result;
+    }),
+  },
+  // Mock transaction method
+  transaction: jest.fn(async (callback) => {
+    const mockTx = {
+      execute: jest.fn(async (sql, params) => ({
+        rows: [],
+        rowsAffected: 0,
+        insertId: null
+      }))
+    };
+    return await callback(mockTx);
+  }),
 };
 
 module.exports = mockDb;
