@@ -290,10 +290,10 @@ describe('notificationService', () => {
 
   describe('quiet hours', () => {
     test('identifies time within overnight quiet hours', async () => {
-      db.settings.getValue.mockImplementation((category, key) => {
-        if (key === 'quiet_hours_enabled') return Promise.resolve(true);
-        if (key === 'quiet_hours_start') return Promise.resolve(22); // 10 PM
-        if (key === 'quiet_hours_end') return Promise.resolve(8); // 8 AM
+      db.settings.getValues.mockResolvedValue({
+        quiet_hours_enabled: true,
+        quiet_hours_start: 22, // 10 PM
+        quiet_hours_end: 8 // 8 AM
       });
 
       const lateNight = new Date();
@@ -311,16 +311,36 @@ describe('notificationService', () => {
     });
 
     test('respects disabled quiet hours', async () => {
-      db.settings.getValue.mockImplementation((category, key) => {
-        if (key === 'quiet_hours_enabled') return Promise.resolve(false);
-        if (key === 'quiet_hours_start') return Promise.resolve(22);
-        if (key === 'quiet_hours_end') return Promise.resolve(8);
+      db.settings.getValues.mockResolvedValue({
+        quiet_hours_enabled: false,
+        quiet_hours_start: 22,
+        quiet_hours_end: 8
       });
 
       const lateNight = new Date();
       lateNight.setHours(23, 0, 0, 0);
 
       expect(await notificationService.isInQuietHours(lateNight)).toBe(false);
+    });
+
+    test('uses batch settings retrieval for quiet hours', async () => {
+      db.settings.getValues.mockResolvedValue({
+        quiet_hours_enabled: true,
+        quiet_hours_start: 22,
+        quiet_hours_end: 8
+      });
+
+      await notificationService.getQuietHoursSettings();
+
+      // Verify getValues was called with the correct parameters
+      expect(db.settings.getValues).toHaveBeenCalledWith('notifications', [
+        { key: 'quiet_hours_enabled', expectedType: 'boolean' },
+        { key: 'quiet_hours_start', expectedType: 'number' },
+        { key: 'quiet_hours_end', expectedType: 'number' }
+      ]);
+
+      // Should only make one database call instead of three
+      expect(db.settings.getValues).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -369,14 +369,141 @@ export function createSettingsDB({ execute, batch, transaction }) {
       }
 
       if (currentSetting.dataType !== 'number') {
-        throw new DatabaseError(`Setting '${settingKey}' is not a number type`, 'INVALID_TYPE_FOR_INCREMENT', null, { 
-          settingKey, 
-          currentType: currentSetting.dataType 
+        throw new DatabaseError(`Setting '${settingKey}' is not a number type`, 'INVALID_TYPE_FOR_INCREMENT', null, {
+          settingKey,
+          currentType: currentSetting.dataType
         });
       }
 
       const newValue = currentSetting.value + amount;
       return this.set(settingKey, newValue, 'number');
+    },
+
+    /**
+     * Convenience method to get a setting value by category and key
+     * @param {string} category - Setting category
+     * @param {string} key - Setting key within the category
+     * @param {string} [expectedType] - Expected data type for validation
+     * @returns {Promise<any>} Setting value or null if not found
+     */
+    async getValue(category, key, expectedType = null) {
+      if (!category || typeof category !== 'string') {
+        throw new DatabaseError('Category must be a non-empty string', 'VALIDATION_ERROR', null, { category });
+      }
+      if (!key || typeof key !== 'string') {
+        throw new DatabaseError('Key must be a non-empty string', 'VALIDATION_ERROR', null, { key });
+      }
+
+      const settingKey = `${category}.${key}`;
+      const setting = await this.get(settingKey);
+
+      if (!setting) {
+        return null;
+      }
+
+      // Optional type validation
+      if (expectedType && setting.dataType !== expectedType) {
+        throw new DatabaseError(
+          `Setting '${settingKey}' has type '${setting.dataType}' but expected '${expectedType}'`,
+          'TYPE_MISMATCH_ERROR',
+          null,
+          { settingKey, actualType: setting.dataType, expectedType }
+        );
+      }
+
+      return setting.value;
+    },
+
+    /**
+     * Get multiple settings values in a single database operation
+     * @param {string} category - Setting category
+     * @param {Array<string|{key: string, expectedType?: string}>} keys - Array of keys or key objects with optional type validation
+     * @returns {Promise<Object>} Object mapping keys to their values
+     */
+    async getValues(category, keys) {
+      if (!category || typeof category !== 'string') {
+        throw new DatabaseError('Category must be a non-empty string', 'VALIDATION_ERROR', null, { category });
+      }
+      if (!Array.isArray(keys) || keys.length === 0) {
+        throw new DatabaseError('Keys must be a non-empty array', 'VALIDATION_ERROR', null, { keys });
+      }
+
+      // Normalize keys to objects with key and optional expectedType
+      const normalizedKeys = keys.map(k => {
+        if (typeof k === 'string') {
+          return { key: k };
+        }
+        if (typeof k === 'object' && k.key) {
+          return k;
+        }
+        throw new DatabaseError('Each key must be a string or object with key property', 'VALIDATION_ERROR', null, { key: k });
+      });
+
+      // Build SQL to get all settings at once
+      const settingKeys = normalizedKeys.map(k => `${category}.${k.key}`);
+      const placeholders = settingKeys.map(() => '?').join(', ');
+
+      const sql = `
+        SELECT setting_key, setting_value, data_type, is_enabled
+        FROM user_preferences
+        WHERE category = ? AND setting_key IN (${placeholders})
+      `;
+
+      try {
+        const result = await execute(sql, [category, ...settingKeys]);
+
+        const values = {};
+
+        // Process database results
+        const dbSettings = new Map();
+        result.rows.forEach(row => {
+          const keyPart = row.setting_key.substring(category.length + 1); // Remove "category." prefix
+          dbSettings.set(keyPart, {
+            value: castValue(row.setting_value, row.data_type),
+            dataType: row.data_type,
+            isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true
+          });
+        });
+
+        // Fill in values, checking defaults for missing keys
+        for (const keyObj of normalizedKeys) {
+          const { key, expectedType } = keyObj;
+          const fullKey = `${category}.${key}`;
+
+          let value = null;
+          let dataType = null;
+
+          if (dbSettings.has(key)) {
+            const dbSetting = dbSettings.get(key);
+            value = dbSetting.value;
+            dataType = dbSetting.dataType;
+          } else {
+            // Check for default value
+            const defaultSetting = DEFAULT_SETTINGS[fullKey];
+            if (defaultSetting) {
+              value = defaultSetting.value;
+              dataType = defaultSetting.type;
+            }
+          }
+
+          // Optional type validation
+          if (expectedType && dataType && dataType !== expectedType) {
+            throw new DatabaseError(
+              `Setting '${fullKey}' has type '${dataType}' but expected '${expectedType}'`,
+              'TYPE_MISMATCH_ERROR',
+              null,
+              { settingKey: fullKey, actualType: dataType, expectedType }
+            );
+          }
+
+          values[key] = value;
+        }
+
+        return values;
+      } catch (error) {
+        if (error instanceof DatabaseError) throw error;
+        throw new DatabaseError('Failed to get multiple values', 'GET_VALUES_FAILED', error, { category, keys: normalizedKeys });
+      }
     }
   };
 }

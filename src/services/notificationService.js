@@ -387,11 +387,17 @@ export const notificationService = {
    */
   async getQuietHoursSettings() {
     try {
-      const enabled = await db.settings.getValue('notifications', 'quiet_hours_enabled', 'boolean') ?? DEFAULT_QUIET_HOURS.enabled;
-      const startHour = await db.settings.getValue('notifications', 'quiet_hours_start', 'number') ?? DEFAULT_QUIET_HOURS.startHour;
-      const endHour = await db.settings.getValue('notifications', 'quiet_hours_end', 'number') ?? DEFAULT_QUIET_HOURS.endHour;
+      const settings = await db.settings.getValues('notifications', [
+        { key: 'quiet_hours_enabled', expectedType: 'boolean' },
+        { key: 'quiet_hours_start', expectedType: 'number' },
+        { key: 'quiet_hours_end', expectedType: 'number' }
+      ]);
 
-      return { enabled, startHour, endHour };
+      return {
+        enabled: settings.quiet_hours_enabled ?? DEFAULT_QUIET_HOURS.enabled,
+        startHour: settings.quiet_hours_start ?? DEFAULT_QUIET_HOURS.startHour,
+        endHour: settings.quiet_hours_end ?? DEFAULT_QUIET_HOURS.endHour
+      };
     } catch (error) {
       throw new ServiceError('notificationService', 'getQuietHoursSettings', error);
     }

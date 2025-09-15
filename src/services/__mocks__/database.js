@@ -24,6 +24,15 @@ const mockDb = {
   },
   settings: {
     getValue: jest.fn(async () => null),
+    getValues: jest.fn(async (category, keys) => {
+      // Return an object with null values for all requested keys
+      const result = {};
+      const normalizedKeys = keys.map(k => typeof k === 'string' ? k : k.key);
+      normalizedKeys.forEach(key => {
+        result[key] = null;
+      });
+      return result;
+    }),
   },
   // Mock transaction method
   transaction: jest.fn(async (callback) => {
