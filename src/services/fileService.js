@@ -149,7 +149,8 @@ export const fileService = {
 
       const fileType = getFileType(mimeType);
       const uuid = Crypto.randomUUID();
-      const fileExtension = originalName.split('.').pop();
+      const parts = originalName.split('.');
+      const fileExtension = parts.length > 1 ? parts.pop().toLowerCase() : '';
       const fileName = `${uuid}.${fileExtension}`;
 
       directory = getFileDirectory(fileType);
@@ -316,8 +317,8 @@ export const fileService = {
         }
         
         const dbOrphans = await db.attachments.cleanupOrphaned();
-
-        return orphanedCount + dbOrphans.deletedCount;
+        const deleted = (dbOrphans && typeof dbOrphans.deletedCount === 'number') ? dbOrphans.deletedCount : 0;
+        return orphanedCount + deleted;
     } catch (error) {
         throw new ServiceError('fileService', 'cleanOrphanedFiles', error);
     }

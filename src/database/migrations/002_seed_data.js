@@ -97,9 +97,11 @@ export default {
    */
   down: async (dbOrCtx) => {
     const exec = getExec(dbOrCtx);
-    // The batch function in the adapter runs these sequentially in a transaction.
-    await exec.batch(DELETE_PREFERENCES);
-    await exec.batch(DELETE_CONTACT_CATEGORY_LINKS);
-    await exec.batch(DELETE_CATEGORIES);
+    // Run all deletions atomically in a single transaction
+    await exec.batch([
+      ...DELETE_PREFERENCES,
+      ...DELETE_CONTACT_CATEGORY_LINKS,
+      ...DELETE_CATEGORIES,
+    ]);
   },
 };
