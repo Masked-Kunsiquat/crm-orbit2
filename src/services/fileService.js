@@ -15,7 +15,7 @@ const FILE_CONFIG = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   THUMBNAIL_SIZE: { width: 150, height: 150 },
   ALLOWED_TYPES: {
-    image: ['image/jpeg', 'image/png', 'image/gif'],
+    image: ['image/jpeg', 'image/png', 'image/gif', 'image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence', 'image/webp'],
     document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
     audio: ['audio/mpeg', 'audio/m4a'],
     video: ['video/mp4', 'video/quicktime']
@@ -60,6 +60,52 @@ const getFileDirectory = (fileType) => {
     }
 };
 
+/**
+ * Detect MIME type from filename extension.
+ *
+ * @param {string} name - The filename including extension.
+ * @returns {string|null} The detected MIME type or null if unknown.
+ */
+function detectMimeTypeFromName(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const map = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+    pdf: 'application/pdf', doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    mp3: 'audio/mpeg', m4a: 'audio/m4a',
+    mp4: 'video/mp4', mov: 'video/quicktime'
+  };
+  return map[ext] || null;
+}
+
+/**
+ * Recursively list all files in a directory, skipping subdirectories.
+ *
+ * @param {string} dir - Directory path to scan recursively.
+ * @returns {Promise<string[]>} Array of absolute file paths.
+ */
+const listFilesRecursively = async (dir) => {
+    const files = [];
+    try {
+        const entries = await FileSystem.readDirectoryAsync(dir);
+        for (const entry of entries) {
+            const fullPath = `${dir}/${entry}`;
+            const info = await FileSystem.getInfoAsync(fullPath);
+            if (info.isDirectory) {
+                const subFiles = await listFilesRecursively(fullPath);
+                files.push(...subFiles);
+            } else {
+                files.push(fullPath);
+            }
+        }
+    } catch (error) {
+        // Directory doesn't exist or can't be read, return empty array
+        console.warn(`Could not read directory ${dir}:`, error.message);
+    }
+    return files;
+};
+
 
 export const fileService = {
   /**
@@ -82,36 +128,44 @@ export const fileService = {
    * @throws {ServiceError} Wrapped underlying errors with context.
    */
   async saveFile(uri, originalName, entityType, entityId) {
+    let destPath = null;
+    let thumbnailPath = null;
+    let directory = null;
+
     try {
       const fileInfo = await FileSystem.getInfoAsync(uri);
       if (!fileInfo.exists) {
         throw new Error('File does not exist at provided URI.');
       }
 
-      if (!this.validateFileSize(fileInfo.size)) {
-        throw new Error('File size exceeds the 10MB limit.');
+      if (fileInfo.size !== undefined && !this.validateFileSize(fileInfo.size)) {
+        throw new Error(`File size exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`);
       }
-      
-      const mimeType = 'application/octet-stream';
-      
+
+      const mimeType = detectMimeTypeFromName(originalName) ?? 'application/octet-stream';
       if (!this.validateFileType(mimeType)) {
-          console.warn(`Unsupported file type: ${mimeType}. Saving as document.`);
+        throw new Error(`Unsupported file type: ${mimeType}`);
       }
 
       const fileType = getFileType(mimeType);
       const uuid = Crypto.randomUUID();
       const fileExtension = originalName.split('.').pop();
       const fileName = `${uuid}.${fileExtension}`;
-      
-      const directory = getFileDirectory(fileType);
-      await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
-      
-      const newPath = `${directory}/${fileName}`;
-      await FileSystem.copyAsync({ from: uri, to: newPath });
 
-      let thumbnailPath = null;
+      directory = getFileDirectory(fileType);
+      await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+
+      destPath = `${directory}/${fileName}`;
+      await FileSystem.copyAsync({ from: uri, to: destPath });
+
+      const savedFileInfo = await FileSystem.getInfoAsync(destPath);
+      if (savedFileInfo.size && savedFileInfo.size > FILE_CONFIG.MAX_FILE_SIZE) {
+        await FileSystem.deleteAsync(destPath, { idempotent: true });
+        throw new Error(`Saved file size (${(savedFileInfo.size / (1024 * 1024)).toFixed(2)}MB) exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`);
+      }
+
       if (fileType === 'image') {
-        thumbnailPath = await this.generateThumbnail(newPath, uuid);
+        thumbnailPath = await this.generateThumbnail(destPath, uuid);
       }
 
       const attachmentData = {
@@ -119,7 +173,7 @@ export const fileService = {
         entity_id: entityId,
         file_name: fileName,
         original_name: originalName,
-        file_path: newPath,
+        file_path: destPath,
         file_type: fileType,
         mime_type: mimeType,
         file_size: fileInfo.size,
@@ -128,6 +182,16 @@ export const fileService = {
 
       return await db.attachments.create(attachmentData);
     } catch (error) {
+      try {
+        if (destPath) {
+          await FileSystem.deleteAsync(destPath, { idempotent: true });
+        }
+        if (thumbnailPath) {
+          await FileSystem.deleteAsync(thumbnailPath, { idempotent: true });
+        }
+      } catch (cleanupError) {
+        console.error('Failed to cleanup files during error handling:', cleanupError);
+      }
       throw new ServiceError('fileService', 'saveFile', error);
     }
   },
@@ -194,16 +258,6 @@ export const fileService = {
         await FileSystem.makeDirectoryAsync(thumbnailDir, { intermediates: true });
         const thumbnailPath = `${thumbnailDir}/${uuid}_thumb.jpg`;
 
-        await ImageManipulator.manipulateAsync(
-            imageUri,
-            [{ resize: FILE_CONFIG.THUMBNAIL_SIZE }],
-            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG, base64: false }
-        );
-
-        // The above line doesn't save the file, it returns a result.
-        // Let's assume for now that a file is created at the same path with a suffix.
-        // This part of expo-image-manipulator is tricky.
-        // A better approach is to get the result and save it.
         const manipResult = await ImageManipulator.manipulateAsync(
             imageUri,
             [{ resize: FILE_CONFIG.THUMBNAIL_SIZE }],
@@ -248,14 +302,16 @@ export const fileService = {
         const allDbPaths = new Set(allDbAttachments.map(a => a.file_path).concat(allDbAttachments.map(a => a.thumbnail_path)));
 
         const attachmentsDir = `${FileSystem.documentDirectory}attachments`;
-        const fileSystemAttachments = await FileSystem.readDirectoryAsync(attachmentsDir);
+        const fileSystemAttachments = await listFilesRecursively(attachmentsDir);
 
         let orphanedCount = 0;
-        for (const file of fileSystemAttachments) {
-            const filePath = `${attachmentsDir}/${file}`;
+        for (const filePath of fileSystemAttachments) {
             if (!allDbPaths.has(filePath)) {
-                await FileSystem.deleteAsync(filePath, { idempotent: true });
-                orphanedCount++;
+                const fileInfo = await FileSystem.getInfoAsync(filePath);
+                if (fileInfo.exists && !fileInfo.isDirectory) {
+                    await FileSystem.deleteAsync(filePath, { idempotent: true });
+                    orphanedCount++;
+                }
             }
         }
         
