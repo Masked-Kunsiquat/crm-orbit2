@@ -18,10 +18,24 @@ const mockDb = {
     getUnsentReminders: jest.fn(async () => []),
     markReminderSent: jest.fn(async () => ({ success: true })),
     updateReminderDateTime: jest.fn(async (id, datetime) => ({ id, reminder_datetime: datetime })),
+    markRemindersScheduled: jest.fn(async (items) => items.length),
+    markRemindersFailed: jest.fn(async (ids) => ids.length),
+    createRecurringReminders: jest.fn(async (data) => data.map((d, i) => ({ id: i + 1, ...d }))),
   },
   settings: {
     getValue: jest.fn(async () => null),
   },
+  // Mock transaction method
+  transaction: jest.fn(async (callback) => {
+    const mockTx = {
+      execute: jest.fn(async (sql, params) => ({
+        rows: [],
+        rowsAffected: 0,
+        insertId: null
+      }))
+    };
+    return await callback(mockTx);
+  }),
 };
 
 module.exports = mockDb;

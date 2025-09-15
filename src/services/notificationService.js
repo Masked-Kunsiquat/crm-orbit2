@@ -470,39 +470,200 @@ export const notificationService = {
   },
 
   /**
-   * Sync all pending reminders with the notification system
-   * @returns {Promise<{scheduled: number, cancelled: number}>}
+   * Sync all pending reminders with the notification system using atomic transactions
+   * @returns {Promise<{scheduled: number, failed: number, cancelled: number}>}
    */
   async syncAllReminders() {
+    let cleanupResult = { cancelledCount: 0, markedSentCount: 0 };
+    let pendingReminders = [];
+    let recurringEvents = [];
+    let newRecurringReminders = [];
+    let scheduledItems = [];
+    let failedItems = [];
+
     try {
-      // First, clean up any expired notifications
-      await this.cleanupNotifications();
+      // Phase 1: Atomic database operations in transaction
+      await db.transaction(async (tx) => {
+        // Clean up expired notifications (this involves external calls, so get data first)
+        const scheduled = await this.getScheduledNotifications();
+        const now = new Date();
+        const expiredNotifications = scheduled.filter(
+          notification => new Date(notification.trigger.date) <= now
+        );
 
-      // Get all pending reminders from the database
-      const pendingReminders = await db.eventsReminders.getUnsentReminders();
+        // Mark expired reminders as sent in the database
+        for (const notification of expiredNotifications) {
+          const reminderId = notification.content.data?.reminderId;
+          if (reminderId) {
+            await tx.execute(
+              'UPDATE event_reminders SET is_sent = 1 WHERE id = ?;',
+              [reminderId]
+            );
+            cleanupResult.markedSentCount++;
+          }
+        }
 
-      let scheduled = 0;
+        // Get pending reminders that need scheduling
+        const reminderRes = await tx.execute(
+          `SELECT r.*, e.title, e.event_date, e.contact_id
+           FROM event_reminders r
+           JOIN events e ON r.event_id = e.id
+           WHERE r.is_sent = 0 AND r.notification_id IS NULL
+           ORDER BY r.reminder_datetime ASC;`
+        );
+        pendingReminders = reminderRes.rows;
 
-      for (const reminder of pendingReminders) {
-        // Get the associated event
-        const event = await db.events.getById(reminder.event_id);
-        if (event) {
-          const notificationId = await this.scheduleReminder(reminder, event);
-          if (notificationId) {
-            scheduled++;
+        // Get recurring events that need new reminders
+        const recurringRes = await tx.execute(
+          'SELECT * FROM events WHERE recurring = 1;'
+        );
+        recurringEvents = recurringRes.rows;
+
+        // Generate new recurring reminder records for the next period
+        const reminderLeadTime = await this.getReminderLeadTime();
+
+        for (const event of recurringEvents) {
+          const baseDate = new Date(event.event_date);
+
+          // Create reminders for next 2 years
+          for (let year = 0; year <= 2; year++) {
+            const eventDate = new Date(baseDate);
+            eventDate.setFullYear(now.getFullYear() + year);
+
+            if (eventDate <= now && year === 0) continue;
+
+            const reminderTime = new Date(eventDate);
+            reminderTime.setMinutes(reminderTime.getMinutes() - reminderLeadTime);
+
+            if (reminderTime <= now) continue;
+
+            // Check if this reminder already exists
+            const existingRes = await tx.execute(
+              'SELECT id FROM event_reminders WHERE event_id = ? AND reminder_datetime = ?;',
+              [event.id, reminderTime.toISOString()]
+            );
+
+            if (existingRes.rows.length === 0) {
+              // Create new recurring reminder
+              const reminderRes = await tx.execute(
+                `INSERT INTO event_reminders (event_id, reminder_datetime, reminder_type, is_sent, created_at)
+                 VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP);`,
+                [event.id, reminderTime.toISOString(), 'notification']
+              );
+
+              if (reminderRes.insertId) {
+                newRecurringReminders.push({
+                  id: reminderRes.insertId,
+                  event_id: event.id,
+                  reminder_datetime: reminderTime.toISOString(),
+                  reminder_type: 'notification',
+                  is_sent: false,
+                  title: event.title,
+                  event_date: event.event_date,
+                  contact_id: event.contact_id
+                });
+              }
+            }
+          }
+        }
+      });
+
+      // Phase 2: External scheduling operations (after successful DB transaction)
+      // (scheduledItems and failedItems already declared above)
+
+      // Cancel expired notifications from external scheduler
+      if (cleanupResult.markedSentCount > 0) {
+        const scheduled = await this.getScheduledNotifications();
+        const now = new Date();
+        for (const notification of scheduled) {
+          const triggerDate = new Date(notification.trigger.date);
+          if (triggerDate <= now) {
+            try {
+              await this.cancelNotification(notification.identifier);
+              cleanupResult.cancelledCount++;
+            } catch (error) {
+              console.warn(`Failed to cancel expired notification ${notification.identifier}:`, error.message);
+            }
           }
         }
       }
 
-      // Schedule recurring events
-      const recurringEvents = await db.events.getRecurringEvents();
-      for (const event of recurringEvents) {
-        const recurringIds = await this.scheduleRecurringReminders(event);
-        scheduled += recurringIds.length;
+      // Schedule pending reminders
+      for (const reminder of pendingReminders) {
+        try {
+          const notificationId = await this.scheduleReminder(reminder, reminder);
+          if (notificationId) {
+            scheduledItems.push({ reminderId: reminder.id, notificationId });
+          } else {
+            failedItems.push(reminder.id);
+          }
+        } catch (error) {
+          console.warn(`Failed to schedule reminder ${reminder.id}:`, error.message);
+          failedItems.push(reminder.id);
+        }
       }
 
-      return { scheduled, cancelled: 0 };
+      // Schedule new recurring reminders
+      for (const reminder of newRecurringReminders) {
+        try {
+          const notificationId = await this.scheduleReminder(reminder, reminder);
+          if (notificationId) {
+            scheduledItems.push({ reminderId: reminder.id, notificationId });
+          } else {
+            failedItems.push(reminder.id);
+          }
+        } catch (error) {
+          console.warn(`Failed to schedule recurring reminder ${reminder.id}:`, error.message);
+          failedItems.push(reminder.id);
+        }
+      }
+
+      // Phase 3: Update database with scheduling results in new transaction
+      await db.transaction(async (tx) => {
+        // Mark successfully scheduled reminders
+        if (scheduledItems.length > 0) {
+          for (const { reminderId, notificationId } of scheduledItems) {
+            await tx.execute(
+              'UPDATE event_reminders SET notification_id = ? WHERE id = ?;',
+              [notificationId, reminderId]
+            );
+          }
+        }
+
+        // Mark failed reminders (clear notification_id so they can be retried)
+        if (failedItems.length > 0) {
+          for (const reminderId of failedItems) {
+            await tx.execute(
+              'UPDATE event_reminders SET notification_id = NULL WHERE id = ?;',
+              [reminderId]
+            );
+          }
+        }
+      });
+
+      console.log(`Sync completed: ${scheduledItems.length} scheduled, ${failedItems.length} failed, ${cleanupResult.cancelledCount} cancelled`);
+
+      return {
+        scheduled: scheduledItems.length,
+        failed: failedItems.length,
+        cancelled: cleanupResult.cancelledCount
+      };
+
     } catch (error) {
+      console.error('Sync failed, attempting cleanup...', error);
+
+      // Attempt to rollback any partial external scheduling
+      if (scheduledItems.length > 0) {
+        console.log(`Rolling back ${scheduledItems.length} scheduled notifications...`);
+        for (const { notificationId } of scheduledItems) {
+          try {
+            await this.cancelNotification(notificationId);
+          } catch (rollbackError) {
+            console.warn(`Failed to rollback notification ${notificationId}:`, rollbackError.message);
+          }
+        }
+      }
+
       throw new ServiceError('notificationService', 'syncAllReminders', error);
     }
   },

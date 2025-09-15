@@ -349,6 +349,84 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       } catch (error) {
         throw new DatabaseError('Failed to update reminder datetime', 'UPDATE_FAILED', error);
       }
+    },
+
+    /**
+     * Mark reminders as scheduled with notification IDs
+     * @param {Array<{reminderId: number, notificationId: string}>} scheduledItems - Reminders to mark as scheduled
+     * @returns {Promise<number>} Number of reminders marked as scheduled
+     */
+    async markRemindersScheduled(scheduledItems) {
+      if (!Array.isArray(scheduledItems) || scheduledItems.length === 0) {
+        return 0;
+      }
+
+      let updated = 0;
+      for (const { reminderId, notificationId } of scheduledItems) {
+        if (reminderId && notificationId) {
+          await execute(
+            'UPDATE event_reminders SET notification_id = ?, is_sent = 0 WHERE id = ?;',
+            [notificationId, reminderId]
+          );
+          updated++;
+        }
+      }
+      return updated;
+    },
+
+    /**
+     * Mark reminders as failed to schedule
+     * @param {number[]} reminderIds - Array of reminder IDs that failed to schedule
+     * @returns {Promise<number>} Number of reminders marked as failed
+     */
+    async markRemindersFailed(reminderIds) {
+      if (!Array.isArray(reminderIds) || reminderIds.length === 0) {
+        return 0;
+      }
+
+      let updated = 0;
+      for (const reminderId of reminderIds) {
+        if (reminderId) {
+          // We could add a 'failed_at' timestamp or 'status' field in future migrations
+          // For now, just keep them as not sent (is_sent = 0) so they can be retried
+          await execute(
+            'UPDATE event_reminders SET notification_id = NULL WHERE id = ?;',
+            [reminderId]
+          );
+          updated++;
+        }
+      }
+      return updated;
+    },
+
+    /**
+     * Create reminders for recurring events in batch
+     * @param {Array<{event_id: number, reminder_datetime: string, reminder_type: string}>} reminderData - Array of reminder data
+     * @returns {Promise<object[]>} Created reminders
+     */
+    async createRecurringReminders(reminderData) {
+      if (!Array.isArray(reminderData) || reminderData.length === 0) {
+        return [];
+      }
+
+      const created = [];
+      for (const data of reminderData) {
+        const reminder = pick(data, REMINDER_FIELDS);
+        reminder.is_sent = false; // Ensure new reminders are not marked as sent
+
+        const fields = Object.keys(reminder);
+        const values = Object.values(reminder);
+
+        const sql = `INSERT INTO event_reminders (${fields.join(', ')}, created_at)
+                     VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
+
+        const res = await execute(sql, values);
+        if (res.insertId) {
+          const newReminder = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
+          created.push(convertBooleanFields(newReminder.rows[0]));
+        }
+      }
+      return created;
     }
   };
 }
