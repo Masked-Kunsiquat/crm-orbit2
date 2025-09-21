@@ -295,7 +295,7 @@ export const notificationService = {
    * Schedule reminders for recurring events (like birthdays)
    * @param {object} event - Event data
    * @param {number} yearsAhead - How many years to schedule ahead (default: 2)
-   * @returns {Promise<string[]>} Array of scheduled notification IDs
+   * @returns {Promise<Array<{reminderId: number, notificationId: string}>>} Array of reminder and notification ID pairs
    */
   async scheduleRecurringReminders(event, yearsAhead = 2) {
     try {
@@ -303,12 +303,17 @@ export const notificationService = {
         return [];
       }
 
-      const scheduledIds = [];
+      const scheduledItems = [];
+      const createdReminderIds = [];
+      const scheduledNotificationIds = [];
       const baseDate = new Date(event.event_date);
       const now = new Date();
 
       // Get default reminder settings from user preferences
       const reminderLeadTime = await this.getReminderLeadTime();
+
+      // Step 1: Build reminder objects for database persistence
+      const reminderData = [];
 
       for (let year = 0; year < yearsAhead; year++) {
         const eventDate = new Date(baseDate);
@@ -328,44 +333,107 @@ export const notificationService = {
           continue;
         }
 
-        // Use template system for recurring notification content
-        const context = {
-          eventTime: eventDate.toLocaleString(),
-          eventDate,
-          isRecurring: true,
-        };
-
-        // Calculate age for birthday events
-        if (event.event_type === 'birthday') {
-          const birthDate = new Date(event.event_date);
-          const currentYear = eventDate.getFullYear();
-
-          let age = currentYear - birthDate.getFullYear();
-          const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
-          if (eventDate < birthdayThisYear) {
-            age -= 1;
-          }
-
-          context.age = age;
-        }
-
-        const { title, body, data } = this.renderNotificationTemplate(event, context);
-        const content = { title, body, data };
-
-        const trigger = {
-          date: reminderTime,
-          channelId: Platform.OS === 'android' ? 'event-reminders' : undefined,
-        };
-
-        const notificationId = await Notifications.scheduleNotificationAsync({
-          content,
-          trigger,
+        // Build reminder object for database
+        reminderData.push({
+          event_id: event.id,
+          reminder_datetime: reminderTime.toISOString(),
+          reminder_type: 'notification',
+          is_sent: false,
         });
-
-        scheduledIds.push(notificationId);
       }
 
-      return scheduledIds;
+      if (reminderData.length === 0) {
+        return [];
+      }
+
+      // Step 2: Persist reminder records to database first
+      const createdReminders = await db.eventsReminders.createRecurringReminders(reminderData);
+      createdReminderIds.push(...createdReminders.map(r => r.id));
+
+      // Step 3: Schedule notifications for each persisted reminder
+      for (let i = 0; i < createdReminders.length; i++) {
+        const reminder = createdReminders[i];
+        const year = i; // Corresponds to the year index from the loop above
+
+        try {
+          const eventDate = new Date(baseDate);
+          eventDate.setFullYear(now.getFullYear() + year);
+          const reminderTime = new Date(reminder.reminder_datetime);
+
+          // Use template system for recurring notification content
+          const context = {
+            eventTime: eventDate.toLocaleString(),
+            eventDate,
+            isRecurring: true,
+            reminderId: reminder.id,
+          };
+
+          // Calculate age for birthday events
+          if (event.event_type === 'birthday') {
+            const birthDate = new Date(event.event_date);
+            const currentYear = eventDate.getFullYear();
+
+            let age = currentYear - birthDate.getFullYear();
+            const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+            if (eventDate < birthdayThisYear) {
+              age -= 1;
+            }
+
+            context.age = age;
+          }
+
+          const { title, body, data } = this.renderNotificationTemplate(event, context);
+          const content = { title, body, data };
+
+          const trigger = {
+            date: reminderTime,
+            channelId: Platform.OS === 'android' ? 'event-reminders' : undefined,
+          };
+
+          const notificationId = await Notifications.scheduleNotificationAsync({
+            content,
+            trigger,
+          });
+
+          scheduledNotificationIds.push(notificationId);
+          scheduledItems.push({
+            reminderId: reminder.id,
+            notificationId: notificationId,
+          });
+
+        } catch (schedulingError) {
+          console.warn(`Failed to schedule notification for reminder ${reminder.id}:`, schedulingError.message);
+
+          // Rollback: Cancel any successfully scheduled notifications
+          for (const notificationId of scheduledNotificationIds) {
+            try {
+              await this.cancelNotification(notificationId);
+            } catch (cancelError) {
+              console.warn(`Failed to cancel notification ${notificationId} during rollback:`, cancelError.message);
+            }
+          }
+
+          // Delete created reminder records
+          for (const reminderId of createdReminderIds) {
+            try {
+              await db.eventsReminders.delete(reminderId);
+            } catch (deleteError) {
+              console.warn(`Failed to delete reminder ${reminderId} during rollback:`, deleteError.message);
+            }
+          }
+
+          throw schedulingError;
+        }
+      }
+
+      // Step 4: Update all reminder records with notification IDs in batch
+      if (scheduledItems.length > 0) {
+        await db.transaction(async (tx) => {
+          return await db.eventsReminders.markRemindersScheduled(scheduledItems);
+        });
+      }
+
+      return scheduledItems;
     } catch (error) {
       throw new ServiceError('notificationService', 'scheduleRecurringReminders', error);
     }
