@@ -388,7 +388,7 @@ export const notificationService = {
           // Delete created reminder records
           for (const reminderId of createdReminderIds) {
             try {
-              await db.eventsReminders.delete(reminderId);
+              await db.eventsReminders.deleteReminder(reminderId);
             } catch (deleteError) {
               console.warn(`Failed to delete reminder ${reminderId} during rollback:`, deleteError.message);
             }
