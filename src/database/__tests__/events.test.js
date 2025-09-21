@@ -11,7 +11,9 @@ function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
   if (!result || !result.length) return [];
   const { columns, values } = result[0];
-  return values.map((arr) => Object.fromEntries(arr.map((v, i) => [columns[i], v])));
+  return values.map(arr =>
+    Object.fromEntries(arr.map((v, i) => [columns[i], v]))
+  );
 }
 
 function makeCtx(db) {
@@ -20,7 +22,10 @@ function makeCtx(db) {
 
   const exec = (sql, params = []) => {
     const trimmed = String(sql).trim().toUpperCase();
-    const isSelect = trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.startsWith('WITH');
+    const isSelect =
+      trimmed.startsWith('SELECT') ||
+      trimmed.startsWith('PRAGMA') ||
+      trimmed.startsWith('WITH');
     if (isSelect) {
       const stmt = db.prepare(sql);
       stmt.bind(params);
@@ -46,25 +51,27 @@ function makeCtx(db) {
     return Promise.resolve({ rows: [], rowsAffected, insertId });
   };
 
-  const doBatch = async (statements) => {
+  const doBatch = async statements => {
     const results = [];
     db.run('BEGIN;');
     try {
       for (const { sql, params = [] } of statements) {
         // Reuse exec for consistent behavior
-        // eslint-disable-next-line no-await-in-loop
+
         const r = await exec(sql, params);
         results.push(r);
       }
       db.run('COMMIT;');
       return results;
     } catch (e) {
-      try { db.run('ROLLBACK;'); } catch (_) {}
+      try {
+        db.run('ROLLBACK;');
+      } catch (_) {}
       throw e;
     }
   };
 
-  const tx = async (work) => {
+  const tx = async work => {
     // Simple transaction wrapper sufficient for these tests
     let result;
     const wrapped = {
@@ -75,7 +82,9 @@ function makeCtx(db) {
       result = await work(wrapped);
       db.prepare('COMMIT').run();
     } catch (e) {
-      try { db.prepare('ROLLBACK').run(); } catch (_) {}
+      try {
+        db.prepare('ROLLBACK').run();
+      } catch (_) {}
       throw e;
     }
     return result;
@@ -85,8 +94,8 @@ function makeCtx(db) {
 }
 
 function createSchema(db) {
-  const run = (sql) => db.run(sql);
-  
+  const run = sql => db.run(sql);
+
   // Create contacts table (required for foreign key)
   run(`CREATE TABLE contacts (
     id INTEGER PRIMARY KEY,
@@ -133,8 +142,12 @@ function createSchema(db) {
   run(`CREATE INDEX IF NOT EXISTS idx_events_contact ON events(contact_id);`);
   run(`CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date);`);
   run(`CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_event_reminders_event ON event_reminders(event_id);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_event_reminders_datetime ON event_reminders(reminder_datetime);`);
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_event_reminders_event ON event_reminders(event_id);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_event_reminders_datetime ON event_reminders(reminder_datetime);`
+  );
 }
 
 describe('eventsDB (in-memory)', () => {
@@ -148,7 +161,7 @@ describe('eventsDB (in-memory)', () => {
 
   beforeAll(async () => {
     SQL = await initSqlJs({
-      locateFile: (file) => {
+      locateFile: file => {
         // Resolve WASM shipped with sql.js
         const resolved = require.resolve('sql.js/dist/sql-wasm.wasm');
         return path.join(path.dirname(resolved), file);
@@ -163,7 +176,7 @@ describe('eventsDB (in-memory)', () => {
     events = createEventsDB(ctx);
     eventsRecurring = createEventsRecurringDB(ctx);
     eventsReminders = createEventsRemindersDB(ctx);
-    
+
     // Create a test contact
     const contactRes = await ctx.execute(
       'INSERT INTO contacts (first_name, last_name, display_name) VALUES (?, ?, ?)',
@@ -173,19 +186,24 @@ describe('eventsDB (in-memory)', () => {
   });
 
   afterEach(() => {
-    try { db.close(); } catch (_) {}
+    try {
+      db.close();
+    } catch (_) {}
   });
 
   // Core CRUD tests
   test('create rejects without required fields', async () => {
-    await expect(events.create({}))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(events.create({})).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
 
-    await expect(events.create({ contact_id: contactId }))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(
+      events.create({ contact_id: contactId })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
 
-    await expect(events.create({ contact_id: contactId, title: 'Test' }))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(
+      events.create({ contact_id: contactId, title: 'Test' })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
   test('create event and fetch by id', async () => {
@@ -194,9 +212,9 @@ describe('eventsDB (in-memory)', () => {
       title: 'Birthday Party',
       event_type: 'birthday',
       event_date: '2024-06-15',
-      notes: 'Surprise party'
+      notes: 'Surprise party',
     };
-    
+
     const created = await events.create(eventData);
     expect(created.id).toBeGreaterThan(0);
     expect(created.title).toBe('Birthday Party');
@@ -216,9 +234,9 @@ describe('eventsDB (in-memory)', () => {
       event_type: 'meeting',
       event_date: '2024-12-01',
       recurring: 1,
-      recurrence_pattern: 'yearly'
+      recurrence_pattern: 'yearly',
     };
-    
+
     const created = await events.create(eventData);
     expect(created.recurring).toBe(true);
     expect(created.recurrence_pattern).toBe('yearly');
@@ -229,12 +247,12 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Original Title',
       event_type: 'meeting',
-      event_date: '2024-06-15'
+      event_date: '2024-06-15',
     });
 
     const updated = await events.update(created.id, {
       title: 'Updated Title',
-      notes: 'Added notes'
+      notes: 'Added notes',
     });
 
     expect(updated.title).toBe('Updated Title');
@@ -243,8 +261,9 @@ describe('eventsDB (in-memory)', () => {
   });
 
   test('update non-existent event throws error', async () => {
-    await expect(events.update(9999, { title: 'Test' }))
-      .rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(events.update(9999, { title: 'Test' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 
   test('delete event', async () => {
@@ -252,7 +271,7 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'To Delete',
       event_type: 'meeting',
-      event_date: '2024-06-15'
+      event_date: '2024-06-15',
     });
 
     const rowsAffected = await events.delete(created.id);
@@ -269,7 +288,7 @@ describe('eventsDB (in-memory)', () => {
         contact_id: contactId,
         title: `Event ${i}`,
         event_type: 'meeting',
-        event_date: `2024-06-${String(i + 10).padStart(2, '0')}`
+        event_date: `2024-06-${String(i + 10).padStart(2, '0')}`,
       });
     }
 
@@ -294,14 +313,14 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'John Event',
       event_type: 'meeting',
-      event_date: '2024-06-15'
+      event_date: '2024-06-15',
     });
 
     await events.create({
       contact_id: contact2Id,
       title: 'Jane Event',
       event_type: 'meeting',
-      event_date: '2024-06-16'
+      event_date: '2024-06-16',
     });
 
     const johnEvents = await events.getByContact(contactId);
@@ -325,14 +344,14 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Upcoming Event',
       event_type: 'meeting',
-      event_date: future.toISOString().split('T')[0]
+      event_date: future.toISOString().split('T')[0],
     });
 
     await events.create({
       contact_id: contactId,
       title: 'Far Future Event',
       event_type: 'meeting',
-      event_date: farFuture.toISOString().split('T')[0]
+      event_date: farFuture.toISOString().split('T')[0],
     });
 
     const upcoming = await events.getUpcoming({ days: 30 });
@@ -351,14 +370,14 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Recent Past Event',
       event_type: 'meeting',
-      event_date: past.toISOString().split('T')[0]
+      event_date: past.toISOString().split('T')[0],
     });
 
     await events.create({
       contact_id: contactId,
       title: 'Far Past Event',
       event_type: 'meeting',
-      event_date: farPast.toISOString().split('T')[0]
+      event_date: farPast.toISOString().split('T')[0],
     });
 
     const recent = await events.getPast({ days: 30 });
@@ -369,19 +388,19 @@ describe('eventsDB (in-memory)', () => {
   test('getByDateRange returns events in specified range', async () => {
     const startDate = '2024-06-01';
     const endDate = '2024-06-30';
-    
+
     await events.create({
       contact_id: contactId,
       title: 'June Event',
       event_type: 'meeting',
-      event_date: '2024-06-15'
+      event_date: '2024-06-15',
     });
 
     await events.create({
       contact_id: contactId,
       title: 'July Event',
       event_type: 'meeting',
-      event_date: '2024-07-15'
+      event_date: '2024-07-15',
     });
 
     const juneEvents = await events.getByDateRange(startDate, endDate);
@@ -395,21 +414,24 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Meeting with Reminders',
       event_type: 'meeting',
-      event_date: '2024-06-15'
+      event_date: '2024-06-15',
     };
 
     const reminders = [
       {
         reminder_datetime: '2024-06-14 10:00:00',
-        reminder_type: 'notification'
+        reminder_type: 'notification',
       },
       {
         reminder_datetime: '2024-06-15 09:00:00',
-        reminder_type: 'email'
-      }
+        reminder_type: 'email',
+      },
     ];
 
-    const result = await eventsReminders.createEventWithReminders(eventData, reminders);
+    const result = await eventsReminders.createEventWithReminders(
+      eventData,
+      reminders
+    );
     expect(result.title).toBe('Meeting with Reminders');
     expect(result.reminders.length).toBe(2);
     expect(result.reminders[0].reminder_type).toBe('notification');
@@ -422,29 +444,36 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Test Event',
       event_type: 'meeting',
-      event_date: '2024-06-15'
+      event_date: '2024-06-15',
     });
 
     // Add initial reminders
     await eventsReminders.updateEventReminders(created.id, [
-      { reminder_datetime: '2024-06-14 10:00:00', reminder_type: 'notification' }
+      {
+        reminder_datetime: '2024-06-14 10:00:00',
+        reminder_type: 'notification',
+      },
     ]);
 
     // Update with new reminders
     const newReminders = [
       { reminder_datetime: '2024-06-14 09:00:00', reminder_type: 'email' },
-      { reminder_datetime: '2024-06-15 08:00:00', reminder_type: 'sms' }
+      { reminder_datetime: '2024-06-15 08:00:00', reminder_type: 'sms' },
     ];
 
-    const updated = await eventsReminders.updateEventReminders(created.id, newReminders);
+    const updated = await eventsReminders.updateEventReminders(
+      created.id,
+      newReminders
+    );
     expect(updated.length).toBe(2);
     expect(updated[0].reminder_type).toBe('email');
     expect(updated[1].reminder_type).toBe('sms');
   });
 
   test('updateReminders for non-existent event throws error', async () => {
-    await expect(eventsReminders.updateEventReminders(9999, []))
-      .rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(
+      eventsReminders.updateEventReminders(9999, [])
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
   // Recurring event tests
@@ -455,15 +484,21 @@ describe('eventsDB (in-memory)', () => {
       event_type: 'birthday',
       event_date: '1990-06-15',
       recurring: 1,
-      recurrence_pattern: 'yearly'
+      recurrence_pattern: 'yearly',
     });
 
-    const nextOccurrence = await eventsRecurring.getNextOccurrence(birthdayEvent.id, '2024-01-01');
+    const nextOccurrence = await eventsRecurring.getNextOccurrence(
+      birthdayEvent.id,
+      '2024-01-01'
+    );
     expect(nextOccurrence.event_date).toBe('2024-06-15');
     expect(nextOccurrence.is_calculated).toBe(true);
 
     // If past this year's date, should return next year
-    const nextOccurrence2 = await eventsRecurring.getNextOccurrence(birthdayEvent.id, '2024-07-01');
+    const nextOccurrence2 = await eventsRecurring.getNextOccurrence(
+      birthdayEvent.id,
+      '2024-07-01'
+    );
     expect(nextOccurrence2.event_date).toBe('2025-06-15');
   });
 
@@ -473,10 +508,12 @@ describe('eventsDB (in-memory)', () => {
       title: 'One-time Meeting',
       event_type: 'meeting',
       event_date: '2024-06-15',
-      recurring: 0
+      recurring: 0,
     });
 
-    const nextOccurrence = await eventsRecurring.getNextOccurrence(normalEvent.id);
+    const nextOccurrence = await eventsRecurring.getNextOccurrence(
+      normalEvent.id
+    );
     expect(nextOccurrence).toBeNull();
   });
 
@@ -491,14 +528,14 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'John Birthday',
       event_type: 'birthday',
-      event_date: todayBirthday
+      event_date: todayBirthday,
     });
 
     await events.create({
       contact_id: contactId,
       title: 'Different Day Birthday',
       event_type: 'birthday',
-      event_date: '1990-01-01'
+      event_date: '1990-01-01',
     });
 
     const todaysBirthdays = await eventsRecurring.getTodaysBirthdays();
@@ -510,7 +547,7 @@ describe('eventsDB (in-memory)', () => {
   test('getUpcomingBirthdays returns birthdays within specified days', async () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Create birthday 10 days from now
     const future = new Date(today);
     future.setDate(today.getDate() + 10);
@@ -522,7 +559,7 @@ describe('eventsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'John Birthday',
       event_type: 'birthday',
-      event_date: futureBirthday
+      event_date: futureBirthday,
     });
 
     const upcomingBirthdays = await eventsRecurring.getUpcomingBirthdays(15);

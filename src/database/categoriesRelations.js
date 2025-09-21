@@ -28,9 +28,18 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
         );
         return res && res.rowsAffected ? res.rowsAffected > 0 : false;
       } catch (error) {
-        const msg = String(error?.originalError?.message ?? error?.cause?.message ?? error?.message ?? '');
+        const msg = String(
+          error?.originalError?.message ??
+            error?.cause?.message ??
+            error?.message ??
+            ''
+        );
         if (msg.includes('FOREIGN KEY constraint failed')) {
-          throw new DatabaseError('Contact or category not found', 'NOT_FOUND', error);
+          throw new DatabaseError(
+            'Contact or category not found',
+            'NOT_FOUND',
+            error
+          );
         }
         if (msg.includes('UNIQUE constraint failed')) {
           return false; // Relationship already exists
@@ -117,14 +126,20 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      */
     async setContactCategories(contactId, categoryIds) {
       if (!Array.isArray(categoryIds)) {
-        throw new DatabaseError('categoryIds must be an array', 'VALIDATION_ERROR');
+        throw new DatabaseError(
+          'categoryIds must be an array',
+          'VALIDATION_ERROR'
+        );
       }
 
       if (!transaction) {
-        throw new DatabaseError('Transaction support required for setContactCategories', 'TRANSACTION_REQUIRED');
+        throw new DatabaseError(
+          'Transaction support required for setContactCategories',
+          'TRANSACTION_REQUIRED'
+        );
       }
 
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         // Remove all existing relationships for this contact
         const deletePromise = tx.execute(
           'DELETE FROM contact_categories WHERE contact_id = ?;',
@@ -176,7 +191,7 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
          ORDER BY cat.sort_order ASC, cat.name ASC;`
       );
       return res.rows;
-    }
+    },
   };
 }
 

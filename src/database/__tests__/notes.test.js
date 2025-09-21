@@ -10,7 +10,9 @@ function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
   if (!result || !result.length) return [];
   const { columns, values } = result[0];
-  return values.map((arr) => Object.fromEntries(arr.map((v, i) => [columns[i], v])));
+  return values.map(arr =>
+    Object.fromEntries(arr.map((v, i) => [columns[i], v]))
+  );
 }
 
 function makeCtx(db) {
@@ -19,7 +21,10 @@ function makeCtx(db) {
 
   const exec = (sql, params = []) => {
     const trimmed = String(sql).trim().toUpperCase();
-    const isSelect = trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.startsWith('WITH');
+    const isSelect =
+      trimmed.startsWith('SELECT') ||
+      trimmed.startsWith('PRAGMA') ||
+      trimmed.startsWith('WITH');
     if (isSelect) {
       const stmt = db.prepare(sql);
       stmt.bind(params);
@@ -45,25 +50,27 @@ function makeCtx(db) {
     return Promise.resolve({ rows: [], rowsAffected, insertId });
   };
 
-  const doBatch = async (statements) => {
+  const doBatch = async statements => {
     const results = [];
     db.run('BEGIN;');
     try {
       for (const { sql, params = [] } of statements) {
         // Reuse exec for consistent behavior
-        // eslint-disable-next-line no-await-in-loop
+
         const r = await exec(sql, params);
         results.push(r);
       }
       db.run('COMMIT;');
       return results;
     } catch (e) {
-      try { db.run('ROLLBACK;'); } catch (_) {}
+      try {
+        db.run('ROLLBACK;');
+      } catch (_) {}
       throw e;
     }
   };
 
-  const tx = async (work) => {
+  const tx = async work => {
     // Simple transaction wrapper sufficient for these tests
     let result;
     const wrapped = {
@@ -74,7 +81,9 @@ function makeCtx(db) {
       result = await work(wrapped);
       db.prepare('COMMIT').run();
     } catch (e) {
-      try { db.prepare('ROLLBACK').run(); } catch (_) {}
+      try {
+        db.prepare('ROLLBACK').run();
+      } catch (_) {}
       throw e;
     }
     return result;
@@ -84,8 +93,8 @@ function makeCtx(db) {
 }
 
 function createSchema(db) {
-  const run = (sql) => db.run(sql);
-  
+  const run = sql => db.run(sql);
+
   // Contacts table for foreign key relationship testing
   run(`CREATE TABLE contacts (
     id INTEGER PRIMARY KEY,
@@ -121,7 +130,7 @@ describe('createNotesDB', () => {
 
   beforeAll(async () => {
     SQL = await initSqlJs({
-      locateFile: (file) => {
+      locateFile: file => {
         // Resolve WASM shipped with sql.js
         const resolved = require.resolve('sql.js/dist/sql-wasm.wasm');
         return path.join(path.dirname(resolved), file);
@@ -141,7 +150,9 @@ describe('createNotesDB', () => {
   });
 
   afterEach(() => {
-    try { db.close(); } catch (_) {}
+    try {
+      db.close();
+    } catch (_) {}
   });
 
   describe('core CRUD operations', () => {
@@ -149,12 +160,12 @@ describe('createNotesDB', () => {
       const noteData = {
         title: 'Test Note',
         content: 'This is test content',
-        is_pinned: false
+        is_pinned: false,
       };
-      
+
       const result = await notesDB.create(noteData);
       expect(result.id).toBeGreaterThan(0);
-      
+
       const created = await notesDB.getById(result.id);
       expect(created.title).toBe('Test Note');
       expect(created.content).toBe('This is test content');
@@ -164,41 +175,45 @@ describe('createNotesDB', () => {
 
     test('create() - creates note with contact association', async () => {
       // First create a contact
-      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', ['John']);
-      const contactResult = await ctx.execute('SELECT last_insert_rowid() as id');
+      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', [
+        'John',
+      ]);
+      const contactResult = await ctx.execute(
+        'SELECT last_insert_rowid() as id'
+      );
       const contactId = contactResult.rows[0].id;
-      
+
       const noteData = {
         contact_id: contactId,
         title: 'Contact Note',
         content: 'Note about John',
-        is_pinned: true
+        is_pinned: true,
       };
-      
+
       const result = await notesDB.create(noteData);
       const created = await notesDB.getById(result.id);
-      
+
       expect(created.contact_id).toBe(contactId);
       expect(created.title).toBe('Contact Note');
       expect(created.is_pinned).toBe(true);
     });
 
     test('create() - throws error when content is missing', async () => {
-      await expect(notesDB.create({ title: 'No content' }))
-        .rejects
-        .toThrow(DatabaseError);
-      
-      await expect(notesDB.create({ title: 'No content' }))
-        .rejects
-        .toMatchObject({ code: 'VALIDATION_ERROR' });
+      await expect(notesDB.create({ title: 'No content' })).rejects.toThrow(
+        DatabaseError
+      );
+
+      await expect(
+        notesDB.create({ title: 'No content' })
+      ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     test('getById() - returns note by id', async () => {
       const { id } = await notesDB.create({
         title: 'Find Me',
-        content: 'Test content'
+        content: 'Test content',
       });
-      
+
       const found = await notesDB.getById(id);
       expect(found.id).toBe(id);
       expect(found.title).toBe('Find Me');
@@ -213,8 +228,12 @@ describe('createNotesDB', () => {
     test('getAll() - returns all notes with default ordering', async () => {
       await notesDB.create({ title: 'First', content: 'Content 1' });
       await notesDB.create({ title: 'Second', content: 'Content 2' });
-      await notesDB.create({ title: 'Third', content: 'Content 3', is_pinned: true });
-      
+      await notesDB.create({
+        title: 'Third',
+        content: 'Content 3',
+        is_pinned: true,
+      });
+
       const all = await notesDB.getAll();
       expect(all).toHaveLength(3);
       // Should be ordered by pinned first, then created_at DESC
@@ -228,22 +247,22 @@ describe('createNotesDB', () => {
       await notesDB.create({ title: 'A Note', content: 'Content A' });
       await notesDB.create({ title: 'B Note', content: 'Content B' });
       await notesDB.create({ title: 'C Note', content: 'Content C' });
-      
-      const page1 = await notesDB.getAll({ 
-        limit: 2, 
-        offset: 0, 
+
+      const page1 = await notesDB.getAll({
+        limit: 2,
+        offset: 0,
         orderBy: 'title',
-        orderDir: 'ASC'
+        orderDir: 'ASC',
       });
       expect(page1).toHaveLength(2);
       expect(page1[0].title).toBe('A Note');
       expect(page1[1].title).toBe('B Note');
-      
-      const page2 = await notesDB.getAll({ 
-        limit: 2, 
+
+      const page2 = await notesDB.getAll({
+        limit: 2,
         offset: 2,
         orderBy: 'title',
-        orderDir: 'ASC'
+        orderDir: 'ASC',
       });
       expect(page2).toHaveLength(1);
       expect(page2[0].title).toBe('C Note');
@@ -252,15 +271,15 @@ describe('createNotesDB', () => {
     test('update() - updates note fields', async () => {
       const { id } = await notesDB.create({
         title: 'Original',
-        content: 'Original content'
+        content: 'Original content',
       });
-      
+
       const updated = await notesDB.update(id, {
         title: 'Updated',
         content: 'Updated content',
-        is_pinned: true
+        is_pinned: true,
       });
-      
+
       expect(updated.title).toBe('Updated');
       expect(updated.content).toBe('Updated content');
       expect(updated.is_pinned).toBe(true);
@@ -270,9 +289,9 @@ describe('createNotesDB', () => {
     test('update() - returns unchanged record when no data provided', async () => {
       const { id } = await notesDB.create({
         title: 'Unchanged',
-        content: 'Unchanged content'
+        content: 'Unchanged content',
       });
-      
+
       const result = await notesDB.update(id, {});
       expect(result.title).toBe('Unchanged');
       expect(result.content).toBe('Unchanged content');
@@ -281,12 +300,12 @@ describe('createNotesDB', () => {
     test('delete() - removes note by id', async () => {
       const { id } = await notesDB.create({
         title: 'To Delete',
-        content: 'Will be deleted'
+        content: 'Will be deleted',
       });
-      
+
       const deletedCount = await notesDB.delete(id);
       expect(deletedCount).toBe(1);
-      
+
       const found = await notesDB.getById(id);
       expect(found).toBeNull();
     });
@@ -300,27 +319,31 @@ describe('createNotesDB', () => {
   describe('entity-specific operations', () => {
     test('getByContact() - returns notes for specific contact', async () => {
       // Create contact
-      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', ['Alice']);
-      const contactResult = await ctx.execute('SELECT last_insert_rowid() as id');
+      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', [
+        'Alice',
+      ]);
+      const contactResult = await ctx.execute(
+        'SELECT last_insert_rowid() as id'
+      );
       const contactId = contactResult.rows[0].id;
-      
+
       // Create notes
-      await notesDB.create({ 
-        contact_id: contactId, 
-        title: 'Contact Note 1', 
-        content: 'Content 1' 
+      await notesDB.create({
+        contact_id: contactId,
+        title: 'Contact Note 1',
+        content: 'Content 1',
       });
-      await notesDB.create({ 
-        contact_id: contactId, 
-        title: 'Contact Note 2', 
+      await notesDB.create({
+        contact_id: contactId,
+        title: 'Contact Note 2',
         content: 'Content 2',
-        is_pinned: true
+        is_pinned: true,
       });
-      await notesDB.create({ 
-        title: 'General Note', 
-        content: 'Not for contact' 
+      await notesDB.create({
+        title: 'General Note',
+        content: 'Not for contact',
       });
-      
+
       const contactNotes = await notesDB.getByContact(contactId);
       expect(contactNotes).toHaveLength(2);
       expect(contactNotes[0].title).toBe('Contact Note 2'); // Pinned first
@@ -332,25 +355,29 @@ describe('createNotesDB', () => {
 
     test('getGeneralNotes() - returns notes with null contact_id', async () => {
       // Create contact
-      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', ['Bob']);
-      const contactResult = await ctx.execute('SELECT last_insert_rowid() as id');
+      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', [
+        'Bob',
+      ]);
+      const contactResult = await ctx.execute(
+        'SELECT last_insert_rowid() as id'
+      );
       const contactId = contactResult.rows[0].id;
-      
-      await notesDB.create({ 
-        contact_id: contactId, 
-        title: 'Contact Note', 
-        content: 'For contact' 
+
+      await notesDB.create({
+        contact_id: contactId,
+        title: 'Contact Note',
+        content: 'For contact',
       });
-      await notesDB.create({ 
-        title: 'General Note 1', 
-        content: 'General content 1' 
+      await notesDB.create({
+        title: 'General Note 1',
+        content: 'General content 1',
       });
-      await notesDB.create({ 
-        title: 'General Note 2', 
+      await notesDB.create({
+        title: 'General Note 2',
         content: 'General content 2',
-        is_pinned: true
+        is_pinned: true,
       });
-      
+
       const generalNotes = await notesDB.getGeneralNotes();
       expect(generalNotes).toHaveLength(2);
       expect(generalNotes[0].title).toBe('General Note 2'); // Pinned first
@@ -362,10 +389,18 @@ describe('createNotesDB', () => {
 
     test('getPinned() - returns only pinned notes', async () => {
       await notesDB.create({ title: 'Regular 1', content: 'Content 1' });
-      await notesDB.create({ title: 'Pinned 1', content: 'Content 2', is_pinned: true });
+      await notesDB.create({
+        title: 'Pinned 1',
+        content: 'Content 2',
+        is_pinned: true,
+      });
       await notesDB.create({ title: 'Regular 2', content: 'Content 3' });
-      await notesDB.create({ title: 'Pinned 2', content: 'Content 4', is_pinned: true });
-      
+      await notesDB.create({
+        title: 'Pinned 2',
+        content: 'Content 4',
+        is_pinned: true,
+      });
+
       const pinnedNotes = await notesDB.getPinned();
       expect(pinnedNotes).toHaveLength(2);
       pinnedNotes.forEach(note => {
@@ -375,85 +410,95 @@ describe('createNotesDB', () => {
 
     test('getPinned() - supports contact filtering', async () => {
       // Create contact
-      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', ['Charlie']);
-      const contactResult = await ctx.execute('SELECT last_insert_rowid() as id');
+      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', [
+        'Charlie',
+      ]);
+      const contactResult = await ctx.execute(
+        'SELECT last_insert_rowid() as id'
+      );
       const contactId = contactResult.rows[0].id;
-      
-      await notesDB.create({ 
-        title: 'General Pinned', 
-        content: 'General', 
-        is_pinned: true 
+
+      await notesDB.create({
+        title: 'General Pinned',
+        content: 'General',
+        is_pinned: true,
       });
-      await notesDB.create({ 
+      await notesDB.create({
         contact_id: contactId,
-        title: 'Contact Pinned', 
-        content: 'For contact', 
-        is_pinned: true 
+        title: 'Contact Pinned',
+        content: 'For contact',
+        is_pinned: true,
       });
-      
+
       const contactPinned = await notesDB.getPinned({ contactId });
       expect(contactPinned).toHaveLength(1);
       expect(contactPinned[0].title).toBe('Contact Pinned');
-      
+
       const generalPinned = await notesDB.getPinned({ contactId: null });
       expect(generalPinned).toHaveLength(1);
       expect(generalPinned[0].title).toBe('General Pinned');
     });
 
     test('search() - finds notes by title and content', async () => {
-      await notesDB.create({ 
-        title: 'JavaScript Tutorial', 
-        content: 'Learn React components' 
+      await notesDB.create({
+        title: 'JavaScript Tutorial',
+        content: 'Learn React components',
       });
-      await notesDB.create({ 
-        title: 'Python Guide', 
-        content: 'Django framework tutorial' 
+      await notesDB.create({
+        title: 'Python Guide',
+        content: 'Django framework tutorial',
       });
-      await notesDB.create({ 
-        title: 'Meeting Notes', 
-        content: 'Discussed JavaScript performance' 
+      await notesDB.create({
+        title: 'Meeting Notes',
+        content: 'Discussed JavaScript performance',
       });
-      
+
       const jsResults = await notesDB.search('JavaScript');
       expect(jsResults).toHaveLength(2);
       expect(jsResults[0].title).toBe('JavaScript Tutorial'); // Title match first
       expect(jsResults[1].title).toBe('Meeting Notes');
-      
+
       const tutorialResults = await notesDB.search('tutorial');
       expect(tutorialResults).toHaveLength(2);
     });
 
     test('search() - returns empty array for empty query', async () => {
       await notesDB.create({ title: 'Test', content: 'Content' });
-      
+
       const results = await notesDB.search('');
       expect(results).toEqual([]);
-      
+
       const nullResults = await notesDB.search(null);
       expect(nullResults).toEqual([]);
     });
 
     test('search() - supports contact filtering', async () => {
       // Create contact
-      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', ['David']);
-      const contactResult = await ctx.execute('SELECT last_insert_rowid() as id');
+      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', [
+        'David',
+      ]);
+      const contactResult = await ctx.execute(
+        'SELECT last_insert_rowid() as id'
+      );
       const contactId = contactResult.rows[0].id;
-      
-      await notesDB.create({ 
-        title: 'General Important', 
-        content: 'Important general note' 
+
+      await notesDB.create({
+        title: 'General Important',
+        content: 'Important general note',
       });
-      await notesDB.create({ 
+      await notesDB.create({
         contact_id: contactId,
-        title: 'Contact Important', 
-        content: 'Important contact note' 
+        title: 'Contact Important',
+        content: 'Important contact note',
       });
-      
+
       const contactResults = await notesDB.search('Important', { contactId });
       expect(contactResults).toHaveLength(1);
       expect(contactResults[0].title).toBe('Contact Important');
-      
-      const generalResults = await notesDB.search('Important', { contactId: null });
+
+      const generalResults = await notesDB.search('Important', {
+        contactId: null,
+      });
       expect(generalResults).toHaveLength(1);
       expect(generalResults[0].title).toBe('General Important');
     });
@@ -462,26 +507,35 @@ describe('createNotesDB', () => {
       const { id } = await notesDB.create({
         title: 'Toggle Test',
         content: 'Test content',
-        is_pinned: false
+        is_pinned: false,
       });
-      
+
       // Toggle to pinned
       const pinned = await notesDB.togglePin(id);
       expect(pinned.is_pinned).toBe(true);
-      
+
       // Toggle back to unpinned
       const unpinned = await notesDB.togglePin(id);
       expect(unpinned.is_pinned).toBe(false);
     });
 
     test('bulkDelete() - deletes multiple notes', async () => {
-      const note1 = await notesDB.create({ title: 'Delete 1', content: 'Content 1' });
-      const note2 = await notesDB.create({ title: 'Delete 2', content: 'Content 2' });
-      const note3 = await notesDB.create({ title: 'Keep', content: 'Content 3' });
-      
+      const note1 = await notesDB.create({
+        title: 'Delete 1',
+        content: 'Content 1',
+      });
+      const note2 = await notesDB.create({
+        title: 'Delete 2',
+        content: 'Content 2',
+      });
+      const note3 = await notesDB.create({
+        title: 'Keep',
+        content: 'Content 3',
+      });
+
       const deletedCount = await notesDB.bulkDelete([note1.id, note2.id]);
       expect(deletedCount).toBe(2);
-      
+
       const remaining = await notesDB.getAll();
       expect(remaining).toHaveLength(1);
       expect(remaining[0].title).toBe('Keep');
@@ -500,18 +554,20 @@ describe('createNotesDB', () => {
 
   describe('validation and error handling', () => {
     test('throws DatabaseError for missing content', async () => {
-      await expect(notesDB.create({ title: 'No content' }))
-        .rejects
-        .toBeInstanceOf(DatabaseError);
+      await expect(
+        notesDB.create({ title: 'No content' })
+      ).rejects.toBeInstanceOf(DatabaseError);
     });
 
     test('handles foreign key constraint violations', async () => {
       // Try to create note with non-existent contact_id
-      await expect(notesDB.create({
-        contact_id: 99999,
-        title: 'Invalid Contact',
-        content: 'Should fail'
-      })).rejects.toThrow();
+      await expect(
+        notesDB.create({
+          contact_id: 99999,
+          title: 'Invalid Contact',
+          content: 'Should fail',
+        })
+      ).rejects.toThrow();
     });
 
     test('module initialization requires execute and batch helpers', () => {
@@ -524,29 +580,45 @@ describe('createNotesDB', () => {
   describe('business logic', () => {
     test('cascading delete when contact is removed', async () => {
       // Create contact and notes
-      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', ['ToDelete']);
-      const contactResult = await ctx.execute('SELECT last_insert_rowid() as id');
+      await ctx.execute('INSERT INTO contacts (first_name) VALUES (?)', [
+        'ToDelete',
+      ]);
+      const contactResult = await ctx.execute(
+        'SELECT last_insert_rowid() as id'
+      );
       const contactId = contactResult.rows[0].id;
-      
+
       await notesDB.create({
         contact_id: contactId,
         title: 'Will be deleted',
-        content: 'Content'
+        content: 'Content',
       });
-      
+
       // Delete the contact
       await ctx.execute('DELETE FROM contacts WHERE id = ?', [contactId]);
-      
+
       // Verify note was cascaded
       const remainingNotes = await notesDB.getAll();
       expect(remainingNotes).toHaveLength(0);
     });
 
     test('pinned notes appear first in all listings', async () => {
-      await notesDB.create({ title: 'Regular 1', content: 'Content', is_pinned: false });
-      await notesDB.create({ title: 'Pinned', content: 'Content', is_pinned: true });
-      await notesDB.create({ title: 'Regular 2', content: 'Content', is_pinned: false });
-      
+      await notesDB.create({
+        title: 'Regular 1',
+        content: 'Content',
+        is_pinned: false,
+      });
+      await notesDB.create({
+        title: 'Pinned',
+        content: 'Content',
+        is_pinned: true,
+      });
+      await notesDB.create({
+        title: 'Regular 2',
+        content: 'Content',
+        is_pinned: false,
+      });
+
       const allNotes = await notesDB.getAll();
       expect(allNotes[0].title).toBe('Pinned');
       expect(allNotes[0].is_pinned).toBe(true);

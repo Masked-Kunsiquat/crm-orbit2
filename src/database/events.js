@@ -13,11 +13,13 @@ const EVENT_FIELDS = [
   'notes',
 ];
 
-
 function pick(obj, fields) {
   const out = {};
   for (const key of fields) {
-    if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== undefined) {
+    if (
+      Object.prototype.hasOwnProperty.call(obj, key) &&
+      obj[key] !== undefined
+    ) {
       out[key] = obj[key];
     }
   }
@@ -41,7 +43,6 @@ function convertBooleanFields(row) {
   return converted;
 }
 
-
 /**
  * Create the events database module
  * @param {Object} deps - Database dependencies
@@ -54,34 +55,47 @@ export function createEventsDB({ execute, batch, transaction }) {
   return {
     // Core CRUD operations
     async create(data) {
-      if (!data || !data.contact_id || !data.title || !data.event_type || !data.event_date) {
-        throw new DatabaseError('Missing required fields: contact_id, title, event_type, event_date', 'VALIDATION_ERROR');
+      if (
+        !data ||
+        !data.contact_id ||
+        !data.title ||
+        !data.event_type ||
+        !data.event_date
+      ) {
+        throw new DatabaseError(
+          'Missing required fields: contact_id, title, event_type, event_date',
+          'VALIDATION_ERROR'
+        );
       }
 
       const eventData = pick(data, EVENT_FIELDS);
       const fields = Object.keys(eventData);
       const values = Object.values(eventData);
-      
+
       const sql = `INSERT INTO events (${fields.join(', ')}, created_at) 
                    VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
-      
+
       try {
         const res = await execute(sql, values);
         if (!res.insertId) {
           throw new DatabaseError('Failed to create event', 'CREATE_FAILED');
         }
-        
+
         // Update contact's last_interaction_at
         await execute(
           'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [data.contact_id]
         );
-        
+
         return this.getById(res.insertId);
       } catch (error) {
         // Handle foreign key constraint errors - check message and nested error properties
-        const errorMessage = error.message || error.cause?.message || error.originalError?.message;
-        if (errorMessage && errorMessage.includes('FOREIGN KEY constraint failed')) {
+        const errorMessage =
+          error.message || error.cause?.message || error.originalError?.message;
+        if (
+          errorMessage &&
+          errorMessage.includes('FOREIGN KEY constraint failed')
+        ) {
           throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is
@@ -95,10 +109,22 @@ export function createEventsDB({ execute, batch, transaction }) {
     },
 
     async getAll(options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'event_date', orderDir = 'ASC' } = options;
-      const order = ['event_date', 'title', 'event_type', 'created_at'].includes(orderBy) ? orderBy : 'event_date';
+      const {
+        limit = 50,
+        offset = 0,
+        orderBy = 'event_date',
+        orderDir = 'ASC',
+      } = options;
+      const order = [
+        'event_date',
+        'title',
+        'event_type',
+        'created_at',
+      ].includes(orderBy)
+        ? orderBy
+        : 'event_date';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      
+
       const sql = `SELECT * FROM events ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [limit, offset]);
       return res.rows.map(convertBooleanFields);
@@ -121,7 +147,7 @@ export function createEventsDB({ execute, batch, transaction }) {
 
       const sets = Object.keys(eventData).map(k => `${k} = ?`);
       const vals = Object.values(eventData);
-      
+
       await execute(
         `UPDATE events SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
         [...vals, id]
@@ -143,10 +169,22 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     // Search and filter operations
     async getByContact(contactId, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'event_date', orderDir = 'ASC' } = options;
-      const order = ['event_date', 'title', 'event_type', 'created_at'].includes(orderBy) ? orderBy : 'event_date';
+      const {
+        limit = 50,
+        offset = 0,
+        orderBy = 'event_date',
+        orderDir = 'ASC',
+      } = options;
+      const order = [
+        'event_date',
+        'title',
+        'event_type',
+        'created_at',
+      ].includes(orderBy)
+        ? orderBy
+        : 'event_date';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      
+
       const sql = `SELECT * FROM events WHERE contact_id = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [contactId, limit, offset]);
       return res.rows.map(convertBooleanFields);
@@ -158,7 +196,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + days);
       const future = futureDate.toISOString().split('T')[0];
-      
+
       const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ? 
                    ORDER BY event_date ASC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, future, limit, offset]);
@@ -171,7 +209,7 @@ export function createEventsDB({ execute, batch, transaction }) {
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - days);
       const past = pastDate.toISOString().split('T')[0];
-      
+
       const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ? 
                    ORDER BY event_date DESC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, past, limit, offset]);
@@ -179,10 +217,22 @@ export function createEventsDB({ execute, batch, transaction }) {
     },
 
     async getByDateRange(startDate, endDate, options = {}) {
-      const { limit = 100, offset = 0, orderBy = 'event_date', orderDir = 'ASC' } = options;
-      const order = ['event_date', 'title', 'event_type', 'created_at'].includes(orderBy) ? orderBy : 'event_date';
+      const {
+        limit = 100,
+        offset = 0,
+        orderBy = 'event_date',
+        orderDir = 'ASC',
+      } = options;
+      const order = [
+        'event_date',
+        'title',
+        'event_type',
+        'created_at',
+      ].includes(orderBy)
+        ? orderBy
+        : 'event_date';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      
+
       const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ? 
                    ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [startDate, endDate, limit, offset]);
@@ -191,14 +241,21 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     // Event type filtering
     async getByType(eventType, options = {}) {
-      const { limit = 50, offset = 0, orderBy = 'event_date', orderDir = 'ASC' } = options;
-      const order = ['event_date', 'title', 'created_at'].includes(orderBy) ? orderBy : 'event_date';
+      const {
+        limit = 50,
+        offset = 0,
+        orderBy = 'event_date',
+        orderDir = 'ASC',
+      } = options;
+      const order = ['event_date', 'title', 'created_at'].includes(orderBy)
+        ? orderBy
+        : 'event_date';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      
+
       const sql = `SELECT * FROM events WHERE event_type = ? ORDER BY ${order} ${dir} LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [eventType, limit, offset]);
       return res.rows.map(convertBooleanFields);
-    }
+    },
   };
 }
 

@@ -38,7 +38,7 @@ const AUTH_STORAGE_KEYS = {
   /** Count of consecutive failed authentication attempts */
   FAILED_ATTEMPTS: 'auth_failed_attempts',
   /** Timestamp when lockout expires */
-  LOCKOUT_UNTIL: 'auth_lockout_until'
+  LOCKOUT_UNTIL: 'auth_lockout_until',
 };
 
 /**
@@ -57,7 +57,7 @@ const LOCKOUT_CONFIG = {
   /** Duration for tier 2 lockout (5 minutes) */
   LOCKOUT_DURATION_2: 5 * 60 * 1000,
   /** Duration for tier 3 lockout (30 minutes) */
-  LOCKOUT_DURATION_3: 30 * 60 * 1000
+  LOCKOUT_DURATION_3: 30 * 60 * 1000,
 };
 
 /**
@@ -80,7 +80,7 @@ const BIOMETRIC_ERROR_CODES = {
   /** No biometric credentials enrolled */
   NOT_ENROLLED: 'biometric_not_enrolled',
   /** Unknown or unmapped error */
-  UNKNOWN: 'biometric_unknown_error'
+  UNKNOWN: 'biometric_unknown_error',
 };
 
 /**
@@ -120,7 +120,9 @@ class AuthService {
    */
   async checkLockoutStatus() {
     try {
-      const lockoutUntil = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL);
+      const lockoutUntil = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL
+      );
       if (lockoutUntil) {
         const lockoutTime = parseInt(lockoutUntil, 10);
         const now = Date.now();
@@ -128,7 +130,7 @@ class AuthService {
         if (now < lockoutTime) {
           return {
             isLockedOut: true,
-            remainingTime: lockoutTime - now
+            remainingTime: lockoutTime - now,
           };
         } else {
           // Lockout expired, clear it
@@ -149,11 +151,16 @@ class AuthService {
    */
   async incrementFailedAttempts() {
     try {
-      const attemptsStr = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
+      const attemptsStr = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.FAILED_ATTEMPTS
+      );
       const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
       const newAttempts = attempts + 1;
 
-      await AsyncStorage.setItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS, newAttempts.toString());
+      await AsyncStorage.setItem(
+        AUTH_STORAGE_KEYS.FAILED_ATTEMPTS,
+        newAttempts.toString()
+      );
       this.failedAttempts = newAttempts;
 
       // Check if lockout should be applied
@@ -168,20 +175,23 @@ class AuthService {
 
       if (lockoutDuration > 0) {
         const lockoutUntil = Date.now() + lockoutDuration;
-        await AsyncStorage.setItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL, lockoutUntil.toString());
+        await AsyncStorage.setItem(
+          AUTH_STORAGE_KEYS.LOCKOUT_UNTIL,
+          lockoutUntil.toString()
+        );
         this.lockoutUntil = lockoutUntil;
 
         return {
           isLockedOut: true,
           remainingTime: lockoutDuration,
-          attempts: newAttempts
+          attempts: newAttempts,
         };
       }
 
       return {
         isLockedOut: false,
         remainingTime: 0,
-        attempts: newAttempts
+        attempts: newAttempts,
       };
     } catch (error) {
       console.error('Error incrementing failed attempts:', error);
@@ -206,7 +216,7 @@ class AuthService {
     try {
       await AsyncStorage.multiRemove([
         AUTH_STORAGE_KEYS.FAILED_ATTEMPTS,
-        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL
+        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL,
       ]);
       this.failedAttempts = 0;
       this.lockoutUntil = null;
@@ -225,20 +235,38 @@ class AuthService {
 
     const errorMessage = error.message?.toLowerCase() || '';
 
-    if (errorMessage.includes('user_cancel') || errorMessage.includes('user cancel')) {
+    if (
+      errorMessage.includes('user_cancel') ||
+      errorMessage.includes('user cancel')
+    ) {
       return BIOMETRIC_ERROR_CODES.USER_CANCELLED;
-    } else if (errorMessage.includes('user_fallback') || errorMessage.includes('fallback')) {
+    } else if (
+      errorMessage.includes('user_fallback') ||
+      errorMessage.includes('fallback')
+    ) {
       return BIOMETRIC_ERROR_CODES.USER_FALLBACK;
-    } else if (errorMessage.includes('system_cancel') || errorMessage.includes('system cancel')) {
+    } else if (
+      errorMessage.includes('system_cancel') ||
+      errorMessage.includes('system cancel')
+    ) {
       return BIOMETRIC_ERROR_CODES.SYSTEM_CANCELLED;
-    } else if (errorMessage.includes('biometric_lockout') || errorMessage.includes('lockout')) {
+    } else if (
+      errorMessage.includes('biometric_lockout') ||
+      errorMessage.includes('lockout')
+    ) {
       if (errorMessage.includes('permanent')) {
         return BIOMETRIC_ERROR_CODES.LOCKOUT_PERMANENT;
       }
       return BIOMETRIC_ERROR_CODES.LOCKOUT;
-    } else if (errorMessage.includes('not_enrolled') || errorMessage.includes('not enrolled')) {
+    } else if (
+      errorMessage.includes('not_enrolled') ||
+      errorMessage.includes('not enrolled')
+    ) {
       return BIOMETRIC_ERROR_CODES.NOT_ENROLLED;
-    } else if (errorMessage.includes('not_available') || errorMessage.includes('not available')) {
+    } else if (
+      errorMessage.includes('not_available') ||
+      errorMessage.includes('not available')
+    ) {
       return BIOMETRIC_ERROR_CODES.NOT_AVAILABLE;
     }
 
@@ -253,13 +281,14 @@ class AuthService {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
-      
+      const supportedTypes =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
+
       return {
         hasHardware,
         isEnrolled,
         supportedTypes,
-        canUseBiometric: hasHardware && isEnrolled
+        canUseBiometric: hasHardware && isEnrolled,
       };
     } catch (error) {
       console.error('Error checking authentication capabilities:', error);
@@ -267,7 +296,7 @@ class AuthService {
         hasHardware: false,
         isEnrolled: false,
         supportedTypes: [],
-        canUseBiometric: false
+        canUseBiometric: false,
       };
     }
   }
@@ -287,17 +316,21 @@ class AuthService {
           throw new Error(`PIN must be at most ${MAX_PIN_LENGTH} digits`);
         }
       }
-      
+
       // Basic strength checks to prevent weak PINs
       // 1) Disallow all-identical digits like 0000, 1111, 2222
       if (/^(\d)\1+$/.test(pin)) {
         throw new Error('PIN cannot contain all identical digits');
       }
       // 2) Disallow simple sequential patterns (ascending/descending)
-      if (/^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/.test(pin)) {
+      if (
+        /^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/.test(
+          pin
+        )
+      ) {
         throw new Error('PIN cannot be a sequential pattern');
       }
-      
+
       await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.PIN, pin);
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN_ENABLED, 'true');
       return true;
@@ -324,7 +357,9 @@ class AuthService {
 
   async hasPIN() {
     try {
-      const pinEnabled = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.PIN_ENABLED);
+      const pinEnabled = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.PIN_ENABLED
+      );
       const storedPIN = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.PIN);
       return pinEnabled === 'true' && !!storedPIN;
     } catch (error) {
@@ -348,7 +383,7 @@ class AuthService {
   async authenticateWithBiometric(options = {}) {
     try {
       const capabilities = await this.checkAuthenticationCapabilities();
-      
+
       if (!capabilities.canUseBiometric) {
         throw new Error('Biometric authentication not available');
       }
@@ -358,18 +393,20 @@ class AuthService {
         cancelLabel: options.cancelLabel || 'Use PIN',
         fallbackLabel: options.fallbackLabel || 'Use PIN',
         disableDeviceFallback: options.disableDeviceFallback || false,
-        ...options
+        ...options,
       });
 
       return {
         ...result,
-        errorCode: result.success ? undefined : this.mapBiometricError(result.error)
+        errorCode: result.success
+          ? undefined
+          : this.mapBiometricError(result.error),
       };
     } catch (error) {
       console.error('Biometric authentication error:', error);
       const mappedError = {
         ...error,
-        errorCode: this.mapBiometricError(error)
+        errorCode: this.mapBiometricError(error),
       };
       throw mappedError;
     }
@@ -385,15 +422,15 @@ class AuthService {
           success: false,
           error: 'Too many failed attempts. Try again later.',
           errorCode: 'PIN_LOCKOUT',
-          remainingTime: lockoutStatus.remainingTime
+          remainingTime: lockoutStatus.remainingTime,
         };
       }
 
-      if (!await this.hasPIN()) {
+      if (!(await this.hasPIN())) {
         return {
           success: false,
           error: 'No PIN configured',
-          errorCode: 'PIN_AUTH_ERROR'
+          errorCode: 'PIN_AUTH_ERROR',
         };
       }
 
@@ -403,7 +440,7 @@ class AuthService {
         // Clear failed attempts on successful authentication
         await this.clearFailedAttempts();
         return {
-          success: true
+          success: true,
         };
       } else {
         // Increment failed attempts
@@ -416,7 +453,7 @@ class AuthService {
             : 'Invalid PIN',
           errorCode: lockoutResult.isLockedOut ? 'PIN_LOCKOUT' : 'INVALID_PIN',
           attempts: lockoutResult.attempts,
-          remainingTime: lockoutResult.remainingTime
+          remainingTime: lockoutResult.remainingTime,
         };
       }
     } catch (error) {
@@ -424,7 +461,7 @@ class AuthService {
       return {
         success: false,
         error: error.message,
-        errorCode: 'PIN_AUTH_ERROR'
+        errorCode: 'PIN_AUTH_ERROR',
       };
     }
   }
@@ -445,14 +482,17 @@ class AuthService {
       if (capabilities.canUseBiometric && biometricEnabled) {
         try {
           const biometricResult = await this.authenticateWithBiometric(options);
-          
+
           if (biometricResult.success) {
             await this.onSuccessfulAuth();
             return { success: true, method: 'biometric' };
           }
         } catch (error) {
           // Fall back to PIN if biometric fails
-          console.warn('Biometric authentication failed, falling back to PIN:', error);
+          console.warn(
+            'Biometric authentication failed, falling back to PIN:',
+            error
+          );
         }
       }
 
@@ -463,7 +503,6 @@ class AuthService {
 
       // Return indication that PIN is required
       return { success: false, method: 'pin_required', hasPIN: true };
-      
     } catch (error) {
       console.error('Authentication error:', error);
       return { success: false, error: error.message };
@@ -475,15 +514,18 @@ class AuthService {
     try {
       this.isLocked = false;
       this.lastUnlockTime = Date.now();
-      
+
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.IS_LOCKED, 'false');
-      await AsyncStorage.setItem(AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME, this.lastUnlockTime.toString());
-      
+      await AsyncStorage.setItem(
+        AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME,
+        this.lastUnlockTime.toString()
+      );
+
       this.notifyListeners({ type: 'unlock' });
       this.startAutoLockTimer().catch(error => {
         console.error('Error starting auto-lock timer after unlock:', error);
       });
-      
+
       return true;
     } catch (error) {
       console.error('Error handling successful authentication:', error);
@@ -500,9 +542,11 @@ class AuthService {
       }
 
       // Check stored state
-      const storedState = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.IS_LOCKED);
+      const storedState = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.IS_LOCKED
+      );
       this.isLocked = storedState !== 'false'; // Default to locked
-      
+
       return this.isLocked;
     } catch (error) {
       console.error('Error checking lock status:', error);
@@ -535,7 +579,10 @@ class AuthService {
   async enableAutoLock(timeoutMinutes = 5) {
     try {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.AUTO_LOCK_ENABLED, 'true');
-      await AsyncStorage.setItem(AUTH_STORAGE_KEYS.AUTO_LOCK_TIMEOUT, timeoutMinutes.toString());
+      await AsyncStorage.setItem(
+        AUTH_STORAGE_KEYS.AUTO_LOCK_TIMEOUT,
+        timeoutMinutes.toString()
+      );
       await this.startAutoLockTimer();
       return true;
     } catch (error) {
@@ -557,7 +604,9 @@ class AuthService {
 
   async isAutoLockEnabled() {
     try {
-      const enabled = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.AUTO_LOCK_ENABLED);
+      const enabled = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.AUTO_LOCK_ENABLED
+      );
       return enabled === 'true';
     } catch (error) {
       console.error('Error checking auto-lock status:', error);
@@ -567,7 +616,9 @@ class AuthService {
 
   async getAutoLockTimeout() {
     try {
-      const timeout = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.AUTO_LOCK_TIMEOUT);
+      const timeout = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.AUTO_LOCK_TIMEOUT
+      );
       return timeout ? parseInt(timeout, 10) : 5; // Default 5 minutes
     } catch (error) {
       console.error('Error getting auto-lock timeout:', error);
@@ -579,7 +630,7 @@ class AuthService {
     // Create a start token to ensure only the latest invocation schedules a timer
     const token = ++this._autoLockStartToken;
     this.clearAutoLockTimer();
-    
+
     try {
       // Check if auto-lock is enabled first
       const autoLockEnabled = await this.isAutoLockEnabled();
@@ -619,7 +670,7 @@ class AuthService {
       if (!capabilities.canUseBiometric) {
         throw new Error('Biometric authentication not available');
       }
-      
+
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.BIOMETRIC_ENABLED, 'true');
       return true;
     } catch (error) {
@@ -640,7 +691,9 @@ class AuthService {
 
   async isBiometricEnabled() {
     try {
-      const enabled = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.BIOMETRIC_ENABLED);
+      const enabled = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.BIOMETRIC_ENABLED
+      );
       return enabled === 'true';
     } catch (error) {
       console.error('Error checking biometric status:', error);
@@ -657,13 +710,15 @@ class AuthService {
     try {
       // Check if app should be locked on startup
       const autoLockEnabled = await this.isAutoLockEnabled();
-      const lastUnlockTime = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME);
+      const lastUnlockTime = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME
+      );
       const timeoutMinutes = await this.getAutoLockTimeout();
-      
+
       if (autoLockEnabled && lastUnlockTime) {
         const timeSinceUnlock = Date.now() - parseInt(lastUnlockTime, 10);
         const timeoutMs = timeoutMinutes * 60 * 1000;
-        
+
         if (timeSinceUnlock > timeoutMs) {
           await this.lock();
         } else {
@@ -681,7 +736,7 @@ class AuthService {
 
       // Initialize lock state
       this.isLocked = await this.checkIsLocked();
-      
+
       return true;
     } catch (error) {
       console.error('Error initializing auth service:', error);
@@ -720,7 +775,7 @@ class AuthService {
         AUTH_STORAGE_KEYS.IS_LOCKED,
         AUTH_STORAGE_KEYS.PIN_ENABLED,
         AUTH_STORAGE_KEYS.FAILED_ATTEMPTS,
-        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL
+        AUTH_STORAGE_KEYS.LOCKOUT_UNTIL,
       ]);
 
       // Remove PIN from secure storage
@@ -729,11 +784,11 @@ class AuthService {
       } catch (secureStoreError) {
         // Ignore errors if PIN doesn't exist in SecureStore
       }
-      
+
       this.clearAutoLockTimer();
       this.isLocked = true;
       this.lastUnlockTime = null;
-      
+
       return true;
     } catch (error) {
       console.error('Error resetting auth:', error);
@@ -746,7 +801,10 @@ class AuthService {
     if (nextAppState === 'background' || nextAppState === 'inactive') {
       // App going to background - start/continue auto-lock timer if enabled
       this.startAutoLockTimer().catch(error => {
-        console.error('Error starting auto-lock timer on app state change:', error);
+        console.error(
+          'Error starting auto-lock timer on app state change:',
+          error
+        );
       });
     } else if (nextAppState === 'active') {
       // App coming to foreground - check if should be locked
@@ -759,13 +817,15 @@ class AuthService {
       const autoLockEnabled = await this.isAutoLockEnabled();
       if (!autoLockEnabled) return;
 
-      const lastUnlockTime = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME);
+      const lastUnlockTime = await AsyncStorage.getItem(
+        AUTH_STORAGE_KEYS.LAST_UNLOCK_TIME
+      );
       const timeoutMinutes = await this.getAutoLockTimeout();
-      
+
       if (lastUnlockTime) {
         const timeSinceUnlock = Date.now() - parseInt(lastUnlockTime, 10);
         const timeoutMs = timeoutMinutes * 60 * 1000;
-        
+
         if (timeSinceUnlock > timeoutMs) {
           await this.lock();
         }

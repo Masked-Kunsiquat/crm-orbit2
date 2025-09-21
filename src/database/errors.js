@@ -11,14 +11,21 @@ export class DatabaseError extends Error {
    * @param {any} [originalError=null] Underlying error (from SQLite/WebSQL)
    * @param {object} [context=null] Extra context (e.g., sql, params)
    */
-  constructor(message, code = 'DB_ERROR', originalError = null, context = null) {
+  constructor(
+    message,
+    code = 'DB_ERROR',
+    originalError = null,
+    context = null
+  ) {
     super(message);
     this.name = 'DatabaseError';
     this.code = code;
     this.originalError = originalError;
     this.context = context || undefined;
     // Preserve causal chain where supported (Node 16+/modern runtimes)
-    try { this.cause = originalError ?? undefined; } catch (_) {}
+    try {
+      this.cause = originalError ?? undefined;
+    } catch (_) {}
   }
 }
 

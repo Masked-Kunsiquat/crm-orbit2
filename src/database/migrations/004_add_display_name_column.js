@@ -5,7 +5,7 @@ import { getExec } from './_helpers.js';
 export default {
   version: 4,
   name: 'add_display_name_column',
-  
+
   async up(ctx) {
     // Migration runner provides transaction context, use atomic batch operations
     const exec = getExec(ctx);
@@ -21,23 +21,25 @@ export default {
       columns = Array.isArray(tableInfo.rows) ? tableInfo.rows : [];
     }
 
-    const hasDisplayNameColumn = columns.some(col => col.name === 'display_name');
+    const hasDisplayNameColumn = columns.some(
+      col => col.name === 'display_name'
+    );
 
     // Build statements array conditionally
     const statements = [];
 
-      // Add column only if it doesn't exist
-      if (!hasDisplayNameColumn) {
-        statements.push(`
+    // Add column only if it doesn't exist
+    if (!hasDisplayNameColumn) {
+      statements.push(`
           ALTER TABLE contacts
           ADD COLUMN display_name TEXT;
         `);
-      }
+    }
 
-      // Backfill and setup statements
-      statements.push(
-        // Backfill with collapsed internal whitespace
-        `UPDATE contacts
+    // Backfill and setup statements
+    statements.push(
+      // Backfill with collapsed internal whitespace
+      `UPDATE contacts
          SET display_name = TRIM(
            REPLACE(
              REPLACE(
@@ -56,17 +58,17 @@ export default {
          )
          WHERE display_name IS NULL;`,
 
-        // Handle empty display names
-        `UPDATE contacts
+      // Handle empty display names
+      `UPDATE contacts
          SET display_name = 'Unnamed Contact'
          WHERE display_name IS NULL OR display_name = '';`,
 
-        // Drop existing triggers to avoid duplicates
-        'DROP TRIGGER IF EXISTS contacts_display_name_insert;',
-        'DROP TRIGGER IF EXISTS contacts_display_name_update;',
+      // Drop existing triggers to avoid duplicates
+      'DROP TRIGGER IF EXISTS contacts_display_name_insert;',
+      'DROP TRIGGER IF EXISTS contacts_display_name_update;',
 
-        // Create INSERT trigger to auto-compute display_name
-        `CREATE TRIGGER IF NOT EXISTS contacts_display_name_insert
+      // Create INSERT trigger to auto-compute display_name
+      `CREATE TRIGGER IF NOT EXISTS contacts_display_name_insert
          AFTER INSERT ON contacts
          FOR EACH ROW
          BEGIN
@@ -108,8 +110,8 @@ export default {
            WHERE id = NEW.id;
          END;`,
 
-        // Create UPDATE trigger to auto-compute display_name when name fields change
-        `CREATE TRIGGER IF NOT EXISTS contacts_display_name_update
+      // Create UPDATE trigger to auto-compute display_name when name fields change
+      `CREATE TRIGGER IF NOT EXISTS contacts_display_name_update
          AFTER UPDATE OF first_name, middle_name, last_name ON contacts
          FOR EACH ROW
          BEGIN
@@ -151,23 +153,25 @@ export default {
            WHERE id = NEW.id;
          END;`,
 
-        // Drop any existing index first to ensure we get the NOCASE collation
-        'DROP INDEX IF EXISTS idx_contacts_display_name;',
+      // Drop any existing index first to ensure we get the NOCASE collation
+      'DROP INDEX IF EXISTS idx_contacts_display_name;',
 
-        // Create case-insensitive index on display_name for performance
-        `CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name COLLATE NOCASE);`
-      );
+      // Create case-insensitive index on display_name for performance
+      `CREATE INDEX IF NOT EXISTS idx_contacts_display_name ON contacts(display_name COLLATE NOCASE);`
+    );
 
     try {
       await exec.batch(statements);
     } catch (error) {
       // Handle duplicate column errors gracefully - this can happen if migration was partially applied
       if (error?.message?.includes('duplicate column name: display_name')) {
-        console.warn('Migration 004: display_name column already exists, continuing with other operations...');
+        console.warn(
+          'Migration 004: display_name column already exists, continuing with other operations...'
+        );
 
         // Re-run only the non-ADD COLUMN statements
-        const safeStatements = statements.filter(stmt =>
-          !stmt.includes('ADD COLUMN display_name')
+        const safeStatements = statements.filter(
+          stmt => !stmt.includes('ADD COLUMN display_name')
         );
         if (safeStatements.length > 0) {
           await exec.batch(safeStatements);
@@ -177,7 +181,7 @@ export default {
       }
     }
   },
-  
+
   async down(ctx) {
     const { execute } = ctx;
 
@@ -191,8 +195,8 @@ export default {
     // This migration is effectively irreversible without data loss risk
     throw new DatabaseError(
       'Migration 004 rollback not supported: SQLite cannot drop columns. ' +
-      'Rolling back would require recreating the contacts table with potential data loss.',
+        'Rolling back would require recreating the contacts table with potential data loss.',
       'MIGRATION_ROLLBACK_UNSUPPORTED'
     );
-  }
+  },
 };

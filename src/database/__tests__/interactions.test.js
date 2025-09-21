@@ -11,7 +11,9 @@ function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
   if (!result || !result.length) return [];
   const { columns, values } = result[0];
-  return values.map((arr) => Object.fromEntries(arr.map((v, i) => [columns[i], v])));
+  return values.map(arr =>
+    Object.fromEntries(arr.map((v, i) => [columns[i], v]))
+  );
 }
 
 function makeCtx(db) {
@@ -20,7 +22,10 @@ function makeCtx(db) {
 
   const exec = (sql, params = []) => {
     const trimmed = String(sql).trim().toUpperCase();
-    const isSelect = trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.startsWith('WITH');
+    const isSelect =
+      trimmed.startsWith('SELECT') ||
+      trimmed.startsWith('PRAGMA') ||
+      trimmed.startsWith('WITH');
     if (isSelect) {
       const stmt = db.prepare(sql);
       stmt.bind(params);
@@ -46,25 +51,27 @@ function makeCtx(db) {
     return Promise.resolve({ rows: [], rowsAffected, insertId });
   };
 
-  const doBatch = async (statements) => {
+  const doBatch = async statements => {
     const results = [];
     db.run('BEGIN;');
     try {
       for (const { sql, params = [] } of statements) {
         // Reuse exec for consistent behavior
-        // eslint-disable-next-line no-await-in-loop
+
         const r = await exec(sql, params);
         results.push(r);
       }
       db.run('COMMIT;');
       return results;
     } catch (e) {
-      try { db.run('ROLLBACK;'); } catch (_) {}
+      try {
+        db.run('ROLLBACK;');
+      } catch (_) {}
       throw e;
     }
   };
 
-  const tx = async (work) => {
+  const tx = async work => {
     // Transaction wrapper that enforces synchronous scheduling to match production WebSQL semantics.
     // In production, all tx.executeSql calls must be scheduled synchronously inside the callback.
     // While callers can return a Promise to handle async results, all execute calls must be scheduled
@@ -75,7 +82,7 @@ function makeCtx(db) {
     const wrapped = {
       execute: (sql, params = []) => exec(sql, params),
     };
-    
+
     db.prepare('BEGIN').run();
     try {
       // Call work synchronously - it may return a Promise to handle async results,
@@ -90,10 +97,12 @@ function makeCtx(db) {
       db.prepare('COMMIT').run();
     } catch (e) {
       workError = e;
-      try { db.prepare('ROLLBACK').run(); } catch (_) {}
+      try {
+        db.prepare('ROLLBACK').run();
+      } catch (_) {}
       throw workError;
     }
-    
+
     // If work returned a Promise, wait for it after commit
     if (workPromise) {
       try {
@@ -102,7 +111,7 @@ function makeCtx(db) {
         throw e;
       }
     }
-    
+
     return result;
   };
 
@@ -110,8 +119,8 @@ function makeCtx(db) {
 }
 
 function createSchema(db) {
-  const run = (sql) => db.run(sql);
-  
+  const run = sql => db.run(sql);
+
   // Create contacts table (required for foreign key)
   run(`CREATE TABLE contacts (
     id INTEGER PRIMARY KEY,
@@ -144,9 +153,15 @@ function createSchema(db) {
   );`);
 
   // Create indexes
-  run(`CREATE INDEX IF NOT EXISTS idx_interactions_contact ON interactions(contact_id);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_interactions_datetime ON interactions(interaction_datetime);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_interactions_type ON interactions(interaction_type);`);
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_interactions_contact ON interactions(contact_id);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_interactions_datetime ON interactions(interaction_datetime);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_interactions_type ON interactions(interaction_type);`
+  );
 }
 
 describe('interactionsDB (in-memory)', () => {
@@ -161,7 +176,7 @@ describe('interactionsDB (in-memory)', () => {
 
   beforeAll(async () => {
     SQL = await initSqlJs({
-      locateFile: (file) => {
+      locateFile: file => {
         // Resolve WASM shipped with sql.js
         const resolved = require.resolve('sql.js/dist/sql-wasm.wasm');
         return path.join(path.dirname(resolved), file);
@@ -176,7 +191,7 @@ describe('interactionsDB (in-memory)', () => {
     interactions = createInteractionsDB(ctx);
     interactionsStats = createInteractionsStatsDB(ctx);
     interactionsSearch = createInteractionsSearchDB(ctx);
-    
+
     // Create test contacts
     const contactRes = await ctx.execute(
       'INSERT INTO contacts (first_name, last_name, display_name) VALUES (?, ?, ?)',
@@ -192,19 +207,24 @@ describe('interactionsDB (in-memory)', () => {
   });
 
   afterEach(() => {
-    try { db.close(); } catch (_) {}
+    try {
+      db.close();
+    } catch (_) {}
   });
 
   // Core CRUD tests
   test('create rejects without required fields', async () => {
-    await expect(interactions.create({}))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(interactions.create({})).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
 
-    await expect(interactions.create({ contact_id: contactId }))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(
+      interactions.create({ contact_id: contactId })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
 
-    await expect(interactions.create({ contact_id: contactId, title: 'Test' }))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(
+      interactions.create({ contact_id: contactId, title: 'Test' })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
   test('create interaction and fetch by id', async () => {
@@ -213,9 +233,9 @@ describe('interactionsDB (in-memory)', () => {
       title: 'Phone call',
       interaction_type: 'call',
       duration: 15,
-      note: 'Discussed project requirements'
+      note: 'Discussed project requirements',
     };
-    
+
     const created = await interactions.create(interactionData);
     expect(created.id).toBeGreaterThan(0);
     expect(created.title).toBe('Phone call');
@@ -233,12 +253,12 @@ describe('interactionsDB (in-memory)', () => {
     const interactionData = {
       contact_id: contactId,
       title: 'Meeting',
-      interaction_type: 'meeting'
+      interaction_type: 'meeting',
     };
-    
+
     const created = await interactions.create(interactionData);
     expect(created.interaction_datetime).toBeTruthy();
-    
+
     // Should be recent (within last minute)
     const now = new Date();
     const createdTime = new Date(created.interaction_datetime);
@@ -247,16 +267,22 @@ describe('interactionsDB (in-memory)', () => {
   });
 
   test('create auto-updates contact last_interaction_at', async () => {
-    const beforeContact = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    const beforeContact = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
     expect(beforeContact.rows[0].last_interaction_at).toBeFalsy();
 
     await interactions.create({
       contact_id: contactId,
       title: 'Call',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
-    const afterContact = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    const afterContact = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
     expect(afterContact.rows[0].last_interaction_at).toBeTruthy();
   });
 
@@ -265,13 +291,13 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Original Title',
       interaction_type: 'call',
-      duration: 10
+      duration: 10,
     });
 
     const updated = await interactions.update(created.id, {
       title: 'Updated Title',
       duration: 20,
-      note: 'Added notes'
+      note: 'Added notes',
     });
 
     expect(updated.title).toBe('Updated Title');
@@ -281,15 +307,16 @@ describe('interactionsDB (in-memory)', () => {
   });
 
   test('update non-existent interaction throws error', async () => {
-    await expect(interactions.update(9999, { title: 'Test' }))
-      .rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(
+      interactions.update(9999, { title: 'Test' })
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
   test('delete interaction', async () => {
     const created = await interactions.create({
       contact_id: contactId,
       title: 'To Delete',
-      interaction_type: 'email'
+      interaction_type: 'email',
     });
 
     const rowsAffected = await interactions.delete(created.id);
@@ -307,14 +334,18 @@ describe('interactionsDB (in-memory)', () => {
         contact_id: contactId,
         title: `Interaction ${i}`,
         interaction_type: 'email',
-        interaction_datetime: new Date(base + i * 1000).toISOString()
+        interaction_datetime: new Date(base + i * 1000).toISOString(),
       });
     }
 
     const all = await interactions.getAll({ limit: 3 });
     expect(all.length).toBe(3);
     // Should be in DESC order by default (most recent first)
-    expect(all.map(i => i.title)).toEqual(['Interaction 4', 'Interaction 3', 'Interaction 2']);
+    expect(all.map(i => i.title)).toEqual([
+      'Interaction 4',
+      'Interaction 3',
+      'Interaction 2',
+    ]);
 
     const page2 = await interactions.getAll({ limit: 3, offset: 3 });
     expect(page2.length).toBe(2);
@@ -327,13 +358,13 @@ describe('interactionsDB (in-memory)', () => {
     await interactions.create({
       contact_id: contactId,
       title: 'John Call',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Jane Email',
-      interaction_type: 'email'
+      interaction_type: 'email',
     });
 
     const johnInteractions = await interactionsSearch.getByContact(contactId);
@@ -347,20 +378,22 @@ describe('interactionsDB (in-memory)', () => {
 
   test('getRecent returns recent interactions with contact info', async () => {
     const recentTime = new Date().toISOString();
-    const oldTime = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(); // 10 days ago
+    const oldTime = new Date(
+      Date.now() - 10 * 24 * 60 * 60 * 1000
+    ).toISOString(); // 10 days ago
 
     await interactions.create({
       contact_id: contactId,
       title: 'Recent Call',
       interaction_type: 'call',
-      interaction_datetime: recentTime
+      interaction_datetime: recentTime,
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Old Call',
       interaction_type: 'call',
-      interaction_datetime: oldTime
+      interaction_datetime: oldTime,
     });
 
     const recent = await interactionsSearch.getRecent({ days: 7 });
@@ -374,19 +407,19 @@ describe('interactionsDB (in-memory)', () => {
     await interactions.create({
       contact_id: contactId,
       title: 'Phone Call',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Email Thread',
-      interaction_type: 'email'
+      interaction_type: 'email',
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Another Call',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
     const calls = await interactionsSearch.getByType('call');
@@ -403,19 +436,19 @@ describe('interactionsDB (in-memory)', () => {
     const date2 = '2024-06-15T10:00:00Z';
     const dateBoundaryInclusive = '2024-06-30T23:59:59Z';
     const dateOutside = '2024-07-01T00:00:00Z';
-    
+
     await interactions.create({
       contact_id: contactId,
       title: 'June Interaction',
       interaction_type: 'call',
-      interaction_datetime: date1
+      interaction_datetime: date1,
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Mid June Interaction',
       interaction_type: 'email',
-      interaction_datetime: date2
+      interaction_datetime: date2,
     });
 
     // Edge of day boundary (should be included when using end-exclusive normalization)
@@ -423,7 +456,7 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'End of June Interaction',
       interaction_type: 'meeting',
-      interaction_datetime: dateBoundaryInclusive
+      interaction_datetime: dateBoundaryInclusive,
     });
 
     // Outside the range (should be excluded)
@@ -431,15 +464,26 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'July Interaction',
       interaction_type: 'meeting',
-      interaction_datetime: dateOutside
+      interaction_datetime: dateOutside,
     });
 
-    const juneInteractions = await interactionsSearch.getByDateRange('2024-06-01', '2024-06-30');
+    const juneInteractions = await interactionsSearch.getByDateRange(
+      '2024-06-01',
+      '2024-06-30'
+    );
     expect(juneInteractions.length).toBe(3);
-    expect(juneInteractions.some(i => i.title === 'June Interaction')).toBe(true);
-    expect(juneInteractions.some(i => i.title === 'Mid June Interaction')).toBe(true);
-    expect(juneInteractions.some(i => i.title === 'End of June Interaction')).toBe(true);
-    expect(juneInteractions.some(i => i.title === 'July Interaction')).toBe(false);
+    expect(juneInteractions.some(i => i.title === 'June Interaction')).toBe(
+      true
+    );
+    expect(juneInteractions.some(i => i.title === 'Mid June Interaction')).toBe(
+      true
+    );
+    expect(
+      juneInteractions.some(i => i.title === 'End of June Interaction')
+    ).toBe(true);
+    expect(juneInteractions.some(i => i.title === 'July Interaction')).toBe(
+      false
+    );
   });
 
   // Statistics tests
@@ -449,31 +493,31 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Call 1',
       interaction_type: 'call',
-      duration: 10
+      duration: 10,
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Call 2',
       interaction_type: 'call',
-      duration: 20
+      duration: 20,
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Email 1',
-      interaction_type: 'email'
+      interaction_type: 'email',
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Meeting 1',
       interaction_type: 'meeting',
-      duration: 60
+      duration: 60,
     });
 
     const stats = await interactionsStats.getStatistics();
-    
+
     expect(stats.totalInteractions).toBe(4);
     expect(stats.uniqueContacts).toBe(2);
     expect(stats.countByType.call).toBe(2);
@@ -487,13 +531,13 @@ describe('interactionsDB (in-memory)', () => {
     await interactions.create({
       contact_id: contactId,
       title: 'John Call',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Jane Call',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
     const stats = await interactionsStats.getStatistics({ contactId });
@@ -509,19 +553,19 @@ describe('interactionsDB (in-memory)', () => {
         contact_id: contactId,
         title: 'Bulk Call 1',
         interaction_type: 'call',
-        duration: 5
+        duration: 5,
       },
       {
         contact_id: contact2Id,
         title: 'Bulk Email 1',
-        interaction_type: 'email'
+        interaction_type: 'email',
       },
       {
         contact_id: contactId,
         title: 'Bulk Meeting 1',
         interaction_type: 'meeting',
-        duration: 30
-      }
+        duration: 30,
+      },
     ];
 
     const results = await interactions.bulkCreate(interactionList);
@@ -542,45 +586,57 @@ describe('interactionsDB (in-memory)', () => {
         contact_id: contactId,
         title: 'Bulk Call (older)',
         interaction_type: 'call',
-        interaction_datetime: '2024-08-01T12:00:00.000Z'
+        interaction_datetime: '2024-08-01T12:00:00.000Z',
       },
       {
         contact_id: contactId,
         title: 'Bulk Meeting (newer)',
         interaction_type: 'meeting',
-        interaction_datetime: '2024-08-02T09:00:00.000Z'
+        interaction_datetime: '2024-08-02T09:00:00.000Z',
       },
       // Two for contact 2: latest should be Aug 03 00:00:00Z
       {
         contact_id: contact2Id,
         title: 'Bulk Email (older)',
         interaction_type: 'email',
-        interaction_datetime: '2024-08-01T12:00:00.000Z'
+        interaction_datetime: '2024-08-01T12:00:00.000Z',
       },
       {
         contact_id: contact2Id,
         title: 'Bulk Call (newer)',
         interaction_type: 'call',
-        interaction_datetime: '2024-08-03T00:00:00.000Z'
-      }
+        interaction_datetime: '2024-08-03T00:00:00.000Z',
+      },
     ];
 
     await interactions.bulkCreate(interactionList);
 
     // Check both contacts were updated to the actual MAX(interaction_datetime) among their interactions
-    const contact1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
-    const contact2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
-    
-    expect(contact1.rows[0].last_interaction_at).toBe('2024-08-02T09:00:00.000Z');
-    expect(contact2.rows[0].last_interaction_at).toBe('2024-08-03T00:00:00.000Z');
+    const contact1 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
+    const contact2 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contact2Id]
+    );
+
+    expect(contact1.rows[0].last_interaction_at).toBe(
+      '2024-08-02T09:00:00.000Z'
+    );
+    expect(contact2.rows[0].last_interaction_at).toBe(
+      '2024-08-03T00:00:00.000Z'
+    );
   });
 
   test('bulkCreate validates input', async () => {
-    await expect(interactions.bulkCreate([]))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(interactions.bulkCreate([])).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
 
-    await expect(interactions.bulkCreate([{ title: 'Missing fields' }]))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(
+      interactions.bulkCreate([{ title: 'Missing fields' }])
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
   test("updating an interaction's contact_id recalculates last_interaction_at for both contacts", async () => {
@@ -593,26 +649,32 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Other for C1',
       interaction_type: 'call',
-      interaction_datetime: otherForContact1
+      interaction_datetime: otherForContact1,
     });
 
     const toMove = await interactions.create({
       contact_id: contactId,
       title: 'To Move',
       interaction_type: 'email',
-      interaction_datetime: movedDatetime
+      interaction_datetime: movedDatetime,
     });
 
     const c2existing = await interactions.create({
       contact_id: contact2Id,
       title: 'Existing for C2',
       interaction_type: 'meeting',
-      interaction_datetime: existingForContact2
+      interaction_datetime: existingForContact2,
     });
 
     // Record both contacts' last_interaction_at before the update
-    const beforeC1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
-    const beforeC2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
+    const beforeC1 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
+    const beforeC2 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contact2Id]
+    );
     const beforeC1Last = beforeC1.rows[0].last_interaction_at;
     const beforeC2Last = beforeC2.rows[0].last_interaction_at;
     expect(beforeC1Last).toBeTruthy();
@@ -622,8 +684,14 @@ describe('interactionsDB (in-memory)', () => {
     await interactions.update(toMove.id, { contact_id: contact2Id });
 
     // Fetch contacts after transfer
-    const afterC1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
-    const afterC2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contact2Id]);
+    const afterC1 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
+    const afterC2 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contact2Id]
+    );
 
     const afterC1Last = afterC1.rows[0].last_interaction_at;
     const afterC2Last = afterC2.rows[0].last_interaction_at;
@@ -644,33 +712,39 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Oldest',
       interaction_type: 'call',
-      interaction_datetime: d1
+      interaction_datetime: d1,
     });
     const i2 = await interactions.create({
       contact_id: contactId,
       title: 'Middle',
       interaction_type: 'email',
-      interaction_datetime: d2
+      interaction_datetime: d2,
     });
     const i3 = await interactions.create({
       contact_id: contactId,
       title: 'Latest',
       interaction_type: 'meeting',
-      interaction_datetime: d3
+      interaction_datetime: d3,
     });
 
     // Delete the most recent one
     await interactions.delete(i3.id);
 
     // After deletion, last_interaction_at should be d2
-    const afterDeleteOne = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    const afterDeleteOne = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
     expect(afterDeleteOne.rows[0].last_interaction_at).toBe(d2);
 
     // Delete remaining interactions and expect null
     await interactions.delete(i2.id);
     await interactions.delete(i1.id);
 
-    const afterDeleteAll = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?', [contactId]);
+    const afterDeleteAll = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?',
+      [contactId]
+    );
     expect(afterDeleteAll.rows[0].last_interaction_at || null).toBeNull();
   });
 
@@ -680,29 +754,30 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Call 1',
       interaction_type: 'call',
-      duration: 10
+      duration: 10,
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Call 2',
       interaction_type: 'call',
-      duration: 20
+      duration: 20,
     });
 
     await interactions.create({
       contact_id: contactId,
       title: 'Email 1',
-      interaction_type: 'email'
+      interaction_type: 'email',
     });
 
-    const summary = await interactionsStats.getContactInteractionSummary(contactId);
+    const summary =
+      await interactionsStats.getContactInteractionSummary(contactId);
     expect(summary.length).toBe(2);
-    
+
     const callSummary = summary.find(s => s.interaction_type === 'call');
     expect(callSummary.count).toBe(2);
     expect(callSummary.avg_duration).toBe(15);
-    
+
     const emailSummary = summary.find(s => s.interaction_type === 'email');
     expect(emailSummary.count).toBe(1);
   });
@@ -712,18 +787,19 @@ describe('interactionsDB (in-memory)', () => {
       contact_id: contactId,
       title: 'Important meeting',
       interaction_type: 'meeting',
-      note: 'Discussed budget'
+      note: 'Discussed budget',
     });
 
     await interactions.create({
       contact_id: contact2Id,
       title: 'Follow up call',
       interaction_type: 'call',
-      note: 'Quick check-in'
+      note: 'Quick check-in',
     });
 
     // Search by title
-    const titleResults = await interactionsSearch.searchInteractions('important');
+    const titleResults =
+      await interactionsSearch.searchInteractions('important');
     expect(titleResults.length).toBe(1);
     expect(titleResults[0].title).toBe('Important meeting');
 
@@ -743,7 +819,7 @@ describe('interactionsDB (in-memory)', () => {
     await interactions.create({
       contact_id: contactId,
       title: 'Test interaction',
-      interaction_type: 'call'
+      interaction_type: 'call',
     });
 
     const results = await interactionsSearch.searchInteractions('');

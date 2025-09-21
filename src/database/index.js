@@ -18,10 +18,6 @@
  */
 
 import * as ExpoSQLite from 'expo-sqlite';
-// Support both module shapes: named export and default export
-const expoOpenDatabase =
-  (ExpoSQLite && typeof ExpoSQLite.openDatabase === 'function' && ExpoSQLite.openDatabase)
-  || (ExpoSQLite && ExpoSQLite.default && typeof ExpoSQLite.default.openDatabase === 'function' && ExpoSQLite.default.openDatabase);
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
 import { createContactsInfoDB } from './contactsInfo';
@@ -38,6 +34,15 @@ import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
 import { DatabaseError } from './errors';
+// Support both module shapes: named export and default export
+const expoOpenDatabase =
+  (ExpoSQLite &&
+    typeof ExpoSQLite.openDatabase === 'function' &&
+    ExpoSQLite.openDatabase) ||
+  (ExpoSQLite &&
+    ExpoSQLite.default &&
+    typeof ExpoSQLite.default.openDatabase === 'function' &&
+    ExpoSQLite.default.openDatabase);
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from './errors';
@@ -101,7 +106,9 @@ function openDatabase(dbName = DEFAULT_DB_NAME) {
     _db = expoOpenDatabase(dbName);
     return _db;
   } catch (err) {
-    throw new DatabaseError('Failed to open database', 'OPEN_FAILED', err, { dbName });
+    throw new DatabaseError('Failed to open database', 'OPEN_FAILED', err, {
+      dbName,
+    });
   }
 }
 
@@ -117,21 +124,32 @@ export async function execute(sql, params = []) {
   return new Promise((resolve, reject) => {
     try {
       db.transaction(
-        (tx) => {
+        tx => {
           tx.executeSql(
             sql,
             params,
             (_tx, result) => resolve(normalizeResult(result)),
             (_tx, error) => {
-              reject(new DatabaseError('SQL execution failed', 'SQL_ERROR', error, { sql, params }));
+              reject(
+                new DatabaseError('SQL execution failed', 'SQL_ERROR', error, {
+                  sql,
+                  params,
+                })
+              );
               // Do not return true; allow the transaction to abort.
             }
           );
         },
-        (txError) => reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError)),
+        txError =>
+          reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError))
       );
     } catch (err) {
-      reject(new DatabaseError('Unexpected DB error', 'UNEXPECTED_DB_ERROR', err, { sql, params }));
+      reject(
+        new DatabaseError('Unexpected DB error', 'UNEXPECTED_DB_ERROR', err, {
+          sql,
+          params,
+        })
+      );
     }
   });
 }
@@ -155,7 +173,7 @@ export async function batch(statements) {
     let stepError = null;
     try {
       db.transaction(
-        (tx) => {
+        tx => {
           statements.forEach(({ sql, params = [] }, index) => {
             tx.executeSql(
               sql,
@@ -164,21 +182,36 @@ export async function batch(statements) {
                 results[index] = normalizeResult(result);
               },
               (_tx, error) => {
-                stepError = new DatabaseError('SQL batch step failed', 'SQL_ERROR', error, {
-                  index,
-                  sql,
-                  params,
-                });
+                stepError = new DatabaseError(
+                  'SQL batch step failed',
+                  'SQL_ERROR',
+                  error,
+                  {
+                    index,
+                    sql,
+                    params,
+                  }
+                );
                 // Do not return true; abort and rollback the transaction.
               }
             );
           });
         },
-        (txError) => reject(stepError || new DatabaseError('Batch transaction failed', 'TX_ERROR', txError)),
+        txError =>
+          reject(
+            stepError ||
+              new DatabaseError('Batch transaction failed', 'TX_ERROR', txError)
+          ),
         () => resolve(results)
       );
     } catch (err) {
-      reject(new DatabaseError('Unexpected DB error (batch)', 'UNEXPECTED_DB_ERROR', err));
+      reject(
+        new DatabaseError(
+          'Unexpected DB error (batch)',
+          'UNEXPECTED_DB_ERROR',
+          err
+        )
+      );
     }
   });
 }
@@ -206,7 +239,7 @@ export async function transaction(work) {
       let workError;
       let workPromise = null;
       db.transaction(
-        (tx) => {
+        tx => {
           const wrappedTx = {
             execute: (sql, params = []) =>
               new Promise((res, rej) => {
@@ -216,12 +249,26 @@ export async function transaction(work) {
                     params,
                     (_t, result) => res(normalizeResult(result)),
                     (_t, error) => {
-                      rej(new DatabaseError('SQL execution failed', 'SQL_ERROR', error, { sql, params }));
+                      rej(
+                        new DatabaseError(
+                          'SQL execution failed',
+                          'SQL_ERROR',
+                          error,
+                          { sql, params }
+                        )
+                      );
                       // Do not return true; allow the transaction to abort.
                     }
                   );
                 } catch (e) {
-                  rej(new DatabaseError('Unexpected SQL exception', 'SQL_EXEC_EXCEPTION', e, { sql, params }));
+                  rej(
+                    new DatabaseError(
+                      'Unexpected SQL exception',
+                      'SQL_EXEC_EXCEPTION',
+                      e,
+                      { sql, params }
+                    )
+                  );
                 }
               }),
           };
@@ -243,15 +290,19 @@ export async function transaction(work) {
             workError = err;
           }
         },
-        (txError) => {
+        txError => {
           // Ensure the user's returned promise settles before we reject,
           // so callers see consistent behavior.
           if (workPromise && typeof workPromise.finally === 'function') {
             workPromise.finally(() => {
-              reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError));
+              reject(
+                new DatabaseError('Transaction failed', 'TX_ERROR', txError)
+              );
             });
           } else {
-            reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError));
+            reject(
+              new DatabaseError('Transaction failed', 'TX_ERROR', txError)
+            );
           }
         },
         () => {
@@ -273,7 +324,13 @@ export async function transaction(work) {
         }
       );
     } catch (err) {
-      reject(new DatabaseError('Unexpected DB error (transaction)', 'UNEXPECTED_DB_ERROR', err));
+      reject(
+        new DatabaseError(
+          'Unexpected DB error (transaction)',
+          'UNEXPECTED_DB_ERROR',
+          err
+        )
+      );
     }
   });
 }
@@ -308,41 +365,50 @@ export async function initDatabase(options = {}) {
     try {
       if (enableWAL) {
         // journal_mode may not be supported on some platforms; ignore failure
-        try { await execute('PRAGMA journal_mode = WAL;'); } catch (_) {}
+        try {
+          await execute('PRAGMA journal_mode = WAL;');
+        } catch (_) {}
       }
       if (enableForeignKeys) {
         await execute('PRAGMA foreign_keys = ON;');
         try {
           const check = await execute('PRAGMA foreign_keys;');
           const enabled = check.rows?.[0]?.foreign_keys === 1;
-          if (!enabled) onLog && onLog('Warning: PRAGMA foreign_keys not enabled.');
+          if (!enabled)
+            onLog && onLog('Warning: PRAGMA foreign_keys not enabled.');
         } catch {}
       }
     } catch (err) {
-      throw new DatabaseError('Failed to configure database PRAGMAs', 'PRAGMA_FAILED', err);
+      throw new DatabaseError(
+        'Failed to configure database PRAGMAs',
+        'PRAGMA_FAILED',
+        err
+      );
     }
 
     // Run migrations if requested
-  if (runMigrationsOnInit && typeof runMigrations === 'function') {
-    try {
-      onLog && onLog('Running database migrations...');
-      await runMigrations({ db, execute, batch, transaction, onLog });
-      onLog && onLog('Migrations complete.');
-    } catch (err) {
-      throw new DatabaseError(
-        'Migration execution failed',
-        'MIGRATION_FAILED',
-        err,
-        { originalCode: err?.code }
-      );
+    if (runMigrationsOnInit && typeof runMigrations === 'function') {
+      try {
+        onLog && onLog('Running database migrations...');
+        await runMigrations({ db, execute, batch, transaction, onLog });
+        onLog && onLog('Migrations complete.');
+      } catch (err) {
+        throw new DatabaseError(
+          'Migration execution failed',
+          'MIGRATION_FAILED',
+          err,
+          { originalCode: err?.code }
+        );
+      }
     }
-  }
 
     _initialized = true;
     return db;
   };
 
-  _initInflight = startInit().finally(() => { _initInflight = null; });
+  _initInflight = startInit().finally(() => {
+    _initInflight = null;
+  });
   return _initInflight;
 }
 
@@ -359,7 +425,7 @@ export function isInitialized() {
  * Create a placeholder proxy for not-yet-implemented database modules.
  * @private
  */
-const notImplemented = (moduleName) =>
+const notImplemented = moduleName =>
   new Proxy(
     {},
     {
@@ -367,7 +433,10 @@ const notImplemented = (moduleName) =>
         if (prop === Symbol.toStringTag) return `${moduleName}DB`;
         // Named stub for better stack traces and devtools
         const fn = function notImplementedStub() {
-          throw new DatabaseError(`${moduleName}.${String(prop)} not implemented`, 'MODULE_NOT_IMPLEMENTED');
+          throw new DatabaseError(
+            `${moduleName}.${String(prop)} not implemented`,
+            'MODULE_NOT_IMPLEMENTED'
+          );
         };
         return fn;
       },
@@ -375,18 +444,42 @@ const notImplemented = (moduleName) =>
   );
 
 export const contactsDB = createContactsDB({ execute, batch, transaction });
-export const contactsInfoDB = createContactsInfoDB({ execute, batch, transaction });
+export const contactsInfoDB = createContactsInfoDB({
+  execute,
+  batch,
+  transaction,
+});
 export const categoriesDB = createCategoriesDB({ execute, batch, transaction });
-export const categoriesRelationsDB = createCategoriesRelationsDB({ execute, batch, transaction });
+export const categoriesRelationsDB = createCategoriesRelationsDB({
+  execute,
+  batch,
+  transaction,
+});
 export const companiesDB = createCompaniesDB({ execute, batch, transaction });
 export const eventsDB = createEventsDB({ execute, batch, transaction });
-export const eventsRecurringDB = createEventsRecurringDB({ execute, batch, transaction });
-export const eventsRemindersDB = createEventsRemindersDB({ execute, batch, transaction });
-export const interactionsDB = createInteractionsDB({ execute, batch, transaction });
+export const eventsRecurringDB = createEventsRecurringDB({
+  execute,
+  batch,
+  transaction,
+});
+export const eventsRemindersDB = createEventsRemindersDB({
+  execute,
+  batch,
+  transaction,
+});
+export const interactionsDB = createInteractionsDB({
+  execute,
+  batch,
+  transaction,
+});
 export const interactionsStatsDB = createInteractionsStatsDB({ execute });
 export const interactionsSearchDB = createInteractionsSearchDB({ execute });
 export const notesDB = createNotesDB({ execute, batch, transaction });
-export const attachmentsDB = createAttachmentsDB({ execute, batch, transaction });
+export const attachmentsDB = createAttachmentsDB({
+  execute,
+  batch,
+  transaction,
+});
 export const settingsDB = createSettingsDB({ execute, batch, transaction });
 
 /**

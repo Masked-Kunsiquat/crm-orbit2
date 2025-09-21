@@ -1,4 +1,3 @@
-
 import {
   documentDirectory,
   readDirectoryAsync,
@@ -23,11 +22,24 @@ const FILE_CONFIG = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   THUMBNAIL_SIZE: { width: 150, height: 150 },
   ALLOWED_TYPES: {
-    image: ['image/jpeg', 'image/png', 'image/gif', 'image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence', 'image/webp'],
-    document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    image: [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/heic',
+      'image/heif',
+      'image/heic-sequence',
+      'image/heif-sequence',
+      'image/webp',
+    ],
+    document: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
     audio: ['audio/mpeg', 'audio/m4a'],
-    video: ['video/mp4', 'video/quicktime']
-  }
+    video: ['video/mp4', 'video/quicktime'],
+  },
 };
 
 /**
@@ -37,13 +49,13 @@ const FILE_CONFIG = {
  * @param {string} mimeType - The MIME type (e.g., 'image/jpeg').
  * @returns {'image'|'document'|'audio'|'video'} The normalized file category.
  */
-const getFileType = (mimeType) => {
-    for (const type in FILE_CONFIG.ALLOWED_TYPES) {
-        if (FILE_CONFIG.ALLOWED_TYPES[type].includes(mimeType)) {
-            return type;
-        }
+const getFileType = mimeType => {
+  for (const type in FILE_CONFIG.ALLOWED_TYPES) {
+    if (FILE_CONFIG.ALLOWED_TYPES[type].includes(mimeType)) {
+      return type;
     }
-    return 'document'; // Default to document
+  }
+  return 'document'; // Default to document
 };
 
 /**
@@ -52,20 +64,20 @@ const getFileType = (mimeType) => {
  * @param {'image'|'document'|'audio'|'video'|string} fileType - Canonical file type.
  * @returns {string} Absolute path under `FileSystem.documentDirectory` where files are stored.
  */
-const getFileDirectory = (fileType) => {
-    const baseDir = `${documentDirectory}attachments`;
-    switch (fileType) {
-        case 'image':
-            return `${baseDir}/images`;
-        case 'document':
-            return `${baseDir}/documents`;
-        case 'audio':
-            return `${baseDir}/audio`;
-        case 'video':
-            return `${baseDir}/videos`;
-        default:
-            return `${baseDir}/other`;
-    }
+const getFileDirectory = fileType => {
+  const baseDir = `${documentDirectory}attachments`;
+  switch (fileType) {
+    case 'image':
+      return `${baseDir}/images`;
+    case 'document':
+      return `${baseDir}/documents`;
+    case 'audio':
+      return `${baseDir}/audio`;
+    case 'video':
+      return `${baseDir}/videos`;
+    default:
+      return `${baseDir}/other`;
+  }
 };
 
 /**
@@ -97,12 +109,20 @@ function isPathInsideDocumentDirectory(uri) {
 function detectMimeTypeFromName(name) {
   const ext = (name.split('.').pop() || '').toLowerCase();
   const map = {
-    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
-    webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
-    pdf: 'application/pdf', doc: 'application/msword',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    heic: 'image/heic',
+    heif: 'image/heif',
+    pdf: 'application/pdf',
+    doc: 'application/msword',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    mp3: 'audio/mpeg', m4a: 'audio/m4a',
-    mp4: 'video/mp4', mov: 'video/quicktime'
+    mp3: 'audio/mpeg',
+    m4a: 'audio/m4a',
+    mp4: 'video/mp4',
+    mov: 'video/quicktime',
   };
   return map[ext] || null;
 }
@@ -113,27 +133,26 @@ function detectMimeTypeFromName(name) {
  * @param {string} dir - Directory path to scan recursively.
  * @returns {Promise<string[]>} Array of absolute file paths.
  */
-const listFilesRecursively = async (dir) => {
-    const files = [];
-    try {
-        const entries = await readDirectoryAsync(dir);
-        for (const entry of entries) {
-            const fullPath = `${dir}/${entry}`;
-            const info = await getInfoAsync(fullPath);
-            if (info.isDirectory) {
-                const subFiles = await listFilesRecursively(fullPath);
-                files.push(...subFiles);
-            } else {
-                files.push(fullPath);
-            }
-        }
-    } catch (error) {
-        // Directory doesn't exist or can't be read, return empty array
-        console.warn(`Could not read directory ${dir}:`, error.message);
+const listFilesRecursively = async dir => {
+  const files = [];
+  try {
+    const entries = await readDirectoryAsync(dir);
+    for (const entry of entries) {
+      const fullPath = `${dir}/${entry}`;
+      const info = await getInfoAsync(fullPath);
+      if (info.isDirectory) {
+        const subFiles = await listFilesRecursively(fullPath);
+        files.push(...subFiles);
+      } else {
+        files.push(fullPath);
+      }
     }
-    return files;
+  } catch (error) {
+    // Directory doesn't exist or can't be read, return empty array
+    console.warn(`Could not read directory ${dir}:`, error.message);
+  }
+  return files;
 };
-
 
 export const fileService = {
   /**
@@ -166,11 +185,17 @@ export const fileService = {
         throw new Error('File does not exist at provided URI.');
       }
 
-      if (fileInfo.size !== undefined && !this.validateFileSize(fileInfo.size)) {
-        throw new Error(`File size exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`);
+      if (
+        fileInfo.size !== undefined &&
+        !this.validateFileSize(fileInfo.size)
+      ) {
+        throw new Error(
+          `File size exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`
+        );
       }
 
-      const mimeType = detectMimeTypeFromName(originalName) ?? 'application/octet-stream';
+      const mimeType =
+        detectMimeTypeFromName(originalName) ?? 'application/octet-stream';
       if (!this.validateFileType(mimeType)) {
         throw new Error(`Unsupported file type: ${mimeType}`);
       }
@@ -188,9 +213,14 @@ export const fileService = {
       await copyAsync({ from: uri, to: destPath });
 
       const savedFileInfo = await getInfoAsync(destPath);
-      if (savedFileInfo.size && savedFileInfo.size > FILE_CONFIG.MAX_FILE_SIZE) {
+      if (
+        savedFileInfo.size &&
+        savedFileInfo.size > FILE_CONFIG.MAX_FILE_SIZE
+      ) {
         await deleteAsync(destPath, { idempotent: true });
-        throw new Error(`Saved file size (${(savedFileInfo.size / (1024 * 1024)).toFixed(2)}MB) exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`);
+        throw new Error(
+          `Saved file size (${(savedFileInfo.size / (1024 * 1024)).toFixed(2)}MB) exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`
+        );
       }
 
       if (fileType === 'image') {
@@ -219,7 +249,10 @@ export const fileService = {
           await deleteAsync(thumbnailPath, { idempotent: true });
         }
       } catch (cleanupError) {
-        console.error('Failed to cleanup files during error handling:', cleanupError);
+        console.error(
+          'Failed to cleanup files during error handling:',
+          cleanupError
+        );
       }
       throw new ServiceError('fileService', 'saveFile', error);
     }
@@ -239,21 +272,29 @@ export const fileService = {
       if (!attachment) {
         // If attachment not in DB, it might be an orphaned file.
         // The cleanup job will handle it. For now, we can just warn.
-        console.warn(`Attachment with id ${attachmentId} not found in database.`);
+        console.warn(
+          `Attachment with id ${attachmentId} not found in database.`
+        );
         return;
       }
 
       if (isPathInsideDocumentDirectory(attachment.file_path)) {
         await deleteAsync(attachment.file_path, { idempotent: true });
       } else {
-        console.warn('Refusing to delete file outside app sandbox:', attachment.file_path);
+        console.warn(
+          'Refusing to delete file outside app sandbox:',
+          attachment.file_path
+        );
       }
 
       if (attachment.thumbnail_path) {
         if (isPathInsideDocumentDirectory(attachment.thumbnail_path)) {
           await deleteAsync(attachment.thumbnail_path, { idempotent: true });
         } else {
-          console.warn('Refusing to delete thumbnail outside app sandbox:', attachment.thumbnail_path);
+          console.warn(
+            'Refusing to delete thumbnail outside app sandbox:',
+            attachment.thumbnail_path
+          );
         }
       }
 
@@ -272,10 +313,10 @@ export const fileService = {
    */
   async getFileUri(attachmentId) {
     try {
-        const attachment = await db.attachments.getById(attachmentId);
-        return attachment ? attachment.file_path : null;
+      const attachment = await db.attachments.getById(attachmentId);
+      return attachment ? attachment.file_path : null;
     } catch (error) {
-        throw new ServiceError('fileService', 'getFileUri', error);
+      throw new ServiceError('fileService', 'getFileUri', error);
     }
   },
 
@@ -291,21 +332,20 @@ export const fileService = {
    */
   async generateThumbnail(imageUri, uuid) {
     try {
-        const thumbnailDir = `${documentDirectory}attachments/images/thumbnails`;
-        await makeDirectoryAsync(thumbnailDir, { intermediates: true });
-        const thumbnailPath = `${thumbnailDir}/${uuid}_thumb.jpg`;
+      const thumbnailDir = `${documentDirectory}attachments/images/thumbnails`;
+      await makeDirectoryAsync(thumbnailDir, { intermediates: true });
+      const thumbnailPath = `${thumbnailDir}/${uuid}_thumb.jpg`;
 
-        const manipResult = await ImageManipulator.manipulateAsync(
-            imageUri,
-            [{ resize: FILE_CONFIG.THUMBNAIL_SIZE }],
-            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-        );
-        await moveAsync({ from: manipResult.uri, to: thumbnailPath });
+      const manipResult = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [{ resize: FILE_CONFIG.THUMBNAIL_SIZE }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      await moveAsync({ from: manipResult.uri, to: thumbnailPath });
 
-
-        return thumbnailPath;
+      return thumbnailPath;
     } catch (error) {
-        throw new ServiceError('fileService', 'generateThumbnail', error);
+      throw new ServiceError('fileService', 'generateThumbnail', error);
     }
   },
 
@@ -318,10 +358,10 @@ export const fileService = {
    */
   async getThumbnailUri(attachmentId) {
     try {
-        const attachment = await db.attachments.getById(attachmentId);
-        return attachment ? attachment.thumbnail_path : null;
+      const attachment = await db.attachments.getById(attachmentId);
+      return attachment ? attachment.thumbnail_path : null;
     } catch (error) {
-        throw new ServiceError('fileService', 'getThumbnailUri', error);
+      throw new ServiceError('fileService', 'getThumbnailUri', error);
     }
   },
 
@@ -335,28 +375,35 @@ export const fileService = {
    */
   async cleanOrphanedFiles() {
     try {
-        const allDbAttachments = await db.attachments.getAll({limit: 1000}); // Assuming getAll supports pagination
-        const allDbPaths = new Set(allDbAttachments.map(a => a.file_path).concat(allDbAttachments.map(a => a.thumbnail_path)));
+      const allDbAttachments = await db.attachments.getAll({ limit: 1000 }); // Assuming getAll supports pagination
+      const allDbPaths = new Set(
+        allDbAttachments
+          .map(a => a.file_path)
+          .concat(allDbAttachments.map(a => a.thumbnail_path))
+      );
 
-        const attachmentsDir = `${documentDirectory}attachments`;
-        const fileSystemAttachments = await listFilesRecursively(attachmentsDir);
+      const attachmentsDir = `${documentDirectory}attachments`;
+      const fileSystemAttachments = await listFilesRecursively(attachmentsDir);
 
-        let orphanedCount = 0;
-        for (const filePath of fileSystemAttachments) {
-            if (!allDbPaths.has(filePath)) {
-                const fileInfo = await getInfoAsync(filePath);
-                if (fileInfo.exists && !fileInfo.isDirectory) {
-                    await deleteAsync(filePath, { idempotent: true });
-                    orphanedCount++;
-                }
-            }
+      let orphanedCount = 0;
+      for (const filePath of fileSystemAttachments) {
+        if (!allDbPaths.has(filePath)) {
+          const fileInfo = await getInfoAsync(filePath);
+          if (fileInfo.exists && !fileInfo.isDirectory) {
+            await deleteAsync(filePath, { idempotent: true });
+            orphanedCount++;
+          }
         }
-        
-        const dbOrphans = await db.attachments.cleanupOrphaned();
-        const deleted = (dbOrphans && typeof dbOrphans.deletedCount === 'number') ? dbOrphans.deletedCount : 0;
-        return orphanedCount + deleted;
+      }
+
+      const dbOrphans = await db.attachments.cleanupOrphaned();
+      const deleted =
+        dbOrphans && typeof dbOrphans.deletedCount === 'number'
+          ? dbOrphans.deletedCount
+          : 0;
+      return orphanedCount + deleted;
     } catch (error) {
-        throw new ServiceError('fileService', 'cleanOrphanedFiles', error);
+      throw new ServiceError('fileService', 'cleanOrphanedFiles', error);
     }
   },
 
@@ -368,9 +415,9 @@ export const fileService = {
    */
   async calculateStorageUsed() {
     try {
-        return await db.attachments.getTotalSize();
+      return await db.attachments.getTotalSize();
     } catch (error) {
-        throw new ServiceError('fileService', 'calculateStorageUsed', error);
+      throw new ServiceError('fileService', 'calculateStorageUsed', error);
     }
   },
 
@@ -403,15 +450,20 @@ export const fileService = {
    */
   async saveMultipleFiles(files) {
     try {
-        const savedAttachments = [];
-        for (const file of files) {
-            const { uri, originalName, entityType, entityId } = file;
-            const attachment = await this.saveFile(uri, originalName, entityType, entityId);
-            savedAttachments.push(attachment);
-        }
-        return savedAttachments;
+      const savedAttachments = [];
+      for (const file of files) {
+        const { uri, originalName, entityType, entityId } = file;
+        const attachment = await this.saveFile(
+          uri,
+          originalName,
+          entityType,
+          entityId
+        );
+        savedAttachments.push(attachment);
+      }
+      return savedAttachments;
     } catch (error) {
-        throw new ServiceError('fileService', 'saveMultipleFiles', error);
+      throw new ServiceError('fileService', 'saveMultipleFiles', error);
     }
   },
 
@@ -424,11 +476,11 @@ export const fileService = {
    */
   async deleteMultipleFiles(attachmentIds) {
     try {
-        for (const id of attachmentIds) {
-            await this.deleteFile(id);
-        }
+      for (const id of attachmentIds) {
+        await this.deleteFile(id);
+      }
     } catch (error) {
-        throw new ServiceError('fileService', 'deleteMultipleFiles', error);
+      throw new ServiceError('fileService', 'deleteMultipleFiles', error);
     }
-  }
+  },
 };

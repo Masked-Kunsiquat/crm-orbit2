@@ -281,7 +281,7 @@ export default {
    * Create all tables and indexes.
    * @param {any} dbOrCtx Migration context: expected to provide { batch, execute } helpers.
    */
-  up: async (dbOrCtx) => {
+  up: async dbOrCtx => {
     const exec = getExec(dbOrCtx);
 
     // Use sequential execution to avoid transaction visibility issues
@@ -299,7 +299,7 @@ export default {
    * Drop all tables and indexes (reverse order where needed).
    * @param {any} dbOrCtx Migration context: expected to provide { batch, execute } helpers.
    */
-  down: async (dbOrCtx) => {
+  down: async dbOrCtx => {
     const exec = getExec(dbOrCtx);
     // Drop indexes explicitly (SQLite would drop with tables, but do it for clarity)
     await runAll(exec, DROP_INDEXES);

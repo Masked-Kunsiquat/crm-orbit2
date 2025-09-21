@@ -17,7 +17,7 @@ import { DatabaseError } from '../errors.js';
  * @returns {object} Migration context with execute, batch, transaction, and onLog methods
  */
 export function createMigrationContext(db, options = {}) {
-  const { signal, onLog = (msg) => console.log(msg) } = options;
+  const { signal, onLog = msg => console.log(msg) } = options;
 
   // Helper to respect abort signal
   const throwIfAborted = () => {
@@ -27,8 +27,10 @@ export function createMigrationContext(db, options = {}) {
   };
 
   // Helper to detect if parameters are provided (array or object)
-  const hasParams = (p) =>
-    p != null && ((Array.isArray(p) && p.length > 0) || (typeof p === 'object' && Object.keys(p).length > 0));
+  const hasParams = p =>
+    p != null &&
+    ((Array.isArray(p) && p.length > 0) ||
+      (typeof p === 'object' && Object.keys(p).length > 0));
 
   return {
     db,
@@ -67,21 +69,29 @@ export function createMigrationContext(db, options = {}) {
           level: 'error',
           sql,
           params,
-          error: wrappedError
+          error: wrappedError,
         });
 
         throw wrappedError;
       }
     },
-    batch: async (statements) => {
+    batch: async statements => {
       throwIfAborted();
       if (!Array.isArray(statements)) {
-        const err = new DatabaseError('Batch expects an array of statements', 'BATCH_INVALID_INPUT', null, { statements });
-        onLog(`[ERROR] ${err.message}`, { level: 'error', context: { statements } });
+        const err = new DatabaseError(
+          'Batch expects an array of statements',
+          'BATCH_INVALID_INPUT',
+          null,
+          { statements }
+        );
+        onLog(`[ERROR] ${err.message}`, {
+          level: 'error',
+          context: { statements },
+        });
         throw err;
       }
       const items = statements;
-      const normalize = (entry) => {
+      const normalize = entry => {
         if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
         if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
         return { sql: String(entry), params: [] };
@@ -101,18 +111,23 @@ export function createMigrationContext(db, options = {}) {
         await db.execAsync('COMMIT;');
         return results;
       } catch (error) {
-        try { await db.execAsync('ROLLBACK;'); } catch (rollbackError) {
+        try {
+          await db.execAsync('ROLLBACK;');
+        } catch (rollbackError) {
           const wrappedRollbackError = new DatabaseError(
             `Batch rollback failed: ${rollbackError?.message || rollbackError}`,
             'BATCH_ROLLBACK_ERROR',
             rollbackError,
             { statements }
           );
-          onLog(`[ERROR] Batch rollback error: ${wrappedRollbackError.message}`, {
-            level: 'error',
-            error: wrappedRollbackError,
-            context: { statements }
-          });
+          onLog(
+            `[ERROR] Batch rollback error: ${wrappedRollbackError.message}`,
+            {
+              level: 'error',
+              error: wrappedRollbackError,
+              context: { statements },
+            }
+          );
         }
 
         // Wrap the original error
@@ -126,13 +141,13 @@ export function createMigrationContext(db, options = {}) {
         onLog(`[ERROR] Batch operation error: ${wrappedError.message}`, {
           level: 'error',
           error: wrappedError,
-          context: { statements }
+          context: { statements },
         });
 
         throw wrappedError;
       }
     },
-    transaction: async (work) => {
+    transaction: async work => {
       throwIfAborted();
       try {
         await db.execAsync('BEGIN TRANSACTION;');
@@ -144,7 +159,7 @@ export function createMigrationContext(db, options = {}) {
         );
         onLog(`[ERROR] Transaction BEGIN error: ${wrappedError.message}`, {
           level: 'error',
-          error: wrappedError
+          error: wrappedError,
         });
         throw wrappedError;
       }
@@ -186,14 +201,24 @@ export function createMigrationContext(db, options = {}) {
 
             // Validate input and execute sequentially within transaction
             if (!Array.isArray(statements)) {
-              const err = new DatabaseError('Batch expects an array of statements', 'BATCH_INVALID_INPUT', null, { statements });
-              onLog(`[ERROR] ${err.message}`, { level: 'error', context: { statements } });
+              const err = new DatabaseError(
+                'Batch expects an array of statements',
+                'BATCH_INVALID_INPUT',
+                null,
+                { statements }
+              );
+              onLog(`[ERROR] ${err.message}`, {
+                level: 'error',
+                context: { statements },
+              });
               throw err;
             }
             const items = statements;
-            const normalize = (entry) => {
-              if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
-              if (entry && typeof entry === 'object' && 'sql' in entry) return entry;
+            const normalize = entry => {
+              if (Array.isArray(entry))
+                return { sql: entry[0], params: entry[1] };
+              if (entry && typeof entry === 'object' && 'sql' in entry)
+                return entry;
               return { sql: String(entry), params: [] };
             };
             const results = [];
@@ -225,13 +250,16 @@ export function createMigrationContext(db, options = {}) {
               }
             }
             return results;
-          }
+          },
         };
         const result = await work(txContext);
 
         // Check abort signal before committing
         if (signal && signal.aborted) {
-          throw new DatabaseError('Transaction aborted before commit', 'COMMIT_ABORTED');
+          throw new DatabaseError(
+            'Transaction aborted before commit',
+            'COMMIT_ABORTED'
+          );
         }
 
         try {
@@ -244,7 +272,7 @@ export function createMigrationContext(db, options = {}) {
           );
           onLog(`[ERROR] Transaction COMMIT error: ${wrappedError.message}`, {
             level: 'error',
-            error: wrappedError
+            error: wrappedError,
           });
           throw wrappedError;
         }
@@ -259,10 +287,13 @@ export function createMigrationContext(db, options = {}) {
             'TRANSACTION_ROLLBACK_ERROR',
             rollbackError
           );
-          onLog(`[ERROR] Transaction ROLLBACK error: ${wrappedRollbackError.message}`, {
-            level: 'error',
-            error: wrappedRollbackError
-          });
+          onLog(
+            `[ERROR] Transaction ROLLBACK error: ${wrappedRollbackError.message}`,
+            {
+              level: 'error',
+              error: wrappedRollbackError,
+            }
+          );
         }
 
         // Ensure we throw a DatabaseError
@@ -276,13 +307,13 @@ export function createMigrationContext(db, options = {}) {
           );
           onLog(`[ERROR] Transaction error: ${wrappedError.message}`, {
             level: 'error',
-            error: wrappedError
+            error: wrappedError,
           });
           throw wrappedError;
         }
       }
     },
-    onLog
+    onLog,
   };
 }
 

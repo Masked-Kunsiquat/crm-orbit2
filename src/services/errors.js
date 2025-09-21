@@ -3,7 +3,9 @@
  */
 export class ServiceError extends Error {
   constructor(service, operation, originalError) {
-    super(`${service}.${operation} failed: ${originalError?.message || originalError}`);
+    super(
+      `${service}.${operation} failed: ${originalError?.message || originalError}`
+    );
     this.name = 'ServiceError';
     this.service = service;
     this.operation = operation;

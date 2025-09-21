@@ -8,12 +8,7 @@ import m002 from './002_seed_data.js';
 import m003 from './003_performance_indexes.js';
 import m004 from './004_add_display_name_column.js';
 
-const MIGRATIONS = [
-  m001,
-  m002,
-  m003,
-  m004,
-];
+const MIGRATIONS = [m001, m002, m003, m004];
 
 // Ensure unique, sorted by version
 const seen = new Set();
@@ -49,5 +44,7 @@ MIGRATIONS.forEach((m, idx) => {
   seen.add(m.version);
 });
 
-const SORTED = Object.freeze([...MIGRATIONS].sort((a, b) => a.version - b.version));
+const SORTED = Object.freeze(
+  [...MIGRATIONS].sort((a, b) => a.version - b.version)
+);
 export default SORTED;

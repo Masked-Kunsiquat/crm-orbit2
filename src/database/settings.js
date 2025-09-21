@@ -1,17 +1,32 @@
 import { DatabaseError } from './errors';
-import { DEFAULT_SETTINGS, validateSettingValue, castValue, serializeValue } from './settingsHelpers';
+import {
+  DEFAULT_SETTINGS,
+  validateSettingValue,
+  castValue,
+  serializeValue,
+} from './settingsHelpers';
 
 export function createSettingsDB({ execute, batch, transaction }) {
   return {
     async get(settingKey) {
       // Enforce hierarchical key and derive category
-      const validateSettingKey = (k) => {
+      const validateSettingKey = k => {
         if (typeof k !== 'string' || !k.includes('.')) {
-          throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey: k });
+          throw new DatabaseError(
+            'Setting keys must be "category.key"',
+            'VALIDATION_ERROR',
+            null,
+            { settingKey: k }
+          );
         }
         const [cat, sub] = k.split('.');
         if (!cat || !sub) {
-          throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey: k });
+          throw new DatabaseError(
+            'Setting keys must be "category.key"',
+            'VALIDATION_ERROR',
+            null,
+            { settingKey: k }
+          );
         }
         return cat;
       };
@@ -21,11 +36,11 @@ export function createSettingsDB({ execute, batch, transaction }) {
         FROM user_preferences
         WHERE category = ? AND setting_key = ?
       `;
-      
+
       try {
         const category = validateSettingKey(settingKey);
         const result = await execute(sql, [category, settingKey]);
-        
+
         if (result.rows.length === 0) {
           const defaultSetting = DEFAULT_SETTINGS[settingKey];
           if (defaultSetting) {
@@ -34,7 +49,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
               value: defaultSetting.value,
               dataType: defaultSetting.type,
               isEnabled: true,
-              isDefault: true
+              isDefault: true,
             };
           }
           return null;
@@ -42,32 +57,57 @@ export function createSettingsDB({ execute, batch, transaction }) {
 
         const row = result.rows[0];
         const castedValue = castValue(row.setting_value, row.data_type);
-        
+
         return {
           key: row.setting_key,
           value: castedValue,
           dataType: row.data_type,
-          isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true,
-          isDefault: false
+          isEnabled:
+            row.is_enabled === 1 ||
+            row.is_enabled === '1' ||
+            row.is_enabled === 't' ||
+            row.is_enabled === 'true' ||
+            row.is_enabled === true,
+          isDefault: false,
         };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get setting', 'GET_SETTING_FAILED', error, { settingKey });
+        throw new DatabaseError(
+          'Failed to get setting',
+          'GET_SETTING_FAILED',
+          error,
+          { settingKey }
+        );
       }
     },
 
     async set(settingKey, value, dataType = null) {
       if (!settingKey || typeof settingKey !== 'string') {
-        throw new DatabaseError('Setting key must be a non-empty string', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting key must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
 
       // Validate hierarchical key format
       if (!settingKey.includes('.')) {
-        throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting keys must be "category.key"',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
       const category = settingKey.substring(0, settingKey.indexOf('.'));
       if (!category) {
-        throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting keys must be "category.key"',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
 
       // Resolve data type automatically if not provided
@@ -117,21 +157,36 @@ export function createSettingsDB({ execute, batch, transaction }) {
           data_type = excluded.data_type,
           updated_at = CURRENT_TIMESTAMP
       `;
-      
+
       try {
-        await execute(sql, [category, settingKey, serializedValue, resolvedType]);
-        
+        await execute(sql, [
+          category,
+          settingKey,
+          serializedValue,
+          resolvedType,
+        ]);
+
         const setting = await this.get(settingKey);
         return setting;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to set setting', 'SET_SETTING_FAILED', error, { settingKey, value });
+        throw new DatabaseError(
+          'Failed to set setting',
+          'SET_SETTING_FAILED',
+          error,
+          { settingKey, value }
+        );
       }
     },
 
     async getByCategory(category) {
       if (!category || typeof category !== 'string') {
-        throw new DatabaseError('Category must be a non-empty string', 'VALIDATION_ERROR', null, { category });
+        throw new DatabaseError(
+          'Category must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { category }
+        );
       }
 
       const sql = `
@@ -140,16 +195,21 @@ export function createSettingsDB({ execute, batch, transaction }) {
         WHERE category = ?
         ORDER BY setting_key
       `;
-      
+
       try {
         const result = await execute(sql, [category]);
-        
+
         const settings = result.rows.map(row => ({
           key: row.setting_key,
           value: castValue(row.setting_value, row.data_type),
           dataType: row.data_type,
-          isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true,
-          isDefault: false
+          isEnabled:
+            row.is_enabled === 1 ||
+            row.is_enabled === '1' ||
+            row.is_enabled === 't' ||
+            row.is_enabled === 'true' ||
+            row.is_enabled === true,
+          isDefault: false,
         }));
 
         const defaults = Object.entries(DEFAULT_SETTINGS)
@@ -160,27 +220,52 @@ export function createSettingsDB({ execute, batch, transaction }) {
             value: config.value,
             dataType: config.type,
             isEnabled: true,
-            isDefault: true
+            isDefault: true,
           }));
 
-        return [...settings, ...defaults].sort((a, b) => a.key.localeCompare(b.key));
+        return [...settings, ...defaults].sort((a, b) =>
+          a.key.localeCompare(b.key)
+        );
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get settings by category', 'GET_CATEGORY_FAILED', error, { category });
+        throw new DatabaseError(
+          'Failed to get settings by category',
+          'GET_CATEGORY_FAILED',
+          error,
+          { category }
+        );
       }
     },
 
     async setMultiple(settings) {
       if (!Array.isArray(settings) || settings.length === 0) {
-        throw new DatabaseError('Settings must be a non-empty array', 'VALIDATION_ERROR', null, { settings });
+        throw new DatabaseError(
+          'Settings must be a non-empty array',
+          'VALIDATION_ERROR',
+          null,
+          { settings }
+        );
       }
 
       for (const setting of settings) {
         if (!setting.key || typeof setting.key !== 'string') {
-          throw new DatabaseError('Each setting must have a valid key', 'VALIDATION_ERROR', null, { setting });
+          throw new DatabaseError(
+            'Each setting must have a valid key',
+            'VALIDATION_ERROR',
+            null,
+            { setting }
+          );
         }
-        if (!setting.key.includes('.') || setting.key.split('.').some(p => !p)) {
-          throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey: setting.key });
+        if (
+          !setting.key.includes('.') ||
+          setting.key.split('.').some(p => !p)
+        ) {
+          throw new DatabaseError(
+            'Setting keys must be "category.key"',
+            'VALIDATION_ERROR',
+            null,
+            { settingKey: setting.key }
+          );
         }
 
         // Resolve data type if not provided
@@ -213,12 +298,19 @@ export function createSettingsDB({ execute, batch, transaction }) {
         } else {
           // If explicit dataType is provided, check for conflicts with defaults
           const defaultSetting = DEFAULT_SETTINGS[setting.key];
-          if (defaultSetting?.type && defaultSetting.type !== setting.dataType) {
+          if (
+            defaultSetting?.type &&
+            defaultSetting.type !== setting.dataType
+          ) {
             throw new DatabaseError(
               `Data type '${setting.dataType}' conflicts with default type '${defaultSetting.type}' for setting '${setting.key}'`,
               'TYPE_CONFLICT_ERROR',
               null,
-              { settingKey: setting.key, providedType: setting.dataType, defaultType: defaultSetting.type }
+              {
+                settingKey: setting.key,
+                providedType: setting.dataType,
+                defaultType: defaultSetting.type,
+              }
             );
           }
         }
@@ -229,7 +321,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       const statements = settings.map(setting => {
         const category = setting.key.split('.')[0] || 'general';
         const serializedValue = serializeValue(setting.value, setting.dataType);
-        
+
         return {
           sql: `
             INSERT INTO user_preferences (category, setting_key, setting_value, data_type, updated_at)
@@ -239,55 +331,85 @@ export function createSettingsDB({ execute, batch, transaction }) {
               data_type = excluded.data_type,
               updated_at = CURRENT_TIMESTAMP
           `,
-          params: [category, setting.key, serializedValue, setting.dataType]
+          params: [category, setting.key, serializedValue, setting.dataType],
         };
       });
 
       try {
         await batch(statements);
-        
+
         return await Promise.all(settings.map(s => this.get(s.key)));
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to set multiple settings', 'SET_MULTIPLE_FAILED', error, { settings });
+        throw new DatabaseError(
+          'Failed to set multiple settings',
+          'SET_MULTIPLE_FAILED',
+          error,
+          { settings }
+        );
       }
     },
 
     async reset(settingKey) {
       if (!settingKey || typeof settingKey !== 'string') {
-        throw new DatabaseError('Setting key must be a non-empty string', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting key must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
 
       const defaultSetting = DEFAULT_SETTINGS[settingKey];
       if (!defaultSetting) {
-        throw new DatabaseError(`No default value found for setting: ${settingKey}`, 'NO_DEFAULT_VALUE', null, { settingKey });
+        throw new DatabaseError(
+          `No default value found for setting: ${settingKey}`,
+          'NO_DEFAULT_VALUE',
+          null,
+          { settingKey }
+        );
       }
 
       // Extract category from the setting key
       if (!settingKey.includes('.')) {
-        throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting keys must be "category.key"',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
       const category = settingKey.substring(0, settingKey.indexOf('.'));
       if (!category) {
-        throw new DatabaseError('Setting keys must be "category.key"', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting keys must be "category.key"',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
 
       const sql = `DELETE FROM user_preferences WHERE setting_key = ? AND category = ?`;
-      
+
       try {
         await execute(sql, [settingKey, category]);
-        
+
         return {
           key: settingKey,
           value: defaultSetting.value,
           dataType: defaultSetting.type,
           category: category,
           isEnabled: true,
-          isDefault: true
+          isDefault: true,
         };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to reset setting', 'RESET_SETTING_FAILED', error, { settingKey, category });
+        throw new DatabaseError(
+          'Failed to reset setting',
+          'RESET_SETTING_FAILED',
+          error,
+          { settingKey, category }
+        );
       }
     },
 
@@ -297,17 +419,22 @@ export function createSettingsDB({ execute, batch, transaction }) {
         FROM user_preferences
         ORDER BY category, setting_key
       `;
-      
+
       try {
         const result = await execute(sql);
-        
+
         const settings = result.rows.map(row => ({
           key: row.setting_key,
           value: castValue(row.setting_value, row.data_type),
           dataType: row.data_type,
-          isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true,
+          isEnabled:
+            row.is_enabled === 1 ||
+            row.is_enabled === '1' ||
+            row.is_enabled === 't' ||
+            row.is_enabled === 'true' ||
+            row.is_enabled === true,
           category: row.category,
-          isDefault: false
+          isDefault: false,
         }));
 
         const defaults = Object.entries(DEFAULT_SETTINGS)
@@ -318,7 +445,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
             dataType: config.type,
             isEnabled: true,
             category: key.split('.')[0],
-            isDefault: true
+            isDefault: true,
           }));
 
         return [...settings, ...defaults].sort((a, b) => {
@@ -329,25 +456,44 @@ export function createSettingsDB({ execute, batch, transaction }) {
         });
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get all settings', 'GET_ALL_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get all settings',
+          'GET_ALL_FAILED',
+          error
+        );
       }
     },
 
     async toggle(settingKey) {
       if (!settingKey || typeof settingKey !== 'string') {
-        throw new DatabaseError('Setting key must be a non-empty string', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting key must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
 
       const currentSetting = await this.get(settingKey);
       if (!currentSetting) {
-        throw new DatabaseError(`Setting not found: ${settingKey}`, 'SETTING_NOT_FOUND', null, { settingKey });
+        throw new DatabaseError(
+          `Setting not found: ${settingKey}`,
+          'SETTING_NOT_FOUND',
+          null,
+          { settingKey }
+        );
       }
 
       if (currentSetting.dataType !== 'boolean') {
-        throw new DatabaseError(`Setting '${settingKey}' is not a boolean type`, 'INVALID_TYPE_FOR_TOGGLE', null, { 
-          settingKey, 
-          currentType: currentSetting.dataType 
-        });
+        throw new DatabaseError(
+          `Setting '${settingKey}' is not a boolean type`,
+          'INVALID_TYPE_FOR_TOGGLE',
+          null,
+          {
+            settingKey,
+            currentType: currentSetting.dataType,
+          }
+        );
       }
 
       const newValue = !currentSetting.value;
@@ -356,23 +502,43 @@ export function createSettingsDB({ execute, batch, transaction }) {
 
     async increment(settingKey, amount = 1) {
       if (!settingKey || typeof settingKey !== 'string') {
-        throw new DatabaseError('Setting key must be a non-empty string', 'VALIDATION_ERROR', null, { settingKey });
+        throw new DatabaseError(
+          'Setting key must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey }
+        );
       }
 
       if (typeof amount !== 'number' || isNaN(amount)) {
-        throw new DatabaseError('Increment amount must be a valid number', 'VALIDATION_ERROR', null, { settingKey, amount });
+        throw new DatabaseError(
+          'Increment amount must be a valid number',
+          'VALIDATION_ERROR',
+          null,
+          { settingKey, amount }
+        );
       }
 
       const currentSetting = await this.get(settingKey);
       if (!currentSetting) {
-        throw new DatabaseError(`Setting not found: ${settingKey}`, 'SETTING_NOT_FOUND', null, { settingKey });
+        throw new DatabaseError(
+          `Setting not found: ${settingKey}`,
+          'SETTING_NOT_FOUND',
+          null,
+          { settingKey }
+        );
       }
 
       if (currentSetting.dataType !== 'number') {
-        throw new DatabaseError(`Setting '${settingKey}' is not a number type`, 'INVALID_TYPE_FOR_INCREMENT', null, {
-          settingKey,
-          currentType: currentSetting.dataType
-        });
+        throw new DatabaseError(
+          `Setting '${settingKey}' is not a number type`,
+          'INVALID_TYPE_FOR_INCREMENT',
+          null,
+          {
+            settingKey,
+            currentType: currentSetting.dataType,
+          }
+        );
       }
 
       const newValue = currentSetting.value + amount;
@@ -388,10 +554,20 @@ export function createSettingsDB({ execute, batch, transaction }) {
      */
     async getValue(category, key, expectedType = null) {
       if (!category || typeof category !== 'string') {
-        throw new DatabaseError('Category must be a non-empty string', 'VALIDATION_ERROR', null, { category });
+        throw new DatabaseError(
+          'Category must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { category }
+        );
       }
       if (!key || typeof key !== 'string') {
-        throw new DatabaseError('Key must be a non-empty string', 'VALIDATION_ERROR', null, { key });
+        throw new DatabaseError(
+          'Key must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { key }
+        );
       }
 
       const settingKey = `${category}.${key}`;
@@ -422,10 +598,20 @@ export function createSettingsDB({ execute, batch, transaction }) {
      */
     async getValues(category, keys) {
       if (!category || typeof category !== 'string') {
-        throw new DatabaseError('Category must be a non-empty string', 'VALIDATION_ERROR', null, { category });
+        throw new DatabaseError(
+          'Category must be a non-empty string',
+          'VALIDATION_ERROR',
+          null,
+          { category }
+        );
       }
       if (!Array.isArray(keys) || keys.length === 0) {
-        throw new DatabaseError('Keys must be a non-empty array', 'VALIDATION_ERROR', null, { keys });
+        throw new DatabaseError(
+          'Keys must be a non-empty array',
+          'VALIDATION_ERROR',
+          null,
+          { keys }
+        );
       }
 
       // Normalize keys to objects with key and optional expectedType
@@ -436,7 +622,12 @@ export function createSettingsDB({ execute, batch, transaction }) {
         if (typeof k === 'object' && k.key) {
           return k;
         }
-        throw new DatabaseError('Each key must be a string or object with key property', 'VALIDATION_ERROR', null, { key: k });
+        throw new DatabaseError(
+          'Each key must be a string or object with key property',
+          'VALIDATION_ERROR',
+          null,
+          { key: k }
+        );
       });
 
       // Build SQL to get all settings at once
@@ -461,7 +652,12 @@ export function createSettingsDB({ execute, batch, transaction }) {
           dbSettings.set(keyPart, {
             value: castValue(row.setting_value, row.data_type),
             dataType: row.data_type,
-            isEnabled: row.is_enabled === 1 || row.is_enabled === '1' || row.is_enabled === 't' || row.is_enabled === 'true' || row.is_enabled === true
+            isEnabled:
+              row.is_enabled === 1 ||
+              row.is_enabled === '1' ||
+              row.is_enabled === 't' ||
+              row.is_enabled === 'true' ||
+              row.is_enabled === true,
           });
         });
 
@@ -502,8 +698,13 @@ export function createSettingsDB({ execute, batch, transaction }) {
         return values;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get multiple values', 'GET_VALUES_FAILED', error, { category, keys: normalizedKeys });
+        throw new DatabaseError(
+          'Failed to get multiple values',
+          'GET_VALUES_FAILED',
+          error,
+          { category, keys: normalizedKeys }
+        );
       }
-    }
+    },
   };
 }

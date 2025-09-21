@@ -61,12 +61,24 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
   const handleSetPIN = async () => {
     const normalizedNew = newPin.replace(/\D+/g, '');
     const normalizedConfirm = confirmPin.replace(/\D+/g, '');
-    if (normalizedNew.length < MIN_PIN_LENGTH || normalizedNew.length > MAX_PIN_LENGTH) {
-      Alert.alert('Error', `PIN must be ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digits`);
+    if (
+      normalizedNew.length < MIN_PIN_LENGTH ||
+      normalizedNew.length > MAX_PIN_LENGTH
+    ) {
+      Alert.alert(
+        'Error',
+        `PIN must be ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digits`
+      );
       return;
     }
-    if (normalizedConfirm.length < MIN_PIN_LENGTH || normalizedConfirm.length > MAX_PIN_LENGTH) {
-      Alert.alert('Error', `Confirm PIN must be ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digits`);
+    if (
+      normalizedConfirm.length < MIN_PIN_LENGTH ||
+      normalizedConfirm.length > MAX_PIN_LENGTH
+    ) {
+      Alert.alert(
+        'Error',
+        `Confirm PIN must be ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digits`
+      );
       return;
     }
 
@@ -101,52 +113,63 @@ const PinSetupModal = ({ visible, onClose, onSuccess }) => {
 
   return (
     <Portal>
-        <Dialog visible={visible} dismissable={!saving} onDismiss={handleClose} style={styles.modal}>
-          <Dialog.Title style={styles.modalTitle}>Set PIN</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter new PIN"
-              value={newPin}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/\D+/g, '').slice(0, MAX_PIN_LENGTH);
-                if (isMountedRef.current) setNewPin(cleaned);
-              }}
-              secureTextEntry
-              keyboardType="number-pad"
-              inputMode="numeric"
-              autoCorrect={false}
-              autoCapitalize="none"
-              contextMenuHidden={true}
-              maxLength={MAX_PIN_LENGTH}
-              contentStyle={{ textAlign: 'center' }}
-            />
+      <Dialog
+        visible={visible}
+        dismissable={!saving}
+        onDismiss={handleClose}
+        style={styles.modal}
+      >
+        <Dialog.Title style={styles.modalTitle}>Set PIN</Dialog.Title>
+        <Dialog.Content>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter new PIN"
+            value={newPin}
+            onChangeText={text => {
+              const cleaned = text.replace(/\D+/g, '').slice(0, MAX_PIN_LENGTH);
+              if (isMountedRef.current) setNewPin(cleaned);
+            }}
+            secureTextEntry
+            keyboardType="number-pad"
+            inputMode="numeric"
+            autoCorrect={false}
+            autoCapitalize="none"
+            contextMenuHidden={true}
+            maxLength={MAX_PIN_LENGTH}
+            contentStyle={{ textAlign: 'center' }}
+          />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm PIN"
-              value={confirmPin}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/\D+/g, '').slice(0, MAX_PIN_LENGTH);
-                if (isMountedRef.current) setConfirmPin(cleaned);
-              }}
-              secureTextEntry
-              keyboardType="number-pad"
-              inputMode="numeric"
-              autoCorrect={false}
-              autoCapitalize="none"
-              contextMenuHidden={true}
-              maxLength={MAX_PIN_LENGTH}
-              contentStyle={{ textAlign: 'center' }}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={handleClose} disabled={saving}>Cancel</Button>
-            <Button onPress={handleSetPIN} disabled={!newPin || !confirmPin || saving} loading={saving}>
-              Set PIN
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm PIN"
+            value={confirmPin}
+            onChangeText={text => {
+              const cleaned = text.replace(/\D+/g, '').slice(0, MAX_PIN_LENGTH);
+              if (isMountedRef.current) setConfirmPin(cleaned);
+            }}
+            secureTextEntry
+            keyboardType="number-pad"
+            inputMode="numeric"
+            autoCorrect={false}
+            autoCapitalize="none"
+            contextMenuHidden={true}
+            maxLength={MAX_PIN_LENGTH}
+            contentStyle={{ textAlign: 'center' }}
+          />
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={handleClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button
+            onPress={handleSetPIN}
+            disabled={!newPin || !confirmPin || saving}
+            loading={saving}
+          >
+            Set PIN
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
     </Portal>
   );
 };

@@ -23,4 +23,3 @@ export const MIN_PIN_LENGTH = 4;
  * @constant {number}
  */
 export const MAX_PIN_LENGTH = 8;
-

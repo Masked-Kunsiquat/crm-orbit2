@@ -23,7 +23,10 @@ const EVENT_FIELDS = [
 function pick(obj, fields) {
   const out = {};
   for (const key of fields) {
-    if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== undefined) {
+    if (
+      Object.prototype.hasOwnProperty.call(obj, key) &&
+      obj[key] !== undefined
+    ) {
       out[key] = obj[key];
     }
   }
@@ -37,7 +40,9 @@ function placeholders(n) {
 function convertBooleanFields(row) {
   if (!row) return row;
   const out = { ...row };
-  if ('is_sent' in out) out.is_sent = out.is_sent === 1 || out.is_sent === '1' || out.is_sent === true;
+  if ('is_sent' in out)
+    out.is_sent =
+      out.is_sent === 1 || out.is_sent === '1' || out.is_sent === true;
   return out;
 }
 
@@ -73,7 +78,9 @@ function toSqlDatetime(value) {
   } else if (typeof value === 'string') {
     date = new Date(value);
   } else {
-    throw new Error(`Invalid datetime: expected Date or string, received ${typeof value}`);
+    throw new Error(
+      `Invalid datetime: expected Date or string, received ${typeof value}`
+    );
   }
 
   if (isNaN(date.getTime())) {
@@ -101,30 +108,38 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      */
     async createEventWithReminders(eventData, reminders = []) {
       if (!transaction) {
-        throw new DatabaseError('Transaction support required for createEventWithReminders', 'TRANSACTION_REQUIRED');
+        throw new DatabaseError(
+          'Transaction support required for createEventWithReminders',
+          'TRANSACTION_REQUIRED'
+        );
       }
 
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         // Create the event
         const eventFields = pick(eventData, EVENT_FIELDS);
         const fields = Object.keys(eventFields);
         const values = Object.values(eventFields);
-        
+
         const eventSql = `INSERT INTO events (${fields.join(', ')}, created_at) 
                          VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`;
-        
+
         const eventRes = await tx.execute(eventSql, values);
         const eventId = eventRes.insertId;
-        
+
         // Create reminders if provided
         if (reminders.length > 0) {
           for (const reminderData of reminders) {
-            const reminder = { ...pick(reminderData, REMINDER_FIELDS), event_id: eventId };
+            const reminder = {
+              ...pick(reminderData, REMINDER_FIELDS),
+              event_id: eventId,
+            };
 
             // Normalize datetime fields to SQLite format before building values array
             if (reminder.reminder_datetime) {
               try {
-                reminder.reminder_datetime = toSqlDatetime(reminder.reminder_datetime);
+                reminder.reminder_datetime = toSqlDatetime(
+                  reminder.reminder_datetime
+                );
               } catch (error) {
                 throw new DatabaseError(
                   `Invalid reminder_datetime: ${reminder.reminder_datetime}`,
@@ -143,20 +158,25 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
             await tx.execute(reminderSql, reminderValues);
           }
         }
-        
+
         // Update contact's last_interaction_at
         await tx.execute(
           'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [eventData.contact_id]
         );
-        
+
         // Return the event with reminders
-        const event = await tx.execute('SELECT * FROM events WHERE id = ?;', [eventId]);
-        const reminderRes = await tx.execute('SELECT * FROM event_reminders WHERE event_id = ?;', [eventId]);
-        
+        const event = await tx.execute('SELECT * FROM events WHERE id = ?;', [
+          eventId,
+        ]);
+        const reminderRes = await tx.execute(
+          'SELECT * FROM event_reminders WHERE event_id = ?;',
+          [eventId]
+        );
+
         return {
           ...event.rows[0],
-          reminders: reminderRes.rows.map(convertBooleanFields)
+          reminders: reminderRes.rows.map(convertBooleanFields),
         };
       });
     },
@@ -167,7 +187,10 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<object[]>} Event reminders
      */
     async getEventReminders(eventId) {
-      const res = await execute('SELECT * FROM event_reminders WHERE event_id = ? ORDER BY reminder_datetime ASC;', [eventId]);
+      const res = await execute(
+        'SELECT * FROM event_reminders WHERE event_id = ? ORDER BY reminder_datetime ASC;',
+        [eventId]
+      );
       return res.rows.map(convertBooleanFields);
     },
 
@@ -177,8 +200,15 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<object>} Created reminder
      */
     async createReminder(reminderData) {
-      if (!reminderData || !reminderData.event_id || !reminderData.reminder_datetime) {
-        throw new DatabaseError('Missing required fields: event_id, reminder_datetime', 'VALIDATION_ERROR');
+      if (
+        !reminderData ||
+        !reminderData.event_id ||
+        !reminderData.reminder_datetime
+      ) {
+        throw new DatabaseError(
+          'Missing required fields: event_id, reminder_datetime',
+          'VALIDATION_ERROR'
+        );
       }
 
       const reminder = pick(reminderData, REMINDER_FIELDS);
@@ -186,7 +216,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       // Normalize datetime fields to SQLite format before building values array
       if (reminder.reminder_datetime) {
         try {
-          reminder.reminder_datetime = toSqlDatetime(reminder.reminder_datetime);
+          reminder.reminder_datetime = toSqlDatetime(
+            reminder.reminder_datetime
+          );
         } catch (error) {
           throw new DatabaseError(
             `Invalid reminder_datetime: ${reminder.reminder_datetime}`,
@@ -208,19 +240,27 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           throw new DatabaseError('Failed to create reminder', 'CREATE_FAILED');
         }
 
-        const created = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
+        const created = await execute(
+          'SELECT * FROM event_reminders WHERE id = ?;',
+          [res.insertId]
+        );
         return convertBooleanFields(created.rows[0]);
       } catch (error) {
         // Handle foreign key constraint errors - check nested error properties
-        const checkForFKError = (err) => {
+        const checkForFKError = err => {
           if (!err) return false;
           // Check direct message
-          if (err.message && err.message.includes('FOREIGN KEY constraint failed')) return true;
+          if (
+            err.message &&
+            err.message.includes('FOREIGN KEY constraint failed')
+          )
+            return true;
           // Check errno for FK constraint violation
           if (err.errno === 787) return true; // SQLITE_CONSTRAINT_FOREIGNKEY
           // Check nested error properties
           if (err.cause && checkForFKError(err.cause)) return true;
-          if (err.originalError && checkForFKError(err.originalError)) return true;
+          if (err.originalError && checkForFKError(err.originalError))
+            return true;
           return false;
         };
 
@@ -240,29 +280,42 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      */
     async updateEventReminders(eventId, reminders) {
       if (!transaction) {
-        throw new DatabaseError('Transaction support required for updateEventReminders', 'TRANSACTION_REQUIRED');
+        throw new DatabaseError(
+          'Transaction support required for updateEventReminders',
+          'TRANSACTION_REQUIRED'
+        );
       }
 
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         // Get the event to update contact interaction
-        const eventRes = await tx.execute('SELECT contact_id FROM events WHERE id = ?;', [eventId]);
+        const eventRes = await tx.execute(
+          'SELECT contact_id FROM events WHERE id = ?;',
+          [eventId]
+        );
         const event = eventRes.rows[0];
-        
+
         if (!event) {
           throw new DatabaseError('Event not found', 'NOT_FOUND');
         }
 
         // Delete existing reminders
-        await tx.execute('DELETE FROM event_reminders WHERE event_id = ?;', [eventId]);
-        
+        await tx.execute('DELETE FROM event_reminders WHERE event_id = ?;', [
+          eventId,
+        ]);
+
         // Insert new reminders
         for (const reminderData of reminders) {
-          const reminder = { ...pick(reminderData, REMINDER_FIELDS), event_id: eventId };
+          const reminder = {
+            ...pick(reminderData, REMINDER_FIELDS),
+            event_id: eventId,
+          };
 
           // Normalize datetime fields to SQLite format before building values array
           if (reminder.reminder_datetime) {
             try {
-              reminder.reminder_datetime = toSqlDatetime(reminder.reminder_datetime);
+              reminder.reminder_datetime = toSqlDatetime(
+                reminder.reminder_datetime
+              );
             } catch (error) {
               throw new DatabaseError(
                 `Invalid reminder_datetime: ${reminder.reminder_datetime}`,
@@ -280,15 +333,18 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
 
           await tx.execute(sql, values);
         }
-        
+
         // Update contact's last_interaction_at
         await tx.execute(
           'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [event.contact_id]
         );
-        
+
         // Return updated reminders
-        const res = await tx.execute('SELECT * FROM event_reminders WHERE event_id = ?;', [eventId]);
+        const res = await tx.execute(
+          'SELECT * FROM event_reminders WHERE event_id = ?;',
+          [eventId]
+        );
         return res.rows.map(convertBooleanFields);
       });
     },
@@ -299,7 +355,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<number>} Number of rows deleted
      */
     async deleteReminder(reminderId) {
-      const res = await execute('DELETE FROM event_reminders WHERE id = ?;', [reminderId]);
+      const res = await execute('DELETE FROM event_reminders WHERE id = ?;', [
+        reminderId,
+      ]);
       return res.rowsAffected || 0;
     },
 
@@ -309,8 +367,12 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<object|null>} Updated reminder
      */
     async markReminderSent(reminderId) {
-      await execute('UPDATE event_reminders SET is_sent = 1 WHERE id = ?;', [reminderId]);
-      const res = await execute('SELECT * FROM event_reminders WHERE id = ?;', [reminderId]);
+      await execute('UPDATE event_reminders SET is_sent = 1 WHERE id = ?;', [
+        reminderId,
+      ]);
+      const res = await execute('SELECT * FROM event_reminders WHERE id = ?;', [
+        reminderId,
+      ]);
       return convertBooleanFields(res.rows[0]) || null;
     },
 
@@ -328,7 +390,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       // sanitize paging
       limit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 100;
       offset = Number.isFinite(offset) && offset >= 0 ? Math.floor(offset) : 0;
-      
+
       const sql = `SELECT r.*, e.title, e.event_date, e.contact_id, c.display_name as contact_name
                    FROM event_reminders r
                    JOIN events e ON r.event_id = e.id
@@ -336,7 +398,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    WHERE r.is_sent = 0 AND r.reminder_datetime <= ?
                    ORDER BY r.reminder_datetime ASC
                    LIMIT ? OFFSET ?;`;
-      
+
       const res = await execute(sql, [cutoff, limit, offset]);
       return res.rows.map(convertBooleanFields);
     },
@@ -353,7 +415,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       limit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 100;
       offset = Number.isFinite(offset) && offset >= 0 ? Math.floor(offset) : 0;
       const now = new Date();
-      const future = new Date(now.getTime() + (hours * 60 * 60 * 1000));
+      const future = new Date(now.getTime() + hours * 60 * 60 * 1000);
 
       const sql = `SELECT r.*, e.title, e.event_date, e.contact_id, c.display_name as contact_name
                    FROM event_reminders r
@@ -363,7 +425,12 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
                    ORDER BY r.reminder_datetime ASC
                    LIMIT ? OFFSET ?;`;
 
-      const res = await execute(sql, [formatSQLiteDateTime(now), formatSQLiteDateTime(future), limit, offset]);
+      const res = await execute(sql, [
+        formatSQLiteDateTime(now),
+        formatSQLiteDateTime(future),
+        limit,
+        offset,
+      ]);
       return res.rows.map(convertBooleanFields);
     },
 
@@ -404,7 +471,10 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      */
     async updateReminderDateTime(reminderId, newDateTime) {
       if (!reminderId || !newDateTime) {
-        throw new DatabaseError('Missing required fields: reminderId, newDateTime', 'VALIDATION_ERROR');
+        throw new DatabaseError(
+          'Missing required fields: reminderId, newDateTime',
+          'VALIDATION_ERROR'
+        );
       }
 
       try {
@@ -418,7 +488,12 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
 
         // Validate the parsed date
         if (isNaN(parsedDate.getTime())) {
-          throw new DatabaseError('Invalid datetime format', 'VALIDATION_ERROR', null, { newDateTime });
+          throw new DatabaseError(
+            'Invalid datetime format',
+            'VALIDATION_ERROR',
+            null,
+            { newDateTime }
+          );
         }
 
         // Format to SQLite datetime format (YYYY-MM-DD HH:MM:SS)
@@ -429,11 +504,18 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           [formattedDateTime, reminderId]
         );
 
-        const res = await execute('SELECT * FROM event_reminders WHERE id = ?;', [reminderId]);
+        const res = await execute(
+          'SELECT * FROM event_reminders WHERE id = ?;',
+          [reminderId]
+        );
         return convertBooleanFields(res.rows[0]) || null;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to update reminder datetime', 'UPDATE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to update reminder datetime',
+          'UPDATE_FAILED',
+          error
+        );
       }
     },
 
@@ -448,10 +530,13 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       }
 
       if (!transaction) {
-        throw new DatabaseError('Transaction support required for markRemindersScheduled', 'TRANSACTION_REQUIRED');
+        throw new DatabaseError(
+          'Transaction support required for markRemindersScheduled',
+          'TRANSACTION_REQUIRED'
+        );
       }
 
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         // Filter and validate entries that have both reminderId and notificationId
         const validItems = scheduledItems.filter(
           ({ reminderId, notificationId }) => reminderId && notificationId
@@ -466,7 +551,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         const placeholders = reminderIds.map(() => '?').join(', ');
 
         // Create CASE statement for notification_id mapping
-        const caseStatements = validItems.map(() => 'WHEN id = ? THEN ?').join(' ');
+        const caseStatements = validItems
+          .map(() => 'WHEN id = ? THEN ?')
+          .join(' ');
 
         const sql = `
           UPDATE event_reminders
@@ -498,19 +585,24 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       }
 
       // Validate, filter, and deduplicate IDs
-      const uniqueValidIds = [...new Set(
-        reminderIds.filter(id => id && Number.isInteger(id) && id > 0)
-      )];
+      const uniqueValidIds = [
+        ...new Set(
+          reminderIds.filter(id => id && Number.isInteger(id) && id > 0)
+        ),
+      ];
 
       if (uniqueValidIds.length === 0) {
         return 0;
       }
 
       if (!transaction) {
-        throw new DatabaseError('Transaction support required for markRemindersFailed', 'TRANSACTION_REQUIRED');
+        throw new DatabaseError(
+          'Transaction support required for markRemindersFailed',
+          'TRANSACTION_REQUIRED'
+        );
       }
 
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         let totalAffected = 0;
 
         // SQLite parameter limit is typically 999, use chunks of 500 for safety
@@ -561,7 +653,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         // Normalize datetime fields to SQLite format before building values array
         if (reminder.reminder_datetime) {
           try {
-            reminder.reminder_datetime = toSqlDatetime(reminder.reminder_datetime);
+            reminder.reminder_datetime = toSqlDatetime(
+              reminder.reminder_datetime
+            );
           } catch (error) {
             throw new DatabaseError(
               `Invalid reminder_datetime: ${reminder.reminder_datetime}`,
@@ -580,18 +674,26 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         try {
           const res = await execute(sql, values);
           if (res.insertId) {
-            const newReminder = await execute('SELECT * FROM event_reminders WHERE id = ?;', [res.insertId]);
+            const newReminder = await execute(
+              'SELECT * FROM event_reminders WHERE id = ?;',
+              [res.insertId]
+            );
             created.push(convertBooleanFields(newReminder.rows[0]));
           }
         } catch (error) {
-          throw new DatabaseError('Failed to create recurring reminder', 'CREATE_FAILED', error, {
-            reminderData: data,
-            normalizedReminder: reminder
-          });
+          throw new DatabaseError(
+            'Failed to create recurring reminder',
+            'CREATE_FAILED',
+            error,
+            {
+              reminderData: data,
+              normalizedReminder: reminder,
+            }
+          );
         }
       }
       return created;
-    }
+    },
   };
 }
 

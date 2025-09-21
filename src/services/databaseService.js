@@ -39,7 +39,10 @@ class DatabaseService {
     const { signal } = options || {};
     // Respect a pre-aborted signal to fail fast
     if (signal && signal.aborted) {
-      throw new DatabaseError('Database initialization aborted', 'INITIALIZATION_ABORTED');
+      throw new DatabaseError(
+        'Database initialization aborted',
+        'INITIALIZATION_ABORTED'
+      );
     }
     // Return existing promise if initialization is already in progress
     if (this.initializationPromise) {
@@ -58,11 +61,14 @@ class DatabaseService {
   async _performInitialization(options = {}) {
     const { signal } = options || {};
     if (signal && signal.aborted) {
-      throw new DatabaseError('Initialization aborted', 'INITIALIZATION_ABORTED');
+      throw new DatabaseError(
+        'Initialization aborted',
+        'INITIALIZATION_ABORTED'
+      );
     }
     try {
       console.log('Initializing database...');
-      
+
       // Open database connection
       this.db = await SQLite.openDatabaseAsync('crm.db');
 
@@ -75,15 +81,30 @@ class DatabaseService {
 
       // Clear any existing problematic database state for development
       // Requires explicit flag to prevent accidental data loss
-      if (typeof __DEV__ !== 'undefined' && __DEV__ && process.env.DROP_DEV_TABLES === 'true') {
+      if (
+        typeof __DEV__ !== 'undefined' &&
+        __DEV__ &&
+        process.env.DROP_DEV_TABLES === 'true'
+      ) {
         try {
-          console.log('DROP_DEV_TABLES flag detected - dropping all tables for fresh start');
+          console.log(
+            'DROP_DEV_TABLES flag detected - dropping all tables for fresh start'
+          );
 
           // Drop all tables in a single transaction for atomicity
           const tables = [
-            'user_preferences', 'contact_categories', 'notes', 'interactions',
-            'event_reminders', 'events', 'contact_info', 'contacts',
-            'categories', 'companies', 'attachments', 'migrations'
+            'user_preferences',
+            'contact_categories',
+            'notes',
+            'interactions',
+            'event_reminders',
+            'events',
+            'contact_info',
+            'contacts',
+            'categories',
+            'companies',
+            'attachments',
+            'migrations',
           ];
 
           await this.db.execAsync('BEGIN TRANSACTION;');
@@ -92,7 +113,9 @@ class DatabaseService {
               await this.db.execAsync(`DROP TABLE IF EXISTS ${table};`);
             }
             await this.db.execAsync('COMMIT;');
-            console.log('Successfully cleared all existing tables for fresh database start');
+            console.log(
+              'Successfully cleared all existing tables for fresh database start'
+            );
           } catch (dropError) {
             await this.db.execAsync('ROLLBACK;');
             throw dropError;
@@ -103,18 +126,21 @@ class DatabaseService {
           throw new Error(`Database table clearing failed: ${e.message}`);
         }
       } else if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.log('Development mode detected but DROP_DEV_TABLES not set - preserving existing data');
-        console.log('To drop tables for fresh start, set environment variable: DROP_DEV_TABLES=true');
+        console.log(
+          'Development mode detected but DROP_DEV_TABLES not set - preserving existing data'
+        );
+        console.log(
+          'To drop tables for fresh start, set environment variable: DROP_DEV_TABLES=true'
+        );
       }
 
       // Run canonical migrations to establish complete schema
       await this._runCanonicalMigrations({ signal });
-      
+
       console.log('Database initialized successfully');
       this.isInitialized = true;
       this.initializationPromise = null;
       return true;
-      
     } catch (error) {
       console.error('Database initialization failed:', error);
       // Attempt to close any opened DB connection without masking the original error
@@ -126,7 +152,10 @@ class DatabaseService {
             await this.db.close();
           }
         } catch (closeError) {
-          console.error('Error closing database after failed initialization:', closeError);
+          console.error(
+            'Error closing database after failed initialization:',
+            closeError
+          );
         } finally {
           this.db = null;
         }
@@ -146,7 +175,7 @@ class DatabaseService {
     // Create migration context using the extracted adapter
     const migrationContext = createMigrationContext(this.db, {
       signal,
-      onLog: (msg) => console.log(msg)
+      onLog: msg => console.log(msg),
     });
 
     try {
@@ -158,7 +187,7 @@ class DatabaseService {
         message: error?.message,
         code: error?.code,
         originalError: error?.originalError,
-        context: error?.context
+        context: error?.context,
       });
       if (error?.originalError) {
         console.error('Original error:', error.originalError);
@@ -176,7 +205,10 @@ class DatabaseService {
       await this.initializationPromise;
     }
     if (!this.isInitialized) {
-      throw new DatabaseError('Database not initialized. Call initialize() first.', 'NOT_INITIALIZED');
+      throw new DatabaseError(
+        'Database not initialized. Call initialize() first.',
+        'NOT_INITIALIZED'
+      );
     }
     return this.db;
   }
@@ -198,7 +230,9 @@ class DatabaseService {
             await result;
           }
         } else {
-          console.warn('Database close method not available - connection may not be properly closed');
+          console.warn(
+            'Database close method not available - connection may not be properly closed'
+          );
         }
       } catch (error) {
         console.error('Error closing database connection:', error);

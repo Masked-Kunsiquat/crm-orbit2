@@ -15,12 +15,20 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
     try {
       if (!mountedRef.current) return;
       // Abort any in-flight init before starting a new one
-      if (controllerRef.current && typeof controllerRef.current.abort === 'function') {
-        try { controllerRef.current.abort(); } catch (e) { /* noop */ }
+      if (
+        controllerRef.current &&
+        typeof controllerRef.current.abort === 'function'
+      ) {
+        try {
+          controllerRef.current.abort();
+        } catch (e) {
+          /* noop */
+        }
       }
       // Fresh controller for this run
       try {
-        controllerRef.current = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        controllerRef.current =
+          typeof AbortController !== 'undefined' ? new AbortController() : null;
       } catch (e) {
         console.warn('AbortController not available:', e);
         controllerRef.current = null;
@@ -35,13 +43,26 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
       let timeoutId;
       try {
         // Wrap database initialization with additional error handling
-        const initPromise = Promise.resolve().then(() => databaseService.initialize({ signal }));
+        const initPromise = Promise.resolve().then(() =>
+          databaseService.initialize({ signal })
+        );
         const timeoutPromise = new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
-            if (controllerRef.current && typeof controllerRef.current.abort === 'function') {
-              try { controllerRef.current.abort(); } catch (e) { /* noop */ }
+            if (
+              controllerRef.current &&
+              typeof controllerRef.current.abort === 'function'
+            ) {
+              try {
+                controllerRef.current.abort();
+              } catch (e) {
+                /* noop */
+              }
             }
-            reject(new Error(`Database initialization timed out after ${initTimeoutMs}ms`));
+            reject(
+              new Error(
+                `Database initialization timed out after ${initTimeoutMs}ms`
+              )
+            );
           }, initTimeoutMs);
         });
 
@@ -53,25 +74,32 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
       } finally {
         if (timeoutId) clearTimeout(timeoutId);
       }
-      
+
       // After DB init, bootstrap other core services
       try {
         // Initialize authentication service (auto-lock timers, lock state)
         await authService.initialize();
-        
+
         // Future hooks: permissions, notifications, reminders, backups
         // e.g., notificationService.requestPermissions();
         //       notificationService.reschedulePendingReminders();
         //       backupService.checkAutoBackup();
       } catch (bootError) {
-        console.warn('Post-initialization service bootstrap encountered an issue:', bootError);
+        console.warn(
+          'Post-initialization service bootstrap encountered an issue:',
+          bootError
+        );
         // Continue; non-critical services failing should not block app load
       }
 
       console.log('App initialization complete');
 
       // Avoid state updates if aborted/unmounted
-      if (!mountedRef.current || (controllerRef.current && controllerRef.current.signal?.aborted)) return;
+      if (
+        !mountedRef.current ||
+        (controllerRef.current && controllerRef.current.signal?.aborted)
+      )
+        return;
       setIsInitializing(false);
     } catch (error) {
       console.error('App initialization failed:', error);
@@ -88,8 +116,15 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
     initializeApp();
     return () => {
       // Mark unmounted and abort any in-flight work
-      if (controllerRef.current && typeof controllerRef.current.abort === 'function') {
-        try { controllerRef.current.abort(); } catch (e) { /* noop */ }
+      if (
+        controllerRef.current &&
+        typeof controllerRef.current.abort === 'function'
+      ) {
+        try {
+          controllerRef.current.abort();
+        } catch (e) {
+          /* noop */
+        }
       }
       mountedRef.current = false;
     };

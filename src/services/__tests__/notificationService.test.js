@@ -32,16 +32,22 @@ jest.mock('react-native', () => ({
 }));
 
 // Mock ServiceError class
-jest.mock('../errors', () => ({
-  ServiceError: class ServiceError extends Error {
-    constructor(service, operation, originalError) {
-      super(`${service}.${operation} failed: ${originalError?.message || originalError}`);
-      this.service = service;
-      this.operation = operation;
-      this.originalError = originalError;
-    }
-  },
-}), { virtual: true });
+jest.mock(
+  '../errors',
+  () => ({
+    ServiceError: class ServiceError extends Error {
+      constructor(service, operation, originalError) {
+        super(
+          `${service}.${operation} failed: ${originalError?.message || originalError}`
+        );
+        this.service = service;
+        this.operation = operation;
+        this.originalError = originalError;
+      }
+    },
+  }),
+  { virtual: true }
+);
 
 // Import the service after mocks are in place
 const { notificationService } = require('../notificationService');
@@ -57,14 +63,25 @@ describe('notificationService', () => {
     // Reset default mock behaviors
     mockDevice.isDevice = true;
     Notifications.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
-    Notifications.requestPermissionsAsync.mockResolvedValue({ status: 'granted' });
-    Notifications.scheduleNotificationAsync.mockResolvedValue('mock-notification-id');
+    Notifications.requestPermissionsAsync.mockResolvedValue({
+      status: 'granted',
+    });
+    Notifications.scheduleNotificationAsync.mockResolvedValue(
+      'mock-notification-id'
+    );
 
     // Reset any method mocks on the service
-    if (notificationService.scheduleReminder && typeof notificationService.scheduleReminder.mockRestore === 'function') {
+    if (
+      notificationService.scheduleReminder &&
+      typeof notificationService.scheduleReminder.mockRestore === 'function'
+    ) {
       notificationService.scheduleReminder.mockRestore();
     }
-    if (notificationService.getScheduledNotifications && typeof notificationService.getScheduledNotifications.mockRestore === 'function') {
+    if (
+      notificationService.getScheduledNotifications &&
+      typeof notificationService.getScheduledNotifications.mockRestore ===
+        'function'
+    ) {
       notificationService.getScheduledNotifications.mockRestore();
     }
   });
@@ -94,8 +111,12 @@ describe('notificationService', () => {
     });
 
     test('requests permissions when not granted', async () => {
-      Notifications.getPermissionsAsync.mockResolvedValueOnce({ status: 'denied' });
-      Notifications.requestPermissionsAsync.mockResolvedValueOnce({ status: 'granted' });
+      Notifications.getPermissionsAsync.mockResolvedValueOnce({
+        status: 'denied',
+      });
+      Notifications.requestPermissionsAsync.mockResolvedValueOnce({
+        status: 'granted',
+      });
 
       const result = await notificationService.initialize();
 
@@ -105,8 +126,12 @@ describe('notificationService', () => {
     });
 
     test('returns false when permissions denied', async () => {
-      Notifications.getPermissionsAsync.mockResolvedValueOnce({ status: 'denied' });
-      Notifications.requestPermissionsAsync.mockResolvedValueOnce({ status: 'denied' });
+      Notifications.getPermissionsAsync.mockResolvedValueOnce({
+        status: 'denied',
+      });
+      Notifications.requestPermissionsAsync.mockResolvedValueOnce({
+        status: 'denied',
+      });
 
       const result = await notificationService.initialize();
 
@@ -116,7 +141,9 @@ describe('notificationService', () => {
 
   describe('permission management', () => {
     test('getPermissionStatus returns current status', async () => {
-      Notifications.getPermissionsAsync.mockResolvedValueOnce({ status: 'granted' });
+      Notifications.getPermissionsAsync.mockResolvedValueOnce({
+        status: 'granted',
+      });
 
       const status = await notificationService.getPermissionStatus();
 
@@ -125,7 +152,9 @@ describe('notificationService', () => {
     });
 
     test('requestPermissions requests with proper iOS config', async () => {
-      Notifications.requestPermissionsAsync.mockResolvedValueOnce({ status: 'granted' });
+      Notifications.requestPermissionsAsync.mockResolvedValueOnce({
+        status: 'granted',
+      });
 
       const status = await notificationService.requestPermissions();
 
@@ -159,7 +188,10 @@ describe('notificationService', () => {
         notes: 'Test notes',
       };
 
-      const notificationId = await notificationService.scheduleReminder(reminder, event);
+      const notificationId = await notificationService.scheduleReminder(
+        reminder,
+        event
+      );
 
       expect(notificationId).toBe('mock-notification-id');
       expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith({
@@ -189,7 +221,10 @@ describe('notificationService', () => {
       };
       const event = { id: 1, title: 'Past Event' };
 
-      const notificationId = await notificationService.scheduleReminder(reminder, event);
+      const notificationId = await notificationService.scheduleReminder(
+        reminder,
+        event
+      );
 
       expect(notificationId).toBeNull();
       expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
@@ -211,7 +246,9 @@ describe('notificationService', () => {
         {
           id: 2,
           event_id: 1,
-          reminder_datetime: new Date(futureDate.getTime() + 60000).toISOString(),
+          reminder_datetime: new Date(
+            futureDate.getTime() + 60000
+          ).toISOString(),
         },
       ]);
 
@@ -235,7 +272,10 @@ describe('notificationService', () => {
 
       db.settings.getValue.mockResolvedValue(30); // 30 minute lead time
 
-      const scheduledIds = await notificationService.scheduleRecurringReminders(event, 2);
+      const scheduledIds = await notificationService.scheduleRecurringReminders(
+        event,
+        2
+      );
 
       expect(scheduledIds.length).toBeGreaterThan(0);
       expect(Notifications.scheduleNotificationAsync).toHaveBeenCalled();
@@ -248,7 +288,8 @@ describe('notificationService', () => {
         recurring: false,
       };
 
-      const scheduledIds = await notificationService.scheduleRecurringReminders(event);
+      const scheduledIds =
+        await notificationService.scheduleRecurringReminders(event);
 
       expect(scheduledIds).toEqual([]);
       expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
@@ -259,7 +300,9 @@ describe('notificationService', () => {
     test('cancels individual notification', async () => {
       await notificationService.cancelNotification('test-id');
 
-      expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('test-id');
+      expect(
+        Notifications.cancelScheduledNotificationAsync
+      ).toHaveBeenCalledWith('test-id');
     });
 
     test('cancels all event notifications', async () => {
@@ -280,15 +323,23 @@ describe('notificationService', () => {
 
       await notificationService.cancelEventNotifications(1);
 
-      expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledTimes(2);
-      expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('notif-1');
-      expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('notif-3');
+      expect(
+        Notifications.cancelScheduledNotificationAsync
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        Notifications.cancelScheduledNotificationAsync
+      ).toHaveBeenCalledWith('notif-1');
+      expect(
+        Notifications.cancelScheduledNotificationAsync
+      ).toHaveBeenCalledWith('notif-3');
     });
 
     test('cancels all notifications', async () => {
       await notificationService.cancelAllNotifications();
 
-      expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
+      expect(
+        Notifications.cancelAllScheduledNotificationsAsync
+      ).toHaveBeenCalled();
     });
   });
 
@@ -297,7 +348,7 @@ describe('notificationService', () => {
       db.settings.getValues.mockResolvedValue({
         quiet_hours_enabled: true,
         quiet_hours_start: 22, // 10 PM
-        quiet_hours_end: 8 // 8 AM
+        quiet_hours_end: 8, // 8 AM
       });
 
       const lateNight = new Date();
@@ -318,7 +369,7 @@ describe('notificationService', () => {
       db.settings.getValues.mockResolvedValue({
         quiet_hours_enabled: false,
         quiet_hours_start: 22,
-        quiet_hours_end: 8
+        quiet_hours_end: 8,
       });
 
       const lateNight = new Date();
@@ -331,7 +382,7 @@ describe('notificationService', () => {
       db.settings.getValues.mockResolvedValue({
         quiet_hours_enabled: true,
         quiet_hours_start: 22,
-        quiet_hours_end: 8
+        quiet_hours_end: 8,
       });
 
       await notificationService.getQuietHoursSettings();
@@ -340,7 +391,7 @@ describe('notificationService', () => {
       expect(db.settings.getValues).toHaveBeenCalledWith('notifications', [
         { key: 'quiet_hours_enabled', expectedType: 'boolean' },
         { key: 'quiet_hours_start', expectedType: 'number' },
-        { key: 'quiet_hours_end', expectedType: 'number' }
+        { key: 'quiet_hours_end', expectedType: 'number' },
       ]);
 
       // Should only make one database call instead of three
@@ -352,7 +403,7 @@ describe('notificationService', () => {
       db.settings.getValues.mockResolvedValue({
         quiet_hours_enabled: true,
         quiet_hours_start: 22,
-        quiet_hours_end: 8
+        quiet_hours_end: 8,
       });
 
       // Mock current time: 7:30 AM (still in quiet hours)
@@ -419,7 +470,9 @@ describe('notificationService', () => {
 
       expect(result.cancelledCount).toBe(2);
       expect(result.markedSentCount).toBe(2);
-      expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledTimes(2);
+      expect(
+        Notifications.cancelScheduledNotificationAsync
+      ).toHaveBeenCalledTimes(2);
       expect(db.eventsReminders.markReminderSent).toHaveBeenCalledTimes(2);
     });
   });
@@ -438,7 +491,10 @@ describe('notificationService', () => {
         reminder_datetime: '2023-06-15T13:30:00Z',
       };
 
-      const message = notificationService.formatReminderMessage(event, reminder);
+      const message = notificationService.formatReminderMessage(
+        event,
+        reminder
+      );
 
       expect(message).toContain('Meeting reminder: Team Meeting');
       expect(message).toContain('Quarterly review');
@@ -456,7 +512,10 @@ describe('notificationService', () => {
         reminder_datetime: '2023-06-15T09:00:00Z',
       };
 
-      const message = notificationService.formatReminderMessage(event, reminder);
+      const message = notificationService.formatReminderMessage(
+        event,
+        reminder
+      );
 
       expect(message).toContain('Birthday reminder: John Doe');
     });
@@ -471,18 +530,36 @@ describe('notificationService', () => {
 
       // Test birthday on the exact birthday (should be 33)
       const exactBirthday = new Date('2023-06-15T00:00:00Z');
-      const messageOnBirthday = notificationService.formatRecurringReminderMessage(event, exactBirthday);
-      expect(messageOnBirthday).toContain('Birthday reminder: John Doe (33 years old)');
+      const messageOnBirthday =
+        notificationService.formatRecurringReminderMessage(
+          event,
+          exactBirthday
+        );
+      expect(messageOnBirthday).toContain(
+        'Birthday reminder: John Doe (33 years old)'
+      );
 
       // Test before birthday in 2023 (should be 32)
       const beforeBirthday = new Date('2023-06-14T00:00:00Z');
-      const messageBeforeBirthday = notificationService.formatRecurringReminderMessage(event, beforeBirthday);
-      expect(messageBeforeBirthday).toContain('Birthday reminder: John Doe (32 years old)');
+      const messageBeforeBirthday =
+        notificationService.formatRecurringReminderMessage(
+          event,
+          beforeBirthday
+        );
+      expect(messageBeforeBirthday).toContain(
+        'Birthday reminder: John Doe (32 years old)'
+      );
 
       // Test after birthday in 2023 (should be 33)
       const afterBirthday = new Date('2023-06-16T00:00:00Z');
-      const messageAfterBirthday = notificationService.formatRecurringReminderMessage(event, afterBirthday);
-      expect(messageAfterBirthday).toContain('Birthday reminder: John Doe (33 years old)');
+      const messageAfterBirthday =
+        notificationService.formatRecurringReminderMessage(
+          event,
+          afterBirthday
+        );
+      expect(messageAfterBirthday).toContain(
+        'Birthday reminder: John Doe (33 years old)'
+      );
     });
 
     test('handles edge case birthdays correctly', () => {
@@ -496,13 +573,25 @@ describe('notificationService', () => {
 
       // January reminder in 2024 (birthday hasn't occurred yet this year)
       const januaryReminder = new Date('2024-01-15T00:00:00Z');
-      const messageInJanuary = notificationService.formatRecurringReminderMessage(decemberBirthdayEvent, januaryReminder);
-      expect(messageInJanuary).toContain('Birthday reminder: Jane Smith (28 years old)');
+      const messageInJanuary =
+        notificationService.formatRecurringReminderMessage(
+          decemberBirthdayEvent,
+          januaryReminder
+        );
+      expect(messageInJanuary).toContain(
+        'Birthday reminder: Jane Smith (28 years old)'
+      );
 
       // December reminder in 2024 (birthday has occurred)
       const decemberReminder = new Date('2024-12-25T00:00:00Z');
-      const messageInDecember = notificationService.formatRecurringReminderMessage(decemberBirthdayEvent, decemberReminder);
-      expect(messageInDecember).toContain('Birthday reminder: Jane Smith (29 years old)');
+      const messageInDecember =
+        notificationService.formatRecurringReminderMessage(
+          decemberBirthdayEvent,
+          decemberReminder
+        );
+      expect(messageInDecember).toContain(
+        'Birthday reminder: Jane Smith (29 years old)'
+      );
     });
   });
 
@@ -513,20 +602,25 @@ describe('notificationService', () => {
         title: 'John Doe',
         event_type: 'birthday',
         contact_id: 123,
-        event_date: '1990-06-15T00:00:00Z'
+        event_date: '1990-06-15T00:00:00Z',
       };
 
       const context = {
         eventTime: '6/15/2023, 12:00:00 AM',
         age: 33,
         isRecurring: true,
-        eventDate: new Date('2023-06-15T00:00:00Z')
+        eventDate: new Date('2023-06-15T00:00:00Z'),
       };
 
-      const result = notificationService.renderNotificationTemplate(event, context);
+      const result = notificationService.renderNotificationTemplate(
+        event,
+        context
+      );
 
       expect(result.title).toBe('Birthday Reminder');
-      expect(result.body).toContain('Birthday reminder: John Doe (33 years old)');
+      expect(result.body).toContain(
+        'Birthday reminder: John Doe (33 years old)'
+      );
       expect(result.data.eventType).toBe('birthday');
       expect(result.data.type).toBe('recurring_birthday');
       expect(result.data.contactId).toBe(123);
@@ -538,16 +632,19 @@ describe('notificationService', () => {
         title: 'Team Standup',
         event_type: 'meeting',
         location: 'Conference Room A',
-        notes: 'Bring your status updates'
+        notes: 'Bring your status updates',
       };
 
       const context = {
         eventTime: '6/15/2023, 2:00:00 PM',
         isRecurring: false,
-        reminderId: 456
+        reminderId: 456,
       };
 
-      const result = notificationService.renderNotificationTemplate(event, context);
+      const result = notificationService.renderNotificationTemplate(
+        event,
+        context
+      );
 
       expect(result.title).toBe('Meeting Reminder');
       expect(result.body).toContain('Meeting reminder: Team Standup');
@@ -565,19 +662,24 @@ describe('notificationService', () => {
         event_type: 'followUp',
         contact_id: 789,
         contact_name: 'Jane Smith',
-        notes: 'Follow up on proposal'
+        notes: 'Follow up on proposal',
       };
 
       const context = {
         eventTime: '6/16/2023, 10:00:00 AM',
         isRecurring: false,
-        reminderId: 789
+        reminderId: 789,
       };
 
-      const result = notificationService.renderNotificationTemplate(event, context);
+      const result = notificationService.renderNotificationTemplate(
+        event,
+        context
+      );
 
       expect(result.title).toBe('Follow-up Reminder');
-      expect(result.body).toContain('Follow-up reminder: Jane Smith - Project Discussion');
+      expect(result.body).toContain(
+        'Follow-up reminder: Jane Smith - Project Discussion'
+      );
       expect(result.body).toContain('Follow up on proposal');
       expect(result.data.eventType).toBe('followUp');
       expect(result.data.type).toBe('followup_reminder');
@@ -589,15 +691,18 @@ describe('notificationService', () => {
         id: 4,
         title: 'Custom Event',
         event_type: 'unknown_type',
-        notes: 'Some custom notes'
+        notes: 'Some custom notes',
       };
 
       const context = {
         eventTime: '6/17/2023, 3:00:00 PM',
-        isRecurring: false
+        isRecurring: false,
       };
 
-      const result = notificationService.renderNotificationTemplate(event, context);
+      const result = notificationService.renderNotificationTemplate(
+        event,
+        context
+      );
 
       expect(result.title).toBe('Event Reminder');
       expect(result.body).toContain('Event reminder: Custom Event');
@@ -615,11 +720,14 @@ describe('notificationService', () => {
 
       const context = {
         eventTime: '6/18/2023, 4:00:00 PM',
-        isRecurring: false
+        isRecurring: false,
       };
 
       // Should not throw and fallback to generic template
-      const result = notificationService.renderNotificationTemplate(event, context);
+      const result = notificationService.renderNotificationTemplate(
+        event,
+        context
+      );
 
       expect(result.title).toBe('Event Reminder');
       expect(result.body).toContain('Event reminder: Problem Event');
@@ -648,27 +756,37 @@ describe('notificationService', () => {
       const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       // Mock the transaction to return appropriate data
-      db.transaction.mockImplementation(async (callback) => {
+      db.transaction.mockImplementation(async callback => {
         const mockTx = {
-          execute: jest.fn()
+          execute: jest
+            .fn()
             .mockResolvedValueOnce({ rows: [] }) // getScheduledNotifications query - no expired
-            .mockResolvedValueOnce({ rows: [{ // pending reminders query
-              id: 1,
-              event_id: 1,
-              reminder_datetime: futureDate.toISOString(),
-              title: 'Test Event',
-              event_date: futureDate.toISOString(),
-              contact_id: 1
-            }] })
+            .mockResolvedValueOnce({
+              rows: [
+                {
+                  // pending reminders query
+                  id: 1,
+                  event_id: 1,
+                  reminder_datetime: futureDate.toISOString(),
+                  title: 'Test Event',
+                  event_date: futureDate.toISOString(),
+                  contact_id: 1,
+                },
+              ],
+            })
             .mockResolvedValueOnce({ rows: [] }) // recurring events query - none
-            .mockResolvedValue({ rows: [], rowsAffected: 1, insertId: 123 }) // any other queries
+            .mockResolvedValue({ rows: [], rowsAffected: 1, insertId: 123 }), // any other queries
         };
         return await callback(mockTx);
       });
 
       // Mock external notification calls
-      notificationService.getScheduledNotifications = jest.fn().mockResolvedValue([]);
-      notificationService.scheduleReminder = jest.fn().mockResolvedValue('notification-id-123');
+      notificationService.getScheduledNotifications = jest
+        .fn()
+        .mockResolvedValue([]);
+      notificationService.scheduleReminder = jest
+        .fn()
+        .mockResolvedValue('notification-id-123');
 
       const result = await notificationService.syncAllReminders();
 
@@ -694,7 +812,9 @@ describe('notificationService', () => {
 
   describe('error handling', () => {
     test('throws ServiceError when initialization fails', async () => {
-      Notifications.getPermissionsAsync.mockRejectedValueOnce(new Error('Permission error'));
+      Notifications.getPermissionsAsync.mockRejectedValueOnce(
+        new Error('Permission error')
+      );
 
       await expect(notificationService.initialize()).rejects.toMatchObject({
         service: 'notificationService',
@@ -703,9 +823,10 @@ describe('notificationService', () => {
       });
     });
 
-
     test.skip('throws ServiceError when scheduling fails', async () => {
-      Notifications.scheduleNotificationAsync.mockRejectedValueOnce(new Error('Schedule error'));
+      Notifications.scheduleNotificationAsync.mockRejectedValueOnce(
+        new Error('Schedule error')
+      );
 
       const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
       const reminder = {
@@ -714,7 +835,9 @@ describe('notificationService', () => {
       };
       const event = { id: 1, title: 'Test Event' };
 
-      await expect(notificationService.scheduleReminder(reminder, event)).rejects.toMatchObject({
+      await expect(
+        notificationService.scheduleReminder(reminder, event)
+      ).rejects.toMatchObject({
         service: 'notificationService',
         operation: 'scheduleReminder',
         message: expect.stringContaining('Schedule error'),

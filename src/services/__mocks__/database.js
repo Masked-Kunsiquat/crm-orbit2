@@ -2,7 +2,7 @@
 
 const mockDb = {
   attachments: {
-    create: jest.fn(async (data) => ({ id: 1, ...data })),
+    create: jest.fn(async data => ({ id: 1, ...data })),
     getById: jest.fn(async () => null),
     delete: jest.fn(async () => ({ success: true })),
     getAll: jest.fn(async () => []),
@@ -29,28 +29,30 @@ const mockDb = {
       }
       return { id, reminder_datetime: formattedDateTime };
     }),
-    markRemindersScheduled: jest.fn(async (items) => {
+    markRemindersScheduled: jest.fn(async items => {
       // Simulate the filtering that happens in the real implementation
       const validItems = items.filter(
         ({ reminderId, notificationId }) => reminderId && notificationId
       );
       return validItems.length;
     }),
-    markRemindersFailed: jest.fn(async (ids) => {
+    markRemindersFailed: jest.fn(async ids => {
       // Simulate the filtering and deduplication that happens in the real implementation
-      const uniqueValidIds = [...new Set(
-        ids.filter(id => id && Number.isInteger(id) && id > 0)
-      )];
+      const uniqueValidIds = [
+        ...new Set(ids.filter(id => id && Number.isInteger(id) && id > 0)),
+      ];
       return uniqueValidIds.length;
     }),
-    createRecurringReminders: jest.fn(async (data) => data.map((d, i) => ({ id: i + 1, ...d }))),
+    createRecurringReminders: jest.fn(async data =>
+      data.map((d, i) => ({ id: i + 1, ...d }))
+    ),
   },
   settings: {
     getValue: jest.fn(async () => null),
     getValues: jest.fn(async (category, keys) => {
       // Return an object with null values for all requested keys
       const result = {};
-      const normalizedKeys = keys.map(k => typeof k === 'string' ? k : k.key);
+      const normalizedKeys = keys.map(k => (typeof k === 'string' ? k : k.key));
       normalizedKeys.forEach(key => {
         result[key] = null;
       });
@@ -58,13 +60,13 @@ const mockDb = {
     }),
   },
   // Mock transaction method
-  transaction: jest.fn(async (callback) => {
+  transaction: jest.fn(async callback => {
     const mockTx = {
       execute: jest.fn(async (sql, params) => ({
         rows: [],
         rowsAffected: 0,
-        insertId: null
-      }))
+        insertId: null,
+      })),
     };
     return await callback(mockTx);
   }),
@@ -72,4 +74,3 @@ const mockDb = {
 
 module.exports = mockDb;
 module.exports.default = mockDb; // Support both ESM/CJS import styles in tests
-

@@ -13,19 +13,19 @@ const ThemeSection = () => {
         <List.Item
           title="System"
           description="Match your device appearance"
-          left={(props) => <RadioButton {...props} value="system" />}
+          left={props => <RadioButton {...props} value="system" />}
           onPress={() => setMode('system')}
           accessibilityLabel="Use system theme"
         />
         <List.Item
           title="Light"
-          left={(props) => <RadioButton {...props} value="light" />}
+          left={props => <RadioButton {...props} value="light" />}
           onPress={() => setMode('light')}
           accessibilityLabel="Use light theme"
         />
         <List.Item
           title="Dark"
-          left={(props) => <RadioButton {...props} value="dark" />}
+          left={props => <RadioButton {...props} value="dark" />}
           onPress={() => setMode('dark')}
           accessibilityLabel="Use dark theme"
         />
@@ -39,4 +39,3 @@ const ThemeSection = () => {
 };
 
 export default ThemeSection;
-
