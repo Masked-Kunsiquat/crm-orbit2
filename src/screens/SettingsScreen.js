@@ -26,15 +26,15 @@ const SettingsScreen = () => {
       // Check biometric availability
       const capabilities = await authService.checkAuthenticationCapabilities();
       setBiometricAvailable(capabilities.canUseBiometric);
-      
+
       // Load current settings
       const [biometric, autoLock, timeout, pinExists] = await Promise.all([
         authService.isBiometricEnabled(),
         authService.isAutoLockEnabled(),
         authService.getAutoLockTimeout(),
-        authService.hasPIN()
+        authService.hasPIN(),
       ]);
-      
+
       setBiometricEnabled(biometric);
       setAutoLockEnabled(autoLock);
       setAutoLockTimeout(timeout);
@@ -45,13 +45,13 @@ const SettingsScreen = () => {
     }
   };
 
-
-  const handleTimeoutChange = (text) => {
+  const handleTimeoutChange = text => {
     setAutoLockTimeoutInput(text.replace(/[^0-9]/g, ''));
   };
 
-  const commitAutoLockTimeout = async (valueStr) => {
-    const source = typeof valueStr === 'string' ? valueStr : autoLockTimeoutInput;
+  const commitAutoLockTimeout = async valueStr => {
+    const source =
+      typeof valueStr === 'string' ? valueStr : autoLockTimeoutInput;
     let parsed = parseInt(source, 10);
     if (!Number.isFinite(parsed)) parsed = autoLockTimeout;
     // Clamp to 1..1440 minutes
@@ -81,8 +81,13 @@ const SettingsScreen = () => {
 
   return (
     <Surface style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Text variant="headlineSmall" style={styles.title}>Settings</Text>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text variant="headlineSmall" style={styles.title}>
+          Settings
+        </Text>
 
         <ThemeSection />
 

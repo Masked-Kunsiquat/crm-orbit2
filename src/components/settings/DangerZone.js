@@ -15,12 +15,21 @@ const DangerZone = ({ onResetComplete }) => {
       'Reset Authentication',
       'This will remove all authentication settings. Are you sure?',
       [
-        { text: 'Cancel', style: 'cancel', onPress: () => { isConfirmOpenRef.current = false; } },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => {
+            isConfirmOpenRef.current = false;
+          },
+        },
         {
           text: 'Reset',
           style: 'destructive',
           onPress: async () => {
-            if (isResettingRef.current) { isConfirmOpenRef.current = false; return; }
+            if (isResettingRef.current) {
+              isConfirmOpenRef.current = false;
+              return;
+            }
             isResettingRef.current = true;
             try {
               await authService.resetAuth();
@@ -34,8 +43,8 @@ const DangerZone = ({ onResetComplete }) => {
               // Release confirm-open guard in all paths
               isConfirmOpenRef.current = false;
             }
-          }
-        }
+          },
+        },
       ]
     );
   };

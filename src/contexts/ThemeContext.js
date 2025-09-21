@@ -1,9 +1,23 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
-import { MD3LightTheme, MD3DarkTheme, Provider as PaperProvider } from 'react-native-paper';
+import {
+  MD3LightTheme,
+  MD3DarkTheme,
+  Provider as PaperProvider,
+} from 'react-native-paper';
 import * as SystemUI from 'expo-system-ui';
-import { DefaultTheme as NavLightTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
+import {
+  DefaultTheme as NavLightTheme,
+  DarkTheme as NavDarkTheme,
+} from '@react-navigation/native';
 
 const STORAGE_KEY = 'display.theme'; // 'system' | 'light' | 'dark'
 
@@ -31,10 +45,12 @@ export function ThemeProvider({ children }) {
     })();
   }, []);
 
-  const setMode = useCallback(async (nextMode) => {
+  const setMode = useCallback(async nextMode => {
     const norm = normalizeMode(nextMode);
     setModeState(norm);
-    try { await AsyncStorage.setItem(STORAGE_KEY, norm); } catch (_) {}
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, norm);
+    } catch (_) {}
   }, []);
 
   const paperTheme = useMemo(() => {
@@ -67,11 +83,16 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const bg = paperTheme.colors?.background;
     if (bg && typeof SystemUI.setBackgroundColorAsync === 'function') {
-      try { SystemUI.setBackgroundColorAsync(bg); } catch (_) {}
+      try {
+        SystemUI.setBackgroundColorAsync(bg);
+      } catch (_) {}
     }
   }, [paperTheme]);
 
-  const value = useMemo(() => ({ mode, setMode, isDark, paperTheme, navigationTheme }), [mode, setMode, isDark, paperTheme, navigationTheme]);
+  const value = useMemo(
+    () => ({ mode, setMode, isDark, paperTheme, navigationTheme }),
+    [mode, setMode, isDark, paperTheme, navigationTheme]
+  );
 
   return (
     <ThemeContext.Provider value={value}>

@@ -2,8 +2,9 @@ import { DatabaseError } from './errors';
 
 export function createAttachmentsDB({ execute, batch, transaction }) {
   const validateRequiredFields = (data, requiredFields) => {
-    const missing = requiredFields.filter(field => 
-      data[field] === undefined || data[field] === null || data[field] === ''
+    const missing = requiredFields.filter(
+      field =>
+        data[field] === undefined || data[field] === null || data[field] === ''
     );
     if (missing.length > 0) {
       throw new DatabaseError(
@@ -13,7 +14,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
   };
 
-  const validateEntityType = (entityType) => {
+  const validateEntityType = entityType => {
     const validTypes = ['contact', 'interaction', 'event', 'note'];
     if (!validTypes.includes(entityType)) {
       throw new DatabaseError(
@@ -23,7 +24,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
   };
 
-  const validateFileType = (fileType) => {
+  const validateFileType = fileType => {
     const validTypes = ['image', 'document', 'audio', 'video'];
     if (!validTypes.includes(fileType)) {
       throw new DatabaseError(
@@ -33,9 +34,13 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
   };
 
-  const validateFileSize = (fileSize) => {
+  const validateFileSize = fileSize => {
     if (fileSize !== null && fileSize !== undefined) {
-      if (typeof fileSize !== 'number' || !Number.isFinite(fileSize) || fileSize < 0) {
+      if (
+        typeof fileSize !== 'number' ||
+        !Number.isFinite(fileSize) ||
+        fileSize < 0
+      ) {
         throw new DatabaseError(
           'Invalid file_size. Must be a finite number >= 0',
           'VALIDATION_ERROR'
@@ -44,21 +49,26 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
   };
 
-  const validateEntityId = (entityId) => {
+  const validateEntityId = entityId => {
     if (entityId === null || entityId === undefined) {
-      throw new DatabaseError(
-        'entity_id is required',
-        'VALIDATION_ERROR'
-      );
+      throw new DatabaseError('entity_id is required', 'VALIDATION_ERROR');
     }
 
     // Convert string numbers to actual numbers
     let numericValue = entityId;
-    if (typeof entityId === 'string' && !isNaN(entityId) && entityId.trim() !== '') {
+    if (
+      typeof entityId === 'string' &&
+      !isNaN(entityId) &&
+      entityId.trim() !== ''
+    ) {
       numericValue = Number(entityId);
     }
 
-    if (typeof numericValue !== 'number' || !Number.isInteger(numericValue) || numericValue <= 0) {
+    if (
+      typeof numericValue !== 'number' ||
+      !Number.isInteger(numericValue) ||
+      numericValue <= 0
+    ) {
       throw new DatabaseError(
         'Invalid entity_id. Must be a positive integer',
         'VALIDATION_ERROR'
@@ -68,19 +78,19 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     return numericValue;
   };
 
-  const validatePagination = (options) => {
+  const validatePagination = options => {
     const { limit, offset } = options;
 
     // Parse and validate limit
     let parsedLimit = limit;
-    
+
     // Handle undefined/null gracefully with defaults
     if (parsedLimit === undefined || parsedLimit === null) {
       parsedLimit = 10; // Default limit
     } else {
       // Convert to integer
       parsedLimit = parseInt(parsedLimit, 10);
-      
+
       // Throw error for invalid numeric values
       if (isNaN(parsedLimit)) {
         throw new DatabaseError(
@@ -88,7 +98,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           'VALIDATION_ERROR'
         );
       }
-      
+
       // Enforce bounds
       if (parsedLimit < 1) {
         throw new DatabaseError(
@@ -96,7 +106,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           'VALIDATION_ERROR'
         );
       }
-      
+
       if (parsedLimit > 100) {
         throw new DatabaseError(
           'Invalid limit parameter. Must be <= 100',
@@ -107,14 +117,14 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
 
     // Parse and validate offset
     let parsedOffset = offset;
-    
+
     // Handle undefined/null gracefully with defaults
     if (parsedOffset === undefined || parsedOffset === null) {
       parsedOffset = 0; // Default offset
     } else {
       // Convert to integer
       parsedOffset = parseInt(parsedOffset, 10);
-      
+
       // Throw error for invalid numeric values
       if (isNaN(parsedOffset)) {
         throw new DatabaseError(
@@ -122,7 +132,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           'VALIDATION_ERROR'
         );
       }
-      
+
       // Enforce bounds
       if (parsedOffset < 0) {
         throw new DatabaseError(
@@ -134,14 +144,21 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
 
     return {
       limit: parsedLimit,
-      offset: parsedOffset
+      offset: parsedOffset,
     };
   };
 
   return {
     async create(data) {
       try {
-        validateRequiredFields(data, ['entity_type', 'entity_id', 'file_name', 'original_name', 'file_path', 'file_type']);
+        validateRequiredFields(data, [
+          'entity_type',
+          'entity_id',
+          'file_name',
+          'original_name',
+          'file_path',
+          'file_type',
+        ]);
         validateEntityType(data.entity_type);
         const validatedEntityId = validateEntityId(data.entity_id);
         validateFileType(data.file_type);
@@ -162,7 +179,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
             data.mime_type || null,
             data.file_size !== undefined ? data.file_size : null,
             data.thumbnail_path || null,
-            data.description || null
+            data.description || null,
           ]
         );
 
@@ -172,40 +189,58 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         throw new DatabaseError('Failed to create attachment', 'CREATE_FAILED');
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to create attachment', 'CREATE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to create attachment',
+          'CREATE_FAILED',
+          error
+        );
       }
     },
 
     async getById(id) {
       try {
-        const result = await execute(
-          'SELECT * FROM attachments WHERE id = ?',
-          [id]
-        );
+        const result = await execute('SELECT * FROM attachments WHERE id = ?', [
+          id,
+        ]);
         return result.rows[0] || null;
       } catch (error) {
-        throw new DatabaseError('Failed to get attachment by ID', 'GET_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get attachment by ID',
+          'GET_FAILED',
+          error
+        );
       }
     },
 
     async getAll(options = {}) {
       try {
-        const {
-          sortBy = 'created_at',
-          sortOrder = 'DESC'
-        } = options;
+        const { sortBy = 'created_at', sortOrder = 'DESC' } = options;
 
         // Validate pagination parameters
         const { limit, offset } = validatePagination(options);
 
-        const validSortColumns = ['id', 'entity_type', 'file_name', 'original_name', 'file_type', 'file_size', 'created_at'];
+        const validSortColumns = [
+          'id',
+          'entity_type',
+          'file_name',
+          'original_name',
+          'file_type',
+          'file_size',
+          'created_at',
+        ];
         if (!validSortColumns.includes(sortBy)) {
-          throw new DatabaseError(`Invalid sort column: ${sortBy}`, 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            `Invalid sort column: ${sortBy}`,
+            'VALIDATION_ERROR'
+          );
         }
 
         const validSortOrders = ['ASC', 'DESC'];
         if (!validSortOrders.includes(sortOrder.toUpperCase())) {
-          throw new DatabaseError(`Invalid sort order: ${sortOrder}`, 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            `Invalid sort order: ${sortOrder}`,
+            'VALIDATION_ERROR'
+          );
         }
 
         const result = await execute(
@@ -218,7 +253,11 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return result.rows;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get all attachments', 'GET_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get all attachments',
+          'GET_FAILED',
+          error
+        );
       }
     },
 
@@ -235,8 +274,16 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         const params = [];
 
         const updatableFields = [
-          'entity_type', 'entity_id', 'file_name', 'original_name', 'file_path',
-          'file_type', 'mime_type', 'file_size', 'thumbnail_path', 'description'
+          'entity_type',
+          'entity_id',
+          'file_name',
+          'original_name',
+          'file_path',
+          'file_type',
+          'mime_type',
+          'file_size',
+          'thumbnail_path',
+          'description',
         ];
 
         updatableFields.forEach(field => {
@@ -247,7 +294,10 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         });
 
         if (setParts.length === 0) {
-          throw new DatabaseError('No valid fields to update', 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            'No valid fields to update',
+            'VALIDATION_ERROR'
+          );
         }
 
         params.push(id);
@@ -264,16 +314,19 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return await this.getById(id);
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to update attachment', 'UPDATE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to update attachment',
+          'UPDATE_FAILED',
+          error
+        );
       }
     },
 
     async delete(id) {
       try {
-        const result = await execute(
-          'DELETE FROM attachments WHERE id = ?',
-          [id]
-        );
+        const result = await execute('DELETE FROM attachments WHERE id = ?', [
+          id,
+        ]);
 
         if (result.rowsAffected === 0) {
           throw new DatabaseError('Attachment not found', 'NOT_FOUND');
@@ -282,7 +335,11 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return { success: true, deletedId: id };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to delete attachment', 'DELETE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to delete attachment',
+          'DELETE_FAILED',
+          error
+        );
       }
     },
 
@@ -300,7 +357,11 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return result.rows;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get attachments by entity', 'GET_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get attachments by entity',
+          'GET_FAILED',
+          error
+        );
       }
     },
 
@@ -313,15 +374,19 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           [entityType, entityId]
         );
 
-        return { 
-          success: true, 
+        return {
+          success: true,
           deletedCount: result.rowsAffected,
           entityType,
-          entityId 
+          entityId,
         };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to delete attachments by entity', 'DELETE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to delete attachments by entity',
+          'DELETE_FAILED',
+          error
+        );
       }
     },
 
@@ -343,7 +408,11 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
 
         return result.rows;
       } catch (error) {
-        throw new DatabaseError('Failed to get orphaned attachments', 'GET_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get orphaned attachments',
+          'GET_FAILED',
+          error
+        );
       }
     },
 
@@ -365,12 +434,16 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           )
         `);
 
-        return { 
-          success: true, 
-          deletedCount: result.rowsAffected 
+        return {
+          success: true,
+          deletedCount: result.rowsAffected,
         };
       } catch (error) {
-        throw new DatabaseError('Failed to cleanup orphaned attachments', 'DELETE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to cleanup orphaned attachments',
+          'DELETE_FAILED',
+          error
+        );
       }
     },
 
@@ -384,13 +457,18 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return await this.update(id, updateData);
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to update file path', 'UPDATE_FAILED', error);
+        throw new DatabaseError(
+          'Failed to update file path',
+          'UPDATE_FAILED',
+          error
+        );
       }
     },
 
     async getTotalSize(entityType = null, entityId = null) {
       try {
-        let sql = 'SELECT COALESCE(SUM(file_size), 0) as total_size FROM attachments';
+        let sql =
+          'SELECT COALESCE(SUM(file_size), 0) as total_size FROM attachments';
         let params = [];
 
         if (entityType && entityId) {
@@ -407,7 +485,11 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return result.rows[0]?.total_size || 0;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get total size', 'GET_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get total size',
+          'GET_FAILED',
+          error
+        );
       }
     },
 
@@ -415,22 +497,32 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
       try {
         validateFileType(fileType);
 
-        const {
-          sortBy = 'created_at',
-          sortOrder = 'DESC'
-        } = options;
+        const { sortBy = 'created_at', sortOrder = 'DESC' } = options;
 
         // Validate pagination parameters
         const { limit, offset } = validatePagination(options);
 
-        const validSortColumns = ['id', 'entity_type', 'file_name', 'original_name', 'file_size', 'created_at'];
+        const validSortColumns = [
+          'id',
+          'entity_type',
+          'file_name',
+          'original_name',
+          'file_size',
+          'created_at',
+        ];
         if (!validSortColumns.includes(sortBy)) {
-          throw new DatabaseError(`Invalid sort column: ${sortBy}`, 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            `Invalid sort column: ${sortBy}`,
+            'VALIDATION_ERROR'
+          );
         }
 
         const validSortOrders = ['ASC', 'DESC'];
         if (!validSortOrders.includes(sortOrder.toUpperCase())) {
-          throw new DatabaseError(`Invalid sort order: ${sortOrder}`, 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            `Invalid sort order: ${sortOrder}`,
+            'VALIDATION_ERROR'
+          );
         }
 
         const result = await execute(
@@ -444,8 +536,12 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         return result.rows;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        throw new DatabaseError('Failed to get attachments by file type', 'GET_FAILED', error);
+        throw new DatabaseError(
+          'Failed to get attachments by file type',
+          'GET_FAILED',
+          error
+        );
       }
-    }
+    },
   };
 }

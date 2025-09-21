@@ -16,7 +16,7 @@ const SYSTEM_CATEGORIES = [
   { name: 'Personal', color: '#8965E0', icon: 'person', sort_order: 80 },
 ];
 
-const INSERT_CATEGORIES = SYSTEM_CATEGORIES.map((c) => ({
+const INSERT_CATEGORIES = SYSTEM_CATEGORIES.map(c => ({
   sql:
     'INSERT INTO categories (name, color, icon, is_system, sort_order) VALUES (?, ?, ?, 1, ?) ' +
     'ON CONFLICT(name) DO UPDATE SET color = excluded.color, icon = excluded.icon, sort_order = excluded.sort_order, is_system = 1;',
@@ -26,27 +26,99 @@ const INSERT_CATEGORIES = SYSTEM_CATEGORIES.map((c) => ({
 // 2) Default user preferences
 const DEFAULT_PREFERENCES = [
   // Notifications
-  { category: 'notifications', key: 'enable_push', value: 'true', data_type: 'boolean', is_enabled: 1 },
-  { category: 'notifications', key: 'daily_summary', value: 'true', data_type: 'boolean', is_enabled: 1 },
-  { category: 'notifications', key: 'reminder_lead_time_minutes', value: '30', data_type: 'number', is_enabled: 1 },
-  { category: 'notifications', key: 'interaction_notifications', value: 'true', data_type: 'boolean', is_enabled: 1 },
+  {
+    category: 'notifications',
+    key: 'enable_push',
+    value: 'true',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
+  {
+    category: 'notifications',
+    key: 'daily_summary',
+    value: 'true',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
+  {
+    category: 'notifications',
+    key: 'reminder_lead_time_minutes',
+    value: '30',
+    data_type: 'number',
+    is_enabled: 1,
+  },
+  {
+    category: 'notifications',
+    key: 'interaction_notifications',
+    value: 'true',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
 
   // Display
-  { category: 'display', key: 'theme', value: 'system', data_type: 'string', is_enabled: 1 },
-  { category: 'display', key: 'compact_mode', value: 'false', data_type: 'boolean', is_enabled: 1 },
-  { category: 'display', key: 'items_per_page', value: '25', data_type: 'number', is_enabled: 1 },
+  {
+    category: 'display',
+    key: 'theme',
+    value: 'system',
+    data_type: 'string',
+    is_enabled: 1,
+  },
+  {
+    category: 'display',
+    key: 'compact_mode',
+    value: 'false',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
+  {
+    category: 'display',
+    key: 'items_per_page',
+    value: '25',
+    data_type: 'number',
+    is_enabled: 1,
+  },
 
   // Security
-  { category: 'security', key: 'biometrics_enabled', value: 'false', data_type: 'boolean', is_enabled: 1 },
-  { category: 'security', key: 'auto_lock_minutes', value: '5', data_type: 'number', is_enabled: 1 },
+  {
+    category: 'security',
+    key: 'biometrics_enabled',
+    value: 'false',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
+  {
+    category: 'security',
+    key: 'auto_lock_minutes',
+    value: '5',
+    data_type: 'number',
+    is_enabled: 1,
+  },
 
   // Backup
-  { category: 'backup', key: 'auto_backup_enabled', value: 'true', data_type: 'boolean', is_enabled: 1 },
-  { category: 'backup', key: 'backup_frequency_days', value: '7', data_type: 'number', is_enabled: 1 },
-  { category: 'backup', key: 'include_attachments', value: 'true', data_type: 'boolean', is_enabled: 1 },
+  {
+    category: 'backup',
+    key: 'auto_backup_enabled',
+    value: 'true',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
+  {
+    category: 'backup',
+    key: 'backup_frequency_days',
+    value: '7',
+    data_type: 'number',
+    is_enabled: 1,
+  },
+  {
+    category: 'backup',
+    key: 'include_attachments',
+    value: 'true',
+    data_type: 'boolean',
+    is_enabled: 1,
+  },
 ];
 
-const INSERT_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
+const INSERT_PREFERENCES = DEFAULT_PREFERENCES.map(p => ({
   sql:
     'INSERT INTO user_preferences (category, setting_key, setting_value, data_type, is_enabled) VALUES (?, ?, ?, ?, ?) ' +
     'ON CONFLICT(category, setting_key) DO NOTHING;',
@@ -54,7 +126,7 @@ const INSERT_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
 }));
 
 // Build targeted deletes for down migration
-const CATEGORY_NAMES = SYSTEM_CATEGORIES.map((c) => c.name);
+const CATEGORY_NAMES = SYSTEM_CATEGORIES.map(c => c.name);
 const DELETE_CATEGORIES = [
   {
     sql: `DELETE FROM categories WHERE is_system = 1 AND name IN (${CATEGORY_NAMES.map(() => '?').join(', ')});`,
@@ -62,7 +134,7 @@ const DELETE_CATEGORIES = [
   },
 ];
 
-const DELETE_PREFERENCES = DEFAULT_PREFERENCES.map((p) => ({
+const DELETE_PREFERENCES = DEFAULT_PREFERENCES.map(p => ({
   sql: 'DELETE FROM user_preferences WHERE category = ? AND setting_key = ?;',
   params: [p.category, p.key],
 }));
@@ -86,7 +158,7 @@ export default {
    * Insert system categories and default user preferences.
    * @param {any} dbOrCtx Migration context: expected to provide { batch, execute } helpers.
    */
-  up: async (dbOrCtx) => {
+  up: async dbOrCtx => {
     const exec = getExec(dbOrCtx);
     await exec.batch([...INSERT_CATEGORIES, ...INSERT_PREFERENCES]);
   },
@@ -95,7 +167,7 @@ export default {
    * Remove only the seeded data (system categories inserted here and default preferences).
    * @param {any} dbOrCtx Migration context: expected to provide { batch, execute } helpers.
    */
-  down: async (dbOrCtx) => {
+  down: async dbOrCtx => {
     const exec = getExec(dbOrCtx);
     // Run all deletions atomically in a single transaction
     await exec.batch([

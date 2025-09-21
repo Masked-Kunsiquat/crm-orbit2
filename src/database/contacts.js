@@ -15,17 +15,18 @@ const CONTACT_FIELDS = [
   'last_interaction_at',
 ];
 
-
 function pick(obj, fields) {
   const out = {};
   for (const key of fields) {
-    if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== undefined) {
+    if (
+      Object.prototype.hasOwnProperty.call(obj, key) &&
+      obj[key] !== undefined
+    ) {
       out[key] = obj[key];
     }
   }
   return out;
 }
-
 
 function placeholders(n) {
   return new Array(n).fill('?').join(', ');
@@ -47,13 +48,13 @@ function computeDisplayName(data) {
   const nameParts = [
     data.first_name?.trim(),
     data.middle_name?.trim(),
-    data.last_name?.trim()
+    data.last_name?.trim(),
   ].filter(Boolean);
-  
+
   if (nameParts.length > 0) {
     return nameParts.join(' ');
   }
-  
+
   return 'Unnamed Contact';
 }
 
@@ -64,7 +65,10 @@ function computeDisplayName(data) {
 export function createContactsDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
   if (typeof execute !== 'function' || typeof batch !== 'function') {
-    throw new DatabaseError('contactsDB requires execute and batch helpers', 'MODULE_INIT_ERROR');
+    throw new DatabaseError(
+      'contactsDB requires execute and batch helpers',
+      'MODULE_INIT_ERROR'
+    );
   }
 
   // Build CRUD helpers
@@ -78,7 +82,7 @@ export function createContactsDB(ctx) {
       // Compute and assign display_name before building columns/values
       contactData.display_name = computeDisplayName(data);
       const cols = Object.keys(contactData);
-      const vals = cols.map((k) => contactData[k]);
+      const vals = cols.map(k => contactData[k]);
 
       const insertRes = await execute(
         `INSERT INTO contacts (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
@@ -117,9 +121,13 @@ export function createContactsDB(ctx) {
         where.push('company_id = ?');
         params.push(companyId);
       }
-      const order = ['first_name', 'last_name', 'created_at', 'updated_at', 'last_interaction_at'].includes(
-        orderBy
-      )
+      const order = [
+        'first_name',
+        'last_name',
+        'created_at',
+        'updated_at',
+        'last_interaction_at',
+      ].includes(orderBy)
         ? orderBy
         : 'last_name';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
@@ -137,7 +145,7 @@ export function createContactsDB(ctx) {
       const existing = await this.getById(id);
       const contactData = pick(data, CONTACT_FIELDS);
       const nameKeys = ['first_name', 'middle_name', 'last_name'];
-      if (nameKeys.some((k) => k in data) && !('display_name' in data)) {
+      if (nameKeys.some(k => k in data) && !('display_name' in data)) {
         const fn = ({ first_name, middle_name, last_name }) =>
           [first_name, middle_name, last_name].filter(Boolean).join(' ').trim();
         contactData.display_name = fn({ ...(existing || {}), ...contactData });
@@ -145,8 +153,8 @@ export function createContactsDB(ctx) {
       if (Object.keys(contactData).length === 0) {
         return this.getById(id);
       }
-      const sets = Object.keys(contactData).map((k) => `${k} = ?`);
-      const vals = Object.keys(contactData).map((k) => contactData[k]);
+      const sets = Object.keys(contactData).map(k => `${k} = ?`);
+      const vals = Object.keys(contactData).map(k => contactData[k]);
       await execute(
         `UPDATE contacts SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
         [...vals, id]
@@ -159,25 +167,28 @@ export function createContactsDB(ctx) {
       if (!transaction) {
         // Fallback: delete contact and let foreign keys cascade
         // Note: Attachments need manual cleanup since they don't use FK constraints
-        await execute('DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+        await execute(
+          'DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;',
+          ['contact', id]
+        );
         const res = await execute('DELETE FROM contacts WHERE id = ?;', [id]);
         return res.rowsAffected || 0;
       }
 
       // Use transaction to ensure atomic deletion
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         // Run both deletes in a single batch (attachments first, then contact)
         const results = await tx.batch([
           {
             sql: 'DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;',
-            params: ['contact', id]
+            params: ['contact', id],
           },
           {
             sql: 'DELETE FROM contacts WHERE id = ?;',
-            params: [id]
-          }
+            params: [id],
+          },
         ]);
-        
+
         // Extract rowsAffected from the contacts delete (second statement)
         return results[1]?.rowsAffected || 0;
       });
@@ -220,7 +231,6 @@ export function createContactsDB(ctx) {
       return res.rows.map(convertNullableFields);
     },
 
-
     async getWithCategories(id) {
       const [cRes, catRes] = await Promise.all([
         execute('SELECT * FROM contacts WHERE id = ?;', [id]),
@@ -240,13 +250,18 @@ export function createContactsDB(ctx) {
 
     async toggleFavorite(id) {
       await batch([
-        { sql: 'UPDATE contacts SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END WHERE id = ?;', params: [id] },
-        { sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;', params: [id] },
+        {
+          sql: 'UPDATE contacts SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END WHERE id = ?;',
+          params: [id],
+        },
+        {
+          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          params: [id],
+        },
       ]);
       const updated = await this.getById(id);
       return updated;
     },
-
   };
 }
 

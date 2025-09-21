@@ -10,35 +10,39 @@ import { DatabaseError } from './errors';
  * @param {string} [fromDate] - Calculate from this date (defaults to today)
  * @returns {string|null} Next occurrence date in YYYY-MM-DD format
  */
-function calculateNextOccurrence(eventDate, recurrencePattern, fromDate = null) {
+function calculateNextOccurrence(
+  eventDate,
+  recurrencePattern,
+  fromDate = null
+) {
   if (!eventDate || !recurrencePattern) return null;
-  
+
   // Parse original event date components
   const [eventYear, eventMonth, eventDay] = eventDate.split('-').map(Number);
-  
+
   // Get today's local date components
   const today = fromDate ? new Date(fromDate + 'T00:00:00') : new Date();
   today.setHours(0, 0, 0, 0);
   const todayYear = today.getFullYear();
   const todayMonth = today.getMonth() + 1; // getMonth() is 0-based
   const todayDay = today.getDate();
-  
+
   if (recurrencePattern === 'yearly') {
     let nextYear = todayYear;
     let nextMonth = eventMonth;
     let nextDay = eventDay;
-    
+
     // Handle Feb 29 on non-leap years
     if (eventMonth === 2 && eventDay === 29) {
       if (!isLeapYear(nextYear)) {
         nextDay = 28;
       }
     }
-    
+
     // Create candidate date for this year
     const thisYearDate = new Date(nextYear, nextMonth - 1, nextDay);
     thisYearDate.setHours(0, 0, 0, 0);
-    
+
     // If this year's occurrence has passed, move to next year
     if (thisYearDate < today) {
       nextYear += 1;
@@ -49,24 +53,23 @@ function calculateNextOccurrence(eventDate, recurrencePattern, fromDate = null) 
         nextDay = eventDay; // Reset to original day
       }
     }
-    
+
     return formatLocalDate(nextYear, nextMonth, nextDay);
-    
   } else if (recurrencePattern === 'monthly') {
     let nextYear = todayYear;
     let nextMonth = todayMonth;
     let nextDay = eventDay;
-    
+
     // Adjust day if target month has fewer days than event day
     const daysInMonth = getDaysInMonth(nextYear, nextMonth);
     if (nextDay > daysInMonth) {
       nextDay = daysInMonth;
     }
-    
+
     // Create candidate date for this month
     const thisMonthDate = new Date(nextYear, nextMonth - 1, nextDay);
     thisMonthDate.setHours(0, 0, 0, 0);
-    
+
     // If this month's occurrence has passed, move to next month
     if (thisMonthDate < today) {
       nextMonth += 1;
@@ -74,15 +77,15 @@ function calculateNextOccurrence(eventDate, recurrencePattern, fromDate = null) 
         nextMonth = 1;
         nextYear += 1;
       }
-      
+
       // Re-check days in the new month
       const newDaysInMonth = getDaysInMonth(nextYear, nextMonth);
       nextDay = eventDay > newDaysInMonth ? newDaysInMonth : eventDay;
     }
-    
+
     return formatLocalDate(nextYear, nextMonth, nextDay);
   }
-  
+
   return null;
 }
 
@@ -92,7 +95,7 @@ function calculateNextOccurrence(eventDate, recurrencePattern, fromDate = null) 
  * @returns {boolean} True if leap year
  */
 function isLeapYear(year) {
-  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 }
 
 /**
@@ -150,20 +153,26 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
      * @returns {Promise<object|null>} Event with next occurrence date or null
      */
     async getNextOccurrence(eventId, fromDate = null) {
-      const res = await execute('SELECT * FROM events WHERE id = ?;', [eventId]);
+      const res = await execute('SELECT * FROM events WHERE id = ?;', [
+        eventId,
+      ]);
       const event = res.rows[0];
-      
+
       if (!event || !event.recurring) {
         return null;
       }
-      
-      const nextDate = calculateNextOccurrence(event.event_date, event.recurrence_pattern, fromDate);
+
+      const nextDate = calculateNextOccurrence(
+        event.event_date,
+        event.recurrence_pattern,
+        fromDate
+      );
       if (!nextDate) return null;
-      
+
       return {
         ...event,
         event_date: nextDate,
-        is_calculated: true
+        is_calculated: true,
       };
     },
 
@@ -174,21 +183,25 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
      */
     async getRecurringEvents(options = {}) {
       const { limit = 100, offset = 0 } = options;
-      
-      const sql = 'SELECT * FROM events WHERE recurring = 1 ORDER BY event_date ASC LIMIT ? OFFSET ?;';
+
+      const sql =
+        'SELECT * FROM events WHERE recurring = 1 ORDER BY event_date ASC LIMIT ? OFFSET ?;';
       const res = await execute(sql, [limit, offset]);
-      
+
       const eventsWithOccurrences = [];
       for (const event of res.rows) {
-        const nextDate = calculateNextOccurrence(event.event_date, event.recurrence_pattern);
+        const nextDate = calculateNextOccurrence(
+          event.event_date,
+          event.recurrence_pattern
+        );
         if (nextDate) {
           eventsWithOccurrences.push({
             ...event,
-            next_occurrence: nextDate
+            next_occurrence: nextDate,
           });
         }
       }
-      
+
       return eventsWithOccurrences;
     },
 
@@ -200,14 +213,14 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       const today = new Date();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
-      
+
       const sql = `SELECT e.*, c.first_name, c.last_name, c.display_name 
                    FROM events e 
                    JOIN contacts c ON e.contact_id = c.id 
                    WHERE e.event_type = 'birthday' 
                    AND substr(e.event_date, 6, 5) = ?
                    ORDER BY c.display_name ASC;`;
-      
+
       const res = await execute(sql, [`${month}-${day}`]);
       return res.rows;
     },
@@ -221,33 +234,35 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const birthdays = [];
-      
+
       // Get all birthday events
       const sql = `SELECT e.*, c.first_name, c.last_name, c.display_name 
                    FROM events e 
                    JOIN contacts c ON e.contact_id = c.id 
                    WHERE e.event_type = 'birthday' 
                    ORDER BY e.event_date ASC;`;
-      
+
       const res = await execute(sql);
-      
+
       // Calculate next occurrence for each birthday within the date range
       for (const event of res.rows) {
         const nextDate = calculateNextOccurrence(event.event_date, 'yearly');
         if (nextDate) {
           const nextBirthday = parseLocalYMD(nextDate);
-          const daysDiff = Math.round((nextBirthday - today) / (1000 * 60 * 60 * 24));
-          
+          const daysDiff = Math.round(
+            (nextBirthday - today) / (1000 * 60 * 60 * 24)
+          );
+
           if (daysDiff >= 0 && daysDiff <= days) {
             birthdays.push({
               ...event,
               next_occurrence: nextDate,
-              days_until: daysDiff
+              days_until: daysDiff,
             });
           }
         }
       }
-      
+
       // Sort by days until birthday
       return birthdays.sort((a, b) => a.days_until - b.days_until);
     },
@@ -261,28 +276,34 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const upcoming = [];
-      
-      const sql = 'SELECT * FROM events WHERE recurring = 1 ORDER BY event_date ASC;';
+
+      const sql =
+        'SELECT * FROM events WHERE recurring = 1 ORDER BY event_date ASC;';
       const res = await execute(sql);
-      
+
       for (const event of res.rows) {
-        const nextDate = calculateNextOccurrence(event.event_date, event.recurrence_pattern);
+        const nextDate = calculateNextOccurrence(
+          event.event_date,
+          event.recurrence_pattern
+        );
         if (nextDate) {
           const nextEvent = parseLocalYMD(nextDate);
-          const daysDiff = Math.round((nextEvent - today) / (1000 * 60 * 60 * 24));
-          
+          const daysDiff = Math.round(
+            (nextEvent - today) / (1000 * 60 * 60 * 24)
+          );
+
           if (daysDiff >= 0 && daysDiff <= days) {
             upcoming.push({
               ...event,
               next_occurrence: nextDate,
-              days_until: daysDiff
+              days_until: daysDiff,
             });
           }
         }
       }
-      
+
       return upcoming.sort((a, b) => a.days_until - b.days_until);
-    }
+    },
   };
 }
 

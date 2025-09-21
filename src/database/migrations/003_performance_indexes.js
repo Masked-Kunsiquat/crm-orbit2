@@ -28,18 +28,17 @@ const DROP_FTS = [
 export default {
   version: 3,
   name: '003_performance_indexes',
-  up: async (dbOrCtx) => {
+  up: async dbOrCtx => {
     const exec = getExec(dbOrCtx);
 
     // Create core indexes
     await runAll(exec, CREATE_INDEXES);
 
-
     // Optionally enable FTS5 for interactions(title, note) if available
     let ftsReady = false;
     try {
       await runAll(exec, [
-        "CREATE VIRTUAL TABLE IF NOT EXISTS interactions_fts USING fts5(title, note, content='interactions', content_rowid='id');"
+        "CREATE VIRTUAL TABLE IF NOT EXISTS interactions_fts USING fts5(title, note, content='interactions', content_rowid='id');",
       ]);
       ftsReady = true;
     } catch (_) {
@@ -63,16 +62,18 @@ export default {
         ]);
       } catch (error) {
         // Log warning but continue migration - trigger creation is non-critical
-        console.warn('Warning: Failed to create FTS5 triggers:', error?.message || error);
+        console.warn(
+          'Warning: Failed to create FTS5 triggers:',
+          error?.message || error
+        );
       }
     }
   },
 
-  down: async (dbOrCtx) => {
+  down: async dbOrCtx => {
     const exec = getExec(dbOrCtx);
     // Drop FTS objects first, then indexes
     await runAll(exec, DROP_FTS);
     await runAll(exec, DROP_INDEXES);
   },
 };
-

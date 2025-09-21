@@ -37,9 +37,10 @@ export async function runAll(exec, items) {
 
   // Normalize entries to a consistent shape
   function normalizeStatements(list) {
-    return (Array.isArray(list) ? list : []).map((entry) => {
+    return (Array.isArray(list) ? list : []).map(entry => {
       if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
-      if (entry && typeof entry === 'object' && 'sql' in entry) return { sql: entry.sql, params: entry.params };
+      if (entry && typeof entry === 'object' && 'sql' in entry)
+        return { sql: entry.sql, params: entry.params };
       return { sql: entry, params: undefined };
     });
   }
@@ -67,10 +68,11 @@ export async function runAllSequential(exec, items) {
     throw new Error('runAllSequential: exec.execute is not available');
   }
   // Reuse the same normalization as runAll
-  const normalizeStatements = (list) =>
-    (Array.isArray(list) ? list : []).map((entry) => {
+  const normalizeStatements = list =>
+    (Array.isArray(list) ? list : []).map(entry => {
       if (Array.isArray(entry)) return { sql: entry[0], params: entry[1] };
-      if (entry && typeof entry === 'object' && 'sql' in entry) return { sql: entry.sql, params: entry.params };
+      if (entry && typeof entry === 'object' && 'sql' in entry)
+        return { sql: entry.sql, params: entry.params };
       return { sql: entry, params: undefined };
     });
   for (const { sql, params } of normalizeStatements(items)) {

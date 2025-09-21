@@ -15,34 +15,58 @@ async function ensureMeta({ execute }) {
       );`
     );
   } catch (err) {
-    throw new DatabaseError('Failed to ensure migrations table', 'MIGRATION_META_FAILED', err);
+    throw new DatabaseError(
+      'Failed to ensure migrations table',
+      'MIGRATION_META_FAILED',
+      err
+    );
   }
 }
 
 async function getAppliedVersions({ execute }) {
   try {
-    const res = await execute('SELECT version FROM migrations ORDER BY version ASC;');
+    const res = await execute(
+      'SELECT version FROM migrations ORDER BY version ASC;'
+    );
     const rows =
       (res && Array.isArray(res) && res) ||
-      (res?.rows?._array) ||
+      res?.rows?._array ||
       (Array.isArray(res?.rows) ? res.rows : []);
-    return rows.map((r) => r.version);
+    return rows.map(r => r.version);
   } catch (err) {
-    throw new DatabaseError('Failed to read applied migrations', 'MIGRATION_QUERY_FAILED', err);
+    throw new DatabaseError(
+      'Failed to read applied migrations',
+      'MIGRATION_QUERY_FAILED',
+      err
+    );
   }
 }
 
 function validateMigrations(list) {
   if (!Array.isArray(list)) {
-    throw new DatabaseError('Invalid migration registry', 'MIGRATION_REGISTRY_INVALID');
+    throw new DatabaseError(
+      'Invalid migration registry',
+      'MIGRATION_REGISTRY_INVALID'
+    );
   }
   const seen = new Set();
-  list.forEach((m) => {
-    if (!m || typeof m.version !== 'number' || typeof m.up !== 'function' || typeof m.down !== 'function') {
-      throw new DatabaseError('Invalid migration entry', 'MIGRATION_ENTRY_INVALID');
+  list.forEach(m => {
+    if (
+      !m ||
+      typeof m.version !== 'number' ||
+      typeof m.up !== 'function' ||
+      typeof m.down !== 'function'
+    ) {
+      throw new DatabaseError(
+        'Invalid migration entry',
+        'MIGRATION_ENTRY_INVALID'
+      );
     }
     if (seen.has(m.version)) {
-      throw new DatabaseError(`Duplicate migration version: ${m.version}`, 'MIGRATION_DUPLICATE');
+      throw new DatabaseError(
+        `Duplicate migration version: ${m.version}`,
+        'MIGRATION_DUPLICATE'
+      );
     }
     seen.add(m.version);
   });
@@ -55,10 +79,15 @@ async function recordApplied({ execute }, migration) {
       migration.name || `migration_${migration.version}`,
     ]);
   } catch (err) {
-    throw new DatabaseError('Failed to record applied migration', 'MIGRATION_RECORD_FAILED', err, {
-      version: migration.version,
-      name: migration.name,
-    });
+    throw new DatabaseError(
+      'Failed to record applied migration',
+      'MIGRATION_RECORD_FAILED',
+      err,
+      {
+        version: migration.version,
+        name: migration.name,
+      }
+    );
   }
 }
 
@@ -76,7 +105,10 @@ async function recordApplied({ execute }, migration) {
 export async function runMigrations(ctx) {
   const { execute, batch, transaction, onLog } = ctx;
   if (typeof execute !== 'function') {
-    throw new DatabaseError('execute helper is required', 'MIGRATION_HELPER_MISSING');
+    throw new DatabaseError(
+      'execute helper is required',
+      'MIGRATION_HELPER_MISSING'
+    );
   }
 
   // 1) Ensure meta table
@@ -89,7 +121,7 @@ export async function runMigrations(ctx) {
   const appliedSet = new Set(applied);
 
   // Registry is already sorted; filter pending only
-  const toRun = MIGRATIONS.filter((m) => !appliedSet.has(m.version));
+  const toRun = MIGRATIONS.filter(m => !appliedSet.has(m.version));
 
   // Centralized logger
   const log = onLog || (() => {});
@@ -99,7 +131,7 @@ export async function runMigrations(ctx) {
     return;
   }
 
-  log(`[migrations] Pending: ${toRun.map((m) => m.version).join(', ')}`);
+  log(`[migrations] Pending: ${toRun.map(m => m.version).join(', ')}`);
 
   // 3) Apply each migration sequentially
   for (const migration of toRun) {
@@ -108,9 +140,9 @@ export async function runMigrations(ctx) {
     try {
       if (typeof transaction === 'function') {
         // Wrap migration + recording in one atomic transaction
-        await transaction(async (tx) => {
+        await transaction(async tx => {
           // tx-aware batch that schedules all statements synchronously
-          const txBatch = async (stmts) => {
+          const txBatch = async stmts => {
             const items = Array.isArray(stmts) ? stmts : [];
             const promises = [];
             for (const entry of items) {
@@ -133,20 +165,31 @@ export async function runMigrations(ctx) {
           };
 
           // Run migration using transactional context
-          await migration.up({ execute: tx.execute, batch: txBatch, transaction });
+          await migration.up({
+            execute: tx.execute,
+            batch: txBatch,
+            transaction,
+          });
 
           // Record as applied within the same transaction
           // Use direct SQL execution instead of recordApplied function to avoid context issues
           try {
-            await tx.execute('INSERT INTO migrations (version, name) VALUES (?, ?);', [
-              migration.version,
-              migration.name || `migration_${migration.version}`,
-            ]);
+            await tx.execute(
+              'INSERT INTO migrations (version, name) VALUES (?, ?);',
+              [
+                migration.version,
+                migration.name || `migration_${migration.version}`,
+              ]
+            );
           } catch (recordError) {
             // Handle UNIQUE constraint violations gracefully - migration may have been recorded previously
-            if (recordError?.message?.includes('UNIQUE constraint failed') ||
-                recordError?.code === 'ERR_INTERNAL_SQLITE_ERROR') {
-              console.warn(`Migration v${migration.version} appears to already be recorded, but was detected as pending. This may indicate a previous incomplete migration run.`);
+            if (
+              recordError?.message?.includes('UNIQUE constraint failed') ||
+              recordError?.code === 'ERR_INTERNAL_SQLITE_ERROR'
+            ) {
+              console.warn(
+                `Migration v${migration.version} appears to already be recorded, but was detected as pending. This may indicate a previous incomplete migration run.`
+              );
               // Log but don't throw - the migration itself was successfully applied above
             } else {
               // For other errors, add debug logging and re-throw
@@ -156,12 +199,20 @@ export async function runMigrations(ctx) {
                 error: recordError.message,
                 code: recordError.code,
                 sql: 'INSERT INTO migrations (version, name) VALUES (?, ?)',
-                params: [migration.version, migration.name || `migration_${migration.version}`]
+                params: [
+                  migration.version,
+                  migration.name || `migration_${migration.version}`,
+                ],
               });
-              throw new DatabaseError('Failed to record applied migration', 'MIGRATION_RECORD_FAILED', recordError, {
-                version: migration.version,
-                name: migration.name,
-              });
+              throw new DatabaseError(
+                'Failed to record applied migration',
+                'MIGRATION_RECORD_FAILED',
+                recordError,
+                {
+                  version: migration.version,
+                  name: migration.name,
+                }
+              );
             }
           }
         });

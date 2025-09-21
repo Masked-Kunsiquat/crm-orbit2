@@ -23,14 +23,14 @@ const createMockContext = () => {
     return Promise.resolve([]);
   });
 
-  const transaction = jest.fn().mockImplementation((work) => {
+  const transaction = jest.fn().mockImplementation(work => {
     const mockTx = {
       execute: jest.fn().mockImplementation(() => {
         if (transactionResults.length > 0) {
           return Promise.resolve(transactionResults.shift());
         }
         return Promise.resolve({ rows: [], rowsAffected: 0, insertId: null });
-      })
+      }),
     };
     return work(mockTx);
   });
@@ -41,7 +41,7 @@ const createMockContext = () => {
     transaction,
     executeResults,
     batchResults,
-    transactionResults
+    transactionResults,
   };
 };
 
@@ -60,13 +60,15 @@ describe('createCompaniesDB', () => {
 
   describe('initialization', () => {
     it('should throw error if execute helper is missing', () => {
-      expect(() => createCompaniesDB({ batch: jest.fn() }))
-        .toThrow('companiesDB requires execute and batch helpers');
+      expect(() => createCompaniesDB({ batch: jest.fn() })).toThrow(
+        'companiesDB requires execute and batch helpers'
+      );
     });
 
     it('should throw error if batch helper is missing', () => {
-      expect(() => createCompaniesDB({ execute: jest.fn() }))
-        .toThrow('companiesDB requires execute and batch helpers');
+      expect(() => createCompaniesDB({ execute: jest.fn() })).toThrow(
+        'companiesDB requires execute and batch helpers'
+      );
     });
 
     it('should create API object with all required methods', () => {
@@ -104,27 +106,34 @@ describe('createCompaniesDB', () => {
         website: 'https://techcorp.com',
         address: '123 Tech St',
         notes: 'Great company',
-        logo_attachment_id: 5
+        logo_attachment_id: 5,
       };
 
       await companiesDB.create(companyData);
 
       expect(mockCtx.execute).toHaveBeenCalledWith(
         'INSERT INTO companies (name, industry, website, address, notes, logo_attachment_id) VALUES (?, ?, ?, ?, ?, ?);',
-        ['Tech Corp', 'Technology', 'https://techcorp.com', '123 Tech St', 'Great company', 5]
+        [
+          'Tech Corp',
+          'Technology',
+          'https://techcorp.com',
+          '123 Tech St',
+          'Great company',
+          5,
+        ]
       );
     });
 
     it('should throw error if name is missing', async () => {
-      await expect(companiesDB.create({}))
-        .rejects.toThrow('name is required');
+      await expect(companiesDB.create({})).rejects.toThrow('name is required');
     });
 
     it('should throw error if insert fails', async () => {
       mockCtx.executeResults.push({ insertId: null, rowsAffected: 0 });
 
-      await expect(companiesDB.create({ name: 'Test' }))
-        .rejects.toThrow('Failed to create company');
+      await expect(companiesDB.create({ name: 'Test' })).rejects.toThrow(
+        'Failed to create company'
+      );
     });
   });
 
@@ -136,7 +145,10 @@ describe('createCompaniesDB', () => {
       const result = await companiesDB.getById(1);
 
       expect(result).toEqual(company);
-      expect(mockCtx.execute).toHaveBeenCalledWith('SELECT * FROM companies WHERE id = ?;', [1]);
+      expect(mockCtx.execute).toHaveBeenCalledWith(
+        'SELECT * FROM companies WHERE id = ?;',
+        [1]
+      );
     });
 
     it('should return null when not found', async () => {
@@ -152,7 +164,7 @@ describe('createCompaniesDB', () => {
     it('should return all companies with default options', async () => {
       const companies = [
         { id: 1, name: 'Company A', industry: 'Tech' },
-        { id: 2, name: 'Company B', industry: 'Finance' }
+        { id: 2, name: 'Company B', industry: 'Finance' },
       ];
       mockCtx.executeResults.push({ rows: companies });
 
@@ -203,7 +215,7 @@ describe('createCompaniesDB', () => {
     it('should update company when data provided', async () => {
       const existing = { id: 1, name: 'Old Name', industry: 'Tech' };
       const updated = { id: 1, name: 'New Name', industry: 'Tech' };
-      
+
       mockCtx.executeResults.push({ rows: [existing] }); // getById call
       mockCtx.executeResults.push({ rowsAffected: 1 }); // update call
       mockCtx.executeResults.push({ rows: [updated] }); // final getById call
@@ -224,9 +236,9 @@ describe('createCompaniesDB', () => {
       mockCtx.executeResults.push({ rowsAffected: 1 }); // update
       mockCtx.executeResults.push({ rows: [existing] }); // final getById
 
-      await companiesDB.update(1, { 
-        industry: 'Finance', 
-        website: 'https://example.com' 
+      await companiesDB.update(1, {
+        industry: 'Finance',
+        website: 'https://example.com',
       });
 
       expect(mockCtx.execute).toHaveBeenNthCalledWith(
@@ -262,7 +274,10 @@ describe('createCompaniesDB', () => {
       const result = await companiesDB.delete(1);
 
       expect(result).toBe(1);
-      expect(mockCtx.execute).toHaveBeenCalledWith('DELETE FROM companies WHERE id = ?;', [1]);
+      expect(mockCtx.execute).toHaveBeenCalledWith(
+        'DELETE FROM companies WHERE id = ?;',
+        [1]
+      );
     });
 
     it('should return 0 when company not found', async () => {
@@ -277,7 +292,7 @@ describe('createCompaniesDB', () => {
   describe('search', () => {
     it('should search across company fields', async () => {
       const companies = [
-        { id: 1, name: 'Tech Company', industry: 'Technology' }
+        { id: 1, name: 'Tech Company', industry: 'Technology' },
       ];
       mockCtx.executeResults.push({ rows: companies });
 
@@ -285,7 +300,9 @@ describe('createCompaniesDB', () => {
 
       expect(result).toEqual(companies);
       expect(mockCtx.execute).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE name LIKE ? OR industry LIKE ? OR address LIKE ? OR notes LIKE ?'),
+        expect.stringContaining(
+          'WHERE name LIKE ? OR industry LIKE ? OR address LIKE ? OR notes LIKE ?'
+        ),
         ['%Tech%', '%Tech%', '%Tech%', '%Tech%']
       );
     });
@@ -303,7 +320,7 @@ describe('createCompaniesDB', () => {
       const company = { id: 1, name: 'Tech Corp' };
       const contacts = [
         { id: 1, first_name: 'John', last_name: 'Doe', company_id: 1 },
-        { id: 2, first_name: 'Jane', last_name: 'Smith', company_id: 1 }
+        { id: 2, first_name: 'Jane', last_name: 'Smith', company_id: 1 },
       ];
 
       mockCtx.executeResults.push({ rows: [company] }); // company query
@@ -313,11 +330,15 @@ describe('createCompaniesDB', () => {
 
       expect(result).toEqual({ ...company, contacts });
       expect(mockCtx.execute).toHaveBeenCalledTimes(2);
-      expect(mockCtx.execute).toHaveBeenNthCalledWith(1, 
-        'SELECT * FROM companies WHERE id = ?;', [1]
+      expect(mockCtx.execute).toHaveBeenNthCalledWith(
+        1,
+        'SELECT * FROM companies WHERE id = ?;',
+        [1]
       );
-      expect(mockCtx.execute).toHaveBeenNthCalledWith(2, 
-        expect.stringContaining('WHERE company_id = ?'), [1]
+      expect(mockCtx.execute).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('WHERE company_id = ?'),
+        [1]
       );
     });
 
@@ -340,7 +361,8 @@ describe('createCompaniesDB', () => {
       const result = await companiesDB.updateLogo(1, 5);
 
       expect(result).toEqual(updated);
-      expect(mockCtx.execute).toHaveBeenNthCalledWith(1,
+      expect(mockCtx.execute).toHaveBeenNthCalledWith(
+        1,
         'UPDATE companies SET logo_attachment_id = ? WHERE id = ?;',
         [5, 1]
       );
@@ -349,15 +371,27 @@ describe('createCompaniesDB', () => {
     it('should throw error when company not found', async () => {
       mockCtx.executeResults.push({ rowsAffected: 0 });
 
-      await expect(companiesDB.updateLogo(999, 5))
-        .rejects.toThrow('Company not found');
+      await expect(companiesDB.updateLogo(999, 5)).rejects.toThrow(
+        'Company not found'
+      );
     });
   });
 
   describe('mergeCompanies', () => {
     it('should merge two companies successfully', async () => {
-      const keepCompany = { id: 1, name: 'Keep Corp', industry: 'Tech', logo_attachment_id: null };
-      const mergeCompany = { id: 2, name: 'Merge Corp', industry: 'Finance', logo_attachment_id: 5, website: 'https://merge.com' };
+      const keepCompany = {
+        id: 1,
+        name: 'Keep Corp',
+        industry: 'Tech',
+        logo_attachment_id: null,
+      };
+      const mergeCompany = {
+        id: 2,
+        name: 'Merge Corp',
+        industry: 'Finance',
+        logo_attachment_id: 5,
+        website: 'https://merge.com',
+      };
 
       // Transaction results in order
       mockCtx.transactionResults.push({ rows: [keepCompany] }); // keep company check
@@ -371,33 +405,37 @@ describe('createCompaniesDB', () => {
       expect(result).toEqual({
         mergedCompanyId: 1,
         contactsUpdated: 3,
-        deletedCompanyId: 2
+        deletedCompanyId: 2,
       });
       expect(mockCtx.transaction).toHaveBeenCalled();
     });
 
     it('should throw error for invalid company IDs', async () => {
-      await expect(companiesDB.mergeCompanies(1, 1))
-        .rejects.toThrow('Invalid company IDs for merge');
+      await expect(companiesDB.mergeCompanies(1, 1)).rejects.toThrow(
+        'Invalid company IDs for merge'
+      );
 
-      await expect(companiesDB.mergeCompanies(null, 2))
-        .rejects.toThrow('Invalid company IDs for merge');
+      await expect(companiesDB.mergeCompanies(null, 2)).rejects.toThrow(
+        'Invalid company IDs for merge'
+      );
     });
 
     it('should throw error when keep company not found', async () => {
       mockCtx.transactionResults.push({ rows: [] }); // keep company not found
       mockCtx.transactionResults.push({ rows: [{ id: 2 }] }); // merge company exists
 
-      await expect(companiesDB.mergeCompanies(999, 2))
-        .rejects.toThrow('Company to keep not found');
+      await expect(companiesDB.mergeCompanies(999, 2)).rejects.toThrow(
+        'Company to keep not found'
+      );
     });
 
     it('should throw error when merge company not found', async () => {
       mockCtx.transactionResults.push({ rows: [{ id: 1 }] }); // keep company exists
       mockCtx.transactionResults.push({ rows: [] }); // merge company not found
 
-      await expect(companiesDB.mergeCompanies(1, 999))
-        .rejects.toThrow('Company to merge not found');
+      await expect(companiesDB.mergeCompanies(1, 999)).rejects.toThrow(
+        'Company to merge not found'
+      );
     });
 
     it('should throw error when transaction support is missing', async () => {
@@ -405,8 +443,9 @@ describe('createCompaniesDB', () => {
       delete noTransactionCtx.transaction;
       const noTransactionDB = createCompaniesDB(noTransactionCtx);
 
-      await expect(noTransactionDB.mergeCompanies(1, 2))
-        .rejects.toThrow('Transaction support required for merge operation');
+      await expect(noTransactionDB.mergeCompanies(1, 2)).rejects.toThrow(
+        'Transaction support required for merge operation'
+      );
     });
   });
 });

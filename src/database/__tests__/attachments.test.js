@@ -7,7 +7,9 @@ import { runMigrations } from '../migrations/migrationRunner';
 function rowsFromResult(result) {
   if (!result || !result.length) return [];
   const { columns, values } = result[0];
-  return values.map((arr) => Object.fromEntries(arr.map((v, i) => [columns[i], v])));
+  return values.map(arr =>
+    Object.fromEntries(arr.map((v, i) => [columns[i], v]))
+  );
 }
 
 function makeCtx(db) {
@@ -15,8 +17,11 @@ function makeCtx(db) {
 
   const exec = (sql, params = []) => {
     const trimmed = String(sql).trim().toUpperCase();
-    const isSelect = trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.startsWith('WITH');
-    
+    const isSelect =
+      trimmed.startsWith('SELECT') ||
+      trimmed.startsWith('PRAGMA') ||
+      trimmed.startsWith('WITH');
+
     if (isSelect) {
       const stmt = db.prepare(sql);
       stmt.bind(params);
@@ -27,24 +32,24 @@ function makeCtx(db) {
       stmt.free();
       return Promise.resolve({ rows, rowsAffected: 0, insertId: null });
     }
-    
+
     const stmt = db.prepare(sql);
     stmt.bind(params);
     stmt.step();
     stmt.free();
     const rowsAffected = db.getRowsModified();
     let insertId = null;
-    
+
     if (trimmed.startsWith('INSERT')) {
       const res = db.exec('SELECT last_insert_rowid() AS id;');
       const r = rowsFromResult(res);
       insertId = (r && r[0] && r[0].id) || null;
     }
-    
+
     return Promise.resolve({ rows: [], rowsAffected, insertId });
   };
 
-  const doBatch = async (statements) => {
+  const doBatch = async statements => {
     const results = [];
     for (const { sql, params = [] } of statements) {
       results.push(await exec(sql, params));
@@ -52,7 +57,7 @@ function makeCtx(db) {
     return results;
   };
 
-  const doTransaction = async (work) => {
+  const doTransaction = async work => {
     db.run('BEGIN TRANSACTION;');
     try {
       const result = await work({ execute: exec });
@@ -71,7 +76,10 @@ describe('createAttachmentsDB', () => {
   let db, ctx, attachmentsDB;
 
   beforeAll(async () => {
-    const wasmPath = path.join(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm');
+    const wasmPath = path.join(
+      __dirname,
+      '../../../node_modules/sql.js/dist/sql-wasm.wasm'
+    );
     const SQL = await initSqlJs({ locateFile: () => wasmPath });
     db = new SQL.Database();
     ctx = makeCtx(db);
@@ -111,7 +119,7 @@ describe('createAttachmentsDB', () => {
         file_type: 'image',
         mime_type: 'image/jpeg',
         file_size: 1024000,
-        description: 'Profile picture'
+        description: 'Profile picture',
       };
 
       const result = await attachmentsDB.create(attachmentData);
@@ -127,7 +135,7 @@ describe('createAttachmentsDB', () => {
         mime_type: 'image/jpeg',
         file_size: 1024000,
         description: 'Profile picture',
-        created_at: expect.any(String)
+        created_at: expect.any(String),
       });
     });
 
@@ -138,7 +146,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'document.pdf',
         original_name: 'important-doc.pdf',
         file_path: '/files/document.pdf',
-        file_type: 'document'
+        file_type: 'document',
       };
 
       const result = await attachmentsDB.create(attachmentData);
@@ -154,7 +162,7 @@ describe('createAttachmentsDB', () => {
         mime_type: null,
         file_size: null,
         thumbnail_path: null,
-        description: null
+        description: null,
       });
     });
 
@@ -167,7 +175,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'empty.txt',
         file_path: '/empty.txt',
         file_type: 'document',
-        file_size: 0
+        file_size: 0,
       });
       expect(zeroSize.file_size).toBe(0);
 
@@ -179,7 +187,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'large.jpg',
         file_path: '/large.jpg',
         file_type: 'image',
-        file_size: 1048576
+        file_size: 1048576,
       });
       expect(positiveSize.file_size).toBe(1048576);
 
@@ -191,7 +199,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'unknown.doc',
         file_path: '/unknown.doc',
         file_type: 'document',
-        file_size: null
+        file_size: null,
       });
       expect(nullSize.file_size).toBeNull();
     });
@@ -203,7 +211,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'video.mp4',
         original_name: 'birthday-video.mp4',
         file_path: '/videos/video.mp4',
-        file_type: 'video'
+        file_type: 'video',
       });
 
       const result = await attachmentsDB.getById(created.id);
@@ -222,7 +230,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'first.jpg',
         original_name: 'first.jpg',
         file_path: '/first.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -231,11 +239,11 @@ describe('createAttachmentsDB', () => {
         file_name: 'second.pdf',
         original_name: 'second.pdf',
         file_path: '/second.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       const result = await attachmentsDB.getAll();
-      
+
       expect(result).toHaveLength(2);
       // Note: In-memory SQLite may not have enough timestamp precision for ordering
       const fileNames = result.map(r => r.file_name).sort();
@@ -249,7 +257,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'a.jpg',
         original_name: 'a.jpg',
         file_path: '/a.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -258,14 +266,14 @@ describe('createAttachmentsDB', () => {
         file_name: 'b.pdf',
         original_name: 'b.pdf',
         file_path: '/b.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       const result = await attachmentsDB.getAll({
         limit: 1,
         offset: 0,
         sortBy: 'file_name',
-        sortOrder: 'ASC'
+        sortOrder: 'ASC',
       });
 
       expect(result).toHaveLength(1);
@@ -279,12 +287,12 @@ describe('createAttachmentsDB', () => {
         file_name: 'old.jpg',
         original_name: 'old.jpg',
         file_path: '/old.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       const updated = await attachmentsDB.update(created.id, {
         file_name: 'new.jpg',
-        description: 'Updated description'
+        description: 'Updated description',
       });
 
       expect(updated.file_name).toBe('new.jpg');
@@ -299,13 +307,13 @@ describe('createAttachmentsDB', () => {
         file_name: 'temp.jpg',
         original_name: 'temp.jpg',
         file_path: '/temp.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       const result = await attachmentsDB.delete(created.id);
       expect(result).toEqual({
         success: true,
-        deletedId: created.id
+        deletedId: created.id,
       });
 
       const check = await attachmentsDB.getById(created.id);
@@ -315,73 +323,81 @@ describe('createAttachmentsDB', () => {
 
   describe('validation and error handling', () => {
     test('create() throws error for missing required fields', async () => {
-      await expect(attachmentsDB.create({}))
-        .rejects
-        .toThrow(DatabaseError);
+      await expect(attachmentsDB.create({})).rejects.toThrow(DatabaseError);
 
-      await expect(attachmentsDB.create({ entity_type: 'contact' }))
-        .rejects
-        .toThrow('Missing required fields');
+      await expect(
+        attachmentsDB.create({ entity_type: 'contact' })
+      ).rejects.toThrow('Missing required fields');
     });
 
     test('create() throws error for invalid entity_type', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'invalid',
-        entity_id: 1,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Invalid entity_type');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'invalid',
+          entity_id: 1,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Invalid entity_type');
     });
 
     test('create() throws error for invalid file_type', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 1,
-        file_name: 'test.xyz',
-        original_name: 'test.xyz',
-        file_path: '/test.xyz',
-        file_type: 'unknown'
-      })).rejects.toThrow('Invalid file_type');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 1,
+          file_name: 'test.xyz',
+          original_name: 'test.xyz',
+          file_path: '/test.xyz',
+          file_type: 'unknown',
+        })
+      ).rejects.toThrow('Invalid file_type');
     });
 
     test('create() throws error for invalid file_size', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 1,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image',
-        file_size: -100
-      })).rejects.toThrow('Invalid file_size');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 1,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+          file_size: -100,
+        })
+      ).rejects.toThrow('Invalid file_size');
 
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 1,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image',
-        file_size: 'not a number'
-      })).rejects.toThrow('Invalid file_size');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 1,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+          file_size: 'not a number',
+        })
+      ).rejects.toThrow('Invalid file_size');
 
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 1,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image',
-        file_size: Infinity
-      })).rejects.toThrow('Invalid file_size');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 1,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+          file_size: Infinity,
+        })
+      ).rejects.toThrow('Invalid file_size');
     });
 
     test('update() throws error when attachment not found', async () => {
-      await expect(attachmentsDB.update(999, { description: 'test' }))
-        .rejects
-        .toThrow('Attachment not found');
+      await expect(
+        attachmentsDB.update(999, { description: 'test' })
+      ).rejects.toThrow('Attachment not found');
     });
 
     test('update() throws error when no fields to update', async () => {
@@ -391,12 +407,12 @@ describe('createAttachmentsDB', () => {
         file_name: 'test.jpg',
         original_name: 'test.jpg',
         file_path: '/test.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
-      await expect(attachmentsDB.update(created.id, {}))
-        .rejects
-        .toThrow('No valid fields to update');
+      await expect(attachmentsDB.update(created.id, {})).rejects.toThrow(
+        'No valid fields to update'
+      );
     });
 
     test('update() throws error for invalid file_size', async () => {
@@ -406,92 +422,102 @@ describe('createAttachmentsDB', () => {
         file_name: 'test.jpg',
         original_name: 'test.jpg',
         file_path: '/test.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
-      await expect(attachmentsDB.update(created.id, { file_size: -50 }))
-        .rejects
-        .toThrow('Invalid file_size');
+      await expect(
+        attachmentsDB.update(created.id, { file_size: -50 })
+      ).rejects.toThrow('Invalid file_size');
 
-      await expect(attachmentsDB.update(created.id, { file_size: 'invalid' }))
-        .rejects
-        .toThrow('Invalid file_size');
+      await expect(
+        attachmentsDB.update(created.id, { file_size: 'invalid' })
+      ).rejects.toThrow('Invalid file_size');
 
-      await expect(attachmentsDB.update(created.id, { file_size: NaN }))
-        .rejects
-        .toThrow('Invalid file_size');
+      await expect(
+        attachmentsDB.update(created.id, { file_size: NaN })
+      ).rejects.toThrow('Invalid file_size');
     });
 
     test('delete() throws error when attachment not found', async () => {
-      await expect(attachmentsDB.delete(999))
-        .rejects
-        .toThrow('Attachment not found');
+      await expect(attachmentsDB.delete(999)).rejects.toThrow(
+        'Attachment not found'
+      );
     });
 
     test('getAll() throws error for invalid sort column', async () => {
-      await expect(attachmentsDB.getAll({ sortBy: 'invalid_column' }))
-        .rejects
-        .toThrow('Invalid sort column');
+      await expect(
+        attachmentsDB.getAll({ sortBy: 'invalid_column' })
+      ).rejects.toThrow('Invalid sort column');
     });
 
     test('getAll() throws error for invalid sort order', async () => {
-      await expect(attachmentsDB.getAll({ sortOrder: 'INVALID' }))
-        .rejects
-        .toThrow('Invalid sort order');
+      await expect(
+        attachmentsDB.getAll({ sortOrder: 'INVALID' })
+      ).rejects.toThrow('Invalid sort order');
     });
 
     test('create() throws error for missing entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Missing required fields: entity_id');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Missing required fields: entity_id');
     });
 
     test('create() throws error for null entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: null,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Missing required fields: entity_id');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: null,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Missing required fields: entity_id');
     });
 
     test('create() throws error for negative entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: -1,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: -1,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
     });
 
     test('create() throws error for zero entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 0,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 0,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
     });
 
     test('create() throws error for non-integer entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 1.5,
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 1.5,
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
     });
 
     test('create() accepts string numbers for entity_id', async () => {
@@ -501,7 +527,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'test.jpg',
         original_name: 'test.jpg',
         file_path: '/test.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       expect(result).toBeDefined();
@@ -509,25 +535,29 @@ describe('createAttachmentsDB', () => {
     });
 
     test('create() throws error for invalid string entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: 'not-a-number',
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: 'not-a-number',
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
     });
 
     test('create() throws error for empty string entity_id', async () => {
-      await expect(attachmentsDB.create({
-        entity_type: 'contact',
-        entity_id: '',
-        file_name: 'test.jpg',
-        original_name: 'test.jpg',
-        file_path: '/test.jpg',
-        file_type: 'image'
-      })).rejects.toThrow('Missing required fields: entity_id');
+      await expect(
+        attachmentsDB.create({
+          entity_type: 'contact',
+          entity_id: '',
+          file_name: 'test.jpg',
+          original_name: 'test.jpg',
+          file_path: '/test.jpg',
+          file_type: 'image',
+        })
+      ).rejects.toThrow('Missing required fields: entity_id');
     });
 
     test('update() throws error for invalid entity_id', async () => {
@@ -537,24 +567,24 @@ describe('createAttachmentsDB', () => {
         file_name: 'test.jpg',
         original_name: 'test.jpg',
         file_path: '/test.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
-      await expect(attachmentsDB.update(created.id, { entity_id: -1 }))
-        .rejects
-        .toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.update(created.id, { entity_id: -1 })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
 
-      await expect(attachmentsDB.update(created.id, { entity_id: 0 }))
-        .rejects
-        .toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.update(created.id, { entity_id: 0 })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
 
-      await expect(attachmentsDB.update(created.id, { entity_id: 1.5 }))
-        .rejects
-        .toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.update(created.id, { entity_id: 1.5 })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
 
-      await expect(attachmentsDB.update(created.id, { entity_id: 'invalid' }))
-        .rejects
-        .toThrow('Invalid entity_id. Must be a positive integer');
+      await expect(
+        attachmentsDB.update(created.id, { entity_id: 'invalid' })
+      ).rejects.toThrow('Invalid entity_id. Must be a positive integer');
     });
 
     test('update() accepts string numbers for entity_id', async () => {
@@ -564,10 +594,12 @@ describe('createAttachmentsDB', () => {
         file_name: 'test.jpg',
         original_name: 'test.jpg',
         file_path: '/test.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
-      const result = await attachmentsDB.update(created.id, { entity_id: '456' });
+      const result = await attachmentsDB.update(created.id, {
+        entity_id: '456',
+      });
       expect(result.entity_id).toBe(456); // Should be converted to number
     });
 
@@ -579,7 +611,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'test1.jpg',
         original_name: 'test1.jpg',
         file_path: '/test1.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       // Test with default pagination (should use limit=10, offset=0)
@@ -591,43 +623,49 @@ describe('createAttachmentsDB', () => {
       expect(validResult.length).toBeGreaterThan(0);
 
       // Test string numbers for pagination
-      const stringParamsResult = await attachmentsDB.getAll({ limit: '15', offset: '2' });
+      const stringParamsResult = await attachmentsDB.getAll({
+        limit: '15',
+        offset: '2',
+      });
       expect(stringParamsResult).toBeDefined();
 
       // Test null/undefined values (should use defaults)
-      const nullResult = await attachmentsDB.getAll({ limit: null, offset: undefined });
+      const nullResult = await attachmentsDB.getAll({
+        limit: null,
+        offset: undefined,
+      });
       expect(nullResult).toBeDefined();
     });
 
     test('getAll() throws errors for invalid pagination', async () => {
       // Test negative limit (should throw error)
-      await expect(attachmentsDB.getAll({ limit: -5 }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be >= 1');
+      await expect(attachmentsDB.getAll({ limit: -5 })).rejects.toThrow(
+        'Invalid limit parameter. Must be >= 1'
+      );
 
       // Test zero limit (should throw error)
-      await expect(attachmentsDB.getAll({ limit: 0 }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be >= 1');
+      await expect(attachmentsDB.getAll({ limit: 0 })).rejects.toThrow(
+        'Invalid limit parameter. Must be >= 1'
+      );
 
       // Test negative offset (should throw error)
-      await expect(attachmentsDB.getAll({ offset: -1 }))
-        .rejects
-        .toThrow('Invalid offset parameter. Must be >= 0');
+      await expect(attachmentsDB.getAll({ offset: -1 })).rejects.toThrow(
+        'Invalid offset parameter. Must be >= 0'
+      );
 
       // Test excessively large limit (should throw error)
-      await expect(attachmentsDB.getAll({ limit: 1000 }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be <= 100');
+      await expect(attachmentsDB.getAll({ limit: 1000 })).rejects.toThrow(
+        'Invalid limit parameter. Must be <= 100'
+      );
 
       // Test invalid string values (should throw error)
-      await expect(attachmentsDB.getAll({ limit: 'invalid' }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be a number');
+      await expect(attachmentsDB.getAll({ limit: 'invalid' })).rejects.toThrow(
+        'Invalid limit parameter. Must be a number'
+      );
 
-      await expect(attachmentsDB.getAll({ offset: 'bad' }))
-        .rejects
-        .toThrow('Invalid offset parameter. Must be a number');
+      await expect(attachmentsDB.getAll({ offset: 'bad' })).rejects.toThrow(
+        'Invalid offset parameter. Must be a number'
+      );
     });
 
     test('getByFileType() handles pagination validation', async () => {
@@ -638,7 +676,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'test1.jpg',
         original_name: 'test1.jpg',
         file_path: '/test1.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       // Test with default pagination
@@ -646,37 +684,43 @@ describe('createAttachmentsDB', () => {
       expect(defaultResult.length).toBeGreaterThan(0);
 
       // Test with valid pagination values
-      const validResult = await attachmentsDB.getByFileType('image', { limit: 5, offset: 0 });
+      const validResult = await attachmentsDB.getByFileType('image', {
+        limit: 5,
+        offset: 0,
+      });
       expect(validResult.length).toBeGreaterThan(0);
 
       // Test string numbers
-      const stringResult = await attachmentsDB.getByFileType('image', { limit: '8', offset: '1' });
+      const stringResult = await attachmentsDB.getByFileType('image', {
+        limit: '8',
+        offset: '1',
+      });
       expect(stringResult).toBeDefined();
     });
 
     test('getByFileType() throws errors for invalid pagination', async () => {
       // Test negative values (should throw errors)
-      await expect(attachmentsDB.getByFileType('image', { limit: -10 }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be >= 1');
+      await expect(
+        attachmentsDB.getByFileType('image', { limit: -10 })
+      ).rejects.toThrow('Invalid limit parameter. Must be >= 1');
 
-      await expect(attachmentsDB.getByFileType('image', { offset: -5 }))
-        .rejects
-        .toThrow('Invalid offset parameter. Must be >= 0');
+      await expect(
+        attachmentsDB.getByFileType('image', { offset: -5 })
+      ).rejects.toThrow('Invalid offset parameter. Must be >= 0');
 
       // Test excessive values (should throw error)
-      await expect(attachmentsDB.getByFileType('image', { limit: 500 }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be <= 100');
+      await expect(
+        attachmentsDB.getByFileType('image', { limit: 500 })
+      ).rejects.toThrow('Invalid limit parameter. Must be <= 100');
 
       // Test invalid string values
-      await expect(attachmentsDB.getByFileType('image', { limit: 'invalid' }))
-        .rejects
-        .toThrow('Invalid limit parameter. Must be a number');
+      await expect(
+        attachmentsDB.getByFileType('image', { limit: 'invalid' })
+      ).rejects.toThrow('Invalid limit parameter. Must be a number');
 
-      await expect(attachmentsDB.getByFileType('image', { offset: 'bad' }))
-        .rejects
-        .toThrow('Invalid offset parameter. Must be a number');
+      await expect(
+        attachmentsDB.getByFileType('image', { offset: 'bad' })
+      ).rejects.toThrow('Invalid offset parameter. Must be a number');
     });
   });
 
@@ -688,7 +732,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'contact1-photo.jpg',
         original_name: 'photo.jpg',
         file_path: '/contact1-photo.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -697,7 +741,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'contact1-doc.pdf',
         original_name: 'document.pdf',
         file_path: '/contact1-doc.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       await attachmentsDB.create({
@@ -706,13 +750,17 @@ describe('createAttachmentsDB', () => {
         file_name: 'contact2-photo.jpg',
         original_name: 'other.jpg',
         file_path: '/contact2-photo.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       const result = await attachmentsDB.getByEntity('contact', 1);
-      
+
       expect(result).toHaveLength(2);
-      expect(result.every(att => att.entity_type === 'contact' && att.entity_id === 1)).toBe(true);
+      expect(
+        result.every(
+          att => att.entity_type === 'contact' && att.entity_id === 1
+        )
+      ).toBe(true);
       // Note: In-memory SQLite may not have enough timestamp precision for ordering
       const fileNames = result.map(r => r.file_name).sort();
       expect(fileNames).toEqual(['contact1-doc.pdf', 'contact1-photo.jpg']);
@@ -724,9 +772,9 @@ describe('createAttachmentsDB', () => {
     });
 
     test('getByEntity() throws error for invalid entity type', async () => {
-      await expect(attachmentsDB.getByEntity('invalid', 1))
-        .rejects
-        .toThrow('Invalid entity_type');
+      await expect(attachmentsDB.getByEntity('invalid', 1)).rejects.toThrow(
+        'Invalid entity_type'
+      );
     });
 
     test('deleteByEntity() removes all attachments for specific entity', async () => {
@@ -736,7 +784,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'recording.mp3',
         original_name: 'call.mp3',
         file_path: '/recording.mp3',
-        file_type: 'audio'
+        file_type: 'audio',
       });
 
       await attachmentsDB.create({
@@ -745,16 +793,16 @@ describe('createAttachmentsDB', () => {
         file_name: 'notes.pdf',
         original_name: 'meeting-notes.pdf',
         file_path: '/notes.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       const result = await attachmentsDB.deleteByEntity('interaction', 1);
-      
+
       expect(result).toEqual({
         success: true,
         deletedCount: 2,
         entityType: 'interaction',
-        entityId: 1
+        entityId: 1,
       });
 
       const remaining = await attachmentsDB.getByEntity('interaction', 1);
@@ -763,12 +811,12 @@ describe('createAttachmentsDB', () => {
 
     test('deleteByEntity() returns zero count when no attachments exist', async () => {
       const result = await attachmentsDB.deleteByEntity('contact', 999);
-      
+
       expect(result).toEqual({
         success: true,
         deletedCount: 0,
         entityType: 'contact',
-        entityId: 999
+        entityId: 999,
       });
     });
   });
@@ -776,8 +824,12 @@ describe('createAttachmentsDB', () => {
   describe('utility operations', () => {
     test('getOrphaned() finds attachments with non-existent entities', async () => {
       // Create entities
-      await ctx.execute('INSERT INTO contacts (id, first_name) VALUES (1, "John")');
-      await ctx.execute('INSERT INTO interactions (id, contact_id, title, interaction_type) VALUES (1, 1, "Call", "call")');
+      await ctx.execute(
+        'INSERT INTO contacts (id, first_name) VALUES (1, "John")'
+      );
+      await ctx.execute(
+        'INSERT INTO interactions (id, contact_id, title, interaction_type) VALUES (1, 1, "Call", "call")'
+      );
 
       // Create attachments - some orphaned, some not
       await attachmentsDB.create({
@@ -786,7 +838,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'valid-contact.jpg',
         original_name: 'photo.jpg',
         file_path: '/valid-contact.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -795,7 +847,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'orphaned-contact.jpg',
         original_name: 'orphan.jpg',
         file_path: '/orphaned-contact.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -804,7 +856,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'valid-interaction.mp3',
         original_name: 'recording.mp3',
         file_path: '/valid-interaction.mp3',
-        file_type: 'audio'
+        file_type: 'audio',
       });
 
       await attachmentsDB.create({
@@ -813,13 +865,16 @@ describe('createAttachmentsDB', () => {
         file_name: 'orphaned-event.pdf',
         original_name: 'invite.pdf',
         file_path: '/orphaned-event.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       const orphaned = await attachmentsDB.getOrphaned();
-      
+
       expect(orphaned).toHaveLength(2);
-      expect(orphaned.map(a => a.file_name).sort()).toEqual(['orphaned-contact.jpg', 'orphaned-event.pdf']);
+      expect(orphaned.map(a => a.file_name).sort()).toEqual([
+        'orphaned-contact.jpg',
+        'orphaned-event.pdf',
+      ]);
     });
 
     test('cleanupOrphaned() removes orphaned attachments', async () => {
@@ -830,7 +885,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'orphan1.jpg',
         original_name: 'orphan1.jpg',
         file_path: '/orphan1.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -839,14 +894,14 @@ describe('createAttachmentsDB', () => {
         file_name: 'orphan2.pdf',
         original_name: 'orphan2.pdf',
         file_path: '/orphan2.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       const result = await attachmentsDB.cleanupOrphaned();
-      
+
       expect(result).toEqual({
         success: true,
-        deletedCount: 2
+        deletedCount: 2,
       });
 
       const allAttachments = await attachmentsDB.getAll();
@@ -861,7 +916,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'image.jpg',
         file_path: '/old/path/image.jpg',
         file_type: 'image',
-        thumbnail_path: '/old/path/thumb.jpg'
+        thumbnail_path: '/old/path/thumb.jpg',
       });
 
       const updated = await attachmentsDB.updateFilePath(
@@ -881,10 +936,13 @@ describe('createAttachmentsDB', () => {
         file_name: 'doc.pdf',
         original_name: 'document.pdf',
         file_path: '/old/path/doc.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
-      const updated = await attachmentsDB.updateFilePath(created.id, '/new/path/doc.pdf');
+      const updated = await attachmentsDB.updateFilePath(
+        created.id,
+        '/new/path/doc.pdf'
+      );
 
       expect(updated.file_path).toBe('/new/path/doc.pdf');
       expect(updated.thumbnail_path).toBeNull();
@@ -898,7 +956,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'file1.jpg',
         file_path: '/file1.jpg',
         file_type: 'image',
-        file_size: 1000
+        file_size: 1000,
       });
 
       await attachmentsDB.create({
@@ -908,7 +966,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'file2.pdf',
         file_path: '/file2.pdf',
         file_type: 'document',
-        file_size: 2000
+        file_size: 2000,
       });
 
       const totalSize = await attachmentsDB.getTotalSize();
@@ -923,7 +981,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'contact.jpg',
         file_path: '/contact.jpg',
         file_type: 'image',
-        file_size: 1000
+        file_size: 1000,
       });
 
       await attachmentsDB.create({
@@ -933,7 +991,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'event.pdf',
         file_path: '/event.pdf',
         file_type: 'document',
-        file_size: 2000
+        file_size: 2000,
       });
 
       const contactSize = await attachmentsDB.getTotalSize('contact');
@@ -948,7 +1006,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'photo1.jpg',
         file_path: '/contact1-1.jpg',
         file_type: 'image',
-        file_size: 1000
+        file_size: 1000,
       });
 
       await attachmentsDB.create({
@@ -958,7 +1016,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'doc.pdf',
         file_path: '/contact1-2.pdf',
         file_type: 'document',
-        file_size: 2000
+        file_size: 2000,
       });
 
       await attachmentsDB.create({
@@ -968,7 +1026,7 @@ describe('createAttachmentsDB', () => {
         original_name: 'other.jpg',
         file_path: '/contact2.jpg',
         file_type: 'image',
-        file_size: 500
+        file_size: 500,
       });
 
       const contact1Size = await attachmentsDB.getTotalSize('contact', 1);
@@ -982,7 +1040,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'no-size.jpg',
         original_name: 'no-size.jpg',
         file_path: '/no-size.jpg',
-        file_type: 'image'
+        file_type: 'image',
         // file_size is null
       });
 
@@ -997,7 +1055,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'photo1.jpg',
         original_name: 'photo1.jpg',
         file_path: '/photo1.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -1006,7 +1064,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'photo2.png',
         original_name: 'photo2.png',
         file_path: '/photo2.png',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -1015,11 +1073,11 @@ describe('createAttachmentsDB', () => {
         file_name: 'document.pdf',
         original_name: 'document.pdf',
         file_path: '/document.pdf',
-        file_type: 'document'
+        file_type: 'document',
       });
 
       const images = await attachmentsDB.getByFileType('image');
-      
+
       expect(images).toHaveLength(2);
       expect(images.every(att => att.file_type === 'image')).toBe(true);
       // Note: In-memory SQLite may not have enough timestamp precision for ordering
@@ -1034,7 +1092,7 @@ describe('createAttachmentsDB', () => {
         file_name: 'a.jpg',
         original_name: 'a.jpg',
         file_path: '/a.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       await attachmentsDB.create({
@@ -1043,14 +1101,14 @@ describe('createAttachmentsDB', () => {
         file_name: 'b.jpg',
         original_name: 'b.jpg',
         file_path: '/b.jpg',
-        file_type: 'image'
+        file_type: 'image',
       });
 
       const result = await attachmentsDB.getByFileType('image', {
         limit: 1,
         offset: 0,
         sortBy: 'file_name',
-        sortOrder: 'ASC'
+        sortOrder: 'ASC',
       });
 
       expect(result).toHaveLength(1);
@@ -1058,9 +1116,9 @@ describe('createAttachmentsDB', () => {
     });
 
     test('getByFileType() throws error for invalid file type', async () => {
-      await expect(attachmentsDB.getByFileType('invalid'))
-        .rejects
-        .toThrow('Invalid file_type');
+      await expect(attachmentsDB.getByFileType('invalid')).rejects.toThrow(
+        'Invalid file_type'
+      );
     });
   });
 });

@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from 'react-native-paper';
 
 // Screens
@@ -16,36 +16,66 @@ const Stack = createStackNavigator();
 
 // Placeholder screens for now
 const ContactsScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+  <View
+    style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    }}
+  >
     <Text variant="headlineSmall">Contacts</Text>
     <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
       Contact management coming soon...
     </Text>
-    <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}>
+    <Text
+      variant="bodySmall"
+      style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}
+    >
       This will include contact CRUD, categories, and company relationships.
     </Text>
   </View>
 );
 
 const EventsScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+  <View
+    style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    }}
+  >
     <Text variant="headlineSmall">Events</Text>
     <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
       Event scheduling coming soon...
     </Text>
-    <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}>
+    <Text
+      variant="bodySmall"
+      style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}
+    >
       This will include event management, reminders, and recurring events.
     </Text>
   </View>
 );
 
 const NotesScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+  <View
+    style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    }}
+  >
     <Text variant="headlineSmall">Notes</Text>
     <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
       Note taking coming soon...
     </Text>
-    <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}>
+    <Text
+      variant="bodySmall"
+      style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}
+    >
       This will include general notes, contact notes, and pinned notes.
     </Text>
   </View>

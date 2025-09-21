@@ -10,7 +10,9 @@ function rowsFromResult(result) {
   // sql.js exec returns [{ columns, values }]
   if (!result || !result.length) return [];
   const { columns, values } = result[0];
-  return values.map((arr) => Object.fromEntries(arr.map((v, i) => [columns[i], v])));
+  return values.map(arr =>
+    Object.fromEntries(arr.map((v, i) => [columns[i], v]))
+  );
 }
 
 function makeCtx(db) {
@@ -19,7 +21,10 @@ function makeCtx(db) {
 
   const exec = (sql, params = []) => {
     const trimmed = String(sql).trim().toUpperCase();
-    const isSelect = trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA') || trimmed.startsWith('WITH');
+    const isSelect =
+      trimmed.startsWith('SELECT') ||
+      trimmed.startsWith('PRAGMA') ||
+      trimmed.startsWith('WITH');
     if (isSelect) {
       const stmt = db.prepare(sql);
       stmt.bind(params);
@@ -45,30 +50,32 @@ function makeCtx(db) {
     return Promise.resolve({ rows: [], rowsAffected, insertId });
   };
 
-  const doBatch = async (statements) => {
+  const doBatch = async statements => {
     const results = [];
     db.run('BEGIN;');
     try {
       for (const { sql, params = [] } of statements) {
         // Reuse exec for consistent behavior
-        // eslint-disable-next-line no-await-in-loop
+
         const r = await exec(sql, params);
         results.push(r);
       }
       db.run('COMMIT;');
       return results;
     } catch (e) {
-      try { db.run('ROLLBACK;'); } catch (_) {}
+      try {
+        db.run('ROLLBACK;');
+      } catch (_) {}
       throw e;
     }
   };
 
-  const tx = async (work) => {
+  const tx = async work => {
     // Simple transaction wrapper sufficient for these tests
     let result;
     const wrapped = {
       execute: (sql, params = []) => exec(sql, params),
-      batch: async (statements) => {
+      batch: async statements => {
         // Batch within transaction - no BEGIN/COMMIT needed
         const results = [];
         for (const stmt of statements) {
@@ -76,14 +83,16 @@ function makeCtx(db) {
           results.push(result);
         }
         return results;
-      }
+      },
     };
     db.prepare('BEGIN').run();
     try {
       result = await work(wrapped);
       db.prepare('COMMIT').run();
     } catch (e) {
-      try { db.prepare('ROLLBACK').run(); } catch (_) {}
+      try {
+        db.prepare('ROLLBACK').run();
+      } catch (_) {}
       throw e;
     }
     return result;
@@ -93,7 +102,7 @@ function makeCtx(db) {
 }
 
 function createSchema(db) {
-  const run = (sql) => db.run(sql);
+  const run = sql => db.run(sql);
   // Minimal subset required for contacts features
   run(`CREATE TABLE contacts (
     id INTEGER PRIMARY KEY,
@@ -111,9 +120,15 @@ function createSchema(db) {
   );`);
 
   // Indexes reflecting frequently queried columns
-  run(`CREATE INDEX IF NOT EXISTS idx_contacts_last_first ON contacts(last_name, first_name);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_contacts_is_favorite ON contacts(is_favorite);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company_id);`);
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contacts_last_first ON contacts(last_name, first_name);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contacts_is_favorite ON contacts(is_favorite);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company_id);`
+  );
 
   run(`CREATE TABLE contact_info (
     id INTEGER PRIMARY KEY,
@@ -127,8 +142,12 @@ function createSchema(db) {
     FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE
   );`);
 
-  run(`CREATE INDEX IF NOT EXISTS idx_contact_info_contact ON contact_info(contact_id);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_contact_info_primary ON contact_info(contact_id, type, is_primary);`);
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contact_info_contact ON contact_info(contact_id);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contact_info_primary ON contact_info(contact_id, type, is_primary);`
+  );
 
   run(`CREATE TABLE categories (
     id INTEGER PRIMARY KEY,
@@ -148,8 +167,12 @@ function createSchema(db) {
     FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
   );`);
 
-  run(`CREATE INDEX IF NOT EXISTS idx_contact_categories_contact ON contact_categories(contact_id);`);
-  run(`CREATE INDEX IF NOT EXISTS idx_contact_categories_category ON contact_categories(category_id);`);
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contact_categories_contact ON contact_categories(contact_id);`
+  );
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_contact_categories_category ON contact_categories(category_id);`
+  );
 
   // Attachments table (for contact deletion tests)
   run(`CREATE TABLE attachments (
@@ -167,7 +190,9 @@ function createSchema(db) {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );`);
 
-  run(`CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);`);
+  run(
+    `CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);`
+  );
 }
 
 describe('contactsDB (in-memory)', () => {
@@ -179,7 +204,7 @@ describe('contactsDB (in-memory)', () => {
 
   beforeAll(async () => {
     SQL = await initSqlJs({
-      locateFile: (file) => {
+      locateFile: file => {
         // Resolve WASM shipped with sql.js
         const resolved = require.resolve('sql.js/dist/sql-wasm.wasm');
         return path.join(path.dirname(resolved), file);
@@ -196,16 +221,22 @@ describe('contactsDB (in-memory)', () => {
   });
 
   afterEach(() => {
-    try { db.close(); } catch (_) {}
+    try {
+      db.close();
+    } catch (_) {}
   });
 
   test('create rejects without first_name', async () => {
-    await expect(contacts.create({ last_name: 'NoFirst' }))
-      .rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    await expect(
+      contacts.create({ last_name: 'NoFirst' })
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
   test('create contact without info and fetch by id', async () => {
-    const { id } = await contacts.create({ first_name: 'Ada', last_name: 'Lovelace' });
+    const { id } = await contacts.create({
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+    });
     expect(id).toBeGreaterThan(0);
     const found = await contacts.getById(id);
     expect(found.first_name).toBe('Ada');
@@ -217,98 +248,159 @@ describe('contactsDB (in-memory)', () => {
     // Create contact first
     const { id } = await contacts.create({
       first_name: 'Alan',
-      last_name: 'Turing'
+      last_name: 'Turing',
     });
-    
+
     // Add contact info separately
-    await contactsInfo.addContactInfo(id, { type: 'mobile', value: '+111', is_primary: 1 });
-    await contactsInfo.addContactInfo(id, { type: 'email', value: 'alan@example.com', is_primary: 1 });
-    await contactsInfo.addContactInfo(id, { type: 'mobile', value: '+222', is_primary: 0 });
-    
+    await contactsInfo.addContactInfo(id, {
+      type: 'mobile',
+      value: '+111',
+      is_primary: 1,
+    });
+    await contactsInfo.addContactInfo(id, {
+      type: 'email',
+      value: 'alan@example.com',
+      is_primary: 1,
+    });
+    await contactsInfo.addContactInfo(id, {
+      type: 'mobile',
+      value: '+222',
+      is_primary: 0,
+    });
+
     const detailed = await contactsInfo.getWithContactInfo(id);
     expect(detailed.contact_info.length).toBe(3);
-    const mobiles = detailed.contact_info.filter((ci) => ci.type === 'mobile');
-    expect(mobiles.some((m) => m.is_primary === 1)).toBe(true);
+    const mobiles = detailed.contact_info.filter(ci => ci.type === 'mobile');
+    expect(mobiles.some(m => m.is_primary === 1)).toBe(true);
   });
 
   test('getAll, search, favorites filtering', async () => {
-    const a = await contacts.create({ first_name: 'Grace', last_name: 'Hopper' });
-    const b = await contacts.create({ first_name: 'Linus', last_name: 'Torvalds', is_favorite: 1 });
+    const a = await contacts.create({
+      first_name: 'Grace',
+      last_name: 'Hopper',
+    });
+    const b = await contacts.create({
+      first_name: 'Linus',
+      last_name: 'Torvalds',
+      is_favorite: 1,
+    });
     const all = await contacts.getAll({ orderBy: 'first_name' });
     expect(all.length).toBeGreaterThanOrEqual(2);
     const hits = await contacts.search('Linus');
-    expect(hits.map((h) => h.id)).toEqual([b.id]);
+    expect(hits.map(h => h.id)).toEqual([b.id]);
     const favs = await contacts.getFavorites();
-    expect(favs.find((f) => f.id === b.id)).toBeTruthy();
-    expect(favs.find((f) => f.id === a.id)).toBeFalsy();
+    expect(favs.find(f => f.id === b.id)).toBeTruthy();
+    expect(favs.find(f => f.id === a.id)).toBeFalsy();
   });
 
   test('getAll respects limit/offset', async () => {
     const names = ['A', 'B', 'C', 'D', 'E'];
     for (const n of names) {
-      // eslint-disable-next-line no-await-in-loop
       await contacts.create({ first_name: n });
     }
-    const firstTwo = await contacts.getAll({ orderBy: 'first_name', limit: 2, offset: 0 });
+    const firstTwo = await contacts.getAll({
+      orderBy: 'first_name',
+      limit: 2,
+      offset: 0,
+    });
     expect(firstTwo.map(c => c.first_name)).toEqual(['A', 'B']);
-    const nextTwo = await contacts.getAll({ orderBy: 'first_name', limit: 2, offset: 2 });
+    const nextTwo = await contacts.getAll({
+      orderBy: 'first_name',
+      limit: 2,
+      offset: 2,
+    });
     expect(nextTwo.map(c => c.first_name)).toEqual(['C', 'D']);
   });
 
   test('update contact fields and toggle favorite', async () => {
-    const { id } = await contacts.create({ first_name: 'Katherine', last_name: 'Johnson' });
+    const { id } = await contacts.create({
+      first_name: 'Katherine',
+      last_name: 'Johnson',
+    });
     const updated = await contacts.update(id, { job_title: 'Mathematician' });
     expect(updated.job_title).toBe('Mathematician');
     const t1 = await contacts.toggleFavorite(id);
     expect(t1.is_favorite).toBe(1);
-    const after1 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?;', [id]);
+    const after1 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?;',
+      [id]
+    );
     expect(after1.rows[0].last_interaction_at).toBeTruthy();
     const t2 = await contacts.toggleFavorite(id);
     expect(t2.is_favorite).toBe(0);
-    const after2 = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?;', [id]);
+    const after2 = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?;',
+      [id]
+    );
     expect(after2.rows[0].last_interaction_at).toBeTruthy();
   });
 
   test('add/update/delete contact info with primary enforcement', async () => {
-    const { id } = await contacts.create({ first_name: 'Margaret', last_name: 'Hamilton' });
+    const { id } = await contacts.create({
+      first_name: 'Margaret',
+      last_name: 'Hamilton',
+    });
     const created = await contactsInfo.addContactInfo(id, [
       { type: 'email', value: 'margaret@apollo.com', is_primary: 1 },
       { type: 'email', value: 'margaret@mit.edu', is_primary: 0 },
     ]);
     expect(created.length).toBe(2);
-    const afterAdd = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?;', [id]);
+    const afterAdd = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?;',
+      [id]
+    );
     expect(afterAdd.rows[0].last_interaction_at).toBeTruthy();
 
-    const infoRows = await ctx.execute('SELECT * FROM contact_info WHERE contact_id = ? ORDER BY id;', [id]);
+    const infoRows = await ctx.execute(
+      'SELECT * FROM contact_info WHERE contact_id = ? ORDER BY id;',
+      [id]
+    );
     const firstInfo = infoRows.rows[0];
     const secondInfo = infoRows.rows[1];
     expect(firstInfo.is_primary).toBe(1);
 
     // Promote second to primary; first should be reset
-    const updatedInfo = await contactsInfo.updateContactInfo(secondInfo.id, { is_primary: 1 });
+    const updatedInfo = await contactsInfo.updateContactInfo(secondInfo.id, {
+      is_primary: 1,
+    });
     expect(updatedInfo.is_primary).toBe(1);
-    const afterUpdate = await ctx.execute('SELECT last_interaction_at FROM contacts WHERE id = ?;', [id]);
+    const afterUpdate = await ctx.execute(
+      'SELECT last_interaction_at FROM contacts WHERE id = ?;',
+      [id]
+    );
     expect(afterUpdate.rows[0].last_interaction_at).toBeTruthy();
-    const check = await ctx.execute('SELECT * FROM contact_info WHERE id IN (?, ?) ORDER BY id;', [firstInfo.id, secondInfo.id]);
+    const check = await ctx.execute(
+      'SELECT * FROM contact_info WHERE id IN (?, ?) ORDER BY id;',
+      [firstInfo.id, secondInfo.id]
+    );
     expect(check.rows[0].is_primary + check.rows[1].is_primary).toBe(1);
 
     // Delete one info
     const removed = await contactsInfo.deleteContactInfo(firstInfo.id);
     expect(removed).toBe(1);
-    const remaining = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
+    const remaining = await ctx.execute(
+      'SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;',
+      [id]
+    );
     expect(remaining.rows[0].cnt).toBe(1);
   });
 
   test('getByCategory and getWithCategories', async () => {
-    const { id } = await contacts.create({ first_name: 'Tim', last_name: 'Berners-Lee' });
+    const { id } = await contacts.create({
+      first_name: 'Tim',
+      last_name: 'Berners-Lee',
+    });
     const { insertId: categoryId } = await ctx.execute(
       'INSERT INTO categories (name, color, icon, is_system, sort_order) VALUES (?, ?, ?, 1, 10);',
       ['VIP', '#F4C430', 'star']
     );
-    await ctx.execute('INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);', [id, categoryId]);
+    await ctx.execute(
+      'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+      [id, categoryId]
+    );
 
     const inCat = await contacts.getByCategory(categoryId);
-    expect(inCat.find((c) => c.id === id)).toBeTruthy();
+    expect(inCat.find(c => c.id === id)).toBeTruthy();
 
     const detailed = await contacts.getWithCategories(id);
     expect(detailed.categories.length).toBe(1);
@@ -319,17 +411,27 @@ describe('contactsDB (in-memory)', () => {
     // Create contact first
     const { id } = await contacts.create({
       first_name: 'Barbara',
-      last_name: 'Liskov'
+      last_name: 'Liskov',
     });
-    
+
     // Add contact info separately
-    await contactsInfo.addContactInfo(id, { type: 'mobile', value: '+333', is_primary: 1 });
-    
-    const before = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
+    await contactsInfo.addContactInfo(id, {
+      type: 'mobile',
+      value: '+333',
+      is_primary: 1,
+    });
+
+    const before = await ctx.execute(
+      'SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;',
+      [id]
+    );
     expect(before.rows[0].cnt).toBe(1);
     const removed = await contacts.delete(id);
     expect(removed).toBe(1);
-    const after = await ctx.execute('SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;', [id]);
+    const after = await ctx.execute(
+      'SELECT COUNT(*) as cnt FROM contact_info WHERE contact_id = ?;',
+      [id]
+    );
     expect(after.rows[0].cnt).toBe(0);
   });
 
@@ -337,26 +439,41 @@ describe('contactsDB (in-memory)', () => {
     // Create contact first
     const { id } = await contacts.create({
       first_name: 'Alice',
-      last_name: 'Cooper'
+      last_name: 'Cooper',
     });
-    
+
     // Add attachment for the contact
     await ctx.execute(
       `INSERT INTO attachments (entity_type, entity_id, file_name, original_name, file_path, file_type, mime_type, file_size) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-      ['contact', id, 'profile.jpg', 'Profile Photo.jpg', '/uploads/profile.jpg', 'image', 'image/jpeg', 2048]
+      [
+        'contact',
+        id,
+        'profile.jpg',
+        'Profile Photo.jpg',
+        '/uploads/profile.jpg',
+        'image',
+        'image/jpeg',
+        2048,
+      ]
     );
-    
+
     // Verify attachment exists
-    const before = await ctx.execute('SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+    const before = await ctx.execute(
+      'SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;',
+      ['contact', id]
+    );
     expect(before.rows[0].cnt).toBe(1);
-    
+
     // Delete contact
     const removed = await contacts.delete(id);
     expect(removed).toBe(1);
-    
+
     // Verify attachment was also deleted
-    const after = await ctx.execute('SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;', ['contact', id]);
+    const after = await ctx.execute(
+      'SELECT COUNT(*) as cnt FROM attachments WHERE entity_type = ? AND entity_id = ?;',
+      ['contact', id]
+    );
     expect(after.rows[0].cnt).toBe(0);
   });
 });

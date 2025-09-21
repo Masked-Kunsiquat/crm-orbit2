@@ -26,16 +26,16 @@ import {
   StyleSheet,
   useWindowDimensions,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native';
-import { 
-  Surface, 
-  Button, 
-  TextInput, 
-  Text, 
-  Card, 
+import {
+  Surface,
+  Button,
+  TextInput,
+  Text,
+  Card,
   IconButton,
-  useTheme 
+  useTheme,
 } from 'react-native-paper';
 import authService from '../services/authService';
 import PinSetupModal from './settings/PinSetupModal';
@@ -69,11 +69,14 @@ const AuthGate = ({ children }) => {
 
   // Handle app state changes for auto-lock
   useEffect(() => {
-    const handleAppStateChange = (nextAppState) => {
+    const handleAppStateChange = nextAppState => {
       authService.onAppStateChange(nextAppState);
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange
+    );
     return () => subscription?.remove();
   }, []);
 
@@ -96,7 +99,10 @@ const AuthGate = ({ children }) => {
       // Initialize auth service with timeout
       const authInitPromise = authService.initialize();
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Auth initialization timeout')), 5000);
+        setTimeout(
+          () => reject(new Error('Auth initialization timeout')),
+          5000
+        );
       });
 
       await Promise.race([authInitPromise, timeoutPromise]);
@@ -108,7 +114,8 @@ const AuthGate = ({ children }) => {
       // Check biometric availability (non-blocking)
       Promise.resolve().then(async () => {
         try {
-          const capabilities = await authService.checkAuthenticationCapabilities();
+          const capabilities =
+            await authService.checkAuthenticationCapabilities();
           setBiometricAvailable(capabilities.canUseBiometric);
 
           // Check if a PIN has been configured
@@ -126,7 +133,6 @@ const AuthGate = ({ children }) => {
           console.warn('Secondary auth initialization failed:', error);
         }
       });
-
     } catch (error) {
       console.error('Auth initialization error:', error);
       setIsLocked(true); // Default to locked for security
@@ -135,7 +141,7 @@ const AuthGate = ({ children }) => {
     }
   };
 
-  const handleAuthEvent = useCallback((event) => {
+  const handleAuthEvent = useCallback(event => {
     if (event.type === 'lock') {
       setIsLocked(true);
       setPin('');
@@ -159,17 +165,21 @@ const AuthGate = ({ children }) => {
     try {
       setAuthError('');
       const result = await authService.authenticate();
-      
+
       if (result.success) {
         // Already unlocked by authService.authenticate()
         return;
       }
-      
+
       if (result.method === 'pin_required') {
         setShowPinInput(true);
       } else if (result.error) {
         // If no method is configured yet, guide user to set a PIN
-        if ((result.error || '').toLowerCase().includes('no authentication method')) {
+        if (
+          (result.error || '')
+            .toLowerCase()
+            .includes('no authentication method')
+        ) {
           setShowPinInput(false);
           setShowPinSetupModal(true);
         } else {
@@ -177,7 +187,6 @@ const AuthGate = ({ children }) => {
           setShowPinInput(true);
         }
       }
-      
     } catch (error) {
       console.error('Biometric authentication error:', error);
       setAuthError('Authentication failed. Please try again.');
@@ -194,7 +203,7 @@ const AuthGate = ({ children }) => {
     try {
       setAuthError('');
       const result = await authService.authenticateWithPIN(pin);
-      
+
       if (result.success) {
         await authService.unlock('pin');
       } else {
@@ -243,16 +252,21 @@ const AuthGate = ({ children }) => {
         Enter PIN
       </Text>
       {authError && authError.includes('Locked out') && (
-        <Text style={[styles.warningText, { color: (theme.colors.warning || theme.colors.error) }]}>
+        <Text
+          style={[
+            styles.warningText,
+            { color: theme.colors.warning || theme.colors.error },
+          ]}
+        >
           {authError}
         </Text>
       )}
-      
+
       <TextInput
         style={styles.pinInput}
         placeholder="Enter your PIN"
         value={pin}
-        onChangeText={(t) => setPin(t.replace(/\D/g, ''))}
+        onChangeText={t => setPin(t.replace(/\D/g, ''))}
         secureTextEntry
         keyboardType="numeric"
         maxLength={MAX_PIN_LENGTH}
@@ -262,13 +276,13 @@ const AuthGate = ({ children }) => {
         mode="outlined"
         disabled={authError && authError.includes('Locked out')}
       />
-      
+
       {authError ? (
         <Text style={[styles.errorText, { color: theme.colors.error }]}>
           {authError}
         </Text>
       ) : null}
-      
+
       <Button
         style={styles.unlockButton}
         mode="contained"
@@ -289,15 +303,15 @@ const AuthGate = ({ children }) => {
         iconColor={theme.colors.outline}
         style={styles.lockIcon}
       />
-      
+
       <Text variant="headlineMedium" style={styles.lockTitle}>
         App Locked
       </Text>
-      
+
       <Text variant="bodyLarge" style={styles.lockSubtitle}>
         Authenticate to unlock CRM
       </Text>
-      
+
       {biometricAvailable && (
         <Button
           style={styles.biometricButton}
@@ -308,15 +322,11 @@ const AuthGate = ({ children }) => {
           Use Biometric
         </Button>
       )}
-      
-      <Button
-        style={styles.pinButton}
-        mode="text"
-        onPress={handleUsePinPress}
-      >
+
+      <Button style={styles.pinButton} mode="text" onPress={handleUsePinPress}>
         {hasPIN ? 'Use PIN' : 'Set up PIN'}
       </Button>
-      
+
       {authError ? (
         <Text style={[styles.errorText, { color: theme.colors.error }]}>
           {authError}
@@ -356,11 +366,7 @@ const AuthGate = ({ children }) => {
     if (__DEV__) {
       return (
         <View style={styles.debugControls}>
-          <Button
-            mode="text"
-            compact
-            onPress={handleManualLock}
-          >
+          <Button mode="text" compact onPress={handleManualLock}>
             🔒 Lock App
           </Button>
         </View>
@@ -389,98 +395,98 @@ const AuthGate = ({ children }) => {
 
 function getStyles(theme, width) {
   return StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  lockScreen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors?.background || '#f7f9fc',
-  },
-  unlockedContainer: {
-    flex: 1,
-  },
-  authCard: {
-    width: Math.min(width * 0.9, 400),
-    padding: 20,
-    borderRadius: 16,
-  },
-  biometricContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  pinContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  lockIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-  },
-  lockTitle: {
-    textAlign: 'center',
-    marginBottom: 8,
-    color: theme.colors?.onSurface || '#222B45',
-  },
-  lockSubtitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-    color: theme.colors?.onSurfaceVariant || '#8F9BB3',
-  },
-  pinTitle: {
-    textAlign: 'center',
-    marginBottom: 16,
-    color: theme.colors?.onSurface || '#222B45',
-  },
-  pinInput: {
-    width: '100%',
-    marginBottom: 16,
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  biometricButton: {
-    width: '100%',
-    marginBottom: 12,
-  },
-  pinButton: {
-    width: '100%',
-    marginBottom: 12,
-  },
-  unlockButton: {
-    width: '100%',
-    marginTop: 8,
-  },
-  errorText: {
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-    fontSize: 14,
-  },
-  warningText: {
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    fontSize: 14,
-  },
-  debugControls: {
-    position: 'absolute',
-    top: 50,
-    right: 10,
-    zIndex: 1000,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 8,
-    borderRadius: 8,
-  },
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    lockScreen: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors?.background || '#f7f9fc',
+    },
+    unlockedContainer: {
+      flex: 1,
+    },
+    authCard: {
+      width: Math.min(width * 0.9, 400),
+      padding: 20,
+      borderRadius: 16,
+    },
+    biometricContainer: {
+      alignItems: 'center',
+      paddingVertical: 20,
+    },
+    pinContainer: {
+      alignItems: 'center',
+      paddingVertical: 20,
+    },
+    lockIcon: {
+      width: 64,
+      height: 64,
+      marginBottom: 16,
+    },
+    lockTitle: {
+      textAlign: 'center',
+      marginBottom: 8,
+      color: theme.colors?.onSurface || '#222B45',
+    },
+    lockSubtitle: {
+      textAlign: 'center',
+      marginBottom: 24,
+      color: theme.colors?.onSurfaceVariant || '#8F9BB3',
+    },
+    pinTitle: {
+      textAlign: 'center',
+      marginBottom: 16,
+      color: theme.colors?.onSurface || '#222B45',
+    },
+    pinInput: {
+      width: '100%',
+      marginBottom: 16,
+      fontSize: 18,
+      textAlign: 'center',
+    },
+    biometricButton: {
+      width: '100%',
+      marginBottom: 12,
+    },
+    pinButton: {
+      width: '100%',
+      marginBottom: 12,
+    },
+    unlockButton: {
+      width: '100%',
+      marginTop: 8,
+    },
+    errorText: {
+      textAlign: 'center',
+      marginTop: 8,
+      marginBottom: 16,
+      fontSize: 14,
+    },
+    warningText: {
+      textAlign: 'center',
+      marginTop: 8,
+      marginBottom: 8,
+      fontSize: 14,
+    },
+    debugControls: {
+      position: 'absolute',
+      top: 50,
+      right: 10,
+      zIndex: 1000,
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      padding: 8,
+      borderRadius: 8,
+    },
   });
 }
 

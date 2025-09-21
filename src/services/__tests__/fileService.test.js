@@ -26,16 +26,22 @@ jest.mock('expo-crypto', () => ({
 }));
 
 // Mock ServiceError class used by fileService
-jest.mock('../errors', () => ({
-  ServiceError: class ServiceError extends Error {
-    constructor(service, operation, originalError) {
-      super(`${service}.${operation} failed: ${originalError?.message || originalError}`);
-      this.service = service;
-      this.operation = operation;
-      this.originalError = originalError;
-    }
-  },
-}), { virtual: true });
+jest.mock(
+  '../errors',
+  () => ({
+    ServiceError: class ServiceError extends Error {
+      constructor(service, operation, originalError) {
+        super(
+          `${service}.${operation} failed: ${originalError?.message || originalError}`
+        );
+        this.service = service;
+        this.operation = operation;
+        this.originalError = originalError;
+      }
+    },
+  }),
+  { virtual: true }
+);
 
 // Database mock is provided via moduleNameMapper to
 // src/services/__mocks__/database.js
@@ -57,21 +63,31 @@ describe('fileService', () => {
       const db = require('../database');
 
       // Mock file existence and size checks for both original and saved file
-      FS.getInfoAsync.mockImplementation(async (path) => {
+      FS.getInfoAsync.mockImplementation(async path => {
         if (path.includes('photo.jpg') || path.includes('uuid-1234.jpg')) {
           return { exists: true, size: 1024 };
         }
         return { exists: true, size: 1024 };
       });
 
-      db.attachments.create.mockImplementation(async (data) => ({ id: 2, ...data }));
+      db.attachments.create.mockImplementation(async data => ({
+        id: 2,
+        ...data,
+      }));
 
-      const attachment = await fileService.saveFile('file:///input/photo.jpg', 'photo.jpg', 'note', 7);
+      const attachment = await fileService.saveFile(
+        'file:///input/photo.jpg',
+        'photo.jpg',
+        'note',
+        7
+      );
 
       expect(Image.manipulateAsync).toHaveBeenCalled();
       expect(attachment).toEqual(expect.objectContaining({ id: 2 }));
       const expectedImgDir = `${FS.documentDirectory}attachments/images`;
-      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(expectedImgDir, { intermediates: true });
+      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(expectedImgDir, {
+        intermediates: true,
+      });
       expect(FS.copyAsync).toHaveBeenCalledWith({
         from: 'file:///input/photo.jpg',
         to: expect.stringContaining(`${expectedImgDir}/`),
@@ -80,8 +96,10 @@ describe('fileService', () => {
         expect.objectContaining({
           original_name: 'photo.jpg',
           file_type: 'image',
-          thumbnail_path: expect.stringContaining('/attachments/images/thumbnails/uuid-1234_thumb.jpg'),
-        }),
+          thumbnail_path: expect.stringContaining(
+            '/attachments/images/thumbnails/uuid-1234_thumb.jpg'
+          ),
+        })
       );
     });
 
@@ -97,34 +115,53 @@ describe('fileService', () => {
       const db = require('../database');
 
       // Mock file existence and size checks for both original and saved file
-      FS.getInfoAsync.mockImplementation(async (path) => {
+      FS.getInfoAsync.mockImplementation(async path => {
         if (path.includes('report.pdf') || path.includes('uuid-1234.pdf')) {
           return { exists: true, size: 2048 };
         }
         return { exists: true, size: 2048 };
       });
 
-      db.attachments.create.mockImplementation(async (data) => ({ id: 1, ...data }));
+      db.attachments.create.mockImplementation(async data => ({
+        id: 1,
+        ...data,
+      }));
 
-      const attachment = await fileService.saveFile(uri, originalName, entityType, entityId);
+      const attachment = await fileService.saveFile(
+        uri,
+        originalName,
+        entityType,
+        entityId
+      );
 
       // directory should be documents due to PDF mime type
       const expectedDir = `${FS.documentDirectory}attachments/documents`;
 
-      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(expectedDir, { intermediates: true });
-      expect(FS.copyAsync).toHaveBeenCalledWith({ from: uri, to: expect.stringContaining(`${FS.documentDirectory}attachments/documents/`) });
+      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(expectedDir, {
+        intermediates: true,
+      });
+      expect(FS.copyAsync).toHaveBeenCalledWith({
+        from: uri,
+        to: expect.stringContaining(
+          `${FS.documentDirectory}attachments/documents/`
+        ),
+      });
       expect(Image.manipulateAsync).not.toHaveBeenCalled(); // not an image
 
       // DB record creation
-      expect(db.attachments.create).toHaveBeenCalledWith(expect.objectContaining({
-        entity_type: entityType,
-        entity_id: entityId,
-        original_name: originalName,
-        file_type: 'document',
-        thumbnail_path: null,
-      }));
+      expect(db.attachments.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entity_type: entityType,
+          entity_id: entityId,
+          original_name: originalName,
+          file_type: 'document',
+          thumbnail_path: null,
+        })
+      );
 
-      expect(attachment).toEqual(expect.objectContaining({ id: 1, original_name: originalName }));
+      expect(attachment).toEqual(
+        expect.objectContaining({ id: 1, original_name: originalName })
+      );
     });
 
     test('throws ServiceError and wraps underlying error on failure', async () => {
@@ -132,7 +169,9 @@ describe('fileService', () => {
       const db = require('../database');
       FS.getInfoAsync.mockRejectedValueOnce(new Error('FS failure'));
 
-      await expect(fileService.saveFile('file:///x', 'x.txt', 'note', 1)).rejects.toMatchObject({
+      await expect(
+        fileService.saveFile('file:///x', 'x.txt', 'note', 1)
+      ).rejects.toMatchObject({
         service: 'fileService',
         operation: 'saveFile',
         message: expect.stringContaining('FS failure'),
@@ -144,14 +183,22 @@ describe('fileService', () => {
     test('generates a JPEG thumbnail file and returns its path', async () => {
       const FS = require('expo-file-system');
       const Image = require('expo-image-manipulator');
-      const path = await fileService.generateThumbnail('file:///mock/image.jpg', 'uuid-1234');
+      const path = await fileService.generateThumbnail(
+        'file:///mock/image.jpg',
+        'uuid-1234'
+      );
 
       const thumbDir = `${FS.documentDirectory}attachments/images/thumbnails`;
       const expectedThumb = `${thumbDir}/uuid-1234_thumb.jpg`;
 
-      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(thumbDir, { intermediates: true });
+      expect(FS.makeDirectoryAsync).toHaveBeenCalledWith(thumbDir, {
+        intermediates: true,
+      });
       expect(Image.manipulateAsync).toHaveBeenCalled();
-      expect(FS.moveAsync).toHaveBeenCalledWith({ from: 'file:///temp/thumb.jpg', to: expectedThumb });
+      expect(FS.moveAsync).toHaveBeenCalledWith({
+        from: 'file:///temp/thumb.jpg',
+        to: expectedThumb,
+      });
       expect(path).toBe(expectedThumb);
     });
   });
@@ -168,8 +215,16 @@ describe('fileService', () => {
 
       await fileService.deleteFile(9);
 
-      expect(FS.deleteAsync).toHaveBeenCalledWith(expect.stringContaining('attachments/documents/uuid-1234.pdf'), { idempotent: true });
-      expect(FS.deleteAsync).toHaveBeenCalledWith(expect.stringContaining('attachments/images/thumbnails/uuid-1234_thumb.jpg'), { idempotent: true });
+      expect(FS.deleteAsync).toHaveBeenCalledWith(
+        expect.stringContaining('attachments/documents/uuid-1234.pdf'),
+        { idempotent: true }
+      );
+      expect(FS.deleteAsync).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'attachments/images/thumbnails/uuid-1234_thumb.jpg'
+        ),
+        { idempotent: true }
+      );
       expect(db.attachments.delete).toHaveBeenCalledWith(9);
     });
 
@@ -197,7 +252,9 @@ describe('fileService', () => {
 
     test('getThumbnailUri returns path or null', async () => {
       const db = require('../database');
-      db.attachments.getById.mockResolvedValueOnce({ thumbnail_path: '/path/t' });
+      db.attachments.getById.mockResolvedValueOnce({
+        thumbnail_path: '/path/t',
+      });
       await expect(fileService.getThumbnailUri(1)).resolves.toBe('/path/t');
 
       db.attachments.getById.mockResolvedValueOnce(null);
@@ -222,14 +279,14 @@ describe('fileService', () => {
       // Mock the recursive directory reading behavior
       // The implementation now uses listFilesRecursively instead of readDirectoryAsync
       // We need to mock the recursive behavior through getInfoAsync and readDirectoryAsync
-      FS.readDirectoryAsync.mockImplementation(async (path) => {
+      FS.readDirectoryAsync.mockImplementation(async path => {
         if (path === attachmentsDir) {
           return ['keep.pdf', 'remove.pdf'];
         }
         return [];
       });
 
-      FS.getInfoAsync.mockImplementation(async (path) => {
+      FS.getInfoAsync.mockImplementation(async path => {
         if (path.includes('remove.pdf')) {
           return { exists: true, isDirectory: false };
         }
@@ -237,11 +294,17 @@ describe('fileService', () => {
       });
 
       // DB cleanup says it removed 2 stale records
-      db.attachments.cleanupOrphaned.mockResolvedValueOnce({ success: true, deletedCount: 2 });
+      db.attachments.cleanupOrphaned.mockResolvedValueOnce({
+        success: true,
+        deletedCount: 2,
+      });
 
       const deleted = await fileService.cleanOrphanedFiles();
 
-      expect(FS.deleteAsync).toHaveBeenCalledWith(`${attachmentsDir}/remove.pdf`, { idempotent: true });
+      expect(FS.deleteAsync).toHaveBeenCalledWith(
+        `${attachmentsDir}/remove.pdf`,
+        { idempotent: true }
+      );
       expect(db.attachments.cleanupOrphaned).toHaveBeenCalled();
       expect(deleted).toBe(1 + 2); // 1 FS orphan + 2 DB orphans
     });
@@ -253,12 +316,18 @@ describe('fileService', () => {
 
       // DB has files in specific directories to keep
       db.attachments.getAll.mockResolvedValueOnce([
-        { file_path: `${attachmentsDir}/images/keep.jpg`, thumbnail_path: null },
-        { file_path: `${attachmentsDir}/documents/keep.pdf`, thumbnail_path: null },
+        {
+          file_path: `${attachmentsDir}/images/keep.jpg`,
+          thumbnail_path: null,
+        },
+        {
+          file_path: `${attachmentsDir}/documents/keep.pdf`,
+          thumbnail_path: null,
+        },
       ]);
 
       // Mock recursive directory structure
-      FS.readDirectoryAsync.mockImplementation(async (path) => {
+      FS.readDirectoryAsync.mockImplementation(async path => {
         if (path === attachmentsDir) {
           return ['images', 'documents', 'orphan.txt'];
         }
@@ -272,7 +341,7 @@ describe('fileService', () => {
       });
 
       // Mock file info checks
-      FS.getInfoAsync.mockImplementation(async (path) => {
+      FS.getInfoAsync.mockImplementation(async path => {
         if (path.includes('images') && !path.includes('.')) {
           return { exists: true, isDirectory: true };
         }
@@ -283,14 +352,19 @@ describe('fileService', () => {
       });
 
       // DB cleanup says it removed 1 stale record
-      db.attachments.cleanupOrphaned.mockResolvedValueOnce({ success: true, deletedCount: 1 });
+      db.attachments.cleanupOrphaned.mockResolvedValueOnce({
+        success: true,
+        deletedCount: 1,
+      });
 
       const deleted = await fileService.cleanOrphanedFiles();
 
       // Should delete orphaned files from multiple directories
       expect(typeof deleted).toBe('number');
       expect(deleted).toBeGreaterThanOrEqual(1); // At least the DB cleanup count
-      const calls = require('expo-file-system').deleteAsync.mock.calls.map(([p]) => p);
+      const calls = require('expo-file-system').deleteAsync.mock.calls.map(
+        ([p]) => p
+      );
       expect(calls.some(p => p.endsWith('/images/orphan.jpg'))).toBe(true);
       expect(calls.some(p => p.endsWith('/documents/orphan.pdf'))).toBe(true);
       expect(calls.some(p => p.endsWith('/orphan.txt'))).toBe(true);
@@ -319,13 +393,20 @@ describe('fileService', () => {
       expect(fileService.validateFileType('application/pdf')).toBe(true);
       expect(fileService.validateFileType('audio/mpeg')).toBe(true);
       expect(fileService.validateFileType('video/mp4')).toBe(true);
-      expect(fileService.validateFileType('application/octet-stream')).toBe(false);
+      expect(fileService.validateFileType('application/octet-stream')).toBe(
+        false
+      );
     });
   });
 
   describe('batch operations', () => {
     test('saveMultipleFiles aggregates results', async () => {
-      const spy = jest.spyOn(fileService, 'saveFile').mockImplementation(async (uri, name, type, id) => ({ id: id, file_name: name }));
+      const spy = jest
+        .spyOn(fileService, 'saveFile')
+        .mockImplementation(async (uri, name, type, id) => ({
+          id: id,
+          file_name: name,
+        }));
       const files = [
         { uri: 'a', originalName: 'a.txt', entityType: 'note', entityId: 1 },
         { uri: 'b', originalName: 'b.txt', entityType: 'note', entityId: 2 },

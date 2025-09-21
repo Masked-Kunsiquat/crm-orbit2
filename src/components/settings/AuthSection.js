@@ -23,7 +23,14 @@
  */
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, Card, Switch, Button, Divider, TextInput } from 'react-native-paper';
+import {
+  Text,
+  Card,
+  Switch,
+  Button,
+  Divider,
+  TextInput,
+} from 'react-native-paper';
 import authService from '../../services/authService';
 
 /**
@@ -55,9 +62,9 @@ const AuthSection = ({
   onTimeoutChange,
   onTimeoutCommit,
   onSetPIN,
-  onRemovePIN
+  onRemovePIN,
 }) => {
-  const handleBiometricToggle = async (enabled) => {
+  const handleBiometricToggle = async enabled => {
     try {
       if (enabled) {
         await authService.enableBiometric();
@@ -71,7 +78,7 @@ const AuthSection = ({
     }
   };
 
-  const handleAutoLockToggle = async (enabled) => {
+  const handleAutoLockToggle = async enabled => {
     try {
       if (enabled) {
         await authService.enableAutoLock(autoLockTimeout);
@@ -103,15 +110,17 @@ const AuthSection = ({
               console.error('Failed to remove PIN:', error);
               Alert.alert('Error', 'Failed to remove PIN');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   return (
     <Card style={styles.card}>
-      <Text variant="titleMedium" style={styles.sectionTitle}>Authentication</Text>
+      <Text variant="titleMedium" style={styles.sectionTitle}>
+        Authentication
+      </Text>
 
       {/* PIN Settings */}
       <View style={styles.settingRow}>
@@ -159,10 +168,7 @@ const AuthSection = ({
             Lock app when in background
           </Text>
         </View>
-        <Switch
-          value={autoLockEnabled}
-          onValueChange={handleAutoLockToggle}
-        />
+        <Switch value={autoLockEnabled} onValueChange={handleAutoLockToggle} />
       </View>
 
       {autoLockEnabled && (
@@ -175,9 +181,12 @@ const AuthSection = ({
             value={autoLockTimeoutInput}
             keyboardType="number-pad"
             inputMode="numeric"
-            onChangeText={(t) => onTimeoutChange(t.replace(/\D+/g, ''))}
+            onChangeText={t => onTimeoutChange(t.replace(/\D+/g, ''))}
             onEndEditing={() => {
-              const n = Math.min(1440, Math.max(1, parseInt(autoLockTimeoutInput || '0', 10)));
+              const n = Math.min(
+                1440,
+                Math.max(1, parseInt(autoLockTimeoutInput || '0', 10))
+              );
               onTimeoutCommit(String(n));
             }}
             placeholder="5"

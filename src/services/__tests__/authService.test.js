@@ -1,6 +1,9 @@
 // Minimal unit tests for AuthService core logic
 
 // Mock React Native before importing anything
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import authService from '../authService';
+
 jest.mock('react-native', () => ({
   Alert: {
     alert: jest.fn(),
@@ -36,9 +39,6 @@ jest.mock('expo-secure-store', () => ({
   setItemAsync: jest.fn(),
   deleteItemAsync: jest.fn(),
 }));
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import authService from '../authService';
 
 // Use fake timers to avoid flakiness and orphaned timeouts
 jest.useFakeTimers();
@@ -76,11 +76,16 @@ describe('AuthService Core Logic', () => {
       await authService.setPIN(pin);
 
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_pin', pin);
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_pin_enabled', 'true');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_pin_enabled',
+        'true'
+      );
     });
 
     test('setPIN rejects short PINs', async () => {
-      await expect(authService.setPIN('123')).rejects.toThrow('PIN must be at least 4 digits');
+      await expect(authService.setPIN('123')).rejects.toThrow(
+        'PIN must be at least 4 digits'
+      );
       expect(AsyncStorage.setItem).not.toHaveBeenCalled();
     });
 
@@ -153,7 +158,7 @@ describe('AuthService Core Logic', () => {
       let asyncStorageCallCount = 0;
       let secureStoreCallCount = 0;
 
-      AsyncStorage.getItem.mockImplementation((key) => {
+      AsyncStorage.getItem.mockImplementation(key => {
         if (key === 'auth_lockout_until') {
           asyncStorageCallCount++;
           return Promise.resolve(null); // checkLockoutStatus - no lockout
@@ -165,7 +170,7 @@ describe('AuthService Core Logic', () => {
         return Promise.resolve(null);
       });
 
-      SecureStore.getItemAsync.mockImplementation((key) => {
+      SecureStore.getItemAsync.mockImplementation(key => {
         if (key === 'auth_pin') {
           secureStoreCallCount++;
           return Promise.resolve('2580'); // Both hasPIN and verifyPIN calls
@@ -185,14 +190,14 @@ describe('AuthService Core Logic', () => {
       const SecureStore = require('expo-secure-store');
 
       // Use mockImplementation for deterministic behavior
-      AsyncStorage.getItem.mockImplementation((key) => {
+      AsyncStorage.getItem.mockImplementation(key => {
         if (key === 'auth_lockout_until') return Promise.resolve(null); // checkLockoutStatus
         if (key === 'auth_pin_enabled') return Promise.resolve('true'); // hasPIN
         if (key === 'auth_failed_attempts') return Promise.resolve('0'); // incrementFailedAttempts
         return Promise.resolve(null);
       });
 
-      SecureStore.getItemAsync.mockImplementation((key) => {
+      SecureStore.getItemAsync.mockImplementation(key => {
         if (key === 'auth_pin') return Promise.resolve('2580'); // Both hasPIN and verifyPIN
         return Promise.resolve(null);
       });
@@ -223,14 +228,14 @@ describe('AuthService Core Logic', () => {
     test('authenticateWithPIN enforces lockout after multiple failed attempts', async () => {
       const SecureStore = require('expo-secure-store');
 
-      AsyncStorage.getItem.mockImplementation((key) => {
+      AsyncStorage.getItem.mockImplementation(key => {
         if (key === 'auth_lockout_until') return Promise.resolve(null); // checkLockoutStatus - no lockout initially
         if (key === 'auth_pin_enabled') return Promise.resolve('true'); // hasPIN - PIN enabled check
         if (key === 'auth_failed_attempts') return Promise.resolve('2'); // incrementFailedAttempts - current attempts (2, will become 3)
         return Promise.resolve(null);
       });
 
-      SecureStore.getItemAsync.mockImplementation((key) => {
+      SecureStore.getItemAsync.mockImplementation(key => {
         if (key === 'auth_pin') return Promise.resolve('1234'); // Both hasPIN and verifyPIN calls
         return Promise.resolve(null);
       });
@@ -247,8 +252,9 @@ describe('AuthService Core Logic', () => {
     test('authenticateWithPIN is blocked when user is locked out', async () => {
       const futureTime = Date.now() + 30000; // 30 seconds from now
 
-      AsyncStorage.getItem.mockImplementation((key) => {
-        if (key === 'auth_lockout_until') return Promise.resolve(futureTime.toString()); // checkLockoutStatus - lockout until future
+      AsyncStorage.getItem.mockImplementation(key => {
+        if (key === 'auth_lockout_until')
+          return Promise.resolve(futureTime.toString()); // checkLockoutStatus - lockout until future
         return Promise.resolve(null);
       });
 
@@ -262,8 +268,9 @@ describe('AuthService Core Logic', () => {
     test('checkLockoutStatus returns correct lockout state', async () => {
       const futureTime = Date.now() + 30000; // 30 seconds from now
 
-      AsyncStorage.getItem.mockImplementation((key) => {
-        if (key === 'auth_lockout_until') return Promise.resolve(futureTime.toString());
+      AsyncStorage.getItem.mockImplementation(key => {
+        if (key === 'auth_lockout_until')
+          return Promise.resolve(futureTime.toString());
         return Promise.resolve(null);
       });
 
@@ -278,15 +285,21 @@ describe('AuthService Core Logic', () => {
       const lockoutError = new Error('Biometric lockout occurred');
       const unknownError = new Error('Unknown error');
 
-      expect(authService.mapBiometricError(userCancelError)).toBe('user_cancelled');
-      expect(authService.mapBiometricError(lockoutError)).toBe('biometric_lockout');
-      expect(authService.mapBiometricError(unknownError)).toBe('biometric_unknown_error');
+      expect(authService.mapBiometricError(userCancelError)).toBe(
+        'user_cancelled'
+      );
+      expect(authService.mapBiometricError(lockoutError)).toBe(
+        'biometric_lockout'
+      );
+      expect(authService.mapBiometricError(unknownError)).toBe(
+        'biometric_unknown_error'
+      );
     });
   });
 
   describe('Lock State Management', () => {
     test('lock state can be checked from storage', async () => {
-      AsyncStorage.getItem.mockImplementation((key) => {
+      AsyncStorage.getItem.mockImplementation(key => {
         if (key === 'auth_is_locked') return Promise.resolve('false');
         return Promise.resolve(null);
       });
@@ -314,7 +327,10 @@ describe('AuthService Core Logic', () => {
       expect(result).toBe(true);
       expect(authService.isLocked).toBe(true);
       expect(authService.lockTimer).toBe(null);
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_is_locked', 'true');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_is_locked',
+        'true'
+      );
 
       jest.runOnlyPendingTimers();
       jest.clearAllMocks();
@@ -330,8 +346,14 @@ describe('AuthService Core Logic', () => {
       expect(result).toBe(true);
       expect(authService.isLocked).toBe(false);
       expect(authService.lastUnlockTime).toBe(mockNow);
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_is_locked', 'false');
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_last_unlock_time', mockNow.toString());
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_is_locked',
+        'false'
+      );
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_last_unlock_time',
+        mockNow.toString()
+      );
 
       Date.now.mockRestore();
     });
@@ -344,8 +366,14 @@ describe('AuthService Core Logic', () => {
       const result = await authService.enableAutoLock(10);
 
       expect(result).toBe(true);
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_auto_lock_enabled', 'true');
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_auto_lock_timeout', '10');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_auto_lock_enabled',
+        'true'
+      );
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_auto_lock_timeout',
+        '10'
+      );
     });
 
     test('disableAutoLock stores setting and clears timer', async () => {
@@ -356,7 +384,10 @@ describe('AuthService Core Logic', () => {
 
       expect(result).toBe(true);
       expect(authService.lockTimer).toBe(null);
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_auto_lock_enabled', 'false');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_auto_lock_enabled',
+        'false'
+      );
 
       jest.runOnlyPendingTimers();
       jest.clearAllMocks();
@@ -368,7 +399,9 @@ describe('AuthService Core Logic', () => {
       const result = await authService.isAutoLockEnabled();
 
       expect(result).toBe(true);
-      expect(AsyncStorage.getItem).toHaveBeenCalledWith('auth_auto_lock_enabled');
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(
+        'auth_auto_lock_enabled'
+      );
     });
 
     test('getAutoLockTimeout returns stored value or default', async () => {
@@ -391,7 +424,10 @@ describe('AuthService Core Logic', () => {
 
       await authService.enableBiometric();
 
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_biometric_enabled', 'true');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_biometric_enabled',
+        'true'
+      );
     });
 
     test('isBiometricEnabled returns stored setting', async () => {
@@ -400,7 +436,9 @@ describe('AuthService Core Logic', () => {
       const result = await authService.isBiometricEnabled();
 
       expect(result).toBe(true);
-      expect(AsyncStorage.getItem).toHaveBeenCalledWith('auth_biometric_enabled');
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(
+        'auth_biometric_enabled'
+      );
     });
 
     test('disableBiometric stores setting', async () => {
@@ -409,7 +447,10 @@ describe('AuthService Core Logic', () => {
       const result = await authService.disableBiometric();
 
       expect(result).toBe(true);
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_biometric_enabled', 'false');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_biometric_enabled',
+        'false'
+      );
     });
   });
 
@@ -433,7 +474,7 @@ describe('AuthService Core Logic', () => {
         'auth_is_locked',
         'auth_pin_enabled',
         'auth_failed_attempts',
-        'auth_lockout_until'
+        'auth_lockout_until',
       ]);
 
       jest.runOnlyPendingTimers();
@@ -444,8 +485,8 @@ describe('AuthService Core Logic', () => {
   describe('Auto-lock Logic', () => {
     test('checkAutoLock locks app when timeout exceeded', async () => {
       const mockNow = 1640000000000;
-      const lastUnlockTime = mockNow - (10 * 60 * 1000); // 10 minutes ago
-      
+      const lastUnlockTime = mockNow - 10 * 60 * 1000; // 10 minutes ago
+
       jest.spyOn(Date, 'now').mockReturnValue(mockNow);
       AsyncStorage.getItem
         .mockResolvedValueOnce('true') // auto-lock enabled
@@ -456,15 +497,18 @@ describe('AuthService Core Logic', () => {
       await authService.checkAutoLock();
 
       // Should have called lock (which sets isLocked and stores state)
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('auth_is_locked', 'true');
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        'auth_is_locked',
+        'true'
+      );
 
       Date.now.mockRestore();
     });
 
     test('checkAutoLock does nothing when within timeout', async () => {
       const mockNow = 1640000000000;
-      const lastUnlockTime = mockNow - (2 * 60 * 1000); // 2 minutes ago
-      
+      const lastUnlockTime = mockNow - 2 * 60 * 1000; // 2 minutes ago
+
       jest.spyOn(Date, 'now').mockReturnValue(mockNow);
       AsyncStorage.getItem
         .mockResolvedValueOnce('true') // auto-lock enabled
@@ -474,7 +518,10 @@ describe('AuthService Core Logic', () => {
       await authService.checkAutoLock();
 
       // Should not have called lock
-      expect(AsyncStorage.setItem).not.toHaveBeenCalledWith('auth_is_locked', 'true');
+      expect(AsyncStorage.setItem).not.toHaveBeenCalledWith(
+        'auth_is_locked',
+        'true'
+      );
 
       Date.now.mockRestore();
     });
@@ -483,12 +530,12 @@ describe('AuthService Core Logic', () => {
   describe('Event Listeners', () => {
     test('addListener returns removal function', () => {
       const callback = jest.fn();
-      
+
       const removeListener = authService.addListener(callback);
-      
+
       expect(typeof removeListener).toBe('function');
       expect(authService.listeners.has(callback)).toBe(true);
-      
+
       removeListener();
       expect(authService.listeners.has(callback)).toBe(false);
     });
@@ -497,12 +544,12 @@ describe('AuthService Core Logic', () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();
       const event = { type: 'unlock' };
-      
+
       authService.addListener(callback1);
       authService.addListener(callback2);
-      
+
       authService.notifyListeners(event);
-      
+
       expect(callback1).toHaveBeenCalledWith(event);
       expect(callback2).toHaveBeenCalledWith(event);
     });

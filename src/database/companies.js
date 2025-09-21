@@ -9,13 +9,16 @@ const COMPANY_FIELDS = [
   'website',
   'address',
   'notes',
-  'logo_attachment_id'
+  'logo_attachment_id',
 ];
 
 function pick(obj, fields) {
   const out = {};
   for (const key of fields) {
-    if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== undefined) {
+    if (
+      Object.prototype.hasOwnProperty.call(obj, key) &&
+      obj[key] !== undefined
+    ) {
       out[key] = obj[key];
     }
   }
@@ -33,7 +36,10 @@ function placeholders(n) {
 export function createCompaniesDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
   if (typeof execute !== 'function' || typeof batch !== 'function') {
-    throw new DatabaseError('companiesDB requires execute and batch helpers', 'MODULE_INIT_ERROR');
+    throw new DatabaseError(
+      'companiesDB requires execute and batch helpers',
+      'MODULE_INIT_ERROR'
+    );
   }
 
   return {
@@ -45,13 +51,13 @@ export function createCompaniesDB(ctx) {
 
       const companyData = pick(data, COMPANY_FIELDS);
       const cols = Object.keys(companyData);
-      const vals = cols.map((k) => companyData[k]);
+      const vals = cols.map(k => companyData[k]);
 
       const insertRes = await execute(
         `INSERT INTO companies (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
         vals
       );
-      
+
       const id = insertRes.insertId;
       if (!id) {
         throw new DatabaseError('Failed to create company', 'INSERT_FAILED');
@@ -71,7 +77,7 @@ export function createCompaniesDB(ctx) {
         offset = 0,
         orderBy = 'name',
         orderDir = 'ASC',
-        industry = undefined
+        industry = undefined,
       } = options;
 
       const where = [];
@@ -82,13 +88,15 @@ export function createCompaniesDB(ctx) {
         params.push(industry);
       }
 
-      const order = ['name', 'industry', 'created_at'].includes(orderBy) ? orderBy : 'name';
+      const order = ['name', 'industry', 'created_at'].includes(orderBy)
+        ? orderBy
+        : 'name';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      
+
       const sql = `SELECT * FROM companies ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
                    ORDER BY ${order} ${dir}
                    LIMIT ? OFFSET ?;`;
-      
+
       const res = await execute(sql, [...params, limit, offset]);
       return res.rows;
     },
@@ -108,13 +116,13 @@ export function createCompaniesDB(ctx) {
         return existing;
       }
 
-      const sets = Object.keys(companyData).map((k) => `${k} = ?`);
-      const vals = Object.keys(companyData).map((k) => companyData[k]);
+      const sets = Object.keys(companyData).map(k => `${k} = ?`);
+      const vals = Object.keys(companyData).map(k => companyData[k]);
 
-      await execute(
-        `UPDATE companies SET ${sets.join(', ')} WHERE id = ?;`,
-        [...vals, id]
-      );
+      await execute(`UPDATE companies SET ${sets.join(', ')} WHERE id = ?;`, [
+        ...vals,
+        id,
+      ]);
 
       return this.getById(id);
     },
@@ -128,7 +136,7 @@ export function createCompaniesDB(ctx) {
     async search(query) {
       const term = String(query || '').trim();
       if (!term) return [];
-      
+
       const q = `%${term}%`;
       const res = await execute(
         `SELECT * FROM companies 
@@ -148,7 +156,7 @@ export function createCompaniesDB(ctx) {
            WHERE company_id = ? 
            ORDER BY last_name ASC, first_name ASC;`,
           [id]
-        )
+        ),
       ]);
 
       const company = companyRes.rows[0] || null;
@@ -163,7 +171,7 @@ export function createCompaniesDB(ctx) {
         'UPDATE companies SET logo_attachment_id = ? WHERE id = ?;',
         [attachmentId, id]
       );
-      
+
       if (res.rowsAffected === 0) {
         throw new DatabaseError('Company not found', 'NOT_FOUND');
       }
@@ -173,19 +181,25 @@ export function createCompaniesDB(ctx) {
 
     async mergeCompanies(keepId, mergeId) {
       if (!keepId || !mergeId || keepId === mergeId) {
-        throw new DatabaseError('Invalid company IDs for merge', 'VALIDATION_ERROR');
+        throw new DatabaseError(
+          'Invalid company IDs for merge',
+          'VALIDATION_ERROR'
+        );
       }
 
       // Use transaction for atomic merge operation
       if (!transaction) {
-        throw new DatabaseError('Transaction support required for merge operation', 'TRANSACTION_REQUIRED');
+        throw new DatabaseError(
+          'Transaction support required for merge operation',
+          'TRANSACTION_REQUIRED'
+        );
       }
 
-      return await transaction(async (tx) => {
+      return await transaction(async tx => {
         // Verify both companies exist
         const [keepRes, mergeRes] = await Promise.all([
           tx.execute('SELECT * FROM companies WHERE id = ?;', [keepId]),
-          tx.execute('SELECT * FROM companies WHERE id = ?;', [mergeId])
+          tx.execute('SELECT * FROM companies WHERE id = ?;', [mergeId]),
         ]);
 
         const keepCompany = keepRes.rows[0];
@@ -213,14 +227,17 @@ export function createCompaniesDB(ctx) {
         }
 
         // Handle logo preference - keep existing if present, otherwise use merge company's logo
-        if (mergeCompany.logo_attachment_id && !keepCompany.logo_attachment_id) {
+        if (
+          mergeCompany.logo_attachment_id &&
+          !keepCompany.logo_attachment_id
+        ) {
           mergedData.logo_attachment_id = mergeCompany.logo_attachment_id;
         }
 
         // Update the company we're keeping with merged data
         if (Object.keys(mergedData).length > 0) {
-          const sets = Object.keys(mergedData).map((k) => `${k} = ?`);
-          const vals = Object.keys(mergedData).map((k) => mergedData[k]);
+          const sets = Object.keys(mergedData).map(k => `${k} = ?`);
+          const vals = Object.keys(mergedData).map(k => mergedData[k]);
           await tx.execute(
             `UPDATE companies SET ${sets.join(', ')} WHERE id = ?;`,
             [...vals, keepId]
@@ -233,10 +250,10 @@ export function createCompaniesDB(ctx) {
         return {
           mergedCompanyId: keepId,
           contactsUpdated: updateContactsRes.rowsAffected || 0,
-          deletedCompanyId: mergeId
+          deletedCompanyId: mergeId,
         };
       });
-    }
+    },
   };
 }
 

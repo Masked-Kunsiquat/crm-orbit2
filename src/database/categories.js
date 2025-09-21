@@ -7,13 +7,7 @@ import { DatabaseError } from './errors';
  * Whitelisted, persisted columns for the categories table.
  * Used to sanitize incoming payloads before insert/update.
  */
-const CATEGORY_FIELDS = [
-  'name',
-  'color',
-  'icon', 
-  'is_system',
-  'sort_order'
-];
+const CATEGORY_FIELDS = ['name', 'color', 'icon', 'is_system', 'sort_order'];
 
 /**
  * Pick only allowed fields from an object.
@@ -24,7 +18,10 @@ const CATEGORY_FIELDS = [
 function pick(obj, fields) {
   const out = {};
   for (const key of fields) {
-    if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== undefined) {
+    if (
+      Object.prototype.hasOwnProperty.call(obj, key) &&
+      obj[key] !== undefined
+    ) {
       out[key] = obj[key];
     }
   }
@@ -57,7 +54,10 @@ function placeholders(n) {
 export function createCategoriesDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
   if (typeof execute !== 'function' || typeof batch !== 'function') {
-    throw new DatabaseError('categoriesDB requires execute and batch helpers', 'MODULE_INIT_ERROR');
+    throw new DatabaseError(
+      'categoriesDB requires execute and batch helpers',
+      'MODULE_INIT_ERROR'
+    );
   }
 
   return {
@@ -82,7 +82,7 @@ export function createCategoriesDB(ctx) {
       const categoryData = pick(data, CATEGORY_FIELDS);
       // Ensure we insert the trimmed name rather than raw input
       categoryData.name = trimmedName;
-      
+
       // Set defaults
       if (!categoryData.color) categoryData.color = '#007AFF';
       if (!categoryData.icon) categoryData.icon = 'folder';
@@ -90,13 +90,13 @@ export function createCategoriesDB(ctx) {
       if (categoryData.sort_order === undefined) categoryData.sort_order = 0;
 
       const cols = Object.keys(categoryData);
-      const vals = cols.map((k) => categoryData[k]);
+      const vals = cols.map(k => categoryData[k]);
 
       const insertRes = await execute(
         `INSERT INTO categories (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
         vals
       );
-      
+
       const id = insertRes.insertId;
       if (!id) {
         throw new DatabaseError('Failed to create category', 'INSERT_FAILED');
@@ -126,7 +126,7 @@ export function createCategoriesDB(ctx) {
         offset = 0,
         orderBy = 'sort_order',
         orderDir = 'ASC',
-        includeSystem = true
+        includeSystem = true,
       } = options;
 
       const where = [];
@@ -136,13 +136,15 @@ export function createCategoriesDB(ctx) {
         where.push('is_system = 0');
       }
 
-      const order = ['name', 'sort_order'].includes(orderBy) ? orderBy : 'sort_order';
+      const order = ['name', 'sort_order'].includes(orderBy)
+        ? orderBy
+        : 'sort_order';
       const dir = String(orderDir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      
+
       const sql = `SELECT * FROM categories ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
                    ORDER BY ${order} ${dir}, name ASC
                    LIMIT ? OFFSET ?;`;
-      
+
       const res = await execute(sql, [...params, limit, offset]);
       return res.rows;
     },
@@ -167,7 +169,10 @@ export function createCategoriesDB(ctx) {
       }
 
       if (existing.is_system && 'name' in data) {
-        throw new DatabaseError('Cannot modify system category name', 'SYSTEM_CATEGORY_PROTECTED');
+        throw new DatabaseError(
+          'Cannot modify system category name',
+          'SYSTEM_CATEGORY_PROTECTED'
+        );
       }
 
       // Normalize and validate incoming name like create()
@@ -182,7 +187,7 @@ export function createCategoriesDB(ctx) {
       }
 
       const categoryData = pick(data, CATEGORY_FIELDS);
-      
+
       // Prevent changing is_system flag
       delete categoryData.is_system;
 
@@ -190,13 +195,13 @@ export function createCategoriesDB(ctx) {
         return existing;
       }
 
-      const sets = Object.keys(categoryData).map((k) => `${k} = ?`);
-      const vals = Object.keys(categoryData).map((k) => categoryData[k]);
+      const sets = Object.keys(categoryData).map(k => `${k} = ?`);
+      const vals = Object.keys(categoryData).map(k => categoryData[k]);
 
-      await execute(
-        `UPDATE categories SET ${sets.join(', ')} WHERE id = ?;`,
-        [...vals, id]
-      );
+      await execute(`UPDATE categories SET ${sets.join(', ')} WHERE id = ?;`, [
+        ...vals,
+        id,
+      ]);
 
       return this.getById(id);
     },
@@ -216,7 +221,10 @@ export function createCategoriesDB(ctx) {
       }
 
       if (category.is_system) {
-        throw new DatabaseError('Cannot delete system category', 'SYSTEM_CATEGORY_PROTECTED');
+        throw new DatabaseError(
+          'Cannot delete system category',
+          'SYSTEM_CATEGORY_PROTECTED'
+        );
       }
 
       const res = await execute('DELETE FROM categories WHERE id = ?;', [id]);
@@ -246,7 +254,6 @@ export function createCategoriesDB(ctx) {
       return res.rows;
     },
 
-
     /**
      * Batch update multiple category sort orders in a single call.
      * @param {Array<{ id: number, sort_order: number }>} sortOrderUpdates
@@ -255,24 +262,30 @@ export function createCategoriesDB(ctx) {
      */
     async updateSortOrder(sortOrderUpdates) {
       if (!Array.isArray(sortOrderUpdates) || sortOrderUpdates.length === 0) {
-        throw new DatabaseError('sortOrderUpdates must be a non-empty array', 'VALIDATION_ERROR');
+        throw new DatabaseError(
+          'sortOrderUpdates must be a non-empty array',
+          'VALIDATION_ERROR'
+        );
       }
 
       const statements = sortOrderUpdates.map(({ id, sort_order }) => {
         const idNum = Number(id);
         const sortNum = Number(sort_order);
         if (!Number.isInteger(idNum) || !Number.isInteger(sortNum)) {
-          throw new DatabaseError('Each update must have integer id and sort_order', 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            'Each update must have integer id and sort_order',
+            'VALIDATION_ERROR'
+          );
         }
         return {
           sql: 'UPDATE categories SET sort_order = ? WHERE id = ?;',
-          params: [sortNum, idNum]
+          params: [sortNum, idNum],
         };
       });
 
       await batch(statements);
       return true;
-    }
+    },
   };
 }
 
