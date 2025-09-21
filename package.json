@@ -10,7 +10,10 @@
     "test": "jest",
     "test:db": "jest --testPathPattern=\"src/database/__tests__\"",
     "update-docs": "node scripts/update-test-counts.js",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "expo lint --fix"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -44,10 +47,13 @@
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.26.0",
     "babel-jest": "^29.7.0",
-    "jest": "^29.7.0",
-    "sql.js": "^1.11.0",
     "eslint": "^9.0.0",
-    "eslint-config-expo": "~10.0.0"
+    "eslint-config-expo": "~10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "jest": "^29.7.0",
+    "prettier": "^3.6.2",
+    "sql.js": "^1.11.0"
   },
   "private": true
 }
