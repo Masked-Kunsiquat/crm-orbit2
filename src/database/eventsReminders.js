@@ -378,17 +378,44 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         return 0;
       }
 
-      let updated = 0;
-      for (const { reminderId, notificationId } of scheduledItems) {
-        if (reminderId && notificationId) {
-          await execute(
-            'UPDATE event_reminders SET notification_id = ?, is_sent = 0 WHERE id = ?;',
-            [notificationId, reminderId]
-          );
-          updated++;
-        }
+      if (!transaction) {
+        throw new DatabaseError('Transaction support required for markRemindersScheduled', 'TRANSACTION_REQUIRED');
       }
-      return updated;
+
+      return await transaction(async (tx) => {
+        // Filter and validate entries that have both reminderId and notificationId
+        const validItems = scheduledItems.filter(
+          ({ reminderId, notificationId }) => reminderId && notificationId
+        );
+
+        if (validItems.length === 0) {
+          return 0;
+        }
+
+        // Build a single UPDATE using CASE...WHEN for different notification_id values
+        const reminderIds = validItems.map(item => item.reminderId);
+        const placeholders = reminderIds.map(() => '?').join(', ');
+
+        // Create CASE statement for notification_id mapping
+        const caseStatements = validItems.map(() => 'WHEN id = ? THEN ?').join(' ');
+
+        const sql = `
+          UPDATE event_reminders
+          SET notification_id = CASE ${caseStatements} END,
+              is_sent = 0
+          WHERE id IN (${placeholders});
+        `;
+
+        // Build parameters: first the CASE parameters (id, notificationId pairs), then the IN clause ids
+        const caseParams = [];
+        for (const { reminderId, notificationId } of validItems) {
+          caseParams.push(reminderId, notificationId);
+        }
+        const params = [...caseParams, ...reminderIds];
+
+        const result = await tx.execute(sql, params);
+        return result.rowsAffected || 0;
+      });
     },
 
     /**
@@ -401,19 +428,27 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         return 0;
       }
 
-      let updated = 0;
-      for (const reminderId of reminderIds) {
-        if (reminderId) {
-          // We could add a 'failed_at' timestamp or 'status' field in future migrations
-          // For now, just keep them as not sent (is_sent = 0) so they can be retried
-          await execute(
-            'UPDATE event_reminders SET notification_id = NULL WHERE id = ?;',
-            [reminderId]
-          );
-          updated++;
-        }
+      // Filter out invalid IDs
+      const validIds = reminderIds.filter(id => id && Number.isInteger(id));
+
+      if (validIds.length === 0) {
+        return 0;
       }
-      return updated;
+
+      // Build a single UPDATE using IN clause for batch processing
+      const placeholders = validIds.map(() => '?').join(', ');
+      const sql = `
+        UPDATE event_reminders
+        SET notification_id = NULL
+        WHERE id IN (${placeholders});
+      `;
+
+      try {
+        const result = await execute(sql, validIds);
+        return result.rowsAffected || 0;
+      } catch (error) {
+        throw new DatabaseError('Failed to mark reminders as failed', 'UPDATE_FAILED', error);
+      }
     },
 
     /**

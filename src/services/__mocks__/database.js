@@ -29,8 +29,18 @@ const mockDb = {
       }
       return { id, reminder_datetime: formattedDateTime };
     }),
-    markRemindersScheduled: jest.fn(async (items) => items.length),
-    markRemindersFailed: jest.fn(async (ids) => ids.length),
+    markRemindersScheduled: jest.fn(async (items) => {
+      // Simulate the filtering that happens in the real implementation
+      const validItems = items.filter(
+        ({ reminderId, notificationId }) => reminderId && notificationId
+      );
+      return validItems.length;
+    }),
+    markRemindersFailed: jest.fn(async (ids) => {
+      // Simulate the filtering that happens in the real implementation
+      const validIds = ids.filter(id => id && Number.isInteger(id));
+      return validIds.length;
+    }),
     createRecurringReminders: jest.fn(async (data) => data.map((d, i) => ({ id: i + 1, ...d }))),
   },
   settings: {
