@@ -62,7 +62,10 @@ function formatSQLiteDateTime(date) {
  * @returns {string} SQLite-formatted datetime string
  */
 function toSqlDatetime(value) {
-  if (!value) return value;
+  // Disallow null/undefined and non-date/string inputs
+  if (value === null || value === undefined) {
+    throw new Error('Invalid datetime: value is null or undefined');
+  }
 
   let date;
   if (value instanceof Date) {
@@ -70,7 +73,7 @@ function toSqlDatetime(value) {
   } else if (typeof value === 'string') {
     date = new Date(value);
   } else {
-    return value; // Return as-is if not a date
+    throw new Error(`Invalid datetime: expected Date or string, received ${typeof value}`);
   }
 
   if (isNaN(date.getTime())) {
