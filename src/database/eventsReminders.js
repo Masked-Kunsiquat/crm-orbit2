@@ -330,7 +330,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
     /**
      * Update a specific reminder's datetime
      * @param {number} reminderId - Reminder ID
-     * @param {string} newDateTime - New reminder datetime (ISO string)
+     * @param {string|Date} newDateTime - New reminder datetime (ISO string or Date object)
      * @returns {Promise<object|null>} Updated reminder
      */
     async updateReminderDateTime(reminderId, newDateTime) {
@@ -339,14 +339,31 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       }
 
       try {
+        // Parse the incoming datetime (accept Date or ISO string)
+        let parsedDate;
+        if (newDateTime instanceof Date) {
+          parsedDate = newDateTime;
+        } else {
+          parsedDate = new Date(newDateTime);
+        }
+
+        // Validate the parsed date
+        if (isNaN(parsedDate.getTime())) {
+          throw new DatabaseError('Invalid datetime format', 'VALIDATION_ERROR', null, { newDateTime });
+        }
+
+        // Format to SQLite datetime format (YYYY-MM-DD HH:MM:SS)
+        const formattedDateTime = formatSQLiteDateTime(parsedDate);
+
         await execute(
           'UPDATE event_reminders SET reminder_datetime = ? WHERE id = ?;',
-          [newDateTime, reminderId]
+          [formattedDateTime, reminderId]
         );
 
         const res = await execute('SELECT * FROM event_reminders WHERE id = ?;', [reminderId]);
         return convertBooleanFields(res.rows[0]) || null;
       } catch (error) {
+        if (error instanceof DatabaseError) throw error;
         throw new DatabaseError('Failed to update reminder datetime', 'UPDATE_FAILED', error);
       }
     },

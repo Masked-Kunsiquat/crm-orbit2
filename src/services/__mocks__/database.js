@@ -17,7 +17,18 @@ const mockDb = {
     getUnsentRemindersByEvent: jest.fn(async () => []),
     getUnsentReminders: jest.fn(async () => []),
     markReminderSent: jest.fn(async () => ({ success: true })),
-    updateReminderDateTime: jest.fn(async (id, datetime) => ({ id, reminder_datetime: datetime })),
+    updateReminderDateTime: jest.fn(async (id, datetime) => {
+      // Simulate proper datetime formatting like the real implementation
+      let formattedDateTime = datetime;
+      if (datetime instanceof Date) {
+        formattedDateTime = datetime.toISOString();
+      } else if (typeof datetime === 'string') {
+        // Parse and reformat to simulate SQLite format handling
+        const parsed = new Date(datetime);
+        formattedDateTime = parsed.toISOString();
+      }
+      return { id, reminder_datetime: formattedDateTime };
+    }),
     markRemindersScheduled: jest.fn(async (items) => items.length),
     markRemindersFailed: jest.fn(async (ids) => ids.length),
     createRecurringReminders: jest.fn(async (data) => data.map((d, i) => ({ id: i + 1, ...d }))),
