@@ -370,8 +370,28 @@ export const notificationService = {
 
       for (const reminder of reminders) {
         const notificationId = await this.scheduleReminder(reminder, event);
-        if (notificationId) {
-          scheduledIds.push(notificationId);
+        if (!notificationId) {
+          continue;
+        }
+        try {
+          // Persist the notification ID for this reminder
+          const affected = await db.eventsReminders.markRemindersScheduled([
+            { reminderId: reminder.id, notificationId },
+          ]);
+          // Only record IDs that were actually persisted
+          if (typeof affected === 'number' ? affected > 0 : true) {
+            scheduledIds.push(notificationId);
+          } else {
+            console.warn(
+              `Failed to persist notification_id for reminder ${reminder.id}; excluding from results`
+            );
+          }
+        } catch (persistError) {
+          console.warn(
+            `Error persisting notification_id for reminder ${reminder.id}:`,
+            persistError?.message || persistError
+          );
+          // Do not include in returned list since persistence failed
         }
       }
 
