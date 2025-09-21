@@ -343,6 +343,50 @@ describe('notificationService', () => {
       // Should only make one database call instead of three
       expect(db.settings.getValues).toHaveBeenCalledTimes(1);
     });
+
+    test('adjusts overnight quiet hours to next day when in past', async () => {
+      // Mock quiet hours: 22:00 PM to 8:00 AM (overnight)
+      db.settings.getValues.mockResolvedValue({
+        quiet_hours_enabled: true,
+        quiet_hours_start: 22,
+        quiet_hours_end: 8
+      });
+
+      // Mock current time: 7:30 AM (still in quiet hours)
+      const mockNow = new Date('2023-06-15T07:30:00Z');
+      const originalDateNow = Date.now;
+      Date.now = jest.fn(() => mockNow.getTime());
+
+      // Reminder originally scheduled for today 2:00 AM (during quiet hours)
+      // This will be adjusted to 8:00 AM but since current time is 7:30 AM,
+      // the adjusted time would be in the past, so should move to next day
+      const originalTime = new Date('2023-06-15T02:00:00Z');
+      const futureDate = new Date('2023-06-16T12:00:00Z');
+
+      const reminder = {
+        id: 1,
+        event_id: 1,
+        reminder_datetime: originalTime.toISOString(),
+      };
+
+      const event = {
+        id: 1,
+        title: 'Test Event',
+        event_type: 'meeting',
+        event_date: futureDate.toISOString(),
+      };
+
+      await notificationService.scheduleReminder(reminder, event);
+
+      // Should update the reminder to next day at 8:00 AM (June 16, 8:00 AM)
+      expect(db.eventsReminders.updateReminderDateTime).toHaveBeenCalledWith(
+        1,
+        expect.stringMatching(/2023-06-16T08:00:00/)
+      );
+
+      // Restore Date.now
+      Date.now = originalDateNow;
+    });
   });
 
   describe('notification cleanup', () => {
@@ -655,6 +699,7 @@ describe('notificationService', () => {
         message: expect.stringContaining('Permission error'),
       });
     });
+
 
     test.skip('throws ServiceError when scheduling fails', async () => {
       Notifications.scheduleNotificationAsync.mockRejectedValueOnce(new Error('Schedule error'));

@@ -198,22 +198,24 @@ export const notificationService = {
       const originalReminderTime = new Date(reminder.reminder_datetime);
       const now = new Date();
 
-      // Don't schedule past reminders
-      if (originalReminderTime <= now) {
-        console.warn(`Reminder time ${originalReminderTime.toISOString()} is in the past, skipping`);
-        return null;
-      }
-
       // Create a copy for scheduling (do not mutate the original)
       let scheduledTime = new Date(originalReminderTime);
+      let timeWasAdjusted = false;
 
       // Check quiet hours and adjust if necessary
       if (await this.isInQuietHours(originalReminderTime)) {
         // Create adjusted time for quiet hours
         scheduledTime = new Date(originalReminderTime);
-        scheduledTime.setHours(await this.getQuietHoursEnd());
-        scheduledTime.setMinutes(0);
-        scheduledTime.setSeconds(0);
+        const endHour = await this.getQuietHoursEnd();
+        scheduledTime.setUTCHours(endHour);
+        scheduledTime.setUTCMinutes(0);
+        scheduledTime.setUTCSeconds(0);
+
+        // Ensure adjusted time is in the future for overnight quiet hours
+        // If the adjusted time is in the past, move it to the next day
+        if (scheduledTime <= now) {
+          scheduledTime.setDate(scheduledTime.getDate() + 1);
+        }
 
         // Persist the adjusted time back to the database
         await db.eventsReminders.updateReminderDateTime(
@@ -221,7 +223,14 @@ export const notificationService = {
           scheduledTime.toISOString()
         );
 
+        timeWasAdjusted = true;
         console.log(`Reminder ${reminder.id} adjusted for quiet hours from ${originalReminderTime.toISOString()} to ${scheduledTime.toISOString()}`);
+      }
+
+      // Don't schedule past reminders (check after quiet hours adjustment)
+      if (scheduledTime <= now) {
+        console.warn(`Reminder time ${scheduledTime.toISOString()} is in the past, skipping`);
+        return null;
       }
 
       // Use template system for notification content
