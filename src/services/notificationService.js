@@ -4,6 +4,17 @@ import { Platform } from 'react-native';
 import db from '../database';
 import { ServiceError } from './errors';
 
+// Local helper to format Date to SQLite datetime (YYYY-MM-DD HH:MM:SS)
+function formatSQLiteDateTime(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+}
+
 /**
  * Configure notification behavior
  */
@@ -770,10 +781,11 @@ export const notificationService = {
 
             if (reminderTime <= now) continue;
 
-            // Check if this reminder already exists
+            // Check if this reminder already exists (use SQLite datetime format)
+            const sqliteReminderTime = formatSQLiteDateTime(reminderTime);
             const existingRes = await tx.execute(
               'SELECT id FROM event_reminders WHERE event_id = ? AND reminder_datetime = ?;',
-              [event.id, reminderTime.toISOString()]
+              [event.id, sqliteReminderTime]
             );
 
             if (existingRes.rows.length === 0) {
@@ -781,7 +793,7 @@ export const notificationService = {
               const reminderRes = await tx.execute(
                 `INSERT INTO event_reminders (event_id, reminder_datetime, reminder_type, is_sent, created_at)
                  VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP);`,
-                [event.id, reminderTime.toISOString(), 'notification']
+                [event.id, sqliteReminderTime, 'notification']
               );
 
               if (reminderRes.insertId) {
