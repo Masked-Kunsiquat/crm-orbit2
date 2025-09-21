@@ -16,6 +16,78 @@ function formatSQLiteDateTime(date) {
 }
 
 /**
+ * Parse a SQLite-style datetime string (e.g., 'YYYY-MM-DD HH:MM:SS') into a JS Date.
+ * - Accepts 'YYYY-MM-DD' (interpreted as 00:00:00 local time)
+ * - Accepts 'YYYY-MM-DD HH:MM' or 'YYYY-MM-DD HH:MM:SS'
+ * - Returns null on invalid input
+ *
+ * @param {string|number|Date|null|undefined} input
+ * @returns {Date|null}
+ */
+function parseSqliteDatetime(input) {
+  try {
+    if (input == null) return null;
+    if (input instanceof Date) {
+      const t = input.getTime();
+      return Number.isNaN(t) ? null : new Date(t);
+    }
+    if (typeof input === 'number') {
+      const d = new Date(input);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (typeof input !== 'string') return null;
+
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+
+    // Normalize: replace T with space, drop trailing Z, drop fractional seconds
+    const normalized = trimmed.replace('T', ' ').replace(/Z$/i, '');
+    const [datePartRaw, timePartRaw] = normalized.split(' ');
+    const datePart = datePartRaw;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
+    const [yStr, mStr, dStr] = datePart.split('-');
+    const year = parseInt(yStr, 10);
+    const month = parseInt(mStr, 10);
+    const day = parseInt(dStr, 10);
+    if (!(year >= 0 && month >= 1 && month <= 12 && day >= 1 && day <= 31)) return null;
+
+    let hour = 0, minute = 0, second = 0;
+    if (timePartRaw && timePartRaw.length) {
+      const timePart = timePartRaw.split('.')[0]; // drop fractional seconds if any
+      const pieces = timePart.split(':');
+      if (pieces.length < 2) return null; // need at least HH:MM
+      hour = parseInt(pieces[0], 10);
+      minute = parseInt(pieces[1], 10);
+      second = pieces.length >= 3 ? parseInt(pieces[2], 10) : 0;
+      if (
+        Number.isNaN(hour) || hour < 0 || hour > 23 ||
+        Number.isNaN(minute) || minute < 0 || minute > 59 ||
+        Number.isNaN(second) || second < 0 || second > 59
+      ) {
+        return null;
+      }
+    }
+
+    const d = new Date(year, month - 1, day, hour, minute, second);
+    if (Number.isNaN(d.getTime())) return null;
+    // Validate no rollover occurred (e.g., 2023-02-31)
+    if (
+      d.getFullYear() !== year ||
+      d.getMonth() !== (month - 1) ||
+      d.getDate() !== day ||
+      d.getHours() !== hour ||
+      d.getMinutes() !== minute ||
+      d.getSeconds() !== second
+    ) {
+      return null;
+    }
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Configure notification behavior
  */
 Notifications.setNotificationHandler({
@@ -206,7 +278,11 @@ export const notificationService = {
    */
   async scheduleReminder(reminder, event) {
     try {
-      const originalReminderTime = new Date(reminder.reminder_datetime);
+      const originalReminderTime = parseSqliteDatetime(reminder.reminder_datetime);
+      if (!originalReminderTime) {
+        console.warn('Invalid reminder_datetime; skipping schedule:', reminder.reminder_datetime, '(reminder id:', reminder?.id, ')');
+        return null;
+      }
       const now = new Date();
 
       // Create a copy for scheduling (do not mutate the original)
@@ -245,9 +321,12 @@ export const notificationService = {
       }
 
       // Use template system for notification content
-      const eventDate = new Date(event.event_date);
+      const eventDate = parseSqliteDatetime(event.event_date);
+      if (!eventDate) {
+        console.warn('Invalid event_date for event; proceeding with raw value:', event?.id, event?.event_date);
+      }
       const context = {
-        eventTime: eventDate.toLocaleString(),
+        eventTime: (eventDate ? eventDate.toLocaleString() : String(event?.event_date ?? 'Unknown date')),
         isRecurring: false,
         reminderId: reminder.id,
       };
@@ -317,7 +396,11 @@ export const notificationService = {
       const scheduledItems = [];
       const createdReminderIds = [];
       const scheduledNotificationIds = [];
-      const baseDate = new Date(event.event_date);
+      const baseDate = parseSqliteDatetime(event.event_date);
+      if (!baseDate) {
+        console.warn('Invalid event_date for recurring schedule; skipping:', event?.id, event?.event_date);
+        return [];
+      }
       const now = new Date();
 
       // Get default reminder settings from user preferences
@@ -653,8 +736,11 @@ export const notificationService = {
    * @returns {string} Formatted message
    */
   formatReminderMessage(event, reminder) {
-    const eventDate = new Date(event.event_date);
-    const eventTime = eventDate.toLocaleString();
+    const eventDate = parseSqliteDatetime(event.event_date);
+    if (!eventDate) {
+      console.warn('Invalid event_date in formatReminderMessage; using raw value:', event?.id, event?.event_date);
+    }
+    const eventTime = eventDate ? eventDate.toLocaleString() : String(event?.event_date ?? 'Unknown date');
 
     const context = {
       eventTime,
@@ -683,16 +769,20 @@ export const notificationService = {
 
     // Calculate age for birthday events
     if (event.event_type === 'birthday') {
-      const birthDate = new Date(event.event_date);
+      const birthDate = parseSqliteDatetime(event.event_date);
+      if (!birthDate) {
+        console.warn('Invalid event_date for birthday; skipping age calc:', event?.id, event?.event_date);
+      }
       const currentYear = eventDate.getFullYear();
 
-      let age = currentYear - birthDate.getFullYear();
-      const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
-      if (eventDate < birthdayThisYear) {
-        age -= 1;
+      if (birthDate) {
+        let age = currentYear - birthDate.getFullYear();
+        const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+        if (eventDate < birthdayThisYear) {
+          age -= 1;
+        }
+        context.age = age;
       }
-
-      context.age = age;
     }
 
     const { body } = this.renderNotificationTemplate(event, context);
@@ -767,7 +857,11 @@ export const notificationService = {
         const reminderLeadTime = await this.getReminderLeadTime();
 
         for (const event of recurringEvents) {
-          const baseDate = new Date(event.event_date);
+          const baseDate = parseSqliteDatetime(event.event_date);
+          if (!baseDate) {
+            console.warn('Invalid event_date for recurring generation; skipping event:', event?.id, event?.event_date);
+            continue;
+          }
 
           // Create reminders for next 2 years
           for (let year = 0; year < 2; year++) {
