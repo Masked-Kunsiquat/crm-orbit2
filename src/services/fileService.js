@@ -69,6 +69,26 @@ const getFileDirectory = (fileType) => {
 };
 
 /**
+ * Normalize a URI and check if it is contained within the application's
+ * sandboxed documentDirectory. Uses URL parsing to remove dot segments and
+ * then performs a prefix check against the normalized documentDirectory.
+ *
+ * @param {string} uri - Absolute URI to validate (e.g., file:///... ).
+ * @returns {boolean} True if the uri is within documentDirectory; otherwise false.
+ */
+function isPathInsideDocumentDirectory(uri) {
+  if (!uri || typeof uri !== 'string') return false;
+  try {
+    const docHref = new URL(documentDirectory).href;
+    const targetHref = new URL(uri).href;
+    return targetHref.startsWith(docHref);
+  } catch (_e) {
+    // Fallback: plain string prefix check if URL parsing fails
+    return uri.startsWith(documentDirectory);
+  }
+}
+
+/**
  * Detect MIME type from filename extension.
  *
  * @param {string} name - The filename including extension.
@@ -223,10 +243,18 @@ export const fileService = {
         return;
       }
 
-      await deleteAsync(attachment.file_path, { idempotent: true });
+      if (isPathInsideDocumentDirectory(attachment.file_path)) {
+        await deleteAsync(attachment.file_path, { idempotent: true });
+      } else {
+        console.warn('Refusing to delete file outside app sandbox:', attachment.file_path);
+      }
 
       if (attachment.thumbnail_path) {
-        await deleteAsync(attachment.thumbnail_path, { idempotent: true });
+        if (isPathInsideDocumentDirectory(attachment.thumbnail_path)) {
+          await deleteAsync(attachment.thumbnail_path, { idempotent: true });
+        } else {
+          console.warn('Refusing to delete thumbnail outside app sandbox:', attachment.thumbnail_path);
+        }
       }
 
       await db.attachments.delete(attachmentId);

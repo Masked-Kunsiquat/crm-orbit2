@@ -17,7 +17,11 @@
  *   on how to schedule SQL calls to ensure they run inside the same transaction.
  */
 
-import { openDatabase as expoOpenDatabase } from 'expo-sqlite';
+import * as ExpoSQLite from 'expo-sqlite';
+// Support both module shapes: named export and default export
+const expoOpenDatabase =
+  (ExpoSQLite && typeof ExpoSQLite.openDatabase === 'function' && ExpoSQLite.openDatabase)
+  || (ExpoSQLite && ExpoSQLite.default && typeof ExpoSQLite.default.openDatabase === 'function' && ExpoSQLite.default.openDatabase);
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
 import { createContactsInfoDB } from './contactsInfo';
