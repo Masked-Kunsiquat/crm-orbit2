@@ -37,9 +37,11 @@ const mockDb = {
       return validItems.length;
     }),
     markRemindersFailed: jest.fn(async (ids) => {
-      // Simulate the filtering that happens in the real implementation
-      const validIds = ids.filter(id => id && Number.isInteger(id));
-      return validIds.length;
+      // Simulate the filtering and deduplication that happens in the real implementation
+      const uniqueValidIds = [...new Set(
+        ids.filter(id => id && Number.isInteger(id) && id > 0)
+      )];
+      return uniqueValidIds.length;
     }),
     createRecurringReminders: jest.fn(async (data) => data.map((d, i) => ({ id: i + 1, ...d }))),
   },

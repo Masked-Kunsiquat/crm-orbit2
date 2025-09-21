@@ -428,27 +428,50 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         return 0;
       }
 
-      // Filter out invalid IDs
-      const validIds = reminderIds.filter(id => id && Number.isInteger(id));
+      // Validate, filter, and deduplicate IDs
+      const uniqueValidIds = [...new Set(
+        reminderIds.filter(id => id && Number.isInteger(id) && id > 0)
+      )];
 
-      if (validIds.length === 0) {
+      if (uniqueValidIds.length === 0) {
         return 0;
       }
 
-      // Build a single UPDATE using IN clause for batch processing
-      const placeholders = validIds.map(() => '?').join(', ');
-      const sql = `
-        UPDATE event_reminders
-        SET notification_id = NULL
-        WHERE id IN (${placeholders});
-      `;
-
-      try {
-        const result = await execute(sql, validIds);
-        return result.rowsAffected || 0;
-      } catch (error) {
-        throw new DatabaseError('Failed to mark reminders as failed', 'UPDATE_FAILED', error);
+      if (!transaction) {
+        throw new DatabaseError('Transaction support required for markRemindersFailed', 'TRANSACTION_REQUIRED');
       }
+
+      return await transaction(async (tx) => {
+        let totalAffected = 0;
+
+        // SQLite parameter limit is typically 999, use chunks of 500 for safety
+        const CHUNK_SIZE = 500;
+
+        for (let i = 0; i < uniqueValidIds.length; i += CHUNK_SIZE) {
+          const chunk = uniqueValidIds.slice(i, i + CHUNK_SIZE);
+          const placeholders = chunk.map(() => '?').join(', ');
+
+          const sql = `
+            UPDATE event_reminders
+            SET notification_id = NULL
+            WHERE id IN (${placeholders});
+          `;
+
+          try {
+            const result = await tx.execute(sql, chunk);
+            totalAffected += result.rowsAffected || 0;
+          } catch (error) {
+            throw new DatabaseError(
+              `Failed to mark reminders as failed (chunk ${Math.floor(i / CHUNK_SIZE) + 1})`,
+              'UPDATE_FAILED',
+              error,
+              { chunkStart: i, chunkSize: chunk.length }
+            );
+          }
+        }
+
+        return totalAffected;
+      });
     },
 
     /**
