@@ -351,58 +351,30 @@ export const notificationService = {
       createdReminderIds.push(...createdReminders.map(r => r.id));
 
       // Step 3: Schedule notifications for each persisted reminder
+      const failedItems = [];
+
       for (let i = 0; i < createdReminders.length; i++) {
         const reminder = createdReminders[i];
-        const year = i; // Corresponds to the year index from the loop above
 
         try {
-          const eventDate = new Date(baseDate);
-          eventDate.setFullYear(now.getFullYear() + year);
-          const reminderTime = new Date(reminder.reminder_datetime);
+          // Use the standardized scheduleReminder method for consistency
+          // This ensures quiet hours, past-time checking, and other features are applied
+          const notificationId = await this.scheduleReminder(reminder, event);
 
-          // Use template system for recurring notification content
-          const context = {
-            eventTime: eventDate.toLocaleString(),
-            eventDate,
-            isRecurring: true,
-            reminderId: reminder.id,
-          };
-
-          // Calculate age for birthday events
-          if (event.event_type === 'birthday') {
-            const birthDate = new Date(event.event_date);
-            const currentYear = eventDate.getFullYear();
-
-            let age = currentYear - birthDate.getFullYear();
-            const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
-            if (eventDate < birthdayThisYear) {
-              age -= 1;
-            }
-
-            context.age = age;
+          if (notificationId) {
+            scheduledNotificationIds.push(notificationId);
+            scheduledItems.push({
+              reminderId: reminder.id,
+              notificationId: notificationId,
+            });
+          } else {
+            // scheduleReminder returns null for skipped reminders (e.g., past due)
+            failedItems.push(reminder.id);
           }
-
-          const { title, body, data } = this.renderNotificationTemplate(event, context);
-          const content = { title, body, data };
-
-          const trigger = {
-            date: reminderTime,
-            channelId: Platform.OS === 'android' ? 'event-reminders' : undefined,
-          };
-
-          const notificationId = await Notifications.scheduleNotificationAsync({
-            content,
-            trigger,
-          });
-
-          scheduledNotificationIds.push(notificationId);
-          scheduledItems.push({
-            reminderId: reminder.id,
-            notificationId: notificationId,
-          });
 
         } catch (schedulingError) {
           console.warn(`Failed to schedule notification for reminder ${reminder.id}:`, schedulingError.message);
+          failedItems.push(reminder.id);
 
           // Rollback: Cancel any successfully scheduled notifications
           for (const notificationId of scheduledNotificationIds) {
