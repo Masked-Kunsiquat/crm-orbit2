@@ -750,12 +750,26 @@ export const notificationService = {
           }
         }
 
-        // Get pending reminders that need scheduling
+        // Mark past-due unsent reminders as sent to prevent retry churn
+        // Past-due reminders would be skipped by scheduleReminder but remain unscheduled,
+        // causing them to be fetched repeatedly in subsequent sync operations.
+        // Use UTC datetime comparison since SQLite stores datetime in UTC.
+        await tx.execute(
+          `UPDATE event_reminders
+           SET is_sent = 1
+           WHERE is_sent = 0
+           AND notification_id IS NULL
+           AND reminder_datetime <= datetime('now');`
+        );
+
+        // Get pending reminders that need scheduling (only future reminders)
         const reminderRes = await tx.execute(
           `SELECT r.*, e.title, e.event_date, e.contact_id
            FROM event_reminders r
            JOIN events e ON r.event_id = e.id
-           WHERE r.is_sent = 0 AND r.notification_id IS NULL
+           WHERE r.is_sent = 0
+           AND r.notification_id IS NULL
+           AND r.reminder_datetime > datetime('now')
            ORDER BY r.reminder_datetime ASC;`
         );
         pendingReminders = reminderRes.rows;
@@ -838,7 +852,14 @@ export const notificationService = {
       // Schedule pending reminders
       for (const reminder of pendingReminders) {
         try {
-          const notificationId = await this.scheduleReminder(reminder, reminder);
+          // Create event object from the joined data in reminder
+          const event = {
+            id: reminder.event_id,
+            title: reminder.title,
+            event_date: reminder.event_date,
+            contact_id: reminder.contact_id
+          };
+          const notificationId = await this.scheduleReminder(reminder, event);
           if (notificationId) {
             scheduledItems.push({ reminderId: reminder.id, notificationId });
           } else {
@@ -853,7 +874,14 @@ export const notificationService = {
       // Schedule new recurring reminders
       for (const reminder of newRecurringReminders) {
         try {
-          const notificationId = await this.scheduleReminder(reminder, reminder);
+          // Create event object from the reminder data (already includes event fields)
+          const event = {
+            id: reminder.event_id,
+            title: reminder.title,
+            event_date: reminder.event_date,
+            contact_id: reminder.contact_id
+          };
+          const notificationId = await this.scheduleReminder(reminder, event);
           if (notificationId) {
             scheduledItems.push({ reminderId: reminder.id, notificationId });
           } else {
