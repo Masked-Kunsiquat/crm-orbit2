@@ -161,12 +161,13 @@ describe('notificationService', () => {
       expect(notificationId).toBe('mock-notification-id');
       expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith({
         content: {
-          title: 'Test Event',
-          body: expect.stringContaining('Event reminder: Test Event'),
+          title: 'Meeting Reminder',
+          body: expect.stringContaining('Meeting reminder: Test Event'),
           data: {
             eventId: 1,
             reminderId: 1,
-            type: 'event_reminder',
+            type: 'meeting_reminder',
+            eventType: 'meeting',
           },
         },
         trigger: {
@@ -392,7 +393,7 @@ describe('notificationService', () => {
 
       const message = notificationService.formatReminderMessage(event, reminder);
 
-      expect(message).toContain('Event reminder: Team Meeting');
+      expect(message).toContain('Meeting reminder: Team Meeting');
       expect(message).toContain('Quarterly review');
     });
 
@@ -455,6 +456,143 @@ describe('notificationService', () => {
       const decemberReminder = new Date('2024-12-25T00:00:00Z');
       const messageInDecember = notificationService.formatRecurringReminderMessage(decemberBirthdayEvent, decemberReminder);
       expect(messageInDecember).toContain('Birthday reminder: Jane Smith (29 years old)');
+    });
+  });
+
+  describe('notification templates', () => {
+    test('renders birthday template correctly', () => {
+      const event = {
+        id: 1,
+        title: 'John Doe',
+        event_type: 'birthday',
+        contact_id: 123,
+        event_date: '1990-06-15T00:00:00Z'
+      };
+
+      const context = {
+        eventTime: '6/15/2023, 12:00:00 AM',
+        age: 33,
+        isRecurring: true,
+        eventDate: new Date('2023-06-15T00:00:00Z')
+      };
+
+      const result = notificationService.renderNotificationTemplate(event, context);
+
+      expect(result.title).toBe('Birthday Reminder');
+      expect(result.body).toContain('Birthday reminder: John Doe (33 years old)');
+      expect(result.data.eventType).toBe('birthday');
+      expect(result.data.type).toBe('recurring_birthday');
+      expect(result.data.contactId).toBe(123);
+    });
+
+    test('renders meeting template with location', () => {
+      const event = {
+        id: 2,
+        title: 'Team Standup',
+        event_type: 'meeting',
+        location: 'Conference Room A',
+        notes: 'Bring your status updates'
+      };
+
+      const context = {
+        eventTime: '6/15/2023, 2:00:00 PM',
+        isRecurring: false,
+        reminderId: 456
+      };
+
+      const result = notificationService.renderNotificationTemplate(event, context);
+
+      expect(result.title).toBe('Meeting Reminder');
+      expect(result.body).toContain('Meeting reminder: Team Standup');
+      expect(result.body).toContain('Location: Conference Room A');
+      expect(result.body).toContain('Bring your status updates');
+      expect(result.data.eventType).toBe('meeting');
+      expect(result.data.type).toBe('meeting_reminder');
+      expect(result.data.location).toBe('Conference Room A');
+    });
+
+    test('renders followUp template with contact name', () => {
+      const event = {
+        id: 3,
+        title: 'Project Discussion',
+        event_type: 'followUp',
+        contact_id: 789,
+        contact_name: 'Jane Smith',
+        notes: 'Follow up on proposal'
+      };
+
+      const context = {
+        eventTime: '6/16/2023, 10:00:00 AM',
+        isRecurring: false,
+        reminderId: 789
+      };
+
+      const result = notificationService.renderNotificationTemplate(event, context);
+
+      expect(result.title).toBe('Follow-up Reminder');
+      expect(result.body).toContain('Follow-up reminder: Jane Smith - Project Discussion');
+      expect(result.body).toContain('Follow up on proposal');
+      expect(result.data.eventType).toBe('followUp');
+      expect(result.data.type).toBe('followup_reminder');
+      expect(result.data.contactId).toBe(789);
+    });
+
+    test('uses generic template for unknown event types', () => {
+      const event = {
+        id: 4,
+        title: 'Custom Event',
+        event_type: 'unknown_type',
+        notes: 'Some custom notes'
+      };
+
+      const context = {
+        eventTime: '6/17/2023, 3:00:00 PM',
+        isRecurring: false
+      };
+
+      const result = notificationService.renderNotificationTemplate(event, context);
+
+      expect(result.title).toBe('Event Reminder');
+      expect(result.body).toContain('Event reminder: Custom Event');
+      expect(result.body).toContain('Some custom notes');
+      expect(result.data.eventType).toBe('unknown_type');
+      expect(result.data.type).toBe('event_reminder');
+    });
+
+    test('handles template errors gracefully', () => {
+      const event = {
+        id: 5,
+        title: 'Problem Event',
+        event_type: null, // This might cause issues
+      };
+
+      const context = {
+        eventTime: '6/18/2023, 4:00:00 PM',
+        isRecurring: false
+      };
+
+      // Should not throw and fallback to generic template
+      const result = notificationService.renderNotificationTemplate(event, context);
+
+      expect(result.title).toBe('Event Reminder');
+      expect(result.body).toContain('Event reminder: Problem Event');
+      expect(result.data.type).toBe('event_reminder');
+    });
+
+    test('maps event type variants correctly', () => {
+      const testCases = [
+        { eventType: 'followUp', expected: 'followUp' },
+        { eventType: 'follow-up', expected: 'followUp' },
+        { eventType: 'follow_up', expected: 'followUp' },
+        { eventType: 'MEETING', expected: 'meeting' },
+        { eventType: 'Birthday', expected: 'birthday' },
+        { eventType: 'unknown', expected: 'generic' },
+      ];
+
+      testCases.forEach(({ eventType, expected }) => {
+        const templateKey = notificationService.getTemplateKey(eventType);
+        expect(templateKey).toBe(expected);
+      });
     });
   });
 

@@ -25,6 +25,93 @@ const DEFAULT_QUIET_HOURS = {
 };
 
 /**
+ * Notification templates for standardized content across different event types
+ */
+const NOTIFICATION_TEMPLATES = {
+  birthday: {
+    title: 'Birthday Reminder',
+    body: (event, context) => {
+      const { eventTime, age } = context;
+      if (age !== undefined) {
+        return `Birthday reminder: ${event.title} (${age} years old) - ${eventTime}`;
+      }
+      return `Birthday reminder: ${event.title} - ${eventTime}`;
+    },
+    data: (event, context) => ({
+      eventId: event.id,
+      type: context.isRecurring ? 'recurring_birthday' : 'birthday_reminder',
+      eventType: 'birthday',
+      contactId: event.contact_id,
+      ...(context.isRecurring && { eventDate: context.eventDate?.toISOString() }),
+      ...(context.reminderId && { reminderId: context.reminderId }),
+    }),
+  },
+  meeting: {
+    title: 'Meeting Reminder',
+    body: (event, context) => {
+      const { eventTime } = context;
+      let message = `Meeting reminder: ${event.title} - ${eventTime}`;
+      if (event.location) {
+        message += `\nLocation: ${event.location}`;
+      }
+      if (event.notes) {
+        message += `\n${event.notes}`;
+      }
+      return message;
+    },
+    data: (event, context) => ({
+      eventId: event.id,
+      type: context.isRecurring ? 'recurring_meeting' : 'meeting_reminder',
+      eventType: 'meeting',
+      ...(event.location && { location: event.location }),
+      ...(context.isRecurring && { eventDate: context.eventDate?.toISOString() }),
+      ...(context.reminderId && { reminderId: context.reminderId }),
+    }),
+  },
+  followUp: {
+    title: 'Follow-up Reminder',
+    body: (event, context) => {
+      const { eventTime } = context;
+      let message = `Follow-up reminder: ${event.title} - ${eventTime}`;
+      if (event.contact_name) {
+        message = `Follow-up reminder: ${event.contact_name} - ${event.title} - ${eventTime}`;
+      }
+      if (event.notes) {
+        message += `\n${event.notes}`;
+      }
+      return message;
+    },
+    data: (event, context) => ({
+      eventId: event.id,
+      type: context.isRecurring ? 'recurring_followup' : 'followup_reminder',
+      eventType: 'followUp',
+      contactId: event.contact_id,
+      ...(context.isRecurring && { eventDate: context.eventDate?.toISOString() }),
+      ...(context.reminderId && { reminderId: context.reminderId }),
+    }),
+  },
+  // Generic template for other event types
+  generic: {
+    title: 'Event Reminder',
+    body: (event, context) => {
+      const { eventTime } = context;
+      let message = `Event reminder: ${event.title} - ${eventTime}`;
+      if (event.notes) {
+        message += `\n${event.notes}`;
+      }
+      return message;
+    },
+    data: (event, context) => ({
+      eventId: event.id,
+      type: context.isRecurring ? 'recurring_event' : 'event_reminder',
+      eventType: event.event_type || 'generic',
+      ...(context.isRecurring && { eventDate: context.eventDate?.toISOString() }),
+      ...(context.reminderId && { reminderId: context.reminderId }),
+    }),
+  },
+};
+
+/**
  * Notification service for managing event reminders using Expo Notifications.
  * Handles permissions, scheduling, recurring events, and quiet hours.
  */
@@ -137,15 +224,16 @@ export const notificationService = {
         console.log(`Reminder ${reminder.id} adjusted for quiet hours from ${originalReminderTime.toISOString()} to ${scheduledTime.toISOString()}`);
       }
 
-      const content = {
-        title: event.title || 'Event Reminder',
-        body: this.formatReminderMessage(event, reminder),
-        data: {
-          eventId: event.id,
-          reminderId: reminder.id,
-          type: 'event_reminder',
-        },
+      // Use template system for notification content
+      const eventDate = new Date(event.event_date);
+      const context = {
+        eventTime: eventDate.toLocaleString(),
+        isRecurring: false,
+        reminderId: reminder.id,
       };
+
+      const { title, body, data } = this.renderNotificationTemplate(event, context);
+      const content = { title, body, data };
 
       const trigger = {
         date: scheduledTime,
@@ -231,15 +319,29 @@ export const notificationService = {
           continue;
         }
 
-        const content = {
-          title: event.title || 'Recurring Event Reminder',
-          body: this.formatRecurringReminderMessage(event, eventDate),
-          data: {
-            eventId: event.id,
-            type: 'recurring_reminder',
-            eventDate: eventDate.toISOString(),
-          },
+        // Use template system for recurring notification content
+        const context = {
+          eventTime: eventDate.toLocaleString(),
+          eventDate,
+          isRecurring: true,
         };
+
+        // Calculate age for birthday events
+        if (event.event_type === 'birthday') {
+          const birthDate = new Date(event.event_date);
+          const currentYear = eventDate.getFullYear();
+
+          let age = currentYear - birthDate.getFullYear();
+          const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+          if (eventDate < birthdayThisYear) {
+            age -= 1;
+          }
+
+          context.age = age;
+        }
+
+        const { title, body, data } = this.renderNotificationTemplate(event, context);
+        const content = { title, body, data };
 
         const trigger = {
           date: reminderTime,
@@ -429,33 +531,83 @@ export const notificationService = {
   },
 
   /**
-   * Format reminder message for notifications
+   * Render a notification using the appropriate template
+   * @param {object} event - Event data
+   * @param {object} context - Context data for template rendering
+   * @returns {object} Rendered notification content {title, body, data}
+   */
+  renderNotificationTemplate(event, context) {
+    try {
+      // Determine template based on event type
+      const templateKey = this.getTemplateKey(event.event_type);
+      const template = NOTIFICATION_TEMPLATES[templateKey];
+
+      if (!template) {
+        throw new Error(`No template found for event type: ${event.event_type}`);
+      }
+
+      // Render the template
+      const title = typeof template.title === 'function'
+        ? template.title(event, context)
+        : template.title;
+
+      const body = template.body(event, context);
+      const data = template.data(event, context);
+
+      return { title, body, data };
+    } catch (error) {
+      // Fallback to generic template on error
+      const genericTemplate = NOTIFICATION_TEMPLATES.generic;
+      return {
+        title: genericTemplate.title,
+        body: genericTemplate.body(event, context),
+        data: genericTemplate.data(event, context),
+      };
+    }
+  },
+
+  /**
+   * Get the appropriate template key for an event type
+   * @param {string} eventType - Event type
+   * @returns {string} Template key
+   */
+  getTemplateKey(eventType) {
+    const normalizedType = eventType?.toLowerCase();
+
+    // Map event types to template keys
+    const typeMapping = {
+      'birthday': 'birthday',
+      'meeting': 'meeting',
+      'followup': 'followUp',
+      'follow-up': 'followUp',
+      'follow_up': 'followUp',
+    };
+
+    return typeMapping[normalizedType] || 'generic';
+  },
+
+  /**
+   * Format reminder message for notifications (legacy compatibility)
    * @param {object} event - Event data
    * @param {object} reminder - Reminder data
    * @returns {string} Formatted message
    */
   formatReminderMessage(event, reminder) {
     const eventDate = new Date(event.event_date);
-    const reminderTime = new Date(reminder.reminder_datetime);
     const eventTime = eventDate.toLocaleString();
 
-    let message = '';
+    const context = {
+      eventTime,
+      isRecurring: false,
+      reminderId: reminder.id,
+    };
 
-    if (event.event_type === 'birthday') {
-      message = `Birthday reminder: ${event.title} - ${eventTime}`;
-    } else {
-      message = `Event reminder: ${event.title} - ${eventTime}`;
-    }
-
-    if (event.notes) {
-      message += `\n${event.notes}`;
-    }
-
-    return message;
+    const { body } = this.renderNotificationTemplate(event, context);
+    return body;
   },
 
   /**
-   * Format recurring reminder message
+   * Format recurring reminder message (legacy compatibility)
    * @param {object} event - Event data
    * @param {Date} eventDate - Specific occurrence date
    * @returns {string} Formatted message
@@ -463,27 +615,28 @@ export const notificationService = {
   formatRecurringReminderMessage(event, eventDate) {
     const eventTime = eventDate.toLocaleString();
 
-    let message = '';
+    const context = {
+      eventTime,
+      eventDate,
+      isRecurring: true,
+    };
 
+    // Calculate age for birthday events
     if (event.event_type === 'birthday') {
       const birthDate = new Date(event.event_date);
       const currentYear = eventDate.getFullYear();
 
-      // Calculate age properly by checking if birthday has occurred this year
       let age = currentYear - birthDate.getFullYear();
-
-      // Check if birthday hasn't occurred yet this year
       const birthdayThisYear = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
       if (eventDate < birthdayThisYear) {
         age -= 1;
       }
 
-      message = `Birthday reminder: ${event.title} (${age} years old) - ${eventTime}`;
-    } else {
-      message = `Recurring event: ${event.title} - ${eventTime}`;
+      context.age = age;
     }
 
-    return message;
+    const { body } = this.renderNotificationTemplate(event, context);
+    return body;
   },
 
   /**
