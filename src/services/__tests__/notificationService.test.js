@@ -17,6 +17,9 @@ jest.mock('expo-notifications', () => ({
   },
 }));
 
+// Ensure the database module is mocked before importing the service or any module that uses it
+jest.mock('../database');
+
 // Mock Expo Device
 const mockDevice = { isDevice: true };
 jest.mock('expo-device', () => mockDevice);
