@@ -17,7 +17,7 @@
  *   on how to schedule SQL calls to ensure they run inside the same transaction.
  */
 
-import * as SQLite from 'expo-sqlite';
+import { openDatabase as expoOpenDatabase } from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
 import { createContactsInfoDB } from './contactsInfo';
@@ -94,7 +94,7 @@ function getDB() {
 function openDatabase(dbName = DEFAULT_DB_NAME) {
   try {
     // expo-sqlite returns a Database object compatible with `transaction`
-    _db = SQLite.openDatabase(dbName);
+    _db = expoOpenDatabase(dbName);
     return _db;
   } catch (err) {
     throw new DatabaseError('Failed to open database', 'OPEN_FAILED', err, { dbName });

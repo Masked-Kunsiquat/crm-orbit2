@@ -1,5 +1,13 @@
 
-import * as FileSystem from 'expo-file-system';
+import {
+  documentDirectory,
+  readDirectoryAsync,
+  getInfoAsync,
+  makeDirectoryAsync,
+  copyAsync,
+  deleteAsync,
+  moveAsync,
+} from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Crypto from 'expo-crypto';
 import db from '../database';
@@ -45,7 +53,7 @@ const getFileType = (mimeType) => {
  * @returns {string} Absolute path under `FileSystem.documentDirectory` where files are stored.
  */
 const getFileDirectory = (fileType) => {
-    const baseDir = `${FileSystem.documentDirectory}attachments`;
+    const baseDir = `${documentDirectory}attachments`;
     switch (fileType) {
         case 'image':
             return `${baseDir}/images`;
@@ -88,10 +96,10 @@ function detectMimeTypeFromName(name) {
 const listFilesRecursively = async (dir) => {
     const files = [];
     try {
-        const entries = await FileSystem.readDirectoryAsync(dir);
+        const entries = await readDirectoryAsync(dir);
         for (const entry of entries) {
             const fullPath = `${dir}/${entry}`;
-            const info = await FileSystem.getInfoAsync(fullPath);
+            const info = await getInfoAsync(fullPath);
             if (info.isDirectory) {
                 const subFiles = await listFilesRecursively(fullPath);
                 files.push(...subFiles);
@@ -133,7 +141,7 @@ export const fileService = {
     let directory = null;
 
     try {
-      const fileInfo = await FileSystem.getInfoAsync(uri);
+      const fileInfo = await getInfoAsync(uri);
       if (!fileInfo.exists) {
         throw new Error('File does not exist at provided URI.');
       }
@@ -154,14 +162,14 @@ export const fileService = {
       const fileName = `${uuid}.${fileExtension}`;
 
       directory = getFileDirectory(fileType);
-      await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+      await makeDirectoryAsync(directory, { intermediates: true });
 
       destPath = `${directory}/${fileName}`;
-      await FileSystem.copyAsync({ from: uri, to: destPath });
+      await copyAsync({ from: uri, to: destPath });
 
-      const savedFileInfo = await FileSystem.getInfoAsync(destPath);
+      const savedFileInfo = await getInfoAsync(destPath);
       if (savedFileInfo.size && savedFileInfo.size > FILE_CONFIG.MAX_FILE_SIZE) {
-        await FileSystem.deleteAsync(destPath, { idempotent: true });
+        await deleteAsync(destPath, { idempotent: true });
         throw new Error(`Saved file size (${(savedFileInfo.size / (1024 * 1024)).toFixed(2)}MB) exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`);
       }
 
@@ -185,10 +193,10 @@ export const fileService = {
     } catch (error) {
       try {
         if (destPath) {
-          await FileSystem.deleteAsync(destPath, { idempotent: true });
+          await deleteAsync(destPath, { idempotent: true });
         }
         if (thumbnailPath) {
-          await FileSystem.deleteAsync(thumbnailPath, { idempotent: true });
+          await deleteAsync(thumbnailPath, { idempotent: true });
         }
       } catch (cleanupError) {
         console.error('Failed to cleanup files during error handling:', cleanupError);
@@ -215,10 +223,10 @@ export const fileService = {
         return;
       }
 
-      await FileSystem.deleteAsync(attachment.file_path, { idempotent: true });
+      await deleteAsync(attachment.file_path, { idempotent: true });
 
       if (attachment.thumbnail_path) {
-        await FileSystem.deleteAsync(attachment.thumbnail_path, { idempotent: true });
+        await deleteAsync(attachment.thumbnail_path, { idempotent: true });
       }
 
       await db.attachments.delete(attachmentId);
@@ -255,8 +263,8 @@ export const fileService = {
    */
   async generateThumbnail(imageUri, uuid) {
     try {
-        const thumbnailDir = `${FileSystem.documentDirectory}attachments/images/thumbnails`;
-        await FileSystem.makeDirectoryAsync(thumbnailDir, { intermediates: true });
+        const thumbnailDir = `${documentDirectory}attachments/images/thumbnails`;
+        await makeDirectoryAsync(thumbnailDir, { intermediates: true });
         const thumbnailPath = `${thumbnailDir}/${uuid}_thumb.jpg`;
 
         const manipResult = await ImageManipulator.manipulateAsync(
@@ -264,7 +272,7 @@ export const fileService = {
             [{ resize: FILE_CONFIG.THUMBNAIL_SIZE }],
             { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
         );
-        await FileSystem.moveAsync({ from: manipResult.uri, to: thumbnailPath });
+        await moveAsync({ from: manipResult.uri, to: thumbnailPath });
 
 
         return thumbnailPath;
@@ -302,15 +310,15 @@ export const fileService = {
         const allDbAttachments = await db.attachments.getAll({limit: 1000}); // Assuming getAll supports pagination
         const allDbPaths = new Set(allDbAttachments.map(a => a.file_path).concat(allDbAttachments.map(a => a.thumbnail_path)));
 
-        const attachmentsDir = `${FileSystem.documentDirectory}attachments`;
+        const attachmentsDir = `${documentDirectory}attachments`;
         const fileSystemAttachments = await listFilesRecursively(attachmentsDir);
 
         let orphanedCount = 0;
         for (const filePath of fileSystemAttachments) {
             if (!allDbPaths.has(filePath)) {
-                const fileInfo = await FileSystem.getInfoAsync(filePath);
+                const fileInfo = await getInfoAsync(filePath);
                 if (fileInfo.exists && !fileInfo.isDirectory) {
-                    await FileSystem.deleteAsync(filePath, { idempotent: true });
+                    await deleteAsync(filePath, { idempotent: true });
                     orphanedCount++;
                 }
             }
