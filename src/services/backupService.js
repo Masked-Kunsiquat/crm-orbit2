@@ -1,4 +1,4 @@
-import { documentDirectory, writeAsStringAsync, readAsStringAsync, deleteAsync, makeDirectoryAsync, readDirectoryAsync, getInfoAsync } from 'expo-file-system';
+import { documentDirectory, writeAsStringAsync, readAsStringAsync, deleteAsync, makeDirectoryAsync, readDirectoryAsync, getInfoAsync, EncodingType } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import db from '../database';
 import authService from './authService';
@@ -662,7 +662,7 @@ class BackupService {
           return await db.companies.getAll();
         case 'contacts':
           return await db.contacts.getAll();
-        case 'contact_info':
+        case 'contact_info': {
           // Get all contact info by getting all contacts and their info
           const contacts = await db.contacts.getAll();
           const allContactInfo = [];
@@ -677,13 +677,14 @@ class BackupService {
             }
           }
           return allContactInfo;
-        case 'attachments':
+        }
+        case 'attachments': {
           const attachments = await db.attachments.getAll();
           // Include file data if requested (base64 encoded)
           if (includeAttachments) {
             for (const attachment of attachments) {
               try {
-                const fileData = await readAsStringAsync(attachment.file_path, { encoding: 'base64' });
+                const fileData = await readAsStringAsync(attachment.file_path, { encoding: EncodingType.Base64 });
                 attachment.file_data = fileData;
               } catch (error) {
                 console.warn(`Failed to read attachment ${attachment.id}:`, error);
@@ -691,6 +692,7 @@ class BackupService {
             }
           }
           return attachments;
+        }
         case 'events':
           return await db.events.getAll();
         case 'events_recurring':
@@ -701,7 +703,7 @@ class BackupService {
           return await db.interactions.getAll();
         case 'notes':
           return await db.notes.getAll();
-        case 'category_relations':
+        case 'category_relations': {
           // Get all category relations by getting category contact counts
           const categoryRelations = [];
           const categories = await db.categories.getAll();
@@ -719,6 +721,7 @@ class BackupService {
             }
           }
           return categoryRelations;
+        }
         case 'settings':
           return await db.settings.getAll();
         default:
