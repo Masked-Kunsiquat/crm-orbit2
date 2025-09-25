@@ -120,6 +120,36 @@ class BackupService {
   }
 
   /**
+   * Safe auto-backup check that can be called during app startup
+   * Ensures auto-backup is scheduled if possible without throwing errors
+   * @returns {Promise<boolean>} Success status - true if auto-backup is ready, false on any error
+   */
+  async checkAutoBackup() {
+    try {
+      // If already initialized, auto-backup should be scheduled
+      if (this.isInitialized) {
+        return true;
+      }
+
+      // Attempt to initialize the service
+      await this.initialize();
+      return true;
+    } catch (error) {
+      // Silently handle any initialization errors
+      console.warn('Auto-backup check failed during startup:', error.message);
+
+      // Try to at least schedule auto-backup if settings are available
+      try {
+        await this._scheduleAutoBackup();
+        return true;
+      } catch (scheduleError) {
+        console.warn('Failed to schedule auto-backup:', scheduleError.message);
+        return false;
+      }
+    }
+  }
+
+  /**
    * Add event listener for backup state changes
    * @param {Function} callback - Event callback
    * @returns {Function} Cleanup function

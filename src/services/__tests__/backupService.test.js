@@ -172,6 +172,35 @@ describe('backupService', () => {
         message: expect.stringContaining('Failed to initialize backup service'),
       });
     });
+
+    test('checkAutoBackup returns true when service is already initialized', async () => {
+      await backupService.initialize();
+      const result = await backupService.checkAutoBackup();
+      expect(result).toBe(true);
+    });
+
+    test('checkAutoBackup safely handles initialization failures', async () => {
+      // Mock makeDirectory to fail initially
+      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(new Error('Permission denied'));
+
+      const result = await backupService.checkAutoBackup();
+
+      // Should return false but not throw
+      expect(result).toBe(false);
+    });
+
+    test('checkAutoBackup attempts to schedule auto-backup on initialization failure', async () => {
+      // Mock initialization to fail but allow scheduling
+      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(new Error('Permission denied'));
+
+      // Spy on the private method
+      const scheduleSpy = jest.spyOn(backupService, '_scheduleAutoBackup').mockResolvedValueOnce();
+
+      const result = await backupService.checkAutoBackup();
+
+      expect(scheduleSpy).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
   });
 
   describe('createBackup', () => {
