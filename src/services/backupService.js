@@ -66,6 +66,29 @@ const BACKUP_ERROR_CODES = {
 };
 
 /**
+ * Helper function to build ServiceError with proper code and metadata assignment
+ * @param {string} service - Service name
+ * @param {string} operation - Operation name
+ * @param {Error} originalError - Original error
+ * @param {string} errorCode - Error code from BACKUP_ERROR_CODES
+ * @param {Object} [metadata] - Additional error metadata
+ * @returns {ServiceError} Properly configured ServiceError
+ */
+function buildServiceError(service, operation, originalError, errorCode, metadata = {}) {
+  const error = new ServiceError(service, operation, originalError);
+  error.code = errorCode;
+
+  // Assign any additional metadata fields
+  Object.keys(metadata).forEach(key => {
+    if (!error.hasOwnProperty(key)) {
+      error[key] = metadata[key];
+    }
+  });
+
+  return error;
+}
+
+/**
  * Comprehensive backup service for CRM database export/import operations.
  *
  * Provides secure, authenticated backup and restore functionality with the following features:
@@ -110,11 +133,11 @@ class BackupService {
 
       return true;
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'initialize',
         error,
-        { errorCode: BACKUP_ERROR_CODES.INIT_ERROR }
+        BACKUP_ERROR_CODES.INIT_ERROR
       );
     }
   }
@@ -187,20 +210,20 @@ class BackupService {
 
     // Check authentication if required
     if (requireAuth && (await authService.checkIsLocked())) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'createBackup',
         new Error('Authentication required for backup operations'),
-        { errorCode: BACKUP_ERROR_CODES.AUTH_REQUIRED }
+        BACKUP_ERROR_CODES.AUTH_REQUIRED
       );
     }
 
     if (this.isBackupRunning) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'createBackup',
         new Error('Backup operation already in progress'),
-        { errorCode: BACKUP_ERROR_CODES.IN_PROGRESS }
+        BACKUP_ERROR_CODES.IN_PROGRESS
       );
     }
 
@@ -256,11 +279,12 @@ class BackupService {
       const fileInfo = await getInfoAsync(backupPath);
       if (!fileService.validateFileSize(fileInfo.size)) {
         await deleteAsync(backupPath); // Cleanup on failure
-        throw new ServiceError(
+        throw buildServiceError(
           'backupService',
           'createBackup',
           new Error('Backup file exceeds maximum allowed size'),
-          { errorCode: BACKUP_ERROR_CODES.FILE_TOO_LARGE, fileSize: fileInfo.size }
+          BACKUP_ERROR_CODES.FILE_TOO_LARGE,
+          { fileSize: fileInfo.size }
         );
       }
 
@@ -277,11 +301,11 @@ class BackupService {
 
       return backupPath;
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'createBackup',
         error,
-        { errorCode: BACKUP_ERROR_CODES.CREATE_ERROR }
+        BACKUP_ERROR_CODES.CREATE_ERROR
       );
     } finally {
       this.isBackupRunning = false;
@@ -301,11 +325,11 @@ class BackupService {
 
     // Check authentication if required
     if (requireAuth && (await authService.checkIsLocked())) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'exportToCSV',
         new Error('Authentication required for export operations'),
-        { errorCode: BACKUP_ERROR_CODES.AUTH_REQUIRED }
+        BACKUP_ERROR_CODES.AUTH_REQUIRED
       );
     }
 
@@ -357,11 +381,11 @@ class BackupService {
 
       return csvPath;
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'exportToCSV',
         error,
-        { errorCode: BACKUP_ERROR_CODES.CSV_EXPORT_ERROR }
+        BACKUP_ERROR_CODES.CSV_EXPORT_ERROR
       );
     }
   }
@@ -381,11 +405,11 @@ class BackupService {
 
     // Check authentication if required
     if (requireAuth && (await authService.checkIsLocked())) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'importBackup',
         new Error('Authentication required for import operations'),
-        { errorCode: BACKUP_ERROR_CODES.AUTH_REQUIRED }
+        BACKUP_ERROR_CODES.AUTH_REQUIRED
       );
     }
 
@@ -444,11 +468,11 @@ class BackupService {
 
       return summary;
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'importBackup',
         error,
-        { errorCode: BACKUP_ERROR_CODES.IMPORT_ERROR }
+        BACKUP_ERROR_CODES.IMPORT_ERROR
       );
     }
   }
@@ -479,11 +503,11 @@ class BackupService {
 
       return backups.sort((a, b) => b.created - a.created);
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'listBackups',
         error,
-        { errorCode: BACKUP_ERROR_CODES.LIST_ERROR }
+        BACKUP_ERROR_CODES.LIST_ERROR
       );
     }
   }
@@ -496,11 +520,11 @@ class BackupService {
   async deleteBackup(filename, requireAuth = true) {
     // Check authentication if required
     if (requireAuth && (await authService.checkIsLocked())) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'deleteBackup',
         new Error('Authentication required for delete operations'),
-        { errorCode: BACKUP_ERROR_CODES.AUTH_REQUIRED }
+        BACKUP_ERROR_CODES.AUTH_REQUIRED
       );
     }
 
@@ -513,11 +537,12 @@ class BackupService {
         filename
       });
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'deleteBackup',
         error,
-        { errorCode: BACKUP_ERROR_CODES.DELETE_ERROR, filename }
+        BACKUP_ERROR_CODES.DELETE_ERROR,
+        { filename }
       );
     }
   }
@@ -536,19 +561,20 @@ class BackupService {
           backupPath
         });
       } else {
-        throw new ServiceError(
+        throw buildServiceError(
           'backupService',
           'shareBackup',
           new Error('Sharing not available on this device'),
-          { errorCode: BACKUP_ERROR_CODES.SHARING_NOT_AVAILABLE }
+          BACKUP_ERROR_CODES.SHARING_NOT_AVAILABLE
         );
       }
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'shareBackup',
         error,
-        { errorCode: BACKUP_ERROR_CODES.SHARE_ERROR, backupPath }
+        BACKUP_ERROR_CODES.SHARE_ERROR,
+        { backupPath }
       );
     }
   }
@@ -578,11 +604,12 @@ class BackupService {
         settings
       });
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'configureAutoBackup',
         error,
-        { errorCode: BACKUP_ERROR_CODES.CONFIG_ERROR, settings }
+        BACKUP_ERROR_CODES.CONFIG_ERROR,
+        { settings }
       );
     }
   }
@@ -607,10 +634,11 @@ class BackupService {
         lastBackupTime: settings.last_backup_time ? new Date(settings.last_backup_time) : null,
       };
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         'getBackupSettings',
-        error
+        error,
+        BACKUP_ERROR_CODES.CONFIG_ERROR
       );
     }
   }
@@ -694,19 +722,21 @@ class BackupService {
         case 'settings':
           return await db.settings.getAll();
         default:
-          throw new ServiceError(
+          throw buildServiceError(
             'backupService',
             '_exportTable',
             new Error(`Unknown table: ${tableName}`),
-            { errorCode: BACKUP_ERROR_CODES.UNKNOWN_TABLE, tableName }
+            BACKUP_ERROR_CODES.UNKNOWN_TABLE,
+            { tableName }
           );
       }
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         '_exportTable',
         error,
-        { errorCode: BACKUP_ERROR_CODES.TABLE_EXPORT_ERROR, tableName, includeAttachments }
+        BACKUP_ERROR_CODES.TABLE_EXPORT_ERROR,
+        { tableName, includeAttachments }
       );
     }
   }
@@ -771,11 +801,12 @@ class BackupService {
         }
       }
     } catch (error) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         '_importTable',
         error,
-        { errorCode: BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR, tableName, recordCount: data.length }
+        BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+        { tableName, recordCount: data.length }
       );
     }
 
@@ -791,11 +822,11 @@ class BackupService {
    */
   async _validateBackup(backupData) {
     if (!backupData.version || !backupData.timestamp || !backupData.tables) {
-      throw new ServiceError(
+      throw buildServiceError(
         'backupService',
         '_validateBackup',
         new Error('Invalid backup format: missing required fields'),
-        { errorCode: BACKUP_ERROR_CODES.INVALID_FORMAT }
+        BACKUP_ERROR_CODES.INVALID_FORMAT
       );
     }
 
