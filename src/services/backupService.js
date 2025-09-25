@@ -35,6 +35,33 @@ const BACKUP_TABLES = [
 ];
 
 /**
+ * Tables that support full import functionality
+ * Complex relational tables may be export-only for now
+ */
+const IMPORTABLE_TABLES = [
+  'categories',
+  'companies',
+  'contacts',
+  'contact_info',
+  'attachments',
+  'events',
+  'interactions',
+  'notes',
+  'settings'
+];
+
+/**
+ * Feature flags for backup/import functionality
+ */
+const BACKUP_FEATURES = {
+  IMPORT_COMPLEX_RELATIONS: false, // events_recurring, events_reminders, category_relations
+  SKIP_IMPORT_WARNINGS: false, // Show warnings for skipped tables during import
+  IMPORT_RECURRING_EVENTS: false, // Individual flag for events_recurring
+  IMPORT_EVENT_REMINDERS: false, // Individual flag for events_reminders
+  IMPORT_CATEGORY_RELATIONS: false, // Individual flag for category_relations
+};
+
+/**
  * Backup structure metadata for validation and external use
  */
 export const BACKUP_STRUCTURE = Object.freeze({
@@ -772,10 +799,66 @@ class BackupService {
               case 'contacts':
                 await db.contacts.updateContact(record.id, record);
                 break;
-              // Add other table update operations as needed
-              default:
+              case 'contact_info':
+                await db.contactsInfo.updateContactInfo(record.id, record);
+                break;
+              case 'attachments':
+                await db.attachments.update(record.id, record);
+                break;
+              case 'events':
+                await db.events.update(record.id, record);
+                break;
+              case 'interactions':
+                await db.interactions.update(record.id, record);
+                break;
+              case 'notes':
+                await db.notes.update(record.id, record);
+                break;
+              case 'settings':
+                await db.settings.setSetting(record.category + '.' + record.key, record.value);
+                break;
+              // Complex tables that may need special handling
+              case 'events_recurring': {
+                if (BACKUP_FEATURES.IMPORT_RECURRING_EVENTS) {
+                  await this._importRecurringEvent(record, true);
+                  imported++;
+                } else {
+                  if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
+                    console.warn('Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)');
+                  }
+                  skipped++;
+                }
+                break;
+              }
+              case 'events_reminders': {
+                if (BACKUP_FEATURES.IMPORT_EVENT_REMINDERS) {
+                  await this._importEventReminder(record, true);
+                  imported++;
+                } else {
+                  if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
+                    console.warn('Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)');
+                  }
+                  skipped++;
+                }
+                break;
+              }
+              case 'category_relations': {
+                if (BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS) {
+                  await this._importCategoryRelation(record, true);
+                  imported++;
+                } else {
+                  if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
+                    console.warn('Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)');
+                  }
+                  skipped++;
+                }
+                break;
+              }
+              default: {
+                console.warn(`Skipping unknown table '${tableName}' during overwrite import`);
                 skipped++;
                 continue;
+              }
             }
             imported++;
           } else {
@@ -791,10 +874,66 @@ class BackupService {
               case 'contacts':
                 await db.contacts.createContact(recordData);
                 break;
-              // Add other table create operations as needed
-              default:
+              case 'contact_info':
+                await db.contactsInfo.addContactInfo(recordData.contact_id, recordData);
+                break;
+              case 'attachments':
+                await db.attachments.create(recordData);
+                break;
+              case 'events':
+                await db.events.create(recordData);
+                break;
+              case 'interactions':
+                await db.interactions.create(recordData);
+                break;
+              case 'notes':
+                await db.notes.create(recordData);
+                break;
+              case 'settings':
+                await db.settings.setSetting(recordData.category + '.' + recordData.key, recordData.value);
+                break;
+              // Complex tables that may need special handling
+              case 'events_recurring': {
+                if (BACKUP_FEATURES.IMPORT_RECURRING_EVENTS) {
+                  await this._importRecurringEvent(recordData, false);
+                  imported++;
+                } else {
+                  if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
+                    console.warn('Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)');
+                  }
+                  skipped++;
+                }
+                break;
+              }
+              case 'events_reminders': {
+                if (BACKUP_FEATURES.IMPORT_EVENT_REMINDERS) {
+                  await this._importEventReminder(recordData, false);
+                  imported++;
+                } else {
+                  if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
+                    console.warn('Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)');
+                  }
+                  skipped++;
+                }
+                break;
+              }
+              case 'category_relations': {
+                if (BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS) {
+                  await this._importCategoryRelation(recordData, false);
+                  imported++;
+                } else {
+                  if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
+                    console.warn('Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)');
+                  }
+                  skipped++;
+                }
+                break;
+              }
+              default: {
+                console.warn(`Skipping unknown table '${tableName}' during non-overwrite import`);
                 skipped++;
                 continue;
+              }
             }
             imported++;
           }
@@ -968,6 +1107,60 @@ class BackupService {
     } catch (error) {
       console.warn('Failed to save backup settings:', error);
     }
+  }
+
+  /**
+   * Import a recurring event record (placeholder implementation)
+   * @private
+   * @param {Object} record - Recurring event record to import
+   * @param {boolean} overwrite - Whether to overwrite existing records
+   * @throws {ServiceError} When import fails
+   * @todo Implement proper recurring event import with validation
+   */
+  async _importRecurringEvent(record, overwrite) {
+    throw buildServiceError(
+      'backupService',
+      '_importRecurringEvent',
+      new Error('Recurring events import not yet implemented'),
+      BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+      { tableName: 'events_recurring', recordId: record.id }
+    );
+  }
+
+  /**
+   * Import an event reminder record (placeholder implementation)
+   * @private
+   * @param {Object} record - Event reminder record to import
+   * @param {boolean} overwrite - Whether to overwrite existing records
+   * @throws {ServiceError} When import fails
+   * @todo Implement proper event reminder import with validation
+   */
+  async _importEventReminder(record, overwrite) {
+    throw buildServiceError(
+      'backupService',
+      '_importEventReminder',
+      new Error('Event reminders import not yet implemented'),
+      BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+      { tableName: 'events_reminders', recordId: record.id }
+    );
+  }
+
+  /**
+   * Import a category relation record (placeholder implementation)
+   * @private
+   * @param {Object} record - Category relation record to import
+   * @param {boolean} overwrite - Whether to overwrite existing records
+   * @throws {ServiceError} When import fails
+   * @todo Implement proper category relation import with validation
+   */
+  async _importCategoryRelation(record, overwrite) {
+    throw buildServiceError(
+      'backupService',
+      '_importCategoryRelation',
+      new Error('Category relations import not yet implemented'),
+      BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+      { tableName: 'category_relations', recordId: record.category_id + '-' + record.contact_id }
+    );
   }
 }
 
