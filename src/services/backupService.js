@@ -468,8 +468,6 @@ class BackupService {
       );
     }
 
-    this.isBackupRunning = true;
-
     try {
       onProgress?.({ stage: 'reading', progress: 0 });
 
@@ -480,6 +478,9 @@ class BackupService {
       await this._validateBackup(backupData);
 
       onProgress?.({ stage: 'validating', progress: 10 });
+
+      // Set flag before starting the long-running import work
+      this.isBackupRunning = true;
 
       const importTables = tablesToImport || BACKUP_TABLES;
       const summary = {
@@ -492,6 +493,9 @@ class BackupService {
       let progressIncrement = 80 / importTables.length;
       let currentProgress = 20;
 
+      // Create shared ID mapping for non-overwrite mode to maintain referential integrity
+      const idMaps = overwrite ? null : new Map();
+
       for (const table of importTables) {
         onProgress?.({
           stage: 'importing',
@@ -501,7 +505,7 @@ class BackupService {
 
         try {
           if (backupData.tables[table]) {
-            const result = await this._importTable(table, backupData.tables[table], overwrite);
+            const result = await this._importTable(table, backupData.tables[table], overwrite, idMaps);
             summary.imported[table] = result.imported;
             summary.skipped[table] = result.skipped;
             summary.totalRecords += result.imported;
@@ -542,10 +546,22 @@ class BackupService {
    */
   async listBackups() {
     try {
-      // Ensure backup directory exists before reading
-      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+      let files;
 
-      const files = await readDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR);
+      try {
+        // Try to read directory first
+        files = await readDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR);
+      } catch (error) {
+        // If directory doesn't exist (ENOENT), create it and return empty list
+        if (error.code === 'ENOENT' || error.message?.includes('ENOENT') || error.message?.includes('does not exist')) {
+          await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+          files = []; // Empty directory
+        } else {
+          // Rethrow unexpected errors
+          throw error;
+        }
+      }
+
       const backups = [];
 
       for (const filename of files) {
@@ -818,12 +834,29 @@ class BackupService {
    * @param {string} tableName - Name of the database table
    * @param {Array} data - Array of records to import
    * @param {boolean} overwrite - Whether to overwrite existing records
+   * @param {Map<string, Map<number, number>>} [idMaps] - ID mapping for referential integrity in non-overwrite mode
    * @returns {Promise<{imported: number, skipped: number}>} Import statistics
    * @throws {ServiceError} When import operation fails
    */
-  async _importTable(tableName, data, overwrite) {
+  async _importTable(tableName, data, overwrite, idMaps = null) {
     let imported = 0;
     let skipped = 0;
+
+    // Initialize ID mapping if not provided and in non-overwrite mode
+    if (!overwrite && !idMaps) {
+      idMaps = new Map();
+    }
+
+    // Define root entities that create new IDs and dependent entities that need mapping
+    const rootEntities = ['categories', 'companies', 'contacts', 'events'];
+    const dependentEntities = {
+      'contact_info': ['contact_id'],
+      'attachments': ['entity_id'], // Assuming entity_id references contacts/companies
+      'category_relations': ['category_id', 'contact_id'],
+      'interactions': ['contact_id', 'company_id'],
+      'notes': ['entity_id'], // Assuming entity_id references contacts/companies/events
+      'events_reminders': ['event_id']
+    };
 
     try {
       for (const record of data) {
@@ -843,9 +876,23 @@ class BackupService {
               case 'contact_info':
                 await db.contactsInfo.updateContactInfo(record.id, record);
                 break;
-              case 'attachments':
-                await db.attachments.update(record.id, record);
+              case 'attachments': {
+                let dataToUpdate = { ...record };
+                if (record.file_data) {
+                  try {
+                    const attachDir = `${documentDirectory}attachments/`;
+                    await makeDirectoryAsync(attachDir, { intermediates: true });
+                    const targetPath = record.file_path || `${attachDir}${record.filename || `attachment-${Date.now()}.bin`}`;
+                    await writeAsStringAsync(targetPath, record.file_data, { encoding: EncodingType.Base64 });
+                    dataToUpdate.file_path = targetPath;
+                    delete dataToUpdate.file_data;
+                  } catch (fsErr) {
+                    console.warn('Failed to restore attachment file:', fsErr);
+                  }
+                }
+                await db.attachments.update(record.id, dataToUpdate);
                 break;
+              }
               case 'events':
                 await db.events.update(record.id, record);
                 break;
@@ -862,36 +909,36 @@ class BackupService {
               case 'events_recurring': {
                 if (BACKUP_FEATURES.IMPORT_RECURRING_EVENTS) {
                   await this._importRecurringEvent(record, true);
-                  imported++;
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
                     console.warn('Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)');
                   }
                   skipped++;
+                  continue; // Skip the post-switch imported++ increment
                 }
                 break;
               }
               case 'events_reminders': {
                 if (BACKUP_FEATURES.IMPORT_EVENT_REMINDERS) {
                   await this._importEventReminder(record, true);
-                  imported++;
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
                     console.warn('Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)');
                   }
                   skipped++;
+                  continue; // Skip the post-switch imported++ increment
                 }
                 break;
               }
               case 'category_relations': {
                 if (BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS) {
                   await this._importCategoryRelation(record, true);
-                  imported++;
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
                     console.warn('Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)');
                   }
                   skipped++;
+                  continue; // Skip the post-switch imported++ increment
                 }
                 break;
               }
@@ -909,27 +956,91 @@ class BackupService {
             }
             imported++;
           } else {
-            // For non-overwrite mode, only insert new records
+            // For non-overwrite mode with ID mapping for referential integrity
+            const oldId = record.id;
             const { id, ...recordData } = record;
+
+            // Apply ID mapping for dependent records
+            if (dependentEntities[tableName]) {
+              for (const foreignKey of dependentEntities[tableName]) {
+                if (recordData[foreignKey]) {
+                  // Determine the referenced table from foreign key name
+                  const referencedTable = this._getReferencedTableFromForeignKey(foreignKey);
+
+                  if (idMaps.has(referencedTable)) {
+                    const tableMap = idMaps.get(referencedTable);
+                    const newId = tableMap.get(recordData[foreignKey]);
+
+                    if (newId !== undefined) {
+                      recordData[foreignKey] = newId;
+                    } else {
+                      console.warn(`Missing ID mapping for ${tableName}.${foreignKey}: ${recordData[foreignKey]} -> skipping record`);
+                      skipped++;
+                      continue;
+                    }
+                  } else {
+                    console.warn(`No ID mapping table found for referenced table '${referencedTable}' -> skipping record`);
+                    skipped++;
+                    continue;
+                  }
+                }
+              }
+            }
+
+            let newRecord = null;
             switch (tableName) {
-              case 'categories':
-                await db.categories.createCategory(recordData);
+              case 'categories': {
+                newRecord = await db.categories.createCategory(recordData);
+                if (oldId && newRecord?.id) {
+                  if (!idMaps.has('categories')) idMaps.set('categories', new Map());
+                  idMaps.get('categories').set(oldId, newRecord.id);
+                }
                 break;
-              case 'companies':
-                await db.companies.createCompany(recordData);
+              }
+              case 'companies': {
+                newRecord = await db.companies.createCompany(recordData);
+                if (oldId && newRecord?.id) {
+                  if (!idMaps.has('companies')) idMaps.set('companies', new Map());
+                  idMaps.get('companies').set(oldId, newRecord.id);
+                }
                 break;
-              case 'contacts':
-                await db.contacts.createContact(recordData);
+              }
+              case 'contacts': {
+                newRecord = await db.contacts.createContact(recordData);
+                if (oldId && newRecord?.id) {
+                  if (!idMaps.has('contacts')) idMaps.set('contacts', new Map());
+                  idMaps.get('contacts').set(oldId, newRecord.id);
+                }
                 break;
+              }
               case 'contact_info':
                 await db.contactsInfo.addContactInfo(recordData.contact_id, recordData);
                 break;
-              case 'attachments':
-                await db.attachments.create(recordData);
+              case 'attachments': {
+                let dataToCreate = { ...recordData };
+                if (recordData.file_data) {
+                  try {
+                    const attachDir = `${documentDirectory}attachments/`;
+                    await makeDirectoryAsync(attachDir, { intermediates: true });
+                    const targetPath = recordData.file_path || `${attachDir}${recordData.filename || `attachment-${Date.now()}.bin`}`;
+                    await writeAsStringAsync(targetPath, recordData.file_data, { encoding: EncodingType.Base64 });
+                    dataToCreate.file_path = targetPath;
+                    delete dataToCreate.file_data;
+                  } catch (fsErr) {
+                    console.warn('Failed to restore attachment file:', fsErr);
+                  }
+                }
+                await db.attachments.create(dataToCreate);
                 break;
-              case 'events':
-                await db.events.create(recordData);
+              }
+              case 'events': {
+                newRecord = await db.events.create(recordData);
+                if (oldId && newRecord?.id) {
+                  if (!idMaps.has('events')) idMaps.set('events', new Map());
+                  idMaps.get('events').set(oldId, newRecord.id);
+                }
                 break;
+              }
               case 'interactions':
                 await db.interactions.create(recordData);
                 break;
@@ -943,36 +1054,36 @@ class BackupService {
               case 'events_recurring': {
                 if (BACKUP_FEATURES.IMPORT_RECURRING_EVENTS) {
                   await this._importRecurringEvent(recordData, false);
-                  imported++;
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
                     console.warn('Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)');
                   }
                   skipped++;
+                  continue; // Skip the post-switch imported++ increment
                 }
                 break;
               }
               case 'events_reminders': {
                 if (BACKUP_FEATURES.IMPORT_EVENT_REMINDERS) {
                   await this._importEventReminder(recordData, false);
-                  imported++;
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
                     console.warn('Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)');
                   }
                   skipped++;
+                  continue; // Skip the post-switch imported++ increment
                 }
                 break;
               }
               case 'category_relations': {
                 if (BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS) {
                   await this._importCategoryRelation(recordData, false);
-                  imported++;
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
                     console.warn('Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)');
                   }
                   skipped++;
+                  continue; // Skip the post-switch imported++ increment
                 }
                 break;
               }
@@ -1290,6 +1401,26 @@ class BackupService {
         }
       );
     }
+  }
+
+  /**
+   * Helper method to determine referenced table from foreign key name
+   * @private
+   * @param {string} foreignKey - Foreign key field name
+   * @returns {string} Referenced table name
+   */
+  _getReferencedTableFromForeignKey(foreignKey) {
+    // Map foreign key patterns to table names
+    const fkMappings = {
+      'contact_id': 'contacts',
+      'company_id': 'companies',
+      'category_id': 'categories',
+      'event_id': 'events',
+      'entity_id': 'contacts', // Default entity_id to contacts, could be enhanced
+      'parent_id': 'contacts'   // Default parent_id to contacts, could be enhanced
+    };
+
+    return fkMappings[foreignKey] || foreignKey.replace('_id', 's'); // Fallback: pluralize
   }
 
   /**
