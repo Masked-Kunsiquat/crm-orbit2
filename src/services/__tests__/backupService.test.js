@@ -26,7 +26,7 @@ jest.mock('../../database');
 // Mock authService
 jest.mock('../authService', () => ({
   default: {
-    isAuthenticated: jest.fn(() => true),
+    checkIsLocked: jest.fn(async () => false), // false means unlocked/authenticated
   }
 }), { virtual: true });
 
@@ -67,6 +67,7 @@ const backupService = require('../backupService').default;
 const FileSystem = require('expo-file-system');
 const Sharing = require('expo-sharing');
 const db = require('../../database');
+const authService = require('../authService').default;
 
 describe('backupService', () => {
   // Mocked modules
@@ -89,6 +90,9 @@ describe('backupService', () => {
       'backup-1.json',
       'backup-2.json',
     ]);
+
+    // Reset auth service mocks
+    authService.checkIsLocked.mockResolvedValue(false); // Default to authenticated (unlocked)
 
     // Reset database module mocks
     const mockTables = ['categories', 'companies', 'contacts', 'attachments', 'events', 'interactions', 'notes'];
@@ -231,6 +235,25 @@ describe('backupService', () => {
         expect.any(String),
         expect.stringContaining('"categories": []')
       );
+    });
+
+    test('requires authentication for backup operations', async () => {
+      // Mock the user as locked (not authenticated)
+      authService.checkIsLocked.mockResolvedValueOnce(true);
+
+      await expect(backupService.createBackup()).rejects.toMatchObject({
+        code: 'BACKUP_AUTH_REQUIRED',
+        message: expect.stringContaining('Authentication required for backup operations'),
+      });
+    });
+
+    test('allows backup operations when requireAuth is false', async () => {
+      // Mock the user as locked (not authenticated)
+      authService.checkIsLocked.mockResolvedValueOnce(true);
+
+      // Should still work when requireAuth=false
+      const backupPath = await backupService.createBackup({ requireAuth: false });
+      expect(backupPath).toMatch(/crm-backup-.*\.json/);
     });
   });
 

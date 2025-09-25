@@ -148,7 +148,7 @@ class BackupService {
     const { filename, includeAttachments = false, onProgress, requireAuth = true } = options;
 
     // Check authentication if required
-    if (requireAuth && !authService.isAuthenticated()) {
+    if (requireAuth && (await authService.checkIsLocked())) {
       throw new ServiceError(
         'backupService',
         'createBackup',
@@ -262,7 +262,7 @@ class BackupService {
     const { table, filename, requireAuth = true } = options;
 
     // Check authentication if required
-    if (requireAuth && !authService.isAuthenticated()) {
+    if (requireAuth && (await authService.checkIsLocked())) {
       throw new ServiceError(
         'backupService',
         'exportToCSV',
@@ -342,7 +342,7 @@ class BackupService {
     const { overwrite = false, tablesToImport, onProgress, requireAuth = true } = options;
 
     // Check authentication if required
-    if (requireAuth && !authService.isAuthenticated()) {
+    if (requireAuth && (await authService.checkIsLocked())) {
       throw new ServiceError(
         'backupService',
         'importBackup',
@@ -457,7 +457,7 @@ class BackupService {
    */
   async deleteBackup(filename, requireAuth = true) {
     // Check authentication if required
-    if (requireAuth && !authService.isAuthenticated()) {
+    if (requireAuth && (await authService.checkIsLocked())) {
       throw new ServiceError(
         'backupService',
         'deleteBackup',
