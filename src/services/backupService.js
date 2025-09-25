@@ -35,6 +35,14 @@ const BACKUP_TABLES = [
 ];
 
 /**
+ * Backup structure metadata for validation and external use
+ */
+export const BACKUP_STRUCTURE = Object.freeze({
+  version: BACKUP_CONFIG.BACKUP_VERSION,
+  tables: BACKUP_TABLES.slice()
+});
+
+/**
  * Backup service error codes
  */
 const BACKUP_ERROR_CODES = {
