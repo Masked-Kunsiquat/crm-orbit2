@@ -4,109 +4,19 @@ import db from '../database';
 import authService from './authService';
 import fileService from './fileService';
 import { ServiceError } from './errors';
+import {
+  BACKUP_CONFIG,
+  BACKUP_TABLES,
+  IMPORTABLE_TABLES,
+  BACKUP_FEATURES,
+  BACKUP_STRUCTURE,
+  BACKUP_ERROR_CODES,
+  buildServiceError
+} from './backup/backupConstants';
+import { createBackupCsvExporter } from './backup/backupCsv';
 
-/**
- * Configuration for backup operations
- */
-const BACKUP_CONFIG = {
-  BACKUP_DIR: `${documentDirectory}backups/`,
-  MAX_BACKUP_AGE_DAYS: 30,
-  MAX_BACKUP_COUNT: 10,
-  AUTO_BACKUP_INTERVAL_HOURS: 24,
-  BACKUP_VERSION: '1.0.0',
-};
-
-/**
- * Database tables to include in backups (in dependency order)
- */
-const BACKUP_TABLES = [
-  'categories',
-  'companies',
-  'contacts',
-  'contact_info',
-  'attachments',
-  'events',
-  'events_recurring',
-  'events_reminders',
-  'interactions',
-  'notes',
-  'category_relations',
-  'settings'
-];
-
-/**
- * Tables that support full import functionality
- * Complex relational tables may be export-only for now
- */
-const IMPORTABLE_TABLES = [
-  'categories',
-  'companies',
-  'contacts',
-  'contact_info',
-  'attachments',
-  'events',
-  'interactions',
-  'notes',
-  'settings'
-];
-
-/**
- * Feature flags for backup/import functionality
- */
-const BACKUP_FEATURES = {
-  IMPORT_COMPLEX_RELATIONS: true, // events_recurring, events_reminders, category_relations
-  SKIP_IMPORT_WARNINGS: false, // Show warnings for skipped tables during import
-  IMPORT_RECURRING_EVENTS: true, // Individual flag for events_recurring
-  IMPORT_EVENT_REMINDERS: true, // Individual flag for events_reminders
-  IMPORT_CATEGORY_RELATIONS: true, // Individual flag for category_relations
-};
-
-/**
- * Backup structure metadata for validation and external use
- */
-export const BACKUP_STRUCTURE = Object.freeze({
-  version: BACKUP_CONFIG.BACKUP_VERSION,
-  tables: BACKUP_TABLES.slice()
-});
-
-/**
- * Backup service error codes
- */
-const BACKUP_ERROR_CODES = {
-  INIT_ERROR: 'BACKUP_INIT_ERROR',
-  IN_PROGRESS: 'BACKUP_IN_PROGRESS',
-  CREATE_ERROR: 'BACKUP_CREATE_ERROR',
-  CSV_EXPORT_ERROR: 'CSV_EXPORT_ERROR',
-  IMPORT_ERROR: 'BACKUP_IMPORT_ERROR',
-  LIST_ERROR: 'BACKUP_LIST_ERROR',
-  DELETE_ERROR: 'BACKUP_DELETE_ERROR',
-  SHARE_ERROR: 'BACKUP_SHARE_ERROR',
-  CONFIG_ERROR: 'AUTO_BACKUP_CONFIG_ERROR',
-  VALIDATION_ERROR: 'BACKUP_VALIDATION_ERROR',
-  TABLE_EXPORT_ERROR: 'TABLE_EXPORT_ERROR',
-  TABLE_IMPORT_ERROR: 'TABLE_IMPORT_ERROR',
-  AUTH_REQUIRED: 'BACKUP_AUTH_REQUIRED',
-  SHARING_NOT_AVAILABLE: 'SHARING_NOT_AVAILABLE',
-  FILE_TOO_LARGE: 'BACKUP_FILE_TOO_LARGE',
-  INVALID_FORMAT: 'INVALID_BACKUP_FORMAT',
-  UNKNOWN_TABLE: 'UNKNOWN_TABLE'
-};
-
-/**
- * Helper function to build ServiceError with proper code and metadata assignment
- * @param {string} service - Service name
- * @param {string} operation - Operation name
- * @param {Error} originalError - Original error
- * @param {string} errorCode - Error code from BACKUP_ERROR_CODES
- * @param {Object} [metadata] - Additional error metadata
- * @returns {ServiceError} Properly configured ServiceError
- */
-function buildServiceError(service, operation, originalError, errorCode, metadata = {}) {
-  return new ServiceError(service, operation, originalError, {
-    errorCode,
-    ...metadata,
-  });
-}
+// Re-export BACKUP_STRUCTURE for backward compatibility
+export { BACKUP_STRUCTURE } from './backup/backupConstants';
 
 /**
  * Comprehensive backup service for CRM database export/import operations.
@@ -132,6 +42,12 @@ class BackupService {
     this.autoBackupTimer = null;
     this.listeners = new Set();
     this.isInitialized = false;
+
+    // Initialize CSV exporter with dependencies
+    this.csvExporter = createBackupCsvExporter(
+      authService,
+      this._exportTable.bind(this)
+    );
   }
 
   /**
@@ -341,91 +257,19 @@ class BackupService {
    * @returns {Promise<string>} - Path to created CSV file
    */
   async exportToCSV(options = {}) {
-    const { table, filename, requireAuth = true } = options;
+    // Sync backup running state with CSV exporter
+    this.csvExporter.setBackupRunning(this.isBackupRunning);
 
-    // Check authentication if required
-    if (requireAuth && (await authService.checkIsLocked())) {
-      throw buildServiceError(
-        'backupService',
-        'exportToCSV',
-        new Error('Authentication required for export operations'),
-        BACKUP_ERROR_CODES.AUTH_REQUIRED
-      );
-    }
+    // Delegate to CSV exporter with callback functions
+    const csvPath = await this.csvExporter.exportToCSV({
+      ...options,
+      notifyListeners: this._notifyListeners.bind(this)
+    });
 
-    // Check if backup operation is already in progress
-    if (this.isBackupRunning) {
-      throw buildServiceError(
-        'backupService',
-        'exportToCSV',
-        new Error('Export operation already in progress'),
-        BACKUP_ERROR_CODES.IN_PROGRESS
-      );
-    }
+    // Sync backup running state back from CSV exporter
+    this.isBackupRunning = this.csvExporter.isBackupRunning;
 
-    this.isBackupRunning = true;
-
-    try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const csvFilename = filename || `crm-export-${table || 'full'}-${timestamp}.csv`;
-
-      // Ensure backup directory exists before constructing file path
-      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
-
-      const csvPath = `${BACKUP_CONFIG.BACKUP_DIR}${csvFilename}`;
-
-      let csvContent = '';
-      const tablesToExport = table ? [table] : BACKUP_TABLES;
-
-      for (const tableName of tablesToExport) {
-        const tableData = await this._exportTable(tableName, false);
-
-        if (tableData.length > 0) {
-          // Add table header if exporting multiple tables
-          if (!table) {
-            csvContent += `\n=== ${tableName.toUpperCase()} ===\n`;
-          }
-
-          // Add CSV headers
-          const headers = Object.keys(tableData[0]);
-          csvContent += headers.join(',') + '\n';
-
-          // Add data rows
-          for (const row of tableData) {
-            const values = headers.map(header => {
-              const value = row[header];
-              // Escape commas and quotes in CSV
-              if (value === null || value === undefined) return '';
-              const stringValue = String(value);
-              if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-                return `"${stringValue.replace(/"/g, '""')}"`;
-              }
-              return stringValue;
-            });
-            csvContent += values.join(',') + '\n';
-          }
-        }
-      }
-
-      await writeAsStringAsync(csvPath, csvContent);
-
-      this._notifyListeners({
-        type: 'csv_exported',
-        csvPath,
-        table: table || 'all'
-      });
-
-      return csvPath;
-    } catch (error) {
-      throw buildServiceError(
-        'backupService',
-        'exportToCSV',
-        error,
-        BACKUP_ERROR_CODES.CSV_EXPORT_ERROR
-      );
-    } finally {
-      this.isBackupRunning = false;
-    }
+    return csvPath;
   }
 
   /**
@@ -1436,6 +1280,9 @@ class BackupService {
 
     // Reset timer reference (already cleared by _clearAutoBackup, but be explicit)
     this.autoBackupTimer = null;
+
+    // Reset CSV exporter state
+    this.csvExporter.setBackupRunning(false);
   }
 }
 
