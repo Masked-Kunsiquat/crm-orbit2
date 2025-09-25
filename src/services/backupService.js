@@ -54,11 +54,11 @@ const IMPORTABLE_TABLES = [
  * Feature flags for backup/import functionality
  */
 const BACKUP_FEATURES = {
-  IMPORT_COMPLEX_RELATIONS: false, // events_recurring, events_reminders, category_relations
+  IMPORT_COMPLEX_RELATIONS: true, // events_recurring, events_reminders, category_relations
   SKIP_IMPORT_WARNINGS: false, // Show warnings for skipped tables during import
-  IMPORT_RECURRING_EVENTS: false, // Individual flag for events_recurring
-  IMPORT_EVENT_REMINDERS: false, // Individual flag for events_reminders
-  IMPORT_CATEGORY_RELATIONS: false, // Individual flag for category_relations
+  IMPORT_RECURRING_EVENTS: true, // Individual flag for events_recurring
+  IMPORT_EVENT_REMINDERS: true, // Individual flag for events_reminders
+  IMPORT_CATEGORY_RELATIONS: true, // Individual flag for category_relations
 };
 
 /**
@@ -596,6 +596,12 @@ class BackupService {
         );
       }
     } catch (error) {
+      // If error is already a ServiceError, preserve its classification
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+
+      // Otherwise, wrap unexpected errors
       throw buildServiceError(
         'backupService',
         'shareBackup',
@@ -855,9 +861,15 @@ class BackupService {
                 break;
               }
               default: {
-                console.warn(`Skipping unknown table '${tableName}' during overwrite import`);
-                skipped++;
-                continue;
+                const errorMsg = `Unknown table '${tableName}' during overwrite import`;
+                console.error(errorMsg);
+                throw buildServiceError(
+                  'backupService',
+                  '_importTable',
+                  new Error(errorMsg),
+                  BACKUP_ERROR_CODES.UNKNOWN_TABLE,
+                  { tableName }
+                );
               }
             }
             imported++;
@@ -930,16 +942,40 @@ class BackupService {
                 break;
               }
               default: {
-                console.warn(`Skipping unknown table '${tableName}' during non-overwrite import`);
-                skipped++;
-                continue;
+                const errorMsg = `Unknown table '${tableName}' during non-overwrite import`;
+                console.error(errorMsg);
+                throw buildServiceError(
+                  'backupService',
+                  '_importTable',
+                  new Error(errorMsg),
+                  BACKUP_ERROR_CODES.UNKNOWN_TABLE,
+                  { tableName }
+                );
               }
             }
             imported++;
           }
         } catch (error) {
-          // Record already exists or other constraint violation
-          skipped++;
+          // Log the actual error for debugging, but continue processing
+          console.warn(`Failed to import record in table '${tableName}':`, error.message || error);
+
+          // Check if it's a constraint violation (record already exists) or a real error
+          const errorMessage = error.message || String(error);
+          const isConstraintError = errorMessage.includes('UNIQUE constraint failed') ||
+                                   errorMessage.includes('already exists') ||
+                                   errorMessage.includes('duplicate');
+
+          if (isConstraintError) {
+            // Expected constraint violation - record already exists
+            skipped++;
+          } else {
+            // Unexpected error - should be logged and potentially fail the import
+            console.error(`Unexpected error importing record in table '${tableName}':`, error);
+            skipped++;
+
+            // For critical errors, you might want to throw here instead of continuing:
+            // throw error;
+          }
         }
       }
     } catch (error) {
@@ -1110,57 +1146,137 @@ class BackupService {
   }
 
   /**
-   * Import a recurring event record (placeholder implementation)
+   * Import a recurring event record
+   * Recurring events are stored in the main events table with recurring flag set
    * @private
    * @param {Object} record - Recurring event record to import
    * @param {boolean} overwrite - Whether to overwrite existing records
    * @throws {ServiceError} When import fails
-   * @todo Implement proper recurring event import with validation
    */
   async _importRecurringEvent(record, overwrite) {
-    throw buildServiceError(
-      'backupService',
-      '_importRecurringEvent',
-      new Error('Recurring events import not yet implemented'),
-      BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
-      { tableName: 'events_recurring', recordId: record.id }
-    );
+    try {
+      // Recurring events are actually regular events with recurring=1
+      // Ensure the record has the recurring flag set
+      const eventRecord = {
+        ...record,
+        recurring: 1, // Ensure this is marked as recurring
+      };
+
+      if (overwrite) {
+        // Use the regular events update method for overwrite
+        await db.events.update(eventRecord.id, eventRecord);
+      } else {
+        // For non-overwrite mode, remove the ID and create new
+        const { id, ...eventData } = eventRecord;
+        await db.events.create(eventData);
+      }
+    } catch (error) {
+      throw buildServiceError(
+        'backupService',
+        '_importRecurringEvent',
+        error,
+        BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+        { tableName: 'events_recurring', recordId: record.id || 'unknown' }
+      );
+    }
   }
 
   /**
-   * Import an event reminder record (placeholder implementation)
+   * Import an event reminder record
    * @private
    * @param {Object} record - Event reminder record to import
    * @param {boolean} overwrite - Whether to overwrite existing records
    * @throws {ServiceError} When import fails
-   * @todo Implement proper event reminder import with validation
    */
   async _importEventReminder(record, overwrite) {
-    throw buildServiceError(
-      'backupService',
-      '_importEventReminder',
-      new Error('Event reminders import not yet implemented'),
-      BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
-      { tableName: 'events_reminders', recordId: record.id }
-    );
+    try {
+      if (overwrite) {
+        // For overwrite mode, delete existing reminder and create new one
+        // since eventsReminders doesn't have a generic update method
+        try {
+          await db.eventsReminders.deleteReminder(record.id);
+        } catch (deleteError) {
+          // Ignore if reminder doesn't exist
+        }
+
+        // Create new reminder with original ID preserved
+        const reminderData = { ...record };
+        await db.eventsReminders.createReminder(reminderData);
+      } else {
+        // For non-overwrite mode, remove the ID and create new
+        const { id, ...reminderData } = record;
+        await db.eventsReminders.createReminder(reminderData);
+      }
+    } catch (error) {
+      throw buildServiceError(
+        'backupService',
+        '_importEventReminder',
+        error,
+        BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+        { tableName: 'events_reminders', recordId: record.id || 'unknown' }
+      );
+    }
   }
 
   /**
-   * Import a category relation record (placeholder implementation)
+   * Import a category relation record
+   * Category relations link contacts to categories
    * @private
    * @param {Object} record - Category relation record to import
    * @param {boolean} overwrite - Whether to overwrite existing records
    * @throws {ServiceError} When import fails
-   * @todo Implement proper category relation import with validation
    */
   async _importCategoryRelation(record, overwrite) {
-    throw buildServiceError(
-      'backupService',
-      '_importCategoryRelation',
-      new Error('Category relations import not yet implemented'),
-      BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
-      { tableName: 'category_relations', recordId: record.category_id + '-' + record.contact_id }
-    );
+    try {
+      if (!record.category_id || !record.contact_id) {
+        throw new Error('Category relation record missing required fields: category_id, contact_id');
+      }
+
+      // For both overwrite and non-overwrite modes, just add the relation
+      // The addContactToCategory method handles duplicates gracefully
+      const wasAdded = await db.categoriesRelations.addContactToCategory(
+        record.contact_id,
+        record.category_id
+      );
+
+      if (!wasAdded && overwrite) {
+        // Relation already exists, which is expected for overwrite mode
+        // No need to do anything - the relation is already in place
+      }
+    } catch (error) {
+      throw buildServiceError(
+        'backupService',
+        '_importCategoryRelation',
+        error,
+        BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
+        {
+          tableName: 'category_relations',
+          recordId: `${record.category_id || 'unknown'}-${record.contact_id || 'unknown'}`
+        }
+      );
+    }
+  }
+
+  /**
+   * Reset service state for testing
+   * Clears all singleton state to ensure clean test execution
+   * @returns {void}
+   * @since 1.0.0
+   */
+  reset() {
+    // Clear auto-backup timer to prevent orphaned timers
+    this._clearAutoBackup();
+
+    // Reset operational state
+    this.isBackupRunning = false;
+    this.lastBackupTime = null;
+    this.isInitialized = false;
+
+    // Clear event listeners to prevent memory leaks
+    this.listeners.clear();
+
+    // Reset timer reference (already cleared by _clearAutoBackup, but be explicit)
+    this.autoBackupTimer = null;
   }
 }
 

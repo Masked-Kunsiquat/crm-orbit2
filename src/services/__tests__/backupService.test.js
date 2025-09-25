@@ -74,6 +74,8 @@ describe('backupService', () => {
   const { documentDirectory } = require('expo-file-system');
 
   beforeEach(() => {
+    // Reset the backupService instance for each test
+    backupService.reset();
     // Clear all mocks before each test
     jest.clearAllMocks();
 
