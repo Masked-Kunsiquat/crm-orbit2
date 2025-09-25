@@ -18,18 +18,46 @@ jest.mock('expo-file-system', () => ({
 jest.mock('expo-sharing', () => ({
   isAvailableAsync: jest.fn(async () => true),
   shareAsync: jest.fn(async () => {}),
-}));
+}), { virtual: true });
 
 // Ensure the database module is mocked before importing the service
 jest.mock('../../database');
 
+// Mock authService
+jest.mock('../authService', () => ({
+  default: {
+    isAuthenticated: jest.fn(() => true),
+  }
+}), { virtual: true });
+
+// Mock fileService
+jest.mock('../fileService', () => ({
+  default: {
+    validateFileSize: jest.fn(() => true),
+  }
+}), { virtual: true });
+
 // Mock ServiceError class
 jest.mock('../../services/errors', () => ({
   ServiceError: class ServiceError extends Error {
-    constructor(message, code, originalError) {
-      super(message);
-      this.code = code;
+    constructor(service, operation, originalError, options = {}) {
+      super(
+        `${service}.${operation} failed: ${originalError?.message || originalError}`
+      );
+      this.name = 'ServiceError';
+      this.service = service;
+      this.operation = operation;
       this.originalError = originalError;
+      this.code = options.errorCode;
+
+      // Additional context from options
+      if (options && typeof options === 'object') {
+        Object.keys(options).forEach(key => {
+          if (key !== 'errorCode' && !this.hasOwnProperty(key)) {
+            this[key] = options[key];
+          }
+        });
+      }
     }
   },
 }), { virtual: true });
