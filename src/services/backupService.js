@@ -102,17 +102,10 @@ const BACKUP_ERROR_CODES = {
  * @returns {ServiceError} Properly configured ServiceError
  */
 function buildServiceError(service, operation, originalError, errorCode, metadata = {}) {
-  const error = new ServiceError(service, operation, originalError);
-  error.code = errorCode;
-
-  // Assign any additional metadata fields
-  Object.keys(metadata).forEach(key => {
-    if (!error.hasOwnProperty(key)) {
-      error[key] = metadata[key];
-    }
+  return new ServiceError(service, operation, originalError, {
+    errorCode,
+    ...metadata,
   });
-
-  return error;
 }
 
 /**
