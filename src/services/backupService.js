@@ -696,7 +696,7 @@ class BackupService {
         case 'events_recurring':
           return await db.eventsRecurring.getRecurringEvents();
         case 'events_reminders':
-          return await db.eventsReminders.getUnsentReminders();
+          return await db.eventsReminders.getAll();
         case 'interactions':
           return await db.interactions.getAll();
         case 'notes':
