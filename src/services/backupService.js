@@ -360,9 +360,25 @@ class BackupService {
       );
     }
 
+    // Check if backup operation is already in progress
+    if (this.isBackupRunning) {
+      throw buildServiceError(
+        'backupService',
+        'exportToCSV',
+        new Error('Export operation already in progress'),
+        BACKUP_ERROR_CODES.IN_PROGRESS
+      );
+    }
+
+    this.isBackupRunning = true;
+
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const csvFilename = filename || `crm-export-${table || 'full'}-${timestamp}.csv`;
+
+      // Ensure backup directory exists before constructing file path
+      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+
       const csvPath = `${BACKUP_CONFIG.BACKUP_DIR}${csvFilename}`;
 
       let csvContent = '';
@@ -414,6 +430,8 @@ class BackupService {
         error,
         BACKUP_ERROR_CODES.CSV_EXPORT_ERROR
       );
+    } finally {
+      this.isBackupRunning = false;
     }
   }
 
@@ -439,6 +457,18 @@ class BackupService {
         BACKUP_ERROR_CODES.AUTH_REQUIRED
       );
     }
+
+    // Check if backup operation is already in progress
+    if (this.isBackupRunning) {
+      throw buildServiceError(
+        'backupService',
+        'importBackup',
+        new Error('Import operation already in progress'),
+        BACKUP_ERROR_CODES.IN_PROGRESS
+      );
+    }
+
+    this.isBackupRunning = true;
 
     try {
       onProgress?.({ stage: 'reading', progress: 0 });
@@ -501,6 +531,8 @@ class BackupService {
         error,
         BACKUP_ERROR_CODES.IMPORT_ERROR
       );
+    } finally {
+      this.isBackupRunning = false;
     }
   }
 
@@ -510,6 +542,9 @@ class BackupService {
    */
   async listBackups() {
     try {
+      // Ensure backup directory exists before reading
+      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+
       const files = await readDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR);
       const backups = [];
 
