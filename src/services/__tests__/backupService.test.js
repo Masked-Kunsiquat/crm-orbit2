@@ -91,14 +91,42 @@ describe('backupService', () => {
     ]);
 
     // Reset database module mocks
-    const mockTables = ['categories', 'companies', 'contacts'];
+    const mockTables = ['categories', 'companies', 'contacts', 'attachments', 'events', 'interactions', 'notes'];
     mockTables.forEach(table => {
+      const mockData = [{ id: 1, name: `Test ${table}` }];
+      const mockFn = jest.fn(async () => mockData);
+
       db[table] = {
-        [`getAll${table.charAt(0).toUpperCase() + table.slice(1)}`]: jest.fn(async () => [
-          { id: 1, name: `Test ${table}` },
-        ]),
+        // Legacy method names (for compatibility)
+        [`getAll${table.charAt(0).toUpperCase() + table.slice(1)}`]: mockFn,
+        // Correct method names expected by backupService
+        getAll: mockFn,
       };
     });
+
+    // Special database table mocks with different methods
+    db.contactsInfo = {
+      getWithContactInfo: jest.fn(async (contactId) => ({
+        id: contactId,
+        contact_info: [{ id: 1, type: 'email', value: 'test@example.com' }]
+      })),
+      getAll: jest.fn(async () => [{ id: 1, type: 'email', value: 'test@example.com' }])
+    };
+
+    db.eventsRecurring = {
+      getRecurringEvents: jest.fn(async () => [{ id: 1, title: 'Test Recurring Event' }]),
+      getAll: jest.fn(async () => [{ id: 1, title: 'Test Recurring Event' }])
+    };
+
+    db.eventsReminders = {
+      getUnsentReminders: jest.fn(async () => [{ id: 1, event_id: 1, reminder_type: 'notification' }]),
+      getAll: jest.fn(async () => [{ id: 1, event_id: 1, reminder_type: 'notification' }])
+    };
+
+    db.categoriesRelations = {
+      getContactsByCategory: jest.fn(async (categoryId) => [{ id: 1, name: 'Test Contact' }]),
+      getAll: jest.fn(async () => [{ category_id: 1, contact_id: 1 }])
+    };
 
     // Additional database mocks
     db.transaction = jest.fn(async callback => {
@@ -112,6 +140,13 @@ describe('backupService', () => {
     db.settings = {
       setSetting: jest.fn(async () => {}),
       getSetting: jest.fn(async () => false),
+      getAll: jest.fn(async () => [{ category: 'backup', key: 'auto_enabled', value: false }]),
+      getValues: jest.fn(async () => ({
+        auto_enabled: false,
+        interval_hours: 24,
+        max_backups: 10,
+        last_backup_time: null
+      }))
     };
   });
 
@@ -183,7 +218,7 @@ describe('backupService', () => {
 
     test('handles backup table export errors', async () => {
       // Mock one table to fail
-      db.categories.getAllCategories.mockRejectedValueOnce(new Error('Database error'));
+      db.categories.getAll.mockRejectedValueOnce(new Error('Database error'));
 
       const backupPath = await backupService.createBackup();
 
@@ -219,7 +254,7 @@ describe('backupService', () => {
 
     test('handles CSV export errors', async () => {
       // Mock database query to fail
-      db.contacts.getAllContacts.mockRejectedValueOnce(new Error('Database error'));
+      db.contacts.getAll.mockRejectedValueOnce(new Error('Database error'));
 
       await expect(backupService.exportToCSV()).rejects.toMatchObject({
         code: 'CSV_EXPORT_ERROR',
