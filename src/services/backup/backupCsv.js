@@ -145,33 +145,46 @@ export class BackupCsvExporter {
 
       let csvContent = '';
       const tablesToExport = table ? [table] : BACKUP_TABLES;
-      let headersWritten = false;
+      let allHeaders = new Set();
+      let allTableData = [];
 
+      // First pass: collect all data and compute union of all column keys
       for (const tableName of tablesToExport) {
         onProgress?.({ stage: 'exporting', table: tableName });
 
         const tableData = await this.exportTable(tableName, false);
 
         if (tableData.length > 0) {
-          // Get headers from first row of data
-          const dataHeaders = Object.keys(tableData[0]);
-
-          // For multi-table exports, add _table column
-          const headers = !table ? ['_table', ...dataHeaders] : dataHeaders;
-
-          // Write headers only once for multi-table exports
-          if (!headersWritten) {
-            csvContent += headers.join(',') + '\n';
-            headersWritten = true;
+          // Collect all unique column keys across all rows
+          for (const row of tableData) {
+            Object.keys(row).forEach(key => allHeaders.add(key));
           }
 
-          // Add data rows
-          for (const row of tableData) {
+          // Store data with table name for later processing
+          allTableData.push({ tableName, data: tableData });
+        }
+      }
+
+      if (allTableData.length > 0) {
+        // Convert set to stable ordered array (preserves first-seen order)
+        const dataHeaders = Array.from(allHeaders);
+
+        // For multi-table exports, add _table column at the beginning
+        const headers = !table ? ['_table', ...dataHeaders] : dataHeaders;
+
+        // Write escaped header row
+        const escapedHeaders = headers.map(header => this._formatCsvValue(header));
+        csvContent += escapedHeaders.join(',') + '\n';
+
+        // Second pass: write data rows with consistent column structure
+        for (const { tableName, data } of allTableData) {
+          for (const row of data) {
             const values = headers.map(header => {
               if (header === '_table') {
                 return this._formatCsvValue(tableName);
               }
-              const value = row[header];
+              // Use empty string for missing keys, escape all values
+              const value = row.hasOwnProperty(header) ? row[header] : '';
               return this._formatCsvValue(value);
             });
             csvContent += values.join(',') + '\n';
