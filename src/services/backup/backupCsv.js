@@ -145,6 +145,7 @@ export class BackupCsvExporter {
 
       let csvContent = '';
       const tablesToExport = table ? [table] : BACKUP_TABLES;
+      let headersWritten = false;
 
       for (const tableName of tablesToExport) {
         onProgress?.({ stage: 'exporting', table: tableName });
@@ -152,18 +153,24 @@ export class BackupCsvExporter {
         const tableData = await this.exportTable(tableName, false);
 
         if (tableData.length > 0) {
-          // Add table header if exporting multiple tables
-          if (!table) {
-            csvContent += `\n=== ${tableName.toUpperCase()} ===\n`;
-          }
+          // Get headers from first row of data
+          const dataHeaders = Object.keys(tableData[0]);
 
-          // Add CSV headers
-          const headers = Object.keys(tableData[0]);
-          csvContent += headers.join(',') + '\n';
+          // For multi-table exports, add _table column
+          const headers = !table ? ['_table', ...dataHeaders] : dataHeaders;
+
+          // Write headers only once for multi-table exports
+          if (!headersWritten) {
+            csvContent += headers.join(',') + '\n';
+            headersWritten = true;
+          }
 
           // Add data rows
           for (const row of tableData) {
             const values = headers.map(header => {
+              if (header === '_table') {
+                return this._formatCsvValue(tableName);
+              }
               const value = row[header];
               return this._formatCsvValue(value);
             });
