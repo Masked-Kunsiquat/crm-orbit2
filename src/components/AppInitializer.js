@@ -39,7 +39,9 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
         // Fresh controller for this run
         try {
           controllerRef.current =
-            typeof AbortController !== 'undefined' ? new AbortController() : null;
+            typeof AbortController !== 'undefined'
+              ? new AbortController()
+              : null;
         } catch (e) {
           console.warn('AbortController not available:', e);
           controllerRef.current = null;

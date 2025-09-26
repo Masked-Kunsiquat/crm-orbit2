@@ -38,15 +38,18 @@ import { DatabaseError } from './errors';
 const isWeb = typeof window !== 'undefined' && window.document;
 
 const expoOpenDatabase = isWeb
-  ? (SQLite.openDatabaseAsync || SQLite.default?.openDatabaseAsync)
-  : (SQLite.openDatabase ||
-     SQLite.default?.openDatabase ||
-     SQLite.openDatabaseSync ||
-     SQLite.default?.openDatabaseSync ||
-     (() => {
-       console.error('No SQLite openDatabase function found. Available SQLite methods:', Object.keys(SQLite));
-       throw new Error('SQLite openDatabase method not available');
-     }));
+  ? SQLite.openDatabaseAsync || SQLite.default?.openDatabaseAsync
+  : SQLite.openDatabase ||
+    SQLite.default?.openDatabase ||
+    SQLite.openDatabaseSync ||
+    SQLite.default?.openDatabaseSync ||
+    (() => {
+      console.error(
+        'No SQLite openDatabase function found. Available SQLite methods:',
+        Object.keys(SQLite)
+      );
+      throw new Error('SQLite openDatabase method not available');
+    });
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from './errors';
@@ -111,11 +114,16 @@ async function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
       try {
         // Try async API first
         const result = expoOpenDatabase(dbName);
-        _db = result && typeof result.then === 'function' ? await result : result;
+        _db =
+          result && typeof result.then === 'function' ? await result : result;
       } catch (asyncError) {
-        console.warn('Async SQLite failed, falling back to sync API:', asyncError);
+        console.warn(
+          'Async SQLite failed, falling back to sync API:',
+          asyncError
+        );
         // Fallback to sync API if available
-        const syncOpenDatabase = SQLite.openDatabase || SQLite.default?.openDatabase;
+        const syncOpenDatabase =
+          SQLite.openDatabase || SQLite.default?.openDatabase;
         if (syncOpenDatabase) {
           _db = syncOpenDatabase(dbName);
         } else {
