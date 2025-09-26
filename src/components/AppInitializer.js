@@ -14,65 +14,72 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
   const initializeApp = useCallback(async () => {
     try {
       if (!mountedRef.current) return;
-      // Abort any in-flight init before starting a new one
-      if (
-        controllerRef.current &&
-        typeof controllerRef.current.abort === 'function'
-      ) {
-        try {
-          controllerRef.current.abort();
-        } catch (e) {
-          /* noop */
-        }
-      }
-      // Fresh controller for this run
-      try {
-        controllerRef.current =
-          typeof AbortController !== 'undefined' ? new AbortController() : null;
-      } catch (e) {
-        console.warn('AbortController not available:', e);
-        controllerRef.current = null;
-      }
-      const signal = controllerRef.current?.signal;
 
       setIsInitializing(true);
       setInitializationError(null);
 
-      // Initialize database with additional safety checks
       console.log('Starting app initialization...');
-      let timeoutId;
-      try {
-        // Wrap database initialization with additional error handling
-        const initPromise = Promise.resolve().then(() =>
-          initDatabase({ signal })
-        );
-        const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => {
-            if (
-              controllerRef.current &&
-              typeof controllerRef.current.abort === 'function'
-            ) {
-              try {
-                controllerRef.current.abort();
-              } catch (e) {
-                /* noop */
-              }
-            }
-            reject(
-              new Error(
-                `Database initialization timed out after ${initTimeoutMs}ms`
-              )
-            );
-          }, initTimeoutMs);
-        });
 
-        await Promise.race([initPromise, timeoutPromise]);
-        console.log('Database initialization completed successfully');
-      } catch (initError) {
-        console.error('Database initialization failed:', initError);
-        throw initError;
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId);
+      // Skip database initialization on web for now
+      const isWeb = typeof window !== 'undefined' && window.document;
+      if (isWeb) {
+        console.log('Skipping database initialization on web platform');
+      } else {
+        // Abort any in-flight init before starting a new one
+        if (
+          controllerRef.current &&
+          typeof controllerRef.current.abort === 'function'
+        ) {
+          try {
+            controllerRef.current.abort();
+          } catch (e) {
+            /* noop */
+          }
+        }
+        // Fresh controller for this run
+        try {
+          controllerRef.current =
+            typeof AbortController !== 'undefined' ? new AbortController() : null;
+        } catch (e) {
+          console.warn('AbortController not available:', e);
+          controllerRef.current = null;
+        }
+        const signal = controllerRef.current?.signal;
+
+        // Initialize database only on native platforms
+        let timeoutId;
+        try {
+          const initPromise = Promise.resolve().then(() =>
+            initDatabase({ signal })
+          );
+          const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+              if (
+                controllerRef.current &&
+                typeof controllerRef.current.abort === 'function'
+              ) {
+                try {
+                  controllerRef.current.abort();
+                } catch (e) {
+                  /* noop */
+                }
+              }
+              reject(
+                new Error(
+                  `Database initialization timed out after ${initTimeoutMs}ms`
+                )
+              );
+            }, initTimeoutMs);
+          });
+
+          await Promise.race([initPromise, timeoutPromise]);
+          console.log('Database initialization completed successfully');
+        } catch (initError) {
+          console.error('Database initialization failed:', initError);
+          throw initError;
+        } finally {
+          if (timeoutId) clearTimeout(timeoutId);
+        }
       }
 
       // After DB init, bootstrap other core services
