@@ -34,7 +34,12 @@ jest.mock('../../services/errors', () => ({
       this.service = service;
       this.operation = operation;
       this.originalError = originalError;
-      this.code = options.errorCode;
+      this.code = originalError?.code; // Set fallback code from originalError
+
+      // Only overwrite code if options.errorCode is explicitly provided
+      if (options && options.errorCode !== undefined) {
+        this.code = options.errorCode;
+      }
 
       // Additional context from options
       if (options && typeof options === 'object') {
