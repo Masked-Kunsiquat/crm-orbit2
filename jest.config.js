@@ -1,10 +1,5 @@
 module.exports = {
   testEnvironment: 'node',
-  // Enable ES Module import/export support
-  moduleFileExtensions: ['js', 'mjs', 'cjs', 'jsx', 'json'],
-  transform: {
-    '^.+\.[jt]sx?$': 'babel-jest',
-  },
   roots: ['<rootDir>/src'],
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
