@@ -17,7 +17,7 @@
  *   on how to schedule SQL calls to ensure they run inside the same transaction.
  */
 
-import { openDatabase as expoOpenDatabase } from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
 import { createContactsInfoDB } from './contactsInfo';
@@ -34,7 +34,16 @@ import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
 import { DatabaseError } from './errors';
-// expoOpenDatabase is already imported with alias
+// Handle different SQLite API versions
+const expoOpenDatabase =
+  SQLite.openDatabase ||
+  SQLite.default?.openDatabase ||
+  SQLite.openDatabaseSync ||
+  SQLite.default?.openDatabaseSync ||
+  (() => {
+    console.error('No SQLite openDatabase function found. Available SQLite methods:', Object.keys(SQLite));
+    throw new Error('SQLite openDatabase method not available');
+  });
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from './errors';
