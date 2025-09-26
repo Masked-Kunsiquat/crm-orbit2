@@ -19,7 +19,7 @@
 // This approach eliminates duplicate schema definitions and ensures that all
 // database initialization paths (new installs, upgrades, tests) use identical
 // schema definitions from a single source of truth.
-import * as SQLite from 'expo-sqlite';
+import { openDatabase } from 'expo-sqlite';
 import { runMigrations } from '../database/migrations/migrationRunner.js';
 import { DatabaseError } from '../database/errors.js';
 import { createMigrationContext } from '../database/adapters/expoSqliteAdapter.js';
@@ -69,8 +69,8 @@ class DatabaseService {
     try {
       console.log('Initializing database...');
 
-      // Open database connection
-      this.db = await SQLite.openDatabaseAsync('crm.db');
+      // Open database connection using legacy sync API for better compatibility
+      this.db = openDatabase('crm.db');
 
       // Set recommended pragmas for better reliability and performance
       await this.db.execAsync('PRAGMA journal_mode = WAL;');

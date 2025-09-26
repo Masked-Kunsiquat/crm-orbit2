@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Surface, Text, ActivityIndicator, Button } from 'react-native-paper';
-import databaseService from '../services/databaseService';
+import { initDatabase } from '../database';
 import authService from '../services/authService';
 
 const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
@@ -44,7 +44,7 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
       try {
         // Wrap database initialization with additional error handling
         const initPromise = Promise.resolve().then(() =>
-          databaseService.initialize({ signal })
+          initDatabase({ signal })
         );
         const timeoutPromise = new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
