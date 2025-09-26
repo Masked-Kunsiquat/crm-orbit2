@@ -194,6 +194,8 @@ export class BackupCsvExporter {
 
       await writeAsStringAsync(csvPath, csvContent);
 
+      onProgress?.({ stage: 'complete', table: table || 'all', progress: 100 });
+
       // Notify listeners if callback provided
       notifyListeners?.({
         type: 'csv_exported',
@@ -227,7 +229,7 @@ export class BackupCsvExporter {
     const stringValue = String(value);
 
     // Escape commas, quotes, and newlines in CSV
-    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
 
