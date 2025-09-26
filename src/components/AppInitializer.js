@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Surface, Text, ActivityIndicator, Button } from 'react-native-paper';
-import { initDatabase } from '../database';
+import { initSimpleDatabase } from '../database/simpleInit';
 import authService from '../services/authService';
 
 const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
@@ -48,58 +48,19 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
         }
         const signal = controllerRef.current?.signal;
 
-        // Initialize database only on native platforms
-        let timeoutId;
+        // Initialize simple database only on native platforms
         try {
-          const initPromise = Promise.resolve().then(() =>
-            initDatabase({ signal })
-          );
-          const timeoutPromise = new Promise((_, reject) => {
-            timeoutId = setTimeout(() => {
-              if (
-                controllerRef.current &&
-                typeof controllerRef.current.abort === 'function'
-              ) {
-                try {
-                  controllerRef.current.abort();
-                } catch (e) {
-                  /* noop */
-                }
-              }
-              reject(
-                new Error(
-                  `Database initialization timed out after ${initTimeoutMs}ms`
-                )
-              );
-            }, initTimeoutMs);
-          });
-
-          await Promise.race([initPromise, timeoutPromise]);
+          console.log('Initializing simple database...');
+          initSimpleDatabase();
           console.log('Database initialization completed successfully');
         } catch (initError) {
           console.error('Database initialization failed:', initError);
           throw initError;
-        } finally {
-          if (timeoutId) clearTimeout(timeoutId);
         }
       }
 
-      // After DB init, bootstrap other core services
-      try {
-        // Initialize authentication service (auto-lock timers, lock state)
-        await authService.initialize();
-
-        // Future hooks: permissions, notifications, reminders, backups
-        // e.g., notificationService.requestPermissions();
-        //       notificationService.reschedulePendingReminders();
-        //       backupService.checkAutoBackup();
-      } catch (bootError) {
-        console.warn(
-          'Post-initialization service bootstrap encountered an issue:',
-          bootError
-        );
-        // Continue; non-critical services failing should not block app load
-      }
+      // Skip auth service initialization for basic testing
+      console.log('Skipping auth service and other services for basic testing');
 
       console.log('App initialization complete');
 
