@@ -34,16 +34,19 @@ import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
 import { DatabaseError } from './errors';
-// Handle different SQLite API versions
-const expoOpenDatabase =
-  SQLite.openDatabase ||
-  SQLite.default?.openDatabase ||
-  SQLite.openDatabaseSync ||
-  SQLite.default?.openDatabaseSync ||
-  (() => {
-    console.error('No SQLite openDatabase function found. Available SQLite methods:', Object.keys(SQLite));
-    throw new Error('SQLite openDatabase method not available');
-  });
+// Handle different SQLite API versions and platforms
+const isWeb = typeof window !== 'undefined' && window.document;
+
+const expoOpenDatabase = isWeb
+  ? (SQLite.openDatabaseAsync || SQLite.default?.openDatabaseAsync)
+  : (SQLite.openDatabase ||
+     SQLite.default?.openDatabase ||
+     SQLite.openDatabaseSync ||
+     SQLite.default?.openDatabaseSync ||
+     (() => {
+       console.error('No SQLite openDatabase function found. Available SQLite methods:', Object.keys(SQLite));
+       throw new Error('SQLite openDatabase method not available');
+     }));
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from './errors';
@@ -101,10 +104,27 @@ function getDB() {
  * @returns {any} SQLite database instance
  * @throws {DatabaseError} When opening fails
  */
-function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
+async function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
   try {
-    // expo-sqlite returns a Database object compatible with `transaction`
-    _db = expoOpenDatabase(dbName);
+    // For web, try async API first, fallback to sync
+    if (isWeb) {
+      try {
+        // Try async API first
+        const result = expoOpenDatabase(dbName);
+        _db = result && typeof result.then === 'function' ? await result : result;
+      } catch (asyncError) {
+        console.warn('Async SQLite failed, falling back to sync API:', asyncError);
+        // Fallback to sync API if available
+        const syncOpenDatabase = SQLite.openDatabase || SQLite.default?.openDatabase;
+        if (syncOpenDatabase) {
+          _db = syncOpenDatabase(dbName);
+        } else {
+          throw asyncError;
+        }
+      }
+    } else {
+      _db = expoOpenDatabase(dbName);
+    }
     return _db;
   } catch (err) {
     throw new DatabaseError('Failed to open database', 'OPEN_FAILED', err, {
@@ -360,7 +380,7 @@ export async function initDatabase(options = {}) {
   if (_initInflight) return _initInflight;
 
   const startInit = async () => {
-    const db = openDatabaseConnection(name);
+    const db = await openDatabaseConnection(name);
 
     // Basic PRAGMA setup
     try {
