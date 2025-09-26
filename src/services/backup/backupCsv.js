@@ -1,5 +1,10 @@
 import { makeDirectoryAsync, writeAsStringAsync } from 'expo-file-system';
-import { BACKUP_CONFIG, BACKUP_TABLES, BACKUP_ERROR_CODES, buildServiceError } from './backupConstants';
+import {
+  BACKUP_CONFIG,
+  BACKUP_TABLES,
+  BACKUP_ERROR_CODES,
+  buildServiceError,
+} from './backupConstants';
 
 /**
  * Sanitize and validate filename for CSV export
@@ -14,8 +19,14 @@ function sanitizeFilename(filename) {
   }
 
   // Check for path traversal attempts
-  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-    throw new Error('Filename cannot contain path separators or parent directory references');
+  if (
+    filename.includes('..') ||
+    filename.includes('/') ||
+    filename.includes('\\')
+  ) {
+    throw new Error(
+      'Filename cannot contain path separators or parent directory references'
+    );
   }
 
   // Extract basename only (in case of any remaining path components)
@@ -24,11 +35,15 @@ function sanitizeFilename(filename) {
   // Validate against whitelist of safe characters (alphanumeric, dash, underscore, dot)
   const safeCharPattern = /^[a-zA-Z0-9._-]+$/;
   if (!safeCharPattern.test(basename)) {
-    throw new Error('Filename can only contain alphanumeric characters, dots, dashes, and underscores');
+    throw new Error(
+      'Filename can only contain alphanumeric characters, dots, dashes, and underscores'
+    );
   }
 
   // Ensure filename ends with .csv (case-insensitive check)
-  const sanitized = basename.toLowerCase().endsWith('.csv') ? basename : `${basename}.csv`;
+  const sanitized = basename.toLowerCase().endsWith('.csv')
+    ? basename
+    : `${basename}.csv`;
 
   // Additional validation - ensure it's not just ".csv" or variations
   if (sanitized.toLowerCase() === '.csv') {
@@ -48,7 +63,9 @@ function sanitizeFilename(filename) {
  */
 function safePathJoin(backupDir, filename) {
   // Normalize the backup directory path
-  const normalizedBackupDir = backupDir.endsWith('/') ? backupDir : `${backupDir}/`;
+  const normalizedBackupDir = backupDir.endsWith('/')
+    ? backupDir
+    : `${backupDir}/`;
   const csvPath = `${normalizedBackupDir}${filename}`;
 
   // Verify the resulting path is still within the backup directory
@@ -80,7 +97,13 @@ export class BackupCsvExporter {
    * @returns {Promise<string>} - Path to created CSV file
    */
   async exportToCSV(options = {}) {
-    const { table, filename, requireAuth = true, onProgress, notifyListeners } = options;
+    const {
+      table,
+      filename,
+      requireAuth = true,
+      onProgress,
+      notifyListeners,
+    } = options;
 
     // Check authentication if required
     if (requireAuth && (await this.authService.checkIsLocked())) {
@@ -127,7 +150,9 @@ export class BackupCsvExporter {
       }
 
       // Ensure backup directory exists before constructing file path
-      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, {
+        intermediates: true,
+      });
 
       // Safely construct the full path
       let csvPath;
@@ -173,7 +198,9 @@ export class BackupCsvExporter {
         const headers = !table ? ['_table', ...dataHeaders] : dataHeaders;
 
         // Write escaped header row
-        const escapedHeaders = headers.map(header => this._formatCsvValue(header));
+        const escapedHeaders = headers.map(header =>
+          this._formatCsvValue(header)
+        );
         csvContent += escapedHeaders.join(',') + '\n';
 
         // Second pass: write data rows with consistent column structure
@@ -200,7 +227,7 @@ export class BackupCsvExporter {
       notifyListeners?.({
         type: 'csv_exported',
         csvPath,
-        table: table || 'all'
+        table: table || 'all',
       });
 
       return csvPath;
@@ -229,7 +256,12 @@ export class BackupCsvExporter {
     const stringValue = String(value);
 
     // Escape commas, quotes, and newlines in CSV
-    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
+    if (
+      stringValue.includes(',') ||
+      stringValue.includes('"') ||
+      stringValue.includes('\n') ||
+      stringValue.includes('\r')
+    ) {
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
 

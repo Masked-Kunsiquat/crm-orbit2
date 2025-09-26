@@ -36,10 +36,10 @@ const CONTACT_FIELD_MAPPING = {
  * Conflict resolution strategies
  */
 const CONFLICT_RESOLUTION = {
-  SKIP: 'skip',           // Skip conflicting contacts
+  SKIP: 'skip', // Skip conflicting contacts
   OVERWRITE: 'overwrite', // Overwrite existing with device data
-  MERGE: 'merge',         // Merge device data with existing
-  CREATE_NEW: 'create_new' // Create new contact with suffix
+  MERGE: 'merge', // Merge device data with existing
+  CREATE_NEW: 'create_new', // Create new contact with suffix
 };
 
 class ContactSyncService {
@@ -98,7 +98,7 @@ class ContactSyncService {
     const {
       conflictResolution = CONFLICT_RESOLUTION.SKIP,
       onProgress,
-      importImages = true
+      importImages = true,
     } = options;
 
     if (this.syncInProgress) {
@@ -110,7 +110,7 @@ class ContactSyncService {
       );
     }
 
-    if (!await this.checkPermissions()) {
+    if (!(await this.checkPermissions())) {
       throw new ServiceError(
         'contactSyncService',
         'importFromDevice',
@@ -122,7 +122,10 @@ class ContactSyncService {
     this.syncInProgress = true;
 
     try {
-      onProgress?.({ stage: 'fetching', message: 'Fetching device contacts...' });
+      onProgress?.({
+        stage: 'fetching',
+        message: 'Fetching device contacts...',
+      });
 
       // Get all device contacts with fields we need
       const { data: deviceContacts } = await Contacts.getContactsAsync({
@@ -141,7 +144,7 @@ class ContactSyncService {
       onProgress?.({
         stage: 'processing',
         message: `Processing ${deviceContacts.length} device contacts...`,
-        total: deviceContacts.length
+        total: deviceContacts.length,
       });
 
       const importResults = {
@@ -149,7 +152,7 @@ class ContactSyncService {
         imported: 0,
         skipped: 0,
         errors: [],
-        conflicts: []
+        conflicts: [],
       };
 
       // Process contacts in batches for better performance
@@ -174,14 +177,14 @@ class ContactSyncService {
               if (result.reason) {
                 importResults.conflicts.push({
                   contact: this._getContactDisplayInfo(deviceContact),
-                  reason: result.reason
+                  reason: result.reason,
                 });
               }
             }
           } catch (error) {
             importResults.errors.push({
               contact: this._getContactDisplayInfo(deviceContact),
-              error: error.message
+              error: error.message,
             });
           }
 
@@ -189,7 +192,7 @@ class ContactSyncService {
             stage: 'processing',
             current: overallIndex + 1,
             total: deviceContacts.length,
-            message: `Processed ${overallIndex + 1} of ${deviceContacts.length} contacts`
+            message: `Processed ${overallIndex + 1} of ${deviceContacts.length} contacts`,
           });
         }
       }
@@ -219,7 +222,7 @@ class ContactSyncService {
   async exportToDevice(options = {}) {
     const { contactIds, onProgress } = options;
 
-    if (!await this.checkPermissions()) {
+    if (!(await this.checkPermissions())) {
       throw new ServiceError(
         'contactSyncService',
         'exportToDevice',
@@ -233,7 +236,9 @@ class ContactSyncService {
 
       // Get contacts to export
       const crmContacts = contactIds
-        ? await Promise.all(contactIds.map(id => db.contactsInfo.getWithContactInfo(id)))
+        ? await Promise.all(
+            contactIds.map(id => db.contactsInfo.getWithContactInfo(id))
+          )
         : await db.contactsInfo.getAll();
 
       const validContacts = crmContacts.filter(Boolean);
@@ -241,13 +246,13 @@ class ContactSyncService {
       onProgress?.({
         stage: 'exporting',
         message: `Exporting ${validContacts.length} contacts to device...`,
-        total: validContacts.length
+        total: validContacts.length,
       });
 
       const exportResults = {
         total: validContacts.length,
         exported: 0,
-        errors: []
+        errors: [],
       };
 
       for (const [index, crmContact] of validContacts.entries()) {
@@ -256,8 +261,10 @@ class ContactSyncService {
           exportResults.exported++;
         } catch (error) {
           exportResults.errors.push({
-            contact: crmContact.display_name || `${crmContact.first_name} ${crmContact.last_name}`,
-            error: error.message
+            contact:
+              crmContact.display_name ||
+              `${crmContact.first_name} ${crmContact.last_name}`,
+            error: error.message,
           });
         }
 
@@ -265,7 +272,7 @@ class ContactSyncService {
           stage: 'exporting',
           current: index + 1,
           total: validContacts.length,
-          message: `Exported ${index + 1} of ${validContacts.length} contacts`
+          message: `Exported ${index + 1} of ${validContacts.length} contacts`,
         });
       }
 
@@ -292,7 +299,10 @@ class ContactSyncService {
    */
   async _importSingleContact(deviceContact, conflictResolution, importImages) {
     // Convert device contact to CRM format
-    const crmContactData = await this._convertDeviceContactToCRM(deviceContact, importImages);
+    const crmContactData = await this._convertDeviceContactToCRM(
+      deviceContact,
+      importImages
+    );
 
     if (!crmContactData.first_name && !crmContactData.last_name) {
       return { skipped: true, reason: 'Contact has no name' };
@@ -306,7 +316,7 @@ class ContactSyncService {
         case CONFLICT_RESOLUTION.SKIP:
           return {
             skipped: true,
-            reason: `Contact already exists: ${existingContact.display_name}`
+            reason: `Contact already exists: ${existingContact.display_name}`,
           };
 
         case CONFLICT_RESOLUTION.OVERWRITE:
@@ -315,7 +325,10 @@ class ContactSyncService {
           return { imported: true, updated: true };
 
         case CONFLICT_RESOLUTION.MERGE:
-          const mergedData = this._mergeContactData(existingContact, crmContactData);
+          const mergedData = this._mergeContactData(
+            existingContact,
+            crmContactData
+          );
           await db.contacts.update(existingContact.id, mergedData);
           await this._mergeContactInfo(existingContact.id, deviceContact);
           return { imported: true, merged: true };
@@ -325,7 +338,9 @@ class ContactSyncService {
           break;
 
         default:
-          throw new Error(`Invalid conflict resolution strategy: ${conflictResolution}`);
+          throw new Error(
+            `Invalid conflict resolution strategy: ${conflictResolution}`
+          );
       }
     }
 
@@ -359,14 +374,18 @@ class ContactSyncService {
     const crmContact = {};
 
     // Map basic fields
-    if (deviceContact.firstName) crmContact.first_name = deviceContact.firstName;
-    if (deviceContact.middleName) crmContact.middle_name = deviceContact.middleName;
+    if (deviceContact.firstName)
+      crmContact.first_name = deviceContact.firstName;
+    if (deviceContact.middleName)
+      crmContact.middle_name = deviceContact.middleName;
     if (deviceContact.lastName) crmContact.last_name = deviceContact.lastName;
     if (deviceContact.jobTitle) crmContact.job_title = deviceContact.jobTitle;
 
     // Handle company - we'll need to look up or create company record
     if (deviceContact.company) {
-      crmContact.company_id = await this._getOrCreateCompany(deviceContact.company);
+      crmContact.company_id = await this._getOrCreateCompany(
+        deviceContact.company
+      );
     }
 
     // Handle avatar/image
@@ -379,12 +398,11 @@ class ContactSyncService {
       const nameParts = [
         crmContact.first_name,
         crmContact.middle_name,
-        crmContact.last_name
+        crmContact.last_name,
       ].filter(Boolean);
 
-      crmContact.display_name = nameParts.length > 0
-        ? nameParts.join(' ')
-        : 'Unknown Contact';
+      crmContact.display_name =
+        nameParts.length > 0 ? nameParts.join(' ') : 'Unknown Contact';
     }
 
     return crmContact;
@@ -401,7 +419,8 @@ class ContactSyncService {
 
     // Map basic fields
     if (crmContact.first_name) deviceContact.firstName = crmContact.first_name;
-    if (crmContact.middle_name) deviceContact.middleName = crmContact.middle_name;
+    if (crmContact.middle_name)
+      deviceContact.middleName = crmContact.middle_name;
     if (crmContact.last_name) deviceContact.lastName = crmContact.last_name;
     if (crmContact.job_title) deviceContact.jobTitle = crmContact.job_title;
 
@@ -439,7 +458,7 @@ class ContactSyncService {
           type: 'email',
           value: email.email,
           label: email.label || 'other',
-          is_primary: index === 0 // First email is primary
+          is_primary: index === 0, // First email is primary
         });
       });
     }
@@ -452,7 +471,7 @@ class ContactSyncService {
           type: 'phone',
           value: phone.number,
           label: phone.label || 'other',
-          is_primary: index === 0 // First phone is primary
+          is_primary: index === 0, // First phone is primary
         });
       });
     }
@@ -466,7 +485,7 @@ class ContactSyncService {
           address.city,
           address.region,
           address.postalCode,
-          address.country
+          address.country,
         ].filter(Boolean);
 
         if (addressParts.length > 0) {
@@ -475,7 +494,7 @@ class ContactSyncService {
             type: 'address',
             value: addressParts.join(', '),
             label: address.label || 'other',
-            is_primary: index === 0 // First address is primary
+            is_primary: index === 0, // First address is primary
           });
         }
       });
@@ -535,8 +554,8 @@ class ContactSyncService {
     try {
       // Try to find existing company
       const companies = await db.companies.getAll({ limit: 50 });
-      const existingCompany = companies.find(company =>
-        company.name.toLowerCase() === companyName.toLowerCase()
+      const existingCompany = companies.find(
+        company => company.name.toLowerCase() === companyName.toLowerCase()
       );
 
       if (existingCompany) {
@@ -566,7 +585,7 @@ class ContactSyncService {
     const nameParts = [
       deviceContact.firstName,
       deviceContact.middleName,
-      deviceContact.lastName
+      deviceContact.lastName,
     ].filter(Boolean);
 
     return nameParts.length > 0

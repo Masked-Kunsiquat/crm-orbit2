@@ -10,48 +10,60 @@ jest.mock('expo-sharing');
 jest.mock('../../database');
 
 // Mock authService
-jest.mock('../authService', () => ({
-  default: {
-    checkIsLocked: jest.fn(async () => false), // false means unlocked/authenticated
-  }
-}), { virtual: true });
+jest.mock(
+  '../authService',
+  () => ({
+    default: {
+      checkIsLocked: jest.fn(async () => false), // false means unlocked/authenticated
+    },
+  }),
+  { virtual: true }
+);
 
 // Mock fileService
-jest.mock('../fileService', () => ({
-  default: {
-    validateFileSize: jest.fn(() => true),
-  }
-}), { virtual: true });
+jest.mock(
+  '../fileService',
+  () => ({
+    default: {
+      validateFileSize: jest.fn(() => true),
+    },
+  }),
+  { virtual: true }
+);
 
 // Mock ServiceError class
-jest.mock('../../services/errors', () => ({
-  ServiceError: class ServiceError extends Error {
-    constructor(service, operation, originalError, options = {}) {
-      super(
-        `${service}.${operation} failed: ${originalError?.message || originalError}`
-      );
-      this.name = 'ServiceError';
-      this.service = service;
-      this.operation = operation;
-      this.originalError = originalError;
-      this.code = originalError?.code; // Set fallback code from originalError
+jest.mock(
+  '../../services/errors',
+  () => ({
+    ServiceError: class ServiceError extends Error {
+      constructor(service, operation, originalError, options = {}) {
+        super(
+          `${service}.${operation} failed: ${originalError?.message || originalError}`
+        );
+        this.name = 'ServiceError';
+        this.service = service;
+        this.operation = operation;
+        this.originalError = originalError;
+        this.code = originalError?.code; // Set fallback code from originalError
 
-      // Only overwrite code if options.errorCode is explicitly provided
-      if (options && options.errorCode !== undefined) {
-        this.code = options.errorCode;
-      }
+        // Only overwrite code if options.errorCode is explicitly provided
+        if (options && options.errorCode !== undefined) {
+          this.code = options.errorCode;
+        }
 
-      // Additional context from options
-      if (options && typeof options === 'object') {
-        Object.keys(options).forEach(key => {
-          if (key !== 'errorCode' && !this.hasOwnProperty(key)) {
-            this[key] = options[key];
-          }
-        });
+        // Additional context from options
+        if (options && typeof options === 'object') {
+          Object.keys(options).forEach(key => {
+            if (key !== 'errorCode' && !this.hasOwnProperty(key)) {
+              this[key] = options[key];
+            }
+          });
+        }
       }
-    }
-  },
-}), { virtual: true });
+    },
+  }),
+  { virtual: true }
+);
 
 // Import the service after mocks are in place
 const backupService = require('../backupService').default;
@@ -61,7 +73,10 @@ const db = require('../../database');
 const authService = require('../authService').default;
 
 // Additional import for CSV-related tests
-const { BackupCsvExporter, createBackupCsvExporter } = require('../backup/backupCsv');
+const {
+  BackupCsvExporter,
+  createBackupCsvExporter,
+} = require('../backup/backupCsv');
 
 describe('backupService', () => {
   // Mocked modules
@@ -75,13 +90,15 @@ describe('backupService', () => {
 
     // Reset FileSystem mocks
     FileSystem.writeAsStringAsync.mockResolvedValue(undefined);
-    FileSystem.readAsStringAsync.mockResolvedValue(JSON.stringify({
-      version: '1.0.0',
-      timestamp: new Date().toISOString(),
-      tables: {
-        contacts: [{ id: 1, name: 'Test Contact' }],
-      },
-    }));
+    FileSystem.readAsStringAsync.mockResolvedValue(
+      JSON.stringify({
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        tables: {
+          contacts: [{ id: 1, name: 'Test Contact' }],
+        },
+      })
+    );
     FileSystem.readDirectoryAsync.mockResolvedValue([
       'backup-1.json',
       'backup-2.json',
@@ -91,7 +108,15 @@ describe('backupService', () => {
     authService.checkIsLocked.mockResolvedValue(false); // Default to authenticated (unlocked)
 
     // Reset database module mocks
-    const mockTables = ['categories', 'companies', 'contacts', 'attachments', 'events', 'interactions', 'notes'];
+    const mockTables = [
+      'categories',
+      'companies',
+      'contacts',
+      'attachments',
+      'events',
+      'interactions',
+      'notes',
+    ];
     mockTables.forEach(table => {
       const mockData = [{ id: 1, name: `Test ${table}` }];
       const mockFn = jest.fn(async () => mockData);
@@ -106,26 +131,36 @@ describe('backupService', () => {
 
     // Special database table mocks with different methods
     db.contactsInfo = {
-      getWithContactInfo: jest.fn(async (contactId) => ({
+      getWithContactInfo: jest.fn(async contactId => ({
         id: contactId,
-        contact_info: [{ id: 1, type: 'email', value: 'test@example.com' }]
+        contact_info: [{ id: 1, type: 'email', value: 'test@example.com' }],
       })),
-      getAll: jest.fn(async () => [{ id: 1, type: 'email', value: 'test@example.com' }])
+      getAll: jest.fn(async () => [
+        { id: 1, type: 'email', value: 'test@example.com' },
+      ]),
     };
 
     db.eventsRecurring = {
-      getRecurringEvents: jest.fn(async () => [{ id: 1, title: 'Test Recurring Event' }]),
-      getAll: jest.fn(async () => [{ id: 1, title: 'Test Recurring Event' }])
+      getRecurringEvents: jest.fn(async () => [
+        { id: 1, title: 'Test Recurring Event' },
+      ]),
+      getAll: jest.fn(async () => [{ id: 1, title: 'Test Recurring Event' }]),
     };
 
     db.eventsReminders = {
-      getUnsentReminders: jest.fn(async () => [{ id: 1, event_id: 1, reminder_type: 'notification' }]),
-      getAll: jest.fn(async () => [{ id: 1, event_id: 1, reminder_type: 'notification' }])
+      getUnsentReminders: jest.fn(async () => [
+        { id: 1, event_id: 1, reminder_type: 'notification' },
+      ]),
+      getAll: jest.fn(async () => [
+        { id: 1, event_id: 1, reminder_type: 'notification' },
+      ]),
     };
 
     db.categoriesRelations = {
-      getContactsByCategory: jest.fn(async (categoryId) => [{ id: 1, name: 'Test Contact' }]),
-      getAll: jest.fn(async () => [{ category_id: 1, contact_id: 1 }])
+      getContactsByCategory: jest.fn(async categoryId => [
+        { id: 1, name: 'Test Contact' },
+      ]),
+      getAll: jest.fn(async () => [{ category_id: 1, contact_id: 1 }]),
     };
 
     // Additional database mocks
@@ -140,13 +175,15 @@ describe('backupService', () => {
     db.settings = {
       setSetting: jest.fn(async () => {}),
       getSetting: jest.fn(async () => false),
-      getAll: jest.fn(async () => [{ category: 'backup', key: 'auto_enabled', value: false }]),
+      getAll: jest.fn(async () => [
+        { category: 'backup', key: 'auto_enabled', value: false },
+      ]),
       getValues: jest.fn(async () => ({
         auto_enabled: false,
         interval_hours: 24,
         max_backups: 10,
-        last_backup_time: null
-      }))
+        last_backup_time: null,
+      })),
     };
   });
 
@@ -161,7 +198,9 @@ describe('backupService', () => {
     });
 
     test('handles initialization errors', async () => {
-      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(new Error('Permission denied'));
+      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(
+        new Error('Permission denied')
+      );
 
       await expect(backupService.initialize()).rejects.toMatchObject({
         code: 'BACKUP_INIT_ERROR',
@@ -177,7 +216,9 @@ describe('backupService', () => {
 
     test('checkAutoBackup safely handles initialization failures', async () => {
       // Mock makeDirectory to fail initially
-      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(new Error('Permission denied'));
+      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(
+        new Error('Permission denied')
+      );
 
       const result = await backupService.checkAutoBackup();
 
@@ -187,10 +228,14 @@ describe('backupService', () => {
 
     test('checkAutoBackup attempts to schedule auto-backup on initialization failure', async () => {
       // Mock initialization to fail but allow scheduling
-      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(new Error('Permission denied'));
+      FileSystem.makeDirectoryAsync.mockRejectedValueOnce(
+        new Error('Permission denied')
+      );
 
       // Spy on the private method
-      const scheduleSpy = jest.spyOn(backupService, '_scheduleAutoBackup').mockResolvedValueOnce();
+      const scheduleSpy = jest
+        .spyOn(backupService, '_scheduleAutoBackup')
+        .mockResolvedValueOnce();
 
       const result = await backupService.checkAutoBackup();
 
@@ -212,7 +257,7 @@ describe('backupService', () => {
 
     test('creates a backup with custom filename', async () => {
       const backupPath = await backupService.createBackup({
-        filename: 'custom-backup.json'
+        filename: 'custom-backup.json',
       });
 
       expect(backupPath).toContain('custom-backup.json');
@@ -268,7 +313,9 @@ describe('backupService', () => {
 
       await expect(backupService.createBackup()).rejects.toMatchObject({
         code: 'BACKUP_AUTH_REQUIRED',
-        message: expect.stringContaining('Authentication required for backup operations'),
+        message: expect.stringContaining(
+          'Authentication required for backup operations'
+        ),
       });
     });
 
@@ -277,7 +324,9 @@ describe('backupService', () => {
       authService.checkIsLocked.mockResolvedValueOnce(true);
 
       // Should still work when requireAuth=false
-      const backupPath = await backupService.createBackup({ requireAuth: false });
+      const backupPath = await backupService.createBackup({
+        requireAuth: false,
+      });
       expect(backupPath).toMatch(/crm-backup-.*\.json/);
     });
   });
@@ -324,12 +373,16 @@ describe('backupService', () => {
     };
 
     beforeEach(() => {
-      FileSystem.readAsStringAsync.mockResolvedValue(JSON.stringify(mockBackupData));
+      FileSystem.readAsStringAsync.mockResolvedValue(
+        JSON.stringify(mockBackupData)
+      );
     });
 
     test('imports backup with default options', async () => {
       const onProgress = jest.fn();
-      const result = await backupService.importBackup('/path/to/backup.json', { onProgress });
+      const result = await backupService.importBackup('/path/to/backup.json', {
+        onProgress,
+      });
 
       expect(result.imported.contacts).toBe(1);
       expect(result.imported.companies).toBe(1);
@@ -344,7 +397,9 @@ describe('backupService', () => {
         stage: 'validating',
         progress: 10,
       });
-      expect(onProgress.mock.calls[onProgress.mock.calls.length - 1][0]).toEqual({
+      expect(
+        onProgress.mock.calls[onProgress.mock.calls.length - 1][0]
+      ).toEqual({
         stage: 'complete',
         progress: 100,
       });
@@ -369,12 +424,16 @@ describe('backupService', () => {
     });
 
     test('handles backup format validation errors', async () => {
-      FileSystem.readAsStringAsync.mockResolvedValue(JSON.stringify({
-        // Invalid backup missing required fields
-        tables: {}
-      }));
+      FileSystem.readAsStringAsync.mockResolvedValue(
+        JSON.stringify({
+          // Invalid backup missing required fields
+          tables: {},
+        })
+      );
 
-      await expect(backupService.importBackup('/path/to/backup.json')).rejects.toMatchObject({
+      await expect(
+        backupService.importBackup('/path/to/backup.json')
+      ).rejects.toMatchObject({
         code: 'INVALID_BACKUP_FORMAT',
       });
     });
@@ -390,7 +449,9 @@ describe('backupService', () => {
     });
 
     test('handles listing backup errors', async () => {
-      FileSystem.readDirectoryAsync.mockRejectedValueOnce(new Error('Read error'));
+      FileSystem.readDirectoryAsync.mockRejectedValueOnce(
+        new Error('Read error')
+      );
 
       await expect(backupService.listBackups()).rejects.toMatchObject({
         code: 'BACKUP_LIST_ERROR',
@@ -410,7 +471,9 @@ describe('backupService', () => {
     test('handles backup deletion errors', async () => {
       FileSystem.deleteAsync.mockRejectedValueOnce(new Error('Delete error'));
 
-      await expect(backupService.deleteBackup('backup-1.json')).rejects.toMatchObject({
+      await expect(
+        backupService.deleteBackup('backup-1.json')
+      ).rejects.toMatchObject({
         code: 'BACKUP_DELETE_ERROR',
       });
     });
@@ -427,7 +490,9 @@ describe('backupService', () => {
     test('handles sharing not available', async () => {
       Sharing.isAvailableAsync.mockResolvedValueOnce(false);
 
-      await expect(backupService.shareBackup('/path/to/backup.json')).rejects.toMatchObject({
+      await expect(
+        backupService.shareBackup('/path/to/backup.json')
+      ).rejects.toMatchObject({
         code: 'SHARING_NOT_AVAILABLE',
       });
     });
@@ -441,9 +506,18 @@ describe('backupService', () => {
         maxBackups: 10,
       });
 
-      expect(db.settings.setSetting).toHaveBeenCalledWith('backup.auto_enabled', true);
-      expect(db.settings.setSetting).toHaveBeenCalledWith('backup.interval_hours', 24);
-      expect(db.settings.setSetting).toHaveBeenCalledWith('backup.max_backups', 10);
+      expect(db.settings.setSetting).toHaveBeenCalledWith(
+        'backup.auto_enabled',
+        true
+      );
+      expect(db.settings.setSetting).toHaveBeenCalledWith(
+        'backup.interval_hours',
+        24
+      );
+      expect(db.settings.setSetting).toHaveBeenCalledWith(
+        'backup.max_backups',
+        10
+      );
     });
 
     test('disables auto-backup', async () => {
@@ -453,17 +527,22 @@ describe('backupService', () => {
         maxBackups: 10,
       });
 
-      expect(db.settings.setSetting).toHaveBeenCalledWith('backup.auto_enabled', false);
+      expect(db.settings.setSetting).toHaveBeenCalledWith(
+        'backup.auto_enabled',
+        false
+      );
     });
 
     test('handles auto-backup configuration errors', async () => {
       db.settings.setSetting.mockRejectedValueOnce(new Error('Settings error'));
 
-      await expect(backupService.configureAutoBackup({
-        enabled: true,
-        intervalHours: 24,
-        maxBackups: 10,
-      })).rejects.toMatchObject({
+      await expect(
+        backupService.configureAutoBackup({
+          enabled: true,
+          intervalHours: 24,
+          maxBackups: 10,
+        })
+      ).rejects.toMatchObject({
         code: 'AUTO_BACKUP_CONFIG_ERROR',
       });
     });
@@ -475,8 +554,14 @@ describe('backupService', () => {
       // Mock backup files with different creation times
       const now = Date.now();
       FileSystem.getInfoAsync
-        .mockResolvedValueOnce({ size: 1024, modificationTime: (now - 40 * 24 * 60 * 60 * 1000) / 1000 }) // 40 days old
-        .mockResolvedValueOnce({ size: 1024, modificationTime: (now - 10 * 24 * 60 * 60 * 1000) / 1000 }); // 10 days old
+        .mockResolvedValueOnce({
+          size: 1024,
+          modificationTime: (now - 40 * 24 * 60 * 60 * 1000) / 1000,
+        }) // 40 days old
+        .mockResolvedValueOnce({
+          size: 1024,
+          modificationTime: (now - 10 * 24 * 60 * 60 * 1000) / 1000,
+        }); // 10 days old
 
       // Create more than 10 backup files to trigger max backup count cleanup
       FileSystem.readDirectoryAsync.mockResolvedValue(

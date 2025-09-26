@@ -30,10 +30,11 @@
     "expo-local-authentication": "~17.0.7",
     "expo-notifications": "~0.32.11",
     "expo-secure-store": "~15.0.7",
+    "expo-sharing": "~14.0.7",
     "expo-sqlite": "~16.0.8",
     "expo-status-bar": "~3.0.8",
     "expo-system-ui": "~6.0.7",
-    "react": "19.1.0",
+    "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-error-boundary": "^6.0.0",
     "react-native": "0.81.4",
@@ -46,6 +47,7 @@
     "react-native-web": "^0.21.0",
     "react-native-worklets": "0.5.1",
     "react-native-worklets-core": "^1.6.2",
+    "typescript": "~5.9.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

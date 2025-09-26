@@ -24,7 +24,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Button, TextInput, Portal, Dialog } from 'react-native-paper';
 import authService from '../../services/authService';
-import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../../constants/AUTH';
+import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../../constants/auth';
 
 /**
  * PinSetupModal functional component

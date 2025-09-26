@@ -21,7 +21,7 @@ class BackupCsvExporter {
     notifyListeners?.({
       type: 'csv_exported',
       csvPath: `/test/directory/backups/${filename || `crm-export-${table || 'full'}.csv`}`,
-      table: table || 'all'
+      table: table || 'all',
     });
 
     return `/test/directory/backups/${filename || `crm-export-${table || 'full'}.csv`}`;
@@ -49,11 +49,11 @@ const createBackupCsvExporter = jest.fn((authService, exportTableFunction) => {
       notifyListeners?.({
         type: 'csv_exported',
         csvPath: `/test/directory/backups/${filename || `crm-export-${table || 'full'}.csv`}`,
-        table: table || 'all'
+        table: table || 'all',
       });
 
       return `/test/directory/backups/${filename || `crm-export-${table || 'full'}.csv`}`;
-    }
+    },
   };
 
   return instance;
@@ -61,5 +61,5 @@ const createBackupCsvExporter = jest.fn((authService, exportTableFunction) => {
 
 module.exports = {
   BackupCsvExporter,
-  createBackupCsvExporter
+  createBackupCsvExporter,
 };

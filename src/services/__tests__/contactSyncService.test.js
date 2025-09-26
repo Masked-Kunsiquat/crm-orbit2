@@ -1,32 +1,39 @@
 // Unit tests for contactSyncService
 
 // Mock expo-contacts before importing
-jest.mock('expo-contacts', () => ({
-  Fields: {
-    Name: 'name',
-    PhoneNumbers: 'phoneNumbers',
-    Emails: 'emails',
-    Addresses: 'addresses',
-    Company: 'company',
-    JobTitle: 'jobTitle',
-    Image: 'image',
-  },
-  SortTypes: {
-    FirstName: 'firstName',
-    LastName: 'lastName',
-  },
-  requestPermissionsAsync: jest.fn(),
-  getPermissionsAsync: jest.fn(),
-  getContactsAsync: jest.fn(),
-  getContactByIdAsync: jest.fn(),
-  addContactAsync: jest.fn(),
-  updateContactAsync: jest.fn(),
-  removeContactAsync: jest.fn(),
-}), { virtual: true });
-
 import * as Contacts from 'expo-contacts';
-import contactSyncService, { CONTACT_SYNC_ERROR_CODES, CONFLICT_RESOLUTION } from '../contactSyncService';
+import contactSyncService, {
+  CONTACT_SYNC_ERROR_CODES,
+  CONFLICT_RESOLUTION,
+} from '../contactSyncService';
 import db from '../../database';
+
+jest.mock(
+  'expo-contacts',
+  () => ({
+    Fields: {
+      Name: 'name',
+      PhoneNumbers: 'phoneNumbers',
+      Emails: 'emails',
+      Addresses: 'addresses',
+      Company: 'company',
+      JobTitle: 'jobTitle',
+      Image: 'image',
+    },
+    SortTypes: {
+      FirstName: 'firstName',
+      LastName: 'lastName',
+    },
+    requestPermissionsAsync: jest.fn(),
+    getPermissionsAsync: jest.fn(),
+    getContactsAsync: jest.fn(),
+    getContactByIdAsync: jest.fn(),
+    addContactAsync: jest.fn(),
+    updateContactAsync: jest.fn(),
+    removeContactAsync: jest.fn(),
+  }),
+  { virtual: true }
+);
 
 // Mock the database
 jest.mock('../../database');
@@ -78,24 +85,28 @@ describe('ContactSyncService', () => {
         phoneNumbers: [{ number: '+1234567890', label: 'mobile' }],
         emails: [{ email: 'john.doe@example.com', label: 'work' }],
         company: 'Test Company',
-        jobTitle: 'Developer'
+        jobTitle: 'Developer',
       },
       {
         id: '2',
         firstName: 'Jane',
         lastName: 'Smith',
-        emails: [{ email: 'jane.smith@example.com', label: 'personal' }]
-      }
+        emails: [{ email: 'jane.smith@example.com', label: 'personal' }],
+      },
     ];
 
     beforeEach(() => {
       Contacts.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
       Contacts.getContactsAsync.mockResolvedValue({ data: mockDeviceContacts });
       db.contacts.findByName = jest.fn().mockResolvedValue([]);
-      db.contacts.create = jest.fn().mockImplementation(data => ({ id: 123, ...data }));
+      db.contacts.create = jest
+        .fn()
+        .mockImplementation(data => ({ id: 123, ...data }));
       db.contactsInfo.create = jest.fn().mockResolvedValue({ id: 456 });
       db.companies.getAll = jest.fn().mockResolvedValue([]);
-      db.companies.create = jest.fn().mockImplementation(data => ({ id: 789, ...data }));
+      db.companies.create = jest
+        .fn()
+        .mockImplementation(data => ({ id: 789, ...data }));
     });
 
     test('should throw error if permissions not granted', async () => {
@@ -107,9 +118,11 @@ describe('ContactSyncService', () => {
     test('should throw error if sync already in progress', async () => {
       contactSyncService.syncInProgress = true;
 
-      await expect(contactSyncService.importFromDevice()).rejects.toMatchObject({
-        code: CONTACT_SYNC_ERROR_CODES.IMPORT_ERROR
-      });
+      await expect(contactSyncService.importFromDevice()).rejects.toMatchObject(
+        {
+          code: CONTACT_SYNC_ERROR_CODES.IMPORT_ERROR,
+        }
+      );
     });
 
     test('should import contacts successfully with SKIP resolution', async () => {
@@ -117,7 +130,7 @@ describe('ContactSyncService', () => {
 
       const result = await contactSyncService.importFromDevice({
         conflictResolution: CONFLICT_RESOLUTION.SKIP,
-        onProgress
+        onProgress,
       });
 
       expect(result.total).toBe(2);
@@ -138,11 +151,16 @@ describe('ContactSyncService', () => {
     test('should skip existing contacts with SKIP resolution', async () => {
       // Mock existing contact found
       db.contacts.findByName.mockResolvedValueOnce([
-        { id: 1, first_name: 'John', last_name: 'Doe', display_name: 'John Doe' }
+        {
+          id: 1,
+          first_name: 'John',
+          last_name: 'Doe',
+          display_name: 'John Doe',
+        },
       ]);
 
       const result = await contactSyncService.importFromDevice({
-        conflictResolution: CONFLICT_RESOLUTION.SKIP
+        conflictResolution: CONFLICT_RESOLUTION.SKIP,
       });
 
       expect(result.imported).toBe(1); // Only Jane Smith imported
@@ -155,11 +173,13 @@ describe('ContactSyncService', () => {
       const contactsWithoutNames = [
         {
           id: '3',
-          phoneNumbers: [{ number: '+1111111111', label: 'mobile' }]
-        }
+          phoneNumbers: [{ number: '+1111111111', label: 'mobile' }],
+        },
       ];
 
-      Contacts.getContactsAsync.mockResolvedValue({ data: contactsWithoutNames });
+      Contacts.getContactsAsync.mockResolvedValue({
+        data: contactsWithoutNames,
+      });
 
       const result = await contactSyncService.importFromDevice();
 
@@ -172,7 +192,7 @@ describe('ContactSyncService', () => {
       const result = await contactSyncService.importFromDevice();
 
       expect(db.companies.create).toHaveBeenCalledWith({
-        name: 'Test Company'
+        name: 'Test Company',
       });
       expect(result.imported).toBe(2);
     });
@@ -197,8 +217,8 @@ describe('ContactSyncService', () => {
         display_name: 'John Doe',
         contact_info: [
           { type: 'email', value: 'john@example.com', label: 'work' },
-          { type: 'phone', value: '+1234567890', label: 'mobile' }
-        ]
+          { type: 'phone', value: '+1234567890', label: 'mobile' },
+        ],
       },
       {
         id: 2,
@@ -206,17 +226,17 @@ describe('ContactSyncService', () => {
         last_name: 'Smith',
         display_name: 'Jane Smith',
         contact_info: [
-          { type: 'email', value: 'jane@example.com', label: 'personal' }
-        ]
-      }
+          { type: 'email', value: 'jane@example.com', label: 'personal' },
+        ],
+      },
     ];
 
     beforeEach(() => {
       Contacts.getPermissionsAsync.mockResolvedValue({ status: 'granted' });
       Contacts.addContactAsync.mockResolvedValue('new-device-contact-id');
-      db.contactsInfo.getWithContactInfo = jest.fn().mockImplementation(id =>
-        mockCrmContacts.find(c => c.id === id)
-      );
+      db.contactsInfo.getWithContactInfo = jest
+        .fn()
+        .mockImplementation(id => mockCrmContacts.find(c => c.id === id));
       db.contactsInfo.getAll = jest.fn().mockResolvedValue(mockCrmContacts);
     });
 
@@ -246,7 +266,7 @@ describe('ContactSyncService', () => {
 
     test('should export specific contacts by ID', async () => {
       const result = await contactSyncService.exportToDevice({
-        contactIds: [1]
+        contactIds: [1],
       });
 
       expect(result.total).toBe(1);
@@ -273,13 +293,16 @@ describe('ContactSyncService', () => {
         middleName: 'William',
         jobTitle: 'Developer',
         company: 'Test Co',
-        image: { uri: 'file://avatar.jpg' }
+        image: { uri: 'file://avatar.jpg' },
       };
 
       db.companies.getAll = jest.fn().mockResolvedValue([]);
       db.companies.create = jest.fn().mockResolvedValue({ id: 123 });
 
-      const result = await contactSyncService._convertDeviceContactToCRM(deviceContact, true);
+      const result = await contactSyncService._convertDeviceContactToCRM(
+        deviceContact,
+        true
+      );
 
       expect(result).toMatchObject({
         first_name: 'John',
@@ -287,7 +310,7 @@ describe('ContactSyncService', () => {
         middle_name: 'William',
         job_title: 'Developer',
         avatar_uri: 'file://avatar.jpg',
-        display_name: 'John William Doe'
+        display_name: 'John William Doe',
       });
       expect(result.company_id).toBe(123);
     });
@@ -300,8 +323,8 @@ describe('ContactSyncService', () => {
         job_title: 'Developer',
         contact_info: [
           { type: 'email', value: 'john@example.com', label: 'work' },
-          { type: 'phone', value: '+1234567890', label: 'mobile' }
-        ]
+          { type: 'phone', value: '+1234567890', label: 'mobile' },
+        ],
       };
 
       const result = contactSyncService._convertCRMContactToDevice(crmContact);
@@ -312,7 +335,7 @@ describe('ContactSyncService', () => {
         middleName: 'William',
         jobTitle: 'Developer',
         emails: [{ email: 'john@example.com', label: 'work' }],
-        phoneNumbers: [{ number: '+1234567890', label: 'mobile' }]
+        phoneNumbers: [{ number: '+1234567890', label: 'mobile' }],
       });
     });
   });
@@ -323,13 +346,13 @@ describe('ContactSyncService', () => {
         id: 1,
         first_name: 'John',
         last_name: 'Doe',
-        display_name: 'John Doe'
+        display_name: 'John Doe',
       };
 
       const deviceContact = {
         firstName: 'John',
         lastName: 'Doe',
-        jobTitle: 'Senior Developer'
+        jobTitle: 'Senior Developer',
       };
 
       db.contacts.findByName.mockResolvedValue([mockExistingContact]);
@@ -345,19 +368,26 @@ describe('ContactSyncService', () => {
 
       expect(result.imported).toBe(true);
       expect(result.updated).toBe(true);
-      expect(db.contacts.update).toHaveBeenCalledWith(1, expect.objectContaining({
-        job_title: 'Senior Developer'
-      }));
+      expect(db.contacts.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          job_title: 'Senior Developer',
+        })
+      );
     });
   });
 
   describe('error handling', () => {
     test('should handle device errors properly', async () => {
-      Contacts.getPermissionsAsync.mockRejectedValue(new Error('Device unavailable'));
+      Contacts.getPermissionsAsync.mockRejectedValue(
+        new Error('Device unavailable')
+      );
 
-      await expect(contactSyncService.checkPermissions()).rejects.toMatchObject({
-        code: CONTACT_SYNC_ERROR_CODES.DEVICE_ERROR
-      });
+      await expect(contactSyncService.checkPermissions()).rejects.toMatchObject(
+        {
+          code: CONTACT_SYNC_ERROR_CODES.DEVICE_ERROR,
+        }
+      );
     });
 
     test('should clean up sync state on import error', async () => {

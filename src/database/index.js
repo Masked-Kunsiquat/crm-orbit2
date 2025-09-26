@@ -17,7 +17,7 @@
  *   on how to schedule SQL calls to ensure they run inside the same transaction.
  */
 
-import * as ExpoSQLite from 'expo-sqlite';
+import { openDatabase as expoOpenDatabase } from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
 import { createContactsDB } from './contacts';
 import { createContactsInfoDB } from './contactsInfo';
@@ -34,15 +34,7 @@ import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
 import { DatabaseError } from './errors';
-// Support both module shapes: named export and default export
-const expoOpenDatabase =
-  (ExpoSQLite &&
-    typeof ExpoSQLite.openDatabase === 'function' &&
-    ExpoSQLite.openDatabase) ||
-  (ExpoSQLite &&
-    ExpoSQLite.default &&
-    typeof ExpoSQLite.default.openDatabase === 'function' &&
-    ExpoSQLite.default.openDatabase);
+// expoOpenDatabase is already imported with alias
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from './errors';
@@ -100,7 +92,7 @@ function getDB() {
  * @returns {any} SQLite database instance
  * @throws {DatabaseError} When opening fails
  */
-function openDatabase(dbName = DEFAULT_DB_NAME) {
+function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
   try {
     // expo-sqlite returns a Database object compatible with `transaction`
     _db = expoOpenDatabase(dbName);
@@ -359,7 +351,7 @@ export async function initDatabase(options = {}) {
   if (_initInflight) return _initInflight;
 
   const startInit = async () => {
-    const db = openDatabase(name);
+    const db = openDatabaseConnection(name);
 
     // Basic PRAGMA setup
     try {

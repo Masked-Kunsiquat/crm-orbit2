@@ -1,4 +1,13 @@
-import { documentDirectory, writeAsStringAsync, readAsStringAsync, deleteAsync, makeDirectoryAsync, readDirectoryAsync, getInfoAsync, EncodingType } from 'expo-file-system';
+import {
+  documentDirectory,
+  writeAsStringAsync,
+  readAsStringAsync,
+  deleteAsync,
+  makeDirectoryAsync,
+  readDirectoryAsync,
+  getInfoAsync,
+  EncodingType,
+} from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import db from '../database';
 import authService from './authService';
@@ -11,7 +20,7 @@ import {
   BACKUP_FEATURES,
   BACKUP_STRUCTURE,
   BACKUP_ERROR_CODES,
-  buildServiceError
+  buildServiceError,
 } from './backup/backupConstants';
 import { createBackupCsvExporter } from './backup/backupCsv';
 
@@ -60,7 +69,9 @@ class BackupService {
     }
 
     try {
-      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+      await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, {
+        intermediates: true,
+      });
       await this._loadBackupSettings();
       await this._scheduleAutoBackup();
 
@@ -142,7 +153,12 @@ class BackupService {
    * @returns {Promise<string>} - Path to created backup file
    */
   async createBackup(options = {}) {
-    const { filename, includeAttachments = false, onProgress, requireAuth = true } = options;
+    const {
+      filename,
+      includeAttachments = false,
+      onProgress,
+      requireAuth = true,
+    } = options;
 
     // Check authentication if required
     if (requireAuth && (await authService.checkIsLocked())) {
@@ -179,8 +195,8 @@ class BackupService {
         tables: {},
         metadata: {
           totalRecords: 0,
-          includeAttachments
-        }
+          includeAttachments,
+        },
       };
 
       let totalProgress = 0;
@@ -190,7 +206,7 @@ class BackupService {
         onProgress?.({
           stage: 'exporting',
           table,
-          progress: Math.round(totalProgress)
+          progress: Math.round(totalProgress),
         });
 
         try {
@@ -232,7 +248,7 @@ class BackupService {
         type: 'backup_created',
         backupPath,
         size: fileInfo.size,
-        recordCount: backupData.metadata.totalRecords
+        recordCount: backupData.metadata.totalRecords,
       });
 
       return backupPath;
@@ -263,7 +279,7 @@ class BackupService {
     // Delegate to CSV exporter with callback functions
     const csvPath = await this.csvExporter.exportToCSV({
       ...options,
-      notifyListeners: this._notifyListeners.bind(this)
+      notifyListeners: this._notifyListeners.bind(this),
     });
 
     // Sync backup running state back from CSV exporter
@@ -283,7 +299,12 @@ class BackupService {
    * @returns {Promise<Object>} - Import summary
    */
   async importBackup(backupPath, options = {}) {
-    const { overwrite = false, tablesToImport, onProgress, requireAuth = true } = options;
+    const {
+      overwrite = false,
+      tablesToImport,
+      onProgress,
+      requireAuth = true,
+    } = options;
 
     // Check authentication if required
     if (requireAuth && (await authService.checkIsLocked())) {
@@ -324,7 +345,7 @@ class BackupService {
         imported: {},
         skipped: {},
         errors: {},
-        totalRecords: 0
+        totalRecords: 0,
       };
 
       let progressIncrement = 80 / importTables.length;
@@ -337,12 +358,17 @@ class BackupService {
         onProgress?.({
           stage: 'importing',
           table,
-          progress: Math.round(currentProgress)
+          progress: Math.round(currentProgress),
         });
 
         try {
           if (backupData.tables[table]) {
-            const result = await this._importTable(table, backupData.tables[table], overwrite, idMaps);
+            const result = await this._importTable(
+              table,
+              backupData.tables[table],
+              overwrite,
+              idMaps
+            );
             summary.imported[table] = result.imported;
             summary.skipped[table] = result.skipped;
             summary.totalRecords += result.imported;
@@ -361,7 +387,7 @@ class BackupService {
       this._notifyListeners({
         type: 'backup_imported',
         summary,
-        backupPath
+        backupPath,
       });
 
       return summary;
@@ -390,8 +416,14 @@ class BackupService {
         files = await readDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR);
       } catch (error) {
         // If directory doesn't exist (ENOENT), create it and return empty list
-        if (error.code === 'ENOENT' || error.message?.includes('ENOENT') || error.message?.includes('does not exist')) {
-          await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
+        if (
+          error.code === 'ENOENT' ||
+          error.message?.includes('ENOENT') ||
+          error.message?.includes('does not exist')
+        ) {
+          await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, {
+            intermediates: true,
+          });
           files = []; // Empty directory
         } else {
           // Rethrow unexpected errors
@@ -411,7 +443,7 @@ class BackupService {
             path: filePath,
             size: fileInfo.size,
             created: new Date(fileInfo.modificationTime * 1000),
-            type: filename.endsWith('.json') ? 'json' : 'csv'
+            type: filename.endsWith('.json') ? 'json' : 'csv',
           });
         }
       }
@@ -449,7 +481,7 @@ class BackupService {
 
       this._notifyListeners({
         type: 'backup_deleted',
-        filename
+        filename,
       });
     } catch (error) {
       throw buildServiceError(
@@ -473,7 +505,7 @@ class BackupService {
 
         this._notifyListeners({
           type: 'backup_shared',
-          backupPath
+          backupPath,
         });
       } else {
         throw buildServiceError(
@@ -511,7 +543,10 @@ class BackupService {
     try {
       // Use batch settings update for consistency
       await db.settings.setSetting('backup.auto_enabled', settings.enabled);
-      await db.settings.setSetting('backup.interval_hours', settings.intervalHours);
+      await db.settings.setSetting(
+        'backup.interval_hours',
+        settings.intervalHours
+      );
       await db.settings.setSetting('backup.max_backups', settings.maxBackups);
 
       if (settings.enabled) {
@@ -522,7 +557,7 @@ class BackupService {
 
       this._notifyListeners({
         type: 'auto_backup_configured',
-        settings
+        settings,
       });
     } catch (error) {
       throw buildServiceError(
@@ -550,9 +585,12 @@ class BackupService {
 
       return {
         autoEnabled: settings.auto_enabled ?? false,
-        intervalHours: settings.interval_hours ?? BACKUP_CONFIG.AUTO_BACKUP_INTERVAL_HOURS,
+        intervalHours:
+          settings.interval_hours ?? BACKUP_CONFIG.AUTO_BACKUP_INTERVAL_HOURS,
         maxBackups: settings.max_backups ?? BACKUP_CONFIG.MAX_BACKUP_COUNT,
-        lastBackupTime: settings.last_backup_time ? new Date(settings.last_backup_time) : null,
+        lastBackupTime: settings.last_backup_time
+          ? new Date(settings.last_backup_time)
+          : null,
       };
     } catch (error) {
       throw buildServiceError(
@@ -589,12 +627,17 @@ class BackupService {
           const allContactInfo = [];
           for (const contact of contacts) {
             try {
-              const contactWithInfo = await db.contactsInfo.getWithContactInfo(contact.id);
+              const contactWithInfo = await db.contactsInfo.getWithContactInfo(
+                contact.id
+              );
               if (contactWithInfo && contactWithInfo.contact_info) {
                 allContactInfo.push(...contactWithInfo.contact_info);
               }
             } catch (error) {
-              console.warn(`Failed to get contact info for contact ${contact.id}:`, error);
+              console.warn(
+                `Failed to get contact info for contact ${contact.id}:`,
+                error
+              );
             }
           }
           return allContactInfo;
@@ -605,10 +648,15 @@ class BackupService {
           if (includeAttachments) {
             for (const attachment of attachments) {
               try {
-                const fileData = await readAsStringAsync(attachment.file_path, { encoding: EncodingType.Base64 });
+                const fileData = await readAsStringAsync(attachment.file_path, {
+                  encoding: EncodingType.Base64,
+                });
                 attachment.file_data = fileData;
               } catch (error) {
-                console.warn(`Failed to read attachment ${attachment.id}:`, error);
+                console.warn(
+                  `Failed to read attachment ${attachment.id}:`,
+                  error
+                );
               }
             }
           }
@@ -630,15 +678,19 @@ class BackupService {
           const categories = await db.categories.getAll();
           for (const category of categories) {
             try {
-              const contacts = await db.categoriesRelations.getContactsByCategory(category.id);
+              const contacts =
+                await db.categoriesRelations.getContactsByCategory(category.id);
               for (const contact of contacts) {
                 categoryRelations.push({
                   category_id: category.id,
-                  contact_id: contact.id
+                  contact_id: contact.id,
                 });
               }
             } catch (error) {
-              console.warn(`Failed to get relations for category ${category.id}:`, error);
+              console.warn(
+                `Failed to get relations for category ${category.id}:`,
+                error
+              );
             }
           }
           return categoryRelations;
@@ -687,12 +739,12 @@ class BackupService {
     // Define root entities that create new IDs and dependent entities that need mapping
     const rootEntities = ['categories', 'companies', 'contacts', 'events'];
     const dependentEntities = {
-      'contact_info': ['contact_id'],
-      'attachments': ['entity_id'], // Assuming entity_id references contacts/companies
-      'category_relations': ['category_id', 'contact_id'],
-      'interactions': ['contact_id', 'company_id'],
-      'notes': ['entity_id'], // Assuming entity_id references contacts/companies/events
-      'events_reminders': ['event_id']
+      contact_info: ['contact_id'],
+      attachments: ['entity_id'], // Assuming entity_id references contacts/companies
+      category_relations: ['category_id', 'contact_id'],
+      interactions: ['contact_id', 'company_id'],
+      notes: ['entity_id'], // Assuming entity_id references contacts/companies/events
+      events_reminders: ['event_id'],
     };
 
     try {
@@ -718,9 +770,15 @@ class BackupService {
                 if (record.file_data) {
                   try {
                     const attachDir = `${documentDirectory}attachments/`;
-                    await makeDirectoryAsync(attachDir, { intermediates: true });
-                    const targetPath = record.file_path || `${attachDir}${record.filename || `attachment-${Date.now()}.bin`}`;
-                    await writeAsStringAsync(targetPath, record.file_data, { encoding: EncodingType.Base64 });
+                    await makeDirectoryAsync(attachDir, {
+                      intermediates: true,
+                    });
+                    const targetPath =
+                      record.file_path ||
+                      `${attachDir}${record.filename || `attachment-${Date.now()}.bin`}`;
+                    await writeAsStringAsync(targetPath, record.file_data, {
+                      encoding: EncodingType.Base64,
+                    });
                     dataToUpdate.file_path = targetPath;
                     delete dataToUpdate.file_data;
                   } catch (fsErr) {
@@ -740,7 +798,10 @@ class BackupService {
                 await db.notes.update(record.id, record);
                 break;
               case 'settings':
-                await db.settings.setSetting(record.category + '.' + record.key, record.value);
+                await db.settings.setSetting(
+                  record.category + '.' + record.key,
+                  record.value
+                );
                 break;
               // Complex tables that may need special handling
               case 'events_recurring': {
@@ -748,7 +809,9 @@ class BackupService {
                   await this._importRecurringEvent(record, true);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn('Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)');
+                    console.warn(
+                      'Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)'
+                    );
                   }
                   skipped++;
                   continue; // Skip the post-switch imported++ increment
@@ -760,7 +823,9 @@ class BackupService {
                   await this._importEventReminder(record, true);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn('Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)');
+                    console.warn(
+                      'Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)'
+                    );
                   }
                   skipped++;
                   continue; // Skip the post-switch imported++ increment
@@ -772,7 +837,9 @@ class BackupService {
                   await this._importCategoryRelation(record, true);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn('Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)');
+                    console.warn(
+                      'Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)'
+                    );
                   }
                   skipped++;
                   continue; // Skip the post-switch imported++ increment
@@ -802,7 +869,8 @@ class BackupService {
               for (const foreignKey of dependentEntities[tableName]) {
                 if (recordData[foreignKey]) {
                   // Determine the referenced table from foreign key name
-                  const referencedTable = this._getReferencedTableFromForeignKey(foreignKey);
+                  const referencedTable =
+                    this._getReferencedTableFromForeignKey(foreignKey);
 
                   if (idMaps.has(referencedTable)) {
                     const tableMap = idMaps.get(referencedTable);
@@ -811,12 +879,16 @@ class BackupService {
                     if (newId !== undefined) {
                       recordData[foreignKey] = newId;
                     } else {
-                      console.warn(`Missing ID mapping for ${tableName}.${foreignKey}: ${recordData[foreignKey]} -> skipping record`);
+                      console.warn(
+                        `Missing ID mapping for ${tableName}.${foreignKey}: ${recordData[foreignKey]} -> skipping record`
+                      );
                       skipped++;
                       continue;
                     }
                   } else {
-                    console.warn(`No ID mapping table found for referenced table '${referencedTable}' -> skipping record`);
+                    console.warn(
+                      `No ID mapping table found for referenced table '${referencedTable}' -> skipping record`
+                    );
                     skipped++;
                     continue;
                   }
@@ -829,7 +901,8 @@ class BackupService {
               case 'categories': {
                 newRecord = await db.categories.createCategory(recordData);
                 if (oldId && newRecord?.id) {
-                  if (!idMaps.has('categories')) idMaps.set('categories', new Map());
+                  if (!idMaps.has('categories'))
+                    idMaps.set('categories', new Map());
                   idMaps.get('categories').set(oldId, newRecord.id);
                 }
                 break;
@@ -837,7 +910,8 @@ class BackupService {
               case 'companies': {
                 newRecord = await db.companies.createCompany(recordData);
                 if (oldId && newRecord?.id) {
-                  if (!idMaps.has('companies')) idMaps.set('companies', new Map());
+                  if (!idMaps.has('companies'))
+                    idMaps.set('companies', new Map());
                   idMaps.get('companies').set(oldId, newRecord.id);
                 }
                 break;
@@ -845,22 +919,32 @@ class BackupService {
               case 'contacts': {
                 newRecord = await db.contacts.createContact(recordData);
                 if (oldId && newRecord?.id) {
-                  if (!idMaps.has('contacts')) idMaps.set('contacts', new Map());
+                  if (!idMaps.has('contacts'))
+                    idMaps.set('contacts', new Map());
                   idMaps.get('contacts').set(oldId, newRecord.id);
                 }
                 break;
               }
               case 'contact_info':
-                await db.contactsInfo.addContactInfo(recordData.contact_id, recordData);
+                await db.contactsInfo.addContactInfo(
+                  recordData.contact_id,
+                  recordData
+                );
                 break;
               case 'attachments': {
                 let dataToCreate = { ...recordData };
                 if (recordData.file_data) {
                   try {
                     const attachDir = `${documentDirectory}attachments/`;
-                    await makeDirectoryAsync(attachDir, { intermediates: true });
-                    const targetPath = recordData.file_path || `${attachDir}${recordData.filename || `attachment-${Date.now()}.bin`}`;
-                    await writeAsStringAsync(targetPath, recordData.file_data, { encoding: EncodingType.Base64 });
+                    await makeDirectoryAsync(attachDir, {
+                      intermediates: true,
+                    });
+                    const targetPath =
+                      recordData.file_path ||
+                      `${attachDir}${recordData.filename || `attachment-${Date.now()}.bin`}`;
+                    await writeAsStringAsync(targetPath, recordData.file_data, {
+                      encoding: EncodingType.Base64,
+                    });
                     dataToCreate.file_path = targetPath;
                     delete dataToCreate.file_data;
                   } catch (fsErr) {
@@ -885,7 +969,10 @@ class BackupService {
                 await db.notes.create(recordData);
                 break;
               case 'settings':
-                await db.settings.setSetting(recordData.category + '.' + recordData.key, recordData.value);
+                await db.settings.setSetting(
+                  recordData.category + '.' + recordData.key,
+                  recordData.value
+                );
                 break;
               // Complex tables that may need special handling
               case 'events_recurring': {
@@ -893,7 +980,9 @@ class BackupService {
                   await this._importRecurringEvent(recordData, false);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn('Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)');
+                    console.warn(
+                      'Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)'
+                    );
                   }
                   skipped++;
                   continue; // Skip the post-switch imported++ increment
@@ -905,7 +994,9 @@ class BackupService {
                   await this._importEventReminder(recordData, false);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn('Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)');
+                    console.warn(
+                      'Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)'
+                    );
                   }
                   skipped++;
                   continue; // Skip the post-switch imported++ increment
@@ -917,7 +1008,9 @@ class BackupService {
                   await this._importCategoryRelation(recordData, false);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn('Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)');
+                    console.warn(
+                      'Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)'
+                    );
                   }
                   skipped++;
                   continue; // Skip the post-switch imported++ increment
@@ -940,20 +1033,27 @@ class BackupService {
           }
         } catch (error) {
           // Log the actual error for debugging, but continue processing
-          console.warn(`Failed to import record in table '${tableName}':`, error.message || error);
+          console.warn(
+            `Failed to import record in table '${tableName}':`,
+            error.message || error
+          );
 
           // Check if it's a constraint violation (record already exists) or a real error
           const errorMessage = error.message || String(error);
-          const isConstraintError = errorMessage.includes('UNIQUE constraint failed') ||
-                                   errorMessage.includes('already exists') ||
-                                   errorMessage.includes('duplicate');
+          const isConstraintError =
+            errorMessage.includes('UNIQUE constraint failed') ||
+            errorMessage.includes('already exists') ||
+            errorMessage.includes('duplicate');
 
           if (isConstraintError) {
             // Expected constraint violation - record already exists
             skipped++;
           } else {
             // Unexpected error - should be logged and potentially fail the import
-            console.error(`Unexpected error importing record in table '${tableName}':`, error);
+            console.error(
+              `Unexpected error importing record in table '${tableName}':`,
+              error
+            );
             skipped++;
 
             // For critical errors, you might want to throw here instead of continuing:
@@ -993,7 +1093,9 @@ class BackupService {
 
     // Version compatibility check
     if (backupData.version !== BACKUP_CONFIG.BACKUP_VERSION) {
-      console.warn(`Backup version mismatch: ${backupData.version} vs ${BACKUP_CONFIG.BACKUP_VERSION}`);
+      console.warn(
+        `Backup version mismatch: ${backupData.version} vs ${BACKUP_CONFIG.BACKUP_VERSION}`
+      );
     }
 
     return true;
@@ -1020,7 +1122,10 @@ class BackupService {
 
       // Also delete backups older than MAX_BACKUP_AGE_DAYS
       for (const backup of sortedBackups) {
-        if (now - backup.created > maxAge && !backupsToDelete.includes(backup)) {
+        if (
+          now - backup.created > maxAge &&
+          !backupsToDelete.includes(backup)
+        ) {
           backupsToDelete.push(backup);
         }
       }
@@ -1030,14 +1135,17 @@ class BackupService {
         try {
           await this.deleteBackup(backup.filename, false);
         } catch (error) {
-          console.warn(`Failed to delete old backup ${backup.filename}:`, error);
+          console.warn(
+            `Failed to delete old backup ${backup.filename}:`,
+            error
+          );
         }
       }
 
       if (backupsToDelete.length > 0) {
         this._notifyListeners({
           type: 'backups_cleaned',
-          deletedCount: backupsToDelete.length
+          deletedCount: backupsToDelete.length,
         });
       }
     } catch (error) {
@@ -1064,22 +1172,24 @@ class BackupService {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             await this.createBackup({
               filename: `auto-backup-${timestamp}.json`,
-              requireAuth: false // Auto-backups don't require interactive auth
+              requireAuth: false, // Auto-backups don't require interactive auth
             });
             console.log('Auto-backup completed successfully');
           } catch (error) {
             console.error('Auto-backup failed:', error);
             this._notifyListeners({
               type: 'auto_backup_failed',
-              error: error.message
+              error: error.message,
             });
           }
         }, intervalMs);
 
-        console.log(`Auto-backup scheduled every ${settings.intervalHours} hours`);
+        console.log(
+          `Auto-backup scheduled every ${settings.intervalHours} hours`
+        );
         this._notifyListeners({
           type: 'auto_backup_scheduled',
-          intervalHours: settings.intervalHours
+          intervalHours: settings.intervalHours,
         });
       }
     } catch (error) {
@@ -1121,7 +1231,10 @@ class BackupService {
   async _saveBackupSettings() {
     try {
       if (this.lastBackupTime) {
-        await db.settings.setSetting('backup.last_backup_time', this.lastBackupTime.toISOString());
+        await db.settings.setSetting(
+          'backup.last_backup_time',
+          this.lastBackupTime.toISOString()
+        );
       }
     } catch (error) {
       console.warn('Failed to save backup settings:', error);
@@ -1212,7 +1325,9 @@ class BackupService {
   async _importCategoryRelation(record, overwrite) {
     try {
       if (!record.category_id || !record.contact_id) {
-        throw new Error('Category relation record missing required fields: category_id, contact_id');
+        throw new Error(
+          'Category relation record missing required fields: category_id, contact_id'
+        );
       }
 
       // For both overwrite and non-overwrite modes, just add the relation
@@ -1234,7 +1349,7 @@ class BackupService {
         BACKUP_ERROR_CODES.TABLE_IMPORT_ERROR,
         {
           tableName: 'category_relations',
-          recordId: `${record.category_id || 'unknown'}-${record.contact_id || 'unknown'}`
+          recordId: `${record.category_id || 'unknown'}-${record.contact_id || 'unknown'}`,
         }
       );
     }
@@ -1249,12 +1364,12 @@ class BackupService {
   _getReferencedTableFromForeignKey(foreignKey) {
     // Map foreign key patterns to table names
     const fkMappings = {
-      'contact_id': 'contacts',
-      'company_id': 'companies',
-      'category_id': 'categories',
-      'event_id': 'events',
-      'entity_id': 'contacts', // Default entity_id to contacts, could be enhanced
-      'parent_id': 'contacts'   // Default parent_id to contacts, could be enhanced
+      contact_id: 'contacts',
+      company_id: 'companies',
+      category_id: 'categories',
+      event_id: 'events',
+      entity_id: 'contacts', // Default entity_id to contacts, could be enhanced
+      parent_id: 'contacts', // Default parent_id to contacts, could be enhanced
     };
 
     return fkMappings[foreignKey] || foreignKey.replace('_id', 's'); // Fallback: pluralize

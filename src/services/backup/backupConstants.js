@@ -27,7 +27,7 @@ export const BACKUP_TABLES = [
   'interactions',
   'notes',
   'category_relations',
-  'settings'
+  'settings',
 ];
 
 /**
@@ -43,7 +43,7 @@ export const IMPORTABLE_TABLES = [
   'events',
   'interactions',
   'notes',
-  'settings'
+  'settings',
 ];
 
 /**
@@ -62,7 +62,7 @@ export const BACKUP_FEATURES = {
  */
 export const BACKUP_STRUCTURE = Object.freeze({
   version: BACKUP_CONFIG.BACKUP_VERSION,
-  tables: BACKUP_TABLES.slice()
+  tables: BACKUP_TABLES.slice(),
 });
 
 /**
@@ -85,7 +85,7 @@ export const BACKUP_ERROR_CODES = {
   SHARING_NOT_AVAILABLE: 'SHARING_NOT_AVAILABLE',
   FILE_TOO_LARGE: 'BACKUP_FILE_TOO_LARGE',
   INVALID_FORMAT: 'INVALID_BACKUP_FORMAT',
-  UNKNOWN_TABLE: 'UNKNOWN_TABLE'
+  UNKNOWN_TABLE: 'UNKNOWN_TABLE',
 };
 
 /**
@@ -97,7 +97,13 @@ export const BACKUP_ERROR_CODES = {
  * @param {Object} [metadata] - Additional error metadata
  * @returns {ServiceError} Properly configured ServiceError
  */
-export function buildServiceError(service, operation, originalError, errorCode, metadata = {}) {
+export function buildServiceError(
+  service,
+  operation,
+  originalError,
+  errorCode,
+  metadata = {}
+) {
   return new ServiceError(service, operation, originalError, {
     errorCode,
     ...metadata,

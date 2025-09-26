@@ -39,7 +39,7 @@ import {
 } from 'react-native-paper';
 import authService from '../services/authService';
 import PinSetupModal from './settings/PinSetupModal';
-import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/AUTH';
+import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/auth';
 
 // useWindowDimensions hook inside component for rotation responsiveness
 

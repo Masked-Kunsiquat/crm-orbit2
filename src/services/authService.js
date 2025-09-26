@@ -14,7 +14,7 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/AUTH';
+import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/auth';
 
 /**
  * Storage keys for authentication-related data in AsyncStorage and SecureStore
