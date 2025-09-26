@@ -3,9 +3,8 @@ module.exports = function (api) {
   return {
     // Use Expo's preset so Metro can parse TS/Flow and dynamic import
     presets: ['babel-preset-expo'],
-    // Babel plugins (worklets plugin must be last)
+    // Babel plugins
     plugins: [
-      'react-native-worklets/plugin',
       ['module-resolver', {
         root: ['./src'],
         extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.flow'],
