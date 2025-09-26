@@ -2,6 +2,64 @@ import { makeDirectoryAsync, writeAsStringAsync } from 'expo-file-system';
 import { BACKUP_CONFIG, BACKUP_TABLES, BACKUP_ERROR_CODES, buildServiceError } from './backupConstants';
 
 /**
+ * Sanitize and validate filename for CSV export
+ * @private
+ * @param {string} filename - Input filename to sanitize
+ * @returns {string} Sanitized filename ending with .csv
+ * @throws {Error} If filename is invalid or contains path traversal
+ */
+function sanitizeFilename(filename) {
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('Filename must be a non-empty string');
+  }
+
+  // Check for path traversal attempts
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    throw new Error('Filename cannot contain path separators or parent directory references');
+  }
+
+  // Extract basename only (in case of any remaining path components)
+  const basename = filename.split(/[/\\]/).pop();
+
+  // Validate against whitelist of safe characters (alphanumeric, dash, underscore, dot)
+  const safeCharPattern = /^[a-zA-Z0-9._-]+$/;
+  if (!safeCharPattern.test(basename)) {
+    throw new Error('Filename can only contain alphanumeric characters, dots, dashes, and underscores');
+  }
+
+  // Ensure filename ends with .csv
+  const sanitized = basename.endsWith('.csv') ? basename : `${basename}.csv`;
+
+  // Additional validation - ensure it's not just ".csv"
+  if (sanitized === '.csv') {
+    throw new Error('Filename cannot be empty before .csv extension');
+  }
+
+  return sanitized;
+}
+
+/**
+ * Safely construct CSV file path within backup directory
+ * @private
+ * @param {string} backupDir - Base backup directory
+ * @param {string} filename - Sanitized filename
+ * @returns {string} Safe file path
+ * @throws {Error} If resulting path would be outside backup directory
+ */
+function safePathJoin(backupDir, filename) {
+  // Normalize the backup directory path
+  const normalizedBackupDir = backupDir.endsWith('/') ? backupDir : `${backupDir}/`;
+  const csvPath = `${normalizedBackupDir}${filename}`;
+
+  // Verify the resulting path is still within the backup directory
+  if (!csvPath.startsWith(normalizedBackupDir)) {
+    throw new Error('Resulting file path would be outside backup directory');
+  }
+
+  return csvPath;
+}
+
+/**
  * CSV export operations for backup service
  */
 export class BackupCsvExporter {
@@ -48,12 +106,42 @@ export class BackupCsvExporter {
 
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const csvFilename = filename || `crm-export-${table || 'full'}-${timestamp}.csv`;
+      let csvFilename;
+
+      if (filename) {
+        // Sanitize user-provided filename
+        try {
+          csvFilename = sanitizeFilename(filename);
+        } catch (sanitizeError) {
+          throw buildServiceError(
+            'backupService',
+            'exportToCSV',
+            sanitizeError,
+            BACKUP_ERROR_CODES.VALIDATION_ERROR,
+            { providedFilename: filename }
+          );
+        }
+      } else {
+        // Generate safe default filename
+        csvFilename = `crm-export-${table || 'full'}-${timestamp}.csv`;
+      }
 
       // Ensure backup directory exists before constructing file path
       await makeDirectoryAsync(BACKUP_CONFIG.BACKUP_DIR, { intermediates: true });
 
-      const csvPath = `${BACKUP_CONFIG.BACKUP_DIR}${csvFilename}`;
+      // Safely construct the full path
+      let csvPath;
+      try {
+        csvPath = safePathJoin(BACKUP_CONFIG.BACKUP_DIR, csvFilename);
+      } catch (pathError) {
+        throw buildServiceError(
+          'backupService',
+          'exportToCSV',
+          pathError,
+          BACKUP_ERROR_CODES.VALIDATION_ERROR,
+          { filename: csvFilename }
+        );
+      }
 
       let csvContent = '';
       const tablesToExport = table ? [table] : BACKUP_TABLES;
