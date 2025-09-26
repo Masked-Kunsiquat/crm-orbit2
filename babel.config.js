@@ -10,8 +10,7 @@ module.exports = function (api) {
         root: ['./src'],
         extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.flow'],
         alias: {
-          '^react-native$': 'react-native-web', // for web compatibility
-          '^expo-(.+)$': 'expo-\1' // Ensure Expo module imports work
+          '^react-native$': 'react-native-web' // for web compatibility
         }
       }]
     ],
@@ -33,8 +32,7 @@ module.exports = function (api) {
             root: ['./src'],
             extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.flow'],
             alias: {
-              '^react-native$': 'react-native-web', // for web compatibility
-              '^expo-(.+)$': 'expo-\1' // Ensure Expo module imports work
+              '^react-native$': 'react-native-web' // for web compatibility
             }
           }],
           ['@babel/plugin-transform-flow-strip-types']
