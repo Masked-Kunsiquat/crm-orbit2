@@ -1,57 +1,13 @@
 // Unit tests for backupService behavior with mocked Expo modules and DB
 
 // Mock Expo File System
-jest.mock('expo-file-system', () => ({
-  documentDirectory: '/test/directory/',
-  writeAsStringAsync: jest.fn(async () => {}),
-  readAsStringAsync: jest.fn(async () => '{}'),
-  deleteAsync: jest.fn(async () => {}),
-  makeDirectoryAsync: jest.fn(async () => {}),
-  readDirectoryAsync: jest.fn(async () => []),
-  getInfoAsync: jest.fn(async () => ({
-    size: 1024,
-    modificationTime: Date.now() / 1000,
-  })),
-}));
+jest.mock('expo-file-system');
 
 // Mock Expo Sharing
-jest.mock('expo-sharing', () => ({
-  isAvailableAsync: jest.fn(async () => true),
-  shareAsync: jest.fn(async () => {}),
-}), { virtual: true });
+jest.mock('expo-sharing');
 
 // Ensure the database module is mocked before importing the service
 jest.mock('../../database');
-jest.mock('../backup/backupConstants', () => ({
-  BACKUP_TABLES: [
-    'categories', 'companies', 'contacts', 'contact_info', 'attachments',
-    'events', 'events_recurring', 'events_reminders', 'interactions', 'notes',
-    'category_relations', 'settings'
-  ],
-  BACKUP_CONFIG: {
-    BACKUP_DIR: '/test/directory/backups/',
-    MAX_BACKUP_AGE_DAYS: 30,
-    MAX_BACKUP_COUNT: 10,
-    AUTO_BACKUP_INTERVAL_HOURS: 24,
-    BACKUP_VERSION: '1.0.0'
-  },
-  BACKUP_ERROR_CODES: {
-    INIT_ERROR: 'BACKUP_INIT_ERROR',
-    IN_PROGRESS: 'BACKUP_IN_PROGRESS',
-    CREATE_ERROR: 'BACKUP_CREATE_ERROR',
-    AUTH_REQUIRED: 'BACKUP_AUTH_REQUIRED',
-    // Add other error codes used in tests
-  },
-  buildServiceError: jest.fn((service, operation, error, code, metadata) => {
-    const serviceError = new Error(error);
-    serviceError.name = 'ServiceError';
-    serviceError.service = service;
-    serviceError.operation = operation;
-    serviceError.code = code;
-    serviceError.metadata = metadata;
-    return serviceError;
-  })
-}));
 
 // Mock authService
 jest.mock('../authService', () => ({

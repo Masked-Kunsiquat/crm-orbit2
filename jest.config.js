@@ -14,9 +14,7 @@ module.exports = {
     '^expo-file-system$': '<rootDir>/__mocks__/expo-file-system.js',
     '^expo-sharing$': '<rootDir>/__mocks__/expo-sharing.js',
     // Map relative imports to test mocks
-    '^\.\./database$': '<rootDir>/src/services/__tests__/__mocks__/database.js',
-    '^\./backup/backupConstants$': '<rootDir>/src/services/__tests__/__mocks__/backup.js',
-    '^\./backup/backupCsv$': '<rootDir>/src/services/__tests__/__mocks__/backup.js'
+    '^\.\./database$': '<rootDir>/src/services/__tests__/__mocks__/database.js'
   },
   // Enable coverage collection and output a JSON summary for badges
   collectCoverage: true,
