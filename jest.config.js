@@ -6,12 +6,14 @@ module.exports = {
   },
   moduleFileExtensions: ['js', 'jsx', 'json'],
   transformIgnorePatterns: [
-    'node_modules/(?!(expo-secure-store)/)'
+    'node_modules/(?!(expo-secure-store|expo-sqlite|expo-file-system|expo-sharing|react-native)/)',
   ],
   moduleNameMapper: {
     '^expo-secure-store$': '<rootDir>/__mocks__/expo-secure-store.js',
-    // Map relative '../database' imports (from services) to a test mock
-    '^\.\./database$': '<rootDir>/src/services/__mocks__/database.js'
+    '^expo-file-system$': '<rootDir>/__mocks__/expo-file-system.js',
+    '^expo-sharing$': '<rootDir>/__mocks__/expo-sharing.js',
+    // Map relative imports to test mocks
+    '^\.\./database$': '<rootDir>/src/services/__tests__/__mocks__/database.js'
   },
   // Enable coverage collection and output a JSON summary for badges
   collectCoverage: true,

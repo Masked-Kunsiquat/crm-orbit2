@@ -694,6 +694,20 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       }
       return created;
     },
+
+    /**
+     * Get all reminders across all events (sent and unsent)
+     * @returns {Promise<object[]>} All reminders
+     */
+    async getAll() {
+      const sql = `SELECT r.*, e.title, e.event_date, e.contact_id
+                   FROM event_reminders r
+                   JOIN events e ON r.event_id = e.id
+                   ORDER BY r.reminder_datetime ASC;`;
+
+      const res = await execute(sql);
+      return res.rows.map(convertBooleanFields);
+    },
   };
 }
 
