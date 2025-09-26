@@ -6,12 +6,13 @@ module.exports = {
   },
   moduleFileExtensions: ['js', 'jsx', 'json'],
   transformIgnorePatterns: [
-    'node_modules/(?!(expo-secure-store|expo-sqlite|expo-file-system|expo-sharing|react-native)/)',
+    'node_modules/(?!(expo-secure-store|expo-sqlite|expo-file-system|expo-sharing|expo-contacts|react-native)/)',
   ],
   moduleNameMapper: {
     '^expo-secure-store$': '<rootDir>/__mocks__/expo-secure-store.js',
     '^expo-file-system$': '<rootDir>/__mocks__/expo-file-system.js',
     '^expo-sharing$': '<rootDir>/__mocks__/expo-sharing.js',
+    '^expo-contacts$': '<rootDir>/__mocks__/expo-contacts.js',
     // Map relative imports to test mocks
     '^\.\./database$': '<rootDir>/src/services/__tests__/__mocks__/database.js'
   },

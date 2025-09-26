@@ -212,6 +212,30 @@ export function createContactsDB(ctx) {
       return res.rows.map(convertNullableFields);
     },
 
+    async findByName(firstName, lastName, exactMatch = true) {
+      if (exactMatch) {
+        const res = await execute(
+          `SELECT * FROM contacts
+           WHERE LOWER(TRIM(first_name)) = LOWER(TRIM(?))
+           AND LOWER(TRIM(last_name)) = LOWER(TRIM(?))
+           ORDER BY created_at ASC;`,
+          [firstName || '', lastName || '']
+        );
+        return res.rows.map(convertNullableFields);
+      } else {
+        const firstQ = `%${firstName || ''}%`;
+        const lastQ = `%${lastName || ''}%`;
+        const res = await execute(
+          `SELECT * FROM contacts
+           WHERE LOWER(first_name) LIKE LOWER(?)
+           AND LOWER(last_name) LIKE LOWER(?)
+           ORDER BY last_name ASC, first_name ASC;`,
+          [firstQ, lastQ]
+        );
+        return res.rows.map(convertNullableFields);
+      }
+    },
+
     async getByCategory(categoryId) {
       const res = await execute(
         `SELECT c.*
