@@ -27,11 +27,11 @@ function sanitizeFilename(filename) {
     throw new Error('Filename can only contain alphanumeric characters, dots, dashes, and underscores');
   }
 
-  // Ensure filename ends with .csv
-  const sanitized = basename.endsWith('.csv') ? basename : `${basename}.csv`;
+  // Ensure filename ends with .csv (case-insensitive check)
+  const sanitized = basename.toLowerCase().endsWith('.csv') ? basename : `${basename}.csv`;
 
-  // Additional validation - ensure it's not just ".csv"
-  if (sanitized === '.csv') {
+  // Additional validation - ensure it's not just ".csv" or variations
+  if (sanitized.toLowerCase() === '.csv') {
     throw new Error('Filename cannot be empty before .csv extension');
   }
 

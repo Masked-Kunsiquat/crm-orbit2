@@ -15,7 +15,7 @@ class BackupCsvExporter {
 
     // Simulate progress and export
     onProgress?.({ stage: 'exporting', table: table || 'all' });
-    onProgress?.({ stage: 'complete', progress: 100 });
+    onProgress?.({ stage: 'complete', table: table || 'all', progress: 100 });
 
     // Notify listeners
     notifyListeners?.({
@@ -43,7 +43,7 @@ const createBackupCsvExporter = jest.fn((authService, exportTableFunction) => {
 
       // Simulate progress and export
       onProgress?.({ stage: 'exporting', table: table || 'all' });
-      onProgress?.({ stage: 'complete', progress: 100 });
+      onProgress?.({ stage: 'complete', table: table || 'all', progress: 100 });
 
       // Notify listeners
       notifyListeners?.({

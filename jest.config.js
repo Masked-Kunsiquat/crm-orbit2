@@ -7,7 +7,6 @@ module.exports = {
   moduleFileExtensions: ['js', 'jsx', 'json'],
   transformIgnorePatterns: [
     'node_modules/(?!(expo-secure-store|expo-sqlite|expo-file-system|expo-sharing|react-native)/)',
-    'node_modules/react-native/.*\.js$',
   ],
   moduleNameMapper: {
     '^expo-secure-store$': '<rootDir>/__mocks__/expo-secure-store.js',
