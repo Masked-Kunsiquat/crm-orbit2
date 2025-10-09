@@ -101,12 +101,12 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
 
     try {
       // Create the contact
-      const contactResult = await contactsDB.create({
+      const contact = await contactsDB.create({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
       });
 
-      const contactId = contactResult.insertId;
+      const contactId = contact.id;
 
       // Prepare all contact info items
       const contactInfoItems = [];
