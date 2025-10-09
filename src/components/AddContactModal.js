@@ -353,7 +353,6 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   content: {
-    flex: 1,
     paddingHorizontal: 20,
   },
   section: {
