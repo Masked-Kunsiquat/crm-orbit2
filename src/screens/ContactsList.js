@@ -3,7 +3,7 @@ import { StyleSheet, FlatList, View, Linking, Alert } from 'react-native';
 import { Appbar, FAB, Searchbar, Text } from 'react-native-paper';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
-import { contactsDB } from '../database';
+import { contactsDB, contactsInfoDB } from '../database';
 
 export default function ContactsList() {
   const [contacts, setContacts] = useState([]);
@@ -19,9 +19,27 @@ export default function ContactsList() {
   const loadContacts = async () => {
     try {
       setLoading(true);
-      // Get all contacts (the method is just getAll, not getAllWithCompany)
+      // Get all contacts
       const allContacts = await contactsDB.getAll();
-      setContacts(allContacts);
+
+      // Fetch contact info for each contact
+      const contactsWithInfo = await Promise.all(
+        allContacts.map(async (contact) => {
+          const contactWithInfo = await contactsInfoDB.getWithContactInfo(contact.id);
+
+          // Extract primary phone and email for easy access
+          const phones = (contactWithInfo.contact_info || []).filter(info => info.type === 'phone');
+          const emails = (contactWithInfo.contact_info || []).filter(info => info.type === 'email');
+
+          return {
+            ...contactWithInfo,
+            phone: phones.find(p => p.is_primary)?.value || phones[0]?.value || null,
+            email: emails.find(e => e.is_primary)?.value || emails[0]?.value || null,
+          };
+        })
+      );
+
+      setContacts(contactsWithInfo);
     } catch (error) {
       console.error('Error loading contacts:', error);
       Alert.alert('Error', 'Failed to load contacts');
@@ -62,6 +80,30 @@ export default function ContactsList() {
     Alert.alert('Edit Contact', `Edit functionality for ${contact.display_name} would go here`);
   };
 
+  const handleDelete = (contact) => {
+    Alert.alert(
+      'Delete Contact',
+      `Are you sure you want to delete ${contact.display_name || contact.first_name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await contactsDB.delete(contact.id);
+              await loadContacts(); // Refresh the list
+              Alert.alert('Success', 'Contact deleted successfully');
+            } catch (error) {
+              console.error('Error deleting contact:', error);
+              Alert.alert('Error', 'Failed to delete contact');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleAddContact = () => {
     setShowAddModal(true);
   };
@@ -90,6 +132,7 @@ export default function ContactsList() {
       onPress={() => handleContactPress(item)}
       onEdit={() => handleEdit(item)}
       onCall={() => handleCall(item)}
+      onDelete={() => handleDelete(item)}
     />
   );
 
