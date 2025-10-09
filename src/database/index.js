@@ -34,22 +34,14 @@ import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
 import { DatabaseError } from './errors';
-// Handle different SQLite API versions and platforms
-const isWeb = typeof window !== 'undefined' && window.document;
-
-const expoOpenDatabase = isWeb
-  ? SQLite.openDatabaseAsync || SQLite.default?.openDatabaseAsync
-  : SQLite.openDatabase ||
-    SQLite.default?.openDatabase ||
-    SQLite.openDatabaseSync ||
-    SQLite.default?.openDatabaseSync ||
-    (() => {
-      console.error(
-        'No SQLite openDatabase function found. Available SQLite methods:',
-        Object.keys(SQLite)
-      );
-      throw new Error('SQLite openDatabase method not available');
-    });
+// Use modern expo-sqlite async API
+const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
+  console.error(
+    'Modern expo-sqlite API not available. Available SQLite methods:',
+    Object.keys(SQLite)
+  );
+  throw new Error('SQLite.openDatabaseAsync method not available');
+});
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from './errors';
@@ -60,30 +52,6 @@ let _initInflight = null;
 
 const DEFAULT_DB_NAME = 'crm_orbit.db';
 
-/**
- * Normalize the Expo SQLite/WebSQL result shape to a simple object.
- * @private
- * @param {any} result WebSQL/SQLite result set
- * @returns {{rows: any[], rowsAffected: number, insertId: (number|null)}}
- */
-function normalizeResult(result) {
-  const rowsArray = result?.rows?._array
-    ? result.rows._array
-    : (() => {
-        const out = [];
-        if (result && result.rows && typeof result.rows.length === 'number') {
-          for (let i = 0; i < result.rows.length; i += 1) {
-            out.push(result.rows.item(i));
-          }
-        }
-        return out;
-      })();
-  return {
-    rows: rowsArray || [],
-    rowsAffected: result?.rowsAffected ?? 0,
-    insertId: result?.insertId ?? null,
-  };
-}
 
 /**
  * Get the open database instance.
@@ -101,7 +69,7 @@ function getDB() {
 }
 
 /**
- * Open (or reuse) the SQLite database.
+ * Open (or reuse) the SQLite database using modern async API.
  * @private
  * @param {string} [dbName]
  * @returns {any} SQLite database instance
@@ -109,30 +77,7 @@ function getDB() {
  */
 async function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
   try {
-    // For web, try async API first, fallback to sync
-    if (isWeb) {
-      try {
-        // Try async API first
-        const result = expoOpenDatabase(dbName);
-        _db =
-          result && typeof result.then === 'function' ? await result : result;
-      } catch (asyncError) {
-        console.warn(
-          'Async SQLite failed, falling back to sync API:',
-          asyncError
-        );
-        // Fallback to sync API if available
-        const syncOpenDatabase =
-          SQLite.openDatabase || SQLite.default?.openDatabase;
-        if (syncOpenDatabase) {
-          _db = syncOpenDatabase(dbName);
-        } else {
-          throw asyncError;
-        }
-      }
-    } else {
-      _db = expoOpenDatabase(dbName);
-    }
+    _db = await openDatabaseAsync(dbName);
     return _db;
   } catch (err) {
     throw new DatabaseError('Failed to open database', 'OPEN_FAILED', err, {
@@ -142,7 +87,7 @@ async function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
 }
 
 /**
- * Execute a single SQL statement inside a short-lived transaction.
+ * Execute a single SQL statement using modern async API.
  * @param {string} sql SQL string with `?` placeholders.
  * @param {any[]} [params=[]] Values for placeholders.
  * @returns {Promise<{rows:any[], rowsAffected:number, insertId:number|null}>}
@@ -150,37 +95,32 @@ async function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
  */
 export async function execute(sql, params = []) {
   const db = getDB();
-  return new Promise((resolve, reject) => {
-    try {
-      db.transaction(
-        tx => {
-          tx.executeSql(
-            sql,
-            params,
-            (_tx, result) => resolve(normalizeResult(result)),
-            (_tx, error) => {
-              reject(
-                new DatabaseError('SQL execution failed', 'SQL_ERROR', error, {
-                  sql,
-                  params,
-                })
-              );
-              // Do not return true; allow the transaction to abort.
-            }
-          );
-        },
-        txError =>
-          reject(new DatabaseError('Transaction failed', 'TX_ERROR', txError))
-      );
-    } catch (err) {
-      reject(
-        new DatabaseError('Unexpected DB error', 'UNEXPECTED_DB_ERROR', err, {
-          sql,
-          params,
-        })
-      );
+  try {
+    let result;
+    if (sql.trim().toUpperCase().startsWith('SELECT')) {
+      // Use getAllAsync for SELECT queries
+      const rows = await db.getAllAsync(sql, params);
+      result = {
+        rows: rows || [],
+        rowsAffected: 0,
+        insertId: null,
+      };
+    } else {
+      // Use runAsync for INSERT/UPDATE/DELETE/CREATE queries
+      const runResult = await db.runAsync(sql, params);
+      result = {
+        rows: [],
+        rowsAffected: runResult.changes || 0,
+        insertId: runResult.lastInsertRowId || null,
+      };
     }
-  });
+    return result;
+  } catch (err) {
+    throw new DatabaseError('SQL execution failed', 'SQL_ERROR', err, {
+      sql,
+      params,
+    });
+  }
 }
 
 /**
@@ -191,68 +131,64 @@ export async function execute(sql, params = []) {
  * @throws {DatabaseError}
  */
 export async function batch(statements) {
-  // statements: Array<{ sql: string, params?: any[] }>
   const db = getDB();
-  return new Promise((resolve, reject) => {
-    if (!Array.isArray(statements) || statements.length === 0) {
-      resolve([]);
-      return;
-    }
-    const results = new Array(statements.length);
-    let stepError = null;
-    try {
-      db.transaction(
-        tx => {
-          statements.forEach(({ sql, params = [] }, index) => {
-            tx.executeSql(
+  if (!Array.isArray(statements) || statements.length === 0) {
+    return [];
+  }
+
+  try {
+    const results = [];
+    await db.withTransactionAsync(async () => {
+      for (let i = 0; i < statements.length; i++) {
+        const { sql, params = [] } = statements[i];
+        try {
+          let result;
+          if (sql.trim().toUpperCase().startsWith('SELECT')) {
+            const rows = await db.getAllAsync(sql, params);
+            result = {
+              rows: rows || [],
+              rowsAffected: 0,
+              insertId: null,
+            };
+          } else {
+            const runResult = await db.runAsync(sql, params);
+            result = {
+              rows: [],
+              rowsAffected: runResult.changes || 0,
+              insertId: runResult.lastInsertRowId || null,
+            };
+          }
+          results[i] = result;
+        } catch (error) {
+          throw new DatabaseError(
+            'SQL batch step failed',
+            'SQL_ERROR',
+            error,
+            {
+              index: i,
               sql,
               params,
-              (_tx, result) => {
-                results[index] = normalizeResult(result);
-              },
-              (_tx, error) => {
-                stepError = new DatabaseError(
-                  'SQL batch step failed',
-                  'SQL_ERROR',
-                  error,
-                  {
-                    index,
-                    sql,
-                    params,
-                  }
-                );
-                // Do not return true; abort and rollback the transaction.
-              }
-            );
-          });
-        },
-        txError =>
-          reject(
-            stepError ||
-              new DatabaseError('Batch transaction failed', 'TX_ERROR', txError)
-          ),
-        () => resolve(results)
-      );
-    } catch (err) {
-      reject(
-        new DatabaseError(
-          'Unexpected DB error (batch)',
-          'UNEXPECTED_DB_ERROR',
-          err
-        )
-      );
+            }
+          );
+        }
+      }
+    });
+    return results;
+  } catch (err) {
+    if (err instanceof DatabaseError) {
+      throw err;
     }
-  });
+    throw new DatabaseError(
+      'Batch transaction failed',
+      'TX_ERROR',
+      err
+    );
+  }
 }
 
 /**
- * Run a WebSQL transaction and provide a Promise-based `tx.execute` helper.
- *
- * Important: WebSQL requires that all `tx.executeSql` calls are scheduled
- * synchronously inside the transaction callback. Callers must schedule all
- * `wrappedTx.execute(...)` calls synchronously (avoid `await` between them),
- * or calls may be scheduled outside the transaction. Consider migrating to an
- * async transaction API in a future PR for true async/await semantics.
+ * Run a transaction and provide a Promise-based `tx.execute` helper.
+ * Uses modern async transaction API for true async/await semantics.
  *
  * @template T
  * @param {(tx: { execute: (sql: string, params?: any[]) => Promise<any> }) => (T|Promise<T>)} work
@@ -260,108 +196,52 @@ export async function batch(statements) {
  * @throws {DatabaseError}
  */
 export async function transaction(work) {
-  // work: async (tx) => { await tx.execute(sql, params) ... }
   const db = getDB();
-  return new Promise((resolve, reject) => {
-    try {
-      let workResult;
-      let workError;
-      let workPromise = null;
-      db.transaction(
-        tx => {
-          const wrappedTx = {
-            execute: (sql, params = []) =>
-              new Promise((res, rej) => {
-                try {
-                  tx.executeSql(
-                    sql,
-                    params,
-                    (_t, result) => res(normalizeResult(result)),
-                    (_t, error) => {
-                      rej(
-                        new DatabaseError(
-                          'SQL execution failed',
-                          'SQL_ERROR',
-                          error,
-                          { sql, params }
-                        )
-                      );
-                      // Do not return true; allow the transaction to abort.
-                    }
-                  );
-                } catch (e) {
-                  rej(
-                    new DatabaseError(
-                      'Unexpected SQL exception',
-                      'SQL_EXEC_EXCEPTION',
-                      e,
-                      { sql, params }
-                    )
-                  );
-                }
-              }),
-          };
-
-          // Important: Call work synchronously so all tx.executeSql calls are
-          // scheduled inside this callback. Callers must schedule all
-          // wrappedTx.execute calls synchronously (no await between them)
-          // because WebSQL requires synchronous scheduling. Consider migrating
-          // to an async transaction API in a future PR for true async/await semantics.
+  try {
+    return await db.withTransactionAsync(async () => {
+      const wrappedTx = {
+        execute: async (sql, params = []) => {
           try {
-            const maybePromise = work(wrappedTx);
-            if (maybePromise && typeof maybePromise.then === 'function') {
-              // Capture for adoption after commit/rollback; do not await here.
-              workPromise = maybePromise;
+            let result;
+            if (sql.trim().toUpperCase().startsWith('SELECT')) {
+              const rows = await db.getAllAsync(sql, params);
+              result = {
+                rows: rows || [],
+                rowsAffected: 0,
+                insertId: null,
+              };
             } else {
-              workResult = maybePromise;
+              const runResult = await db.runAsync(sql, params);
+              result = {
+                rows: [],
+                rowsAffected: runResult.changes || 0,
+                insertId: runResult.lastInsertRowId || null,
+              };
             }
-          } catch (err) {
-            workError = err;
-          }
-        },
-        txError => {
-          // Ensure the user's returned promise settles before we reject,
-          // so callers see consistent behavior.
-          if (workPromise && typeof workPromise.finally === 'function') {
-            workPromise.finally(() => {
-              reject(
-                new DatabaseError('Transaction failed', 'TX_ERROR', txError)
-              );
-            });
-          } else {
-            reject(
-              new DatabaseError('Transaction failed', 'TX_ERROR', txError)
+            return result;
+          } catch (error) {
+            throw new DatabaseError(
+              'SQL execution failed',
+              'SQL_ERROR',
+              error,
+              { sql, params }
             );
           }
         },
-        () => {
-          // Adopt the user's returned promise after commit to ensure we
-          // resolve/reject only after the user work has settled.
-          if (workError) {
-            if (workPromise && typeof workPromise.finally === 'function') {
-              workPromise.finally(() => reject(workError));
-            } else {
-              reject(workError);
-            }
-            return;
-          }
-          if (workPromise && typeof workPromise.then === 'function') {
-            workPromise.then(resolve).catch(reject);
-          } else {
-            resolve(workResult);
-          }
-        }
-      );
-    } catch (err) {
-      reject(
-        new DatabaseError(
-          'Unexpected DB error (transaction)',
-          'UNEXPECTED_DB_ERROR',
-          err
-        )
-      );
+      };
+
+      return await work(wrappedTx);
+    });
+  } catch (err) {
+    if (err instanceof DatabaseError) {
+      throw err;
     }
-  });
+    throw new DatabaseError(
+      'Transaction failed',
+      'TX_ERROR',
+      err
+    );
+  }
 }
 
 /**
@@ -390,19 +270,19 @@ export async function initDatabase(options = {}) {
   const startInit = async () => {
     const db = await openDatabaseConnection(name);
 
-    // Basic PRAGMA setup
+    // Basic PRAGMA setup using modern API
     try {
       if (enableWAL) {
         // journal_mode may not be supported on some platforms; ignore failure
         try {
-          await execute('PRAGMA journal_mode = WAL;');
+          await db.execAsync('PRAGMA journal_mode = WAL;');
         } catch (_) {}
       }
       if (enableForeignKeys) {
-        await execute('PRAGMA foreign_keys = ON;');
+        await db.execAsync('PRAGMA foreign_keys = ON;');
         try {
-          const check = await execute('PRAGMA foreign_keys;');
-          const enabled = check.rows?.[0]?.foreign_keys === 1;
+          const checkResult = await db.getAllAsync('PRAGMA foreign_keys;');
+          const enabled = checkResult?.[0]?.foreign_keys === 1;
           if (!enabled)
             onLog && onLog('Warning: PRAGMA foreign_keys not enabled.');
         } catch {}
