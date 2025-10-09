@@ -7,8 +7,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from 'react-native-paper';
 
-// Screens
-import SettingsScreen from '../screens/SettingsScreen';
 import { useAppTheme } from '../contexts/ThemeContext';
 
 const Tab = createBottomTabNavigator();
@@ -77,6 +75,28 @@ const NotesScreen = () => (
       style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}
     >
       This will include general notes, contact notes, and pinned notes.
+    </Text>
+  </View>
+);
+
+const SettingsScreen = () => (
+  <View
+    style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    }}
+  >
+    <Text variant="headlineSmall">Settings</Text>
+    <Text variant="bodyMedium" style={{ textAlign: 'center', marginTop: 8 }}>
+      Settings coming soon...
+    </Text>
+    <Text
+      variant="bodySmall"
+      style={{ textAlign: 'center', marginTop: 16, opacity: 0.7 }}
+    >
+      This will include authentication, theme, and app preferences.
     </Text>
   </View>
 );

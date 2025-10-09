@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Surface, Text, ActivityIndicator, Button } from 'react-native-paper';
 import { initSimpleDatabase } from '../database/simpleInit';
-import authService from '../services/authService';
 
 const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
   const [isInitializing, setIsInitializing] = useState(true);
@@ -59,7 +58,7 @@ const AppInitializer = ({ children, initTimeoutMs = 15000 }) => {
         }
       }
 
-      // Skip auth service initialization for basic testing
+      // Skip auth service and other services for basic testing
       console.log('Skipping auth service and other services for basic testing');
 
       console.log('App initialization complete');
