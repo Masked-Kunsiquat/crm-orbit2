@@ -164,28 +164,10 @@ export function createContactsDB(ctx) {
     },
 
     async delete(id) {
-      if (!transaction) {
-        // Fallback: delete contact and let foreign keys cascade
-        // Note: Attachments need manual cleanup since they don't use FK constraints
-        await execute(
-          'DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;',
-          ['contact', id]
-        );
-        const res = await execute('DELETE FROM contacts WHERE id = ?;', [id]);
-        return res.rowsAffected || 0;
-      }
-
-      // Use transaction to ensure atomic deletion
-      return await transaction(async tx => {
-        // Delete attachments first, then contact
-        await tx.execute(
-          'DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;',
-          ['contact', id]
-        );
-        const res = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
-
-        return res.rowsAffected || 0;
-      });
+      // Delete contact and let foreign keys cascade to contact_info
+      // (attachments table not created in simpleSetup, will be added later)
+      const res = await execute('DELETE FROM contacts WHERE id = ?;', [id]);
+      return res.rowsAffected || 0;
     },
 
     async search(query) {
