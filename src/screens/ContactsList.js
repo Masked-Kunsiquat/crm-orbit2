@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, View, Linking, Alert } from 'react-native';
-import { Appbar, FAB, Searchbar, Text } from 'react-native-paper';
+import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
+import { Appbar, FAB, Searchbar, Text, Chip } from 'react-native-paper';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
-import { contactsDB, contactsInfoDB } from '../database';
+import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
 
 export default function ContactsList({ navigation }) {
   const [contacts, setContacts] = useState([]);
@@ -11,18 +11,43 @@ export default function ContactsList({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
     loadContacts();
+    loadCategories();
   }, []);
+
+  useEffect(() => {
+    // Reload contacts when category filter changes
+    loadContacts();
+  }, [selectedCategory]);
+
+  const loadCategories = async () => {
+    try {
+      const allCategories = await categoriesDB.getAll();
+      setCategories(allCategories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const loadContacts = async () => {
     try {
       setLoading(true);
-      // Get all contacts
-      const allContacts = await contactsDB.getAll();
 
-      // Fetch contact info for each contact
+      // Get contacts based on selected category filter
+      let allContacts;
+      if (selectedCategory) {
+        // Get contacts for specific category
+        allContacts = await categoriesRelationsDB.getContactsByCategory(selectedCategory.id);
+      } else {
+        // Get all contacts
+        allContacts = await contactsDB.getAll();
+      }
+
+      // Fetch contact info and categories for each contact
       const contactsWithInfo = await Promise.all(
         allContacts.map(async (contact) => {
           const contactWithInfo = await contactsInfoDB.getWithContactInfo(contact.id);
@@ -31,10 +56,14 @@ export default function ContactsList({ navigation }) {
           const phones = (contactWithInfo.contact_info || []).filter(info => info.type === 'phone');
           const emails = (contactWithInfo.contact_info || []).filter(info => info.type === 'email');
 
+          // Get categories for this contact
+          const contactCategories = await categoriesRelationsDB.getCategoriesForContact(contact.id);
+
           return {
             ...contactWithInfo,
             phone: phones.find(p => p.is_primary)?.value || phones[0]?.value || null,
             email: emails.find(e => e.is_primary)?.value || emails[0]?.value || null,
+            categories: contactCategories,
           };
         })
       );
@@ -147,6 +176,40 @@ export default function ContactsList({ navigation }) {
         style={styles.searchbar}
       />
 
+      {/* Category Filter */}
+      {categories.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryFilter}
+          contentContainerStyle={styles.categoryFilterContent}
+        >
+          <Chip
+            selected={!selectedCategory}
+            onPress={() => setSelectedCategory(null)}
+            style={styles.categoryChip}
+            mode="flat"
+          >
+            All
+          </Chip>
+          {categories.map((category) => (
+            <Chip
+              key={category.id}
+              selected={selectedCategory?.id === category.id}
+              onPress={() => setSelectedCategory(category)}
+              style={[
+                styles.categoryChip,
+                selectedCategory?.id === category.id && { backgroundColor: category.color }
+              ]}
+              mode="flat"
+              icon={category.icon}
+            >
+              {category.name}
+            </Chip>
+          ))}
+        </ScrollView>
+      )}
+
       <FlatList
         data={filteredContacts}
         renderItem={renderContact}
@@ -181,6 +244,17 @@ const styles = StyleSheet.create({
   searchbar: {
     margin: 16,
     marginBottom: 8,
+  },
+  categoryFilter: {
+    maxHeight: 50,
+    marginBottom: 8,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  categoryChip: {
+    marginRight: 0,
   },
   list: {
     flex: 1,

@@ -38,11 +38,6 @@ export default function ContactCard({ contact, onPress, onCall, onMessage, onEma
                   {contact.company_name}
                 </Text>
               )}
-              {contact.phone && (
-                <Text variant="bodySmall" style={styles.phone}>
-                  {formatPhoneNumber(contact.phone)}
-                </Text>
-              )}
             </View>
           </View>
           <View style={styles.actions}>

@@ -51,14 +51,24 @@ export async function createBasicTables() {
       )
     `);
 
+    // Drop and recreate categories table to ensure correct schema
+    try {
+      await execute('DROP TABLE IF EXISTS contact_categories;');
+      await execute('DROP TABLE IF EXISTS categories;');
+    } catch (e) {
+      console.log('Error dropping categories tables (may not exist):', e.message);
+    }
+
     // Create categories table
     await execute(`
-      CREATE TABLE IF NOT EXISTS categories (
+      CREATE TABLE categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         color TEXT DEFAULT '#2196f3',
         icon TEXT,
         description TEXT,
+        is_system INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
@@ -66,7 +76,7 @@ export async function createBasicTables() {
 
     // Create contact_categories junction table
     await execute(`
-      CREATE TABLE IF NOT EXISTS contact_categories (
+      CREATE TABLE contact_categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
         category_id INTEGER NOT NULL,
@@ -77,10 +87,51 @@ export async function createBasicTables() {
       )
     `);
 
+    // Seed default categories
+    await seedDefaultCategories();
+
     console.log('Basic database tables created successfully');
     return true;
   } catch (error) {
     console.error('Error creating basic tables:', error);
     throw error;
+  }
+}
+
+/**
+ * Seed default contact categories if they don't exist.
+ */
+async function seedDefaultCategories() {
+  try {
+    // Check if categories already exist
+    const existing = await execute('SELECT COUNT(*) as count FROM categories;');
+    const count = existing.rows[0]?.count || 0;
+
+    if (count > 0) {
+      console.log('Categories already seeded, skipping...');
+      return;
+    }
+
+    // Define default categories
+    const defaultCategories = [
+      { name: 'Friends', color: '#4CAF50', icon: 'account-group', sort_order: 1 },
+      { name: 'Family', color: '#E91E63', icon: 'home-heart', sort_order: 2 },
+      { name: 'Work', color: '#2196F3', icon: 'briefcase', sort_order: 3 },
+      { name: 'Acquaintances', color: '#FF9800', icon: 'account-multiple', sort_order: 4 },
+      { name: 'Clients', color: '#9C27B0', icon: 'account-tie', sort_order: 5 },
+    ];
+
+    // Insert default categories
+    for (const category of defaultCategories) {
+      await execute(
+        'INSERT INTO categories (name, color, icon, sort_order) VALUES (?, ?, ?, ?);',
+        [category.name, category.color, category.icon, category.sort_order]
+      );
+    }
+
+    console.log('Default categories seeded successfully');
+  } catch (error) {
+    console.error('Error seeding default categories:', error);
+    // Don't throw - allow setup to continue even if seeding fails
   }
 }
