@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Alert } from 'react-native';
 import {
   Modal,
@@ -10,7 +10,7 @@ import {
   IconButton,
   Chip,
 } from 'react-native-paper';
-import { contactsDB, contactsInfoDB } from '../database';
+import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -21,13 +21,39 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
   const [emails, setEmails] = useState([{ id: 1, value: '', label: 'Personal' }]);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
+  useEffect(() => {
+    if (visible) {
+      loadCategories();
+    }
+  }, [visible]);
+
+  const loadCategories = async () => {
+    try {
+      const allCategories = await categoriesDB.getAll();
+      setCategories(allCategories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const resetForm = () => {
     setFirstName('');
     setLastName('');
     setPhones([{ id: 1, value: '', label: 'Mobile' }]);
     setEmails([{ id: 1, value: '', label: 'Personal' }]);
+    setSelectedCategories([]);
     setSaving(false);
+  };
+
+  const toggleCategory = (categoryId) => {
+    if (selectedCategories.includes(categoryId)) {
+      setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
+    } else {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
   };
 
   const handleCancel = () => {
@@ -133,6 +159,13 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
 
       // Add all contact info in one call
       await contactsInfoDB.addContactInfo(contactId, contactInfoItems);
+
+      // Add contact to selected categories
+      if (selectedCategories.length > 0) {
+        for (const categoryId of selectedCategories) {
+          await categoriesRelationsDB.addContactToCategory(contactId, categoryId);
+        }
+      }
 
       resetForm();
       onContactAdded && onContactAdded();
@@ -301,6 +334,32 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
               ))}
             </View>
 
+            {/* Categories Section */}
+            {categories.length > 0 && (
+              <View style={styles.section}>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Categories
+                </Text>
+                <View style={styles.categoryChips}>
+                  {categories.map((category) => (
+                    <Chip
+                      key={category.id}
+                      selected={selectedCategories.includes(category.id)}
+                      onPress={() => toggleCategory(category.id)}
+                      style={[
+                        styles.categoryChip,
+                        selectedCategories.includes(category.id) && { backgroundColor: category.color }
+                      ]}
+                      mode="flat"
+                      icon={category.icon}
+                    >
+                      {category.name}
+                    </Chip>
+                  ))}
+                </View>
+              </View>
+            )}
+
             <View style={styles.spacer} />
           </ScrollView>
 
@@ -396,6 +455,15 @@ const styles = StyleSheet.create({
   },
   labelChip: {
     marginRight: 0,
+  },
+  categoryChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryChip: {
+    marginRight: 0,
+    marginBottom: 4,
   },
   spacer: {
     height: 20,
