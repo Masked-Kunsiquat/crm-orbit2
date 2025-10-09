@@ -5,7 +5,7 @@ import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
 import { contactsDB, contactsInfoDB } from '../database';
 
-export default function ContactsList() {
+export default function ContactsList({ navigation }) {
   const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -55,14 +55,7 @@ export default function ContactsList() {
   };
 
   const handleContactPress = (contact) => {
-    Alert.alert(
-      contact.display_name || `${contact.first_name} ${contact.last_name}`,
-      `Phone: ${contact.phone || 'N/A'}\nEmail: ${contact.email || 'N/A'}`,
-      [
-        { text: 'OK', style: 'cancel' },
-        ...(contact.phone ? [{ text: 'Call', onPress: () => handleCall(contact) }] : []),
-      ]
-    );
+    navigation.navigate('ContactDetail', { contactId: contact.id });
   };
 
   const handleCall = async (contact) => {

@@ -2,9 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { PaperProvider, MD3LightTheme, Text, Card } from 'react-native-paper';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
 import { createBasicTables } from './src/database/simpleSetup';
 import ContactsList from './src/screens/ContactsList';
+import ContactDetailScreen from './src/screens/ContactDetailScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
@@ -69,7 +74,16 @@ export default function App() {
 
   return (
     <PaperProvider theme={MD3LightTheme}>
-      <ContactsList />
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="ContactsList" component={ContactsList} />
+          <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
       <StatusBar style="auto" />
     </PaperProvider>
   );
