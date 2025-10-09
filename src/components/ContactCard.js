@@ -140,10 +140,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   categoryChip: {
-    height: 24,
+    height: 28,
+    marginVertical: 2,
   },
   categoryText: {
-    fontSize: 11,
+    fontSize: 12,
+    lineHeight: 16,
   },
   moreChip: {
     height: 24,
