@@ -177,20 +177,14 @@ export function createContactsDB(ctx) {
 
       // Use transaction to ensure atomic deletion
       return await transaction(async tx => {
-        // Run both deletes in a single batch (attachments first, then contact)
-        const results = await tx.batch([
-          {
-            sql: 'DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;',
-            params: ['contact', id],
-          },
-          {
-            sql: 'DELETE FROM contacts WHERE id = ?;',
-            params: [id],
-          },
-        ]);
+        // Delete attachments first, then contact
+        await tx.execute(
+          'DELETE FROM attachments WHERE entity_type = ? AND entity_id = ?;',
+          ['contact', id]
+        );
+        const res = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
 
-        // Extract rowsAffected from the contacts delete (second statement)
-        return results[1]?.rowsAffected || 0;
+        return res.rowsAffected || 0;
       });
     },
 
