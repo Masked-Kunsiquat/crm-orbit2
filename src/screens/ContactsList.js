@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert } from 'react-native';
 import { Appbar, FAB, Searchbar, Text } from 'react-native-paper';
 import ContactCard from '../components/ContactCard';
+import AddContactModal from '../components/AddContactModal';
 import { contactsDB } from '../database';
 
 export default function ContactsList() {
@@ -9,6 +10,7 @@ export default function ContactsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadContacts();
@@ -61,7 +63,11 @@ export default function ContactsList() {
   };
 
   const handleAddContact = () => {
-    Alert.alert('Add Contact', 'Add contact functionality would go here');
+    setShowAddModal(true);
+  };
+
+  const handleContactAdded = () => {
+    loadContacts(); // Refresh the contacts list
   };
 
   const filteredContacts = contacts.filter(contact => {
@@ -126,6 +132,12 @@ export default function ContactsList() {
         icon="plus"
         style={styles.fab}
         onPress={handleAddContact}
+      />
+
+      <AddContactModal
+        visible={showAddModal}
+        onDismiss={() => setShowAddModal(false)}
+        onContactAdded={handleContactAdded}
       />
     </View>
   );
