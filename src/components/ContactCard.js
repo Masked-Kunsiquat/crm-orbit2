@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, Avatar, Chip, IconButton } from 'react-native-paper';
 
-export default function ContactCard({ contact, onPress, onEdit, onCall, onDelete }) {
+export default function ContactCard({ contact, onPress, onCall, onMessage, onEmail }) {
   const getInitials = (firstName, lastName) => {
     const first = firstName ? firstName.charAt(0).toUpperCase() : '';
     const last = lastName ? lastName.charAt(0).toUpperCase() : '';
@@ -46,6 +46,14 @@ export default function ContactCard({ contact, onPress, onEdit, onCall, onDelete
             </View>
           </View>
           <View style={styles.actions}>
+            {onMessage && contact.phone && (
+              <IconButton
+                icon="message-text"
+                size={20}
+                onPress={() => onMessage(contact)}
+                style={styles.actionButton}
+              />
+            )}
             {onCall && contact.phone && (
               <IconButton
                 icon="phone"
@@ -54,19 +62,11 @@ export default function ContactCard({ contact, onPress, onEdit, onCall, onDelete
                 style={styles.actionButton}
               />
             )}
-            {onEdit && (
+            {onEmail && contact.email && (
               <IconButton
-                icon="pencil"
+                icon="email"
                 size={20}
-                onPress={() => onEdit(contact)}
-                style={styles.actionButton}
-              />
-            )}
-            {onDelete && (
-              <IconButton
-                icon="delete"
-                size={20}
-                onPress={() => onDelete(contact)}
+                onPress={() => onEmail(contact)}
                 style={styles.actionButton}
               />
             )}

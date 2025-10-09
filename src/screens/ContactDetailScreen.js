@@ -11,11 +11,13 @@ import {
   FAB,
 } from 'react-native-paper';
 import { contactsDB, contactsInfoDB } from '../database';
+import EditContactModal from '../components/EditContactModal';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadContact();
@@ -63,7 +65,11 @@ export default function ContactDetailScreen({ route, navigation }) {
   };
 
   const handleEdit = () => {
-    Alert.alert('Edit Contact', 'Edit functionality coming soon');
+    setShowEditModal(true);
+  };
+
+  const handleContactUpdated = () => {
+    loadContact(); // Reload contact after edit
   };
 
   const handleDelete = () => {
@@ -254,6 +260,13 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         <View style={styles.spacer} />
       </ScrollView>
+
+      <EditContactModal
+        visible={showEditModal}
+        onDismiss={() => setShowEditModal(false)}
+        contact={contact}
+        onContactUpdated={handleContactUpdated}
+      />
     </View>
   );
 }

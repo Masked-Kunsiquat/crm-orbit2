@@ -69,32 +69,26 @@ export default function ContactsList({ navigation }) {
     }
   };
 
-  const handleEdit = (contact) => {
-    Alert.alert('Edit Contact', `Edit functionality for ${contact.display_name} would go here`);
+  const handleMessage = async (contact) => {
+    if (contact.phone) {
+      const smsUrl = `sms:${contact.phone.replace(/\D/g, '')}`;
+      try {
+        await Linking.openURL(smsUrl);
+      } catch (error) {
+        Alert.alert('Error', 'Unable to send message');
+      }
+    }
   };
 
-  const handleDelete = (contact) => {
-    Alert.alert(
-      'Delete Contact',
-      `Are you sure you want to delete ${contact.display_name || contact.first_name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await contactsDB.delete(contact.id);
-              await loadContacts(); // Refresh the list
-              Alert.alert('Success', 'Contact deleted successfully');
-            } catch (error) {
-              console.error('Error deleting contact:', error);
-              Alert.alert('Error', 'Failed to delete contact');
-            }
-          },
-        },
-      ]
-    );
+  const handleEmail = async (contact) => {
+    if (contact.email) {
+      const mailUrl = `mailto:${contact.email}`;
+      try {
+        await Linking.openURL(mailUrl);
+      } catch (error) {
+        Alert.alert('Error', 'Unable to open email');
+      }
+    }
   };
 
   const handleAddContact = () => {
@@ -123,9 +117,9 @@ export default function ContactsList({ navigation }) {
     <ContactCard
       contact={item}
       onPress={() => handleContactPress(item)}
-      onEdit={() => handleEdit(item)}
       onCall={() => handleCall(item)}
-      onDelete={() => handleDelete(item)}
+      onMessage={() => handleMessage(item)}
+      onEmail={() => handleEmail(item)}
     />
   );
 
