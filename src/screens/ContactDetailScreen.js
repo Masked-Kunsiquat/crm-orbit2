@@ -147,19 +147,19 @@ export default function ContactDetailScreen({ route, navigation }) {
           )}
         </View>
 
-        {/* Quick Actions - iOS style */}
+        {/* Quick Actions - Material Design style */}
         <View style={styles.quickActions}>
           {phones.length > 0 && (
             <View style={styles.actionButton}>
               <IconButton
-                icon="message"
+                icon="message-text"
                 size={24}
                 mode="contained"
-                containerColor="#007AFF"
+                containerColor="#1976d2"
                 iconColor="#fff"
                 onPress={() => handleMessage(phones[0].value)}
               />
-              <Text variant="labelSmall">message</Text>
+              <Text variant="labelSmall" style={styles.actionLabel}>message</Text>
             </View>
           )}
           {phones.length > 0 && (
@@ -168,11 +168,11 @@ export default function ContactDetailScreen({ route, navigation }) {
                 icon="phone"
                 size={24}
                 mode="contained"
-                containerColor="#007AFF"
+                containerColor="#1976d2"
                 iconColor="#fff"
                 onPress={() => handleCall(phones[0].value)}
               />
-              <Text variant="labelSmall">call</Text>
+              <Text variant="labelSmall" style={styles.actionLabel}>call</Text>
             </View>
           )}
           {emails.length > 0 && (
@@ -181,11 +181,11 @@ export default function ContactDetailScreen({ route, navigation }) {
                 icon="email"
                 size={24}
                 mode="contained"
-                containerColor="#007AFF"
+                containerColor="#1976d2"
                 iconColor="#fff"
                 onPress={() => handleEmail(emails[0].value)}
               />
-              <Text variant="labelSmall">email</Text>
+              <Text variant="labelSmall" style={styles.actionLabel}>email</Text>
             </View>
           )}
         </View>
@@ -261,7 +261,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
@@ -278,13 +278,15 @@ const styles = StyleSheet.create({
   },
   avatar: {
     marginBottom: 16,
+    backgroundColor: '#1976d2',
   },
   name: {
     fontWeight: '600',
     marginBottom: 4,
+    color: '#212121',
   },
   company: {
-    color: '#666',
+    color: '#757575',
   },
   quickActions: {
     flexDirection: 'row',
@@ -293,26 +295,31 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5ea',
+    borderBottomColor: '#e0e0e0',
   },
   actionButton: {
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
+  },
+  actionLabel: {
+    color: '#1976d2',
+    fontWeight: '500',
   },
   section: {
-    marginTop: 20,
+    marginTop: 12,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#e5e5ea',
+    borderRadius: 8,
+    marginHorizontal: 16,
+    overflow: 'hidden',
   },
   itemActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   deleteText: {
-    color: '#ff3b30',
+    color: '#d32f2f',
     textAlign: 'center',
+    fontWeight: '500',
   },
   spacer: {
     height: 40,
