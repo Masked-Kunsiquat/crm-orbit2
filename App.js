@@ -9,7 +9,12 @@ export default function App() {
   useEffect(() => {
     const initDB = async () => {
       try {
-        await initDatabase();
+        await initDatabase({
+          enableForeignKeys: false,
+          enableWAL: false,
+          runMigrationsOnInit: false,
+          onLog: (msg) => console.log('DB:', msg)
+        });
         setDbStatus('Database initialized successfully!');
       } catch (error) {
         setDbStatus(`Database error: ${error.message}`);
