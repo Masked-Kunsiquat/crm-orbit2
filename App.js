@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <Text style={styles.title}>CRM App</Text>
-      <Text style={styles.subtitle}>Minimal Test Version</Text>
-      <Text style={styles.description}>
-        This is a basic test to ensure the app loads correctly on your device.
-      </Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>CRM App</Text>
+        <Text style={styles.subtitle}>Fresh Start</Text>
+        <Text style={styles.description}>
+          Clean React Native app without complex dependencies.
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -19,24 +19,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#333',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#666',
     marginBottom: 20,
   },
   description: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#333',
+    color: '#666',
     lineHeight: 24,
   },
 });
