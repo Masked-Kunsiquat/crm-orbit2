@@ -1,17 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>CRM App</Text>
-        <Text style={styles.subtitle}>Fresh Start</Text>
-        <Text style={styles.description}>
-          Clean React Native app without complex dependencies.
-        </Text>
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Hello World</Text>
+      <Text style={styles.subtitle}>Ultra-Minimal Test</Text>
+    </View>
   );
 }
 
@@ -19,12 +14,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 50,
   },
   title: {
     fontSize: 28,
@@ -33,14 +25,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#666',
-    marginBottom: 20,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#666',
-    lineHeight: 24,
   },
 });
