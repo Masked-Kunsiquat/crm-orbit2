@@ -189,6 +189,7 @@ export default function ContactsList({ navigation }) {
             onPress={() => setSelectedCategory(null)}
             style={styles.categoryChip}
             mode="flat"
+            compact
           >
             All
           </Chip>
@@ -203,6 +204,7 @@ export default function ContactsList({ navigation }) {
               ]}
               mode="flat"
               icon={category.icon}
+              compact
             >
               {category.name}
             </Chip>
@@ -246,15 +248,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryFilter: {
-    maxHeight: 50,
+    maxHeight: 40,
     marginBottom: 8,
   },
   categoryFilterContent: {
     paddingHorizontal: 16,
+    paddingVertical: 4,
     gap: 8,
+    alignItems: 'center',
   },
   categoryChip: {
     marginRight: 0,
+    height: 32,
   },
   list: {
     flex: 1,
