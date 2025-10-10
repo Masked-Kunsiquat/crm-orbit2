@@ -9,7 +9,7 @@ const ACTIONS = [
 ];
 
 export default function SettingsScreen() {
-  const { leftAction, rightAction, setMapping } = useSettings();
+  const { leftAction, rightAction, setMapping, themeMode, setThemeMode } = useSettings();
 
   const onSelectCall = side => {
     if (side === 'left') setMapping('call', 'text');
@@ -71,6 +71,35 @@ export default function SettingsScreen() {
                 value="text-right"
                 status={rightAction === 'text' ? 'checked' : 'unchecked'}
                 onPress={() => onSelectText('right')}
+              />
+            </View>
+          )}
+        />
+      </List.Section>
+
+      <List.Section style={styles.section}>
+        <List.Subheader>Theme</List.Subheader>
+        <List.Item
+          title={() => <Text variant="titleSmall">Appearance</Text>}
+          right={() => (
+            <View style={styles.rowOptions}>
+              <Text style={styles.optionLabel}>System</Text>
+              <RadioButton
+                value="theme-system"
+                status={themeMode === 'system' ? 'checked' : 'unchecked'}
+                onPress={() => setThemeMode('system')}
+              />
+              <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Light</Text>
+              <RadioButton
+                value="theme-light"
+                status={themeMode === 'light' ? 'checked' : 'unchecked'}
+                onPress={() => setThemeMode('light')}
+              />
+              <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Dark</Text>
+              <RadioButton
+                value="theme-dark"
+                status={themeMode === 'dark' ? 'checked' : 'unchecked'}
+                onPress={() => setThemeMode('dark')}
               />
             </View>
           )}
