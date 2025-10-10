@@ -42,13 +42,28 @@ export default function SettingsScreen() {
     }
   };
 
-  const onChangeLeft = val => {
-    setLeftAction(val);
-    persist('swipe_left_action', val);
+  // Enforce mutual exclusivity: if one is Right, the other must be Left
+  const setMapping = (left, right) => {
+    setLeftAction(left);
+    setRightAction(right);
+    persist('swipe_left_action', left);
+    persist('swipe_right_action', right);
   };
-  const onChangeRight = val => {
-    setRightAction(val);
-    persist('swipe_right_action', val);
+
+  const onSelectCall = side => {
+    if (side === 'left') {
+      setMapping('call', 'text');
+    } else {
+      setMapping('text', 'call');
+    }
+  };
+
+  const onSelectText = side => {
+    if (side === 'left') {
+      setMapping('text', 'call');
+    } else {
+      setMapping('call', 'text');
+    }
   };
 
   return (
@@ -60,21 +75,51 @@ export default function SettingsScreen() {
       <List.Section style={styles.section}>
         <List.Subheader>Swipe Actions</List.Subheader>
 
-        <List.Item title="Left Swipe" />
-        <RadioButton.Group onValueChange={onChangeLeft} value={leftAction}>
-          {ACTIONS.map(a => (
-            <RadioButton.Item key={a.value} label={a.label} value={a.value} />
-          ))}
-        </RadioButton.Group>
+        <List.Item
+          title={() => (
+            <Text variant="titleSmall">Call</Text>
+          )}
+          right={() => (
+            <View style={styles.rowOptions}>
+              <Text style={styles.optionLabel}>Left</Text>
+              <RadioButton
+                value="call-left"
+                status={leftAction === 'call' ? 'checked' : 'unchecked'}
+                onPress={() => onSelectCall('left')}
+              />
+              <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Right</Text>
+              <RadioButton
+                value="call-right"
+                status={rightAction === 'call' ? 'checked' : 'unchecked'}
+                onPress={() => onSelectCall('right')}
+              />
+            </View>
+          )}
+        />
 
         <Divider style={styles.divider} />
 
-        <List.Item title="Right Swipe" />
-        <RadioButton.Group onValueChange={onChangeRight} value={rightAction}>
-          {ACTIONS.map(a => (
-            <RadioButton.Item key={a.value} label={a.label} value={a.value} />
-          ))}
-        </RadioButton.Group>
+        <List.Item
+          title={() => (
+            <Text variant="titleSmall">Text</Text>
+          )}
+          right={() => (
+            <View style={styles.rowOptions}>
+              <Text style={styles.optionLabel}>Left</Text>
+              <RadioButton
+                value="text-left"
+                status={leftAction === 'text' ? 'checked' : 'unchecked'}
+                onPress={() => onSelectText('left')}
+              />
+              <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Right</Text>
+              <RadioButton
+                value="text-right"
+                status={rightAction === 'text' ? 'checked' : 'unchecked'}
+                onPress={() => onSelectText('right')}
+              />
+            </View>
+          )}
+        />
       </List.Section>
     </View>
   );
@@ -90,5 +135,13 @@ const styles = StyleSheet.create({
   divider: {
     marginVertical: 8,
   },
+  rowOptions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 8,
+  },
+  optionLabel: {
+    color: '#666',
+    marginRight: 4,
+  },
 });
-
