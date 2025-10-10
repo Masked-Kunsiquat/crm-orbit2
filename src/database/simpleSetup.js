@@ -51,17 +51,9 @@ export async function createBasicTables() {
       )
     `);
 
-    // Drop and recreate categories table to ensure correct schema
-    try {
-      await execute('DROP TABLE IF EXISTS contact_categories;');
-      await execute('DROP TABLE IF EXISTS categories;');
-    } catch (e) {
-      console.log('Error dropping categories tables (may not exist):', e.message);
-    }
-
-    // Create categories table
+    // Create categories table (non-destructive)
     await execute(`
-      CREATE TABLE categories (
+      CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         color TEXT DEFAULT '#2196f3',
@@ -74,9 +66,9 @@ export async function createBasicTables() {
       )
     `);
 
-    // Create contact_categories junction table
+    // Create contact_categories junction table (non-destructive)
     await execute(`
-      CREATE TABLE contact_categories (
+      CREATE TABLE IF NOT EXISTS contact_categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
         category_id INTEGER NOT NULL,
