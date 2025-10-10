@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Linking, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
 import {
   Appbar,
   Avatar,
@@ -9,6 +9,9 @@ import {
   IconButton,
   Divider,
   FAB,
+  Portal,
+  Dialog,
+  Button,
 } from 'react-native-paper';
 import { contactsDB, contactsInfoDB } from '../database';
 import EditContactModal from '../components/EditContactModal';
@@ -18,6 +21,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAvatarDialog, setShowAvatarDialog] = useState(false);
 
   useEffect(() => {
     loadContact();
@@ -110,6 +114,53 @@ export default function ContactDetailScreen({ route, navigation }) {
     return first + last || '?';
   };
 
+  const pickImageFromLibrary = async () => {
+    try {
+      let ImagePicker;
+      try {
+        ImagePicker = (await import('expo-image-picker'));
+      } catch (e) {
+        Alert.alert('Missing dependency', 'Please install expo-image-picker to add photos.');
+        return;
+      }
+
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Media library permission is required to select a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (result.canceled) return;
+
+      const asset = result.assets && result.assets[0];
+      const uri = asset?.uri;
+      if (!uri) return;
+
+      await contactsDB.update(contactId, { avatar_uri: uri });
+      setShowAvatarDialog(false);
+      loadContact();
+    } catch (e) {
+      console.error('Image pick error', e);
+      Alert.alert('Error', 'Failed to set contact photo');
+    }
+  };
+
+  const removePhoto = async () => {
+    try {
+      await contactsDB.update(contactId, { avatar_uri: null });
+      setShowAvatarDialog(false);
+      loadContact();
+    } catch (e) {
+      console.error('Remove photo error', e);
+      Alert.alert('Error', 'Failed to remove photo');
+    }
+  };
+
   if (loading || !contact) {
     return (
       <View style={styles.container}>
@@ -138,11 +189,17 @@ export default function ContactDetailScreen({ route, navigation }) {
       <ScrollView style={styles.content}>
         {/* Header Section - iOS style */}
         <View style={styles.header}>
-          <Avatar.Text
-            size={100}
-            label={getInitials(contact.first_name, contact.last_name)}
-            style={styles.avatar}
-          />
+          <Pressable onPress={() => setShowAvatarDialog(true)}>
+            {contact.avatar_uri ? (
+              <Avatar.Image size={100} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
+            ) : (
+              <Avatar.Text
+                size={100}
+                label={getInitials(contact.first_name, contact.last_name)}
+                style={styles.avatar}
+              />
+            )}
+          </Pressable>
           <Text variant="headlineMedium" style={styles.name}>
             {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
           </Text>
@@ -267,6 +324,22 @@ export default function ContactDetailScreen({ route, navigation }) {
         contact={contact}
         onContactUpdated={handleContactUpdated}
       />
+
+      <Portal>
+        <Dialog visible={showAvatarDialog} onDismiss={() => setShowAvatarDialog(false)}>
+          <Dialog.Title>Contact Photo</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">Add or remove a profile picture.</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            {contact.avatar_uri ? (
+              <Button onPress={removePhoto} textColor="#d32f2f">Remove</Button>
+            ) : null}
+            <Button onPress={pickImageFromLibrary}>Add Photo</Button>
+            <Button onPress={() => setShowAvatarDialog(false)}>Cancel</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
