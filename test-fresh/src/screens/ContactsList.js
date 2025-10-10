@@ -4,7 +4,8 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip } from 'react-native-paper';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
-import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, settingsDB } from '../database';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function ContactsList({ navigation }) {
   const [contacts, setContacts] = useState([]);
@@ -14,16 +15,40 @@ export default function ContactsList({ navigation }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [leftAction, setLeftAction] = useState('call');
+  const [rightAction, setRightAction] = useState('text');
+  const isFocused = useIsFocused?.() ?? true;
 
   useEffect(() => {
     loadContacts();
     loadCategories();
+    loadSwipeSettings();
   }, []);
 
   useEffect(() => {
     // Reload contacts when category filter changes
     loadContacts();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    if (isFocused) {
+      loadSwipeSettings();
+    }
+  }, [isFocused]);
+
+  const loadSwipeSettings = async () => {
+    try {
+      const values = await settingsDB.getValues('interactions', [
+        'swipe_left_action',
+        'swipe_right_action',
+      ]);
+      setLeftAction(values.swipe_left_action || 'call');
+      setRightAction(values.swipe_right_action || 'text');
+    } catch (_) {
+      setLeftAction('call');
+      setRightAction('text');
+    }
+  };
 
   const loadCategories = async () => {
     try {
@@ -144,14 +169,20 @@ export default function ContactsList({ navigation }) {
   });
 
   const renderLeftActions = () => (
-    <View style={[styles.swipeAction, styles.callAction]}>
-      <Text style={styles.swipeActionText}>Call</Text>
+    <View style={[
+      styles.swipeAction,
+      leftAction === 'call' ? styles.callAction : styles.textAction,
+    ]}>
+      <Text style={styles.swipeActionText}>{leftAction === 'call' ? 'Call' : 'Text'}</Text>
     </View>
   );
 
   const renderRightActions = () => (
-    <View style={[styles.swipeAction, styles.textAction]}>
-      <Text style={styles.swipeActionText}>Text</Text>
+    <View style={[
+      styles.swipeAction,
+      rightAction === 'text' ? styles.textAction : styles.callAction,
+    ]}>
+      <Text style={styles.swipeActionText}>{rightAction === 'text' ? 'Text' : 'Call'}</Text>
     </View>
   );
 
@@ -162,9 +193,9 @@ export default function ContactsList({ navigation }) {
     const onOpen = (direction) => {
       if (!canPhone) return;
       if (direction === 'left') {
-        handleCall(item);
+        leftAction === 'call' ? handleCall(item) : handleMessage(item);
       } else if (direction === 'right') {
-        handleMessage(item);
+        rightAction === 'text' ? handleMessage(item) : handleCall(item);
       }
       // Close the swipeable so the row resets when user returns
       setTimeout(() => {

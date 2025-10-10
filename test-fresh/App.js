@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { PaperProvider, MD3LightTheme, Text, Card } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme, Text, Card, BottomNavigation } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
 import { createBasicTables } from './src/database/simpleSetup';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
+import InteractionsScreen from './src/screens/InteractionsScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -73,16 +75,44 @@ export default function App() {
     );
   }
 
+  const MainTabs = ({ navigation }) => {
+    const [index, setIndex] = React.useState(0);
+    const [routes] = React.useState([
+      { key: 'contacts', title: 'Contacts', focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
+      { key: 'interactions', title: 'Interactions', focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+      { key: 'settings', title: 'Settings', focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
+    ]);
+
+    const renderScene = ({ route }) => {
+      switch (route.key) {
+        case 'contacts':
+          return <ContactsList navigation={navigation} />;
+        case 'interactions':
+          return <InteractionsScreen />;
+        case 'settings':
+          return <SettingsScreen />;
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <BottomNavigation
+        navigationState={{ index, routes }}
+        onIndexChange={setIndex}
+        renderScene={renderScene}
+        labeled
+        sceneAnimationEnabled
+      />
+    );
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider theme={MD3LightTheme}>
         <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
-            <Stack.Screen name="ContactsList" component={ContactsList} />
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="MainTabs" component={MainTabs} />
             <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
           </Stack.Navigator>
         </NavigationContainer>
