@@ -10,10 +10,38 @@ import {
   IconButton,
   Chip,
 } from 'react-native-paper';
+import * as Contacts from 'expo-contacts';
 import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
+
+/**
+ * Maps native contact phone label to our label format
+ * @param {string} nativeLabel - The label from native contact
+ * @returns {string} - One of our PHONE_LABELS
+ */
+const mapPhoneLabel = (nativeLabel) => {
+  if (!nativeLabel) return 'Mobile';
+  const normalized = nativeLabel.toLowerCase();
+  if (normalized.includes('mobile') || normalized.includes('cell')) return 'Mobile';
+  if (normalized.includes('home')) return 'Home';
+  if (normalized.includes('work')) return 'Work';
+  return 'Other';
+};
+
+/**
+ * Maps native contact email label to our label format
+ * @param {string} nativeLabel - The label from native contact
+ * @returns {string} - One of our EMAIL_LABELS
+ */
+const mapEmailLabel = (nativeLabel) => {
+  if (!nativeLabel) return 'Personal';
+  const normalized = nativeLabel.toLowerCase();
+  if (normalized.includes('work')) return 'Work';
+  if (normalized.includes('personal') || normalized.includes('home')) return 'Personal';
+  return 'Other';
+};
 
 export default function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const [firstName, setFirstName] = useState('');
@@ -46,6 +74,71 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
     setEmails([{ id: 1, value: '', label: 'Personal' }]);
     setSelectedCategories([]);
     setSaving(false);
+  };
+
+  /**
+   * Handles importing a contact from the device's native contact picker
+   */
+  const handleImportFromContacts = async () => {
+    try {
+      // Request permissions
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Denied',
+          'Cannot access contacts. Please enable contacts permission in your device settings.'
+        );
+        return;
+      }
+
+      // Present the native contact picker
+      const contact = await Contacts.presentContactPickerAsync();
+
+      // User cancelled the picker
+      if (!contact) {
+        return;
+      }
+
+      // Map name fields
+      if (contact.firstName) {
+        setFirstName(contact.firstName);
+      }
+      if (contact.lastName) {
+        setLastName(contact.lastName);
+      }
+
+      // Map phone numbers
+      if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+        const mappedPhones = contact.phoneNumbers.map((phone, idx) => ({
+          id: idx + 1,
+          value: phone.number || '',
+          label: mapPhoneLabel(phone.label),
+        }));
+        setPhones(mappedPhones);
+      }
+
+      // Map email addresses
+      if (contact.emails && contact.emails.length > 0) {
+        const mappedEmails = contact.emails.map((email, idx) => ({
+          id: idx + 1,
+          value: email.email || '',
+          label: mapEmailLabel(email.label),
+        }));
+        setEmails(mappedEmails);
+      }
+
+      // Show success message
+      Alert.alert(
+        'Contact Imported',
+        'Contact information has been imported. Review and edit as needed before saving.'
+      );
+    } catch (error) {
+      console.error('Error importing contact:', error);
+      Alert.alert(
+        'Import Failed',
+        'Failed to import contact. Please try again or enter details manually.'
+      );
+    }
   };
 
   const toggleCategory = (categoryId) => {
@@ -195,12 +288,21 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
             <Text variant="headlineSmall" style={styles.title}>
               Add Contact
             </Text>
-            <IconButton
-              icon="close"
-              size={24}
-              onPress={handleCancel}
-              style={styles.closeButton}
-            />
+            <View style={styles.headerActions}>
+              <IconButton
+                icon="account-convert"
+                size={24}
+                onPress={handleImportFromContacts}
+                style={styles.importButton}
+                mode="contained-tonal"
+              />
+              <IconButton
+                icon="close"
+                size={24}
+                onPress={handleCancel}
+                style={styles.closeButton}
+              />
+            </View>
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -407,6 +509,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: '600',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  importButton: {
+    margin: 0,
   },
   closeButton: {
     margin: 0,
