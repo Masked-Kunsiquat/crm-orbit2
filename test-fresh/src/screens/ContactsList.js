@@ -190,12 +190,22 @@ export default function ContactsList({ navigation }) {
     const canPhone = !!item.phone;
     // Keep a ref to close the swipeable after triggering an action
     const swipeRef = React.createRef();
-    const onOpen = (direction) => {
+    const onOpen = async (direction) => {
       if (!canPhone) return;
+      let l = leftAction;
+      let r = rightAction;
+      try {
+        const values = await settingsDB.getValues('interactions', [
+          'swipe_left_action',
+          'swipe_right_action',
+        ]);
+        l = values.swipe_left_action || l;
+        r = values.swipe_right_action || r;
+      } catch {}
       if (direction === 'left') {
-        leftAction === 'call' ? handleCall(item) : handleMessage(item);
+        l === 'call' ? handleCall(item) : handleMessage(item);
       } else if (direction === 'right') {
-        rightAction === 'text' ? handleMessage(item) : handleCall(item);
+        r === 'text' ? handleMessage(item) : handleCall(item);
       }
       // Close the swipeable so the row resets when user returns
       setTimeout(() => {
