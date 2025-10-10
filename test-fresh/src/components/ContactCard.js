@@ -40,28 +40,29 @@ export default function ContactCard({ contact, onPress }) {
               )}
             </View>
           </View>
-          {/* Action buttons removed in favor of swipe gestures */}
-        </View>
-
-        {contact.categories && contact.categories.length > 0 && (
-          <View style={styles.categories}>
-            {contact.categories.slice(0, 3).map((category, index) => (
-              <Chip
-                key={index}
-                compact
-                style={[styles.categoryChip, { backgroundColor: category.color || '#e3f2fd' }]}
-                textStyle={styles.categoryText}
-              >
-                {category.name}
-              </Chip>
-            ))}
-            {contact.categories.length > 3 && (
-              <Chip compact style={styles.moreChip}>
-                +{contact.categories.length - 3}
-              </Chip>
+          <View style={styles.rightSection}>
+            {contact.categories && contact.categories.length > 0 && (
+              <View style={styles.topCategories}>
+                {contact.categories.slice(0, 2).map((category, index) => (
+                  <Chip
+                    key={index}
+                    compact
+                    mode="outlined"
+                    style={[styles.categoryChipOutline, { borderColor: category.color || '#90caf9' }]}
+                    textStyle={[styles.categoryTextOutline, { color: category.color || '#1976d2' }]}
+                  >
+                    {category.name}
+                  </Chip>
+                ))}
+                {contact.categories.length > 2 && (
+                  <Chip compact mode="outlined" style={styles.moreChipOutline} textStyle={styles.moreChipText}>
+                    +{contact.categories.length - 2}
+                  </Chip>
+                )}
+              </View>
             )}
           </View>
-        )}
+        </View>
       </Card.Content>
     </Card>
   );
@@ -83,6 +84,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-start',
   },
+  rightSection: {
+    flexShrink: 1,
+    marginLeft: 8,
+  },
   avatar: {
     marginRight: 12,
   },
@@ -102,22 +107,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   // Actions removed
-  categories: {
+  topCategories: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
     gap: 6,
+    justifyContent: 'flex-end',
   },
-  categoryChip: {
-    height: 28,
+  categoryChipOutline: {
+    height: 24,
     marginVertical: 2,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
   },
-  categoryText: {
+  categoryTextOutline: {
     fontSize: 12,
     lineHeight: 16,
   },
-  moreChip: {
-    height: 24,
-    backgroundColor: '#f5f5f5',
+  moreChipOutline: {
+    height: 22,
+    marginVertical: 2,
+    backgroundColor: 'transparent',
+    borderColor: '#ddd',
+    borderWidth: 1,
+  },
+  moreChipText: {
+    fontSize: 12,
+    color: '#666',
   },
 });
