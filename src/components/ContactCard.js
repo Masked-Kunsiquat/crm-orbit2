@@ -24,11 +24,15 @@ export default function ContactCard({ contact, onPress }) {
       <Card.Content>
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            <Avatar.Text
-              size={48}
-              label={getInitials(contact.first_name, contact.last_name)}
-              style={styles.avatar}
-            />
+            {contact.avatar_uri ? (
+              <Avatar.Image size={48} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
+            ) : (
+              <Avatar.Text
+                size={48}
+                label={getInitials(contact.first_name, contact.last_name)}
+                style={styles.avatar}
+              />
+            )}
             <View style={styles.info}>
               <Text variant="titleMedium" style={styles.name}>
                 {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown Contact'}
