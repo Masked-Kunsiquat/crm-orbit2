@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, Avatar, Chip, IconButton } from 'react-native-paper';
+import { Card, Text, Avatar, Chip } from 'react-native-paper';
 
-export default function ContactCard({ contact, onPress, onCall, onMessage, onEmail }) {
+export default function ContactCard({ contact, onPress }) {
   const getInitials = (firstName, lastName) => {
     const first = firstName ? firstName.charAt(0).toUpperCase() : '';
     const last = lastName ? lastName.charAt(0).toUpperCase() : '';
@@ -40,32 +40,7 @@ export default function ContactCard({ contact, onPress, onCall, onMessage, onEma
               )}
             </View>
           </View>
-          <View style={styles.actions}>
-            {onMessage && contact.phone && (
-              <IconButton
-                icon="message-text"
-                size={20}
-                onPress={() => onMessage(contact)}
-                style={styles.actionButton}
-              />
-            )}
-            {onCall && contact.phone && (
-              <IconButton
-                icon="phone"
-                size={20}
-                onPress={() => onCall(contact)}
-                style={styles.actionButton}
-              />
-            )}
-            {onEmail && contact.email && (
-              <IconButton
-                icon="email"
-                size={20}
-                onPress={() => onEmail(contact)}
-                style={styles.actionButton}
-              />
-            )}
-          </View>
+          {/* Action buttons removed in favor of swipe gestures */}
         </View>
 
         {contact.categories && contact.categories.length > 0 && (
@@ -126,13 +101,7 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 13,
   },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionButton: {
-    margin: 0,
-  },
+  // Actions removed
   categories: {
     flexDirection: 'row',
     flexWrap: 'wrap',
