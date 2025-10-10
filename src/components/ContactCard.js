@@ -112,26 +112,30 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
     justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   categoryChipOutline: {
-    height: 24,
     marginVertical: 2,
     backgroundColor: 'transparent',
     borderWidth: 1,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
   },
   categoryTextOutline: {
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   moreChipOutline: {
-    height: 22,
     marginVertical: 2,
     backgroundColor: 'transparent',
     borderColor: '#ddd',
     borderWidth: 1,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
   },
   moreChipText: {
     fontSize: 12,
+    lineHeight: 18,
     color: '#666',
   },
 });
