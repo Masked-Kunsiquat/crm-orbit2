@@ -168,21 +168,25 @@ export default function ContactsList({ navigation }) {
            phone.includes(query);
   });
 
+  // Left actions are revealed by a RIGHT swipe (gesture to the right)
+  // so they should reflect the RIGHT-swipe mapping
   const renderLeftActions = () => (
     <View style={[
       styles.swipeAction,
-      leftAction === 'call' ? styles.callAction : styles.textAction,
+      rightAction === 'call' ? styles.callAction : styles.textAction,
     ]}>
-      <Text style={styles.swipeActionText}>{leftAction === 'call' ? 'Call' : 'Text'}</Text>
+      <Text style={styles.swipeActionText}>{rightAction === 'call' ? 'Call' : 'Text'}</Text>
     </View>
   );
 
+  // Right actions are revealed by a LEFT swipe (gesture to the left)
+  // so they should reflect the LEFT-swipe mapping
   const renderRightActions = () => (
     <View style={[
       styles.swipeAction,
-      rightAction === 'text' ? styles.textAction : styles.callAction,
+      leftAction === 'text' ? styles.textAction : styles.callAction,
     ]}>
-      <Text style={styles.swipeActionText}>{rightAction === 'text' ? 'Text' : 'Call'}</Text>
+      <Text style={styles.swipeActionText}>{leftAction === 'text' ? 'Text' : 'Call'}</Text>
     </View>
   );
 
@@ -202,10 +206,13 @@ export default function ContactsList({ navigation }) {
         l = values.swipe_left_action || l;
         r = values.swipe_right_action || r;
       } catch {}
+      // direction refers to the side that opened: 'left' side opens on RIGHT swipe, 'right' side opens on LEFT swipe
       if (direction === 'left') {
-        l === 'call' ? handleCall(item) : handleMessage(item);
+        // Right swipe → use RIGHT-swipe mapping
+        r === 'call' ? handleCall(item) : handleMessage(item);
       } else if (direction === 'right') {
-        r === 'text' ? handleMessage(item) : handleCall(item);
+        // Left swipe → use LEFT-swipe mapping
+        l === 'text' ? handleMessage(item) : handleCall(item);
       }
       // Close the swipeable so the row resets when user returns
       setTimeout(() => {
