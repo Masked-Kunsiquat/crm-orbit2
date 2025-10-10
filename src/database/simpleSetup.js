@@ -79,6 +79,20 @@ export async function createBasicTables() {
       )
     `);
 
+    // Create user_preferences table (for app settings)
+    await execute(`
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category TEXT NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT,
+        data_type TEXT DEFAULT 'string',
+        is_enabled INTEGER DEFAULT 1,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (category, setting_key)
+      )
+    `);
+
     // Seed default categories
     await seedDefaultCategories();
 
