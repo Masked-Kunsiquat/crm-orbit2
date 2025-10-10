@@ -132,7 +132,8 @@ export default function ContactDetailScreen({ route, navigation }) {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaType.Images,
-        allowsEditing: false,
+        allowsEditing: true,
+        aspect: [1, 1],
         quality: 0.8,
       });
       if (result.canceled) return;
