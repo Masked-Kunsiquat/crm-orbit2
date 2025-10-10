@@ -93,6 +93,39 @@ export async function createBasicTables() {
       )
     `);
 
+    // Create interactions table
+    await execute(`
+      CREATE TABLE IF NOT EXISTS interactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contact_id INTEGER NOT NULL,
+        interaction_datetime TEXT NOT NULL,
+        title TEXT NOT NULL,
+        note TEXT,
+        interaction_type TEXT NOT NULL,
+        custom_type TEXT,
+        duration INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create indexes for interactions
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_interactions_contact
+      ON interactions(contact_id)
+    `);
+
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_interactions_datetime
+      ON interactions(interaction_datetime DESC)
+    `);
+
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_interactions_type
+      ON interactions(interaction_type)
+    `);
+
     // Seed default categories
     await seedDefaultCategories();
 
