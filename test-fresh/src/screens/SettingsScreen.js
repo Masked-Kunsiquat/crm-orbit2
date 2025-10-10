@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Appbar, RadioButton, Text, List, Divider } from 'react-native-paper';
-import { settingsDB } from '../database';
+import { useSettings } from '../context/SettingsContext';
 
 const ACTIONS = [
   { label: 'Call', value: 'call' },
@@ -9,61 +9,16 @@ const ACTIONS = [
 ];
 
 export default function SettingsScreen() {
-  const [leftAction, setLeftAction] = useState('text');
-  const [rightAction, setRightAction] = useState('call');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const values = await settingsDB.getValues('interactions', [
-          'swipe_left_action',
-          'swipe_right_action',
-        ]);
-        setLeftAction(values.swipe_left_action || 'text');
-        setRightAction(values.swipe_right_action || 'call');
-      } catch (e) {
-        // Fallback defaults on first run
-        setLeftAction('text');
-        setRightAction('call');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  const persist = async (key, value) => {
-    try {
-      await settingsDB.set(`interactions.${key}`, value, 'string');
-    } catch (e) {
-      // swallow for now; could show a toast/snackbar
-      console.warn('Failed to save setting', key, e?.message);
-    }
-  };
-
-  // Enforce mutual exclusivity: if one is Right, the other must be Left
-  const setMapping = (left, right) => {
-    setLeftAction(left);
-    setRightAction(right);
-    persist('swipe_left_action', left);
-    persist('swipe_right_action', right);
-  };
+  const { leftAction, rightAction, setMapping } = useSettings();
 
   const onSelectCall = side => {
-    if (side === 'left') {
-      setMapping('call', 'text');
-    } else {
-      setMapping('text', 'call');
-    }
+    if (side === 'left') setMapping('call', 'text');
+    else setMapping('text', 'call');
   };
 
   const onSelectText = side => {
-    if (side === 'left') {
-      setMapping('text', 'call');
-    } else {
-      setMapping('call', 'text');
-    }
+    if (side === 'left') setMapping('text', 'call');
+    else setMapping('call', 'text');
   };
 
   return (

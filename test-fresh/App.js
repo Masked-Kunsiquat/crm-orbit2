@@ -11,6 +11,7 @@ import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
 import InteractionsScreen from './src/screens/InteractionsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { SettingsProvider } from './src/context/SettingsContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -110,13 +111,15 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider theme={MD3LightTheme}>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="MainTabs" component={MainTabs} />
-            <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
-        <StatusBar style="auto" />
+        <SettingsProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="MainTabs" component={MainTabs} />
+              <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+          <StatusBar style="auto" />
+        </SettingsProvider>
       </PaperProvider>
     </GestureHandlerRootView>
   );
