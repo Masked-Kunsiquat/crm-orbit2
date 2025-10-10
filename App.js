@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { PaperProvider, MD3LightTheme, Text, Card, BottomNavigation } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigation } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
@@ -12,6 +12,8 @@ import ContactDetailScreen from './src/screens/ContactDetailScreen';
 import InteractionsScreen from './src/screens/InteractionsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
+import { useSettings } from './src/context/SettingsContext';
+import { useColorScheme } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -108,20 +110,39 @@ export default function App() {
     );
   };
 
+  const colorScheme = useColorScheme();
+  // Consume theme from context inside provider below via a wrapper component
+  const ThemedApp = () => {
+    const { themeMode } = require('./src/context/SettingsContext');
+    return null; // placeholder to satisfy bundler (we'll compute theme below in provider scope)
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <PaperProvider theme={MD3LightTheme}>
-        <SettingsProvider>
+      <SettingsProvider>
+        <ThemeBridge colorScheme={colorScheme}>
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               <Stack.Screen name="MainTabs" component={MainTabs} />
               <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
             </Stack.Navigator>
           </NavigationContainer>
-          <StatusBar style="auto" />
-        </SettingsProvider>
-      </PaperProvider>
+        </ThemeBridge>
+      </SettingsProvider>
     </GestureHandlerRootView>
+  );
+}
+
+// Internal component to bridge SettingsContext to Paper theme and StatusBar
+function ThemeBridge({ children, colorScheme }) {
+  const { themeMode: mode } = useSettings();
+  const isDark = mode === 'system' ? colorScheme === 'dark' : mode === 'dark';
+  const theme = isDark ? MD3DarkTheme : MD3LightTheme;
+  return (
+    <PaperProvider theme={theme}>
+      {children}
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+    </PaperProvider>
   );
 }
 
