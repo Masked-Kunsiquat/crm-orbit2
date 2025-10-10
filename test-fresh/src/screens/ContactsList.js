@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip } from 'react-native-paper';
@@ -157,6 +157,8 @@ export default function ContactsList({ navigation }) {
 
   const renderContact = ({ item }) => {
     const canPhone = !!item.phone;
+    // Keep a ref to close the swipeable after triggering an action
+    const swipeRef = React.createRef();
     const onOpen = (direction) => {
       if (!canPhone) return;
       if (direction === 'left') {
@@ -164,6 +166,10 @@ export default function ContactsList({ navigation }) {
       } else if (direction === 'right') {
         handleMessage(item);
       }
+      // Close the swipeable so the row resets when user returns
+      setTimeout(() => {
+        try { swipeRef.current?.close(); } catch {}
+      }, 200);
     };
     const content = (
       <ContactCard
@@ -175,6 +181,7 @@ export default function ContactsList({ navigation }) {
     if (!canPhone) return content;
     return (
       <Swipeable
+        ref={swipeRef}
         renderLeftActions={renderLeftActions}
         renderRightActions={renderRightActions}
         onSwipeableOpen={onOpen}
