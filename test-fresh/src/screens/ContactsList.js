@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip } from 'react-native-paper';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
@@ -142,15 +143,49 @@ export default function ContactsList({ navigation }) {
            phone.includes(query);
   });
 
-  const renderContact = ({ item }) => (
-    <ContactCard
-      contact={item}
-      onPress={() => handleContactPress(item)}
-      onCall={() => handleCall(item)}
-      onMessage={() => handleMessage(item)}
-      onEmail={() => handleEmail(item)}
-    />
+  const renderLeftActions = () => (
+    <View style={[styles.swipeAction, styles.callAction]}>
+      <Text style={styles.swipeActionText}>Call</Text>
+    </View>
   );
+
+  const renderRightActions = () => (
+    <View style={[styles.swipeAction, styles.textAction]}>
+      <Text style={styles.swipeActionText}>Text</Text>
+    </View>
+  );
+
+  const renderContact = ({ item }) => {
+    const canPhone = !!item.phone;
+    const onOpen = (direction) => {
+      if (!canPhone) return;
+      if (direction === 'left') {
+        handleCall(item);
+      } else if (direction === 'right') {
+        handleMessage(item);
+      }
+    };
+    const content = (
+      <ContactCard
+        contact={item}
+        onPress={() => handleContactPress(item)}
+      />
+    );
+    // Only enable swipe when a phone number exists
+    if (!canPhone) return content;
+    return (
+      <Swipeable
+        renderLeftActions={renderLeftActions}
+        renderRightActions={renderRightActions}
+        onSwipeableOpen={onOpen}
+        friction={2}
+        overshootLeft={false}
+        overshootRight={false}
+      >
+        {content}
+      </Swipeable>
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -263,6 +298,23 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  swipeAction: {
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  callAction: {
+    backgroundColor: '#C8E6C9',
+  },
+  textAction: {
+    backgroundColor: '#BBDEFB',
+    alignItems: 'flex-end',
+  },
+  swipeActionText: {
+    fontWeight: '600',
+    color: '#1f1f1f',
   },
   emptyContainer: {
     flex: 1,

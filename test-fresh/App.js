@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { PaperProvider, MD3LightTheme, Text, Card } from 'react-native-paper';
@@ -73,19 +74,21 @@ export default function App() {
   }
 
   return (
-    <PaperProvider theme={MD3LightTheme}>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="ContactsList" component={ContactsList} />
-          <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <StatusBar style="auto" />
-    </PaperProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PaperProvider theme={MD3LightTheme}>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen name="ContactsList" component={ContactsList} />
+            <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar style="auto" />
+      </PaperProvider>
+    </GestureHandlerRootView>
   );
 }
 
