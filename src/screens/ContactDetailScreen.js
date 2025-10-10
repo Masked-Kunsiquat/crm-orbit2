@@ -130,8 +130,9 @@ export default function ContactDetailScreen({ route, navigation }) {
         return;
       }
 
+      const mt = (ImagePicker && (ImagePicker.MediaType?.Images || ImagePicker.MediaTypeOptions?.Images)) || undefined;
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: mt,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
