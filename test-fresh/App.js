@@ -20,6 +20,8 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
   const [dbError, setDbError] = useState(null);
+  // Must be called unconditionally before any early returns to keep hook order stable
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const initializeDB = async () => {
@@ -108,13 +110,6 @@ export default function App() {
         sceneAnimationEnabled
       />
     );
-  };
-
-  const colorScheme = useColorScheme();
-  // Consume theme from context inside provider below via a wrapper component
-  const ThemedApp = () => {
-    const { themeMode } = require('./src/context/SettingsContext');
-    return null; // placeholder to satisfy bundler (we'll compute theme below in provider scope)
   };
 
   return (
