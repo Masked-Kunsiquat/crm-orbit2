@@ -12,16 +12,19 @@ import {
   Portal,
   Dialog,
   Button,
+  useTheme,
 } from 'react-native-paper';
 import { contactsDB, contactsInfoDB } from '../database';
 import EditContactModal from '../components/EditContactModal';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
+  const theme = useTheme();
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
+  const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
   useEffect(() => {
     loadContact();
@@ -166,7 +169,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   if (loading || !contact) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title="Contact" />
@@ -182,7 +185,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   const emails = (contact.contact_info || []).filter(info => info.type === 'email');
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="" />
@@ -191,7 +194,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
       <ScrollView style={styles.content}>
         {/* Header Section - iOS style */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
           <Pressable onPress={() => setShowAvatarDialog(true)}>
             {contact.avatar_uri ? (
               <Avatar.Image size={100} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
@@ -203,29 +206,32 @@ export default function ContactDetailScreen({ route, navigation }) {
               />
             )}
           </Pressable>
-          <Text variant="headlineMedium" style={styles.name}>
+          <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
             {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
           </Text>
           {contact.company_id && (
-            <Text variant="bodyMedium" style={styles.company}>
+            <Text
+              variant="bodyMedium"
+              style={[styles.company, { color: theme.colors.onSurfaceVariant || theme.colors.onSurface }]}
+            >
               {contact.job_title || 'Company'}
             </Text>
           )}
         </View>
 
         {/* Quick Actions - Material Design style */}
-        <View style={styles.quickActions}>
+        <View style={[styles.quickActions, { backgroundColor: theme.colors.surface, borderBottomColor: outlineColor }]}>
           {phones.length > 0 && (
             <View style={styles.actionButton}>
               <IconButton
                 icon="message-text"
                 size={24}
                 mode="contained"
-                containerColor="#1976d2"
+                containerColor={theme.colors.primary}
                 iconColor="#fff"
                 onPress={() => handleMessage(phones[0].value)}
               />
-              <Text variant="labelSmall" style={styles.actionLabel}>message</Text>
+              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>message</Text>
             </View>
           )}
           {phones.length > 0 && (
@@ -234,11 +240,11 @@ export default function ContactDetailScreen({ route, navigation }) {
                 icon="phone"
                 size={24}
                 mode="contained"
-                containerColor="#1976d2"
+                containerColor={theme.colors.primary}
                 iconColor="#fff"
                 onPress={() => handleCall(phones[0].value)}
               />
-              <Text variant="labelSmall" style={styles.actionLabel}>call</Text>
+              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>call</Text>
             </View>
           )}
           {emails.length > 0 && (
@@ -247,18 +253,18 @@ export default function ContactDetailScreen({ route, navigation }) {
                 icon="email"
                 size={24}
                 mode="contained"
-                containerColor="#1976d2"
+                containerColor={theme.colors.primary}
                 iconColor="#fff"
                 onPress={() => handleEmail(emails[0].value)}
               />
-              <Text variant="labelSmall" style={styles.actionLabel}>email</Text>
+              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>email</Text>
             </View>
           )}
         </View>
 
         {/* Phone Numbers Section - iOS grouped list style */}
         {phones.length > 0 && (
-          <Surface style={styles.section} elevation={0}>
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
             {phones.map((phone, index) => (
               <View key={phone.id}>
                 <List.Item
@@ -288,7 +294,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         {/* Email Addresses Section */}
         {emails.length > 0 && (
-          <Surface style={styles.section} elevation={0}>
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
             {emails.map((email, index) => (
               <View key={email.id}>
                 <List.Item
@@ -310,10 +316,10 @@ export default function ContactDetailScreen({ route, navigation }) {
         )}
 
         {/* Delete Button - iOS style at bottom */}
-        <Surface style={styles.section} elevation={0}>
+        <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
           <List.Item
             title="Delete Contact"
-            titleStyle={styles.deleteText}
+            titleStyle={[styles.deleteText, { color: theme.colors.error }]}
             onPress={handleDelete}
           />
         </Surface>
