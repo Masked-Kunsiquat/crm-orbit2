@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip } from 'react-native-paper';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
-import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, settingsDB } from '../database';
-import { useIsFocused } from '@react-navigation/native';
+import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import { useSettings } from '../context/SettingsContext';
 
 export default function ContactsList({ navigation }) {
   const [contacts, setContacts] = useState([]);
@@ -15,14 +15,11 @@ export default function ContactsList({ navigation }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [leftAction, setLeftAction] = useState('call');
-  const [rightAction, setRightAction] = useState('text');
-  const isFocused = useIsFocused?.() ?? true;
+  const { leftAction, rightAction } = useSettings();
 
   useEffect(() => {
     loadContacts();
     loadCategories();
-    loadSwipeSettings();
   }, []);
 
   useEffect(() => {
@@ -30,25 +27,7 @@ export default function ContactsList({ navigation }) {
     loadContacts();
   }, [selectedCategory]);
 
-  useEffect(() => {
-    if (isFocused) {
-      loadSwipeSettings();
-    }
-  }, [isFocused]);
-
-  const loadSwipeSettings = async () => {
-    try {
-      const values = await settingsDB.getValues('interactions', [
-        'swipe_left_action',
-        'swipe_right_action',
-      ]);
-      setLeftAction(values.swipe_left_action || 'call');
-      setRightAction(values.swipe_right_action || 'text');
-    } catch (_) {
-      setLeftAction('call');
-      setRightAction('text');
-    }
-  };
+  // Mapping provided via SettingsContext; no local loader needed
 
   const loadCategories = async () => {
     try {
@@ -194,25 +173,15 @@ export default function ContactsList({ navigation }) {
     const canPhone = !!item.phone;
     // Keep a ref to close the swipeable after triggering an action
     const swipeRef = React.createRef();
-    const onOpen = async (direction) => {
+    const onOpen = (direction) => {
       if (!canPhone) return;
-      let l = leftAction;
-      let r = rightAction;
-      try {
-        const values = await settingsDB.getValues('interactions', [
-          'swipe_left_action',
-          'swipe_right_action',
-        ]);
-        l = values.swipe_left_action || l;
-        r = values.swipe_right_action || r;
-      } catch {}
       // direction refers to the side that opened: 'left' side opens on RIGHT swipe, 'right' side opens on LEFT swipe
       if (direction === 'left') {
         // Right swipe → use RIGHT-swipe mapping
-        r === 'call' ? handleCall(item) : handleMessage(item);
+        rightAction === 'call' ? handleCall(item) : handleMessage(item);
       } else if (direction === 'right') {
         // Left swipe → use LEFT-swipe mapping
-        l === 'text' ? handleMessage(item) : handleCall(item);
+        leftAction === 'text' ? handleMessage(item) : handleCall(item);
       }
       // Close the swipeable so the row resets when user returns
       setTimeout(() => {
