@@ -26,9 +26,11 @@ const formatDateTime = (dateTimeStr) => {
     })}`;
   }
 
-  // Past timestamps: keep existing behavior
-  const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  // Past timestamps: compare by calendar day to avoid midnight edge cases
+  const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayMs = 24 * 60 * 60 * 1000;
+  const diffDays = Math.floor((startNow - startDate) / dayMs);
 
   if (diffDays === 0) {
     // Today - show time
