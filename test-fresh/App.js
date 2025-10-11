@@ -12,6 +12,9 @@ import ContactDetailScreen from './src/screens/ContactDetailScreen';
 import InteractionsScreen from './src/screens/InteractionsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import AuthLockScreen from './src/screens/AuthLockScreen';
+import PinSetupScreen from './src/screens/PinSetupScreen';
 import { useSettings } from './src/context/SettingsContext';
 import { useColorScheme } from 'react-native';
 
@@ -116,12 +119,17 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SettingsProvider>
         <ThemeBridge colorScheme={colorScheme}>
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="MainTabs" component={MainTabs} />
-              <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
+          <AuthProvider>
+            <AuthGate>
+              <NavigationContainer>
+                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="MainTabs" component={MainTabs} />
+                  <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+                  <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+                </Stack.Navigator>
+              </NavigationContainer>
+            </AuthGate>
+          </AuthProvider>
         </ThemeBridge>
       </SettingsProvider>
     </GestureHandlerRootView>
@@ -138,6 +146,22 @@ function ThemeBridge({ children, colorScheme }) {
       {children}
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </PaperProvider>
+  );
+}
+
+// Simple gate that overlays the lock screen if locked
+function AuthGate({ children }) {
+  const { isLocked, initializing } = useAuth();
+  if (initializing) return children; // don't block initial render
+  return (
+    <View style={{ flex: 1 }}>
+      {children}
+      {isLocked ? (
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <AuthLockScreen />
+        </View>
+      ) : null}
+    </View>
   );
 }
 

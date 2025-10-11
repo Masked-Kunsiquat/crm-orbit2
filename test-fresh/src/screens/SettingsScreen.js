@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Appbar, RadioButton, Text, List, Divider } from 'react-native-paper';
+import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
+import authService from '../services/authService';
+import { useNavigation } from '@react-navigation/native';
 
 const ACTIONS = [
   { label: 'Call', value: 'call' },
@@ -9,9 +11,49 @@ const ACTIONS = [
 ];
 
 export default function SettingsScreen() {
+  const navigation = useNavigation();
   const { leftAction, rightAction, setMapping, themeMode, setThemeMode } = useSettings();
   const [expandedSwipe, setExpandedSwipe] = useState(false);
   const [expandedTheme, setExpandedTheme] = useState(false);
+  const [expandedSecurity, setExpandedSecurity] = useState(false);
+
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [autoLockEnabled, setAutoLockEnabled] = useState(false);
+
+  React.useEffect(() => {
+    (async () => {
+      setBiometricEnabled(await authService.isBiometricEnabled());
+      setAutoLockEnabled(await authService.isAutoLockEnabled());
+    })();
+  }, []);
+
+  const toggleBiometric = async () => {
+    try {
+      if (biometricEnabled) {
+        await authService.disableBiometric();
+        setBiometricEnabled(false);
+      } else {
+        await authService.enableBiometric();
+        setBiometricEnabled(true);
+      }
+    } catch (e) {
+      // no-op simple handling
+    }
+  };
+
+  const toggleAutoLock = async () => {
+    try {
+      if (autoLockEnabled) {
+        await authService.disableAutoLock();
+        setAutoLockEnabled(false);
+      } else {
+        await authService.enableAutoLock(5);
+        setAutoLockEnabled(true);
+      }
+    } catch (e) {
+      // no-op
+    }
+  };
 
   const onSelectCall = side => {
     if (side === 'left') setMapping('call', 'text');
@@ -29,6 +71,33 @@ export default function SettingsScreen() {
         <Appbar.Content title="Settings" />
       </Appbar.Header>
 
+      {/* Security */}
+      <List.Section style={styles.section}>
+        <List.Accordion
+          title="Security"
+          expanded={expandedSecurity}
+          onPress={() => setExpandedSecurity(e => !e)}
+        >
+          <List.Item
+            title={() => <Text variant="titleSmall">Set / Change PIN</Text>}
+            onPress={() => navigation.navigate('PinSetup')}
+          />
+          <List.Item
+            title={() => <Text variant="titleSmall">Use Biometric</Text>}
+            right={() => (
+              <Switch value={biometricEnabled} onValueChange={toggleBiometric} />
+            )}
+          />
+          <List.Item
+            title={() => <Text variant="titleSmall">Auto-Lock (5 min)</Text>}
+            right={() => (
+              <Switch value={autoLockEnabled} onValueChange={toggleAutoLock} />
+            )}
+          />
+        </List.Accordion>
+      </List.Section>
+
+      {/* Swipe Actions */}
       <List.Section style={styles.section}>
         <List.Accordion
           title="Swipe Actions"
@@ -83,6 +152,7 @@ export default function SettingsScreen() {
         </List.Accordion>
       </List.Section>
 
+      {/* Theme */}
       <List.Section style={styles.section}>
         <List.Accordion
           title="Theme"
