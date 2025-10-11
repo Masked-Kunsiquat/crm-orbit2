@@ -7,7 +7,26 @@ import ContactAvatar from './ContactAvatar';
 const formatDateTime = (dateTimeStr) => {
   if (!dateTimeStr) return 'No date';
   const date = new Date(dateTimeStr);
+  if (isNaN(date.getTime())) return 'No date';
+
   const now = new Date();
+
+  // Handle future timestamps clearly
+  if (date > now) {
+    const isSameDay = date.toDateString() === now.toDateString();
+    if (isSameDay) {
+      return `Later today at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    }
+    return `Scheduled for ${date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })}`;
+  }
+
+  // Past timestamps: keep existing behavior
   const diffMs = now - date;
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
