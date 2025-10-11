@@ -258,6 +258,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const phones = (contact.contact_info || []).filter(info => info.type === 'phone');
   const emails = (contact.contact_info || []).filter(info => info.type === 'email');
+  const companyName = contact.company?.name || contact.company_name;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -284,12 +285,14 @@ export default function ContactDetailScreen({ route, navigation }) {
           <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
             {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
           </Text>
-          {(contact.company_name || contact.job_title) && (
+          {(contact.job_title || companyName) && (
             <Text
               variant="bodyMedium"
               style={[styles.company, { color: theme.colors.onSurfaceVariant || theme.colors.onSurface }]}
             >
-              {contact.company_name || contact.job_title}
+              {contact.job_title && companyName
+                ? `${contact.job_title} at ${companyName}`
+                : (contact.job_title || companyName)}
             </Text>
           )}
         </View>
