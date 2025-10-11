@@ -11,7 +11,7 @@ import {
   Chip,
 } from 'react-native-paper';
 import * as Contacts from 'expo-contacts';
-import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, transaction, execute } from '../database';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -228,44 +228,104 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
     setSaving(true);
 
     try {
-      // Create the contact
-      const contact = await contactsDB.create({
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-      });
+      if (typeof transaction === 'function') {
+        // Use a single DB transaction for atomic writes
+        await transaction(async (tx) => {
+          const displayName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ') || 'Unnamed Contact';
 
-      const contactId = contact.id;
+          // Create contact
+          const insertContact = await tx.execute(
+            'INSERT INTO contacts (first_name, last_name, display_name) VALUES (?, ?, ?);',
+            [firstName.trim(), lastName.trim(), displayName]
+          );
+          const contactId = insertContact.insertId;
 
-      // Prepare all contact info items
-      const contactInfoItems = [];
+          // Insert phones
+          for (let i = 0; i < validPhones.length; i++) {
+            const phone = validPhones[i];
+            await tx.execute(
+              'INSERT INTO contact_info (type, label, value, is_primary, contact_id, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);',
+              ['phone', phone.label, phone.value.trim(), i === 0 ? 1 : 0, contactId]
+            );
+          }
 
-      // Add phone numbers
-      validPhones.forEach((phone, index) => {
-        contactInfoItems.push({
-          type: 'phone',
-          label: phone.label,
-          value: phone.value.trim(),
-          is_primary: index === 0, // First phone is primary
+          // Insert emails
+          for (let i = 0; i < validEmails.length; i++) {
+            const email = validEmails[i];
+            const isPrimary = validPhones.length === 0 && i === 0 ? 1 : 0;
+            await tx.execute(
+              'INSERT INTO contact_info (type, label, value, is_primary, contact_id, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);',
+              ['email', email.label, email.value.trim().toLowerCase(), isPrimary, contactId]
+            );
+          }
+
+          // Insert category relations (deduplicated)
+          const uniqueCats = Array.from(new Set(selectedCategories));
+          for (const categoryId of uniqueCats) {
+            try {
+              await tx.execute(
+                'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+                [contactId, categoryId]
+              );
+            } catch (e) {
+              const msg = String(e?.message || e?.originalError?.message || '');
+              if (!msg.includes('UNIQUE constraint failed')) throw e; // ignore duplicates
+            }
+          }
         });
-      });
+      } else {
+        // Fallback: perform operations and explicitly roll back on failure
+        let createdContactId = null;
+        try {
+          const contact = await contactsDB.create({
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          });
+          createdContactId = contact.id;
 
-      // Add email addresses
-      validEmails.forEach((email, index) => {
-        contactInfoItems.push({
-          type: 'email',
-          label: email.label,
-          value: email.value.trim().toLowerCase(),
-          is_primary: validPhones.length === 0 && index === 0, // Primary if no phones and first email
-        });
-      });
+          const contactInfoItems = [];
+          validPhones.forEach((phone, index) => {
+            contactInfoItems.push({
+              type: 'phone',
+              label: phone.label,
+              value: phone.value.trim(),
+              is_primary: index === 0,
+            });
+          });
+          validEmails.forEach((email, index) => {
+            contactInfoItems.push({
+              type: 'email',
+              label: email.label,
+              value: email.value.trim().toLowerCase(),
+              is_primary: validPhones.length === 0 && index === 0,
+            });
+          });
 
-      // Add all contact info in one call
-      await contactsInfoDB.addContactInfo(contactId, contactInfoItems);
-
-      // Add contact to selected categories
-      if (selectedCategories.length > 0) {
-        for (const categoryId of selectedCategories) {
-          await categoriesRelationsDB.addContactToCategory(contactId, categoryId);
+          await contactsInfoDB.addContactInfo(createdContactId, contactInfoItems);
+          for (const categoryId of selectedCategories) {
+            await categoriesRelationsDB.addContactToCategory(createdContactId, categoryId);
+          }
+        } catch (err) {
+          // Attempt explicit rollback
+          if (createdContactId != null) {
+            try {
+              await categoriesRelationsDB.removeContactFromAllCategories?.(createdContactId);
+            } catch (rb1) {
+              console.error('Rollback: failed to remove categories for contact', rb1);
+            }
+            try {
+              // delete all contact_info for this contact
+              await execute('DELETE FROM contact_info WHERE contact_id = ?;', [createdContactId]);
+            } catch (rb2) {
+              console.error('Rollback: failed to remove contact info', rb2);
+            }
+            try {
+              await contactsDB.delete(createdContactId);
+            } catch (rb3) {
+              console.error('Rollback: failed to delete contact', rb3);
+            }
+          }
+          throw err;
         }
       }
 
