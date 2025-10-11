@@ -108,25 +108,49 @@ export default function ContactsList({ navigation }) {
     navigation.navigate('ContactDetail', { contactId: contact.id });
   };
 
+  const normalizePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    const trimmed = phoneNumber.trim();
+    // Preserve leading '+' for international numbers
+    const hasPlus = trimmed.startsWith('+');
+    const digitsOnly = trimmed.replace(/\D/g, '');
+    if (!digitsOnly) return '';
+    return hasPlus ? `+${digitsOnly}` : digitsOnly;
+  };
+
   const handleCall = async (contact) => {
-    if (contact.phone) {
-      const phoneUrl = `tel:${contact.phone.replace(/\D/g, '')}`;
-      try {
-        await Linking.openURL(phoneUrl);
-      } catch (error) {
-        Alert.alert('Error', 'Unable to make phone call');
-      }
+    if (!contact.phone) {
+      Alert.alert('Error', 'No phone number available');
+      return;
+    }
+    const normalized = normalizePhoneNumber(contact.phone);
+    if (!normalized) {
+      Alert.alert('Error', 'Invalid phone number');
+      return;
+    }
+    const phoneUrl = `tel:${normalized}`;
+    try {
+      await Linking.openURL(phoneUrl);
+    } catch (error) {
+      Alert.alert('Error', 'Unable to make phone call');
     }
   };
 
   const handleMessage = async (contact) => {
-    if (contact.phone) {
-      const smsUrl = `sms:${contact.phone.replace(/\D/g, '')}`;
-      try {
-        await Linking.openURL(smsUrl);
-      } catch (error) {
-        Alert.alert('Error', 'Unable to send message');
-      }
+    if (!contact.phone) {
+      Alert.alert('Error', 'No phone number available');
+      return;
+    }
+    const normalized = normalizePhoneNumber(contact.phone);
+    if (!normalized) {
+      Alert.alert('Error', 'Invalid phone number');
+      return;
+    }
+    const smsUrl = `sms:${normalized}`;
+    try {
+      await Linking.openURL(smsUrl);
+    } catch (error) {
+      Alert.alert('Error', 'Unable to send message');
     }
   };
 
