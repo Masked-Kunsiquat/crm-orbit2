@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Card, Text, Icon, useTheme } from 'react-native-paper';
 import ContactAvatar from './ContactAvatar';
+import { formatRelativeDateTime } from '../utils/datetime';
 
 // Helper to format interaction datetime
 const formatDateTime = (dateTimeStr) => {
@@ -130,7 +131,7 @@ export default function InteractionCard({ interaction, onPress, onLongPress, con
 
             {/* Date */}
             <Text variant="bodySmall" style={[styles.date, { color: theme.colors.onSurfaceVariant }]}>
-              {formatDateTime(interaction.interaction_datetime)}
+              {formatRelativeDateTime(interaction.interaction_datetime)}
             </Text>
           </View>
         </View>
