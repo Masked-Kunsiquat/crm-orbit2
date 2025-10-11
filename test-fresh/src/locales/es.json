@@ -53,7 +53,28 @@
     "loading": "Cargando...",
     "errorLoad": "No se pudieron cargar los detalles del contacto",
     "errorImageSet": "No se pudo establecer la foto",
-    "errorImageRemove": "No se pudo eliminar la foto"
+    "errorImageRemove": "No se pudo eliminar la foto",
+    "recent": "Interacciones recientes",
+    "delete": "Eliminar contacto",
+    "deleteConfirm": "¿Seguro que quieres eliminar a {{name}}?",
+    "photoTitle": "Foto del contacto",
+    "photoBody": "Agrega o elimina una foto de perfil.",
+    "remove": "Eliminar",
+    "addPhoto": "Agregar foto",
+    "cancel": "Cancelar",
+    "add": "Agregar"
+  },
+  "categories": {
+    "Family": "Familia",
+    "Friends": "Amigos",
+    "Work": "Trabajo",
+    "VIP": "VIP",
+    "Coworkers": "Compañeros",
+    "Clients": "Clientes",
+    "Leads": "Prospectos",
+    "Vendors": "Proveedores",
+    "Business": "Negocios",
+    "Personal": "Personal"
   },
   "addContact": {
     "title": "Agregar contacto",

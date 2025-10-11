@@ -53,7 +53,28 @@
     "loading": "Loading...",
     "errorLoad": "Failed to load contact details",
     "errorImageSet": "Failed to set contact photo",
-    "errorImageRemove": "Failed to remove photo"
+    "errorImageRemove": "Failed to remove photo",
+    "recent": "Recent Interactions",
+    "delete": "Delete Contact",
+    "deleteConfirm": "Are you sure you want to delete {{name}}?",
+    "photoTitle": "Contact Photo",
+    "photoBody": "Add or remove a profile picture.",
+    "remove": "Remove",
+    "addPhoto": "Add Photo",
+    "cancel": "Cancel",
+    "add": "Add"
+  },
+  "categories": {
+    "Family": "Family",
+    "Friends": "Friends",
+    "Work": "Work",
+    "VIP": "VIP",
+    "Coworkers": "Coworkers",
+    "Clients": "Clients",
+    "Leads": "Leads",
+    "Vendors": "Vendors",
+    "Business": "Business",
+    "Personal": "Personal"
   },
   "addContact": {
     "title": "Add Contact",

@@ -292,7 +292,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
                   </View>
                   <View style={styles.inputRow}>
                     <TextInput
-                      label={`${t(`contact.phoneLabels.${phone.label}`)} ${t('addContact.labels.phone')}`}
+                      label={`${t('contact.phoneLabels.' + phone.label)} ${t('addContact.labels.phone')}`}
                       value={phone.value}
                       onChangeText={(value) => updatePhoneValue(phone.id, value)}
                       mode="outlined"
@@ -344,7 +344,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
                   </View>
                   <View style={styles.inputRow}>
                     <TextInput
-                      label={`${t(`contact.emailLabels.${email.label}`)} ${t('addContact.labels.email')}`}
+                      label={`${t('contact.emailLabels.' + email.label)} ${t('addContact.labels.email')}`}
                       value={email.value}
                       onChangeText={(value) => updateEmailValue(email.id, value)}
                       mode="outlined"
@@ -385,7 +385,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
                       mode="flat"
                       icon={category.icon}
                     >
-                      {category.name}
+                      {(() => { const key = `categories.${category.name}`; const translated = t(key); return translated === key ? category.name : translated; })()}
                     </Chip>
                   ))}
                 </View>

@@ -339,7 +339,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
             <Text variant="headlineSmall" style={styles.title}>
-              Add Contact
+              {t('addContact.title')}
             </Text>
             <View style={styles.headerActions}>
               <IconButton
@@ -415,7 +415,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
                   </View>
                   <View style={styles.inputRow}>
                     <TextInput
-                      label={`${t(`contact.phoneLabels.${phone.label}`)} ${t('addContact.labels.phone')}`}
+                      label={`${t('contact.phoneLabels.' + phone.label)} ${t('addContact.labels.phone')}`}
                       value={phone.value}
                       onChangeText={(value) => updatePhoneValue(phone.id, value)}
                       mode="outlined"
@@ -467,7 +467,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
                   </View>
                   <View style={styles.inputRow}>
                     <TextInput
-                      label={`${t(`contact.emailLabels.${email.label}`)} ${t('addContact.labels.email')}`}
+                      label={`${t('contact.emailLabels.' + email.label)} ${t('addContact.labels.email')}`}
                       value={email.value}
                       onChangeText={(value) => updateEmailValue(email.id, value)}
                       mode="outlined"
@@ -508,7 +508,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
                       mode="flat"
                       icon={category.icon}
                     >
-                      {category.name}
+                      {(() => { const key = `categories.${category.name}`; const translated = t(key); return translated === key ? category.name : translated; })()}
                     </Chip>
                   ))}
                 </View>

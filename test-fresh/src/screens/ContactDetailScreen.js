@@ -398,7 +398,7 @@ export default function ContactDetailScreen({ route, navigation }) {
         {/* Recent Interactions Section */}
         <View style={styles.sectionHeader}>
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
-            Recent Interactions
+            {t('contactDetail.recent')}
           </Text>
           <Button
             mode="text"
@@ -406,7 +406,7 @@ export default function ContactDetailScreen({ route, navigation }) {
             icon="plus"
             compact
           >
-            Add
+            {t('contactDetail.add')}
           </Button>
         </View>
 
@@ -445,7 +445,7 @@ export default function ContactDetailScreen({ route, navigation }) {
         {/* Delete Button - iOS style at bottom */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
           <List.Item
-            title="Delete Contact"
+            title={t('contactDetail.delete')}
             titleStyle={[styles.deleteText, { color: theme.colors.error }]}
             onPress={handleDelete}
           />

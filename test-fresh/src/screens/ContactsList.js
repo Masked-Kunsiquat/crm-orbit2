@@ -281,7 +281,11 @@ export default function ContactsList({ navigation }) {
               icon={category.icon}
               compact
             >
-              {category.name}
+              {(() => {
+                const key = `categories.${category.name}`;
+                const translated = t(key);
+                return translated === key ? category.name : translated;
+              })()}
             </Chip>
           ))}
         </ScrollView>
