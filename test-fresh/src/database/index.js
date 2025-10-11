@@ -97,7 +97,10 @@ export async function execute(sql, params = []) {
   const db = getDB();
   try {
     let result;
-    if (sql.trim().toUpperCase().startsWith('SELECT')) {
+    const firstToken = sql.trim().split(/\s+/)[0]?.toUpperCase();
+    const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+
+    if (returnsRows) {
       // Use getAllAsync for SELECT queries
       const rows = await db.getAllAsync(sql, params);
       result = {
@@ -143,7 +146,10 @@ export async function batch(statements) {
         const { sql, params = [] } = statements[i];
         try {
           let result;
-          if (sql.trim().toUpperCase().startsWith('SELECT')) {
+          const firstToken = sql.trim().split(/\s+/)[0]?.toUpperCase();
+          const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+
+          if (returnsRows) {
             const rows = await db.getAllAsync(sql, params);
             result = {
               rows: rows || [],
@@ -203,7 +209,10 @@ export async function transaction(work) {
         execute: async (sql, params = []) => {
           try {
             let result;
-            if (sql.trim().toUpperCase().startsWith('SELECT')) {
+            const firstToken = sql.trim().split(/\s+/)[0]?.toUpperCase();
+            const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+
+            if (returnsRows) {
               const rows = await db.getAllAsync(sql, params);
               result = {
                 rows: rows || [],
