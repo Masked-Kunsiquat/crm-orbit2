@@ -154,17 +154,22 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
         });
 
         for (const info of items) {
-          if (!info || !info.type || !info.value) continue;
-          const record = { ...info };
-          record.contact_id = contactId;
-          // Normalize boolean to 0/1
-          if (typeof record.is_primary === 'boolean') {
-            record.is_primary = record.is_primary ? 1 : 0;
+          if (!info) continue;
+          const record = pick(info, INFO_FIELDS);
+          if (!record.type || !record.value) continue;
+          if (record.is_primary !== undefined) {
+            record.is_primary =
+              record.is_primary === true ||
+              record.is_primary === 1 ||
+              record.is_primary === '1'
+                ? 1
+                : 0;
           }
+          record.contact_id = contactId;
           const fields = Object.keys(record);
           const values = Object.values(record);
           statements.push({
-            sql: `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${new Array(fields.length).fill('?').join(', ')}, CURRENT_TIMESTAMP);`,
+            sql: `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`,
             params: values,
           });
         }
@@ -183,16 +188,22 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
             contactId,
           ]);
           for (const info of items) {
-            if (!info || !info.type || !info.value) continue;
-            const record = { ...info };
-            record.contact_id = contactId;
-            if (typeof record.is_primary === 'boolean') {
-              record.is_primary = record.is_primary ? 1 : 0;
+            if (!info) continue;
+            const record = pick(info, INFO_FIELDS);
+            if (!record.type || !record.value) continue;
+            if (record.is_primary !== undefined) {
+              record.is_primary =
+                record.is_primary === true ||
+                record.is_primary === 1 ||
+                record.is_primary === '1'
+                  ? 1
+                  : 0;
             }
+            record.contact_id = contactId;
             const fields = Object.keys(record);
             const values = Object.values(record);
             await tx.execute(
-              `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${new Array(fields.length).fill('?').join(', ')}, CURRENT_TIMESTAMP);`,
+              `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`,
               values
             );
           }
