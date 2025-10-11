@@ -209,7 +209,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       }
 
       // Prefer the modern API; if unavailable, omit to avoid deprecation warnings
-      const mt = ImagePicker?.MediaType?.Images ?? undefined;
+      const mt = ImagePicker?.MediaTypeOptions?.Images ?? undefined;
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: mt,
         allowsEditing: true,
@@ -284,12 +284,12 @@ export default function ContactDetailScreen({ route, navigation }) {
           <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
             {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
           </Text>
-          {contact.company_id && (
+          {(contact.company_name || contact.job_title) && (
             <Text
               variant="bodyMedium"
               style={[styles.company, { color: theme.colors.onSurfaceVariant || theme.colors.onSurface }]}
             >
-              {contact.job_title || 'Company'}
+              {contact.company_name || contact.job_title}
             </Text>
           )}
         </View>
