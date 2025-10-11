@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
@@ -22,39 +22,76 @@ export default function SettingsScreen() {
 
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [autoLockEnabled, setAutoLockEnabled] = useState(false);
+  const [autoLockTimeout, setAutoLockTimeout] = useState(5); // minutes
 
   React.useEffect(() => {
     (async () => {
       setBiometricEnabled(await authService.isBiometricEnabled());
       setAutoLockEnabled(await authService.isAutoLockEnabled());
+      try {
+        const timeout = await authService.getAutoLockTimeout();
+        if (Number.isFinite(timeout) && timeout > 0) {
+          setAutoLockTimeout(timeout);
+        }
+      } catch (e) {
+        // Keep default on failure
+      }
     })();
   }, []);
 
   const toggleBiometric = async () => {
+    const prev = biometricEnabled;
     try {
-      if (biometricEnabled) {
-        await authService.disableBiometric();
+      if (prev) {
+        const ok = await authService.disableBiometric();
+        if (!ok) throw new Error('disableBiometric failed');
         setBiometricEnabled(false);
       } else {
-        await authService.enableBiometric();
+        const ok = await authService.enableBiometric();
+        if (!ok) throw new Error('enableBiometric failed');
         setBiometricEnabled(true);
       }
     } catch (e) {
-      // no-op simple handling
+      console.error('Failed to toggle biometric:', e);
+      // Revert UI to reflect real state
+      setBiometricEnabled(prev);
+      Alert.alert('Error', 'Unable to update biometric setting. Please try again.');
     }
   };
 
   const toggleAutoLock = async () => {
+    const prev = autoLockEnabled;
     try {
-      if (autoLockEnabled) {
-        await authService.disableAutoLock();
+      if (prev) {
+        const ok = await authService.disableAutoLock();
+        if (!ok) throw new Error('disableAutoLock failed');
         setAutoLockEnabled(false);
       } else {
-        await authService.enableAutoLock(5);
+        const ok = await authService.enableAutoLock(autoLockTimeout);
+        if (!ok) throw new Error('enableAutoLock failed');
         setAutoLockEnabled(true);
       }
     } catch (e) {
-      // no-op
+      console.error('Failed to toggle auto-lock:', e);
+      // Revert UI to reflect real state
+      setAutoLockEnabled(prev);
+      Alert.alert('Error', 'Unable to update auto-lock setting. Please try again.');
+    }
+  };
+
+  const changeAutoLockTimeout = async (minutes) => {
+    const prev = autoLockTimeout;
+    setAutoLockTimeout(minutes);
+    // If auto-lock is enabled, persist immediately and restart timer
+    if (autoLockEnabled) {
+      try {
+        const ok = await authService.enableAutoLock(minutes);
+        if (!ok) throw new Error('enableAutoLock (update timeout) failed');
+      } catch (e) {
+        console.error('Failed to update auto-lock timeout:', e);
+        setAutoLockTimeout(prev);
+        Alert.alert('Error', 'Unable to update auto-lock timeout. Please try again.');
+      }
     }
   };
 
@@ -92,9 +129,28 @@ export default function SettingsScreen() {
             )}
           />
           <List.Item
-            title={() => <Text variant="titleSmall">Auto-Lock (5 min)</Text>}
+            title={() => (
+              <Text variant="titleSmall">{`Auto-Lock (${autoLockTimeout} min)`}</Text>
+            )}
             right={() => (
               <Switch value={autoLockEnabled} onValueChange={toggleAutoLock} />
+            )}
+          />
+          <List.Item
+            title={() => <Text variant="titleSmall">Auto-Lock Timeout</Text>}
+            right={() => (
+              <View style={styles.rowOptions}>
+                {[1, 5, 10, 30].map((m) => (
+                  <React.Fragment key={m}>
+                    <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{m}</Text>
+                    <RadioButton
+                      value={`auto-timeout-${m}`}
+                      status={autoLockTimeout === m ? 'checked' : 'unchecked'}
+                      onPress={() => changeAutoLockTimeout(m)}
+                    />
+                  </React.Fragment>
+                ))}
+              </View>
             )}
           />
         </List.Accordion>
