@@ -31,6 +31,9 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "common": {
+    "all": "All"
+  },
   "interactions": {
     "title": "Interactions",
     "filters": {
@@ -71,7 +74,22 @@
       "lastName": "Last Name",
       "optional": "Optional",
       "save": "Save Contact",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "phone": "Phone",
+      "email": "Email"
+    }
+  },
+  "contact": {
+    "phoneLabels": {
+      "Mobile": "Mobile",
+      "Home": "Home",
+      "Work": "Work",
+      "Other": "Other"
+    },
+    "emailLabels": {
+      "Personal": "Personal",
+      "Work": "Work",
+      "Other": "Other"
     }
   },
   "editContact": {

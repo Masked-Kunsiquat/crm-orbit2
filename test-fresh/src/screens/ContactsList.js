@@ -266,7 +266,7 @@ export default function ContactsList({ navigation }) {
             mode="flat"
             compact
           >
-            All
+            {t('common.all')}
           </Chip>
           {categories.map((category) => (
             <Chip

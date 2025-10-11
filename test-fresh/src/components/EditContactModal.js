@@ -286,13 +286,13 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
                         style={styles.labelChip}
                         compact
                       >
-                        {label}
+                        {t(`contact.phoneLabels.${label}`)}
                       </Chip>
                     ))}
                   </View>
                   <View style={styles.inputRow}>
                     <TextInput
-                      label={`${phone.label} Phone`}
+                      label={`${t(`contact.phoneLabels.${phone.label}`)} ${t('addContact.labels.phone')}`}
                       value={phone.value}
                       onChangeText={(value) => updatePhoneValue(phone.id, value)}
                       mode="outlined"
@@ -338,13 +338,13 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
                         style={styles.labelChip}
                         compact
                       >
-                        {label}
+                        {t(`contact.emailLabels.${label}`)}
                       </Chip>
                     ))}
                   </View>
                   <View style={styles.inputRow}>
                     <TextInput
-                      label={`${email.label} Email`}
+                      label={`${t(`contact.emailLabels.${email.label}`)} ${t('addContact.labels.email')}`}
                       value={email.value}
                       onChangeText={(value) => updateEmailValue(email.id, value)}
                       mode="outlined"

@@ -311,7 +311,7 @@ export default function ContactDetailScreen({ route, navigation }) {
                 iconColor="#fff"
                 onPress={() => handleMessage(phones[0].value)}
               />
-              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>message</Text>
+              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>{t('labels.text')}</Text>
             </View>
           )}
           {phones.length > 0 && (
@@ -324,7 +324,7 @@ export default function ContactDetailScreen({ route, navigation }) {
                 iconColor="#fff"
                 onPress={() => handleCall(phones[0].value)}
               />
-              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>call</Text>
+              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>{t('labels.call')}</Text>
             </View>
           )}
           {emails.length > 0 && (
