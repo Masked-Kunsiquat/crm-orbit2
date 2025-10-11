@@ -170,6 +170,7 @@ export function createContactsDB(ctx) {
         return await transaction(async tx => {
           await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [id]);
           await tx.execute('DELETE FROM contact_categories WHERE contact_id = ?;', [id]);
+          await tx.execute('DELETE FROM interactions WHERE contact_id = ?;', [id]);
           // Delete the contact last
           const delRes = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
           return delRes.rowsAffected || 0;
@@ -180,9 +181,10 @@ export function createContactsDB(ctx) {
       const results = await batch([
         { sql: 'DELETE FROM contact_info WHERE contact_id = ?;', params: [id] },
         { sql: 'DELETE FROM contact_categories WHERE contact_id = ?;', params: [id] },
+        { sql: 'DELETE FROM interactions WHERE contact_id = ?;', params: [id] },
         { sql: 'DELETE FROM contacts WHERE id = ?;', params: [id] },
       ]);
-      return results?.[2]?.rowsAffected || 0;
+      return results?.[3]?.rowsAffected || 0;
     },
 
     async search(query) {
