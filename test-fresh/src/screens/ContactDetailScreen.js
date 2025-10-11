@@ -27,6 +27,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
+  const [editingInteraction, setEditingInteraction] = useState(null);
   const [recentInteractions, setRecentInteractions] = useState([]);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
@@ -106,6 +107,30 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const handleInteractionAdded = () => {
     loadRecentInteractions(); // Reload interactions after adding
+  };
+
+  const handleInteractionUpdated = () => {
+    loadRecentInteractions(); // Reload interactions after updating
+  };
+
+  const handleInteractionDeleted = () => {
+    loadRecentInteractions(); // Reload interactions after deleting
+  };
+
+  const handleInteractionPress = (interaction) => {
+    // Open interaction in edit mode
+    setEditingInteraction(interaction);
+    setShowAddInteractionModal(true);
+  };
+
+  const handleAddInteractionClick = () => {
+    setEditingInteraction(null); // Clear editing mode
+    setShowAddInteractionModal(true);
+  };
+
+  const handleModalDismiss = () => {
+    setEditingInteraction(null);
+    setShowAddInteractionModal(false);
   };
 
   const handleViewAllInteractions = () => {
@@ -356,7 +381,7 @@ export default function ContactDetailScreen({ route, navigation }) {
           </Text>
           <Button
             mode="text"
-            onPress={() => setShowAddInteractionModal(true)}
+            onPress={handleAddInteractionClick}
             icon="plus"
             compact
           >
@@ -371,7 +396,7 @@ export default function ContactDetailScreen({ route, navigation }) {
                 key={interaction.id}
                 interaction={interaction}
                 contact={contact}
-                onPress={() => Alert.alert(interaction.title, interaction.note || 'No notes')}
+                onPress={() => handleInteractionPress(interaction)}
               />
             ))}
             {recentInteractions.length >= 3 && (
@@ -390,7 +415,7 @@ export default function ContactDetailScreen({ route, navigation }) {
               title="No interactions yet"
               description="Add your first interaction with this contact"
               left={props => <List.Icon {...props} icon="history" />}
-              onPress={() => setShowAddInteractionModal(true)}
+              onPress={handleAddInteractionClick}
             />
           </Surface>
         )}
@@ -416,9 +441,12 @@ export default function ContactDetailScreen({ route, navigation }) {
 
       <AddInteractionModal
         visible={showAddInteractionModal}
-        onDismiss={() => setShowAddInteractionModal(false)}
+        onDismiss={handleModalDismiss}
         onInteractionAdded={handleInteractionAdded}
+        onInteractionUpdated={handleInteractionUpdated}
+        onInteractionDeleted={handleInteractionDeleted}
         preselectedContactId={contactId}
+        editingInteraction={editingInteraction}
       />
 
       <Portal>

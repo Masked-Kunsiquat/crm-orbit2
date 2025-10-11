@@ -12,6 +12,7 @@ import {
   Menu,
   Divider,
 } from 'react-native-paper';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { interactionsDB, contactsDB } from '../database';
 
 const INTERACTION_TYPES = [
@@ -22,7 +23,17 @@ const INTERACTION_TYPES = [
   { value: 'other', label: 'Other', icon: 'note-text' },
 ];
 
-export default function AddInteractionModal({ visible, onDismiss, onInteractionAdded, preselectedContactId }) {
+export default function AddInteractionModal({
+  visible,
+  onDismiss,
+  onInteractionAdded,
+  onInteractionUpdated,
+  onInteractionDeleted,
+  preselectedContactId,
+  editingInteraction // Pass existing interaction for edit mode
+}) {
+  const isEditMode = !!editingInteraction;
+
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
   const [interactionType, setInteractionType] = useState('call');
@@ -31,16 +42,31 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
   const [contacts, setContacts] = useState([]);
   const [contactMenuVisible, setContactMenuVisible] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [interactionDateTime, setInteractionDateTime] = useState(new Date().toISOString());
+  const [interactionDateTime, setInteractionDateTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
     if (visible) {
       loadContacts();
-      if (preselectedContactId) {
-        setSelectedContactId(preselectedContactId);
+
+      if (editingInteraction) {
+        // Populate form with existing interaction data
+        setTitle(editingInteraction.title || '');
+        setNote(editingInteraction.note || '');
+        setInteractionType(editingInteraction.interaction_type || 'call');
+        setDuration(editingInteraction.duration ? Math.floor(editingInteraction.duration / 60).toString() : '');
+        setSelectedContactId(editingInteraction.contact_id);
+        setInteractionDateTime(new Date(editingInteraction.interaction_datetime || Date.now()));
+      } else {
+        // New interaction
+        if (preselectedContactId) {
+          setSelectedContactId(preselectedContactId);
+        }
+        setInteractionDateTime(new Date());
       }
     }
-  }, [visible, preselectedContactId]);
+  }, [visible, preselectedContactId, editingInteraction]);
 
   const loadContacts = async () => {
     try {
@@ -59,13 +85,45 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
     if (!preselectedContactId) {
       setSelectedContactId(null);
     }
-    setInteractionDateTime(new Date().toISOString());
+    setInteractionDateTime(new Date());
     setSaving(false);
   };
 
   const handleCancel = () => {
     resetForm();
     onDismiss();
+  };
+
+  const handleDelete = () => {
+    if (!isEditMode || !editingInteraction) return;
+
+    Alert.alert(
+      'Delete Interaction',
+      'Are you sure you want to delete this interaction?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setSaving(true);
+              await interactionsDB.delete(editingInteraction.id);
+
+              resetForm();
+              onInteractionDeleted && onInteractionDeleted();
+              onDismiss();
+              Alert.alert('Success', 'Interaction deleted successfully!');
+            } catch (error) {
+              console.error('Error deleting interaction:', error);
+              Alert.alert('Error', 'Failed to delete interaction. Please try again.');
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSave = async () => {
@@ -91,25 +149,33 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
         }
       }
 
-      // Create the interaction
       const interactionData = {
         contact_id: selectedContactId,
         title: title.trim(),
         note: note.trim() || null,
         interaction_type: interactionType,
         duration: durationSeconds,
-        interaction_datetime: interactionDateTime,
+        interaction_datetime: interactionDateTime.toISOString(),
       };
 
-      await interactionsDB.create(interactionData);
-
-      resetForm();
-      onInteractionAdded && onInteractionAdded();
-      onDismiss();
-      Alert.alert('Success', 'Interaction added successfully!');
+      if (isEditMode) {
+        // Update existing interaction
+        await interactionsDB.update(editingInteraction.id, interactionData);
+        resetForm();
+        onInteractionUpdated && onInteractionUpdated();
+        onDismiss();
+        Alert.alert('Success', 'Interaction updated successfully!');
+      } else {
+        // Create new interaction
+        await interactionsDB.create(interactionData);
+        resetForm();
+        onInteractionAdded && onInteractionAdded();
+        onDismiss();
+        Alert.alert('Success', 'Interaction added successfully!');
+      }
     } catch (error) {
-      console.error('Error adding interaction:', error);
-      Alert.alert('Error', 'Failed to add interaction. Please try again.');
+      console.error('Error saving interaction:', error);
+      Alert.alert('Error', 'Failed to save interaction. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -145,6 +211,42 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
     }
   };
 
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const newDateTime = new Date(interactionDateTime);
+      newDateTime.setFullYear(selectedDate.getFullYear());
+      newDateTime.setMonth(selectedDate.getMonth());
+      newDateTime.setDate(selectedDate.getDate());
+      setInteractionDateTime(newDateTime);
+    }
+  };
+
+  const handleTimeChange = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      const newDateTime = new Date(interactionDateTime);
+      newDateTime.setHours(selectedTime.getHours());
+      newDateTime.setMinutes(selectedTime.getMinutes());
+      setInteractionDateTime(newDateTime);
+    }
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <Portal>
       <Modal
@@ -155,14 +257,25 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
             <Text variant="headlineSmall" style={styles.title}>
-              Add Interaction
+              {isEditMode ? 'Edit Interaction' : 'Add Interaction'}
             </Text>
-            <IconButton
-              icon="close"
-              size={24}
-              onPress={handleCancel}
-              style={styles.closeButton}
-            />
+            <View style={styles.headerActions}>
+              {isEditMode && (
+                <IconButton
+                  icon="delete"
+                  size={24}
+                  onPress={handleDelete}
+                  iconColor="#d32f2f"
+                  style={styles.deleteButton}
+                />
+              )}
+              <IconButton
+                icon="close"
+                size={24}
+                onPress={handleCancel}
+                style={styles.closeButton}
+              />
+            </View>
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -181,6 +294,7 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
                     icon="account"
                     style={styles.contactButton}
                     contentStyle={styles.contactButtonContent}
+                    disabled={isEditMode} // Can't change contact when editing
                   >
                     {selectedContact
                       ? selectedContact.display_name || `${selectedContact.first_name || ''} ${selectedContact.last_name || ''}`.trim()
@@ -226,13 +340,38 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
               </View>
             </View>
 
+            {/* Date & Time */}
+            <View style={styles.section}>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Date & Time
+              </Text>
+              <View style={styles.dateTimeRow}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowDatePicker(true)}
+                  icon="calendar"
+                  style={styles.dateTimeButton}
+                >
+                  {formatDate(interactionDateTime)}
+                </Button>
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowTimePicker(true)}
+                  icon="clock-outline"
+                  style={styles.dateTimeButton}
+                >
+                  {formatTime(interactionDateTime)}
+                </Button>
+              </View>
+            </View>
+
             {/* Title */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
                   Title
                 </Text>
-                {selectedContact && (
+                {selectedContact && !isEditMode && (
                   <Button
                     mode="text"
                     onPress={handleQuickTitle}
@@ -307,11 +446,32 @@ export default function AddInteractionModal({ visible, onDismiss, onInteractionA
               disabled={!canSave}
               loading={saving}
             >
-              Save Interaction
+              {isEditMode ? 'Update' : 'Save'}
             </Button>
           </View>
         </Surface>
       </Modal>
+
+      {/* Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={interactionDateTime}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          maximumDate={new Date()} // Can't select future dates
+        />
+      )}
+
+      {/* Time Picker */}
+      {showTimePicker && (
+        <DateTimePicker
+          value={interactionDateTime}
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleTimeChange}
+        />
+      )}
     </Portal>
   );
 }
@@ -335,6 +495,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: '600',
+    flex: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    margin: 0,
   },
   closeButton: {
     margin: 0,
@@ -379,6 +547,13 @@ const styles = StyleSheet.create({
   typeChip: {
     marginRight: 0,
     marginBottom: 4,
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dateTimeButton: {
+    flex: 1,
   },
   input: {
     marginBottom: 0,

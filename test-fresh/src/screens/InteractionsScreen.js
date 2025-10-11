@@ -22,6 +22,7 @@ export default function InteractionsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingInteraction, setEditingInteraction] = useState(null);
   const [selectedType, setSelectedType] = useState('all');
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = newest first, 'asc' = oldest first
 
@@ -99,20 +100,31 @@ export default function InteractionsScreen({ navigation }) {
   };
 
   const handleInteractionPress = (interaction) => {
-    // TODO: Navigate to interaction detail screen
-    Alert.alert(
-      interaction.title,
-      interaction.note || 'No additional notes',
-      [{ text: 'OK' }]
-    );
+    // Open in edit mode
+    setEditingInteraction(interaction);
+    setShowAddModal(true);
   };
 
   const handleAddInteraction = () => {
+    setEditingInteraction(null); // Clear editing mode
     setShowAddModal(true);
   };
 
   const handleInteractionAdded = () => {
     loadInteractions(); // Refresh the list
+  };
+
+  const handleInteractionUpdated = () => {
+    loadInteractions(); // Refresh the list
+  };
+
+  const handleInteractionDeleted = () => {
+    loadInteractions(); // Refresh the list
+  };
+
+  const handleModalDismiss = () => {
+    setEditingInteraction(null);
+    setShowAddModal(false);
   };
 
   const toggleSortOrder = () => {
@@ -197,11 +209,14 @@ export default function InteractionsScreen({ navigation }) {
         onPress={handleAddInteraction}
       />
 
-      {/* Add Interaction Modal */}
+      {/* Add/Edit Interaction Modal */}
       <AddInteractionModal
         visible={showAddModal}
-        onDismiss={() => setShowAddModal(false)}
+        onDismiss={handleModalDismiss}
         onInteractionAdded={handleInteractionAdded}
+        onInteractionUpdated={handleInteractionUpdated}
+        onInteractionDeleted={handleInteractionDeleted}
+        editingInteraction={editingInteraction}
       />
     </View>
   );
