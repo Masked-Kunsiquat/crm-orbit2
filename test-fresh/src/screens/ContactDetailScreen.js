@@ -75,8 +75,23 @@ export default function ContactDetailScreen({ route, navigation }) {
     }
   };
 
+  const normalizePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    const trimmed = phoneNumber.trim();
+    // Preserve leading '+' for international numbers
+    const hasPlus = trimmed.startsWith('+');
+    const digitsOnly = trimmed.replace(/\D/g, '');
+    if (!digitsOnly) return '';
+    return hasPlus ? `+${digitsOnly}` : digitsOnly;
+  };
+
   const handleCall = async (phoneNumber) => {
-    const phoneUrl = `tel:${phoneNumber.replace(/\D/g, '')}`;
+    const normalized = normalizePhoneNumber(phoneNumber);
+    if (!normalized) {
+      Alert.alert('Error', 'Invalid phone number');
+      return;
+    }
+    const phoneUrl = `tel:${normalized}`;
     try {
       await Linking.openURL(phoneUrl);
     } catch (error) {
@@ -85,7 +100,12 @@ export default function ContactDetailScreen({ route, navigation }) {
   };
 
   const handleMessage = async (phoneNumber) => {
-    const smsUrl = `sms:${phoneNumber.replace(/\D/g, '')}`;
+    const normalized = normalizePhoneNumber(phoneNumber);
+    if (!normalized) {
+      Alert.alert('Error', 'Invalid phone number');
+      return;
+    }
+    const smsUrl = `sms:${normalized}`;
     try {
       await Linking.openURL(smsUrl);
     } catch (error) {
