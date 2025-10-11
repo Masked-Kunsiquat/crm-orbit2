@@ -324,7 +324,7 @@ class ContactSyncService {
           await this._updateContactInfo(existingContact.id, deviceContact);
           return { imported: true, updated: true };
 
-        case CONFLICT_RESOLUTION.MERGE:
+        case CONFLICT_RESOLUTION.MERGE: {
           const mergedData = this._mergeContactData(
             existingContact,
             crmContactData
@@ -332,6 +332,7 @@ class ContactSyncService {
           await db.contacts.update(existingContact.id, mergedData);
           await this._mergeContactInfo(existingContact.id, deviceContact);
           return { imported: true, merged: true };
+        }
 
         case CONFLICT_RESOLUTION.CREATE_NEW:
           crmContactData.display_name = `${crmContactData.display_name} (Imported)`;
