@@ -96,12 +96,14 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
 
   // Helper functions for managing multiple phone/email entries
   const addPhoneEntry = () => {
-    const newId = Math.max(...phones.map(p => p.id)) + 1;
+    const maxId = phones.length ? Math.max(...phones.map(p => p.id || 0)) : 0;
+    const newId = maxId + 1;
     setPhones([...phones, { id: newId, value: '', label: 'Mobile' }]);
   };
 
   const addEmailEntry = () => {
-    const newId = Math.max(...emails.map(e => e.id)) + 1;
+    const maxId = emails.length ? Math.max(...emails.map(e => e.id || 0)) : 0;
+    const newId = maxId + 1;
     setEmails([...emails, { id: newId, value: '', label: 'Personal' }]);
   };
 
