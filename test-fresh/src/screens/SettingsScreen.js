@@ -95,14 +95,42 @@ export default function SettingsScreen() {
     }
   };
 
-  const onSelectCall = side => {
-    if (side === 'left') setMapping('call', 'text');
-    else setMapping('text', 'call');
+  const onSelectCall = async (side) => {
+    try {
+      if (side === 'left') await setMapping('call', 'text');
+      else await setMapping('text', 'call');
+    } catch (error) {
+      console.error('Failed to update swipe action mapping:', error);
+      Alert.alert('Error', 'Unable to update swipe action. Please try again.');
+    }
   };
 
-  const onSelectText = side => {
-    if (side === 'left') setMapping('text', 'call');
-    else setMapping('call', 'text');
+  const onSelectText = async (side) => {
+    try {
+      if (side === 'left') await setMapping('text', 'call');
+      else await setMapping('call', 'text');
+    } catch (error) {
+      console.error('Failed to update swipe action mapping:', error);
+      Alert.alert('Error', 'Unable to update swipe action. Please try again.');
+    }
+  };
+
+  const handleThemeChange = async (mode) => {
+    try {
+      await setThemeMode(mode);
+    } catch (error) {
+      console.error('Failed to update theme:', error);
+      Alert.alert('Error', 'Unable to update theme. Please try again.');
+    }
+  };
+
+  const handleLanguageChange = async (lang) => {
+    try {
+      await setLanguage(lang);
+    } catch (error) {
+      console.error('Failed to update language:', error);
+      Alert.alert('Error', 'Unable to update language. Please try again.');
+    }
   };
 
   return (
@@ -226,19 +254,19 @@ export default function SettingsScreen() {
                 <RadioButton
                   value="theme-system"
                   status={themeMode === 'system' ? 'checked' : 'unchecked'}
-                  onPress={() => setThemeMode('system')}
+                  onPress={() => handleThemeChange('system')}
                 />
                 <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.light')}</Text>
                 <RadioButton
                   value="theme-light"
                   status={themeMode === 'light' ? 'checked' : 'unchecked'}
-                  onPress={() => setThemeMode('light')}
+                  onPress={() => handleThemeChange('light')}
                 />
                 <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.dark')}</Text>
                 <RadioButton
                   value="theme-dark"
                   status={themeMode === 'dark' ? 'checked' : 'unchecked'}
-                  onPress={() => setThemeMode('dark')}
+                  onPress={() => handleThemeChange('dark')}
                 />
               </View>
             )}
@@ -259,10 +287,10 @@ export default function SettingsScreen() {
           <RadioButton
             value="lang-device"
             status={language === 'device' ? 'checked' : 'unchecked'}
-            onPress={() => setLanguage('device')}
+            onPress={() => handleLanguageChange('device')}
           />
         )}
-        onPress={() => setLanguage('device')}
+        onPress={() => handleLanguageChange('device')}
       />
       <List.Item
         title={() => <Text variant="titleSmall">{t('settings.language.english')}</Text>}
@@ -270,10 +298,10 @@ export default function SettingsScreen() {
           <RadioButton
             value="lang-en"
             status={language === 'en' ? 'checked' : 'unchecked'}
-            onPress={() => setLanguage('en')}
+            onPress={() => handleLanguageChange('en')}
           />
         )}
-        onPress={() => setLanguage('en')}
+        onPress={() => handleLanguageChange('en')}
       />
       <List.Item
         title={() => <Text variant="titleSmall">{t('settings.language.spanish')}</Text>}
@@ -281,10 +309,10 @@ export default function SettingsScreen() {
           <RadioButton
             value="lang-es"
             status={language === 'es' ? 'checked' : 'unchecked'}
-            onPress={() => setLanguage('es')}
+            onPress={() => handleLanguageChange('es')}
           />
         )}
-        onPress={() => setLanguage('es')}
+        onPress={() => handleLanguageChange('es')}
       />
     </List.Accordion>
   </List.Section>

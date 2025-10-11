@@ -57,30 +57,50 @@ export function SettingsProvider({ children }) {
   }, []);
 
   const setMapping = useCallback(async (left, right) => {
+    const prevLeft = leftAction;
+    const prevRight = rightAction;
+    // Optimistic update
     setLeftAction(left);
     setRightAction(right);
     try {
       await settingsDB.set('interactions.swipe_left_action', left, 'string');
       await settingsDB.set('interactions.swipe_right_action', right, 'string');
-    } catch (_) {}
-  }, []);
+    } catch (error) {
+      // Rollback on failure
+      console.error('Failed to persist swipe action settings:', error);
+      setLeftAction(prevLeft);
+      setRightAction(prevRight);
+      throw error;
+    }
+  }, [leftAction, rightAction]);
 
   const setThemeMode = useCallback(async (mode) => {
     const normalized = ['light','dark','system'].includes(mode) ? mode : 'system';
+    const prevTheme = themeMode;
+    // Optimistic update
     setThemeModeState(normalized);
     try {
       await settingsDB.set('display.theme', normalized, 'string');
-    } catch (_) {}
-  }, []);
+    } catch (error) {
+      // Rollback on failure
+      console.error('Failed to persist theme setting:', error);
+      setThemeModeState(prevTheme);
+      throw error;
+    }
+  }, [themeMode]);
 
   const setLanguage = useCallback(async (lang) => {
     const supported = ['device','en','es'];
     const normalized = supported.includes(lang) ? lang : 'device';
+    const prevLang = language;
+    // Optimistic update
     setLanguageState(normalized);
+
     try {
+      // Persist to database
       await settingsDB.set('i18n.language', normalized, 'string');
-    } catch (_) {}
-    try {
+
+      // Apply language change to i18n
       if (normalized === 'device') {
         const locales = getLocales?.();
         const tag = (locales && locales[0] && (locales[0].languageTag || locales[0].locale)) || 'en-US';
@@ -88,8 +108,25 @@ export function SettingsProvider({ children }) {
       } else {
         await i18n.changeLanguage(normalized);
       }
-    } catch (_) {}
-  }, []);
+    } catch (error) {
+      // Rollback on failure
+      console.error('Failed to persist language setting:', error);
+      setLanguageState(prevLang);
+      // Try to restore previous i18n language
+      try {
+        if (prevLang === 'device') {
+          const locales = getLocales?.();
+          const tag = (locales && locales[0] && (locales[0].languageTag || locales[0].locale)) || 'en-US';
+          await i18n.changeLanguage(tag.split('-')[0]);
+        } else {
+          await i18n.changeLanguage(prevLang);
+        }
+      } catch (i18nError) {
+        console.error('Failed to rollback i18n language:', i18nError);
+      }
+      throw error;
+    }
+  }, [language]);
 
   return (
     <SettingsContext.Provider value={{ leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage }}>
