@@ -1,8 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, Avatar, Chip } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 
 export default function ContactCard({ contact, onPress }) {
+  const { t } = useTranslation();
   const getInitials = (firstName, lastName) => {
     const first = firstName ? firstName.charAt(0).toUpperCase() : '';
     const last = lastName ? lastName.charAt(0).toUpperCase() : '';
@@ -61,7 +63,11 @@ export default function ContactCard({ contact, onPress }) {
                     style={[styles.categoryChipOutline, { borderColor: category.color || '#90caf9' }]}
                     textStyle={[styles.categoryTextOutline, { color: category.color || '#1976d2' }]}
                   >
-                    {category.name}
+                    {(() => {
+                      const key = `categories.${category.name}`;
+                      const translated = t(key);
+                      return translated === key ? category.name : translated;
+                    })()}
                   </Chip>
                 ))}
                 {contact.categories.length > 2 && (
