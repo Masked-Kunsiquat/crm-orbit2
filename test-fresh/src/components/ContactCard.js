@@ -37,11 +37,17 @@ export default function ContactCard({ contact, onPress }) {
               <Text variant="titleMedium" style={styles.name}>
                 {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown Contact'}
               </Text>
-              {contact.company_name && (
-                <Text variant="bodySmall" style={styles.company}>
-                  {contact.company_name}
-                </Text>
-              )}
+              {(() => {
+                const companyName = contact.company?.name || contact.company_name;
+                const job = contact.job_title;
+                if (!companyName && !job) return null;
+                const line = job && companyName ? `${job} at ${companyName}` : (job || companyName);
+                return (
+                  <Text variant="bodySmall" style={styles.company}>
+                    {line}
+                  </Text>
+                );
+              })()}
             </View>
           </View>
           <View style={styles.rightSection}>
