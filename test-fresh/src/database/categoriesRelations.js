@@ -144,12 +144,28 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      * @param {number[]} categoryIds
      * @returns {Promise<boolean>} True on success
      */
-    async setContactCategories(contactId, categoryIds) {
+    async setContactCategories(contactId, categoryIds, txOverride) {
       if (!Array.isArray(categoryIds)) {
         throw new DatabaseError(
           'categoryIds must be an array',
           'VALIDATION_ERROR'
         );
+      }
+
+      if (txOverride && txOverride.execute) {
+        // Inside an existing transaction
+        await txOverride.execute(
+          'DELETE FROM contact_categories WHERE contact_id = ?;',
+          [contactId]
+        );
+        const uniqueCategoryIds = [...new Set(categoryIds)];
+        for (const categoryId of uniqueCategoryIds) {
+          await txOverride.execute(
+            'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
+            [contactId, categoryId]
+          );
+        }
+        return true;
       }
 
       if (!transaction) {

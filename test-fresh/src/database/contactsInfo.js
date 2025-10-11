@@ -142,7 +142,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
      * @param {Array<{type:string, value:string, label?:string, is_primary?:number|boolean}>} infoData
      * @returns {Promise<boolean>} True on success
      */
-    async replaceContactInfo(contactId, infoData) {
+    async replaceContactInfo(contactId, infoData, txOverride) {
       const items = Array.isArray(infoData) ? infoData : [infoData];
       // Always allow empty replace to just clear info
       const doStatementsBuild = () => {
@@ -181,6 +181,37 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
         });
         return statements;
       };
+
+      if (txOverride && txOverride.execute) {
+        await txOverride.execute('DELETE FROM contact_info WHERE contact_id = ?;', [
+          contactId,
+        ]);
+        for (const info of items) {
+          if (!info) continue;
+          const record = pick(info, INFO_FIELDS);
+          if (!record.type || !record.value) continue;
+          if (record.is_primary !== undefined) {
+            record.is_primary =
+              record.is_primary === true ||
+              record.is_primary === 1 ||
+              record.is_primary === '1'
+                ? 1
+                : 0;
+          }
+          record.contact_id = contactId;
+          const fields = Object.keys(record);
+          const values = Object.values(record);
+          await txOverride.execute(
+            `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${placeholders(fields.length)}, CURRENT_TIMESTAMP);`,
+            values
+          );
+        }
+        await txOverride.execute(
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          [contactId]
+        );
+        return true;
+      }
 
       if (transaction) {
         await transaction(async tx => {

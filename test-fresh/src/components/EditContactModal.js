@@ -10,7 +10,7 @@ import {
   IconButton,
   Chip,
 } from 'react-native-paper';
-import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import database, { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, transaction as dbTransaction } from '../database';
 import { useTranslation } from 'react-i18next';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
@@ -163,12 +163,6 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
     setSaving(true);
 
     try {
-      // Update the contact basic info
-      await contactsDB.update(contact.id, {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-      });
-
       // Build all new contact info
       const contactInfoItems = [];
 
@@ -192,11 +186,16 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         });
       });
 
-      // Replace contact info atomically (delete + insert in one transaction)
-      await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems);
+      // Make the entire save operation atomic
+      await dbTransaction(async (tx) => {
+        await contactsDB.update(contact.id, {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+        }, tx);
 
-      // Update contact categories using setContactCategories
-      await categoriesRelationsDB.setContactCategories(contact.id, selectedCategories);
+        await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems, tx);
+        await categoriesRelationsDB.setContactCategories(contact.id, selectedCategories, tx);
+      });
 
       onContactUpdated && onContactUpdated();
       onDismiss();
