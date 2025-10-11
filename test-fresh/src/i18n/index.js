@@ -41,7 +41,10 @@ if (!i18n.isInitialized) {
       supportedLngs: ['en', 'es'],
       returnNull: false,
     })
-    .catch(() => {});
+    .catch((error) => {
+      console.error('i18n initialization failed:', error);
+      console.error('Attempted to initialize with language:', deviceLang);
+    });
 }
 
 export default i18n;
