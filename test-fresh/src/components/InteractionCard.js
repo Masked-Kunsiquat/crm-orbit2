@@ -15,9 +15,9 @@ const formatDateTime = (dateTimeStr) => {
   if (date > now) {
     const isSameDay = date.toDateString() === now.toDateString();
     if (isSameDay) {
-      return `Later today at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      return `Later today at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
     }
-    return `Scheduled for ${date.toLocaleString('en-US', {
+    return `Scheduled for ${date.toLocaleString(undefined, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -32,7 +32,7 @@ const formatDateTime = (dateTimeStr) => {
 
   if (diffDays === 0) {
     // Today - show time
-    return `Today at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    return `Today at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
   } else if (diffDays === 1) {
     return 'Yesterday';
   } else if (diffDays < 7) {
@@ -41,7 +41,7 @@ const formatDateTime = (dateTimeStr) => {
     const weeks = Math.floor(diffDays / 7);
     return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
   } else {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 };
 
