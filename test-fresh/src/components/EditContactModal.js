@@ -167,13 +167,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         last_name: lastName.trim(),
       });
 
-      // Delete all existing contact_info for this contact
-      const existingInfo = (contact.contact_info || []);
-      for (const info of existingInfo) {
-        await contactsInfoDB.deleteContactInfo(info.id);
-      }
-
-      // Add all new contact info
+      // Build all new contact info
       const contactInfoItems = [];
 
       // Add phone numbers
@@ -196,8 +190,8 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         });
       });
 
-      // Add all contact info in one call
-      await contactsInfoDB.addContactInfo(contact.id, contactInfoItems);
+      // Replace contact info atomically (delete + insert in one transaction)
+      await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems);
 
       // Update contact categories using setContactCategories
       await categoriesRelationsDB.setContactCategories(contact.id, selectedCategories);

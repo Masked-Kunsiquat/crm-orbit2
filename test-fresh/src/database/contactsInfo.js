@@ -136,6 +136,81 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
     },
 
     /**
+     * Replace all contact_info rows for a contact atomically.
+     * Deletes existing rows and inserts the provided items in a single transaction.
+     * @param {number} contactId
+     * @param {Array<{type:string, value:string, label?:string, is_primary?:number|boolean}>} infoData
+     * @returns {Promise<boolean>} True on success
+     */
+    async replaceContactInfo(contactId, infoData) {
+      const items = Array.isArray(infoData) ? infoData : [infoData];
+      // Always allow empty replace to just clear info
+      const doStatementsBuild = () => {
+        const statements = [];
+        // Clear all existing info for this contact
+        statements.push({
+          sql: 'DELETE FROM contact_info WHERE contact_id = ?;',
+          params: [contactId],
+        });
+
+        for (const info of items) {
+          if (!info || !info.type || !info.value) continue;
+          const record = { ...info };
+          record.contact_id = contactId;
+          // Normalize boolean to 0/1
+          if (typeof record.is_primary === 'boolean') {
+            record.is_primary = record.is_primary ? 1 : 0;
+          }
+          const fields = Object.keys(record);
+          const values = Object.values(record);
+          statements.push({
+            sql: `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${new Array(fields.length).fill('?').join(', ')}, CURRENT_TIMESTAMP);`,
+            params: values,
+          });
+        }
+
+        // Touch parent contact for last interaction timestamp
+        statements.push({
+          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          params: [contactId],
+        });
+        return statements;
+      };
+
+      if (transaction) {
+        await transaction(async tx => {
+          await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [
+            contactId,
+          ]);
+          for (const info of items) {
+            if (!info || !info.type || !info.value) continue;
+            const record = { ...info };
+            record.contact_id = contactId;
+            if (typeof record.is_primary === 'boolean') {
+              record.is_primary = record.is_primary ? 1 : 0;
+            }
+            const fields = Object.keys(record);
+            const values = Object.values(record);
+            await tx.execute(
+              `INSERT INTO contact_info (${fields.join(', ')}, created_at) VALUES (${new Array(fields.length).fill('?').join(', ')}, CURRENT_TIMESTAMP);`,
+              values
+            );
+          }
+          await tx.execute(
+            'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+            [contactId]
+          );
+        });
+        return true;
+      }
+
+      // Fallback to batch which also runs inside a transaction in our DB layer
+      const statements = doStatementsBuild();
+      await batch(statements);
+      return true;
+    },
+
+    /**
      * Fetch all contact_info rows for a set of contact IDs in a single query.
      * @param {number[]} contactIds
      * @returns {Promise<Array<object>>}
