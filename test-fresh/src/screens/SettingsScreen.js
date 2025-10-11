@@ -168,30 +168,32 @@ export default function SettingsScreen() {
           onPress={() => setExpandedSecurity(e => !e)}
         >
           <List.Item
-            title={() => <Text variant="titleSmall">Set / Change PIN</Text>}
+            title={() => <Text variant="titleSmall">{t('settings.security.pinSetup')}</Text>}
             onPress={() => navigation.navigate('PinSetup')}
           />
           <List.Item
-            title={() => <Text variant="titleSmall">Use Biometric</Text>}
+            title={() => <Text variant="titleSmall">{t('settings.security.useBiometric')}</Text>}
             right={() => (
               <Switch value={biometricEnabled} onValueChange={toggleBiometric} />
             )}
           />
           <List.Item
             title={() => (
-              <Text variant="titleSmall">{`Auto-Lock (${autoLockTimeout} min)`}</Text>
+              <Text variant="titleSmall">{t('settings.security.autoLock', { minutes: autoLockTimeout })}</Text>
             )}
             right={() => (
               <Switch value={autoLockEnabled} onValueChange={toggleAutoLock} />
             )}
           />
           <List.Item
-            title={() => <Text variant="titleSmall">Auto-Lock Timeout</Text>}
+            title={() => <Text variant="titleSmall">{t('settings.security.autoLockTimeout')}</Text>}
             right={() => (
               <View style={styles.rowOptions}>
                 {[1, 5, 10, 30].map((m) => (
                   <React.Fragment key={m}>
-                    <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{m}</Text>
+                    <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
+                      {t('settings.security.minutes', { count: m })}
+                    </Text>
                     <RadioButton
                       value={`auto-timeout-${m}`}
                       status={autoLockTimeout === m ? 'checked' : 'unchecked'}

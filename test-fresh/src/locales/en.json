@@ -21,6 +21,14 @@
       "spanish": "Spanish"
     },
     "appearance": "Appearance",
+    "security": {
+      "pinSetup": "Set / Change PIN",
+      "useBiometric": "Use Biometric",
+      "autoLock": "Auto-Lock ({{minutes}} min)",
+      "autoLockTimeout": "Auto-Lock Timeout",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min"
+    },
     "errors": {
       "biometricToggle": {
         "title": "Error",
