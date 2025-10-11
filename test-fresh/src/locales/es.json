@@ -1,0 +1,157 @@
+{
+  "navigation": {
+    "contacts": "Contactos",
+    "interactions": "Interacciones",
+    "settings": "Ajustes"
+  },
+  "search": {
+    "contactsPlaceholder": "Buscar contactos..."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "sections": {
+      "security": "Seguridad",
+      "swipe": "Acciones de deslizamiento",
+      "theme": "Tema",
+      "language": "Idioma"
+    },
+    "language": {
+      "device": "Predeterminado del dispositivo",
+      "english": "Inglés",
+      "spanish": "Español"
+    },
+    "appearance": "Apariencia",
+    "security": {
+      "pinSetup": "Configurar / Cambiar PIN",
+      "useBiometric": "Usar biométrico",
+      "autoLock": "Bloqueo automático ({{minutes}} min)",
+      "autoLockTimeout": "Tiempo de bloqueo automático",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min"
+    },
+    "errors": {
+      "biometricToggle": {
+        "title": "Error",
+        "message": "No se pudo actualizar la configuración biométrica. Por favor, inténtalo de nuevo."
+      },
+      "autoLockToggle": {
+        "title": "Error",
+        "message": "No se pudo actualizar la configuración de bloqueo automático. Por favor, inténtalo de nuevo."
+      },
+      "autoLockTimeout": {
+        "title": "Error",
+        "message": "No se pudo actualizar el tiempo de bloqueo automático. Por favor, inténtalo de nuevo."
+      },
+      "swipeAction": {
+        "title": "Error",
+        "message": "No se pudo actualizar la acción de deslizamiento. Por favor, inténtalo de nuevo."
+      },
+      "theme": {
+        "title": "Error",
+        "message": "No se pudo actualizar el tema. Por favor, inténtalo de nuevo."
+      },
+      "language": {
+        "title": "Error",
+        "message": "No se pudo actualizar el idioma. Por favor, inténtalo de nuevo."
+      }
+    }
+  },
+  "labels": {
+    "call": "Llamar",
+    "text": "Mensaje",
+    "left": "Izquierda",
+    "right": "Derecha",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "common": {
+    "all": "Todas"
+  },
+  "interactions": {
+    "title": "Interacciones",
+    "filters": {
+      "all": "Todas",
+      "call": "Llamadas",
+      "text": "Mensajes",
+      "email": "Correo",
+      "meeting": "Reuniones",
+      "other": "Otros"
+    },
+    "emptyTitle": "Sin interacciones",
+    "emptyMessage": "Agrega tu primera interacción para comenzar.",
+    "errorLoad": "No se pudieron cargar las interacciones"
+  },
+  "contactDetail": {
+    "title": "Contacto",
+    "loading": "Cargando...",
+    "errorLoad": "No se pudieron cargar los detalles del contacto",
+    "errorImageSet": "No se pudo establecer la foto",
+    "errorImageRemove": "No se pudo eliminar la foto",
+    "recent": "Interacciones recientes",
+    "delete": "Eliminar contacto",
+    "deleteConfirm": "¿Seguro que quieres eliminar a {{name}}?",
+    "photoTitle": "Foto del contacto",
+    "photoBody": "Agrega o elimina una foto de perfil.",
+    "remove": "Eliminar",
+    "addPhoto": "Agregar foto",
+    "cancel": "Cancelar",
+    "add": "Agregar"
+  },
+  "categories": {
+    "Family": "Familia",
+    "Friends": "Amigos",
+    "Work": "Trabajo",
+    "VIP": "VIP",
+    "Coworkers": "Compañeros",
+    "Clients": "Clientes",
+    "Leads": "Prospectos",
+    "Vendors": "Proveedores",
+    "Business": "Negocios",
+    "Personal": "Personal"
+  },
+  "addContact": {
+    "title": "Agregar contacto",
+    "importSuccessTitle": "Contacto importado",
+    "importSuccessMsg": "La información del contacto ha sido importada. Revisa y edita antes de guardar.",
+    "importFailTitle": "Error al importar",
+    "importFailMsg": "No se pudo importar el contacto. Inténtalo de nuevo o ingrésalo manualmente.",
+    "permissionTitle": "Permiso denegado",
+    "permissionMsg": "No se puede acceder a los contactos. Habilita el permiso en la configuración del dispositivo.",
+    "sections": {
+      "name": "Nombre",
+      "phones": "Números de teléfono",
+      "emails": "Direcciones de correo",
+      "categories": "Categorías"
+    },
+    "labels": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "optional": "Opcional",
+      "save": "Guardar contacto",
+      "cancel": "Cancelar",
+      "phone": "Teléfono",
+      "email": "Correo"
+    }
+  },
+  "contact": {
+    "phoneLabels": {
+      "Mobile": "Móvil",
+      "Home": "Casa",
+      "Work": "Trabajo",
+      "Other": "Otro"
+    },
+    "emailLabels": {
+      "Personal": "Personal",
+      "Work": "Trabajo",
+      "Other": "Otro"
+    }
+  },
+  "editContact": {
+    "title": "Editar contacto",
+    "labels": {
+      "save": "Guardar cambios",
+      "cancel": "Cancelar"
+    }
+  }
+}

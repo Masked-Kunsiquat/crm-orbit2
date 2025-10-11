@@ -1,0 +1,157 @@
+{
+  "navigation": {
+    "contacts": "Contacts",
+    "interactions": "Interactions",
+    "settings": "Settings"
+  },
+  "search": {
+    "contactsPlaceholder": "Search contacts..."
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "security": "Security",
+      "swipe": "Swipe Actions",
+      "theme": "Theme",
+      "language": "Language"
+    },
+    "language": {
+      "device": "Device default",
+      "english": "English",
+      "spanish": "Spanish"
+    },
+    "appearance": "Appearance",
+    "security": {
+      "pinSetup": "Set / Change PIN",
+      "useBiometric": "Use Biometric",
+      "autoLock": "Auto-Lock ({{minutes}} min)",
+      "autoLockTimeout": "Auto-Lock Timeout",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min"
+    },
+    "errors": {
+      "biometricToggle": {
+        "title": "Error",
+        "message": "Unable to update biometric setting. Please try again."
+      },
+      "autoLockToggle": {
+        "title": "Error",
+        "message": "Unable to update auto-lock setting. Please try again."
+      },
+      "autoLockTimeout": {
+        "title": "Error",
+        "message": "Unable to update auto-lock timeout. Please try again."
+      },
+      "swipeAction": {
+        "title": "Error",
+        "message": "Unable to update swipe action. Please try again."
+      },
+      "theme": {
+        "title": "Error",
+        "message": "Unable to update theme. Please try again."
+      },
+      "language": {
+        "title": "Error",
+        "message": "Unable to update language. Please try again."
+      }
+    }
+  },
+  "labels": {
+    "call": "Call",
+    "text": "Text",
+    "left": "Left",
+    "right": "Right",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "common": {
+    "all": "All"
+  },
+  "interactions": {
+    "title": "Interactions",
+    "filters": {
+      "all": "All",
+      "call": "Calls",
+      "text": "Texts",
+      "email": "Email",
+      "meeting": "Meetings",
+      "other": "Other"
+    },
+    "emptyTitle": "No Interactions",
+    "emptyMessage": "Add your first interaction to get started.",
+    "errorLoad": "Failed to load interactions"
+  },
+  "contactDetail": {
+    "title": "Contact",
+    "loading": "Loading...",
+    "errorLoad": "Failed to load contact details",
+    "errorImageSet": "Failed to set contact photo",
+    "errorImageRemove": "Failed to remove photo",
+    "recent": "Recent Interactions",
+    "delete": "Delete Contact",
+    "deleteConfirm": "Are you sure you want to delete {{name}}?",
+    "photoTitle": "Contact Photo",
+    "photoBody": "Add or remove a profile picture.",
+    "remove": "Remove",
+    "addPhoto": "Add Photo",
+    "cancel": "Cancel",
+    "add": "Add"
+  },
+  "categories": {
+    "Family": "Family",
+    "Friends": "Friends",
+    "Work": "Work",
+    "VIP": "VIP",
+    "Coworkers": "Coworkers",
+    "Clients": "Clients",
+    "Leads": "Leads",
+    "Vendors": "Vendors",
+    "Business": "Business",
+    "Personal": "Personal"
+  },
+  "addContact": {
+    "title": "Add Contact",
+    "importSuccessTitle": "Contact Imported",
+    "importSuccessMsg": "Contact information has been imported. Review and edit as needed before saving.",
+    "importFailTitle": "Import Failed",
+    "importFailMsg": "Failed to import contact. Please try again or enter details manually.",
+    "permissionTitle": "Permission Denied",
+    "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.",
+    "sections": {
+      "name": "Name",
+      "phones": "Phone Numbers",
+      "emails": "Email Addresses",
+      "categories": "Categories"
+    },
+    "labels": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "optional": "Optional",
+      "save": "Save Contact",
+      "cancel": "Cancel",
+      "phone": "Phone",
+      "email": "Email"
+    }
+  },
+  "contact": {
+    "phoneLabels": {
+      "Mobile": "Mobile",
+      "Home": "Home",
+      "Work": "Work",
+      "Other": "Other"
+    },
+    "emailLabels": {
+      "Personal": "Personal",
+      "Work": "Work",
+      "Other": "Other"
+    }
+  },
+  "editContact": {
+    "title": "Edit Contact",
+    "labels": {
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    }
+  }
+}
