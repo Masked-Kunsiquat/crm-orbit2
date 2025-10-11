@@ -18,6 +18,7 @@ import { contactsDB, contactsInfoDB, interactionsDB } from '../database';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
+import InteractionDetailModal from '../components/InteractionDetailModal';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -27,6 +28,8 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
   const [recentInteractions, setRecentInteractions] = useState([]);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
@@ -118,8 +121,21 @@ export default function ContactDetailScreen({ route, navigation }) {
   };
 
   const handleInteractionPress = (interaction) => {
-    // Open interaction in edit mode
+    // Regular tap - show detail modal
+    setSelectedInteraction(interaction);
+    setShowDetailModal(true);
+  };
+
+  const handleInteractionLongPress = (interaction) => {
+    // Long press - open in edit mode
     setEditingInteraction(interaction);
+    setShowAddInteractionModal(true);
+  };
+
+  const handleDetailEdit = () => {
+    // User clicked edit from detail modal
+    setEditingInteraction(selectedInteraction);
+    setShowDetailModal(false);
     setShowAddInteractionModal(true);
   };
 
@@ -397,6 +413,7 @@ export default function ContactDetailScreen({ route, navigation }) {
                 interaction={interaction}
                 contact={contact}
                 onPress={() => handleInteractionPress(interaction)}
+                onLongPress={() => handleInteractionLongPress(interaction)}
               />
             ))}
             {recentInteractions.length >= 3 && (
@@ -437,6 +454,14 @@ export default function ContactDetailScreen({ route, navigation }) {
         onDismiss={() => setShowEditModal(false)}
         contact={contact}
         onContactUpdated={handleContactUpdated}
+      />
+
+      <InteractionDetailModal
+        visible={showDetailModal}
+        onDismiss={() => setShowDetailModal(false)}
+        interaction={selectedInteraction}
+        contact={contact}
+        onEdit={handleDetailEdit}
       />
 
       <AddInteractionModal
