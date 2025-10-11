@@ -11,11 +11,13 @@ import {
   Chip,
 } from 'react-native-paper';
 import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import { useTranslation } from 'react-i18next';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
 
 export default function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
+  const { t } = useTranslation();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
@@ -223,7 +225,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
             <Text variant="headlineSmall" style={styles.title}>
-              Edit Contact
+              {t('editContact.title')}
             </Text>
             <IconButton
               icon="close"
@@ -237,25 +239,25 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
             {/* Name Section */}
             <View style={styles.section}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
-                Name
+                {t('addContact.sections.name')}
               </Text>
               <TextInput
-                label="First Name"
+                label={t('addContact.labels.firstName')}
                 value={firstName}
                 onChangeText={setFirstName}
                 mode="outlined"
                 style={styles.input}
                 autoCapitalize="words"
-                placeholder="Required"
+                placeholder={t('addContact.labels.optional')}
               />
               <TextInput
-                label="Last Name"
+                label={t('addContact.labels.lastName')}
                 value={lastName}
                 onChangeText={setLastName}
                 mode="outlined"
                 style={styles.input}
                 autoCapitalize="words"
-                placeholder="Optional"
+                placeholder={t('addContact.labels.optional')}
               />
             </View>
 
@@ -263,7 +265,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Phone Numbers
+                  {t('addContact.sections.phones')}
                 </Text>
                 <IconButton
                   icon="plus-circle-outline"
@@ -315,7 +317,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Email Addresses
+                  {t('addContact.sections.emails')}
                 </Text>
                 <IconButton
                   icon="plus-circle-outline"
@@ -368,7 +370,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
             {categories.length > 0 && (
               <View style={styles.section}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Categories
+                  {t('addContact.sections.categories')}
                 </Text>
                 <View style={styles.categoryChips}>
                   {categories.map((category) => (
@@ -400,7 +402,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
               style={styles.button}
               disabled={saving}
             >
-              Cancel
+              {t('editContact.labels.cancel')}
             </Button>
             <Button
               mode="contained"
@@ -409,7 +411,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
               disabled={!canSave}
               loading={saving}
             >
-              Save Changes
+              {t('editContact.labels.save')}
             </Button>
           </View>
         </Surface>

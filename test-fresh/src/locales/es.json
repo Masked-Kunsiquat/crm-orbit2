@@ -51,5 +51,34 @@
     "errorLoad": "No se pudieron cargar los detalles del contacto",
     "errorImageSet": "No se pudo establecer la foto",
     "errorImageRemove": "No se pudo eliminar la foto"
+  },
+  "addContact": {
+    "title": "Agregar contacto",
+    "importSuccessTitle": "Contacto importado",
+    "importSuccessMsg": "La información del contacto ha sido importada. Revisa y edita antes de guardar.",
+    "importFailTitle": "Error al importar",
+    "importFailMsg": "No se pudo importar el contacto. Inténtalo de nuevo o ingrésalo manualmente.",
+    "permissionTitle": "Permiso denegado",
+    "permissionMsg": "No se puede acceder a los contactos. Habilita el permiso en la configuración del dispositivo.",
+    "sections": {
+      "name": "Nombre",
+      "phones": "Números de teléfono",
+      "emails": "Direcciones de correo",
+      "categories": "Categorías"
+    },
+    "labels": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "optional": "Opcional",
+      "save": "Guardar contacto",
+      "cancel": "Cancelar"
+    }
+  },
+  "editContact": {
+    "title": "Editar contacto",
+    "labels": {
+      "save": "Guardar cambios",
+      "cancel": "Cancelar"
+    }
   }
 }

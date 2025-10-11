@@ -12,6 +12,7 @@ import {
 } from 'react-native-paper';
 import * as Contacts from 'expo-contacts';
 import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, transaction, execute } from '../database';
+import { useTranslation } from 'react-i18next';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -44,6 +45,7 @@ const mapEmailLabel = (nativeLabel) => {
 };
 
 export default function AddContactModal({ visible, onDismiss, onContactAdded }) {
+  const { t } = useTranslation();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
@@ -84,10 +86,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       // Request permissions
       const { status } = await Contacts.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
-          'Permission Denied',
-          'Cannot access contacts. Please enable contacts permission in your device settings.'
-        );
+        Alert.alert(t('addContact.permissionTitle'), t('addContact.permissionMsg'));
         return;
       }
 
@@ -128,16 +127,10 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       }
 
       // Show success message
-      Alert.alert(
-        'Contact Imported',
-        'Contact information has been imported. Review and edit as needed before saving.'
-      );
+      Alert.alert(t('addContact.importSuccessTitle'), t('addContact.importSuccessMsg'));
     } catch (error) {
       console.error('Error importing contact:', error);
-      Alert.alert(
-        'Import Failed',
-        'Failed to import contact. Please try again or enter details manually.'
-      );
+      Alert.alert(t('addContact.importFailTitle'), t('addContact.importFailMsg'));
     }
   };
 
@@ -368,26 +361,26 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Name Section */}
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Name
-              </Text>
-              <TextInput
-                label="First Name"
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              {t('addContact.sections.name')}
+            </Text>
+            <TextInput
+                label={t('addContact.labels.firstName')}
                 value={firstName}
                 onChangeText={setFirstName}
                 mode="outlined"
                 style={styles.input}
                 autoCapitalize="words"
-                placeholder="Required"
+                placeholder={t('addContact.labels.optional')}
               />
               <TextInput
-                label="Last Name"
+                label={t('addContact.labels.lastName')}
                 value={lastName}
                 onChangeText={setLastName}
                 mode="outlined"
                 style={styles.input}
                 autoCapitalize="words"
-                placeholder="Optional"
+                placeholder={t('addContact.labels.optional')}
               />
             </View>
 
@@ -395,7 +388,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Phone Numbers
+                  {t('addContact.sections.phones')}
                 </Text>
                 <IconButton
                   icon="plus-circle-outline"
@@ -447,7 +440,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Email Addresses
+                  {t('addContact.sections.emails')}
                 </Text>
                 <IconButton
                   icon="plus-circle-outline"
@@ -500,7 +493,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
             {categories.length > 0 && (
               <View style={styles.section}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Categories
+                  {t('addContact.sections.categories')}
                 </Text>
                 <View style={styles.categoryChips}>
                   {categories.map((category) => (
@@ -532,7 +525,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
               style={styles.button}
               disabled={saving}
             >
-              Cancel
+              {t('addContact.labels.cancel')}
             </Button>
             <Button
               mode="contained"
@@ -541,7 +534,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
               disabled={!canSave}
               loading={saving}
             >
-              Save Contact
+              {t('addContact.labels.save')}
             </Button>
           </View>
         </Surface>

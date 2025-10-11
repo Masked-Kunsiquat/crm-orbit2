@@ -17,8 +17,8 @@ import AuthLockScreen from './src/screens/AuthLockScreen';
 import PinSetupScreen from './src/screens/PinSetupScreen';
 import { useSettings } from './src/context/SettingsContext';
 import { useColorScheme } from 'react-native';
-import './src/i18n';
-import { useTranslation } from 'react-i18next';
+import i18n from './src/i18n';
+import { useTranslation, I18nextProvider } from 'react-i18next';
 
 const Stack = createNativeStackNavigator();
 
@@ -127,17 +127,19 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SettingsProvider>
         <ThemeBridge colorScheme={colorScheme}>
-          <AuthProvider>
-            <AuthGate>
-              <NavigationContainer>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="MainTabs" component={MainTabs} />
-                  <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-                  <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-                </Stack.Navigator>
-              </NavigationContainer>
-            </AuthGate>
-          </AuthProvider>
+          <I18nextProvider i18n={i18n}>
+            <AuthProvider>
+              <AuthGate>
+                <NavigationContainer>
+                  <Stack.Navigator screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="MainTabs" component={MainTabs} />
+                    <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+                    <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+                  </Stack.Navigator>
+                </NavigationContainer>
+              </AuthGate>
+            </AuthProvider>
+          </I18nextProvider>
         </ThemeBridge>
       </SettingsProvider>
     </GestureHandlerRootView>

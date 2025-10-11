@@ -51,5 +51,34 @@
     "errorLoad": "Failed to load contact details",
     "errorImageSet": "Failed to set contact photo",
     "errorImageRemove": "Failed to remove photo"
+  },
+  "addContact": {
+    "title": "Add Contact",
+    "importSuccessTitle": "Contact Imported",
+    "importSuccessMsg": "Contact information has been imported. Review and edit as needed before saving.",
+    "importFailTitle": "Import Failed",
+    "importFailMsg": "Failed to import contact. Please try again or enter details manually.",
+    "permissionTitle": "Permission Denied",
+    "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.",
+    "sections": {
+      "name": "Name",
+      "phones": "Phone Numbers",
+      "emails": "Email Addresses",
+      "categories": "Categories"
+    },
+    "labels": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "optional": "Optional",
+      "save": "Save Contact",
+      "cancel": "Cancel"
+    }
+  },
+  "editContact": {
+    "title": "Edit Contact",
+    "labels": {
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    }
   }
 }
