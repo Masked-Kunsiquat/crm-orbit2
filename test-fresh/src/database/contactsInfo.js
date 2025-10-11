@@ -135,6 +135,24 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
       return fetched.rows;
     },
 
+    /**
+     * Fetch all contact_info rows for a set of contact IDs in a single query.
+     * @param {number[]} contactIds
+     * @returns {Promise<Array<object>>}
+     */
+    async getAllInfoForContacts(contactIds) {
+      if (!Array.isArray(contactIds) || contactIds.length === 0) {
+        return [];
+      }
+      const unique = [...new Set(contactIds)];
+      const res = await execute(
+        `SELECT * FROM contact_info WHERE contact_id IN (${unique.map(() => '?').join(', ')})
+         ORDER BY contact_id ASC, is_primary DESC, id ASC;`,
+        unique
+      );
+      return res.rows;
+    },
+
     async updateContactInfo(infoId, data) {
       if (!data || Object.keys(data).length === 0) {
         const res = await execute('SELECT * FROM contact_info WHERE id = ?;', [

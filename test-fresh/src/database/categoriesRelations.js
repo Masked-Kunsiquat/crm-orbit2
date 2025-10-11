@@ -108,6 +108,26 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
     },
 
     /**
+     * Fetch categories for many contacts in a single query.
+     * Returns rows joined with contact_id.
+     * @param {number[]} contactIds
+     * @returns {Promise<Array<{contact_id:number} & any>>}
+     */
+    async getCategoriesForContacts(contactIds) {
+      if (!Array.isArray(contactIds) || contactIds.length === 0) return [];
+      const unique = [...new Set(contactIds)];
+      const res = await execute(
+        `SELECT cc.contact_id, cat.*
+         FROM categories cat
+         INNER JOIN contact_categories cc ON cc.category_id = cat.id
+         WHERE cc.contact_id IN (${unique.map(() => '?').join(', ')})
+         ORDER BY cc.contact_id ASC, cat.sort_order ASC, cat.name ASC;`,
+        unique
+      );
+      return res.rows;
+    },
+
+    /**
      * Alias for getCategoriesForContact for compatibility.
      * Get categories that a given contact belongs to.
      * @param {number} contactId

@@ -53,26 +53,39 @@ export default function ContactsList({ navigation }) {
         allContacts = await contactsDB.getAll();
       }
 
-      // Fetch contact info and categories for each contact
-      const contactsWithInfo = await Promise.all(
-        allContacts.map(async (contact) => {
-          const contactWithInfo = await contactsInfoDB.getWithContactInfo(contact.id);
+      // Batch fetch related data to avoid N+1 queries
+      const ids = allContacts.map(c => c.id);
 
-          // Extract primary phone and email for easy access
-          const phones = (contactWithInfo.contact_info || []).filter(info => info.type === 'phone');
-          const emails = (contactWithInfo.contact_info || []).filter(info => info.type === 'email');
+      // 1) All contact_info rows for these contacts
+      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
+      const infoByContact = new Map();
+      for (const row of allInfoRows) {
+        const list = infoByContact.get(row.contact_id) || [];
+        list.push(row);
+        infoByContact.set(row.contact_id, list);
+      }
 
-          // Get categories for this contact
-          const contactCategories = await categoriesRelationsDB.getCategoriesForContact(contact.id);
+      // 2) All categories for these contacts
+      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
+      const catsByContact = new Map();
+      for (const row of allCatRows) {
+        const list = catsByContact.get(row.contact_id) || [];
+        // Strip contact_id if you prefer category objects only
+        const { contact_id, ...cat } = row;
+        list.push(cat);
+        catsByContact.set(row.contact_id, list);
+      }
 
-          return {
-            ...contactWithInfo,
-            phone: phones.find(p => p.is_primary)?.value || phones[0]?.value || null,
-            email: emails.find(e => e.is_primary)?.value || emails[0]?.value || null,
-            categories: contactCategories,
-          };
-        })
-      );
+      // Merge once
+      const contactsWithInfo = allContacts.map(c => {
+        const contact_info = infoByContact.get(c.id) || [];
+        const phones = contact_info.filter(i => i.type === 'phone');
+        const emails = contact_info.filter(i => i.type === 'email');
+        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
+        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
+        const categories = catsByContact.get(c.id) || [];
+        return { ...c, contact_info, phone, email, categories };
+      });
 
       setContacts(contactsWithInfo);
     } catch (error) {
