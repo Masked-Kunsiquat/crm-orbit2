@@ -60,13 +60,13 @@ const getTypeIcon = (type) => {
   }
 };
 
-export default function InteractionCard({ interaction, onPress, contact }) {
+export default function InteractionCard({ interaction, onPress, onLongPress, contact }) {
   const theme = useTheme();
   const typeInfo = getTypeIcon(interaction.interaction_type || interaction.custom_type);
   const durationStr = formatDuration(interaction.duration);
 
   return (
-    <Card style={styles.card} onPress={onPress} mode="elevated">
+    <Card style={styles.card} onPress={onPress} onLongPress={onLongPress} mode="elevated">
       <Card.Content style={styles.content}>
         <View style={styles.row}>
           {/* Interaction Type Icon */}

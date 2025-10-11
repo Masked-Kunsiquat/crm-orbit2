@@ -3,6 +3,7 @@ import { StyleSheet, FlatList, View, ScrollView, Alert } from 'react-native';
 import { Appbar, FAB, Chip, Text, useTheme, SegmentedButtons } from 'react-native-paper';
 import InteractionCard from '../components/InteractionCard';
 import AddInteractionModal from '../components/AddInteractionModal';
+import InteractionDetailModal from '../components/InteractionDetailModal';
 import { interactionsDB, contactsDB } from '../database';
 
 const INTERACTION_TYPES = [
@@ -22,6 +23,8 @@ export default function InteractionsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
   const [selectedType, setSelectedType] = useState('all');
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = newest first, 'asc' = oldest first
@@ -100,13 +103,26 @@ export default function InteractionsScreen({ navigation }) {
   };
 
   const handleInteractionPress = (interaction) => {
-    // Open in edit mode
+    // Regular tap - show detail modal
+    setSelectedInteraction(interaction);
+    setShowDetailModal(true);
+  };
+
+  const handleInteractionLongPress = (interaction) => {
+    // Long press - open in edit mode
     setEditingInteraction(interaction);
     setShowAddModal(true);
   };
 
   const handleAddInteraction = () => {
     setEditingInteraction(null); // Clear editing mode
+    setShowAddModal(true);
+  };
+
+  const handleDetailEdit = () => {
+    // User clicked edit from detail modal
+    setEditingInteraction(selectedInteraction);
+    setShowDetailModal(false);
     setShowAddModal(true);
   };
 
@@ -139,6 +155,7 @@ export default function InteractionsScreen({ navigation }) {
         interaction={item}
         contact={contact}
         onPress={() => handleInteractionPress(item)}
+        onLongPress={() => handleInteractionLongPress(item)}
       />
     );
   };
@@ -207,6 +224,15 @@ export default function InteractionsScreen({ navigation }) {
         icon="plus"
         style={styles.fab}
         onPress={handleAddInteraction}
+      />
+
+      {/* Detail Modal */}
+      <InteractionDetailModal
+        visible={showDetailModal}
+        onDismiss={() => setShowDetailModal(false)}
+        interaction={selectedInteraction}
+        contact={selectedInteraction ? contacts[selectedInteraction.contact_id] : null}
+        onEdit={handleDetailEdit}
       />
 
       {/* Add/Edit Interaction Modal */}
