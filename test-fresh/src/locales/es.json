@@ -20,7 +20,33 @@
       "english": "Inglés",
       "spanish": "Español"
     },
-    "appearance": "Apariencia"
+    "appearance": "Apariencia",
+    "errors": {
+      "biometricToggle": {
+        "title": "Error",
+        "message": "No se pudo actualizar la configuración biométrica. Por favor, inténtalo de nuevo."
+      },
+      "autoLockToggle": {
+        "title": "Error",
+        "message": "No se pudo actualizar la configuración de bloqueo automático. Por favor, inténtalo de nuevo."
+      },
+      "autoLockTimeout": {
+        "title": "Error",
+        "message": "No se pudo actualizar el tiempo de bloqueo automático. Por favor, inténtalo de nuevo."
+      },
+      "swipeAction": {
+        "title": "Error",
+        "message": "No se pudo actualizar la acción de deslizamiento. Por favor, inténtalo de nuevo."
+      },
+      "theme": {
+        "title": "Error",
+        "message": "No se pudo actualizar el tema. Por favor, inténtalo de nuevo."
+      },
+      "language": {
+        "title": "Error",
+        "message": "No se pudo actualizar el idioma. Por favor, inténtalo de nuevo."
+      }
+    }
   },
   "labels": {
     "call": "Llamar",

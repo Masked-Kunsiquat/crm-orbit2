@@ -20,7 +20,33 @@
       "english": "English",
       "spanish": "Spanish"
     },
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "errors": {
+      "biometricToggle": {
+        "title": "Error",
+        "message": "Unable to update biometric setting. Please try again."
+      },
+      "autoLockToggle": {
+        "title": "Error",
+        "message": "Unable to update auto-lock setting. Please try again."
+      },
+      "autoLockTimeout": {
+        "title": "Error",
+        "message": "Unable to update auto-lock timeout. Please try again."
+      },
+      "swipeAction": {
+        "title": "Error",
+        "message": "Unable to update swipe action. Please try again."
+      },
+      "theme": {
+        "title": "Error",
+        "message": "Unable to update theme. Please try again."
+      },
+      "language": {
+        "title": "Error",
+        "message": "Unable to update language. Please try again."
+      }
+    }
   },
   "labels": {
     "call": "Call",

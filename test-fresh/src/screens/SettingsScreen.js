@@ -55,7 +55,10 @@ export default function SettingsScreen() {
       console.error('Failed to toggle biometric:', e);
       // Revert UI to reflect real state
       setBiometricEnabled(prev);
-      Alert.alert('Error', 'Unable to update biometric setting. Please try again.');
+      Alert.alert(
+        t('settings.errors.biometricToggle.title'),
+        t('settings.errors.biometricToggle.message')
+      );
     }
   };
 
@@ -75,7 +78,10 @@ export default function SettingsScreen() {
       console.error('Failed to toggle auto-lock:', e);
       // Revert UI to reflect real state
       setAutoLockEnabled(prev);
-      Alert.alert('Error', 'Unable to update auto-lock setting. Please try again.');
+      Alert.alert(
+        t('settings.errors.autoLockToggle.title'),
+        t('settings.errors.autoLockToggle.message')
+      );
     }
   };
 
@@ -90,7 +96,10 @@ export default function SettingsScreen() {
       } catch (e) {
         console.error('Failed to update auto-lock timeout:', e);
         setAutoLockTimeout(prev);
-        Alert.alert('Error', 'Unable to update auto-lock timeout. Please try again.');
+        Alert.alert(
+          t('settings.errors.autoLockTimeout.title'),
+          t('settings.errors.autoLockTimeout.message')
+        );
       }
     }
   };
@@ -101,7 +110,10 @@ export default function SettingsScreen() {
       else await setMapping('text', 'call');
     } catch (error) {
       console.error('Failed to update swipe action mapping:', error);
-      Alert.alert('Error', 'Unable to update swipe action. Please try again.');
+      Alert.alert(
+        t('settings.errors.swipeAction.title'),
+        t('settings.errors.swipeAction.message')
+      );
     }
   };
 
@@ -111,7 +123,10 @@ export default function SettingsScreen() {
       else await setMapping('call', 'text');
     } catch (error) {
       console.error('Failed to update swipe action mapping:', error);
-      Alert.alert('Error', 'Unable to update swipe action. Please try again.');
+      Alert.alert(
+        t('settings.errors.swipeAction.title'),
+        t('settings.errors.swipeAction.message')
+      );
     }
   };
 
@@ -120,7 +135,10 @@ export default function SettingsScreen() {
       await setThemeMode(mode);
     } catch (error) {
       console.error('Failed to update theme:', error);
-      Alert.alert('Error', 'Unable to update theme. Please try again.');
+      Alert.alert(
+        t('settings.errors.theme.title'),
+        t('settings.errors.theme.message')
+      );
     }
   };
 
@@ -129,7 +147,10 @@ export default function SettingsScreen() {
       await setLanguage(lang);
     } catch (error) {
       console.error('Failed to update language:', error);
-      Alert.alert('Error', 'Unable to update language. Please try again.');
+      Alert.alert(
+        t('settings.errors.language.title'),
+        t('settings.errors.language.message')
+      );
     }
   };
 
