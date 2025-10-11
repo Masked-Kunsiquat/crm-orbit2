@@ -613,11 +613,181 @@ class ContactSyncService {
     return merged;
   }
 
-  // Additional helper methods would go here for:
-  // - _updateContactInfo
-  // - _mergeContactInfo
-  // - Batch processing optimizations
-  // - Sync status tracking
+  /**
+   * Overwrite contact_info for a contact with data from deviceContact
+   * Deletes existing info and recreates from device values.
+   * @private
+   */
+  async _updateContactInfo(contactId, deviceContact) {
+    try {
+      // Remove all existing info
+      const existing = await db.contactsInfo.getWithContactInfo(contactId);
+      const existingInfo = existing?.contact_info || [];
+      for (const info of existingInfo) {
+        try {
+          await db.contactsInfo.deleteContactInfo(info.id);
+        } catch (e) {
+          // continue deleting others
+          console.warn('Failed deleting contact_info during overwrite', e);
+        }
+      }
+
+      // Recreate from device
+      const items = [];
+
+      if (deviceContact.emails?.length) {
+        deviceContact.emails.forEach((email, idx) => {
+          items.push({
+            type: 'email',
+            value: email.email,
+            label: email.label || 'other',
+            is_primary: idx === 0,
+          });
+        });
+      }
+
+      if (deviceContact.phoneNumbers?.length) {
+        deviceContact.phoneNumbers.forEach((phone, idx) => {
+          items.push({
+            type: 'phone',
+            value: phone.number,
+            label: phone.label || 'other',
+            is_primary: idx === 0,
+          });
+        });
+      }
+
+      if (deviceContact.addresses?.length) {
+        deviceContact.addresses.forEach((address, idx) => {
+          const addressParts = [
+            address.street,
+            address.city,
+            address.region,
+            address.postalCode,
+            address.country,
+          ].filter(Boolean);
+          const addressStr = addressParts.join(', ');
+          if (addressStr) {
+            items.push({
+              type: 'address',
+              value: addressStr,
+              label: address.label || 'other',
+              is_primary: idx === 0,
+            });
+          }
+        });
+      }
+
+      if (deviceContact.urlAddresses?.length) {
+        deviceContact.urlAddresses.forEach((url, idx) => {
+          if (url?.url) {
+            items.push({
+              type: 'url',
+              value: url.url,
+              label: url.label || 'other',
+              is_primary: idx === 0,
+            });
+          }
+        });
+      }
+
+      if (items.length) {
+        await db.contactsInfo.addContactInfo(contactId, items);
+      }
+    } catch (error) {
+      throw new ServiceError(
+        'contactSyncService',
+        '_updateContactInfo',
+        error,
+        CONTACT_SYNC_ERROR_CODES.CONFLICT_RESOLUTION_ERROR
+      );
+    }
+  }
+
+  /**
+   * Merge deviceContact info into CRM contact, adding only new values.
+   * Keeps existing primaries; new items are added as non-primary.
+   * @private
+   */
+  async _mergeContactInfo(contactId, deviceContact) {
+    try {
+      const existing = await db.contactsInfo.getWithContactInfo(contactId);
+      const existingInfo = existing?.contact_info || [];
+
+      const hasEmail = (val) => {
+        const needle = String(val || '').trim().toLowerCase();
+        return existingInfo.some(
+          i => i.type === 'email' && String(i.value || '').trim().toLowerCase() === needle
+        );
+      };
+      const normalizePhone = (v) => String(v || '').replace(/\D/g, '');
+      const hasPhone = (val) => {
+        const needle = normalizePhone(val);
+        return existingInfo.some(
+          i => i.type === 'phone' && normalizePhone(i.value) === needle
+        );
+      };
+      const hasUrl = (val) => {
+        const needle = String(val || '').trim();
+        return existingInfo.some(
+          i => i.type === 'url' && String(i.value || '').trim() === needle
+        );
+      };
+      const hasAddress = (val) => {
+        const needle = String(val || '').trim();
+        return existingInfo.some(
+          i => i.type === 'address' && String(i.value || '').trim() === needle
+        );
+      };
+
+      const toAdd = [];
+
+      if (deviceContact.emails?.length) {
+        deviceContact.emails.forEach((email) => {
+          if (email?.email && !hasEmail(email.email)) {
+            toAdd.push({ type: 'email', value: email.email, label: email.label || 'other', is_primary: 0 });
+          }
+        });
+      }
+
+      if (deviceContact.phoneNumbers?.length) {
+        deviceContact.phoneNumbers.forEach((phone) => {
+          if (phone?.number && !hasPhone(phone.number)) {
+            toAdd.push({ type: 'phone', value: phone.number, label: phone.label || 'other', is_primary: 0 });
+          }
+        });
+      }
+
+      if (deviceContact.addresses?.length) {
+        deviceContact.addresses.forEach((address) => {
+          const parts = [address.street, address.city, address.region, address.postalCode, address.country].filter(Boolean);
+          const addressStr = parts.join(', ');
+          if (addressStr && !hasAddress(addressStr)) {
+            toAdd.push({ type: 'address', value: addressStr, label: address.label || 'other', is_primary: 0 });
+          }
+        });
+      }
+
+      if (deviceContact.urlAddresses?.length) {
+        deviceContact.urlAddresses.forEach((url) => {
+          if (url?.url && !hasUrl(url.url)) {
+            toAdd.push({ type: 'url', value: url.url, label: url.label || 'other', is_primary: 0 });
+          }
+        });
+      }
+
+      if (toAdd.length) {
+        await db.contactsInfo.addContactInfo(contactId, toAdd);
+      }
+    } catch (error) {
+      throw new ServiceError(
+        'contactSyncService',
+        '_mergeContactInfo',
+        error,
+        CONTACT_SYNC_ERROR_CODES.CONFLICT_RESOLUTION_ERROR
+      );
+    }
+  }
 }
 
 // Create singleton instance
