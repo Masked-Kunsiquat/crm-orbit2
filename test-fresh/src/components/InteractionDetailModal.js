@@ -146,7 +146,7 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
             {/* Title */}
             <View style={styles.section}>
               <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Title</Text>
-              <Text variant="titleMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
                 {interaction.title}
               </Text>
             </View>
@@ -156,7 +156,7 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
             {/* Date & Time */}
             <View style={styles.section}>
               <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Date & Time</Text>
-              <Text variant="bodyLarge" style={[styles.value, { color: theme.colors.onSurface }]}>
+              <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
                 {formatDateTime(interaction.interaction_datetime)}
               </Text>
             </View>
@@ -168,7 +168,7 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
               <>
                 <View style={styles.section}>
                   <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Notes</Text>
-                  <Text variant="bodyMedium" style={[styles.value, styles.note, { color: theme.colors.onSurface }]}>
+                  <Text variant="bodyMedium" style={[styles.note, { color: theme.colors.onSurface }]}>
                     {interaction.note}
                   </Text>
                 </View>
