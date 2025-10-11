@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Alert } from 'react-native';
 import {
   Modal,
   Portal,
@@ -91,16 +91,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
         return;
       }
 
-      // iOS supports native contact picker; Android does not
-      if (Platform.OS !== 'ios') {
-        Alert.alert(
-          'Not Available on Android',
-          'The native contact picker is iOS-only. You can manually enter contact details here or use an import flow supported by this app.'
-        );
-        return; // Exit early on Android after informing the user
-      }
-
-      // Present the native contact picker (iOS only)
+      // Present the native contact picker (Android requires READ_CONTACTS permission)
       const contact = await Contacts.presentContactPickerAsync();
 
       // User cancelled the picker
