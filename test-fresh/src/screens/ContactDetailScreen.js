@@ -14,8 +14,10 @@ import {
   Button,
   useTheme,
 } from 'react-native-paper';
-import { contactsDB, contactsInfoDB } from '../database';
+import { contactsDB, contactsInfoDB, interactionsDB } from '../database';
 import EditContactModal from '../components/EditContactModal';
+import AddInteractionModal from '../components/AddInteractionModal';
+import InteractionCard from '../components/InteractionCard';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -24,10 +26,13 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
+  const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
+  const [recentInteractions, setRecentInteractions] = useState([]);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
   useEffect(() => {
     loadContact();
+    loadRecentInteractions();
   }, [contactId]);
 
   const loadContact = async () => {
@@ -41,6 +46,26 @@ export default function ContactDetailScreen({ route, navigation }) {
       navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRecentInteractions = async () => {
+    try {
+      // Get recent interactions for this contact (limit to 3)
+      const allInteractions = await interactionsDB.getAll({
+        limit: 500,
+        orderBy: 'interaction_datetime',
+        orderDir: 'DESC',
+      });
+
+      // Filter by this contact
+      const contactInteractions = allInteractions
+        .filter(i => i.contact_id === contactId)
+        .slice(0, 3);
+
+      setRecentInteractions(contactInteractions);
+    } catch (error) {
+      console.error('Error loading interactions:', error);
     }
   };
 
@@ -77,6 +102,15 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const handleContactUpdated = () => {
     loadContact(); // Reload contact after edit
+  };
+
+  const handleInteractionAdded = () => {
+    loadRecentInteractions(); // Reload interactions after adding
+  };
+
+  const handleViewAllInteractions = () => {
+    // Navigate to Interactions tab (would need to implement tab navigation focus)
+    Alert.alert('View All', 'Navigate to Interactions tab to see all interactions for this contact');
   };
 
   const handleDelete = () => {
@@ -315,6 +349,52 @@ export default function ContactDetailScreen({ route, navigation }) {
           </Surface>
         )}
 
+        {/* Recent Interactions Section */}
+        <View style={styles.sectionHeader}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
+            Recent Interactions
+          </Text>
+          <Button
+            mode="text"
+            onPress={() => setShowAddInteractionModal(true)}
+            icon="plus"
+            compact
+          >
+            Add
+          </Button>
+        </View>
+
+        {recentInteractions.length > 0 ? (
+          <View style={styles.interactionsContainer}>
+            {recentInteractions.map((interaction) => (
+              <InteractionCard
+                key={interaction.id}
+                interaction={interaction}
+                contact={contact}
+                onPress={() => Alert.alert(interaction.title, interaction.note || 'No notes')}
+              />
+            ))}
+            {recentInteractions.length >= 3 && (
+              <Button
+                mode="text"
+                onPress={handleViewAllInteractions}
+                style={styles.viewAllButton}
+              >
+                View All Interactions
+              </Button>
+            )}
+          </View>
+        ) : (
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+            <List.Item
+              title="No interactions yet"
+              description="Add your first interaction with this contact"
+              left={props => <List.Icon {...props} icon="history" />}
+              onPress={() => setShowAddInteractionModal(true)}
+            />
+          </Surface>
+        )}
+
         {/* Delete Button - iOS style at bottom */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
           <List.Item
@@ -332,6 +412,13 @@ export default function ContactDetailScreen({ route, navigation }) {
         onDismiss={() => setShowEditModal(false)}
         contact={contact}
         onContactUpdated={handleContactUpdated}
+      />
+
+      <AddInteractionModal
+        visible={showAddInteractionModal}
+        onDismiss={() => setShowAddInteractionModal(false)}
+        onInteractionAdded={handleInteractionAdded}
+        preselectedContactId={contactId}
       />
 
       <Portal>
@@ -415,6 +502,25 @@ const styles = StyleSheet.create({
     color: '#d32f2f',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    fontWeight: '600',
+    fontSize: 18,
+  },
+  interactionsContainer: {
+    marginTop: 8,
+  },
+  viewAllButton: {
+    marginTop: 8,
+    marginHorizontal: 16,
   },
   spacer: {
     height: 40,
