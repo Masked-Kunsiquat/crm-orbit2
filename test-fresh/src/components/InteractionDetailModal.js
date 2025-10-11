@@ -78,19 +78,19 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
       >
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
-            <Text variant="headlineSmall" style={styles.title}>
+            <Text variant="titleLarge" style={styles.title}>
               Interaction Details
             </Text>
             <View style={styles.headerActions}>
               <IconButton
                 icon="pencil"
-                size={24}
+                size={20}
                 onPress={onEdit}
                 style={styles.editButton}
               />
               <IconButton
                 icon="close"
-                size={24}
+                size={20}
                 onPress={onDismiss}
                 style={styles.closeButton}
               />
@@ -106,18 +106,18 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
                 <View style={[styles.typeIconContainer, { backgroundColor: typeInfo.color + '20' }]}>
                   <IconButton
                     icon={typeInfo.name}
-                    size={32}
+                    size={24}
                     iconColor={typeInfo.color}
                     style={styles.typeIcon}
                   />
                 </View>
                 <View style={styles.typeInfo}>
-                  <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Type</Text>
-                  <Text variant="titleLarge" style={[styles.value, { color: typeInfo.color }]}>
+                  <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Type</Text>
+                  <Text variant="titleMedium" style={[styles.value, { color: typeInfo.color }]}>
                     {typeInfo.label}
                   </Text>
                   {durationStr && (
-                    <Text variant="bodyMedium" style={[styles.duration, { color: theme.colors.onSurfaceVariant }]}>
+                    <Text variant="bodySmall" style={[styles.duration, { color: theme.colors.onSurfaceVariant }]}>
                       Duration: {durationStr}
                     </Text>
                   )}
@@ -131,10 +131,10 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
             {contact && (
               <>
                 <View style={styles.section}>
-                  <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Contact</Text>
+                  <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Contact</Text>
                   <View style={styles.contactRow}>
-                    <ContactAvatar contact={contact} size={40} />
-                    <Text variant="titleMedium" style={[styles.contactName, { color: theme.colors.onSurface }]}>
+                    <ContactAvatar contact={contact} size={32} />
+                    <Text variant="bodyLarge" style={[styles.contactName, { color: theme.colors.onSurface }]}>
                       {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim()}
                     </Text>
                   </View>
@@ -145,8 +145,8 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
 
             {/* Title */}
             <View style={styles.section}>
-              <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Title</Text>
-              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+              <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Title</Text>
+              <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
                 {interaction.title}
               </Text>
             </View>
@@ -155,8 +155,8 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
 
             {/* Date & Time */}
             <View style={styles.section}>
-              <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Date & Time</Text>
-              <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
+              <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Date & Time</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
                 {formatDateTime(interaction.interaction_datetime)}
               </Text>
             </View>
@@ -167,7 +167,7 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
             {interaction.note && (
               <>
                 <View style={styles.section}>
-                  <Text variant="labelMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Notes</Text>
+                  <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Notes</Text>
                   <Text variant="bodyMedium" style={[styles.note, { color: theme.colors.onSurface }]}>
                     {interaction.note}
                   </Text>
@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingBottom: 16,
+    padding: 16,
+    paddingBottom: 12,
   },
   title: {
     fontWeight: '600',
@@ -243,17 +243,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   section: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   typeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   typeIconContainer: {
-    borderRadius: 16,
-    padding: 4,
+    borderRadius: 12,
+    padding: 2,
   },
   typeIcon: {
     margin: 0,
@@ -264,8 +264,8 @@ const styles = StyleSheet.create({
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 6,
   },
   contactName: {
     fontWeight: '500',
