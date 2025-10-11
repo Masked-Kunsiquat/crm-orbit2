@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
 import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
@@ -9,6 +10,7 @@ import { useSettings } from '../context/SettingsContext';
 
 export default function ContactsList({ navigation }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -239,11 +241,11 @@ export default function ContactsList({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
       <Appbar.Header>
-        <Appbar.Content title="Contacts" />
+        <Appbar.Content title={t('navigation.contacts')} />
       </Appbar.Header>
 
       <Searchbar
-        placeholder="Search contacts..."
+        placeholder={t('search.contactsPlaceholder')}
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchbar}

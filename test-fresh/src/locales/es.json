@@ -1,0 +1,35 @@
+{
+  "navigation": {
+    "contacts": "Contactos",
+    "interactions": "Interacciones",
+    "settings": "Ajustes"
+  },
+  "search": {
+    "contactsPlaceholder": "Buscar contactos..."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "sections": {
+      "security": "Seguridad",
+      "swipe": "Acciones de deslizamiento",
+      "theme": "Tema",
+      "language": "Idioma"
+    },
+    "language": {
+      "device": "Predeterminado del dispositivo",
+      "english": "Inglés",
+      "spanish": "Español"
+    },
+    "appearance": "Apariencia"
+  },
+  "labels": {
+    "call": "Llamar",
+    "text": "Mensaje",
+    "left": "Izquierda",
+    "right": "Derecha",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  }
+}
+

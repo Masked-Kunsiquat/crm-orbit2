@@ -17,6 +17,8 @@ import AuthLockScreen from './src/screens/AuthLockScreen';
 import PinSetupScreen from './src/screens/PinSetupScreen';
 import { useSettings } from './src/context/SettingsContext';
 import { useColorScheme } from 'react-native';
+import './src/i18n';
+import { useTranslation } from 'react-i18next';
 
 const Stack = createNativeStackNavigator();
 
@@ -84,12 +86,18 @@ export default function App() {
   }
 
   const MainTabs = ({ navigation }) => {
+    const { t } = useTranslation();
     const [index, setIndex] = React.useState(0);
-    const [routes] = React.useState([
-      { key: 'contacts', title: 'Contacts', focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
-      { key: 'interactions', title: 'Interactions', focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
-      { key: 'settings', title: 'Settings', focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
+    const [routes, setRoutes] = React.useState([
+      { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
+      { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+      { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
     ]);
+
+    // Update route titles on language change
+    React.useEffect(() => {
+      setRoutes((r) => r.map(rt => ({ ...rt, title: t(`navigation.${rt.key}`) })));
+    }, [t]);
 
     const renderScene = ({ route }) => {
       switch (route.key) {

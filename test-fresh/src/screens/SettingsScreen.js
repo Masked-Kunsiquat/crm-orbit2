@@ -4,6 +4,7 @@ import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-p
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const ACTIONS = [
   { label: 'Call', value: 'call' },
@@ -12,10 +13,12 @@ const ACTIONS = [
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-  const { leftAction, rightAction, setMapping, themeMode, setThemeMode } = useSettings();
+  const { t } = useTranslation();
+  const { leftAction, rightAction, setMapping, themeMode, setThemeMode, language, setLanguage } = useSettings();
   const [expandedSwipe, setExpandedSwipe] = useState(false);
   const [expandedTheme, setExpandedTheme] = useState(false);
   const [expandedSecurity, setExpandedSecurity] = useState(false);
+  const [expandedLanguage, setExpandedLanguage] = useState(false);
 
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [autoLockEnabled, setAutoLockEnabled] = useState(false);
@@ -68,13 +71,13 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header>
-        <Appbar.Content title="Settings" />
+        <Appbar.Content title={t('settings.title')} />
       </Appbar.Header>
 
       {/* Security */}
       <List.Section style={styles.section}>
         <List.Accordion
-          title="Security"
+          title={t('settings.sections.security')}
           expanded={expandedSecurity}
           onPress={() => setExpandedSecurity(e => !e)}
         >
@@ -100,23 +103,23 @@ export default function SettingsScreen() {
       {/* Swipe Actions */}
       <List.Section style={styles.section}>
         <List.Accordion
-          title="Swipe Actions"
+          title={t('settings.sections.swipe')}
           expanded={expandedSwipe}
           onPress={() => setExpandedSwipe(e => !e)}
         >
           <List.Item
             title={() => (
-              <Text variant="titleSmall">Call</Text>
+              <Text variant="titleSmall">{t('labels.call')}</Text>
             )}
             right={() => (
               <View style={styles.rowOptions}>
-                <Text style={styles.optionLabel}>Left</Text>
+                <Text style={styles.optionLabel}>{t('labels.left')}</Text>
                 <RadioButton
                   value="call-left"
                   status={leftAction === 'call' ? 'checked' : 'unchecked'}
                   onPress={() => onSelectCall('left')}
                 />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Right</Text>
+                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.right')}</Text>
                 <RadioButton
                   value="call-right"
                   status={rightAction === 'call' ? 'checked' : 'unchecked'}
@@ -130,17 +133,17 @@ export default function SettingsScreen() {
 
           <List.Item
             title={() => (
-              <Text variant="titleSmall">Text</Text>
+              <Text variant="titleSmall">{t('labels.text')}</Text>
             )}
             right={() => (
               <View style={styles.rowOptions}>
-                <Text style={styles.optionLabel}>Left</Text>
+                <Text style={styles.optionLabel}>{t('labels.left')}</Text>
                 <RadioButton
                   value="text-left"
                   status={leftAction === 'text' ? 'checked' : 'unchecked'}
                   onPress={() => onSelectText('left')}
                 />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Right</Text>
+                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.right')}</Text>
                 <RadioButton
                   value="text-right"
                   status={rightAction === 'text' ? 'checked' : 'unchecked'}
@@ -150,32 +153,32 @@ export default function SettingsScreen() {
             )}
           />
         </List.Accordion>
-      </List.Section>
+  </List.Section>
 
-      {/* Theme */}
-      <List.Section style={styles.section}>
+  {/* Theme */}
+  <List.Section style={styles.section}>
         <List.Accordion
-          title="Theme"
+          title={t('settings.sections.theme')}
           expanded={expandedTheme}
           onPress={() => setExpandedTheme(e => !e)}
         >
           <List.Item
-            title={() => <Text variant="titleSmall">Appearance</Text>}
+            title={() => <Text variant="titleSmall">{t('settings.appearance')}</Text>}
             right={() => (
               <View style={styles.rowOptions}>
-                <Text style={styles.optionLabel}>System</Text>
+                <Text style={styles.optionLabel}>{t('labels.system')}</Text>
                 <RadioButton
                   value="theme-system"
                   status={themeMode === 'system' ? 'checked' : 'unchecked'}
                   onPress={() => setThemeMode('system')}
                 />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Light</Text>
+                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.light')}</Text>
                 <RadioButton
                   value="theme-light"
                   status={themeMode === 'light' ? 'checked' : 'unchecked'}
                   onPress={() => setThemeMode('light')}
                 />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>Dark</Text>
+                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.dark')}</Text>
                 <RadioButton
                   value="theme-dark"
                   status={themeMode === 'dark' ? 'checked' : 'unchecked'}
@@ -185,7 +188,50 @@ export default function SettingsScreen() {
             )}
           />
         </List.Accordion>
-      </List.Section>
+  </List.Section>
+
+  {/* Language */}
+  <List.Section style={styles.section}>
+    <List.Accordion
+      title={t('settings.sections.language')}
+      expanded={expandedLanguage}
+      onPress={() => setExpandedLanguage(e => !e)}
+    >
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.device')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-device"
+            status={language === 'device' ? 'checked' : 'unchecked'}
+            onPress={() => setLanguage('device')}
+          />
+        )}
+        onPress={() => setLanguage('device')}
+      />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.english')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-en"
+            status={language === 'en' ? 'checked' : 'unchecked'}
+            onPress={() => setLanguage('en')}
+          />
+        )}
+        onPress={() => setLanguage('en')}
+      />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.spanish')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-es"
+            status={language === 'es' ? 'checked' : 'unchecked'}
+            onPress={() => setLanguage('es')}
+          />
+        )}
+        onPress={() => setLanguage('es')}
+      />
+    </List.Accordion>
+  </List.Section>
     </View>
   );
 }

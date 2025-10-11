@@ -1,0 +1,35 @@
+{
+  "navigation": {
+    "contacts": "Contacts",
+    "interactions": "Interactions",
+    "settings": "Settings"
+  },
+  "search": {
+    "contactsPlaceholder": "Search contacts..."
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "security": "Security",
+      "swipe": "Swipe Actions",
+      "theme": "Theme",
+      "language": "Language"
+    },
+    "language": {
+      "device": "Device default",
+      "english": "English",
+      "spanish": "Spanish"
+    },
+    "appearance": "Appearance"
+  },
+  "labels": {
+    "call": "Call",
+    "text": "Text",
+    "left": "Left",
+    "right": "Right",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}
+
