@@ -15,6 +15,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { contactsDB, contactsInfoDB, interactionsDB } from '../database';
+import { useTranslation } from 'react-i18next';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
@@ -23,6 +24,7 @@ import InteractionDetailModal from '../components/InteractionDetailModal';
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
   const theme = useTheme();
+  const { t } = useTranslation();
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -46,7 +48,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       setContact(contactWithInfo);
     } catch (error) {
       console.error('Error loading contact:', error);
-      Alert.alert('Error', 'Failed to load contact details');
+      Alert.alert('Error', t('contactDetail.errorLoad'));
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -227,7 +229,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       loadContact();
     } catch (e) {
       console.error('Image pick error', e);
-      Alert.alert('Error', 'Failed to set contact photo');
+      Alert.alert('Error', t('contactDetail.errorImageSet'));
     }
   };
 
@@ -238,7 +240,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       loadContact();
     } catch (e) {
       console.error('Remove photo error', e);
-      Alert.alert('Error', 'Failed to remove photo');
+      Alert.alert('Error', t('contactDetail.errorImageRemove'));
     }
   };
 
@@ -247,10 +249,10 @@ export default function ContactDetailScreen({ route, navigation }) {
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="Contact" />
+          <Appbar.Content title={t('contactDetail.title')} />
         </Appbar.Header>
         <View style={styles.loadingContainer}>
-          <Text>Loading...</Text>
+          <Text>{t('contactDetail.loading')}</Text>
         </View>
       </View>
     );

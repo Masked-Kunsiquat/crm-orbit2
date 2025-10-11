@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, ScrollView, Alert } from 'react-native';
 import { Appbar, FAB, Chip, Text, useTheme, SegmentedButtons } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import InteractionCard from '../components/InteractionCard';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionDetailModal from '../components/InteractionDetailModal';
 import { interactionsDB, contactsDB } from '../database';
 
 const INTERACTION_TYPES = [
-  { value: 'all', label: 'All', icon: 'format-list-bulleted' },
-  { value: 'call', label: 'Calls', icon: 'phone' },
-  { value: 'text', label: 'Texts', icon: 'message-text' },
-  { value: 'email', label: 'Email', icon: 'email' },
-  { value: 'meeting', label: 'Meetings', icon: 'calendar-account' },
-  { value: 'other', label: 'Other', icon: 'note-text' },
+  { value: 'all', i18n: 'interactions.filters.all', icon: 'format-list-bulleted' },
+  { value: 'call', i18n: 'interactions.filters.call', icon: 'phone' },
+  { value: 'text', i18n: 'interactions.filters.text', icon: 'message-text' },
+  { value: 'email', i18n: 'interactions.filters.email', icon: 'email' },
+  { value: 'meeting', i18n: 'interactions.filters.meeting', icon: 'calendar-account' },
+  { value: 'other', i18n: 'interactions.filters.other', icon: 'note-text' },
 ];
 
 export default function InteractionsScreen({ navigation }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [interactions, setInteractions] = useState([]);
   const [filteredInteractions, setFilteredInteractions] = useState([]);
   const [contacts, setContacts] = useState({});
@@ -70,7 +72,7 @@ export default function InteractionsScreen({ navigation }) {
       setContacts(contactsMap);
     } catch (error) {
       console.error('Error loading interactions:', error);
-      Alert.alert('Error', 'Failed to load interactions');
+      Alert.alert('Error', t('interactions.errorLoad'));
     } finally {
       setLoading(false);
     }
@@ -163,12 +165,10 @@ export default function InteractionsScreen({ navigation }) {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Text variant="headlineSmall" style={styles.emptyTitle}>
-        No Interactions Found
+        {t('interactions.emptyTitle')}
       </Text>
       <Text variant="bodyMedium" style={styles.emptyMessage}>
-        {selectedType !== 'all'
-          ? `No ${selectedType} interactions yet.`
-          : 'Add your first interaction to get started.'}
+        {t('interactions.emptyMessage')}
       </Text>
     </View>
   );
@@ -176,7 +176,7 @@ export default function InteractionsScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
       <Appbar.Header>
-        <Appbar.Content title="Interactions" />
+        <Appbar.Content title={t('interactions.title')} />
         <Appbar.Action
           icon={sortOrder === 'desc' ? 'sort-calendar-descending' : 'sort-calendar-ascending'}
           onPress={toggleSortOrder}
@@ -200,7 +200,7 @@ export default function InteractionsScreen({ navigation }) {
             mode="flat"
             compact
           >
-            {type.label}
+            {t(type.i18n)}
           </Chip>
         ))}
       </ScrollView>

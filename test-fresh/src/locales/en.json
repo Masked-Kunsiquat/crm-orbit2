@@ -30,6 +30,26 @@
     "system": "System",
     "light": "Light",
     "dark": "Dark"
+  },
+  "interactions": {
+    "title": "Interactions",
+    "filters": {
+      "all": "All",
+      "call": "Calls",
+      "text": "Texts",
+      "email": "Email",
+      "meeting": "Meetings",
+      "other": "Other"
+    },
+    "emptyTitle": "No Interactions",
+    "emptyMessage": "Add your first interaction to get started.",
+    "errorLoad": "Failed to load interactions"
+  },
+  "contactDetail": {
+    "title": "Contact",
+    "loading": "Loading...",
+    "errorLoad": "Failed to load contact details",
+    "errorImageSet": "Failed to set contact photo",
+    "errorImageRemove": "Failed to remove photo"
   }
 }
-

@@ -30,6 +30,26 @@
     "system": "Sistema",
     "light": "Claro",
     "dark": "Oscuro"
+  },
+  "interactions": {
+    "title": "Interacciones",
+    "filters": {
+      "all": "Todas",
+      "call": "Llamadas",
+      "text": "Mensajes",
+      "email": "Correo",
+      "meeting": "Reuniones",
+      "other": "Otros"
+    },
+    "emptyTitle": "Sin interacciones",
+    "emptyMessage": "Agrega tu primera interacción para comenzar.",
+    "errorLoad": "No se pudieron cargar las interacciones"
+  },
+  "contactDetail": {
+    "title": "Contacto",
+    "loading": "Cargando...",
+    "errorLoad": "No se pudieron cargar los detalles del contacto",
+    "errorImageSet": "No se pudo establecer la foto",
+    "errorImageRemove": "No se pudo eliminar la foto"
   }
 }
-
