@@ -164,10 +164,25 @@ export function createContactsDB(ctx) {
     },
 
     async delete(id) {
-      // Delete contact and let foreign keys cascade to contact_info
-      // (attachments table not created in simpleSetup, will be added later)
-      const res = await execute('DELETE FROM contacts WHERE id = ?;', [id]);
-      return res.rowsAffected || 0;
+      // Perform explicit transactional cleanup to avoid orphaned rows
+      // (do not rely on PRAGMA foreign_keys state across environments)
+      if (typeof transaction === 'function') {
+        return await transaction(async tx => {
+          await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [id]);
+          await tx.execute('DELETE FROM contact_categories WHERE contact_id = ?;', [id]);
+          // Delete the contact last
+          const delRes = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
+          return delRes.rowsAffected || 0;
+        });
+      }
+
+      // Fallback to batch (runs inside a transaction in our DB layer)
+      const results = await batch([
+        { sql: 'DELETE FROM contact_info WHERE contact_id = ?;', params: [id] },
+        { sql: 'DELETE FROM contact_categories WHERE contact_id = ?;', params: [id] },
+        { sql: 'DELETE FROM contacts WHERE id = ?;', params: [id] },
+      ]);
+      return results?.[2]?.rowsAffected || 0;
     },
 
     async search(query) {
