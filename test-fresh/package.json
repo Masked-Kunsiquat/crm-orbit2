@@ -17,6 +17,7 @@
     "expo-contacts": "~15.0.9",
     "expo-crypto": "~15.0.7",
     "expo-image-manipulator": "~14.0.7",
+    "expo-image-picker": "~17.0.8",
     "expo-local-authentication": "~17.0.7",
     "expo-localization": "~17.0.7",
     "expo-secure-store": "~15.0.7",
