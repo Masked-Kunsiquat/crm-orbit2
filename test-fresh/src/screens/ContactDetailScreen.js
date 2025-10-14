@@ -16,7 +16,7 @@ import {
 } from 'react-native-paper';
 import { contactsDB, contactsInfoDB, interactionsDB, attachmentsDB } from '../database';
 import { useTranslation } from 'react-i18next';
-import fileService from '../services/fileService';
+import { fileService } from '../services/fileService';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
