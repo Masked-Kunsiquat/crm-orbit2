@@ -187,19 +187,19 @@ export default function SettingsScreen() {
           />
           <List.Item
             title={() => <Text variant="titleSmall">{t('settings.security.autoLockTimeout')}</Text>}
-            right={() => (
-              <View style={styles.rowOptions}>
+            description={() => (
+              <View style={styles.timeoutOptions}>
                 {[1, 5, 10, 30].map((m) => (
-                  <React.Fragment key={m}>
-                    <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
-                      {t('settings.security.minutes', { count: m })}
-                    </Text>
+                  <View key={m} style={styles.timeoutOption}>
                     <RadioButton
                       value={`auto-timeout-${m}`}
                       status={autoLockTimeout === m ? 'checked' : 'unchecked'}
                       onPress={() => changeAutoLockTimeout(m)}
                     />
-                  </React.Fragment>
+                    <Text style={styles.timeoutLabel}>
+                      {t('settings.security.minutes', { count: m })}
+                    </Text>
+                  </View>
                 ))}
               </View>
             )}
@@ -361,5 +361,22 @@ const styles = StyleSheet.create({
   optionLabel: {
     color: '#666',
     marginRight: 4,
+  },
+  timeoutOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  timeoutOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  timeoutLabel: {
+    color: '#666',
+    fontSize: 14,
+    marginLeft: -8,
   },
 });
