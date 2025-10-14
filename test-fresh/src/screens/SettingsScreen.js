@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
@@ -160,8 +160,9 @@ export default function SettingsScreen() {
         <Appbar.Content title={t('settings.title')} />
       </Appbar.Header>
 
-      {/* Security */}
-      <List.Section style={styles.section}>
+      <ScrollView style={styles.scrollView}>
+        {/* Security */}
+        <List.Section style={styles.section}>
         <List.Accordion
           title={t('settings.sections.security')}
           expanded={expandedSecurity}
@@ -339,12 +340,16 @@ export default function SettingsScreen() {
       />
     </List.Accordion>
   </List.Section>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   section: {
