@@ -267,7 +267,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       const newAttachment = await fileService.saveFile(
         uri,
         fileName,
-        'contact_avatar',
+        'contact',
         contactId
       );
 
