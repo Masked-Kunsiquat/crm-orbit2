@@ -14,8 +14,9 @@ import {
   Button,
   useTheme,
 } from 'react-native-paper';
-import { contactsDB, contactsInfoDB, interactionsDB } from '../database';
+import { contactsDB, contactsInfoDB, interactionsDB, attachmentsDB } from '../database';
 import { useTranslation } from 'react-i18next';
+import fileService from '../services/fileService';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
@@ -26,6 +27,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const [contact, setContact] = useState(null);
+  const [avatarUri, setAvatarUri] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
@@ -46,6 +48,19 @@ export default function ContactDetailScreen({ route, navigation }) {
       setLoading(true);
       const contactWithInfo = await contactsInfoDB.getWithContactInfo(contactId);
       setContact(contactWithInfo);
+
+      // Load avatar URI from fileService if avatar_attachment_id exists
+      if (contactWithInfo.avatar_attachment_id) {
+        try {
+          const uri = await fileService.getFileUri(contactWithInfo.avatar_attachment_id);
+          setAvatarUri(uri);
+        } catch (error) {
+          console.warn('Failed to load avatar:', error);
+          setAvatarUri(null);
+        }
+      } else {
+        setAvatarUri(null);
+      }
     } catch (error) {
       console.error('Error loading contact:', error);
       Alert.alert('Error', t('contactDetail.errorLoad'));
@@ -244,7 +259,27 @@ export default function ContactDetailScreen({ route, navigation }) {
       const uri = asset?.uri;
       if (!uri) return;
 
-      await contactsDB.update(contactId, { avatar_uri: uri });
+      // Delete old avatar attachment if it exists
+      if (contact.avatar_attachment_id) {
+        try {
+          await fileService.deleteFile(contact.avatar_attachment_id);
+        } catch (error) {
+          console.warn('Failed to delete old avatar:', error);
+          // Continue anyway - we'll create the new avatar
+        }
+      }
+
+      // Save new avatar using fileService
+      const fileName = asset.fileName || `avatar_${contactId}.jpg`;
+      const attachment = await fileService.saveFile(
+        uri,
+        fileName,
+        'contact_avatar',
+        contactId
+      );
+
+      // Update contact with new avatar attachment ID
+      await contactsDB.update(contactId, { avatar_attachment_id: attachment.id });
       setShowAvatarDialog(false);
       loadContact();
     } catch (e) {
@@ -255,7 +290,10 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const removePhoto = async () => {
     try {
-      await contactsDB.update(contactId, { avatar_uri: null });
+      if (contact.avatar_attachment_id) {
+        await fileService.deleteFile(contact.avatar_attachment_id);
+      }
+      await contactsDB.update(contactId, { avatar_attachment_id: null });
       setShowAvatarDialog(false);
       loadContact();
     } catch (e) {
@@ -294,8 +332,8 @@ export default function ContactDetailScreen({ route, navigation }) {
         {/* Header Section - iOS style */}
         <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
           <Pressable onPress={() => setShowAvatarDialog(true)}>
-            {contact.avatar_uri ? (
-              <Avatar.Image size={100} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
+            {avatarUri ? (
+              <Avatar.Image size={100} source={{ uri: avatarUri }} style={styles.avatar} />
             ) : (
               <Avatar.Text
                 size={100}
@@ -506,8 +544,8 @@ export default function ContactDetailScreen({ route, navigation }) {
             <Text variant="bodyMedium">Add or remove a profile picture.</Text>
           </Dialog.Content>
           <Dialog.Actions>
-            {contact.avatar_uri ? (
-              <Button onPress={removePhoto} textColor="#d32f2f">Remove</Button>
+            {avatarUri ? (
+              <Button onPress={removePhoto} textColor="#d32f2f">{t('contactDetail.remove')}</Button>
             ) : null}
             <Button onPress={pickImageFromLibrary}>Add Photo</Button>
             <Button onPress={() => setShowAvatarDialog(false)}>Cancel</Button>

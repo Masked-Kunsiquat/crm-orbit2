@@ -4,7 +4,25 @@ export async function createBasicTables() {
   console.log('Creating basic database tables...');
 
   try {
-    // Create companies table first (referenced by contacts)
+    // Create attachments table first (referenced by contacts for avatars)
+    await execute(`
+      CREATE TABLE IF NOT EXISTS attachments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
+        file_name TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        file_size INTEGER,
+        thumbnail_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create companies table (referenced by contacts)
     await execute(`
       CREATE TABLE IF NOT EXISTS companies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,13 +44,15 @@ export async function createBasicTables() {
         middle_name TEXT,
         display_name TEXT,
         avatar_uri TEXT,
+        avatar_attachment_id INTEGER,
         company_id INTEGER,
         job_title TEXT,
         is_favorite INTEGER DEFAULT 0,
         last_interaction_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies(id)
+        FOREIGN KEY (company_id) REFERENCES companies(id),
+        FOREIGN KEY (avatar_attachment_id) REFERENCES attachments(id) ON DELETE SET NULL
       )
     `);
 
