@@ -259,19 +259,12 @@ export default function ContactDetailScreen({ route, navigation }) {
       const uri = asset?.uri;
       if (!uri) return;
 
-      // Delete old avatar attachment if it exists
-      if (contact.avatar_attachment_id) {
-        try {
-          await fileService.deleteFile(contact.avatar_attachment_id);
-        } catch (error) {
-          console.warn('Failed to delete old avatar:', error);
-          // Continue anyway - we'll create the new avatar
-        }
-      }
+      // Save old avatar ID for cleanup after successful update
+      const oldAvatarId = contact.avatar_attachment_id;
 
-      // Save new avatar using fileService
+      // Save new avatar using fileService FIRST
       const fileName = asset.fileName || `avatar_${contactId}.jpg`;
-      const attachment = await fileService.saveFile(
+      const newAttachment = await fileService.saveFile(
         uri,
         fileName,
         'contact_avatar',
@@ -279,7 +272,19 @@ export default function ContactDetailScreen({ route, navigation }) {
       );
 
       // Update contact with new avatar attachment ID
-      await contactsDB.update(contactId, { avatar_attachment_id: attachment.id });
+      await contactsDB.update(contactId, { avatar_attachment_id: newAttachment.id });
+
+      // Only delete old avatar AFTER successful update
+      if (oldAvatarId) {
+        try {
+          await fileService.deleteFile(oldAvatarId);
+        } catch (cleanupError) {
+          // Log but don't throw - old avatar is now orphaned but can be cleaned up later
+          console.warn('Failed to delete old avatar attachment (now orphaned):', cleanupError);
+          console.warn('Orphaned attachment ID:', oldAvatarId);
+        }
+      }
+
       setShowAvatarDialog(false);
       loadContact();
     } catch (e) {
