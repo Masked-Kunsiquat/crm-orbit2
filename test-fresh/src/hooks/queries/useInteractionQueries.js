@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { interactionsDB } from '../../database';
+import { interactionsDB, interactionsSearchDB } from '../../database';
 
 /**
  * Query keys for interaction-related queries
@@ -42,7 +42,7 @@ export function useInteraction(id, options = {}) {
 export function useContactInteractions(contactId, options = {}) {
   return useQuery({
     queryKey: interactionKeys.byContact(contactId),
-    queryFn: () => interactionsDB.getByContact(contactId),
+    queryFn: () => interactionsSearchDB.getByContact(contactId),
     enabled: !!contactId,
     ...options,
   });
@@ -54,7 +54,7 @@ export function useContactInteractions(contactId, options = {}) {
 export function useInteractionsByType(type, options = {}) {
   return useQuery({
     queryKey: interactionKeys.byType(type),
-    queryFn: () => interactionsDB.getByType(type),
+    queryFn: () => interactionsSearchDB.getByType(type),
     enabled: !!type,
     ...options,
   });
