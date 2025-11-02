@@ -338,6 +338,39 @@ export default function SettingsScreen() {
         )}
         onPress={() => handleLanguageChange('es')}
       />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.german')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-de"
+            status={language === 'de' ? 'checked' : 'unchecked'}
+            onPress={() => handleLanguageChange('de')}
+          />
+        )}
+        onPress={() => handleLanguageChange('de')}
+      />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.french')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-fr"
+            status={language === 'fr' ? 'checked' : 'unchecked'}
+            onPress={() => handleLanguageChange('fr')}
+          />
+        )}
+        onPress={() => handleLanguageChange('fr')}
+      />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.chinese')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-zh"
+            status={language === 'zh' ? 'checked' : 'unchecked'}
+            onPress={() => handleLanguageChange('zh')}
+          />
+        )}
+        onPress={() => handleLanguageChange('zh')}
+      />
     </List.Accordion>
   </List.Section>
       </ScrollView>

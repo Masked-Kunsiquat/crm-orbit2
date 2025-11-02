@@ -18,7 +18,10 @@
     "language": {
       "device": "Device default",
       "english": "English",
-      "spanish": "Spanish"
+      "spanish": "Español",
+      "german": "Deutsch",
+      "french": "Français",
+      "chinese": "简体中文"
     },
     "appearance": "Appearance",
     "security": {
