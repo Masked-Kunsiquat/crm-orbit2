@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { settingsDB } from '../database';
 import i18n from '../i18n';
 import { getLocales } from 'expo-localization';
@@ -128,8 +128,13 @@ export function SettingsProvider({ children }) {
     }
   }, [language]);
 
+  const value = useMemo(
+    () => ({ leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage }),
+    [leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage]
+  );
+
   return (
-    <SettingsContext.Provider value={{ leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage }}>
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );

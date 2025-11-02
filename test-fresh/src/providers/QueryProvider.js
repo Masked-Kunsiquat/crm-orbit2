@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 /**
  * Query Client Configuration
  * Optimized for local-first SQLite operations
+ * Created once at module level to ensure stability
  */
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,8 +12,8 @@ const queryClient = new QueryClient({
       // Cache data for 5 minutes (local SQLite is fast, but avoid unnecessary reads)
       staleTime: 5 * 60 * 1000,
 
-      // Keep unused data in cache for 10 minutes
-      cacheTime: 10 * 60 * 1000,
+      // Keep unused data in cache for 10 minutes (v5 uses gcTime instead of cacheTime)
+      gcTime: 10 * 60 * 1000,
 
       // Don't refetch on window focus (mobile app)
       refetchOnWindowFocus: false,

@@ -17,10 +17,12 @@ export const contactKeys = {
 /**
  * Fetch all contacts
  */
-export function useContacts(options = {}) {
+export function useContacts(options) {
   return useQuery({
     queryKey: contactKeys.lists(),
     queryFn: () => contactsDB.getAll(options),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });
 }

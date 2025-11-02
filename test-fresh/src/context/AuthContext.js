@@ -93,7 +93,7 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(
     () => ({ isLocked, initializing, authenticate, authenticateWithPIN, lock, unlock, refresh }),
-    [isLocked, initializing, authenticate, authenticateWithPIN, lock, unlock, refresh]
+    [isLocked, initializing]
   );
 
   return (

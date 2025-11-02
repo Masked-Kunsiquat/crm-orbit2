@@ -87,18 +87,15 @@ export default function App() {
   }
 
   const MainTabs = ({ navigation }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [index, setIndex] = React.useState(0);
-    const [routes, setRoutes] = React.useState([
+
+    // Compute routes dynamically based on current language - no state needed!
+    const routes = React.useMemo(() => [
       { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
       { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
       { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
-    ]);
-
-    // Update route titles on language change
-    React.useEffect(() => {
-      setRoutes((r) => r.map(rt => ({ ...rt, title: t(`navigation.${rt.key}`) })));
-    }, [t]);
+    ], [i18n.language]); // Only recompute when language actually changes
 
     const renderScene = ({ route }) => {
       switch (route.key) {

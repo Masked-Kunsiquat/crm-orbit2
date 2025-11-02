@@ -111,11 +111,24 @@ export default function ContactsList({ navigation }) {
 
   // Fetch related data for contacts when they change
   const [contactsWithInfo, setContactsWithInfo] = React.useState([]);
+  const [prevContactIds, setPrevContactIds] = React.useState([]);
 
   useEffect(() => {
     const loadContactInfo = async () => {
       if (!contacts.length) {
-        setContactsWithInfo([]);
+        if (contactsWithInfo.length > 0) {
+          setContactsWithInfo([]);
+          setPrevContactIds([]);
+        }
+        return;
+      }
+
+      // Check if contacts actually changed by comparing IDs
+      const currentIds = contacts.map(c => c.id).sort().join(',');
+      const prevIds = prevContactIds.join(',');
+
+      if (currentIds === prevIds) {
+        // Contact list hasn't changed, skip re-fetching
         return;
       }
 
@@ -153,6 +166,7 @@ export default function ContactsList({ navigation }) {
       });
 
       setContactsWithInfo(enriched);
+      setPrevContactIds(ids);
     };
 
     loadContactInfo();
