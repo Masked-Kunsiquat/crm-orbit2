@@ -14,81 +14,52 @@ import {
   Button,
   useTheme,
 } from 'react-native-paper';
-import { contactsDB, contactsInfoDB, interactionsDB, attachmentsDB } from '../database';
+import { contactsDB, interactionsDB } from '../database';
 import { useTranslation } from 'react-i18next';
 import { fileService } from '../services/fileService';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
+import { useContact, useContactInteractions, useDeleteContact, useUpdateContact } from '../hooks/queries';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
   const theme = useTheme();
   const { t } = useTranslation();
-  const [contact, setContact] = useState(null);
   const [avatarUri, setAvatarUri] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
-  const [recentInteractions, setRecentInteractions] = useState([]);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
+  // Use TanStack Query for contact and interactions data
+  const { data: contact, isLoading: loading, refetch: refetchContact } = useContact(contactId);
+  const { data: allInteractions = [] } = useContactInteractions(contactId);
+  const deleteContactMutation = useDeleteContact();
+  const updateContactMutation = useUpdateContact();
+
+  // Get recent interactions (limit to 3)
+  const recentInteractions = React.useMemo(() => {
+    return allInteractions.slice(0, 3);
+  }, [allInteractions]);
+
+  // Load avatar when contact changes
   useEffect(() => {
-    loadContact();
-    loadRecentInteractions();
-  }, [contactId]);
-
-  const loadContact = async () => {
-    try {
-      setLoading(true);
-      const contactWithInfo = await contactsInfoDB.getWithContactInfo(contactId);
-      setContact(contactWithInfo);
-
-      // Load avatar URI from fileService if avatar_attachment_id exists
-      if (contactWithInfo.avatar_attachment_id) {
-        try {
-          const uri = await fileService.getFileUri(contactWithInfo.avatar_attachment_id);
-          setAvatarUri(uri);
-        } catch (error) {
+    if (contact?.avatar_attachment_id) {
+      fileService.getFileUri(contact.avatar_attachment_id)
+        .then(setAvatarUri)
+        .catch((error) => {
           console.warn('Failed to load avatar:', error);
           setAvatarUri(null);
-        }
-      } else {
-        setAvatarUri(null);
-      }
-    } catch (error) {
-      console.error('Error loading contact:', error);
-      Alert.alert('Error', t('contactDetail.errorLoad'));
-      navigation.goBack();
-    } finally {
-      setLoading(false);
+        });
+    } else {
+      setAvatarUri(null);
     }
-  };
-
-  const loadRecentInteractions = async () => {
-    try {
-      // Get recent interactions for this contact (limit to 3)
-      const allInteractions = await interactionsDB.getAll({
-        limit: 500,
-        orderBy: 'interaction_datetime',
-        orderDir: 'DESC',
-      });
-
-      // Filter by this contact
-      const contactInteractions = allInteractions
-        .filter(i => i.contact_id === contactId)
-        .slice(0, 3);
-
-      setRecentInteractions(contactInteractions);
-    } catch (error) {
-      console.error('Error loading interactions:', error);
-    }
-  };
+  }, [contact?.avatar_attachment_id]);
 
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
@@ -142,19 +113,19 @@ export default function ContactDetailScreen({ route, navigation }) {
   };
 
   const handleContactUpdated = () => {
-    loadContact(); // Reload contact after edit
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionAdded = () => {
-    loadRecentInteractions(); // Reload interactions after adding
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionUpdated = () => {
-    loadRecentInteractions(); // Reload interactions after updating
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionDeleted = () => {
-    loadRecentInteractions(); // Reload interactions after deleting
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionPress = (interaction) => {
@@ -202,7 +173,7 @@ export default function ContactDetailScreen({ route, navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await contactsDB.delete(contactId);
+              await deleteContactMutation.mutateAsync(contactId);
               navigation.goBack();
             } catch (error) {
               console.error('Error deleting contact:', error);
@@ -272,7 +243,10 @@ export default function ContactDetailScreen({ route, navigation }) {
       );
 
       // Update contact with new avatar attachment ID
-      await contactsDB.update(contactId, { avatar_attachment_id: newAttachment.id });
+      await updateContactMutation.mutateAsync({
+        id: contactId,
+        data: { avatar_attachment_id: newAttachment.id }
+      });
 
       // Only delete old avatar AFTER successful update
       if (oldAvatarId) {
@@ -286,7 +260,6 @@ export default function ContactDetailScreen({ route, navigation }) {
       }
 
       setShowAvatarDialog(false);
-      loadContact();
     } catch (e) {
       console.error('Image pick error', e);
       Alert.alert('Error', t('contactDetail.errorImageSet'));
@@ -298,9 +271,11 @@ export default function ContactDetailScreen({ route, navigation }) {
       if (contact.avatar_attachment_id) {
         await fileService.deleteFile(contact.avatar_attachment_id);
       }
-      await contactsDB.update(contactId, { avatar_attachment_id: null });
+      await updateContactMutation.mutateAsync({
+        id: contactId,
+        data: { avatar_attachment_id: null }
+      });
       setShowAvatarDialog(false);
-      loadContact();
     } catch (e) {
       console.error('Remove photo error', e);
       Alert.alert('Error', t('contactDetail.errorImageRemove'));

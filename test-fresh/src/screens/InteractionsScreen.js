@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import InteractionCard from '../components/InteractionCard';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionDetailModal from '../components/InteractionDetailModal';
-import { interactionsDB, contactsDB } from '../database';
+import { contactsDB } from '../database';
+import { useInteractions } from '../hooks/queries';
 
 const INTERACTION_TYPES = [
   { value: 'all', i18n: 'interactions.filters.all', icon: 'format-list-bulleted' },
@@ -19,11 +20,7 @@ const INTERACTION_TYPES = [
 export default function InteractionsScreen({ navigation }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const [interactions, setInteractions] = useState([]);
-  const [filteredInteractions, setFilteredInteractions] = useState([]);
   const [contacts, setContacts] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState(null);
@@ -31,29 +28,17 @@ export default function InteractionsScreen({ navigation }) {
   const [selectedType, setSelectedType] = useState('all');
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = newest first, 'asc' = oldest first
 
+  // Use TanStack Query for interactions data
+  const { data: interactions = [], isLoading: loading, refetch, isFetching: refreshing } = useInteractions({
+    limit: 500,
+    orderBy: 'interaction_datetime',
+    orderDir: 'DESC',
+  });
+
+  // Load contacts when interactions change
   useEffect(() => {
-    loadInteractions();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortInteractions();
-  }, [interactions, selectedType, sortOrder]);
-
-  const loadInteractions = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch all interactions
-      const allInteractions = await interactionsDB.getAll({
-        limit: 500,
-        orderBy: 'interaction_datetime',
-        orderDir: 'DESC',
-      });
-
-      setInteractions(allInteractions);
-
-      // Fetch contact information for each unique contact_id
-      const contactIds = [...new Set(allInteractions.map(i => i.contact_id))];
+    const loadContacts = async () => {
+      const contactIds = [...new Set(interactions.map(i => i.contact_id))];
       const contactsMap = {};
 
       await Promise.all(
@@ -70,15 +55,15 @@ export default function InteractionsScreen({ navigation }) {
       );
 
       setContacts(contactsMap);
-    } catch (error) {
-      console.error('Error loading interactions:', error);
-      Alert.alert('Error', t('interactions.errorLoad'));
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const filterAndSortInteractions = () => {
+    if (interactions.length > 0) {
+      loadContacts();
+    }
+  }, [interactions]);
+
+  // Filter and sort interactions
+  const filteredInteractions = React.useMemo(() => {
     let filtered = [...interactions];
 
     // Filter by type
@@ -95,13 +80,11 @@ export default function InteractionsScreen({ navigation }) {
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
 
-    setFilteredInteractions(filtered);
-  };
+    return filtered;
+  }, [interactions, selectedType, sortOrder]);
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadInteractions();
-    setRefreshing(false);
+    await refetch();
   };
 
   const handleInteractionPress = (interaction) => {
@@ -129,15 +112,15 @@ export default function InteractionsScreen({ navigation }) {
   };
 
   const handleInteractionAdded = () => {
-    loadInteractions(); // Refresh the list
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionUpdated = () => {
-    loadInteractions(); // Refresh the list
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionDeleted = () => {
-    loadInteractions(); // Refresh the list
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleModalDismiss = () => {
