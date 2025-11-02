@@ -109,28 +109,63 @@ export default function ContactsList({ navigation }) {
     refetch(); // Refresh the contacts list
   };
 
-  // Process contacts data (add related info)
-  const processedContacts = React.useMemo(() => {
-    if (!contacts.length) return [];
+  // Fetch related data for contacts when they change
+  const [contactsWithInfo, setContactsWithInfo] = React.useState([]);
 
-    // For now, use the contacts as-is (they come from contactsDB.getAll which has basic data)
-    // TODO: Enhance with batch fetching for contact_info and categories
-    return contacts.map(c => ({
-      ...c,
-      phone: null, // Will be added when we enhance the query
-      email: null,
-      categories: [],
-      contact_info: [],
-    }));
+  useEffect(() => {
+    const loadContactInfo = async () => {
+      if (!contacts.length) {
+        setContactsWithInfo([]);
+        return;
+      }
+
+      // Batch fetch related data to avoid N+1 queries
+      const ids = contacts.map(c => c.id);
+
+      // 1) All contact_info rows for these contacts
+      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
+      const infoByContact = new Map();
+      for (const row of allInfoRows) {
+        const list = infoByContact.get(row.contact_id) || [];
+        list.push(row);
+        infoByContact.set(row.contact_id, list);
+      }
+
+      // 2) All categories for these contacts
+      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
+      const catsByContact = new Map();
+      for (const row of allCatRows) {
+        const list = catsByContact.get(row.contact_id) || [];
+        const { contact_id, ...cat } = row;
+        list.push(cat);
+        catsByContact.set(row.contact_id, list);
+      }
+
+      // Merge once
+      const enriched = contacts.map(c => {
+        const contact_info = infoByContact.get(c.id) || [];
+        const phones = contact_info.filter(i => i.type === 'phone');
+        const emails = contact_info.filter(i => i.type === 'email');
+        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
+        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
+        const categories = catsByContact.get(c.id) || [];
+        return { ...c, contact_info, phone, email, categories };
+      });
+
+      setContactsWithInfo(enriched);
+    };
+
+    loadContactInfo();
   }, [contacts]);
 
   // Filter by category
   const categoryFilteredContacts = React.useMemo(() => {
-    if (!selectedCategory) return processedContacts;
-    // TODO: Implement category filtering once we enhance the query
-    // For now, return all contacts
-    return processedContacts;
-  }, [processedContacts, selectedCategory]);
+    if (!selectedCategory) return contactsWithInfo;
+    // Filter by selected category
+    return contactsWithInfo.filter(contact =>
+      contact.categories?.some(cat => cat.id === selectedCategory.id)
+    );
+  }, [contactsWithInfo, selectedCategory]);
 
   // Filter by search query
   const filteredContacts = React.useMemo(() => {
