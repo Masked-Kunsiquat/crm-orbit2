@@ -19,6 +19,7 @@ import { useSettings } from './src/context/SettingsContext';
 import { useColorScheme } from 'react-native';
 import i18n from './src/i18n';
 import { useTranslation, I18nextProvider } from 'react-i18next';
+import QueryProvider from './src/providers/QueryProvider';
 
 const Stack = createNativeStackNavigator();
 
@@ -125,23 +126,25 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SettingsProvider>
-        <ThemeBridge colorScheme={colorScheme}>
-          <I18nextProvider i18n={i18n}>
-            <AuthProvider>
-              <AuthGate>
-                <NavigationContainer>
-                  <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="MainTabs" component={MainTabs} />
-                    <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-                    <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-                  </Stack.Navigator>
-                </NavigationContainer>
-              </AuthGate>
-            </AuthProvider>
-          </I18nextProvider>
-        </ThemeBridge>
-      </SettingsProvider>
+      <QueryProvider>
+        <SettingsProvider>
+          <ThemeBridge colorScheme={colorScheme}>
+            <I18nextProvider i18n={i18n}>
+              <AuthProvider>
+                <AuthGate>
+                  <NavigationContainer>
+                    <Stack.Navigator screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="MainTabs" component={MainTabs} />
+                      <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+                      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </AuthGate>
+              </AuthProvider>
+            </I18nextProvider>
+          </ThemeBridge>
+        </SettingsProvider>
+      </QueryProvider>
     </GestureHandlerRootView>
   );
 }
