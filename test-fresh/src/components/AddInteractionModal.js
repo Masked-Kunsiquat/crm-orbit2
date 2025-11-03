@@ -13,7 +13,8 @@ import {
   Divider,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { interactionsDB, contactsDB } from '../database';
+import { contactsDB } from '../database';
+import { useCreateInteraction, useUpdateInteraction, useDeleteInteraction, useContacts } from '../hooks/queries';
 
 const INTERACTION_TYPES = [
   { value: 'call', label: 'Call', icon: 'phone' },
@@ -39,17 +40,19 @@ export default function AddInteractionModal({
   const [interactionType, setInteractionType] = useState('call');
   const [duration, setDuration] = useState('');
   const [selectedContactId, setSelectedContactId] = useState(preselectedContactId || null);
-  const [contacts, setContacts] = useState([]);
   const [contactMenuVisible, setContactMenuVisible] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [interactionDateTime, setInteractionDateTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  // Use TanStack Query hooks
+  const { data: contacts = [] } = useContacts();
+  const createInteractionMutation = useCreateInteraction();
+  const updateInteractionMutation = useUpdateInteraction();
+  const deleteInteractionMutation = useDeleteInteraction();
+
   useEffect(() => {
     if (visible) {
-      loadContacts();
-
       if (editingInteraction) {
         // Populate form with existing interaction data
         setTitle(editingInteraction.title || '');
@@ -68,15 +71,6 @@ export default function AddInteractionModal({
     }
   }, [visible, preselectedContactId, editingInteraction]);
 
-  const loadContacts = async () => {
-    try {
-      const allContacts = await contactsDB.getAll();
-      setContacts(allContacts);
-    } catch (error) {
-      console.error('Error loading contacts:', error);
-    }
-  };
-
   const resetForm = () => {
     setTitle('');
     setNote('');
@@ -86,7 +80,6 @@ export default function AddInteractionModal({
       setSelectedContactId(null);
     }
     setInteractionDateTime(new Date());
-    setSaving(false);
   };
 
   const handleCancel = () => {
@@ -107,8 +100,7 @@ export default function AddInteractionModal({
           style: 'destructive',
           onPress: async () => {
             try {
-              setSaving(true);
-              await interactionsDB.delete(editingInteraction.id);
+              await deleteInteractionMutation.mutateAsync(editingInteraction.id);
 
               resetForm();
               onInteractionDeleted && onInteractionDeleted();
@@ -117,8 +109,6 @@ export default function AddInteractionModal({
             } catch (error) {
               console.error('Error deleting interaction:', error);
               Alert.alert('Error', 'Failed to delete interaction. Please try again.');
-            } finally {
-              setSaving(false);
             }
           },
         },
@@ -136,8 +126,6 @@ export default function AddInteractionModal({
       Alert.alert('Error', 'Please select a contact');
       return;
     }
-
-    setSaving(true);
 
     try {
       // Parse duration (in minutes) to seconds
@@ -160,14 +148,14 @@ export default function AddInteractionModal({
 
       if (isEditMode) {
         // Update existing interaction
-        await interactionsDB.update(editingInteraction.id, interactionData);
+        await updateInteractionMutation.mutateAsync({ id: editingInteraction.id, data: interactionData });
         resetForm();
         onInteractionUpdated && onInteractionUpdated();
         onDismiss();
         Alert.alert('Success', 'Interaction updated successfully!');
       } else {
         // Create new interaction
-        await interactionsDB.create(interactionData);
+        await createInteractionMutation.mutateAsync(interactionData);
         resetForm();
         onInteractionAdded && onInteractionAdded();
         onDismiss();
@@ -176,13 +164,12 @@ export default function AddInteractionModal({
     } catch (error) {
       console.error('Error saving interaction:', error);
       Alert.alert('Error', 'Failed to save interaction. Please try again.');
-    } finally {
-      setSaving(false);
     }
   };
 
   const selectedContact = contacts.find(c => c.id === selectedContactId);
-  const canSave = title.trim() && selectedContactId && !saving;
+  const isSaving = createInteractionMutation.isPending || updateInteractionMutation.isPending || deleteInteractionMutation.isPending;
+  const canSave = title.trim() && selectedContactId && !isSaving;
 
   // Generate quick title suggestions based on interaction type
   const getQuickTitleSuggestion = () => {
@@ -435,7 +422,7 @@ export default function AddInteractionModal({
               mode="outlined"
               onPress={handleCancel}
               style={styles.button}
-              disabled={saving}
+              disabled={isSaving}
             >
               Cancel
             </Button>
@@ -444,7 +431,7 @@ export default function AddInteractionModal({
               onPress={handleSave}
               style={styles.button}
               disabled={!canSave}
-              loading={saving}
+              loading={isSaving}
             >
               {isEditMode ? 'Update' : 'Save'}
             </Button>
