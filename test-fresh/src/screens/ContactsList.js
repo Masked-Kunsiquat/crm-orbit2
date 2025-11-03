@@ -5,9 +5,9 @@ import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper
 import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
-import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import { categoriesDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
-import { useContacts } from '../hooks/queries';
+import { useContactsWithInfo } from '../hooks/queries';
 
 export default function ContactsList({ navigation }) {
   const theme = useTheme();
@@ -18,8 +18,8 @@ export default function ContactsList({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const { leftAction, rightAction } = useSettings();
 
-  // Use TanStack Query for contacts data
-  const { data: contacts = [], isLoading: loading, refetch, isFetching: refreshing } = useContacts();
+  // Use TanStack Query for enriched contacts data (with contact_info and categories)
+  const { data: contactsWithInfo = [], isLoading: loading, refetch, isFetching: refreshing } = useContactsWithInfo();
 
   useEffect(() => {
     loadCategories();
@@ -106,71 +106,8 @@ export default function ContactsList({ navigation }) {
   };
 
   const handleContactAdded = () => {
-    refetch(); // Refresh the contacts list
+    // No need to manually refetch - TanStack Query mutations will invalidate the cache
   };
-
-  // Fetch related data for contacts when they change
-  const [contactsWithInfo, setContactsWithInfo] = React.useState([]);
-  const [prevContactIds, setPrevContactIds] = React.useState([]);
-
-  useEffect(() => {
-    const loadContactInfo = async () => {
-      if (!contacts.length) {
-        if (contactsWithInfo.length > 0) {
-          setContactsWithInfo([]);
-          setPrevContactIds([]);
-        }
-        return;
-      }
-
-      // Check if contacts actually changed by comparing IDs
-      const currentIds = contacts.map(c => c.id).sort().join(',');
-      const prevIds = prevContactIds.join(',');
-
-      if (currentIds === prevIds) {
-        // Contact list hasn't changed, skip re-fetching
-        return;
-      }
-
-      // Batch fetch related data to avoid N+1 queries
-      const ids = contacts.map(c => c.id);
-
-      // 1) All contact_info rows for these contacts
-      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
-      const infoByContact = new Map();
-      for (const row of allInfoRows) {
-        const list = infoByContact.get(row.contact_id) || [];
-        list.push(row);
-        infoByContact.set(row.contact_id, list);
-      }
-
-      // 2) All categories for these contacts
-      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
-      const catsByContact = new Map();
-      for (const row of allCatRows) {
-        const list = catsByContact.get(row.contact_id) || [];
-        const { contact_id, ...cat } = row;
-        list.push(cat);
-        catsByContact.set(row.contact_id, list);
-      }
-
-      // Merge once
-      const enriched = contacts.map(c => {
-        const contact_info = infoByContact.get(c.id) || [];
-        const phones = contact_info.filter(i => i.type === 'phone');
-        const emails = contact_info.filter(i => i.type === 'email');
-        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
-        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
-        const categories = catsByContact.get(c.id) || [];
-        return { ...c, contact_info, phone, email, categories };
-      });
-
-      setContactsWithInfo(enriched);
-      setPrevContactIds(ids);
-    };
-
-    loadContactInfo();
-  }, [contacts]);
 
   // Filter by category
   const categoryFilteredContacts = React.useMemo(() => {

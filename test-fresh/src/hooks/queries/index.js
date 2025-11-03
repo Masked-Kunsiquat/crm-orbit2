@@ -7,10 +7,12 @@
 export {
   contactKeys,
   useContacts,
+  useContactsWithInfo,
   useContact,
   useFavoriteContacts,
   useContactSearch,
   useCreateContact,
+  useCreateContactWithDetails,
   useUpdateContact,
   useDeleteContact,
   useToggleFavorite,
