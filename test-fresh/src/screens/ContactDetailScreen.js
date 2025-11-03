@@ -182,7 +182,8 @@ export default function ContactDetailScreen({ route, navigation }) {
     try {
       let ImagePicker;
       try {
-        ImagePicker = (await import('expo-image-picker')).default || (await import('expo-image-picker'));
+        const imported = await import('expo-image-picker');
+        ImagePicker = imported.default || imported;
       } catch (e) {
         Alert.alert('Missing dependency', 'Please install expo-image-picker to add photos.');
         return;
