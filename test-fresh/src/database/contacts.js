@@ -9,6 +9,7 @@ const CONTACT_FIELDS = [
   'middle_name',
   'display_name',
   'avatar_uri',
+  'avatar_attachment_id',
   'company_id',
   'job_title',
   'is_favorite',

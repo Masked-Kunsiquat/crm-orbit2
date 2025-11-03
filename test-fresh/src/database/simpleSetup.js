@@ -69,6 +69,19 @@ export async function createBasicTables() {
       )
     `);
 
+    // Add avatar_attachment_id column if it doesn't exist (for existing databases)
+    try {
+      const contactsTableInfo = await execute('PRAGMA table_info(contacts);');
+      const hasAvatarAttachmentId = contactsTableInfo.rows.some(col => col.name === 'avatar_attachment_id');
+      if (!hasAvatarAttachmentId) {
+        console.log('Adding avatar_attachment_id column to contacts table...');
+        await execute('ALTER TABLE contacts ADD COLUMN avatar_attachment_id INTEGER REFERENCES attachments(id) ON DELETE SET NULL;');
+        console.log('avatar_attachment_id column added successfully');
+      }
+    } catch (error) {
+      console.warn('Error checking/adding avatar_attachment_id column:', error);
+    }
+
     // Create contact_info table for phone, email, etc.
     await execute(`
       CREATE TABLE IF NOT EXISTS contact_info (

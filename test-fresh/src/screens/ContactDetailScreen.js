@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
 import {
   Appbar,
-  Avatar,
   Text,
   Surface,
   List,
@@ -16,6 +15,7 @@ import {
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { fileService } from '../services/fileService';
+import ContactAvatar from '../components/ContactAvatar';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
@@ -26,7 +26,6 @@ export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
   const theme = useTheme();
   const { t } = useTranslation();
-  const [avatarUri, setAvatarUri] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
@@ -45,26 +44,6 @@ export default function ContactDetailScreen({ route, navigation }) {
   const recentInteractions = React.useMemo(() => {
     return allInteractions.slice(0, 3);
   }, [allInteractions]);
-
-  // Load avatar when contact changes
-  useEffect(() => {
-    console.log('Avatar useEffect triggered. avatar_attachment_id:', contact?.avatar_attachment_id);
-    if (contact?.avatar_attachment_id) {
-      console.log('Loading avatar URI for attachment ID:', contact.avatar_attachment_id);
-      fileService.getFileUri(contact.avatar_attachment_id)
-        .then((uri) => {
-          console.log('Avatar URI loaded successfully:', uri);
-          setAvatarUri(uri);
-        })
-        .catch((error) => {
-          console.warn('Failed to load avatar:', error);
-          setAvatarUri(null);
-        });
-    } else {
-      console.log('No avatar_attachment_id, clearing avatar');
-      setAvatarUri(null);
-    }
-  }, [contact?.avatar_attachment_id]);
 
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
@@ -197,12 +176,6 @@ export default function ContactDetailScreen({ route, navigation }) {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
-  };
-
-  const getInitials = (firstName, lastName) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last || '?';
   };
 
   const pickImageFromLibrary = async () => {
@@ -339,15 +312,7 @@ export default function ContactDetailScreen({ route, navigation }) {
         {/* Header Section - iOS style */}
         <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
           <Pressable onPress={() => setShowAvatarDialog(true)}>
-            {avatarUri ? (
-              <Avatar.Image size={100} source={{ uri: avatarUri }} style={styles.avatar} />
-            ) : (
-              <Avatar.Text
-                size={100}
-                label={getInitials(contact.first_name, contact.last_name)}
-                style={styles.avatar}
-              />
-            )}
+            <ContactAvatar contact={contact} size={100} style={styles.avatar} />
           </Pressable>
           <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
             {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
@@ -551,7 +516,7 @@ export default function ContactDetailScreen({ route, navigation }) {
             <Text variant="bodyMedium">Add or remove a profile picture.</Text>
           </Dialog.Content>
           <Dialog.Actions>
-            {avatarUri ? (
+            {contact?.avatar_attachment_id ? (
               <Button onPress={removePhoto} textColor="#d32f2f">{t('contactDetail.remove')}</Button>
             ) : null}
             <Button onPress={pickImageFromLibrary}>Add Photo</Button>
