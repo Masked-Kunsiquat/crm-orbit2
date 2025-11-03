@@ -243,10 +243,12 @@ export default function ContactDetailScreen({ route, navigation }) {
 
       // Update contact with new avatar attachment ID - wrap in try/catch for rollback
       try {
+        console.log('Updating contact with avatar_attachment_id:', newAttachment.id);
         await updateContactMutation.mutateAsync({
           id: contactId,
           data: { avatar_attachment_id: newAttachment.id }
         });
+        console.log('Contact updated successfully, avatar_attachment_id set to:', newAttachment.id);
       } catch (mutationError) {
         // Rollback: delete the newly saved attachment since update failed
         try {
