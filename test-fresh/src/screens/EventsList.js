@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, View, ScrollView } from 'react-native';
+import { StyleSheet, FlatList, View, ScrollView, TouchableOpacity } from 'react-native';
 import { Appbar, FAB, Chip, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
@@ -20,7 +20,6 @@ export default function EventsList({ navigation }) {
   const { t } = useTranslation();
   const [contacts, setContacts] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [selectedType, setSelectedType] = useState('all');
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' = soonest first, 'desc' = latest first
@@ -78,9 +77,8 @@ export default function EventsList({ navigation }) {
   };
 
   const handleEventPress = (event) => {
-    // Navigate to event detail or show modal
-    setSelectedEvent(event);
-    // TODO: Show event detail modal
+    setEditingEvent(event);
+    setShowAddModal(true);
   };
 
   const handleAddEvent = () => {
@@ -118,7 +116,11 @@ export default function EventsList({ navigation }) {
     const eventDate = formatEventDate(item.event_date);
 
     return (
-      <View style={[styles.eventCard, { backgroundColor: theme.colors.surface }]}>
+      <TouchableOpacity
+        style={[styles.eventCard, { backgroundColor: theme.colors.surface }]}
+        onPress={() => handleEventPress(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.eventHeader}>
           <View style={styles.eventInfo}>
             <Text variant="titleMedium" style={[styles.eventTitle, { color: theme.colors.onSurface }]}>
@@ -149,7 +151,7 @@ export default function EventsList({ navigation }) {
             {item.notes}
           </Text>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -226,8 +228,6 @@ export default function EventsList({ navigation }) {
         onEventDeleted={() => refetch()}
         editingEvent={editingEvent}
       />
-
-      {/* TODO: Event Detail Modal */}
     </View>
   );
 }
