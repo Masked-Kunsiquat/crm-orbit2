@@ -195,8 +195,8 @@ export default function ContactDetailScreen({ route, navigation }) {
         return;
       }
 
-      // Use the modern MediaType API (MediaTypeOptions is deprecated)
-      const mediaTypes = ImagePicker.MediaType?.Images || 'Images';
+      // Use modern array syntax for media types (v17+)
+      const mediaTypes = ['images'];
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes,
         allowsEditing: true,
