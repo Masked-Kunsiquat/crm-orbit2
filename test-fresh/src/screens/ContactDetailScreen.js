@@ -258,8 +258,9 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         // Force immediate refetch to update the UI
         console.log('Forcing contact refetch...');
-        await refetchContact();
+        const refetchResult = await refetchContact();
         console.log('Contact refetched successfully');
+        console.log('Refetched contact data:', JSON.stringify(refetchResult.data, null, 2));
       } catch (mutationError) {
         // Rollback: delete the newly saved attachment since update failed
         try {
