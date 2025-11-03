@@ -255,6 +255,11 @@ export default function ContactDetailScreen({ route, navigation }) {
           data: { avatar_attachment_id: newAttachment.id }
         });
         console.log('Contact updated successfully, avatar_attachment_id set to:', newAttachment.id);
+
+        // Force immediate refetch to update the UI
+        console.log('Forcing contact refetch...');
+        await refetchContact();
+        console.log('Contact refetched successfully');
       } catch (mutationError) {
         // Rollback: delete the newly saved attachment since update failed
         try {
