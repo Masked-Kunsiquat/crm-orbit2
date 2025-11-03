@@ -162,6 +162,67 @@
     "emptyMessage": "添加第一个事件开始使用。",
     "errorLoad": "加载事件失败"
   },
+  "addEvent": {
+    "titleAdd": "添加事件",
+    "titleEdit": "编辑事件",
+    "sections": {
+      "contact": "联系人",
+      "type": "事件类型",
+      "date": "日期",
+      "title": "标题",
+      "reminders": "提醒",
+      "notes": "备注"
+    },
+    "labels": {
+      "selectContact": "选择联系人",
+      "quickFill": "快速填充",
+      "titlePlaceholder": "例如：张三的生日",
+      "recurring": "重复事件",
+      "recurringHelper": "每年重复（生日、纪念日）",
+      "notesPlaceholder": "关于此事件的可选备注",
+      "save": "保存",
+      "update": "更新",
+      "cancel": "取消",
+      "delete": "删除事件"
+    },
+    "types": {
+      "birthday": "生日",
+      "anniversary": "纪念日",
+      "meeting": "会议",
+      "deadline": "截止日期",
+      "other": "其他"
+    },
+    "quickTitles": {
+      "birthday": "{{name}}的生日",
+      "anniversary": "与{{name}}的纪念日",
+      "meeting": "与{{name}}的会议",
+      "deadline": "{{name}}的截止日期",
+      "other": "与{{name}}的事件"
+    },
+    "reminderTemplates": {
+      "15": "提前15分钟",
+      "60": "提前1小时",
+      "1440": "提前1天",
+      "10080": "提前1周"
+    },
+    "errors": {
+      "titleRequired": "标题为必填项",
+      "contactRequired": "请选择联系人",
+      "saveFailed": "保存事件失败。请重试。",
+      "deleteFailed": "删除事件失败。请重试。"
+    },
+    "delete": {
+      "title": "删除事件",
+      "message": "确定要删除此事件吗？",
+      "confirm": "删除",
+      "cancel": "取消"
+    },
+    "success": {
+      "added": "事件添加成功！",
+      "updated": "事件更新成功！",
+      "deleted": "事件删除成功！"
+    }
+  },
   "contactDetail": {
     "title": "联系人",
     "loading": "正在加载...",

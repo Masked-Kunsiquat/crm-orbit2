@@ -162,6 +162,67 @@
     "emptyMessage": "Agrega tu primer evento para comenzar.",
     "errorLoad": "No se pudieron cargar los eventos"
   },
+  "addEvent": {
+    "titleAdd": "Agregar evento",
+    "titleEdit": "Editar evento",
+    "sections": {
+      "contact": "Contacto",
+      "type": "Tipo de evento",
+      "date": "Fecha",
+      "title": "Título",
+      "reminders": "Recordatorios",
+      "notes": "Notas"
+    },
+    "labels": {
+      "selectContact": "Seleccionar contacto",
+      "quickFill": "Llenar rápido",
+      "titlePlaceholder": "ej., Cumpleaños de Juan",
+      "recurring": "Evento recurrente",
+      "recurringHelper": "Se repite cada año (cumpleaños, aniversarios)",
+      "notesPlaceholder": "Notas opcionales sobre este evento",
+      "save": "Guardar",
+      "update": "Actualizar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar evento"
+    },
+    "types": {
+      "birthday": "Cumpleaños",
+      "anniversary": "Aniversario",
+      "meeting": "Reunión",
+      "deadline": "Plazo",
+      "other": "Otro"
+    },
+    "quickTitles": {
+      "birthday": "Cumpleaños de {{name}}",
+      "anniversary": "Aniversario con {{name}}",
+      "meeting": "Reunión con {{name}}",
+      "deadline": "Plazo para {{name}}",
+      "other": "Evento con {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 min antes",
+      "60": "1 hora antes",
+      "1440": "1 día antes",
+      "10080": "1 semana antes"
+    },
+    "errors": {
+      "titleRequired": "El título es obligatorio",
+      "contactRequired": "Por favor selecciona un contacto",
+      "saveFailed": "No se pudo guardar el evento. Inténtalo de nuevo.",
+      "deleteFailed": "No se pudo eliminar el evento. Inténtalo de nuevo."
+    },
+    "delete": {
+      "title": "Eliminar evento",
+      "message": "¿Seguro que quieres eliminar este evento?",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar"
+    },
+    "success": {
+      "added": "¡Evento agregado exitosamente!",
+      "updated": "¡Evento actualizado exitosamente!",
+      "deleted": "¡Evento eliminado exitosamente!"
+    }
+  },
   "contactDetail": {
     "title": "Contacto",
     "loading": "Cargando...",

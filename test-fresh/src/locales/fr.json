@@ -162,6 +162,67 @@
     "emptyMessage": "Ajoutez votre premier événement pour commencer.",
     "errorLoad": "Échec du chargement des événements"
   },
+  "addEvent": {
+    "titleAdd": "Ajouter un événement",
+    "titleEdit": "Modifier l'événement",
+    "sections": {
+      "contact": "Contact",
+      "type": "Type d'événement",
+      "date": "Date",
+      "title": "Titre",
+      "reminders": "Rappels",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Sélectionner un contact",
+      "quickFill": "Remplissage rapide",
+      "titlePlaceholder": "ex., Anniversaire de Jean",
+      "recurring": "Événement récurrent",
+      "recurringHelper": "Se répète chaque année (anniversaires, commémorations)",
+      "notesPlaceholder": "Notes optionnelles sur cet événement",
+      "save": "Enregistrer",
+      "update": "Mettre à jour",
+      "cancel": "Annuler",
+      "delete": "Supprimer l'événement"
+    },
+    "types": {
+      "birthday": "Anniversaire",
+      "anniversary": "Commémoration",
+      "meeting": "Réunion",
+      "deadline": "Échéance",
+      "other": "Autre"
+    },
+    "quickTitles": {
+      "birthday": "Anniversaire de {{name}}",
+      "anniversary": "Commémoration avec {{name}}",
+      "meeting": "Réunion avec {{name}}",
+      "deadline": "Échéance pour {{name}}",
+      "other": "Événement avec {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 min avant",
+      "60": "1 heure avant",
+      "1440": "1 jour avant",
+      "10080": "1 semaine avant"
+    },
+    "errors": {
+      "titleRequired": "Le titre est obligatoire",
+      "contactRequired": "Veuillez sélectionner un contact",
+      "saveFailed": "Échec de l'enregistrement de l'événement. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression de l'événement. Veuillez réessayer."
+    },
+    "delete": {
+      "title": "Supprimer l'événement",
+      "message": "Êtes-vous sûr de vouloir supprimer cet événement ?",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "success": {
+      "added": "Événement ajouté avec succès !",
+      "updated": "Événement mis à jour avec succès !",
+      "deleted": "Événement supprimé avec succès !"
+    }
+  },
   "contactDetail": {
     "title": "Détails du contact",
     "loading": "Chargement...",
