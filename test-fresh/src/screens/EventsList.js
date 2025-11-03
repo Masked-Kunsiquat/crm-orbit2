@@ -4,6 +4,7 @@ import { Appbar, FAB, Chip, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
 import { useEvents } from '../hooks/queries';
+import AddEventModal from '../components/AddEventModal';
 
 const EVENT_TYPES = [
   { value: 'all', i18n: 'events.filters.all', icon: 'calendar' },
@@ -216,7 +217,16 @@ export default function EventsList({ navigation }) {
         onPress={handleAddEvent}
       />
 
-      {/* TODO: Add Event Modal */}
+      {/* Add/Edit Event Modal */}
+      <AddEventModal
+        visible={showAddModal}
+        onDismiss={() => setShowAddModal(false)}
+        onEventAdded={() => refetch()}
+        onEventUpdated={() => refetch()}
+        onEventDeleted={() => refetch()}
+        editingEvent={editingEvent}
+      />
+
       {/* TODO: Event Detail Modal */}
     </View>
   );
