@@ -91,6 +91,9 @@ export function AuthProvider({ children }) {
     setIsLocked(await authService.getLockState());
   }, []);
 
+  // Intentionally only depend on state values (isLocked, initializing) to prevent infinite re-renders.
+  // The callbacks (authenticate, lock, unlock, refresh) are stable with empty deps and don't need to trigger re-memoization.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(
     () => ({ isLocked, initializing, authenticate, authenticateWithPIN, lock, unlock, refresh }),
     [isLocked, initializing]
