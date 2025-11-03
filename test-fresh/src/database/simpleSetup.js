@@ -17,6 +17,7 @@ export async function createBasicTables() {
         mime_type TEXT NOT NULL,
         file_size INTEGER,
         thumbnail_path TEXT,
+        description TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
