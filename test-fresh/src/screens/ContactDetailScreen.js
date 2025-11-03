@@ -242,11 +242,25 @@ export default function ContactDetailScreen({ route, navigation }) {
         contactId
       );
 
-      // Update contact with new avatar attachment ID
-      await updateContactMutation.mutateAsync({
-        id: contactId,
-        data: { avatar_attachment_id: newAttachment.id }
-      });
+      // Update contact with new avatar attachment ID - wrap in try/catch for rollback
+      try {
+        await updateContactMutation.mutateAsync({
+          id: contactId,
+          data: { avatar_attachment_id: newAttachment.id }
+        });
+      } catch (mutationError) {
+        // Rollback: delete the newly saved attachment since update failed
+        try {
+          await fileService.deleteFile(newAttachment.id);
+          console.log('Successfully rolled back orphaned attachment after mutation failure');
+        } catch (rollbackError) {
+          // Log rollback failure but rethrow original error
+          console.error('Failed to rollback orphaned attachment (now orphaned):', rollbackError);
+          console.error('Orphaned attachment ID:', newAttachment.id);
+        }
+        // Rethrow original mutation error so caller sees the failure
+        throw mutationError;
+      }
 
       // Only delete old avatar AFTER successful update
       if (oldAvatarId) {
