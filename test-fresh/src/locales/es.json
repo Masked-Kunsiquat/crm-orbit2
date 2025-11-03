@@ -138,6 +138,29 @@
       "deleted": "¡Interacción eliminada exitosamente!"
     }
   },
+  "events": {
+    "title": "Eventos",
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "filters": {
+      "all": "Todos",
+      "birthday": "Cumpleaños",
+      "anniversary": "Aniversarios",
+      "meeting": "Reuniones",
+      "deadline": "Plazos",
+      "other": "Otros"
+    },
+    "types": {
+      "birthday": "Cumpleaños",
+      "anniversary": "Aniversario",
+      "meeting": "Reunión",
+      "deadline": "Plazo",
+      "other": "Otro"
+    },
+    "emptyTitle": "Sin eventos",
+    "emptyMessage": "Agrega tu primer evento para comenzar.",
+    "errorLoad": "No se pudieron cargar los eventos"
+  },
   "contactDetail": {
     "title": "Contacto",
     "loading": "Cargando...",

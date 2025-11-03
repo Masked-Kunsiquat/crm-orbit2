@@ -138,6 +138,29 @@
       "deleted": "互动删除成功！"
     }
   },
+  "events": {
+    "title": "事件",
+    "today": "今天",
+    "tomorrow": "明天",
+    "filters": {
+      "all": "全部",
+      "birthday": "生日",
+      "anniversary": "纪念日",
+      "meeting": "会议",
+      "deadline": "截止日期",
+      "other": "其他"
+    },
+    "types": {
+      "birthday": "生日",
+      "anniversary": "纪念日",
+      "meeting": "会议",
+      "deadline": "截止日期",
+      "other": "其他"
+    },
+    "emptyTitle": "暂无事件",
+    "emptyMessage": "添加第一个事件开始使用。",
+    "errorLoad": "加载事件失败"
+  },
   "contactDetail": {
     "title": "联系人",
     "loading": "正在加载...",

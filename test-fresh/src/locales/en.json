@@ -141,6 +141,29 @@
       "deleted": "Interaction deleted successfully!"
     }
   },
+  "events": {
+    "title": "Events",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "filters": {
+      "all": "All",
+      "birthday": "Birthdays",
+      "anniversary": "Anniversaries",
+      "meeting": "Meetings",
+      "deadline": "Deadlines",
+      "other": "Other"
+    },
+    "types": {
+      "birthday": "Birthday",
+      "anniversary": "Anniversary",
+      "meeting": "Meeting",
+      "deadline": "Deadline",
+      "other": "Other"
+    },
+    "emptyTitle": "No Events",
+    "emptyMessage": "Add your first event to get started.",
+    "errorLoad": "Failed to load events"
+  },
   "contactDetail": {
     "title": "Contact",
     "loading": "Loading...",

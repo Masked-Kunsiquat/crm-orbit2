@@ -138,6 +138,29 @@
       "deleted": "Interaktion erfolgreich gelöscht!"
     }
   },
+  "events": {
+    "title": "Ereignisse",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "filters": {
+      "all": "Alle",
+      "birthday": "Geburtstage",
+      "anniversary": "Jubiläen",
+      "meeting": "Besprechungen",
+      "deadline": "Fristen",
+      "other": "Andere"
+    },
+    "types": {
+      "birthday": "Geburtstag",
+      "anniversary": "Jubiläum",
+      "meeting": "Besprechung",
+      "deadline": "Frist",
+      "other": "Andere"
+    },
+    "emptyTitle": "Keine Ereignisse",
+    "emptyMessage": "Fügen Sie Ihr erstes Ereignis hinzu.",
+    "errorLoad": "Ereignisse konnten nicht geladen werden"
+  },
   "contactDetail": {
     "title": "Kontakt",
     "loading": "Wird geladen...",

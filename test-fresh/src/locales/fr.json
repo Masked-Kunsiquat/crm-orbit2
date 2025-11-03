@@ -138,6 +138,29 @@
       "deleted": "Interaction supprimée avec succès !"
     }
   },
+  "events": {
+    "title": "Événements",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "filters": {
+      "all": "Tous",
+      "birthday": "Anniversaires",
+      "anniversary": "Commémorations",
+      "meeting": "Réunions",
+      "deadline": "Échéances",
+      "other": "Autres"
+    },
+    "types": {
+      "birthday": "Anniversaire",
+      "anniversary": "Commémoration",
+      "meeting": "Réunion",
+      "deadline": "Échéance",
+      "other": "Autre"
+    },
+    "emptyTitle": "Aucun événement",
+    "emptyMessage": "Ajoutez votre premier événement pour commencer.",
+    "errorLoad": "Échec du chargement des événements"
+  },
   "contactDetail": {
     "title": "Détails du contact",
     "loading": "Chargement...",
