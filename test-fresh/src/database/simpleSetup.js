@@ -23,6 +23,18 @@ export async function createBasicTables() {
       )
     `);
 
+    // Add description column if it doesn't exist (for existing databases)
+    try {
+      const tableInfo = await execute('PRAGMA table_info(attachments);');
+      const hasDescriptionColumn = tableInfo.rows.some(col => col.name === 'description');
+      if (!hasDescriptionColumn) {
+        console.log('Adding description column to attachments table...');
+        await execute('ALTER TABLE attachments ADD COLUMN description TEXT;');
+      }
+    } catch (error) {
+      console.warn('Error checking/adding description column:', error);
+    }
+
     // Create companies table (referenced by contacts)
     await execute(`
       CREATE TABLE IF NOT EXISTS companies (
