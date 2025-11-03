@@ -83,59 +83,59 @@
     "errorLoad": "加载互动记录失败"
   },
   "addInteraction": {
-    "titleAdd": "Add Interaction",
-    "titleEdit": "Edit Interaction",
+    "titleAdd": "添加互动",
+    "titleEdit": "编辑互动",
     "sections": {
-      "contact": "Contact",
-      "type": "Type",
-      "dateTime": "Date & Time",
-      "title": "Title",
-      "duration": "Duration (minutes)",
-      "notes": "Notes"
+      "contact": "联系人",
+      "type": "类型",
+      "dateTime": "日期和时间",
+      "title": "标题",
+      "duration": "时长 (分钟)",
+      "notes": "备注"
     },
     "labels": {
-      "selectContact": "Select a contact",
-      "interactionTitle": "Interaction Title",
-      "titlePlaceholder": "e.g., Quick catch-up call",
-      "duration": "Duration",
-      "durationOptional": "Optional",
-      "notes": "Additional Notes",
-      "notesPlaceholder": "Optional notes about this interaction",
-      "quickFill": "Quick Fill",
-      "save": "Save",
-      "update": "Update",
-      "cancel": "Cancel"
+      "selectContact": "选择联系人",
+      "interactionTitle": "互动标题",
+      "titlePlaceholder": "例如：快速电话沟通",
+      "duration": "时长",
+      "durationOptional": "可选",
+      "notes": "附加备注",
+      "notesPlaceholder": "关于此次互动的可选备注",
+      "quickFill": "快速填充",
+      "save": "保存",
+      "update": "更新",
+      "cancel": "取消"
     },
     "types": {
-      "call": "Call",
-      "text": "Text",
-      "email": "Email",
-      "meeting": "Meeting",
-      "other": "Other"
+      "call": "通话",
+      "text": "短信",
+      "email": "电子邮件",
+      "meeting": "会议",
+      "other": "其他"
     },
     "quickTitles": {
-      "call": "Call with {{name}}",
-      "text": "Texted {{name}}",
-      "email": "Emailed {{name}}",
-      "meeting": "Meeting with {{name}}",
-      "other": "Interaction with {{name}}"
+      "call": "与 {{name}} 通话",
+      "text": "向 {{name}} 发送短信",
+      "email": "给 {{name}} 发送邮件",
+      "meeting": "与 {{name}} 会议",
+      "other": "与 {{name}} 互动"
     },
     "errors": {
-      "titleRequired": "Title is required",
-      "contactRequired": "Please select a contact",
-      "saveFailed": "Failed to save interaction. Please try again.",
-      "deleteFailed": "Failed to delete interaction. Please try again."
+      "titleRequired": "标题为必填项",
+      "contactRequired": "请选择一个联系人",
+      "saveFailed": "保存互动失败。请重试。",
+      "deleteFailed": "删除互动失败。请重试。"
     },
     "delete": {
-      "title": "Delete Interaction",
-      "message": "Are you sure you want to delete this interaction?",
-      "confirm": "Delete",
-      "cancel": "Cancel"
+      "title": "删除互动",
+      "message": "您确定要删除此互动吗？",
+      "confirm": "删除",
+      "cancel": "取消"
     },
     "success": {
-      "added": "Interaction added successfully!",
-      "updated": "Interaction updated successfully!",
-      "deleted": "Interaction deleted successfully!"
+      "added": "互动添加成功！",
+      "updated": "互动更新成功！",
+      "deleted": "互动删除成功！"
     }
   },
   "contactDetail": {

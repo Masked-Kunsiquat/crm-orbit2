@@ -83,63 +83,63 @@
     "errorLoad": "Échec du chargement des interactions"
   },
   "addInteraction": {
-    "titleAdd": "Add Interaction",
-    "titleEdit": "Edit Interaction",
+    "titleAdd": "Ajouter une interaction",
+    "titleEdit": "Modifier l'interaction",
     "sections": {
       "contact": "Contact",
       "type": "Type",
-      "dateTime": "Date & Time",
-      "title": "Title",
-      "duration": "Duration (minutes)",
+      "dateTime": "Date et heure",
+      "title": "Titre",
+      "duration": "Durée (minutes)",
       "notes": "Notes"
     },
     "labels": {
-      "selectContact": "Select a contact",
-      "interactionTitle": "Interaction Title",
-      "titlePlaceholder": "e.g., Quick catch-up call",
-      "duration": "Duration",
-      "durationOptional": "Optional",
-      "notes": "Additional Notes",
-      "notesPlaceholder": "Optional notes about this interaction",
-      "quickFill": "Quick Fill",
-      "save": "Save",
-      "update": "Update",
-      "cancel": "Cancel"
+      "selectContact": "Sélectionner un contact",
+      "interactionTitle": "Titre de l'interaction",
+      "titlePlaceholder": "Exemple : Appel de mise au point rapide",
+      "duration": "Durée",
+      "durationOptional": "Facultatif",
+      "notes": "Notes supplémentaires",
+      "notesPlaceholder": "Notes facultatives sur cette interaction",
+      "quickFill": "Remplissage rapide",
+      "save": "Enregistrer",
+      "update": "Mettre à jour",
+      "cancel": "Annuler"
     },
     "types": {
-      "call": "Call",
-      "text": "Text",
-      "email": "Email",
-      "meeting": "Meeting",
-      "other": "Other"
+      "call": "Appel",
+      "text": "Texte",
+      "email": "E-mail",
+      "meeting": "Réunion",
+      "other": "Autre"
     },
     "quickTitles": {
-      "call": "Call with {{name}}",
-      "text": "Texted {{name}}",
-      "email": "Emailed {{name}}",
-      "meeting": "Meeting with {{name}}",
-      "other": "Interaction with {{name}}"
+      "call": "Appel avec {{name}}",
+      "text": "Texto envoyé à {{name}}",
+      "email": "E-mail envoyé à {{name}}",
+      "meeting": "Réunion avec {{name}}",
+      "other": "Interaction avec {{name}}"
     },
     "errors": {
-      "titleRequired": "Title is required",
-      "contactRequired": "Please select a contact",
-      "saveFailed": "Failed to save interaction. Please try again.",
-      "deleteFailed": "Failed to delete interaction. Please try again."
+      "titleRequired": "Le titre est requis",
+      "contactRequired": "Veuillez sélectionner un contact",
+      "saveFailed": "Échec de l'enregistrement de l'interaction. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression de l'interaction. Veuillez réessayer."
     },
     "delete": {
-      "title": "Delete Interaction",
-      "message": "Are you sure you want to delete this interaction?",
-      "confirm": "Delete",
-      "cancel": "Cancel"
+      "title": "Supprimer l'interaction",
+      "message": "Êtes-vous sûr de vouloir supprimer cette interaction ?",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
     },
     "success": {
-      "added": "Interaction added successfully!",
-      "updated": "Interaction updated successfully!",
-      "deleted": "Interaction deleted successfully!"
+      "added": "Interaction ajoutée avec succès !",
+      "updated": "Interaction mise à jour avec succès !",
+      "deleted": "Interaction supprimée avec succès !"
     }
   },
   "contactDetail": {
-    "title": "Contact",
+    "title": "Détails du contact",
     "loading": "Chargement...",
     "errorLoad": "Échec du chargement des détails du contact",
     "errorImageSet": "Échec de la définition de la photo de contact",
