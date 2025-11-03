@@ -39,22 +39,17 @@ export default function InteractionsScreen({ navigation }) {
   useEffect(() => {
     const loadContacts = async () => {
       const contactIds = [...new Set(interactions.map(i => i.contact_id))];
-      const contactsMap = {};
 
-      await Promise.all(
-        contactIds.map(async (contactId) => {
-          try {
-            const contact = await contactsDB.getById(contactId);
-            if (contact) {
-              contactsMap[contactId] = contact;
-            }
-          } catch (error) {
-            console.error(`Error loading contact ${contactId}:`, error);
-          }
-        })
-      );
-
-      setContacts(contactsMap);
+      try {
+        // Batch fetch all contacts in a single query
+        const contactsList = await contactsDB.getByIds(contactIds);
+        const contactsMap = Object.fromEntries(
+          contactsList.map(c => [c.id, c])
+        );
+        setContacts(contactsMap);
+      } catch (error) {
+        console.error('Error loading contacts:', error);
+      }
     };
 
     if (interactions.length > 0) {

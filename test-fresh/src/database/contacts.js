@@ -103,6 +103,22 @@ export function createContactsDB(ctx) {
       return convertNullableFields(res.rows[0]) || null;
     },
 
+    async getByIds(ids) {
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return [];
+      }
+      // Filter out invalid IDs and remove duplicates
+      const validIds = [...new Set(ids.filter(id => id != null))];
+      if (validIds.length === 0) {
+        return [];
+      }
+      const res = await execute(
+        `SELECT * FROM contacts WHERE id IN (${placeholders(validIds.length)});`,
+        validIds
+      );
+      return res.rows.map(convertNullableFields);
+    },
+
     async getAll(options = {}) {
       const {
         limit = 100,
