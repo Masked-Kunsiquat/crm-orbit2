@@ -35,7 +35,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
   // Use TanStack Query for contact and interactions data
-  const { data: contact, isLoading: loading, refetch: refetchContact } = useContact(contactId);
+  const { data: contact, isLoading: loading } = useContact(contactId);
   const { data: allInteractions = [] } = useContactInteractions(contactId);
   const deleteContactMutation = useDeleteContact();
   const updateContactMutation = useUpdateContact();
@@ -222,25 +222,16 @@ export default function ContactDetailScreen({ route, navigation }) {
 
       // Update contact with new avatar attachment ID - wrap in try/catch for rollback
       try {
-        console.log('Updating contact with avatar_attachment_id:', newAttachment.id);
         await updateContactMutation.mutateAsync({
           id: contactId,
           data: { avatar_attachment_id: newAttachment.id }
         });
-        console.log('Contact updated successfully, avatar_attachment_id set to:', newAttachment.id);
-
-        // Force immediate refetch to update the UI
-        console.log('Forcing contact refetch...');
-        const refetchResult = await refetchContact();
-        console.log('Contact refetched successfully');
-        console.log('Refetched contact data:', JSON.stringify(refetchResult.data, null, 2));
+        // TanStack Query will auto-refetch via invalidation in mutation's onSuccess
       } catch (mutationError) {
         // Rollback: delete the newly saved attachment since update failed
         try {
           await fileService.deleteFile(newAttachment.id);
-          console.log('Successfully rolled back orphaned attachment after mutation failure');
         } catch (rollbackError) {
-          // Log rollback failure but rethrow original error
           console.error('Failed to rollback orphaned attachment (now orphaned):', rollbackError);
           console.error('Orphaned attachment ID:', newAttachment.id);
         }
