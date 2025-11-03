@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, View, ScrollView, Alert } from 'react-native';
-import { Appbar, FAB, Chip, Text, useTheme, SegmentedButtons } from 'react-native-paper';
+import { StyleSheet, FlatList, View, ScrollView } from 'react-native';
+import { Appbar, FAB, Chip, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import InteractionCard from '../components/InteractionCard';
 import AddInteractionModal from '../components/AddInteractionModal';

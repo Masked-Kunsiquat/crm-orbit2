@@ -14,7 +14,6 @@ import {
   Button,
   useTheme,
 } from 'react-native-paper';
-import { contactsDB, interactionsDB } from '../database';
 import { useTranslation } from 'react-i18next';
 import { fileService } from '../services/fileService';
 import EditContactModal from '../components/EditContactModal';
