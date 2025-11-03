@@ -1,10 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text, Avatar, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { fileService } from '../services/fileService';
 
 export default function ContactCard({ contact, onPress }) {
   const { t } = useTranslation();
+  const [avatarUri, setAvatarUri] = useState(contact.avatar_uri || null);
+
+  // Load avatar from attachment if we have an attachment_id
+  useEffect(() => {
+    if (contact?.avatar_attachment_id && !contact.avatar_uri) {
+      fileService.getFileUri(contact.avatar_attachment_id)
+        .then(setAvatarUri)
+        .catch((error) => {
+          console.warn('Failed to load avatar:', error);
+          setAvatarUri(null);
+        });
+    } else if (contact?.avatar_uri) {
+      setAvatarUri(contact.avatar_uri);
+    } else {
+      setAvatarUri(null);
+    }
+  }, [contact?.avatar_attachment_id, contact?.avatar_uri]);
+
   const getInitials = (firstName, lastName) => {
     const first = firstName ? firstName.charAt(0).toUpperCase() : '';
     const last = lastName ? lastName.charAt(0).toUpperCase() : '';
@@ -16,8 +35,8 @@ export default function ContactCard({ contact, onPress }) {
       <Card.Content>
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {contact.avatar_uri ? (
-              <Avatar.Image size={48} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
+            {avatarUri ? (
+              <Avatar.Image size={48} source={{ uri: avatarUri }} style={styles.avatar} />
             ) : (
               <Avatar.Text
                 size={48}
