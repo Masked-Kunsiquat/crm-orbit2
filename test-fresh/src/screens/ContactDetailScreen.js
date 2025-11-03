@@ -48,14 +48,20 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   // Load avatar when contact changes
   useEffect(() => {
+    console.log('Avatar useEffect triggered. avatar_attachment_id:', contact?.avatar_attachment_id);
     if (contact?.avatar_attachment_id) {
+      console.log('Loading avatar URI for attachment ID:', contact.avatar_attachment_id);
       fileService.getFileUri(contact.avatar_attachment_id)
-        .then(setAvatarUri)
+        .then((uri) => {
+          console.log('Avatar URI loaded successfully:', uri);
+          setAvatarUri(uri);
+        })
         .catch((error) => {
           console.warn('Failed to load avatar:', error);
           setAvatarUri(null);
         });
     } else {
+      console.log('No avatar_attachment_id, clearing avatar');
       setAvatarUri(null);
     }
   }, [contact?.avatar_attachment_id]);
@@ -215,10 +221,9 @@ export default function ContactDetailScreen({ route, navigation }) {
         return;
       }
 
-      // Prefer the modern API; if unavailable, omit to avoid deprecation warnings
-      const mt = ImagePicker?.MediaTypeOptions?.Images ?? undefined;
+      // Use modern MediaType.Images (not deprecated MediaTypeOptions)
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: mt,
+        mediaTypes: ImagePicker.MediaType.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
