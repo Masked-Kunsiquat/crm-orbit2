@@ -209,7 +209,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     try {
       let ImagePicker;
       try {
-        ImagePicker = (await import('expo-image-picker'));
+        ImagePicker = (await import('expo-image-picker')).default || (await import('expo-image-picker'));
       } catch (e) {
         Alert.alert('Missing dependency', 'Please install expo-image-picker to add photos.');
         return;
@@ -221,9 +221,10 @@ export default function ContactDetailScreen({ route, navigation }) {
         return;
       }
 
-      // Use modern MediaType.Images (not deprecated MediaTypeOptions)
+      // Use MediaType if available, otherwise MediaTypeOptions (backwards compatible)
+      const mediaTypes = ImagePicker.MediaType?.Images || ImagePicker.MediaTypeOptions?.Images || 'Images';
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
