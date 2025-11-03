@@ -36,7 +36,7 @@ export function SettingsProvider({ children }) {
         // language
         const lang = await settingsDB.get('i18n.language');
         const langVal = lang?.value || 'device';
-        const supported = ['device','en','es'];
+        const supported = ['device', 'en', 'es', 'de', 'fr', 'zh'];
         const normalized = supported.includes(langVal) ? langVal : 'device';
         setLanguageState(normalized);
         // Apply language immediately
@@ -90,7 +90,7 @@ export function SettingsProvider({ children }) {
   }, [themeMode]);
 
   const setLanguage = useCallback(async (lang) => {
-    const supported = ['device','en','es'];
+    const supported = ['device', 'en', 'es', 'de', 'fr', 'zh'];
     const normalized = supported.includes(lang) ? lang : 'device';
     const prevLang = language;
     // Optimistic update
