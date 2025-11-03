@@ -153,6 +153,11 @@ export function useCreateContactWithDetails() {
             'INSERT INTO contacts (first_name, last_name, display_name) VALUES (?, ?, ?);',
             [firstName.trim(), lastName.trim(), displayName]
           );
+
+          // Validate insertId exists (allowing 0 as valid ID)
+          if (typeof insertContact.insertId === 'undefined' || insertContact.insertId === null) {
+            throw new Error('Failed to create contact: insertId is missing from database response');
+          }
           contactId = insertContact.insertId;
 
           // Insert phones
