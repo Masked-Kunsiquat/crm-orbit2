@@ -118,20 +118,20 @@ export default function EventsList({ navigation }) {
     const eventDate = formatEventDate(item.event_date);
 
     return (
-      <View style={styles.eventCard}>
+      <View style={[styles.eventCard, { backgroundColor: theme.colors.surface }]}>
         <View style={styles.eventHeader}>
           <View style={styles.eventInfo}>
-            <Text variant="titleMedium" style={styles.eventTitle}>
+            <Text variant="titleMedium" style={[styles.eventTitle, { color: theme.colors.onSurface }]}>
               {item.title}
             </Text>
             {contact && (
-              <Text variant="bodySmall" style={styles.contactName}>
+              <Text variant="bodySmall" style={[styles.contactName, { color: theme.colors.onSurfaceVariant }]}>
                 {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
               </Text>
             )}
           </View>
           <View style={styles.eventMeta}>
-            <Text variant="bodySmall" style={styles.eventDate}>
+            <Text variant="bodySmall" style={[styles.eventDate, { color: theme.colors.onSurfaceVariant }]}>
               {eventDate}
             </Text>
             <Chip
@@ -145,7 +145,7 @@ export default function EventsList({ navigation }) {
           </View>
         </View>
         {item.notes && (
-          <Text variant="bodySmall" style={styles.eventNotes} numberOfLines={2}>
+          <Text variant="bodySmall" style={[styles.eventNotes, { color: theme.colors.onSurfaceVariant }]} numberOfLines={2}>
             {item.notes}
           </Text>
         )}
@@ -155,10 +155,10 @@ export default function EventsList({ navigation }) {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text variant="headlineSmall" style={styles.emptyTitle}>
+      <Text variant="headlineSmall" style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>
         {t('events.emptyTitle')}
       </Text>
-      <Text variant="bodyMedium" style={styles.emptyMessage}>
+      <Text variant="bodyMedium" style={[styles.emptyMessage, { color: theme.colors.onSurfaceVariant }]}>
         {t('events.emptyMessage')}
       </Text>
     </View>
@@ -271,10 +271,8 @@ const styles = StyleSheet.create({
   },
   emptyMessage: {
     textAlign: 'center',
-    color: '#666',
   },
   eventCard: {
-    backgroundColor: '#fff',
     marginHorizontal: 16,
     marginVertical: 4,
     padding: 16,
@@ -295,21 +293,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   contactName: {
-    color: '#666',
   },
   eventMeta: {
     alignItems: 'flex-end',
     gap: 4,
   },
   eventDate: {
-    color: '#666',
     marginBottom: 4,
   },
   typeChip: {
     height: 24,
   },
   eventNotes: {
-    color: '#888',
     fontStyle: 'italic',
   },
   fab: {

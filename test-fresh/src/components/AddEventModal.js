@@ -12,6 +12,7 @@ import {
   Menu,
   Divider,
   Switch,
+  useTheme,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +44,7 @@ export default function AddEventModal({
   editingEvent,
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const isEditMode = !!editingEvent;
 
   const [title, setTitle] = useState('');
@@ -400,13 +402,12 @@ export default function AddEventModal({
                 placeholder={t('addEvent.labels.notesPlaceholder')}
                 multiline
                 numberOfLines={4}
-                style={styles.input}
               />
             </View>
           </ScrollView>
 
           {/* Footer Actions */}
-          <View style={styles.footer}>
+          <View style={[styles.footer, { borderTopColor: theme.colors.outlineVariant }]}>
             {isEditMode && (
               <Button
                 mode="text"
@@ -488,7 +489,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   helperText: {
-    color: '#666',
     marginTop: 4,
   },
   titleRow: {
@@ -496,9 +496,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#fff',
   },
   reminderTemplates: {
     flexDirection: 'row',
@@ -517,13 +514,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 8,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
   footerButtons: {
     flexDirection: 'row',
