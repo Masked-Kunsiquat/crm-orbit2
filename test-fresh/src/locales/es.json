@@ -82,6 +82,62 @@
     "emptyMessage": "Agrega tu primera interacción para comenzar.",
     "errorLoad": "No se pudieron cargar las interacciones"
   },
+  "addInteraction": {
+    "titleAdd": "Agregar interacción",
+    "titleEdit": "Editar interacción",
+    "sections": {
+      "contact": "Contacto",
+      "type": "Tipo",
+      "dateTime": "Fecha y hora",
+      "title": "Título",
+      "duration": "Duración (minutos)",
+      "notes": "Notas"
+    },
+    "labels": {
+      "selectContact": "Seleccionar contacto",
+      "interactionTitle": "Título de la interacción",
+      "titlePlaceholder": "ej., Llamada rápida de seguimiento",
+      "duration": "Duración",
+      "durationOptional": "Opcional",
+      "notes": "Notas adicionales",
+      "notesPlaceholder": "Notas opcionales sobre esta interacción",
+      "quickFill": "Llenar rápido",
+      "save": "Guardar",
+      "update": "Actualizar",
+      "cancel": "Cancelar"
+    },
+    "types": {
+      "call": "Llamada",
+      "text": "Mensaje",
+      "email": "Correo",
+      "meeting": "Reunión",
+      "other": "Otro"
+    },
+    "quickTitles": {
+      "call": "Llamada con {{name}}",
+      "text": "Mensaje a {{name}}",
+      "email": "Correo a {{name}}",
+      "meeting": "Reunión con {{name}}",
+      "other": "Interacción con {{name}}"
+    },
+    "errors": {
+      "titleRequired": "El título es obligatorio",
+      "contactRequired": "Por favor selecciona un contacto",
+      "saveFailed": "No se pudo guardar la interacción. Inténtalo de nuevo.",
+      "deleteFailed": "No se pudo eliminar la interacción. Inténtalo de nuevo."
+    },
+    "delete": {
+      "title": "Eliminar interacción",
+      "message": "¿Seguro que quieres eliminar esta interacción?",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar"
+    },
+    "success": {
+      "added": "¡Interacción agregada exitosamente!",
+      "updated": "¡Interacción actualizada exitosamente!",
+      "deleted": "¡Interacción eliminada exitosamente!"
+    }
+  },
   "contactDetail": {
     "title": "Contacto",
     "loading": "Cargando...",

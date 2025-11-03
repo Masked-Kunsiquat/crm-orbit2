@@ -85,6 +85,62 @@
     "emptyMessage": "Add your first interaction to get started.",
     "errorLoad": "Failed to load interactions"
   },
+  "addInteraction": {
+    "titleAdd": "Add Interaction",
+    "titleEdit": "Edit Interaction",
+    "sections": {
+      "contact": "Contact",
+      "type": "Type",
+      "dateTime": "Date & Time",
+      "title": "Title",
+      "duration": "Duration (minutes)",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Select a contact",
+      "interactionTitle": "Interaction Title",
+      "titlePlaceholder": "e.g., Quick catch-up call",
+      "duration": "Duration",
+      "durationOptional": "Optional",
+      "notes": "Additional Notes",
+      "notesPlaceholder": "Optional notes about this interaction",
+      "quickFill": "Quick Fill",
+      "save": "Save",
+      "update": "Update",
+      "cancel": "Cancel"
+    },
+    "types": {
+      "call": "Call",
+      "text": "Text",
+      "email": "Email",
+      "meeting": "Meeting",
+      "other": "Other"
+    },
+    "quickTitles": {
+      "call": "Call with {{name}}",
+      "text": "Texted {{name}}",
+      "email": "Emailed {{name}}",
+      "meeting": "Meeting with {{name}}",
+      "other": "Interaction with {{name}}"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "contactRequired": "Please select a contact",
+      "saveFailed": "Failed to save interaction. Please try again.",
+      "deleteFailed": "Failed to delete interaction. Please try again."
+    },
+    "delete": {
+      "title": "Delete Interaction",
+      "message": "Are you sure you want to delete this interaction?",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "success": {
+      "added": "Interaction added successfully!",
+      "updated": "Interaction updated successfully!",
+      "deleted": "Interaction deleted successfully!"
+    }
+  },
   "contactDetail": {
     "title": "Contact",
     "loading": "Loading...",
