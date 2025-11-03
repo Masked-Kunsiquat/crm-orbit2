@@ -64,7 +64,7 @@ export async function createBasicTables() {
         last_interaction_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies(id),
+        FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,
         FOREIGN KEY (avatar_attachment_id) REFERENCES attachments(id) ON DELETE SET NULL
       )
     `);
