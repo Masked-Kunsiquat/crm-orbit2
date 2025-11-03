@@ -7,8 +7,9 @@ import m001 from './001_initial_schema.js';
 import m002 from './002_seed_data.js';
 import m003 from './003_performance_indexes.js';
 import m004 from './004_add_display_name_column.js';
+import m005 from './005_add_avatar_attachment_id.js';
 
-const MIGRATIONS = [m001, m002, m003, m004];
+const MIGRATIONS = [m001, m002, m003, m004, m005];
 
 // Ensure unique, sorted by version
 const seen = new Set();

@@ -19,6 +19,7 @@ import { useSettings } from './src/context/SettingsContext';
 import { useColorScheme } from 'react-native';
 import i18n from './src/i18n';
 import { useTranslation, I18nextProvider } from 'react-i18next';
+import QueryProvider from './src/providers/QueryProvider';
 
 const Stack = createNativeStackNavigator();
 
@@ -86,18 +87,15 @@ export default function App() {
   }
 
   const MainTabs = ({ navigation }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [index, setIndex] = React.useState(0);
-    const [routes, setRoutes] = React.useState([
+
+    // Compute routes dynamically based on current language - no state needed!
+    const routes = React.useMemo(() => [
       { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
       { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
       { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
-    ]);
-
-    // Update route titles on language change
-    React.useEffect(() => {
-      setRoutes((r) => r.map(rt => ({ ...rt, title: t(`navigation.${rt.key}`) })));
-    }, [t]);
+    ], [i18n.language]); // Only recompute when language actually changes
 
     const renderScene = ({ route }) => {
       switch (route.key) {
@@ -125,23 +123,25 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SettingsProvider>
-        <ThemeBridge colorScheme={colorScheme}>
-          <I18nextProvider i18n={i18n}>
-            <AuthProvider>
-              <AuthGate>
-                <NavigationContainer>
-                  <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="MainTabs" component={MainTabs} />
-                    <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-                    <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-                  </Stack.Navigator>
-                </NavigationContainer>
-              </AuthGate>
-            </AuthProvider>
-          </I18nextProvider>
-        </ThemeBridge>
-      </SettingsProvider>
+      <QueryProvider>
+        <SettingsProvider>
+          <ThemeBridge colorScheme={colorScheme}>
+            <I18nextProvider i18n={i18n}>
+              <AuthProvider>
+                <AuthGate>
+                  <NavigationContainer>
+                    <Stack.Navigator screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="MainTabs" component={MainTabs} />
+                      <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+                      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </AuthGate>
+              </AuthProvider>
+            </I18nextProvider>
+          </ThemeBridge>
+        </SettingsProvider>
+      </QueryProvider>
     </GestureHandlerRootView>
   );
 }

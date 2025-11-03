@@ -4,7 +4,38 @@ export async function createBasicTables() {
   console.log('Creating basic database tables...');
 
   try {
-    // Create companies table first (referenced by contacts)
+    // Create attachments table first (referenced by contacts for avatars)
+    await execute(`
+      CREATE TABLE IF NOT EXISTS attachments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
+        file_name TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        file_size INTEGER,
+        thumbnail_path TEXT,
+        description TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Add description column if it doesn't exist (for existing databases)
+    try {
+      const tableInfo = await execute('PRAGMA table_info(attachments);');
+      const hasDescriptionColumn = tableInfo.rows.some(col => col.name === 'description');
+      if (!hasDescriptionColumn) {
+        console.log('Adding description column to attachments table...');
+        await execute('ALTER TABLE attachments ADD COLUMN description TEXT;');
+      }
+    } catch (error) {
+      console.warn('Error checking/adding description column:', error);
+    }
+
+    // Create companies table (referenced by contacts)
     await execute(`
       CREATE TABLE IF NOT EXISTS companies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,15 +57,30 @@ export async function createBasicTables() {
         middle_name TEXT,
         display_name TEXT,
         avatar_uri TEXT,
+        avatar_attachment_id INTEGER,
         company_id INTEGER,
         job_title TEXT,
         is_favorite INTEGER DEFAULT 0,
         last_interaction_at TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (company_id) REFERENCES companies(id)
+        FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,
+        FOREIGN KEY (avatar_attachment_id) REFERENCES attachments(id) ON DELETE SET NULL
       )
     `);
+
+    // Add avatar_attachment_id column if it doesn't exist (for existing databases)
+    try {
+      const contactsTableInfo = await execute('PRAGMA table_info(contacts);');
+      const hasAvatarAttachmentId = contactsTableInfo.rows.some(col => col.name === 'avatar_attachment_id');
+      if (!hasAvatarAttachmentId) {
+        console.log('Adding avatar_attachment_id column to contacts table...');
+        await execute('ALTER TABLE contacts ADD COLUMN avatar_attachment_id INTEGER REFERENCES attachments(id) ON DELETE SET NULL;');
+        console.log('avatar_attachment_id column added successfully');
+      }
+    } catch (error) {
+      console.warn('Error checking/adding avatar_attachment_id column:', error);
+    }
 
     // Create contact_info table for phone, email, etc.
     await execute(`

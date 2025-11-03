@@ -13,14 +13,16 @@ import {
   Divider,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { interactionsDB, contactsDB } from '../database';
+import { useTranslation } from 'react-i18next';
+import { contactsDB } from '../database';
+import { useCreateInteraction, useUpdateInteraction, useDeleteInteraction, useContacts } from '../hooks/queries';
 
 const INTERACTION_TYPES = [
-  { value: 'call', label: 'Call', icon: 'phone' },
-  { value: 'text', label: 'Text', icon: 'message-text' },
-  { value: 'email', label: 'Email', icon: 'email' },
-  { value: 'meeting', label: 'Meeting', icon: 'calendar-account' },
-  { value: 'other', label: 'Other', icon: 'note-text' },
+  { value: 'call', icon: 'phone' },
+  { value: 'text', icon: 'message-text' },
+  { value: 'email', icon: 'email' },
+  { value: 'meeting', icon: 'calendar-account' },
+  { value: 'other', icon: 'note-text' },
 ];
 
 export default function AddInteractionModal({
@@ -32,6 +34,7 @@ export default function AddInteractionModal({
   preselectedContactId,
   editingInteraction // Pass existing interaction for edit mode
 }) {
+  const { t } = useTranslation();
   const isEditMode = !!editingInteraction;
 
   const [title, setTitle] = useState('');
@@ -39,17 +42,19 @@ export default function AddInteractionModal({
   const [interactionType, setInteractionType] = useState('call');
   const [duration, setDuration] = useState('');
   const [selectedContactId, setSelectedContactId] = useState(preselectedContactId || null);
-  const [contacts, setContacts] = useState([]);
   const [contactMenuVisible, setContactMenuVisible] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [interactionDateTime, setInteractionDateTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  // Use TanStack Query hooks
+  const { data: contacts = [] } = useContacts();
+  const createInteractionMutation = useCreateInteraction();
+  const updateInteractionMutation = useUpdateInteraction();
+  const deleteInteractionMutation = useDeleteInteraction();
+
   useEffect(() => {
     if (visible) {
-      loadContacts();
-
       if (editingInteraction) {
         // Populate form with existing interaction data
         setTitle(editingInteraction.title || '');
@@ -68,15 +73,6 @@ export default function AddInteractionModal({
     }
   }, [visible, preselectedContactId, editingInteraction]);
 
-  const loadContacts = async () => {
-    try {
-      const allContacts = await contactsDB.getAll();
-      setContacts(allContacts);
-    } catch (error) {
-      console.error('Error loading contacts:', error);
-    }
-  };
-
   const resetForm = () => {
     setTitle('');
     setNote('');
@@ -86,7 +82,6 @@ export default function AddInteractionModal({
       setSelectedContactId(null);
     }
     setInteractionDateTime(new Date());
-    setSaving(false);
   };
 
   const handleCancel = () => {
@@ -98,27 +93,24 @@ export default function AddInteractionModal({
     if (!isEditMode || !editingInteraction) return;
 
     Alert.alert(
-      'Delete Interaction',
-      'Are you sure you want to delete this interaction?',
+      t('addInteraction.delete.title'),
+      t('addInteraction.delete.message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('addInteraction.delete.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('addInteraction.delete.confirm'),
           style: 'destructive',
           onPress: async () => {
             try {
-              setSaving(true);
-              await interactionsDB.delete(editingInteraction.id);
+              await deleteInteractionMutation.mutateAsync(editingInteraction.id);
 
               resetForm();
               onInteractionDeleted && onInteractionDeleted();
               onDismiss();
-              Alert.alert('Success', 'Interaction deleted successfully!');
+              Alert.alert(t('addInteraction.success.deleted'), '');
             } catch (error) {
               console.error('Error deleting interaction:', error);
-              Alert.alert('Error', 'Failed to delete interaction. Please try again.');
-            } finally {
-              setSaving(false);
+              Alert.alert(t('addInteraction.errors.deleteFailed'), '');
             }
           },
         },
@@ -128,16 +120,14 @@ export default function AddInteractionModal({
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Title is required');
+      Alert.alert(t('addInteraction.errors.titleRequired'), '');
       return;
     }
 
     if (!selectedContactId) {
-      Alert.alert('Error', 'Please select a contact');
+      Alert.alert(t('addInteraction.errors.contactRequired'), '');
       return;
     }
-
-    setSaving(true);
 
     try {
       // Parse duration (in minutes) to seconds
@@ -160,29 +150,28 @@ export default function AddInteractionModal({
 
       if (isEditMode) {
         // Update existing interaction
-        await interactionsDB.update(editingInteraction.id, interactionData);
+        await updateInteractionMutation.mutateAsync({ id: editingInteraction.id, data: interactionData });
         resetForm();
         onInteractionUpdated && onInteractionUpdated();
         onDismiss();
-        Alert.alert('Success', 'Interaction updated successfully!');
+        Alert.alert(t('addInteraction.success.updated'), '');
       } else {
         // Create new interaction
-        await interactionsDB.create(interactionData);
+        await createInteractionMutation.mutateAsync(interactionData);
         resetForm();
         onInteractionAdded && onInteractionAdded();
         onDismiss();
-        Alert.alert('Success', 'Interaction added successfully!');
+        Alert.alert(t('addInteraction.success.added'), '');
       }
     } catch (error) {
       console.error('Error saving interaction:', error);
-      Alert.alert('Error', 'Failed to save interaction. Please try again.');
-    } finally {
-      setSaving(false);
+      Alert.alert(t('addInteraction.errors.saveFailed'), '');
     }
   };
 
   const selectedContact = contacts.find(c => c.id === selectedContactId);
-  const canSave = title.trim() && selectedContactId && !saving;
+  const isSaving = createInteractionMutation.isPending || updateInteractionMutation.isPending || deleteInteractionMutation.isPending;
+  const canSave = title.trim() && selectedContactId && !isSaving;
 
   // Generate quick title suggestions based on interaction type
   const getQuickTitleSuggestion = () => {
@@ -192,16 +181,15 @@ export default function AddInteractionModal({
 
     switch (interactionType) {
       case 'call':
-        return `Call with ${contactName}`;
+        return t('addInteraction.quickTitles.call', { name: contactName });
       case 'text':
-        return `Texted ${contactName}`;
+        return t('addInteraction.quickTitles.text', { name: contactName });
       case 'email':
-        return `Emailed ${contactName}`;
+        return t('addInteraction.quickTitles.email', { name: contactName });
       case 'meeting':
-        return `Meeting with ${contactName}`;
-      case 'other':
+        return t('addInteraction.quickTitles.meeting', { name: contactName });
       default:
-        return `Interaction with ${contactName}`;
+        return t('addInteraction.quickTitles.other', { name: contactName });
     }
   };
 
@@ -257,7 +245,7 @@ export default function AddInteractionModal({
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
             <Text variant="headlineSmall" style={styles.title}>
-              {isEditMode ? 'Edit Interaction' : 'Add Interaction'}
+              {isEditMode ? t('addInteraction.titleEdit') : t('addInteraction.titleAdd')}
             </Text>
             <View style={styles.headerActions}>
               {isEditMode && (
@@ -282,7 +270,7 @@ export default function AddInteractionModal({
             {/* Contact Selection */}
             <View style={styles.section}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
-                Contact
+                {t('addInteraction.sections.contact')}
               </Text>
               <Menu
                 visible={contactMenuVisible}
@@ -298,7 +286,7 @@ export default function AddInteractionModal({
                   >
                     {selectedContact
                       ? selectedContact.display_name || `${selectedContact.first_name || ''} ${selectedContact.last_name || ''}`.trim()
-                      : 'Select a contact'}
+                      : t('addInteraction.labels.selectContact')}
                   </Button>
                 }
                 contentStyle={styles.menu}
@@ -322,7 +310,7 @@ export default function AddInteractionModal({
             {/* Interaction Type */}
             <View style={styles.section}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
-                Type
+                {t('addInteraction.sections.type')}
               </Text>
               <View style={styles.typeChips}>
                 {INTERACTION_TYPES.map((type) => (
@@ -334,7 +322,7 @@ export default function AddInteractionModal({
                     icon={type.icon}
                     mode="flat"
                   >
-                    {type.label}
+                    {t('addInteraction.types.' + type.value)}
                   </Chip>
                 ))}
               </View>
@@ -343,7 +331,7 @@ export default function AddInteractionModal({
             {/* Date & Time */}
             <View style={styles.section}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
-                Date & Time
+                {t('addInteraction.sections.dateTime')}
               </Text>
               <View style={styles.dateTimeRow}>
                 <Button
@@ -369,7 +357,7 @@ export default function AddInteractionModal({
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Title
+                  {t('addInteraction.sections.title')}
                 </Text>
                 {selectedContact && !isEditMode && (
                   <Button
@@ -378,17 +366,17 @@ export default function AddInteractionModal({
                     compact
                     style={styles.quickButton}
                   >
-                    Quick Fill
+                    {t('addInteraction.labels.quickFill')}
                   </Button>
                 )}
               </View>
               <TextInput
-                label="Interaction Title"
+                label={t('addInteraction.labels.interactionTitle')}
                 value={title}
                 onChangeText={setTitle}
                 mode="outlined"
                 style={styles.input}
-                placeholder="e.g., Quick catch-up call"
+                placeholder={t('addInteraction.labels.titlePlaceholder')}
               />
             </View>
 
@@ -396,16 +384,16 @@ export default function AddInteractionModal({
             {(interactionType === 'call' || interactionType === 'meeting') && (
               <View style={styles.section}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
-                  Duration (minutes)
+                  {t('addInteraction.sections.duration')}
                 </Text>
                 <TextInput
-                  label="Duration"
+                  label={t('addInteraction.labels.duration')}
                   value={duration}
                   onChangeText={setDuration}
                   mode="outlined"
                   style={styles.input}
                   keyboardType="number-pad"
-                  placeholder="Optional"
+                  placeholder={t('addInteraction.labels.durationOptional')}
                 />
               </View>
             )}
@@ -413,17 +401,17 @@ export default function AddInteractionModal({
             {/* Notes */}
             <View style={styles.section}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
-                Notes
+                {t('addInteraction.sections.notes')}
               </Text>
               <TextInput
-                label="Additional Notes"
+                label={t('addInteraction.labels.notes')}
                 value={note}
                 onChangeText={setNote}
                 mode="outlined"
                 style={styles.input}
                 multiline
                 numberOfLines={4}
-                placeholder="Optional notes about this interaction"
+                placeholder={t('addInteraction.labels.notesPlaceholder')}
               />
             </View>
 
@@ -435,18 +423,18 @@ export default function AddInteractionModal({
               mode="outlined"
               onPress={handleCancel}
               style={styles.button}
-              disabled={saving}
+              disabled={isSaving}
             >
-              Cancel
+              {t('addInteraction.labels.cancel')}
             </Button>
             <Button
               mode="contained"
               onPress={handleSave}
               style={styles.button}
               disabled={!canSave}
-              loading={saving}
+              loading={isSaving}
             >
-              {isEditMode ? 'Update' : 'Save'}
+              {isEditMode ? t('addInteraction.labels.update') : t('addInteraction.labels.save')}
             </Button>
           </View>
         </Surface>

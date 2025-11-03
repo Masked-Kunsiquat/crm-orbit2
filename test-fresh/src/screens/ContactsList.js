@@ -5,30 +5,25 @@ import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper
 import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
-import { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB } from '../database';
+import { categoriesDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
+import { useContactsWithInfo } from '../hooks/queries';
 
 export default function ContactsList({ navigation }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const { leftAction, rightAction } = useSettings();
 
-  useEffect(() => {
-    loadContacts();
-    loadCategories();
-  }, []);
+  // Use TanStack Query for enriched contacts data (with contact_info and categories)
+  const { data: contactsWithInfo = [], isLoading: loading, refetch, isFetching: refreshing } = useContactsWithInfo();
 
   useEffect(() => {
-    // Reload contacts when category filter changes
-    loadContacts();
-  }, [selectedCategory]);
+    loadCategories();
+  }, []);
 
   // Mapping provided via SettingsContext; no local loader needed
 
@@ -41,67 +36,8 @@ export default function ContactsList({ navigation }) {
     }
   };
 
-  const loadContacts = async () => {
-    try {
-      setLoading(true);
-
-      // Get contacts based on selected category filter
-      let allContacts;
-      if (selectedCategory) {
-        // Get contacts for specific category
-        allContacts = await categoriesRelationsDB.getContactsByCategory(selectedCategory.id);
-      } else {
-        // Get all contacts
-        allContacts = await contactsDB.getAll();
-      }
-
-      // Batch fetch related data to avoid N+1 queries
-      const ids = allContacts.map(c => c.id);
-
-      // 1) All contact_info rows for these contacts
-      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
-      const infoByContact = new Map();
-      for (const row of allInfoRows) {
-        const list = infoByContact.get(row.contact_id) || [];
-        list.push(row);
-        infoByContact.set(row.contact_id, list);
-      }
-
-      // 2) All categories for these contacts
-      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
-      const catsByContact = new Map();
-      for (const row of allCatRows) {
-        const list = catsByContact.get(row.contact_id) || [];
-        // Strip contact_id if you prefer category objects only
-        const { contact_id, ...cat } = row;
-        list.push(cat);
-        catsByContact.set(row.contact_id, list);
-      }
-
-      // Merge once
-      const contactsWithInfo = allContacts.map(c => {
-        const contact_info = infoByContact.get(c.id) || [];
-        const phones = contact_info.filter(i => i.type === 'phone');
-        const emails = contact_info.filter(i => i.type === 'email');
-        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
-        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
-        const categories = catsByContact.get(c.id) || [];
-        return { ...c, contact_info, phone, email, categories };
-      });
-
-      setContacts(contactsWithInfo);
-    } catch (error) {
-      console.error('Error loading contacts:', error);
-      Alert.alert('Error', 'Failed to load contacts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadContacts();
-    setRefreshing(false);
+    await refetch();
   };
 
   const handleContactPress = (contact) => {
@@ -170,22 +106,34 @@ export default function ContactsList({ navigation }) {
   };
 
   const handleContactAdded = () => {
-    loadContacts(); // Refresh the contacts list
+    // No need to manually refetch - TanStack Query mutations will invalidate the cache
   };
 
-  const filteredContacts = contacts.filter(contact => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const name = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
-    const displayName = (contact.display_name || '').toLowerCase();
-    const company = (contact.company_name || '').toLowerCase();
-    const phone = (contact.phone || '').toLowerCase();
+  // Filter by category
+  const categoryFilteredContacts = React.useMemo(() => {
+    if (!selectedCategory) return contactsWithInfo;
+    // Filter by selected category
+    return contactsWithInfo.filter(contact =>
+      contact.categories?.some(cat => cat.id === selectedCategory.id)
+    );
+  }, [contactsWithInfo, selectedCategory]);
 
-    return name.includes(query) ||
-           displayName.includes(query) ||
-           company.includes(query) ||
-           phone.includes(query);
-  });
+  // Filter by search query
+  const filteredContacts = React.useMemo(() => {
+    if (!searchQuery) return categoryFilteredContacts;
+    const query = searchQuery.toLowerCase();
+    return categoryFilteredContacts.filter(contact => {
+      const name = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
+      const displayName = (contact.display_name || '').toLowerCase();
+      const company = (contact.company_name || '').toLowerCase();
+      const phone = (contact.phone || '').toLowerCase();
+
+      return name.includes(query) ||
+             displayName.includes(query) ||
+             company.includes(query) ||
+             phone.includes(query);
+    });
+  }, [categoryFilteredContacts, searchQuery]);
 
   // Left actions are revealed by a RIGHT swipe (gesture to the right)
   // so they should reflect the RIGHT-swipe mapping

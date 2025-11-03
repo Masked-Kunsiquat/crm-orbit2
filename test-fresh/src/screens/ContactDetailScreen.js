@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
 import {
   Appbar,
-  Avatar,
   Text,
   Surface,
   List,
@@ -14,66 +13,37 @@ import {
   Button,
   useTheme,
 } from 'react-native-paper';
-import { contactsDB, contactsInfoDB, interactionsDB } from '../database';
 import { useTranslation } from 'react-i18next';
+import { fileService } from '../services/fileService';
+import ContactAvatar from '../components/ContactAvatar';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
+import { useContact, useContactInteractions, useDeleteContact, useUpdateContact } from '../hooks/queries';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
   const theme = useTheme();
   const { t } = useTranslation();
-  const [contact, setContact] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
-  const [recentInteractions, setRecentInteractions] = useState([]);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
-  useEffect(() => {
-    loadContact();
-    loadRecentInteractions();
-  }, [contactId]);
+  // Use TanStack Query for contact and interactions data
+  const { data: contact, isLoading: loading } = useContact(contactId);
+  const { data: allInteractions = [] } = useContactInteractions(contactId);
+  const deleteContactMutation = useDeleteContact();
+  const updateContactMutation = useUpdateContact();
 
-  const loadContact = async () => {
-    try {
-      setLoading(true);
-      const contactWithInfo = await contactsInfoDB.getWithContactInfo(contactId);
-      setContact(contactWithInfo);
-    } catch (error) {
-      console.error('Error loading contact:', error);
-      Alert.alert('Error', t('contactDetail.errorLoad'));
-      navigation.goBack();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadRecentInteractions = async () => {
-    try {
-      // Get recent interactions for this contact (limit to 3)
-      const allInteractions = await interactionsDB.getAll({
-        limit: 500,
-        orderBy: 'interaction_datetime',
-        orderDir: 'DESC',
-      });
-
-      // Filter by this contact
-      const contactInteractions = allInteractions
-        .filter(i => i.contact_id === contactId)
-        .slice(0, 3);
-
-      setRecentInteractions(contactInteractions);
-    } catch (error) {
-      console.error('Error loading interactions:', error);
-    }
-  };
+  // Get recent interactions (limit to 3)
+  const recentInteractions = React.useMemo(() => {
+    return allInteractions.slice(0, 3);
+  }, [allInteractions]);
 
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
@@ -127,19 +97,19 @@ export default function ContactDetailScreen({ route, navigation }) {
   };
 
   const handleContactUpdated = () => {
-    loadContact(); // Reload contact after edit
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionAdded = () => {
-    loadRecentInteractions(); // Reload interactions after adding
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionUpdated = () => {
-    loadRecentInteractions(); // Reload interactions after updating
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionDeleted = () => {
-    loadRecentInteractions(); // Reload interactions after deleting
+    // Query will auto-refetch due to cache invalidation from mutation
   };
 
   const handleInteractionPress = (interaction) => {
@@ -187,7 +157,7 @@ export default function ContactDetailScreen({ route, navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await contactsDB.delete(contactId);
+              await deleteContactMutation.mutateAsync(contactId);
               navigation.goBack();
             } catch (error) {
               console.error('Error deleting contact:', error);
@@ -208,17 +178,12 @@ export default function ContactDetailScreen({ route, navigation }) {
     return phone;
   };
 
-  const getInitials = (firstName, lastName) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last || '?';
-  };
-
   const pickImageFromLibrary = async () => {
     try {
       let ImagePicker;
       try {
-        ImagePicker = (await import('expo-image-picker'));
+        const imported = await import('expo-image-picker');
+        ImagePicker = imported.default || imported;
       } catch (e) {
         Alert.alert('Missing dependency', 'Please install expo-image-picker to add photos.');
         return;
@@ -230,10 +195,10 @@ export default function ContactDetailScreen({ route, navigation }) {
         return;
       }
 
-      // Prefer the modern API; if unavailable, omit to avoid deprecation warnings
-      const mt = ImagePicker?.MediaTypeOptions?.Images ?? undefined;
+      // Use modern array syntax for media types (v17+)
+      const mediaTypes = ['images'];
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: mt,
+        mediaTypes,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -244,9 +209,49 @@ export default function ContactDetailScreen({ route, navigation }) {
       const uri = asset?.uri;
       if (!uri) return;
 
-      await contactsDB.update(contactId, { avatar_uri: uri });
+      // Save old avatar ID for cleanup after successful update
+      const oldAvatarId = contact.avatar_attachment_id;
+
+      // Save new avatar using fileService FIRST
+      const fileName = asset.fileName || `avatar_${contactId}.jpg`;
+      const newAttachment = await fileService.saveFile(
+        uri,
+        fileName,
+        'contact',
+        contactId
+      );
+
+      // Update contact with new avatar attachment ID - wrap in try/catch for rollback
+      try {
+        await updateContactMutation.mutateAsync({
+          id: contactId,
+          data: { avatar_attachment_id: newAttachment.id }
+        });
+        // TanStack Query will auto-refetch via invalidation in mutation's onSuccess
+      } catch (mutationError) {
+        // Rollback: delete the newly saved attachment since update failed
+        try {
+          await fileService.deleteFile(newAttachment.id);
+        } catch (rollbackError) {
+          console.error('Failed to rollback orphaned attachment (now orphaned):', rollbackError);
+          console.error('Orphaned attachment ID:', newAttachment.id);
+        }
+        // Rethrow original mutation error so caller sees the failure
+        throw mutationError;
+      }
+
+      // Only delete old avatar AFTER successful update
+      if (oldAvatarId) {
+        try {
+          await fileService.deleteFile(oldAvatarId);
+        } catch (cleanupError) {
+          // Log but don't throw - old avatar is now orphaned but can be cleaned up later
+          console.warn('Failed to delete old avatar attachment (now orphaned):', cleanupError);
+          console.warn('Orphaned attachment ID:', oldAvatarId);
+        }
+      }
+
       setShowAvatarDialog(false);
-      loadContact();
     } catch (e) {
       console.error('Image pick error', e);
       Alert.alert('Error', t('contactDetail.errorImageSet'));
@@ -255,9 +260,14 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const removePhoto = async () => {
     try {
-      await contactsDB.update(contactId, { avatar_uri: null });
+      if (contact.avatar_attachment_id) {
+        await fileService.deleteFile(contact.avatar_attachment_id);
+      }
+      await updateContactMutation.mutateAsync({
+        id: contactId,
+        data: { avatar_attachment_id: null }
+      });
       setShowAvatarDialog(false);
-      loadContact();
     } catch (e) {
       console.error('Remove photo error', e);
       Alert.alert('Error', t('contactDetail.errorImageRemove'));
@@ -294,15 +304,7 @@ export default function ContactDetailScreen({ route, navigation }) {
         {/* Header Section - iOS style */}
         <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
           <Pressable onPress={() => setShowAvatarDialog(true)}>
-            {contact.avatar_uri ? (
-              <Avatar.Image size={100} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
-            ) : (
-              <Avatar.Text
-                size={100}
-                label={getInitials(contact.first_name, contact.last_name)}
-                style={styles.avatar}
-              />
-            )}
+            <ContactAvatar contact={contact} size={100} style={styles.avatar} />
           </Pressable>
           <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
             {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
@@ -506,8 +508,8 @@ export default function ContactDetailScreen({ route, navigation }) {
             <Text variant="bodyMedium">Add or remove a profile picture.</Text>
           </Dialog.Content>
           <Dialog.Actions>
-            {contact.avatar_uri ? (
-              <Button onPress={removePhoto} textColor="#d32f2f">Remove</Button>
+            {contact?.avatar_attachment_id ? (
+              <Button onPress={removePhoto} textColor="#d32f2f">{t('contactDetail.remove')}</Button>
             ) : null}
             <Button onPress={pickImageFromLibrary}>Add Photo</Button>
             <Button onPress={() => setShowAvatarDialog(false)}>Cancel</Button>

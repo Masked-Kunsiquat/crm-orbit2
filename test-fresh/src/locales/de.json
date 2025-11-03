@@ -1,0 +1,213 @@
+{
+  "navigation": {
+    "contacts": "Kontakte",
+    "interactions": "Interaktionen",
+    "settings": "Einstellungen"
+  },
+  "search": {
+    "contactsPlaceholder": "Kontakte suchen..."
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "sections": {
+      "security": "Sicherheit",
+      "swipe": "Wisch-Aktionen",
+      "theme": "Design",
+      "language": "Sprache"
+    },
+    "language": {
+      "device": "Gerätestandard",
+      "english": "Englisch",
+      "spanish": "Spanisch"
+    },
+    "appearance": "Erscheinungsbild",
+    "security": {
+      "pinSetup": "PIN festlegen / ändern",
+      "useBiometric": "Biometrie verwenden",
+      "autoLock": "Automatische Sperre ({{minutes}} Min.)",
+      "autoLockTimeout": "Zeitlimit für automatische Sperre",
+      "minutes_one": "{{count}} Min.",
+      "minutes_other": "{{count}} Min."
+    },
+    "errors": {
+      "biometricToggle": {
+        "title": "Fehler",
+        "message": "Biometrie-Einstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "autoLockToggle": {
+        "title": "Fehler",
+        "message": "Einstellung für automatische Sperre konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "autoLockTimeout": {
+        "title": "Fehler",
+        "message": "Zeitlimit für automatische Sperre konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "swipeAction": {
+        "title": "Fehler",
+        "message": "Wisch-Aktion konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "theme": {
+        "title": "Fehler",
+        "message": "Design konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "language": {
+        "title": "Fehler",
+        "message": "Sprache konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      }
+    }
+  },
+  "labels": {
+    "call": "Anruf",
+    "text": "Text",
+    "left": "Links",
+    "right": "Rechts",
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "common": {
+    "all": "Alle"
+  },
+  "interactions": {
+    "title": "Interaktionen",
+    "filters": {
+      "all": "Alle",
+      "call": "Anrufe",
+      "text": "Textnachrichten",
+      "email": "E-Mail",
+      "meeting": "Besprechungen",
+      "other": "Sonstiges"
+    },
+    "emptyTitle": "Keine Interaktionen",
+    "emptyMessage": "Fügen Sie Ihre erste Interaktion hinzu, um zu beginnen.",
+    "errorLoad": "Laden der Interaktionen fehlgeschlagen"
+  },
+  "addInteraction": {
+    "titleAdd": "Interaktion hinzufügen",
+    "titleEdit": "Interaktion bearbeiten",
+    "sections": {
+      "contact": "Kontakt",
+      "type": "Typ",
+      "dateTime": "Datum & Uhrzeit",
+      "title": "Titel",
+      "duration": "Dauer (Minuten)",
+      "notes": "Notizen"
+    },
+    "labels": {
+      "selectContact": "Kontakt auswählen",
+      "interactionTitle": "Interaktionstitel",
+      "titlePlaceholder": "z.B. Kurzer Abstimmungsanruf",
+      "duration": "Dauer",
+      "durationOptional": "Optional",
+      "notes": "Zusätzliche Notizen",
+      "notesPlaceholder": "Optionale Notizen zu dieser Interaktion",
+      "quickFill": "Schnellausfüllen",
+      "save": "Speichern",
+      "update": "Aktualisieren",
+      "cancel": "Abbrechen"
+    },
+    "types": {
+      "call": "Anruf",
+      "text": "Text",
+      "email": "E-Mail",
+      "meeting": "Besprechung",
+      "other": "Sonstiges"
+    },
+    "quickTitles": {
+      "call": "Anruf mit {{name}}",
+      "text": "Nachricht an {{name}}",
+      "email": "E-Mail an {{name}}",
+      "meeting": "Besprechung mit {{name}}",
+      "other": "Interaktion mit {{name}}"
+    },
+    "errors": {
+      "titleRequired": "Titel ist erforderlich",
+      "contactRequired": "Bitte wählen Sie einen Kontakt aus",
+      "saveFailed": "Speichern der Interaktion fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "deleteFailed": "Löschen der Interaktion fehlgeschlagen. Bitte versuchen Sie es erneut."
+    },
+    "delete": {
+      "title": "Interaktion löschen",
+      "message": "Sind Sie sicher, dass Sie diese Interaktion löschen möchten?",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen"
+    },
+    "success": {
+      "added": "Interaktion erfolgreich hinzugefügt!",
+      "updated": "Interaktion erfolgreich aktualisiert!",
+      "deleted": "Interaktion erfolgreich gelöscht!"
+    }
+  },
+  "contactDetail": {
+    "title": "Kontakt",
+    "loading": "Wird geladen...",
+    "errorLoad": "Laden der Kontaktdetails fehlgeschlagen",
+    "errorImageSet": "Festlegen des Kontaktfotos fehlgeschlagen",
+    "errorImageRemove": "Entfernen des Fotos fehlgeschlagen",
+    "recent": "Neueste Interaktionen",
+    "delete": "Kontakt löschen",
+    "deleteConfirm": "Sind Sie sicher, dass Sie {{name}} löschen möchten?",
+    "photoTitle": "Kontaktfoto",
+    "photoBody": "Ein Profilbild hinzufügen oder entfernen.",
+    "remove": "Entfernen",
+    "addPhoto": "Foto hinzufügen",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen"
+  },
+  "categories": {
+    "Family": "Familie",
+    "Friends": "Freunde",
+    "Work": "Arbeit",
+    "VIP": "VIP",
+    "Coworkers": "Kollegen",
+    "Clients": "Kunden",
+    "Leads": "Leads",
+    "Vendors": "Lieferanten",
+    "Business": "Geschäftlich",
+    "Personal": "Persönlich"
+  },
+  "addContact": {
+    "title": "Kontakt hinzufügen",
+    "importSuccessTitle": "Kontakt importiert",
+    "importSuccessMsg": "Die Kontaktinformationen wurden importiert. Überprüfen und bearbeiten Sie diese vor dem Speichern bei Bedarf.",
+    "importFailTitle": "Import fehlgeschlagen",
+    "importFailMsg": "Import des Kontakts fehlgeschlagen. Bitte versuchen Sie es erneut oder geben Sie die Details manuell ein.",
+    "permissionTitle": "Berechtigung verweigert",
+    "permissionMsg": "Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die Kontaktberechtigung in Ihren Geräteeinstellungen.",
+    "sections": {
+      "name": "Name",
+      "phones": "Telefonnummern",
+      "emails": "E-Mail-Adressen",
+      "categories": "Kategorien"
+    },
+    "labels": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "optional": "Optional",
+      "save": "Kontakt speichern",
+      "cancel": "Abbrechen",
+      "phone": "Telefon",
+      "email": "E-Mail"
+    }
+  },
+  "contact": {
+    "phoneLabels": {
+      "Mobile": "Mobil",
+      "Home": "Privat",
+      "Work": "Arbeit",
+      "Other": "Sonstige"
+    },
+    "emailLabels": {
+      "Personal": "Persönlich",
+      "Work": "Arbeit",
+      "Other": "Sonstige"
+    }
+  },
+  "editContact": {
+    "title": "Kontakt bearbeiten",
+    "labels": {
+      "save": "Änderungen speichern",
+      "cancel": "Abbrechen"
+    }
+  }
+}

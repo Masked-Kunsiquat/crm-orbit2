@@ -1,12 +1,5 @@
-import {
-  documentDirectory,
-  readDirectoryAsync,
-  getInfoAsync,
-  makeDirectoryAsync,
-  copyAsync,
-  deleteAsync,
-  moveAsync,
-} from 'expo-file-system';
+import { File, Directory, Paths } from 'expo-file-system';
+import { documentDirectory } from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Crypto from 'expo-crypto';
 import db from '../database';
@@ -136,15 +129,17 @@ function detectMimeTypeFromName(name) {
 const listFilesRecursively = async dir => {
   const files = [];
   try {
-    const entries = await readDirectoryAsync(dir);
+    const directory = new Directory(dir);
+    if (!directory.exists) {
+      return files;
+    }
+    const entries = directory.list();
     for (const entry of entries) {
-      const fullPath = `${dir}/${entry}`;
-      const info = await getInfoAsync(fullPath);
-      if (info.isDirectory) {
-        const subFiles = await listFilesRecursively(fullPath);
+      if (entry instanceof Directory) {
+        const subFiles = await listFilesRecursively(entry.uri);
         files.push(...subFiles);
       } else {
-        files.push(fullPath);
+        files.push(entry.uri);
       }
     }
   } catch (error) {
@@ -175,20 +170,16 @@ export const fileService = {
    * @throws {ServiceError} Wrapped underlying errors with context.
    */
   async saveFile(uri, originalName, entityType, entityId) {
-    let destPath = null;
-    let thumbnailPath = null;
-    let directory = null;
+    let destFile = null;
+    let thumbnailFile = null;
 
     try {
-      const fileInfo = await getInfoAsync(uri);
-      if (!fileInfo.exists) {
+      const sourceFile = new File(uri);
+      if (!sourceFile.exists) {
         throw new Error('File does not exist at provided URI.');
       }
 
-      if (
-        fileInfo.size !== undefined &&
-        !this.validateFileSize(fileInfo.size)
-      ) {
+      if (!this.validateFileSize(sourceFile.size)) {
         throw new Error(
           `File size exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`
         );
@@ -206,25 +197,23 @@ export const fileService = {
       const fileExtension = parts.length > 1 ? parts.pop().toLowerCase() : '';
       const fileName = `${uuid}.${fileExtension}`;
 
-      directory = getFileDirectory(fileType);
-      await makeDirectoryAsync(directory, { intermediates: true });
+      const directoryPath = getFileDirectory(fileType);
+      const directory = new Directory(directoryPath);
+      directory.create({ intermediates: true, idempotent: true });
 
-      destPath = `${directory}/${fileName}`;
-      await copyAsync({ from: uri, to: destPath });
+      destFile = new File(directoryPath, fileName);
+      sourceFile.copy(destFile);
 
-      const savedFileInfo = await getInfoAsync(destPath);
-      if (
-        savedFileInfo.size &&
-        savedFileInfo.size > FILE_CONFIG.MAX_FILE_SIZE
-      ) {
-        await deleteAsync(destPath, { idempotent: true });
+      if (destFile.size > FILE_CONFIG.MAX_FILE_SIZE) {
+        destFile.delete();
         throw new Error(
-          `Saved file size (${(savedFileInfo.size / (1024 * 1024)).toFixed(2)}MB) exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`
+          `Saved file size (${(destFile.size / (1024 * 1024)).toFixed(2)}MB) exceeds the ${FILE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit.`
         );
       }
 
+      let thumbnailPath = null;
       if (fileType === 'image') {
-        thumbnailPath = await this.generateThumbnail(destPath, uuid);
+        thumbnailPath = await this.generateThumbnail(destFile.uri, uuid);
       }
 
       const attachmentData = {
@@ -232,21 +221,21 @@ export const fileService = {
         entity_id: entityId,
         file_name: fileName,
         original_name: originalName,
-        file_path: destPath,
+        file_path: destFile.uri,
         file_type: fileType,
         mime_type: mimeType,
-        file_size: fileInfo.size,
+        file_size: sourceFile.size,
         thumbnail_path: thumbnailPath,
       };
 
       return await db.attachments.create(attachmentData);
     } catch (error) {
       try {
-        if (destPath) {
-          await deleteAsync(destPath, { idempotent: true });
+        if (destFile && destFile.exists) {
+          destFile.delete();
         }
-        if (thumbnailPath) {
-          await deleteAsync(thumbnailPath, { idempotent: true });
+        if (thumbnailFile && thumbnailFile.exists) {
+          thumbnailFile.delete();
         }
       } catch (cleanupError) {
         console.error(
@@ -279,7 +268,10 @@ export const fileService = {
       }
 
       if (isPathInsideDocumentDirectory(attachment.file_path)) {
-        await deleteAsync(attachment.file_path, { idempotent: true });
+        const file = new File(attachment.file_path);
+        if (file.exists) {
+          file.delete();
+        }
       } else {
         console.warn(
           'Refusing to delete file outside app sandbox:',
@@ -289,7 +281,10 @@ export const fileService = {
 
       if (attachment.thumbnail_path) {
         if (isPathInsideDocumentDirectory(attachment.thumbnail_path)) {
-          await deleteAsync(attachment.thumbnail_path, { idempotent: true });
+          const thumbnailFile = new File(attachment.thumbnail_path);
+          if (thumbnailFile.exists) {
+            thumbnailFile.delete();
+          }
         } else {
           console.warn(
             'Refusing to delete thumbnail outside app sandbox:',
@@ -333,17 +328,21 @@ export const fileService = {
   async generateThumbnail(imageUri, uuid) {
     try {
       const thumbnailDir = `${documentDirectory}attachments/images/thumbnails`;
-      await makeDirectoryAsync(thumbnailDir, { intermediates: true });
-      const thumbnailPath = `${thumbnailDir}/${uuid}_thumb.jpg`;
+      const directory = new Directory(thumbnailDir);
+      directory.create({ intermediates: true, idempotent: true });
+
+      const thumbnailFile = new File(thumbnailDir, `${uuid}_thumb.jpg`);
 
       const manipResult = await ImageManipulator.manipulateAsync(
         imageUri,
         [{ resize: FILE_CONFIG.THUMBNAIL_SIZE }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
-      await moveAsync({ from: manipResult.uri, to: thumbnailPath });
 
-      return thumbnailPath;
+      const tempFile = new File(manipResult.uri);
+      tempFile.move(thumbnailFile);
+
+      return thumbnailFile.uri;
     } catch (error) {
       throw new ServiceError('fileService', 'generateThumbnail', error);
     }
@@ -388,9 +387,9 @@ export const fileService = {
       let orphanedCount = 0;
       for (const filePath of fileSystemAttachments) {
         if (!allDbPaths.has(filePath)) {
-          const fileInfo = await getInfoAsync(filePath);
-          if (fileInfo.exists && !fileInfo.isDirectory) {
-            await deleteAsync(filePath, { idempotent: true });
+          const file = new File(filePath);
+          if (file.exists) {
+            file.delete();
             orphanedCount++;
           }
         }

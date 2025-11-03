@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { settingsDB } from '../database';
 import i18n from '../i18n';
 import { getLocales } from 'expo-localization';
@@ -36,7 +36,7 @@ export function SettingsProvider({ children }) {
         // language
         const lang = await settingsDB.get('i18n.language');
         const langVal = lang?.value || 'device';
-        const supported = ['device','en','es'];
+        const supported = ['device', 'en', 'es', 'de', 'fr', 'zh'];
         const normalized = supported.includes(langVal) ? langVal : 'device';
         setLanguageState(normalized);
         // Apply language immediately
@@ -90,7 +90,7 @@ export function SettingsProvider({ children }) {
   }, [themeMode]);
 
   const setLanguage = useCallback(async (lang) => {
-    const supported = ['device','en','es'];
+    const supported = ['device', 'en', 'es', 'de', 'fr', 'zh'];
     const normalized = supported.includes(lang) ? lang : 'device';
     const prevLang = language;
     // Optimistic update
@@ -128,8 +128,13 @@ export function SettingsProvider({ children }) {
     }
   }, [language]);
 
+  const value = useMemo(
+    () => ({ leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage }),
+    [leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage]
+  );
+
   return (
-    <SettingsContext.Provider value={{ leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage }}>
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );

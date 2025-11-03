@@ -9,6 +9,7 @@ const CONTACT_FIELDS = [
   'middle_name',
   'display_name',
   'avatar_uri',
+  'avatar_attachment_id',
   'company_id',
   'job_title',
   'is_favorite',
@@ -100,6 +101,22 @@ export function createContactsDB(ctx) {
       const execFn = execOverride?.execute ? execOverride.execute : execute;
       const res = await execFn('SELECT * FROM contacts WHERE id = ?;', [id]);
       return convertNullableFields(res.rows[0]) || null;
+    },
+
+    async getByIds(ids) {
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return [];
+      }
+      // Filter out invalid IDs and remove duplicates
+      const validIds = [...new Set(ids.filter(id => id != null))];
+      if (validIds.length === 0) {
+        return [];
+      }
+      const res = await execute(
+        `SELECT * FROM contacts WHERE id IN (${placeholders(validIds.length)});`,
+        validIds
+      );
+      return res.rows.map(convertNullableFields);
     },
 
     async getAll(options = {}) {

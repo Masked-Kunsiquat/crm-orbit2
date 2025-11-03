@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
@@ -160,8 +160,9 @@ export default function SettingsScreen() {
         <Appbar.Content title={t('settings.title')} />
       </Appbar.Header>
 
-      {/* Security */}
-      <List.Section style={styles.section}>
+      <ScrollView style={styles.scrollView}>
+        {/* Security */}
+        <List.Section style={styles.section}>
         <List.Accordion
           title={t('settings.sections.security')}
           expanded={expandedSecurity}
@@ -187,19 +188,19 @@ export default function SettingsScreen() {
           />
           <List.Item
             title={() => <Text variant="titleSmall">{t('settings.security.autoLockTimeout')}</Text>}
-            right={() => (
-              <View style={styles.rowOptions}>
+            description={() => (
+              <View style={styles.timeoutOptions}>
                 {[1, 5, 10, 30].map((m) => (
-                  <React.Fragment key={m}>
-                    <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
-                      {t('settings.security.minutes', { count: m })}
-                    </Text>
+                  <View key={m} style={styles.timeoutOption}>
                     <RadioButton
                       value={`auto-timeout-${m}`}
                       status={autoLockTimeout === m ? 'checked' : 'unchecked'}
                       onPress={() => changeAutoLockTimeout(m)}
                     />
-                  </React.Fragment>
+                    <Text style={styles.timeoutLabel}>
+                      {t('settings.security.minutes', { count: m })}
+                    </Text>
+                  </View>
                 ))}
               </View>
             )}
@@ -337,14 +338,51 @@ export default function SettingsScreen() {
         )}
         onPress={() => handleLanguageChange('es')}
       />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.german')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-de"
+            status={language === 'de' ? 'checked' : 'unchecked'}
+            onPress={() => handleLanguageChange('de')}
+          />
+        )}
+        onPress={() => handleLanguageChange('de')}
+      />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.french')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-fr"
+            status={language === 'fr' ? 'checked' : 'unchecked'}
+            onPress={() => handleLanguageChange('fr')}
+          />
+        )}
+        onPress={() => handleLanguageChange('fr')}
+      />
+      <List.Item
+        title={() => <Text variant="titleSmall">{t('settings.language.chinese')}</Text>}
+        right={() => (
+          <RadioButton
+            value="lang-zh"
+            status={language === 'zh' ? 'checked' : 'unchecked'}
+            onPress={() => handleLanguageChange('zh')}
+          />
+        )}
+        onPress={() => handleLanguageChange('zh')}
+      />
     </List.Accordion>
   </List.Section>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   section: {
@@ -361,5 +399,22 @@ const styles = StyleSheet.create({
   optionLabel: {
     color: '#666',
     marginRight: 4,
+  },
+  timeoutOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  timeoutOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  timeoutLabel: {
+    color: '#666',
+    fontSize: 14,
+    marginLeft: -8,
   },
 });

@@ -1,30 +1,18 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, Avatar, Chip } from 'react-native-paper';
+import { Card, Text, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import ContactAvatar from './ContactAvatar';
 
 export default function ContactCard({ contact, onPress }) {
   const { t } = useTranslation();
-  const getInitials = (firstName, lastName) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last || '?';
-  };
 
   return (
     <Card style={styles.card} onPress={onPress}>
       <Card.Content>
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {contact.avatar_uri ? (
-              <Avatar.Image size={48} source={{ uri: contact.avatar_uri }} style={styles.avatar} />
-            ) : (
-              <Avatar.Text
-                size={48}
-                label={getInitials(contact.first_name, contact.last_name)}
-                style={styles.avatar}
-              />
-            )}
+            <ContactAvatar contact={contact} size={48} style={styles.avatar} />
             <View style={styles.info}>
               <Text variant="titleMedium" style={styles.name}>
                 {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown Contact'}

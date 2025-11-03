@@ -1,0 +1,213 @@
+{
+  "navigation": {
+    "contacts": "Contacts",
+    "interactions": "Interactions",
+    "settings": "Paramètres"
+  },
+  "search": {
+    "contactsPlaceholder": "Rechercher des contacts..."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "sections": {
+      "security": "Sécurité",
+      "swipe": "Actions de balayage",
+      "theme": "Thème",
+      "language": "Langue"
+    },
+    "language": {
+      "device": "Par défaut de l'appareil",
+      "english": "Anglais",
+      "spanish": "Espagnol"
+    },
+    "appearance": "Apparence",
+    "security": {
+      "pinSetup": "Définir / Modifier le code PIN",
+      "useBiometric": "Utiliser la biométrie",
+      "autoLock": "Verrouillage automatique ({{minutes}} min)",
+      "autoLockTimeout": "Délai de verrouillage automatique",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min"
+    },
+    "errors": {
+      "biometricToggle": {
+        "title": "Erreur",
+        "message": "Impossible de mettre à jour le paramètre biométrique. Veuillez réessayer."
+      },
+      "autoLockToggle": {
+        "title": "Erreur",
+        "message": "Impossible de mettre à jour le paramètre de verrouillage automatique. Veuillez réessayer."
+      },
+      "autoLockTimeout": {
+        "title": "Erreur",
+        "message": "Impossible de mettre à jour le délai de verrouillage automatique. Veuillez réessayer."
+      },
+      "swipeAction": {
+        "title": "Erreur",
+        "message": "Impossible de mettre à jour l'action de balayage. Veuillez réessayer."
+      },
+      "theme": {
+        "title": "Erreur",
+        "message": "Impossible de mettre à jour le thème. Veuillez réessayer."
+      },
+      "language": {
+        "title": "Erreur",
+        "message": "Impossible de mettre à jour la langue. Veuillez réessayer."
+      }
+    }
+  },
+  "labels": {
+    "call": "Appel",
+    "text": "Texte",
+    "left": "Gauche",
+    "right": "Droite",
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "common": {
+    "all": "Tous"
+  },
+  "interactions": {
+    "title": "Interactions",
+    "filters": {
+      "all": "Toutes",
+      "call": "Appels",
+      "text": "Textos",
+      "email": "E-mail",
+      "meeting": "Réunions",
+      "other": "Autre"
+    },
+    "emptyTitle": "Aucune interaction",
+    "emptyMessage": "Ajoutez votre première interaction pour commencer.",
+    "errorLoad": "Échec du chargement des interactions"
+  },
+  "addInteraction": {
+    "titleAdd": "Ajouter une interaction",
+    "titleEdit": "Modifier l'interaction",
+    "sections": {
+      "contact": "Contact",
+      "type": "Type",
+      "dateTime": "Date et heure",
+      "title": "Titre",
+      "duration": "Durée (minutes)",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Sélectionner un contact",
+      "interactionTitle": "Titre de l'interaction",
+      "titlePlaceholder": "Exemple : Appel de mise au point rapide",
+      "duration": "Durée",
+      "durationOptional": "Facultatif",
+      "notes": "Notes supplémentaires",
+      "notesPlaceholder": "Notes facultatives sur cette interaction",
+      "quickFill": "Remplissage rapide",
+      "save": "Enregistrer",
+      "update": "Mettre à jour",
+      "cancel": "Annuler"
+    },
+    "types": {
+      "call": "Appel",
+      "text": "Texte",
+      "email": "E-mail",
+      "meeting": "Réunion",
+      "other": "Autre"
+    },
+    "quickTitles": {
+      "call": "Appel avec {{name}}",
+      "text": "Texto envoyé à {{name}}",
+      "email": "E-mail envoyé à {{name}}",
+      "meeting": "Réunion avec {{name}}",
+      "other": "Interaction avec {{name}}"
+    },
+    "errors": {
+      "titleRequired": "Le titre est requis",
+      "contactRequired": "Veuillez sélectionner un contact",
+      "saveFailed": "Échec de l'enregistrement de l'interaction. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression de l'interaction. Veuillez réessayer."
+    },
+    "delete": {
+      "title": "Supprimer l'interaction",
+      "message": "Êtes-vous sûr de vouloir supprimer cette interaction ?",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "success": {
+      "added": "Interaction ajoutée avec succès !",
+      "updated": "Interaction mise à jour avec succès !",
+      "deleted": "Interaction supprimée avec succès !"
+    }
+  },
+  "contactDetail": {
+    "title": "Détails du contact",
+    "loading": "Chargement...",
+    "errorLoad": "Échec du chargement des détails du contact",
+    "errorImageSet": "Échec de la définition de la photo de contact",
+    "errorImageRemove": "Échec de la suppression de la photo",
+    "recent": "Interactions récentes",
+    "delete": "Supprimer le contact",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer {{name}} ?",
+    "photoTitle": "Photo du contact",
+    "photoBody": "Ajouter ou supprimer une photo de profil.",
+    "remove": "Supprimer",
+    "addPhoto": "Ajouter une photo",
+    "cancel": "Annuler",
+    "add": "Ajouter"
+  },
+  "categories": {
+    "Family": "Famille",
+    "Friends": "Amis",
+    "Work": "Travail",
+    "VIP": "VIP",
+    "Coworkers": "Collègues",
+    "Clients": "Clients",
+    "Leads": "Prospects",
+    "Vendors": "Fournisseurs",
+    "Business": "Affaires",
+    "Personal": "Personnel"
+  },
+  "addContact": {
+    "title": "Ajouter un contact",
+    "importSuccessTitle": "Contact importé",
+    "importSuccessMsg": "Les informations du contact ont été importées. Veuillez les examiner et les modifier au besoin avant d'enregistrer.",
+    "importFailTitle": "Échec de l'importation",
+    "importFailMsg": "Échec de l'importation du contact. Veuillez réessayer ou entrer les détails manuellement.",
+    "permissionTitle": "Autorisation refusée",
+    "permissionMsg": "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil.",
+    "sections": {
+      "name": "Nom",
+      "phones": "Numéros de téléphone",
+      "emails": "Adresses e-mail",
+      "categories": "Catégories"
+    },
+    "labels": {
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "optional": "Facultatif",
+      "save": "Enregistrer le contact",
+      "cancel": "Annuler",
+      "phone": "Téléphone",
+      "email": "E-mail"
+    }
+  },
+  "contact": {
+    "phoneLabels": {
+      "Mobile": "Portable",
+      "Home": "Maison",
+      "Work": "Travail",
+      "Other": "Autre"
+    },
+    "emailLabels": {
+      "Personal": "Personnel",
+      "Work": "Travail",
+      "Other": "Autre"
+    }
+  },
+  "editContact": {
+    "title": "Modifier le contact",
+    "labels": {
+      "save": "Enregistrer les modifications",
+      "cancel": "Annuler"
+    }
+  }
+}
