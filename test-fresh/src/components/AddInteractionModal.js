@@ -16,6 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
 import { useCreateInteraction, useUpdateInteraction, useDeleteInteraction, useContacts } from '../hooks/queries';
+import { setDatePart, setTimePart, formatShortDate, formatTime } from '../utils/dateUtils';
 
 const INTERACTION_TYPES = [
   { value: 'call', icon: 'phone' },
@@ -202,10 +203,8 @@ export default function AddInteractionModal({
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      const newDateTime = new Date(interactionDateTime);
-      newDateTime.setFullYear(selectedDate.getFullYear());
-      newDateTime.setMonth(selectedDate.getMonth());
-      newDateTime.setDate(selectedDate.getDate());
+      // Use setDatePart to update date while preserving time (immutable)
+      const newDateTime = setDatePart(interactionDateTime, selectedDate);
       setInteractionDateTime(newDateTime);
     }
   };
@@ -213,26 +212,10 @@ export default function AddInteractionModal({
   const handleTimeChange = (event, selectedTime) => {
     setShowTimePicker(false);
     if (selectedTime) {
-      const newDateTime = new Date(interactionDateTime);
-      newDateTime.setHours(selectedTime.getHours());
-      newDateTime.setMinutes(selectedTime.getMinutes());
+      // Use setTimePart to update time while preserving date (immutable)
+      const newDateTime = setTimePart(interactionDateTime, selectedTime);
       setInteractionDateTime(newDateTime);
     }
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
   };
 
   return (
@@ -340,7 +323,7 @@ export default function AddInteractionModal({
                   icon="calendar"
                   style={styles.dateTimeButton}
                 >
-                  {formatDate(interactionDateTime)}
+                  {formatShortDate(interactionDateTime)}
                 </Button>
                 <Button
                   mode="outlined"
