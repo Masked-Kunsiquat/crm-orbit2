@@ -239,3 +239,218 @@ export function daysBetween(dateA, dateB) {
   const diffTime = b.getTime() - a.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * Format Date to SQLite datetime string (YYYY-MM-DD HH:MM:SS).
+ * Always uses local timezone components.
+ *
+ * @param {Date|string|number} date - Date to format
+ * @returns {string} SQLite datetime string
+ */
+export function toSQLiteDateTime(date) {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return '';
+  }
+
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Parse SQLite datetime string to Date object.
+ * Handles both 'YYYY-MM-DD HH:MM:SS' and 'YYYY-MM-DD' formats.
+ *
+ * @param {string} sqliteDateTime - SQLite datetime string
+ * @returns {Date|null} Parsed date or null if invalid
+ */
+export function parseSQLiteDateTime(sqliteDateTime) {
+  if (!sqliteDateTime || typeof sqliteDateTime !== 'string') {
+    return null;
+  }
+
+  // Match YYYY-MM-DD HH:MM:SS format
+  const dateTimeMatch = sqliteDateTime.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  if (dateTimeMatch) {
+    const [, year, month, day, hours, minutes, seconds] = dateTimeMatch;
+    return new Date(
+      parseInt(year, 10),
+      parseInt(month, 10) - 1,
+      parseInt(day, 10),
+      parseInt(hours, 10),
+      parseInt(minutes, 10),
+      parseInt(seconds, 10)
+    );
+  }
+
+  // Fall back to date-only parsing
+  return parseLocalDate(sqliteDateTime);
+}
+
+/**
+ * Get current time as ISO string.
+ *
+ * @returns {string} ISO datetime string
+ */
+export function getCurrentISO() {
+  return new Date().toISOString();
+}
+
+/**
+ * Format date to filename-safe timestamp.
+ *
+ * @param {Date} date - Date to format (defaults to now)
+ * @returns {string} Filename-safe timestamp (YYYY-MM-DD-HH-MM-SS)
+ */
+export function toFilenameTimestamp(date = new Date()) {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return new Date().toISOString().replace(/[:.]/g, '-').split('.')[0];
+  }
+  return dateObj.toISOString().replace(/[:.]/g, '-').split('.')[0];
+}
+
+/**
+ * Add hours to a date (immutable).
+ *
+ * @param {Date|string} date - Starting date
+ * @param {number} hours - Hours to add (can be negative)
+ * @returns {Date} New date with hours added
+ */
+export function addHours(date, hours) {
+  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return new Date();
+  }
+
+  const result = new Date(dateObj);
+  result.setHours(result.getHours() + hours);
+  return result;
+}
+
+/**
+ * Add minutes to a date (immutable).
+ *
+ * @param {Date|string} date - Starting date
+ * @param {number} minutes - Minutes to add (can be negative)
+ * @returns {Date} New date with minutes added
+ */
+export function addMinutes(date, minutes) {
+  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return new Date();
+  }
+
+  const result = new Date(dateObj);
+  result.setMinutes(result.getMinutes() + minutes);
+  return result;
+}
+
+/**
+ * Set date part of a datetime, preserving time (immutable).
+ *
+ * @param {Date} datetime - Original datetime
+ * @param {Date} datePart - Date to extract date from
+ * @returns {Date} New datetime with updated date part
+ */
+export function setDatePart(datetime, datePart) {
+  const dt = new Date(datetime);
+  const dp = new Date(datePart);
+
+  if (isNaN(dt.getTime()) || isNaN(dp.getTime())) {
+    return new Date();
+  }
+
+  const result = new Date(dt);
+  result.setFullYear(dp.getFullYear());
+  result.setMonth(dp.getMonth());
+  result.setDate(dp.getDate());
+  return result;
+}
+
+/**
+ * Set time part of a datetime, preserving date (immutable).
+ *
+ * @param {Date} datetime - Original datetime
+ * @param {Date} timePart - Date to extract time from
+ * @returns {Date} New datetime with updated time part
+ */
+export function setTimePart(datetime, timePart) {
+  const dt = new Date(datetime);
+  const tp = new Date(timePart);
+
+  if (isNaN(dt.getTime()) || isNaN(tp.getTime())) {
+    return new Date();
+  }
+
+  const result = new Date(dt);
+  result.setHours(tp.getHours());
+  result.setMinutes(tp.getMinutes());
+  result.setSeconds(tp.getSeconds());
+  result.setMilliseconds(tp.getMilliseconds());
+  return result;
+}
+
+/**
+ * Format date to short locale string (e.g., "Jan 15, 2024").
+ *
+ * @param {Date|string} date - Date to format
+ * @param {string} locale - Locale (default 'en-US')
+ * @returns {string} Formatted date
+ */
+export function formatShortDate(date, locale = 'en-US') {
+  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : date;
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return '';
+  }
+
+  return dateObj.toLocaleDateString(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Format time to locale string (e.g., "3:45 PM").
+ *
+ * @param {Date|string} date - Date to extract time from
+ * @param {string} locale - Locale (default 'en-US')
+ * @returns {string} Formatted time
+ */
+export function formatTime(date, locale = 'en-US') {
+  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : date;
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return '';
+  }
+
+  return dateObj.toLocaleTimeString(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Format date and time separately for display.
+ *
+ * @param {Date|string} datetime - DateTime to format
+ * @param {string} locale - Locale (default 'en-US')
+ * @returns {{date: string, time: string}} Formatted date and time
+ */
+export function formatDateAndTime(datetime, locale = 'en-US') {
+  const dateObj = typeof datetime === 'string' ? parseFlexibleDate(datetime) : datetime;
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return { date: '', time: '' };
+  }
+
+  return {
+    date: formatShortDate(dateObj, locale),
+    time: formatTime(dateObj, locale),
+  };
+}
