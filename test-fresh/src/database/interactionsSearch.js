@@ -2,6 +2,7 @@
 // Focused on search and filtering operations for interactions
 
 import { DatabaseError } from './errors';
+import { parseLocalDate, addDays, getCurrentISO } from '../utils/dateUtils';
 
 const MAX_PAGE_SIZE = 500;
 
@@ -25,14 +26,25 @@ function normalizeDateRange(startDate, endDate) {
   let end = endDate;
   let endOp = '<='; // default inclusive end
 
+  // Handle YYYY-MM-DD strings as local dates, not UTC
   if (start && isDateOnlyString(start)) {
-    start = new Date(start).toISOString();
+    const localDate = parseLocalDate(start);
+    start = localDate ? localDate.toISOString() : new Date(start).toISOString();
   }
   if (end && isDateOnlyString(end)) {
-    const d = new Date(end);
-    d.setUTCDate(d.getUTCDate() + 1);
-    end = d.toISOString();
-    endOp = '<';
+    const localDate = parseLocalDate(end);
+    if (localDate) {
+      // Add 1 day to make the end date exclusive (covers the entire end day)
+      const nextDay = addDays(localDate, 1);
+      end = nextDay.toISOString();
+      endOp = '<';
+    } else {
+      // Fallback for invalid dates
+      const d = new Date(end);
+      d.setDate(d.getDate() + 1);
+      end = d.toISOString();
+      endOp = '<';
+    }
   }
 
   return { start, end, endOp };
@@ -48,8 +60,7 @@ export function createInteractionsSearchDB({ execute }) {
   return {
     async getRecent(options = {}) {
       const { limit = 20, days = 7 } = options;
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
+      const cutoffDate = addDays(new Date(), -days);
       const cutoff = cutoffDate.toISOString();
 
       const sql = `SELECT i.*, c.first_name, c.last_name, c.display_name 
