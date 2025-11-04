@@ -2,6 +2,7 @@
 // Focused on analytics and reporting operations for interactions
 
 import { DatabaseError } from './errors';
+import { parseLocalDate, addDays } from '../utils/dateUtils';
 
 function isDateOnlyString(s) {
   return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
@@ -12,16 +13,26 @@ function normalizeDateRange(startDate, endDate) {
   let end = endDate;
   let endOp = '<='; // default inclusive end
 
+  // Handle YYYY-MM-DD strings as local dates, not UTC
   if (start && isDateOnlyString(start)) {
-    const [year, month, day] = start.split('-').map(Number);
-    start = new Date(Date.UTC(year, month - 1, day)).toISOString();
+    const localDate = parseLocalDate(start);
+    start = localDate ? localDate.toISOString() : new Date(start).toISOString();
   }
   if (end && isDateOnlyString(end)) {
-    const [year, month, day] = end.split('-').map(Number);
-    const d = new Date(Date.UTC(year, month - 1, day));
-    d.setUTCDate(d.getUTCDate() + 1);
-    end = d.toISOString();
-    endOp = '<';
+    const localDate = parseLocalDate(end);
+    if (localDate) {
+      // Add 1 day to make the end date exclusive (covers the entire end day)
+      const nextDay = addDays(localDate, 1);
+      end = nextDay.toISOString();
+      endOp = '<';
+    } else {
+      // Fallback for invalid dates
+      const [year, month, day] = end.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+      d.setDate(d.getDate() + 1);
+      end = d.toISOString();
+      endOp = '<';
+    }
   }
 
   return { start, end, endOp };
@@ -122,8 +133,7 @@ export function createInteractionsStatsDB({ execute }) {
 
     async getInteractionTrends(options = {}) {
       const { contactId, period = 'daily', days = 30 } = options;
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
+      const cutoffDate = addDays(new Date(), -days);
       const cutoff = cutoffDate.toISOString();
 
       const conditions = ['interaction_datetime >= ?'];
