@@ -359,12 +359,12 @@ export function toFilenameTimestamp(date = new Date()) {
  *
  * @param {Date|string} date - Starting date
  * @param {number} hours - Hours to add (can be negative)
- * @returns {Date} New date with hours added
+ * @returns {Date|null} New date with hours added, or null if input is invalid
  */
 export function addHours(date, hours) {
   const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
-    return new Date();
+    return null;
   }
 
   const result = new Date(dateObj);
@@ -377,12 +377,12 @@ export function addHours(date, hours) {
  *
  * @param {Date|string} date - Starting date
  * @param {number} minutes - Minutes to add (can be negative)
- * @returns {Date} New date with minutes added
+ * @returns {Date|null} New date with minutes added, or null if input is invalid
  */
 export function addMinutes(date, minutes) {
   const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
-    return new Date();
+    return null;
   }
 
   const result = new Date(dateObj);

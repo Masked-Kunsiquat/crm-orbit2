@@ -3,7 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import db from '../database';
 import { ServiceError } from './errors';
-import { toSQLiteDateTime, parseSQLiteDateTime, addHours } from '../utils/dateUtils';
+import { toSQLiteDateTime, parseSQLiteDateTime } from '../utils/dateUtils';
 
 /**
  * Configure notification behavior
