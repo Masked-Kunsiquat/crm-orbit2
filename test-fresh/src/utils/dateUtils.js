@@ -8,6 +8,37 @@
  * NOT UTC midnight (which would shift the day in non-UTC timezones).
  */
 
+import { getLocales } from 'expo-localization';
+
+// ============================================================================
+// LOCALE DETECTION
+// ============================================================================
+
+/**
+ * Determine primary locale (BCP 47) from device.
+ *
+ * @returns {string} Locale code (e.g., 'en-US')
+ */
+export function getPrimaryLocale() {
+  try {
+    const locales = getLocales?.();
+    return (locales && locales[0] && (locales[0].languageTag || locales[0].locale)) || 'en-US';
+  } catch (_) {
+    // Fallback for older expo-localization API
+    try {
+      // eslint-disable-next-line global-require
+      const Localization = require('expo-localization');
+      return Localization.locale || 'en-US';
+    } catch (_) {
+      return 'en-US';
+    }
+  }
+}
+
+// ============================================================================
+// DATE PARSING
+// ============================================================================
+
 /**
  * Parse a YYYY-MM-DD string into a local Date at midnight local time.
  * Avoids the UTC shift problem when using new Date('YYYY-MM-DD').
@@ -240,6 +271,10 @@ export function daysBetween(dateA, dateB) {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
+// ============================================================================
+// SQLITE DATETIME HANDLING
+// ============================================================================
+
 /**
  * Format Date to SQLite datetime string (YYYY-MM-DD HH:MM:SS).
  * Always uses local timezone components.
@@ -315,6 +350,10 @@ export function toFilenameTimestamp(date = new Date()) {
   }
   return dateObj.toISOString().replace(/[:.]/g, '-').split('.')[0];
 }
+
+// ============================================================================
+// DATE/TIME ARITHMETIC
+// ============================================================================
 
 /**
  * Add hours to a date (immutable).
@@ -397,6 +436,10 @@ export function setTimePart(datetime, timePart) {
   return result;
 }
 
+// ============================================================================
+// LOCALE-AWARE FORMATTING
+// ============================================================================
+
 /**
  * Format date to short locale string (e.g., "Jan 15, 2024").
  *
@@ -453,4 +496,72 @@ export function formatDateAndTime(datetime, locale = 'en-US') {
     date: formatShortDate(dateObj, locale),
     time: formatTime(dateObj, locale),
   };
+}
+
+/**
+ * Format a JS Date or date-like input into a localized relative string.
+ * Examples: "2 hours ago", "in 3 days", "yesterday", "tomorrow"
+ *
+ * @param {Date|string|number} input - Date to format
+ * @param {Object} opts - Options
+ * @param {Date} opts.now - Reference date (default: current time)
+ * @param {string} opts.locale - Locale code (default: device locale)
+ * @returns {string} Relative time string
+ */
+export function formatRelativeDateTime(input, opts = {}) {
+  if (!input) return 'No date';
+  const date = input instanceof Date ? input : new Date(input);
+  if (isNaN(date.getTime())) return 'No date';
+
+  const now = opts.now instanceof Date ? opts.now : new Date();
+  const locale = opts.locale || getPrimaryLocale();
+
+  const diffMs = date.getTime() - now.getTime();
+  const absMs = Math.abs(diffMs);
+  const sign = diffMs >= 0 ? 1 : -1; // future: +, past: -
+
+  const sec = 1000;
+  const min = 60 * sec;
+  const hour = 60 * min;
+  const day = 24 * hour;
+  const week = 7 * day;
+  const month = 30 * day; // approximation
+  const year = 365 * day; // approximation
+
+  let value;
+  let unit;
+
+  if (absMs < min) {
+    value = Math.round(absMs / sec) * sign;
+    unit = 'second';
+  } else if (absMs < hour) {
+    value = Math.round(absMs / min) * sign;
+    unit = 'minute';
+  } else if (absMs < day) {
+    value = Math.round(absMs / hour) * sign;
+    unit = 'hour';
+  } else if (absMs < week) {
+    value = Math.round(absMs / day) * sign;
+    unit = 'day';
+  } else if (absMs < month) {
+    value = Math.round(absMs / week) * sign;
+    unit = 'week';
+  } else if (absMs < year) {
+    value = Math.round(absMs / month) * sign;
+    unit = 'month';
+  } else {
+    value = Math.round(absMs / year) * sign;
+    unit = 'year';
+  }
+
+  try {
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    return rtf.format(value, unit);
+  } catch (_) {
+    // Fallback to a simple English-ish string if Intl not available
+    const n = Math.abs(value);
+    const plural = n === 1 ? '' : 's';
+    const base = `${n} ${unit}${plural}`;
+    return value < 0 ? `${base} ago` : `in ${base}`;
+  }
 }

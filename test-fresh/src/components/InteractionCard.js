@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Card, Text, Icon, useTheme } from 'react-native-paper';
 import ContactAvatar from './ContactAvatar';
-import { formatRelativeDateTime } from '../utils/datetime';
+import { formatRelativeDateTime } from '../utils/dateUtils';
 
 // Helper to format duration (in seconds)
 const formatDuration = (seconds) => {

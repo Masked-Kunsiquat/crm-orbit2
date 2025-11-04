@@ -1,6 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { getPrimaryLocale } from '../utils/datetime';
+import { getPrimaryLocale } from '../utils/dateUtils';
 
 import en from '../locales/en.json';
 import es from '../locales/es.json';
