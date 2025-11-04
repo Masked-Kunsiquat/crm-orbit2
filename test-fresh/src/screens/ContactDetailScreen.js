@@ -22,6 +22,7 @@ import AddEventModal from '../components/AddEventModal';
 import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
 import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
+import { compareDates, formatDateSmart, isFuture, isToday } from '../utils/dateUtils';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -49,12 +50,11 @@ export default function ContactDetailScreen({ route, navigation }) {
     return allInteractions.slice(0, 3);
   }, [allInteractions]);
 
-  // Get upcoming events (limit to 3, sorted by date)
+  // Get upcoming events (limit to 3, sorted by date) using proper local date handling
   const upcomingEvents = React.useMemo(() => {
-    const now = new Date();
     return allEvents
-      .filter(event => new Date(event.event_date) >= now)
-      .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+      .filter(event => isFuture(event.event_date) || isToday(event.event_date))
+      .sort((a, b) => compareDates(a.event_date, b.event_date))
       .slice(0, 3);
   }, [allEvents]);
 
@@ -228,27 +228,6 @@ export default function ContactDetailScreen({ route, navigation }) {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
-  };
-
-  const formatEventDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Reset time for comparison
-    today.setHours(0, 0, 0, 0);
-    tomorrow.setHours(0, 0, 0, 0);
-    const eventDate = new Date(date);
-    eventDate.setHours(0, 0, 0, 0);
-
-    if (eventDate.getTime() === today.getTime()) {
-      return t('events.today');
-    } else if (eventDate.getTime() === tomorrow.getTime()) {
-      return t('events.tomorrow');
-    } else {
-      return date.toLocaleDateString();
-    }
   };
 
   const getEventIcon = (eventType) => {
@@ -532,7 +511,7 @@ export default function ContactDetailScreen({ route, navigation }) {
               <View key={event.id}>
                 <List.Item
                   title={event.title}
-                  description={`${formatEventDate(event.event_date)}${event.recurring ? ' • Recurring' : ''}`}
+                  description={`${formatDateSmart(event.event_date, t)}${event.recurring ? ' • Recurring' : ''}`}
                   left={props => <List.Icon {...props} icon={getEventIcon(event.event_type)} />}
                   onPress={() => handleEventPress(event)}
                 />

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
 import { useEvents } from '../hooks/queries';
 import AddEventModal from '../components/AddEventModal';
+import { compareDates, formatDateSmart } from '../utils/dateUtils';
 
 const EVENT_TYPES = [
   { value: 'all', i18n: 'events.filters.all', icon: 'calendar' },
@@ -53,7 +54,7 @@ export default function EventsList({ navigation }) {
     }
   }, [events]);
 
-  // Filter and sort events
+  // Filter and sort events using proper local date handling
   const filteredEvents = React.useMemo(() => {
     let filtered = [...events];
 
@@ -62,11 +63,10 @@ export default function EventsList({ navigation }) {
       filtered = filtered.filter(e => e.event_type === selectedType);
     }
 
-    // Sort by date
+    // Sort by date using compareDates helper (handles YYYY-MM-DD as local dates)
     filtered.sort((a, b) => {
-      const dateA = new Date(a.event_date || 0);
-      const dateB = new Date(b.event_date || 0);
-      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      const comparison = compareDates(a.event_date, b.event_date);
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
 
     return filtered;
@@ -90,30 +90,9 @@ export default function EventsList({ navigation }) {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
-  const formatEventDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Reset time for comparison
-    today.setHours(0, 0, 0, 0);
-    tomorrow.setHours(0, 0, 0, 0);
-    const eventDate = new Date(date);
-    eventDate.setHours(0, 0, 0, 0);
-
-    if (eventDate.getTime() === today.getTime()) {
-      return t('events.today');
-    } else if (eventDate.getTime() === tomorrow.getTime()) {
-      return t('events.tomorrow');
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   const renderEvent = ({ item }) => {
     const contact = contacts[item.contact_id];
-    const eventDate = formatEventDate(item.event_date);
+    const eventDate = formatDateSmart(item.event_date, t);
 
     return (
       <TouchableOpacity

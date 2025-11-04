@@ -18,6 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
 import { useCreateEvent, useUpdateEvent, useDeleteEvent, useContacts } from '../hooks/queries';
+import { parseFlexibleDate, formatDateToString } from '../utils/dateUtils';
 
 const EVENT_TYPES = [
   { value: 'birthday', icon: 'cake-variant' },
@@ -71,7 +72,8 @@ export default function AddEventModal({
         setNotes(editingEvent.notes || '');
         setEventType(editingEvent.event_type || 'birthday');
         setSelectedContactId(editingEvent.contact_id);
-        setEventDate(new Date(editingEvent.event_date || Date.now()));
+        // Use parseFlexibleDate to handle YYYY-MM-DD strings correctly
+        setEventDate(parseFlexibleDate(editingEvent.event_date));
         setIsRecurring(editingEvent.recurring || false);
         // TODO: Load reminders for this event
         setReminders([]);
@@ -151,7 +153,7 @@ export default function AddEventModal({
         contact_id: selectedContactId,
         title: title.trim(),
         event_type: eventType,
-        event_date: eventDate.toISOString().split('T')[0], // YYYY-MM-DD format
+        event_date: formatDateToString(eventDate), // YYYY-MM-DD format using local date
         recurring: isRecurring ? 1 : 0,
         recurrence_pattern: isRecurring && eventType === 'birthday' ? 'yearly' : null,
         notes: notes.trim() || null,
