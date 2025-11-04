@@ -83,13 +83,10 @@ export default function AddEventModal({
           setSelectedContactId(preselectedContactId);
         }
         setEventDate(new Date());
-        // Birthdays are recurring by default
-        if (eventType === 'birthday') {
-          setIsRecurring(true);
-        }
+        setIsRecurring(false);
       }
     }
-  }, [visible, preselectedContactId, editingEvent, eventType]);
+  }, [visible, preselectedContactId, editingEvent]);
 
   const resetForm = () => {
     setTitle('');
@@ -99,7 +96,7 @@ export default function AddEventModal({
       setSelectedContactId(null);
     }
     setEventDate(new Date());
-    setIsRecurring(false);
+    setIsRecurring(true); // Birthdays are recurring by default
     setReminders([]);
   };
 
