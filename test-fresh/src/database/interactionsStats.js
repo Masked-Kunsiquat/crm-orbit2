@@ -23,8 +23,16 @@ function normalizeDateRange(startDate, endDate) {
     if (localDate) {
       // Add 1 day to make the end date exclusive (covers the entire end day)
       const nextDay = addDays(localDate, 1);
-      end = nextDay.toISOString();
-      endOp = '<';
+      if (nextDay) {
+        end = nextDay.toISOString();
+        endOp = '<';
+      } else {
+        // Fallback if addDays fails
+        const d = new Date(localDate);
+        d.setDate(d.getDate() + 1);
+        end = d.toISOString();
+        endOp = '<';
+      }
     } else {
       // Fallback for invalid dates
       const [year, month, day] = end.split('-').map(Number);
@@ -133,7 +141,7 @@ export function createInteractionsStatsDB({ execute }) {
 
     async getInteractionTrends(options = {}) {
       const { contactId, period = 'daily', days = 30 } = options;
-      const cutoffDate = addDays(new Date(), -days);
+      const cutoffDate = addDays(new Date(), -days) || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const cutoff = cutoffDate.toISOString();
 
       const conditions = ['interaction_datetime >= ?'];

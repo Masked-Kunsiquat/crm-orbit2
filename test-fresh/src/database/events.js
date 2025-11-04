@@ -194,7 +194,8 @@ export function createEventsDB({ execute, batch, transaction }) {
     async getUpcoming(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
       const today = formatDateToString(new Date());
-      const future = formatDateToString(addDays(new Date(), days));
+      const futureDate = addDays(new Date(), days) || new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      const future = formatDateToString(futureDate);
 
       const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ?
                    ORDER BY event_date ASC LIMIT ? OFFSET ?;`;
@@ -205,7 +206,8 @@ export function createEventsDB({ execute, batch, transaction }) {
     async getPast(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
       const today = formatDateToString(new Date());
-      const past = formatDateToString(addDays(new Date(), -days));
+      const pastDate = addDays(new Date(), -days) || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const past = formatDateToString(pastDate);
 
       const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ?
                    ORDER BY event_date DESC LIMIT ? OFFSET ?;`;

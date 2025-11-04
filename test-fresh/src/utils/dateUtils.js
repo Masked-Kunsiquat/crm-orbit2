@@ -231,16 +231,16 @@ export function isFuture(dateValue) {
 }
 
 /**
- * Add days to a date.
+ * Add days to a date (immutable).
  *
  * @param {Date|string} date - Starting date
  * @param {number} days - Number of days to add (can be negative)
- * @returns {Date} - New date with days added
+ * @returns {Date|null} - New date with days added, or null if input is invalid
  */
 export function addDays(date, days) {
   const dateObj = typeof date === 'string' ? parseLocalDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
-    return new Date();
+    return null;
   }
 
   const result = new Date(dateObj);

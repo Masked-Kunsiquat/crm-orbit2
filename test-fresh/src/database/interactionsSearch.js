@@ -36,8 +36,16 @@ function normalizeDateRange(startDate, endDate) {
     if (localDate) {
       // Add 1 day to make the end date exclusive (covers the entire end day)
       const nextDay = addDays(localDate, 1);
-      end = nextDay.toISOString();
-      endOp = '<';
+      if (nextDay) {
+        end = nextDay.toISOString();
+        endOp = '<';
+      } else {
+        // Fallback if addDays fails
+        const d = new Date(localDate);
+        d.setDate(d.getDate() + 1);
+        end = d.toISOString();
+        endOp = '<';
+      }
     } else {
       // Fallback for invalid dates
       const d = new Date(end);
@@ -60,7 +68,7 @@ export function createInteractionsSearchDB({ execute }) {
   return {
     async getRecent(options = {}) {
       const { limit = 20, days = 7 } = options;
-      const cutoffDate = addDays(new Date(), -days);
+      const cutoffDate = addDays(new Date(), -days) || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const cutoff = cutoffDate.toISOString();
 
       const sql = `SELECT i.*, c.first_name, c.last_name, c.display_name 
