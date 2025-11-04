@@ -2,6 +2,7 @@
 // Focused on core event CRUD and search operations
 
 import { DatabaseError } from './errors';
+import { addDays, formatDateToString } from '../utils/dateUtils';
 
 const EVENT_FIELDS = [
   'contact_id',
@@ -192,12 +193,10 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     async getUpcoming(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
-      const today = new Date().toISOString().split('T')[0];
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + days);
-      const future = futureDate.toISOString().split('T')[0];
+      const today = formatDateToString(new Date());
+      const future = formatDateToString(addDays(new Date(), days));
 
-      const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ? 
+      const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ?
                    ORDER BY event_date ASC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, future, limit, offset]);
       return res.rows.map(convertBooleanFields);
@@ -205,12 +204,10 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     async getPast(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
-      const today = new Date().toISOString().split('T')[0];
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - days);
-      const past = pastDate.toISOString().split('T')[0];
+      const today = formatDateToString(new Date());
+      const past = formatDateToString(addDays(new Date(), -days));
 
-      const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ? 
+      const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ?
                    ORDER BY event_date DESC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, past, limit, offset]);
       return res.rows.map(convertBooleanFields);
