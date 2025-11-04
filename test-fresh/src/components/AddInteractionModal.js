@@ -205,7 +205,10 @@ export default function AddInteractionModal({
     if (selectedDate) {
       // Use setDatePart to update date while preserving time (immutable)
       const newDateTime = setDatePart(interactionDateTime, selectedDate);
-      setInteractionDateTime(newDateTime);
+      if (newDateTime) {
+        setInteractionDateTime(newDateTime);
+      }
+      // If null, keep current datetime unchanged (defensive programming)
     }
   };
 
@@ -214,7 +217,10 @@ export default function AddInteractionModal({
     if (selectedTime) {
       // Use setTimePart to update time while preserving date (immutable)
       const newDateTime = setTimePart(interactionDateTime, selectedTime);
-      setInteractionDateTime(newDateTime);
+      if (newDateTime) {
+        setInteractionDateTime(newDateTime);
+      }
+      // If null, keep current datetime unchanged (defensive programming)
     }
   };
 

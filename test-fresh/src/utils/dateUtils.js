@@ -395,14 +395,14 @@ export function addMinutes(date, minutes) {
  *
  * @param {Date} datetime - Original datetime
  * @param {Date} datePart - Date to extract date from
- * @returns {Date} New datetime with updated date part
+ * @returns {Date|null} New datetime with updated date part, or null if inputs are invalid
  */
 export function setDatePart(datetime, datePart) {
   const dt = new Date(datetime);
   const dp = new Date(datePart);
 
   if (isNaN(dt.getTime()) || isNaN(dp.getTime())) {
-    return new Date();
+    return null;
   }
 
   const result = new Date(dt);
@@ -417,14 +417,14 @@ export function setDatePart(datetime, datePart) {
  *
  * @param {Date} datetime - Original datetime
  * @param {Date} timePart - Date to extract time from
- * @returns {Date} New datetime with updated time part
+ * @returns {Date|null} New datetime with updated time part, or null if inputs are invalid
  */
 export function setTimePart(datetime, timePart) {
   const dt = new Date(datetime);
   const tp = new Date(timePart);
 
   if (isNaN(dt.getTime()) || isNaN(tp.getTime())) {
-    return new Date();
+    return null;
   }
 
   const result = new Date(dt);
