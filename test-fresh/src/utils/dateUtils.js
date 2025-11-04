@@ -238,6 +238,7 @@ export function isFuture(dateValue) {
  * @returns {Date|null} - New date with days added, or null if input is invalid
  */
 export function addDays(date, days) {
+  if (!date && date !== 0) return null; // Check for null/undefined before new Date()
   const dateObj = typeof date === 'string' ? parseLocalDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return null;
@@ -256,6 +257,9 @@ export function addDays(date, days) {
  * @returns {number} - Number of days (can be negative if dateA is after dateB)
  */
 export function daysBetween(dateA, dateB) {
+  // Check for null/undefined before new Date()
+  if ((!dateA && dateA !== 0) || (!dateB && dateB !== 0)) return 0;
+
   const a = typeof dateA === 'string' ? parseLocalDate(dateA) : new Date(dateA);
   const b = typeof dateB === 'string' ? parseLocalDate(dateB) : new Date(dateB);
 
@@ -282,6 +286,7 @@ export function daysBetween(dateA, dateB) {
  * @returns {string} SQLite datetime string
  */
 export function toSQLiteDateTime(date) {
+  if (!date && date !== 0) return ''; // Check for null/undefined before new Date()
   const dateObj = date instanceof Date ? date : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return '';
@@ -337,17 +342,31 @@ export function getCurrentISO() {
 }
 
 /**
- * Format date to filename-safe timestamp.
+ * Format date to filename-safe timestamp using local time.
  *
  * @param {Date} date - Date to format (defaults to now)
- * @returns {string} Filename-safe timestamp (YYYY-MM-DD-HH-MM-SS)
+ * @returns {string} Filename-safe timestamp (YYYY-MM-DDTHH-MM-SS)
  */
 export function toFilenameTimestamp(date = new Date()) {
   const dateObj = date instanceof Date ? date : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
-    return new Date().toISOString().replace(/[:.]/g, '-').split('.')[0];
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}-${minutes}-${seconds}`;
   }
-  return dateObj.toISOString().replace(/[:.]/g, '-').split('.')[0];
+
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}-${minutes}-${seconds}`;
 }
 
 // ============================================================================
@@ -362,6 +381,7 @@ export function toFilenameTimestamp(date = new Date()) {
  * @returns {Date|null} New date with hours added, or null if input is invalid
  */
 export function addHours(date, hours) {
+  if (!date && date !== 0) return null; // Check for null/undefined before new Date()
   const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return null;
@@ -380,6 +400,7 @@ export function addHours(date, hours) {
  * @returns {Date|null} New date with minutes added, or null if input is invalid
  */
 export function addMinutes(date, minutes) {
+  if (!date && date !== 0) return null; // Check for null/undefined before new Date()
   const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return null;
