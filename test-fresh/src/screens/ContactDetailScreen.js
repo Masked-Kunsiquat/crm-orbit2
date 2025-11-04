@@ -18,9 +18,10 @@ import { fileService } from '../services/fileService';
 import ContactAvatar from '../components/ContactAvatar';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
+import AddEventModal from '../components/AddEventModal';
 import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
-import { useContact, useContactInteractions, useDeleteContact, useUpdateContact } from '../hooks/queries';
+import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -29,14 +30,17 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
   // Use TanStack Query for contact and interactions data
   const { data: contact, isLoading: loading } = useContact(contactId);
   const { data: allInteractions = [] } = useContactInteractions(contactId);
+  const { data: allEvents = [] } = useContactEvents(contactId);
   const deleteContactMutation = useDeleteContact();
   const updateContactMutation = useUpdateContact();
 
@@ -44,6 +48,15 @@ export default function ContactDetailScreen({ route, navigation }) {
   const recentInteractions = React.useMemo(() => {
     return allInteractions.slice(0, 3);
   }, [allInteractions]);
+
+  // Get upcoming events (limit to 3, sorted by date)
+  const upcomingEvents = React.useMemo(() => {
+    const now = new Date();
+    return allEvents
+      .filter(event => new Date(event.event_date) >= now)
+      .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+      .slice(0, 3);
+  }, [allEvents]);
 
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
@@ -146,6 +159,45 @@ export default function ContactDetailScreen({ route, navigation }) {
     Alert.alert('View All', 'Navigate to Interactions tab to see all interactions for this contact');
   };
 
+  const handleAddEventClick = () => {
+    setEditingEvent(null);
+    setShowAddEventModal(true);
+  };
+
+  const handleQuickAddBirthday = () => {
+    // Pre-fill with birthday type
+    const birthdayEvent = {
+      contact_id: contactId,
+      event_type: 'birthday',
+      recurring: true,
+      recurrence_pattern: 'yearly',
+    };
+    setEditingEvent(birthdayEvent);
+    setShowAddEventModal(true);
+  };
+
+  const handleEventPress = (event) => {
+    setEditingEvent(event);
+    setShowAddEventModal(true);
+  };
+
+  const handleEventAdded = () => {
+    // Query will auto-refetch due to cache invalidation from mutation
+  };
+
+  const handleEventUpdated = () => {
+    // Query will auto-refetch due to cache invalidation from mutation
+  };
+
+  const handleEventDeleted = () => {
+    // Query will auto-refetch due to cache invalidation from mutation
+  };
+
+  const handleEventModalDismiss = () => {
+    setEditingEvent(null);
+    setShowAddEventModal(false);
+  };
+
   const handleDelete = () => {
     Alert.alert(
       'Delete Contact',
@@ -176,6 +228,38 @@ export default function ContactDetailScreen({ route, navigation }) {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
+  };
+
+  const formatEventDate = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Reset time for comparison
+    today.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    const eventDate = new Date(date);
+    eventDate.setHours(0, 0, 0, 0);
+
+    if (eventDate.getTime() === today.getTime()) {
+      return t('events.today');
+    } else if (eventDate.getTime() === tomorrow.getTime()) {
+      return t('events.tomorrow');
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  const getEventIcon = (eventType) => {
+    const icons = {
+      birthday: 'cake-variant',
+      anniversary: 'heart',
+      meeting: 'calendar-account',
+      deadline: 'clock-alert',
+      other: 'calendar-star',
+    };
+    return icons[eventType] || 'calendar';
   };
 
   const pickImageFromLibrary = async () => {
@@ -417,6 +501,56 @@ export default function ContactDetailScreen({ route, navigation }) {
           </Surface>
         )}
 
+        {/* Upcoming Events Section */}
+        <View style={styles.sectionHeader}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
+            {t('contactDetail.events')}
+          </Text>
+          <View style={styles.eventHeaderButtons}>
+            <Button
+              mode="text"
+              onPress={handleQuickAddBirthday}
+              icon="cake-variant"
+              compact
+            >
+              {t('contactDetail.addBirthday')}
+            </Button>
+            <Button
+              mode="text"
+              onPress={handleAddEventClick}
+              icon="plus"
+              compact
+            >
+              {t('contactDetail.addEvent')}
+            </Button>
+          </View>
+        </View>
+
+        {upcomingEvents.length > 0 ? (
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+            {upcomingEvents.map((event, index) => (
+              <View key={event.id}>
+                <List.Item
+                  title={event.title}
+                  description={`${formatEventDate(event.event_date)}${event.recurring ? ' • Recurring' : ''}`}
+                  left={props => <List.Icon {...props} icon={getEventIcon(event.event_type)} />}
+                  onPress={() => handleEventPress(event)}
+                />
+                {index < upcomingEvents.length - 1 && <Divider />}
+              </View>
+            ))}
+          </Surface>
+        ) : (
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+            <List.Item
+              title={t('contactDetail.noEvents')}
+              description={t('contactDetail.noEventsDescription')}
+              left={props => <List.Icon {...props} icon="calendar-blank" />}
+              onPress={handleAddEventClick}
+            />
+          </Surface>
+        )}
+
         {/* Recent Interactions Section */}
         <View style={styles.sectionHeader}>
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
@@ -499,6 +633,16 @@ export default function ContactDetailScreen({ route, navigation }) {
         onInteractionDeleted={handleInteractionDeleted}
         preselectedContactId={contactId}
         editingInteraction={editingInteraction}
+      />
+
+      <AddEventModal
+        visible={showAddEventModal}
+        onDismiss={handleEventModalDismiss}
+        onEventAdded={handleEventAdded}
+        onEventUpdated={handleEventUpdated}
+        onEventDeleted={handleEventDeleted}
+        preselectedContactId={contactId}
+        editingEvent={editingEvent}
       />
 
       <Portal>
@@ -594,6 +738,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: '600',
     fontSize: 18,
+  },
+  eventHeaderButtons: {
+    flexDirection: 'row',
+    gap: 4,
   },
   interactionsContainer: {
     marginTop: 8,
