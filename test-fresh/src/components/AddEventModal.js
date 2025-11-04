@@ -72,8 +72,8 @@ export default function AddEventModal({
         setNotes(editingEvent.notes || '');
         setEventType(editingEvent.event_type || 'birthday');
         setSelectedContactId(editingEvent.contact_id);
-        // Use parseFlexibleDate to handle YYYY-MM-DD strings correctly
-        setEventDate(parseFlexibleDate(editingEvent.event_date));
+        // Use parseFlexibleDate to handle YYYY-MM-DD strings correctly, fallback to current date
+        setEventDate(parseFlexibleDate(editingEvent.event_date) || new Date());
         setIsRecurring(editingEvent.recurring || false);
         // TODO: Load reminders for this event
         setReminders([]);

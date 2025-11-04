@@ -98,27 +98,26 @@ export function formatDateToString(date) {
  * For Date objects or timestamps, returns as-is or converts to Date.
  *
  * @param {Date|string|number|null|undefined} value - Date value in various formats
- * @returns {Date} - Parsed Date object (defaults to now if invalid)
+ * @returns {Date|null} - Parsed Date object, or null if invalid/unparseable
  */
 export function parseFlexibleDate(value) {
   if (!value) {
-    return new Date();
+    return null;
   }
 
   // Already a Date object
   if (value instanceof Date) {
-    return isNaN(value.getTime()) ? new Date() : value;
+    return isNaN(value.getTime()) ? null : value;
   }
 
   // String in YYYY-MM-DD format - parse as local date
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const parsed = parseLocalDate(value);
-    return parsed || new Date();
+    return parseLocalDate(value);
   }
 
   // Timestamp or other string format
   const date = new Date(value);
-  return isNaN(date.getTime()) ? new Date() : date;
+  return isNaN(date.getTime()) ? null : date;
 }
 
 /**
