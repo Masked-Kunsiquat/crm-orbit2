@@ -530,8 +530,8 @@ export function formatDateAndTime(datetime, locale = 'en-US') {
  */
 export function formatRelativeDateTime(input, opts = {}) {
   if (!input) return 'No date';
-  const date = input instanceof Date ? input : new Date(input);
-  if (isNaN(date.getTime())) return 'No date';
+  const date = input instanceof Date ? input : parseFlexibleDate(input);
+  if (!date || isNaN(date.getTime())) return 'No date';
 
   const now = opts.now instanceof Date ? opts.now : new Date();
   const locale = opts.locale || getPrimaryLocale();
