@@ -89,6 +89,8 @@ export function getUserFriendlyError(error) {
  * @param {string} options.operation - Operation that failed
  * @param {boolean} options.showAlert - Whether to show alert to user (default: true)
  * @param {object} options.context - Additional context for logging
+ * @param {string} options.context.customMessage - Custom message to use in alert (overrides getUserFriendlyError)
+ * @param {string} options.context.customTitle - Custom title to use in alert (overrides getUserFriendlyError)
  * @param {Function} options.onError - Custom error handler callback
  */
 export function handleError(error, options = {}) {
@@ -110,7 +112,21 @@ export function handleError(error, options = {}) {
 
   // Show alert to user
   if (showAlert) {
-    const { title, message } = getUserFriendlyError(error);
+    // Check for custom message in context first
+    let title, message;
+
+    if (context.customMessage || context.customTitle) {
+      // Use custom message/title if provided
+      const defaultError = getUserFriendlyError(error);
+      title = context.customTitle || defaultError.title;
+      message = context.customMessage || defaultError.message;
+    } else {
+      // Fall back to getUserFriendlyError
+      const errorInfo = getUserFriendlyError(error);
+      title = errorInfo.title;
+      message = errorInfo.message;
+    }
+
     showErrorAlert(title, message);
   }
 }
