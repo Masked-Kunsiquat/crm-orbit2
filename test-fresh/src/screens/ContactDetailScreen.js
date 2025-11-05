@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
+import { logger } from '../errors';
+import { handleError, showAlert } from '../errors';
 import {
   Appbar,
   Text,
@@ -18,9 +20,11 @@ import { fileService } from '../services/fileService';
 import ContactAvatar from '../components/ContactAvatar';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
+import AddEventModal from '../components/AddEventModal';
 import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
-import { useContact, useContactInteractions, useDeleteContact, useUpdateContact } from '../hooks/queries';
+import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
+import { compareDates, formatDateSmart, isFuture, isToday } from '../utils/dateUtils';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -29,14 +33,17 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
   const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
   // Use TanStack Query for contact and interactions data
   const { data: contact, isLoading: loading } = useContact(contactId);
   const { data: allInteractions = [] } = useContactInteractions(contactId);
+  const { data: allEvents = [] } = useContactEvents(contactId);
   const deleteContactMutation = useDeleteContact();
   const updateContactMutation = useUpdateContact();
 
@@ -44,6 +51,14 @@ export default function ContactDetailScreen({ route, navigation }) {
   const recentInteractions = React.useMemo(() => {
     return allInteractions.slice(0, 3);
   }, [allInteractions]);
+
+  // Get upcoming events (limit to 3, sorted by date) using proper local date handling
+  const upcomingEvents = React.useMemo(() => {
+    return allEvents
+      .filter(event => isFuture(event.event_date) || isToday(event.event_date))
+      .sort((a, b) => compareDates(a.event_date, b.event_date))
+      .slice(0, 3);
+  }, [allEvents]);
 
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
@@ -58,28 +73,28 @@ export default function ContactDetailScreen({ route, navigation }) {
   const handleCall = async (phoneNumber) => {
     const normalized = normalizePhoneNumber(phoneNumber);
     if (!normalized) {
-      Alert.alert('Error', 'Invalid phone number');
+      showAlert.error('Invalid phone number');
       return;
     }
     const phoneUrl = `tel:${normalized}`;
     try {
       await Linking.openURL(phoneUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to make phone call');
+      showAlert.error('Unable to make phone call');
     }
   };
 
   const handleMessage = async (phoneNumber) => {
     const normalized = normalizePhoneNumber(phoneNumber);
     if (!normalized) {
-      Alert.alert('Error', 'Invalid phone number');
+      showAlert.error('Invalid phone number');
       return;
     }
     const smsUrl = `sms:${normalized}`;
     try {
       await Linking.openURL(smsUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to send message');
+      showAlert.error('Unable to send message');
     }
   };
 
@@ -88,7 +103,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     try {
       await Linking.openURL(mailUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to open email');
+      showAlert.error('Unable to open email');
     }
   };
 
@@ -143,29 +158,66 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const handleViewAllInteractions = () => {
     // Navigate to Interactions tab (would need to implement tab navigation focus)
-    Alert.alert('View All', 'Navigate to Interactions tab to see all interactions for this contact');
+    showAlert.info('Navigate to Interactions tab to see all interactions for this contact', 'View All');
+  };
+
+  const handleAddEventClick = () => {
+    setEditingEvent(null);
+    setShowAddEventModal(true);
+  };
+
+  const handleQuickAddBirthday = () => {
+    // Pre-fill with birthday type
+    const birthdayEvent = {
+      contact_id: contactId,
+      event_type: 'birthday',
+      recurring: true,
+      recurrence_pattern: 'yearly',
+    };
+    setEditingEvent(birthdayEvent);
+    setShowAddEventModal(true);
+  };
+
+  const handleEventPress = (event) => {
+    setEditingEvent(event);
+    setShowAddEventModal(true);
+  };
+
+  const handleEventAdded = () => {
+    // Query will auto-refetch due to cache invalidation from mutation
+  };
+
+  const handleEventUpdated = () => {
+    // Query will auto-refetch due to cache invalidation from mutation
+  };
+
+  const handleEventDeleted = () => {
+    // Query will auto-refetch due to cache invalidation from mutation
+  };
+
+  const handleEventModalDismiss = () => {
+    setEditingEvent(null);
+    setShowAddEventModal(false);
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    const deleteContact = async () => {
+      try {
+        await deleteContactMutation.mutateAsync(contactId);
+        navigation.goBack();
+      } catch (error) {
+        handleError(error, {
+          component: 'ContactDetailScreen',
+          operation: 'deleteContact',
+          showAlert: true,
+        });
+      }
+    };
+
+    showAlert.confirmDelete(
       'Delete Contact',
       `Are you sure you want to delete ${contact.display_name || contact.first_name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteContactMutation.mutateAsync(contactId);
-              navigation.goBack();
-            } catch (error) {
-              console.error('Error deleting contact:', error);
-              Alert.alert('Error', 'Failed to delete contact');
-            }
-          },
-        },
-      ]
+      deleteContact
     );
   };
 
@@ -178,6 +230,17 @@ export default function ContactDetailScreen({ route, navigation }) {
     return phone;
   };
 
+  const getEventIcon = (eventType) => {
+    const icons = {
+      birthday: 'cake-variant',
+      anniversary: 'heart',
+      meeting: 'calendar-account',
+      deadline: 'clock-alert',
+      other: 'calendar-star',
+    };
+    return icons[eventType] || 'calendar';
+  };
+
   const pickImageFromLibrary = async () => {
     try {
       let ImagePicker;
@@ -185,13 +248,13 @@ export default function ContactDetailScreen({ route, navigation }) {
         const imported = await import('expo-image-picker');
         ImagePicker = imported.default || imported;
       } catch (e) {
-        Alert.alert('Missing dependency', 'Please install expo-image-picker to add photos.');
+        showAlert.error('Missing dependency', 'Please install expo-image-picker to add photos.');
         return;
       }
 
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission required', 'Media library permission is required to select a photo.');
+        showAlert.error('Permission required', 'Media library permission is required to select a photo.');
         return;
       }
 
@@ -233,8 +296,8 @@ export default function ContactDetailScreen({ route, navigation }) {
         try {
           await fileService.deleteFile(newAttachment.id);
         } catch (rollbackError) {
-          console.error('Failed to rollback orphaned attachment (now orphaned):', rollbackError);
-          console.error('Orphaned attachment ID:', newAttachment.id);
+          logger.error('ContactDetailScreen', 'Failed to rollback orphaned attachment (now orphaned):', rollbackError);
+          logger.error('ContactDetailScreen', 'Orphaned attachment ID:', newAttachment.id);
         }
         // Rethrow original mutation error so caller sees the failure
         throw mutationError;
@@ -246,15 +309,15 @@ export default function ContactDetailScreen({ route, navigation }) {
           await fileService.deleteFile(oldAvatarId);
         } catch (cleanupError) {
           // Log but don't throw - old avatar is now orphaned but can be cleaned up later
-          console.warn('Failed to delete old avatar attachment (now orphaned):', cleanupError);
-          console.warn('Orphaned attachment ID:', oldAvatarId);
+          logger.warn('ContactDetailScreen', 'Failed to delete old avatar attachment', { oldAvatarId, error: cleanupError.message });
+          
         }
       }
 
       setShowAvatarDialog(false);
     } catch (e) {
-      console.error('Image pick error', e);
-      Alert.alert('Error', t('contactDetail.errorImageSet'));
+      logger.error('ContactDetailScreen', 'Image pick error', e);
+      showAlert.error(t('contactDetail.errorImageSet'));
     }
   };
 
@@ -269,8 +332,8 @@ export default function ContactDetailScreen({ route, navigation }) {
       });
       setShowAvatarDialog(false);
     } catch (e) {
-      console.error('Remove photo error', e);
-      Alert.alert('Error', t('contactDetail.errorImageRemove'));
+      logger.error('ContactDetailScreen', 'Remove photo error', e);
+      showAlert.error(t('contactDetail.errorImageRemove'));
     }
   };
 
@@ -417,6 +480,56 @@ export default function ContactDetailScreen({ route, navigation }) {
           </Surface>
         )}
 
+        {/* Upcoming Events Section */}
+        <View style={styles.sectionHeader}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
+            {t('contactDetail.events')}
+          </Text>
+          <View style={styles.eventHeaderButtons}>
+            <Button
+              mode="text"
+              onPress={handleQuickAddBirthday}
+              icon="cake-variant"
+              compact
+            >
+              {t('contactDetail.addBirthday')}
+            </Button>
+            <Button
+              mode="text"
+              onPress={handleAddEventClick}
+              icon="plus"
+              compact
+            >
+              {t('contactDetail.addEvent')}
+            </Button>
+          </View>
+        </View>
+
+        {upcomingEvents.length > 0 ? (
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+            {upcomingEvents.map((event, index) => (
+              <View key={event.id}>
+                <List.Item
+                  title={event.title}
+                  description={`${formatDateSmart(event.event_date, t)}${event.recurring ? ` • ${t('contactDetail.recurring')}` : ''}`}
+                  left={props => <List.Icon {...props} icon={getEventIcon(event.event_type)} />}
+                  onPress={() => handleEventPress(event)}
+                />
+                {index < upcomingEvents.length - 1 && <Divider />}
+              </View>
+            ))}
+          </Surface>
+        ) : (
+          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+            <List.Item
+              title={t('contactDetail.noEvents')}
+              description={t('contactDetail.noEventsDescription')}
+              left={props => <List.Icon {...props} icon="calendar-blank" />}
+              onPress={handleAddEventClick}
+            />
+          </Surface>
+        )}
+
         {/* Recent Interactions Section */}
         <View style={styles.sectionHeader}>
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
@@ -499,6 +612,16 @@ export default function ContactDetailScreen({ route, navigation }) {
         onInteractionDeleted={handleInteractionDeleted}
         preselectedContactId={contactId}
         editingInteraction={editingInteraction}
+      />
+
+      <AddEventModal
+        visible={showAddEventModal}
+        onDismiss={handleEventModalDismiss}
+        onEventAdded={handleEventAdded}
+        onEventUpdated={handleEventUpdated}
+        onEventDeleted={handleEventDeleted}
+        preselectedContactId={contactId}
+        editingEvent={editingEvent}
       />
 
       <Portal>
@@ -594,6 +717,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: '600',
     fontSize: 18,
+  },
+  eventHeaderButtons: {
+    flexDirection: 'row',
+    gap: 4,
   },
   interactionsContainer: {
     marginTop: 8,

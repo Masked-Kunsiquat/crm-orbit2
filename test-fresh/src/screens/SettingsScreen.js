@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { handleError, showAlert } from '../errors';
 import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
@@ -52,10 +53,10 @@ export default function SettingsScreen() {
         setBiometricEnabled(true);
       }
     } catch (e) {
-      console.error('Failed to toggle biometric:', e);
+      logger.error('SettingsScreen', 'Failed to toggle biometric:', e);
       // Revert UI to reflect real state
       setBiometricEnabled(prev);
-      Alert.alert(
+      showAlert.error(
         t('settings.errors.biometricToggle.title'),
         t('settings.errors.biometricToggle.message')
       );
@@ -75,10 +76,10 @@ export default function SettingsScreen() {
         setAutoLockEnabled(true);
       }
     } catch (e) {
-      console.error('Failed to toggle auto-lock:', e);
+      logger.error('SettingsScreen', 'Failed to toggle auto-lock:', e);
       // Revert UI to reflect real state
       setAutoLockEnabled(prev);
-      Alert.alert(
+      showAlert.error(
         t('settings.errors.autoLockToggle.title'),
         t('settings.errors.autoLockToggle.message')
       );
@@ -94,9 +95,9 @@ export default function SettingsScreen() {
         const ok = await authService.enableAutoLock(minutes);
         if (!ok) throw new Error('enableAutoLock (update timeout) failed');
       } catch (e) {
-        console.error('Failed to update auto-lock timeout:', e);
+        logger.error('SettingsScreen', 'Failed to update auto-lock timeout:', e);
         setAutoLockTimeout(prev);
-        Alert.alert(
+        showAlert.error(
           t('settings.errors.autoLockTimeout.title'),
           t('settings.errors.autoLockTimeout.message')
         );
@@ -109,8 +110,8 @@ export default function SettingsScreen() {
       if (side === 'left') await setMapping('call', 'text');
       else await setMapping('text', 'call');
     } catch (error) {
-      console.error('Failed to update swipe action mapping:', error);
-      Alert.alert(
+      logger.error('SettingsScreen', 'Failed to update swipe action mapping:', error);
+      showAlert.error(
         t('settings.errors.swipeAction.title'),
         t('settings.errors.swipeAction.message')
       );
@@ -122,8 +123,8 @@ export default function SettingsScreen() {
       if (side === 'left') await setMapping('text', 'call');
       else await setMapping('call', 'text');
     } catch (error) {
-      console.error('Failed to update swipe action mapping:', error);
-      Alert.alert(
+      logger.error('SettingsScreen', 'Failed to update swipe action mapping:', error);
+      showAlert.error(
         t('settings.errors.swipeAction.title'),
         t('settings.errors.swipeAction.message')
       );
@@ -134,8 +135,8 @@ export default function SettingsScreen() {
     try {
       await setThemeMode(mode);
     } catch (error) {
-      console.error('Failed to update theme:', error);
-      Alert.alert(
+      logger.error('SettingsScreen', 'Failed to update theme:', error);
+      showAlert.error(
         t('settings.errors.theme.title'),
         t('settings.errors.theme.message')
       );
@@ -146,8 +147,8 @@ export default function SettingsScreen() {
     try {
       await setLanguage(lang);
     } catch (error) {
-      console.error('Failed to update language:', error);
-      Alert.alert(
+      logger.error('SettingsScreen', 'Failed to update language:', error);
+      showAlert.error(
         t('settings.errors.language.title'),
         t('settings.errors.language.message')
       );

@@ -2,6 +2,7 @@
   "navigation": {
     "contacts": "Contactos",
     "interactions": "Interacciones",
+    "events": "Eventos",
     "settings": "Ajustes"
   },
   "search": {
@@ -138,6 +139,90 @@
       "deleted": "¡Interacción eliminada exitosamente!"
     }
   },
+  "events": {
+    "title": "Eventos",
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "filters": {
+      "all": "Todos",
+      "birthday": "Cumpleaños",
+      "anniversary": "Aniversarios",
+      "meeting": "Reuniones",
+      "deadline": "Plazos",
+      "other": "Otros"
+    },
+    "types": {
+      "birthday": "Cumpleaños",
+      "anniversary": "Aniversario",
+      "meeting": "Reunión",
+      "deadline": "Plazo",
+      "other": "Otro"
+    },
+    "emptyTitle": "Sin eventos",
+    "emptyMessage": "Agrega tu primer evento para comenzar.",
+    "errorLoad": "No se pudieron cargar los eventos"
+  },
+  "addEvent": {
+    "titleAdd": "Agregar evento",
+    "titleEdit": "Editar evento",
+    "sections": {
+      "contact": "Contacto",
+      "type": "Tipo de evento",
+      "date": "Fecha",
+      "title": "Título",
+      "reminders": "Recordatorios",
+      "notes": "Notas"
+    },
+    "labels": {
+      "selectContact": "Seleccionar contacto",
+      "quickFill": "Llenar rápido",
+      "titlePlaceholder": "ej., Cumpleaños de Juan",
+      "recurring": "Evento recurrente",
+      "recurringHelper": "Se repite cada año (cumpleaños, aniversarios)",
+      "notesPlaceholder": "Notas opcionales sobre este evento",
+      "save": "Guardar",
+      "update": "Actualizar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar evento"
+    },
+    "types": {
+      "birthday": "Cumpleaños",
+      "anniversary": "Aniversario",
+      "meeting": "Reunión",
+      "deadline": "Plazo",
+      "other": "Otro"
+    },
+    "quickTitles": {
+      "birthday": "Cumpleaños de {{name}}",
+      "anniversary": "Aniversario con {{name}}",
+      "meeting": "Reunión con {{name}}",
+      "deadline": "Plazo para {{name}}",
+      "other": "Evento con {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 min antes",
+      "60": "1 hora antes",
+      "1440": "1 día antes",
+      "10080": "1 semana antes"
+    },
+    "errors": {
+      "titleRequired": "El título es obligatorio",
+      "contactRequired": "Por favor selecciona un contacto",
+      "saveFailed": "No se pudo guardar el evento. Inténtalo de nuevo.",
+      "deleteFailed": "No se pudo eliminar el evento. Inténtalo de nuevo."
+    },
+    "delete": {
+      "title": "Eliminar evento",
+      "message": "¿Seguro que quieres eliminar este evento?",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar"
+    },
+    "success": {
+      "added": "¡Evento agregado exitosamente!",
+      "updated": "¡Evento actualizado exitosamente!",
+      "deleted": "¡Evento eliminado exitosamente!"
+    }
+  },
   "contactDetail": {
     "title": "Contacto",
     "loading": "Cargando...",
@@ -145,6 +230,12 @@
     "errorImageSet": "No se pudo establecer la foto",
     "errorImageRemove": "No se pudo eliminar la foto",
     "recent": "Interacciones recientes",
+    "events": "Próximos eventos",
+    "addBirthday": "Cumpleaños",
+    "addEvent": "Evento",
+    "noEvents": "No hay eventos próximos",
+    "noEventsDescription": "Agregar un evento para este contacto",
+    "recurring": "Recurrente",
     "delete": "Eliminar contacto",
     "deleteConfirm": "¿Seguro que quieres eliminar a {{name}}?",
     "photoTitle": "Foto del contacto",
@@ -174,6 +265,7 @@
     "importFailMsg": "No se pudo importar el contacto. Inténtalo de nuevo o ingrésalo manualmente.",
     "permissionTitle": "Permiso denegado",
     "permissionMsg": "No se puede acceder a los contactos. Habilita el permiso en la configuración del dispositivo.",
+    "successMsg": "¡Contacto agregado exitosamente!",
     "sections": {
       "name": "Nombre",
       "phones": "Números de teléfono",
@@ -188,6 +280,10 @@
       "cancel": "Cancelar",
       "phone": "Teléfono",
       "email": "Correo"
+    },
+    "validation": {
+      "firstNameRequired": "El nombre es obligatorio",
+      "contactInfoRequired": "Por favor proporciona al menos un número de teléfono o correo electrónico"
     }
   },
   "contact": {

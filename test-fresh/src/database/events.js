@@ -1,7 +1,8 @@
 // Events database module
 // Focused on core event CRUD and search operations
 
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
+import { addDays, formatDateToString } from '../utils/dateUtils';
 
 const EVENT_FIELDS = [
   'contact_id',
@@ -87,7 +88,9 @@ export function createEventsDB({ execute, batch, transaction }) {
           [data.contact_id]
         );
 
-        return this.getById(res.insertId);
+        const result = await this.getById(res.insertId);
+        logger.success('EventsDB', 'create', { id: res.insertId });
+        return result;
       } catch (error) {
         // Handle foreign key constraint errors - check message and nested error properties
         const errorMessage =
@@ -96,9 +99,11 @@ export function createEventsDB({ execute, batch, transaction }) {
           errorMessage &&
           errorMessage.includes('FOREIGN KEY constraint failed')
         ) {
+          logger.error('EventsDB', 'create', error);
           throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is
+        logger.error('EventsDB', 'create', error);
         throw error;
       }
     },
@@ -192,12 +197,11 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     async getUpcoming(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
-      const today = new Date().toISOString().split('T')[0];
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + days);
-      const future = futureDate.toISOString().split('T')[0];
+      const today = formatDateToString(new Date());
+      const futureDate = addDays(new Date(), days) || new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      const future = formatDateToString(futureDate);
 
-      const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ? 
+      const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ?
                    ORDER BY event_date ASC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, future, limit, offset]);
       return res.rows.map(convertBooleanFields);
@@ -205,12 +209,11 @@ export function createEventsDB({ execute, batch, transaction }) {
 
     async getPast(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
-      const today = new Date().toISOString().split('T')[0];
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - days);
-      const past = pastDate.toISOString().split('T')[0];
+      const today = formatDateToString(new Date());
+      const pastDate = addDays(new Date(), -days) || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const past = formatDateToString(pastDate);
 
-      const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ? 
+      const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ?
                    ORDER BY event_date DESC LIMIT ? OFFSET ?;`;
       const res = await execute(sql, [today, past, limit, offset]);
       return res.rows.map(convertBooleanFields);

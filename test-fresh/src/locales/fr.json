@@ -2,6 +2,7 @@
   "navigation": {
     "contacts": "Contacts",
     "interactions": "Interactions",
+    "events": "Événements",
     "settings": "Paramètres"
   },
   "search": {
@@ -138,6 +139,90 @@
       "deleted": "Interaction supprimée avec succès !"
     }
   },
+  "events": {
+    "title": "Événements",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "filters": {
+      "all": "Tous",
+      "birthday": "Anniversaires",
+      "anniversary": "Commémorations",
+      "meeting": "Réunions",
+      "deadline": "Échéances",
+      "other": "Autres"
+    },
+    "types": {
+      "birthday": "Anniversaire",
+      "anniversary": "Commémoration",
+      "meeting": "Réunion",
+      "deadline": "Échéance",
+      "other": "Autre"
+    },
+    "emptyTitle": "Aucun événement",
+    "emptyMessage": "Ajoutez votre premier événement pour commencer.",
+    "errorLoad": "Échec du chargement des événements"
+  },
+  "addEvent": {
+    "titleAdd": "Ajouter un événement",
+    "titleEdit": "Modifier l'événement",
+    "sections": {
+      "contact": "Contact",
+      "type": "Type d'événement",
+      "date": "Date",
+      "title": "Titre",
+      "reminders": "Rappels",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Sélectionner un contact",
+      "quickFill": "Remplissage rapide",
+      "titlePlaceholder": "ex., Anniversaire de Jean",
+      "recurring": "Événement récurrent",
+      "recurringHelper": "Se répète chaque année (anniversaires, commémorations)",
+      "notesPlaceholder": "Notes optionnelles sur cet événement",
+      "save": "Enregistrer",
+      "update": "Mettre à jour",
+      "cancel": "Annuler",
+      "delete": "Supprimer l'événement"
+    },
+    "types": {
+      "birthday": "Anniversaire",
+      "anniversary": "Commémoration",
+      "meeting": "Réunion",
+      "deadline": "Échéance",
+      "other": "Autre"
+    },
+    "quickTitles": {
+      "birthday": "Anniversaire de {{name}}",
+      "anniversary": "Commémoration avec {{name}}",
+      "meeting": "Réunion avec {{name}}",
+      "deadline": "Échéance pour {{name}}",
+      "other": "Événement avec {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 min avant",
+      "60": "1 heure avant",
+      "1440": "1 jour avant",
+      "10080": "1 semaine avant"
+    },
+    "errors": {
+      "titleRequired": "Le titre est obligatoire",
+      "contactRequired": "Veuillez sélectionner un contact",
+      "saveFailed": "Échec de l'enregistrement de l'événement. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression de l'événement. Veuillez réessayer."
+    },
+    "delete": {
+      "title": "Supprimer l'événement",
+      "message": "Êtes-vous sûr de vouloir supprimer cet événement ?",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "success": {
+      "added": "Événement ajouté avec succès !",
+      "updated": "Événement mis à jour avec succès !",
+      "deleted": "Événement supprimé avec succès !"
+    }
+  },
   "contactDetail": {
     "title": "Détails du contact",
     "loading": "Chargement...",
@@ -145,6 +230,12 @@
     "errorImageSet": "Échec de la définition de la photo de contact",
     "errorImageRemove": "Échec de la suppression de la photo",
     "recent": "Interactions récentes",
+    "events": "Événements à venir",
+    "addBirthday": "Anniversaire",
+    "addEvent": "Événement",
+    "noEvents": "Aucun événement à venir",
+    "noEventsDescription": "Ajouter un événement pour ce contact",
+    "recurring": "Récurrent",
     "delete": "Supprimer le contact",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer {{name}} ?",
     "photoTitle": "Photo du contact",
@@ -174,6 +265,7 @@
     "importFailMsg": "Échec de l'importation du contact. Veuillez réessayer ou entrer les détails manuellement.",
     "permissionTitle": "Autorisation refusée",
     "permissionMsg": "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil.",
+    "successMsg": "Contact ajouté avec succès !",
     "sections": {
       "name": "Nom",
       "phones": "Numéros de téléphone",
@@ -188,6 +280,10 @@
       "cancel": "Annuler",
       "phone": "Téléphone",
       "email": "E-mail"
+    },
+    "validation": {
+      "firstNameRequired": "Le prénom est obligatoire",
+      "contactInfoRequired": "Veuillez fournir au moins un numéro de téléphone ou une adresse e-mail"
     }
   },
   "contact": {

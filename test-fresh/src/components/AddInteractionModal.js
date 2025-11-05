@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Platform } from 'react-native';
 import {
   Modal,
   Portal,
@@ -16,6 +16,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
 import { useCreateInteraction, useUpdateInteraction, useDeleteInteraction, useContacts } from '../hooks/queries';
+import { setDatePart, setTimePart, formatShortDate, formatTime } from '../utils/dateUtils';
+import { handleError, showAlert } from '../errors';
 
 const INTERACTION_TYPES = [
   { value: 'call', icon: 'phone' },
@@ -92,40 +94,36 @@ export default function AddInteractionModal({
   const handleDelete = () => {
     if (!isEditMode || !editingInteraction) return;
 
-    Alert.alert(
+    showAlert.confirmDelete(
       t('addInteraction.delete.title'),
       t('addInteraction.delete.message'),
-      [
-        { text: t('addInteraction.delete.cancel'), style: 'cancel' },
-        {
-          text: t('addInteraction.delete.confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteInteractionMutation.mutateAsync(editingInteraction.id);
+      async () => {
+        try {
+          await deleteInteractionMutation.mutateAsync(editingInteraction.id);
 
-              resetForm();
-              onInteractionDeleted && onInteractionDeleted();
-              onDismiss();
-              Alert.alert(t('addInteraction.success.deleted'), '');
-            } catch (error) {
-              console.error('Error deleting interaction:', error);
-              Alert.alert(t('addInteraction.errors.deleteFailed'), '');
-            }
-          },
-        },
-      ]
+          resetForm();
+          onInteractionDeleted && onInteractionDeleted();
+          onDismiss();
+          showAlert.success(t('addInteraction.success.deleted'), '');
+        } catch (error) {
+          handleError(error, {
+            component: 'AddInteractionModal',
+            operation: 'handleDelete',
+            showAlert: true,
+          });
+        }
+      }
     );
   };
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert(t('addInteraction.errors.titleRequired'), '');
+      showAlert.error(t('addInteraction.errors.titleRequired'), '');
       return;
     }
 
     if (!selectedContactId) {
-      Alert.alert(t('addInteraction.errors.contactRequired'), '');
+      showAlert.error(t('addInteraction.errors.contactRequired'), '');
       return;
     }
 
@@ -154,18 +152,21 @@ export default function AddInteractionModal({
         resetForm();
         onInteractionUpdated && onInteractionUpdated();
         onDismiss();
-        Alert.alert(t('addInteraction.success.updated'), '');
+        showAlert.success(t('addInteraction.success.updated'), '');
       } else {
         // Create new interaction
         await createInteractionMutation.mutateAsync(interactionData);
         resetForm();
         onInteractionAdded && onInteractionAdded();
         onDismiss();
-        Alert.alert(t('addInteraction.success.added'), '');
+        showAlert.success(t('addInteraction.success.added'), '');
       }
     } catch (error) {
-      console.error('Error saving interaction:', error);
-      Alert.alert(t('addInteraction.errors.saveFailed'), '');
+      handleError(error, {
+        component: 'AddInteractionModal',
+        operation: 'handleSave',
+        showAlert: true,
+      });
     }
   };
 
@@ -202,37 +203,25 @@ export default function AddInteractionModal({
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      const newDateTime = new Date(interactionDateTime);
-      newDateTime.setFullYear(selectedDate.getFullYear());
-      newDateTime.setMonth(selectedDate.getMonth());
-      newDateTime.setDate(selectedDate.getDate());
-      setInteractionDateTime(newDateTime);
+      // Use setDatePart to update date while preserving time (immutable)
+      const newDateTime = setDatePart(interactionDateTime, selectedDate);
+      if (newDateTime) {
+        setInteractionDateTime(newDateTime);
+      }
+      // If null, keep current datetime unchanged (defensive programming)
     }
   };
 
   const handleTimeChange = (event, selectedTime) => {
     setShowTimePicker(false);
     if (selectedTime) {
-      const newDateTime = new Date(interactionDateTime);
-      newDateTime.setHours(selectedTime.getHours());
-      newDateTime.setMinutes(selectedTime.getMinutes());
-      setInteractionDateTime(newDateTime);
+      // Use setTimePart to update time while preserving date (immutable)
+      const newDateTime = setTimePart(interactionDateTime, selectedTime);
+      if (newDateTime) {
+        setInteractionDateTime(newDateTime);
+      }
+      // If null, keep current datetime unchanged (defensive programming)
     }
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
   };
 
   return (
@@ -340,7 +329,7 @@ export default function AddInteractionModal({
                   icon="calendar"
                   style={styles.dateTimeButton}
                 >
-                  {formatDate(interactionDateTime)}
+                  {formatShortDate(interactionDateTime)}
                 </Button>
                 <Button
                   mode="outlined"

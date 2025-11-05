@@ -2,99 +2,8 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import db from '../database';
-import { ServiceError } from './errors';
-
-// Local helper to format Date to SQLite datetime (YYYY-MM-DD HH:MM:SS)
-function formatSQLiteDateTime(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const hh = String(date.getHours()).padStart(2, '0');
-  const mm = String(date.getMinutes()).padStart(2, '0');
-  const ss = String(date.getSeconds()).padStart(2, '0');
-  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
-}
-
-/**
- * Parse a SQLite-style datetime string (e.g., 'YYYY-MM-DD HH:MM:SS') into a JS Date.
- * - Accepts 'YYYY-MM-DD' (interpreted as 00:00:00 local time)
- * - Accepts 'YYYY-MM-DD HH:MM' or 'YYYY-MM-DD HH:MM:SS'
- * - Returns null on invalid input
- *
- * @param {string|number|Date|null|undefined} input
- * @returns {Date|null}
- */
-function parseSqliteDatetime(input) {
-  try {
-    if (input == null) return null;
-    if (input instanceof Date) {
-      const t = input.getTime();
-      return Number.isNaN(t) ? null : new Date(t);
-    }
-    if (typeof input === 'number') {
-      const d = new Date(input);
-      return Number.isNaN(d.getTime()) ? null : d;
-    }
-    if (typeof input !== 'string') return null;
-
-    const trimmed = input.trim();
-    if (!trimmed) return null;
-
-    // Normalize: replace T with space, drop trailing Z, drop fractional seconds
-    const normalized = trimmed.replace('T', ' ').replace(/Z$/i, '');
-    const [datePartRaw, timePartRaw] = normalized.split(' ');
-    const datePart = datePartRaw;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
-    const [yStr, mStr, dStr] = datePart.split('-');
-    const year = parseInt(yStr, 10);
-    const month = parseInt(mStr, 10);
-    const day = parseInt(dStr, 10);
-    if (!(year >= 0 && month >= 1 && month <= 12 && day >= 1 && day <= 31))
-      return null;
-
-    let hour = 0,
-      minute = 0,
-      second = 0;
-    if (timePartRaw && timePartRaw.length) {
-      const timePart = timePartRaw.split('.')[0]; // drop fractional seconds if any
-      const pieces = timePart.split(':');
-      if (pieces.length < 2) return null; // need at least HH:MM
-      hour = parseInt(pieces[0], 10);
-      minute = parseInt(pieces[1], 10);
-      second = pieces.length >= 3 ? parseInt(pieces[2], 10) : 0;
-      if (
-        Number.isNaN(hour) ||
-        hour < 0 ||
-        hour > 23 ||
-        Number.isNaN(minute) ||
-        minute < 0 ||
-        minute > 59 ||
-        Number.isNaN(second) ||
-        second < 0 ||
-        second > 59
-      ) {
-        return null;
-      }
-    }
-
-    const d = new Date(year, month - 1, day, hour, minute, second);
-    if (Number.isNaN(d.getTime())) return null;
-    // Validate no rollover occurred (e.g., 2023-02-31)
-    if (
-      d.getFullYear() !== year ||
-      d.getMonth() !== month - 1 ||
-      d.getDate() !== day ||
-      d.getHours() !== hour ||
-      d.getMinutes() !== minute ||
-      d.getSeconds() !== second
-    ) {
-      return null;
-    }
-    return d;
-  } catch {
-    return null;
-  }
-}
+import { ServiceError, logger } from '../errors';
+import { toSQLiteDateTime, parseSQLiteDateTime } from '../utils/dateUtils';
 
 /**
  * Configure notification behavior
@@ -223,7 +132,7 @@ export const notificationService = {
   async initialize() {
     try {
       if (!Device.isDevice) {
-        console.warn('Notifications require a physical device');
+        logger.warn('NotificationService', 'Notifications require a physical device');
         return false;
       }
 
@@ -234,7 +143,7 @@ export const notificationService = {
       }
 
       if (finalStatus !== 'granted') {
-        console.warn('Notification permissions not granted');
+        logger.warn('NotificationService', 'Notification permissions not granted');
         return false;
       }
 
@@ -248,8 +157,10 @@ export const notificationService = {
         });
       }
 
+      logger.success('NotificationService', 'initialize');
       return true;
     } catch (error) {
+      logger.error('NotificationService', 'initialize', error);
       throw new ServiceError('notificationService', 'initialize', error);
     }
   },
@@ -303,16 +214,17 @@ export const notificationService = {
    */
   async scheduleReminder(reminder, event) {
     try {
-      const originalReminderTime = parseSqliteDatetime(
+      const originalReminderTime = parseSQLiteDateTime(
         reminder.reminder_datetime
       );
       if (!originalReminderTime) {
-        console.warn(
-          'Invalid reminder_datetime; skipping schedule:',
-          reminder.reminder_datetime,
-          '(reminder id:',
-          reminder?.id,
-          ')'
+        logger.warn(
+          'NotificationService',
+          'Invalid reminder_datetime; skipping schedule',
+          {
+            reminderDatetime: reminder.reminder_datetime,
+            reminderId: reminder?.id
+          }
         );
         return null;
       }
@@ -340,30 +252,38 @@ export const notificationService = {
         // Persist the adjusted time back to the database
         await db.eventsReminders.updateReminderDateTime(
           reminder.id,
-          scheduledTime.toISOString()
+          toSQLiteDateTime(scheduledTime)
         );
 
         timeWasAdjusted = true;
-        console.log(
-          `Reminder ${reminder.id} adjusted for quiet hours from ${originalReminderTime.toISOString()} to ${scheduledTime.toISOString()}`
+        logger.info(
+          'NotificationService',
+          'Reminder adjusted for quiet hours',
+          {
+            reminderId: reminder.id,
+            originalTime: originalReminderTime.toISOString(),
+            adjustedTime: scheduledTime.toISOString()
+          }
         );
       }
 
       // Don't schedule past reminders (check after quiet hours adjustment)
       if (scheduledTime <= now) {
-        console.warn(
-          `Reminder time ${scheduledTime.toISOString()} is in the past, skipping`
+        logger.warn(
+          'NotificationService',
+          'Reminder time is in the past, skipping',
+          { reminderTime: scheduledTime.toISOString() }
         );
         return null;
       }
 
       // Use template system for notification content
-      const eventDate = parseSqliteDatetime(event.event_date);
+      const eventDate = parseSQLiteDateTime(event.event_date);
       if (!eventDate) {
-        console.warn(
-          'Invalid event_date for event; proceeding with raw value:',
-          event?.id,
-          event?.event_date
+        logger.warn(
+          'NotificationService',
+          'Invalid event_date for event; proceeding with raw value',
+          { eventId: event?.id, eventDate: event?.event_date }
         );
       }
       const context = {
@@ -429,14 +349,20 @@ export const notificationService = {
           if (typeof affected === 'number' ? affected > 0 : true) {
             scheduledIds.push(notificationId);
           } else {
-            console.warn(
-              `Failed to persist notification_id for reminder ${reminder.id}; excluding from results`
+            logger.warn(
+              'NotificationService',
+              'Failed to persist notification_id for reminder; excluding from results',
+              { reminderId: reminder.id }
             );
           }
         } catch (persistError) {
-          console.warn(
-            `Error persisting notification_id for reminder ${reminder.id}:`,
-            persistError?.message || persistError
+          logger.warn(
+            'NotificationService',
+            'Error persisting notification_id for reminder',
+            {
+              reminderId: reminder.id,
+              error: persistError?.message || persistError
+            }
           );
           // Do not include in returned list since persistence failed
         }
@@ -467,12 +393,12 @@ export const notificationService = {
       const scheduledItems = [];
       const createdReminderIds = [];
       const scheduledNotificationIds = [];
-      const baseDate = parseSqliteDatetime(event.event_date);
+      const baseDate = parseSQLiteDateTime(event.event_date);
       if (!baseDate) {
-        console.warn(
-          'Invalid event_date for recurring schedule; skipping:',
-          event?.id,
-          event?.event_date
+        logger.warn(
+          'NotificationService',
+          'Invalid event_date for recurring schedule; skipping',
+          { eventId: event?.id, eventDate: event?.event_date }
         );
         return [];
       }
@@ -505,7 +431,7 @@ export const notificationService = {
         // Build reminder object for database
         reminderData.push({
           event_id: event.id,
-          reminder_datetime: reminderTime.toISOString(),
+          reminder_datetime: toSQLiteDateTime(reminderTime),
           reminder_type: 'notification',
           is_sent: false,
         });
@@ -542,9 +468,13 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (schedulingError) {
-          console.warn(
-            `Failed to schedule notification for reminder ${reminder.id}:`,
-            schedulingError.message
+          logger.warn(
+            'NotificationService',
+            'Failed to schedule notification for reminder',
+            {
+              reminderId: reminder.id,
+              error: schedulingError.message
+            }
           );
           failedItems.push(reminder.id);
 
@@ -553,9 +483,13 @@ export const notificationService = {
             try {
               await this.cancelNotification(notificationId);
             } catch (cancelError) {
-              console.warn(
-                `Failed to cancel notification ${notificationId} during rollback:`,
-                cancelError.message
+              logger.warn(
+                'NotificationService',
+                'Failed to cancel notification during rollback',
+                {
+                  notificationId,
+                  error: cancelError.message
+                }
               );
             }
           }
@@ -565,9 +499,13 @@ export const notificationService = {
             try {
               await db.eventsReminders.deleteReminder(reminderId);
             } catch (deleteError) {
-              console.warn(
-                `Failed to delete reminder ${reminderId} during rollback:`,
-                deleteError.message
+              logger.warn(
+                'NotificationService',
+                'Failed to delete reminder during rollback',
+                {
+                  reminderId,
+                  error: deleteError.message
+                }
               );
             }
           }
@@ -826,6 +764,11 @@ export const notificationService = {
 
       return { title, body, data };
     } catch (error) {
+      logger.warn(
+        'NotificationService',
+        'Template rendering failed, using generic fallback',
+        { eventType: event?.event_type, error: error.message }
+      );
       // Fallback to generic template on error
       const genericTemplate = NOTIFICATION_TEMPLATES.generic;
       return {
@@ -863,12 +806,12 @@ export const notificationService = {
    * @returns {string} Formatted message
    */
   formatReminderMessage(event, reminder) {
-    const eventDate = parseSqliteDatetime(event.event_date);
+    const eventDate = parseSQLiteDateTime(event.event_date);
     if (!eventDate) {
-      console.warn(
-        'Invalid event_date in formatReminderMessage; using raw value:',
-        event?.id,
-        event?.event_date
+      logger.warn(
+        'NotificationService',
+        'Invalid event_date in formatReminderMessage; using raw value',
+        { eventId: event?.id, eventDate: event?.event_date }
       );
     }
     const eventTime = eventDate
@@ -902,12 +845,12 @@ export const notificationService = {
 
     // Calculate age for birthday events
     if (event.event_type === 'birthday') {
-      const birthDate = parseSqliteDatetime(event.event_date);
+      const birthDate = parseSQLiteDateTime(event.event_date);
       if (!birthDate) {
-        console.warn(
-          'Invalid event_date for birthday; skipping age calc:',
-          event?.id,
-          event?.event_date
+        logger.warn(
+          'NotificationService',
+          'Invalid event_date for birthday; skipping age calc',
+          { eventId: event?.id, eventDate: event?.event_date }
         );
       }
       const currentYear = eventDate.getFullYear();
@@ -998,12 +941,12 @@ export const notificationService = {
         const reminderLeadTime = await this.getReminderLeadTime();
 
         for (const event of recurringEvents) {
-          const baseDate = parseSqliteDatetime(event.event_date);
+          const baseDate = parseSQLiteDateTime(event.event_date);
           if (!baseDate) {
-            console.warn(
-              'Invalid event_date for recurring generation; skipping event:',
-              event?.id,
-              event?.event_date
+            logger.warn(
+              'NotificationService',
+              'Invalid event_date for recurring generation; skipping event',
+              { eventId: event?.id, eventDate: event?.event_date }
             );
             continue;
           }
@@ -1023,7 +966,7 @@ export const notificationService = {
             if (reminderTime <= now) continue;
 
             // Check if this reminder already exists (use SQLite datetime format)
-            const sqliteReminderTime = formatSQLiteDateTime(reminderTime);
+            const sqliteReminderTime = toSQLiteDateTime(reminderTime);
             const existingRes = await tx.execute(
               'SELECT id FROM event_reminders WHERE event_id = ? AND reminder_datetime = ?;',
               [event.id, sqliteReminderTime]
@@ -1041,7 +984,7 @@ export const notificationService = {
                 newRecurringReminders.push({
                   id: reminderRes.insertId,
                   event_id: event.id,
-                  reminder_datetime: reminderTime.toISOString(),
+                  reminder_datetime: sqliteReminderTime,
                   reminder_type: 'notification',
                   is_sent: false,
                   title: event.title,
@@ -1068,9 +1011,13 @@ export const notificationService = {
               await this.cancelNotification(notification.identifier);
               cleanupResult.cancelledCount++;
             } catch (error) {
-              console.warn(
-                `Failed to cancel expired notification ${notification.identifier}:`,
-                error.message
+              logger.warn(
+                'NotificationService',
+                'Failed to cancel expired notification',
+                {
+                  notificationId: notification.identifier,
+                  error: error.message
+                }
               );
             }
           }
@@ -1094,9 +1041,13 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (error) {
-          console.warn(
-            `Failed to schedule reminder ${reminder.id}:`,
-            error.message
+          logger.warn(
+            'NotificationService',
+            'Failed to schedule reminder',
+            {
+              reminderId: reminder.id,
+              error: error.message
+            }
           );
           failedItems.push(reminder.id);
         }
@@ -1119,40 +1070,32 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (error) {
-          console.warn(
-            `Failed to schedule recurring reminder ${reminder.id}:`,
-            error.message
+          logger.warn(
+            'NotificationService',
+            'Failed to schedule recurring reminder',
+            {
+              reminderId: reminder.id,
+              error: error.message
+            }
           );
           failedItems.push(reminder.id);
         }
       }
 
-      // Phase 3: Update database with scheduling results in new transaction
-      await db.transaction(async tx => {
-        // Mark successfully scheduled reminders
-        if (scheduledItems.length > 0) {
-          for (const { reminderId, notificationId } of scheduledItems) {
-            await tx.execute(
-              'UPDATE event_reminders SET notification_id = ? WHERE id = ?;',
-              [notificationId, reminderId]
-            );
-          }
-        }
+      // Phase 3: Update database with scheduling results using batch operations
+      if (scheduledItems.length > 0) {
+        await db.eventsReminders.markRemindersScheduled(scheduledItems);
+      }
 
-        // Mark failed reminders (clear notification_id so they can be retried)
-        if (failedItems.length > 0) {
-          for (const reminderId of failedItems) {
-            await tx.execute(
-              'UPDATE event_reminders SET notification_id = NULL WHERE id = ?;',
-              [reminderId]
-            );
-          }
-        }
+      if (failedItems.length > 0) {
+        await db.eventsReminders.markRemindersFailed(failedItems);
+      }
+
+      logger.success('NotificationService', 'syncAllReminders', {
+        scheduled: scheduledItems.length,
+        failed: failedItems.length,
+        cancelled: cleanupResult.cancelledCount
       });
-
-      console.log(
-        `Sync completed: ${scheduledItems.length} scheduled, ${failedItems.length} failed, ${cleanupResult.cancelledCount} cancelled`
-      );
 
       return {
         scheduled: scheduledItems.length,
@@ -1160,20 +1103,28 @@ export const notificationService = {
         cancelled: cleanupResult.cancelledCount,
       };
     } catch (error) {
-      console.error('Sync failed, attempting cleanup...', error);
+      logger.error('NotificationService', 'syncAllReminders', error, {
+        message: 'Sync failed, attempting cleanup'
+      });
 
       // Attempt to rollback any partial external scheduling
       if (scheduledItems.length > 0) {
-        console.log(
-          `Rolling back ${scheduledItems.length} scheduled notifications...`
+        logger.info(
+          'NotificationService',
+          'Rolling back scheduled notifications',
+          { count: scheduledItems.length }
         );
         for (const { notificationId } of scheduledItems) {
           try {
             await this.cancelNotification(notificationId);
           } catch (rollbackError) {
-            console.warn(
-              `Failed to rollback notification ${notificationId}:`,
-              rollbackError.message
+            logger.warn(
+              'NotificationService',
+              'Failed to rollback notification',
+              {
+                notificationId,
+                error: rollbackError.message
+              }
             );
           }
         }

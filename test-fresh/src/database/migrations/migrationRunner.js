@@ -1,7 +1,7 @@
 // Migration runner
 // Discovers versioned migration modules and applies pending ones in order.
 
-import { DatabaseError } from '../errors.js';
+import { DatabaseError, logger } from '../../errors';
 import MIGRATIONS from './registry.js';
 
 async function ensureMeta({ execute }) {
@@ -14,7 +14,9 @@ async function ensureMeta({ execute }) {
         PRIMARY KEY (version)
       );`
     );
+    logger.success('MigrationRunner', 'ensureMeta');
   } catch (err) {
+    logger.error('MigrationRunner', 'ensureMeta', err);
     throw new DatabaseError(
       'Failed to ensure migrations table',
       'MIGRATION_META_FAILED',
@@ -32,8 +34,11 @@ async function getAppliedVersions({ execute }) {
       (res && Array.isArray(res) && res) ||
       res?.rows?._array ||
       (Array.isArray(res?.rows) ? res.rows : []);
-    return rows.map(r => r.version);
+    const versions = rows.map(r => r.version);
+    logger.success('MigrationRunner', 'getAppliedVersions', { count: versions.length });
+    return versions;
   } catch (err) {
+    logger.error('MigrationRunner', 'getAppliedVersions', err);
     throw new DatabaseError(
       'Failed to read applied migrations',
       'MIGRATION_QUERY_FAILED',
@@ -78,7 +83,9 @@ async function recordApplied({ execute }, migration) {
       migration.version,
       migration.name || `migration_${migration.version}`,
     ]);
+    logger.success('MigrationRunner', 'recordApplied', { version: migration.version });
   } catch (err) {
+    logger.error('MigrationRunner', 'recordApplied', err, { version: migration.version });
     throw new DatabaseError(
       'Failed to record applied migration',
       'MIGRATION_RECORD_FAILED',
@@ -181,28 +188,24 @@ export async function runMigrations(ctx) {
                 migration.name || `migration_${migration.version}`,
               ]
             );
+            logger.success('MigrationRunner', 'recordMigration', { version: migration.version });
           } catch (recordError) {
             // Handle UNIQUE constraint violations gracefully - migration may have been recorded previously
             if (
               recordError?.message?.includes('UNIQUE constraint failed') ||
               recordError?.code === 'ERR_INTERNAL_SQLITE_ERROR'
             ) {
-              console.warn(
-                `Migration v${migration.version} appears to already be recorded, but was detected as pending. This may indicate a previous incomplete migration run.`
+              logger.warn(
+                'MigrationRunner',
+                `Migration v${migration.version} appears to already be recorded, but was detected as pending. This may indicate a previous incomplete migration run.`,
+                { version: migration.version }
               );
               // Log but don't throw - the migration itself was successfully applied above
             } else {
               // For other errors, add debug logging and re-throw
-              console.error('Failed to record migration as applied:', {
+              logger.error('MigrationRunner', 'recordMigration', recordError, {
                 version: migration.version,
                 name: migration.name,
-                error: recordError.message,
-                code: recordError.code,
-                sql: 'INSERT INTO migrations (version, name) VALUES (?, ?)',
-                params: [
-                  migration.version,
-                  migration.name || `migration_${migration.version}`,
-                ],
               });
               throw new DatabaseError(
                 'Failed to record applied migration',
@@ -222,7 +225,9 @@ export async function runMigrations(ctx) {
         await recordApplied(ctx, migration);
       }
       log(`[migrations] Applied v${migration.version} (${name}).`);
+      logger.success('MigrationRunner', 'applyMigration', { version: migration.version, name });
     } catch (err) {
+      logger.error('MigrationRunner', 'applyMigration', err, { version: migration.version, name });
       throw new DatabaseError(
         `Migration v${migration.version} (${name}) failed`,
         'MIGRATION_FAILED',

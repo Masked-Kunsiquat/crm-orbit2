@@ -10,6 +10,7 @@ import { createBasicTables } from './src/database/simpleSetup';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
 import InteractionsScreen from './src/screens/InteractionsScreen';
+import EventsList from './src/screens/EventsList';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -94,6 +95,7 @@ export default function App() {
     const routes = React.useMemo(() => [
       { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
       { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+      { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
       { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
     ], [i18n.language]); // Only recompute when language actually changes
 
@@ -103,6 +105,8 @@ export default function App() {
           return <ContactsList navigation={navigation} />;
         case 'interactions':
           return <InteractionsScreen />;
+        case 'events':
+          return <EventsList navigation={navigation} />;
         case 'settings':
           return <SettingsScreen />;
         default:

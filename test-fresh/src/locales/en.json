@@ -2,6 +2,7 @@
   "navigation": {
     "contacts": "Contacts",
     "interactions": "Interactions",
+    "events": "Events",
     "settings": "Settings"
   },
   "search": {
@@ -141,6 +142,90 @@
       "deleted": "Interaction deleted successfully!"
     }
   },
+  "events": {
+    "title": "Events",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "filters": {
+      "all": "All",
+      "birthday": "Birthdays",
+      "anniversary": "Anniversaries",
+      "meeting": "Meetings",
+      "deadline": "Deadlines",
+      "other": "Other"
+    },
+    "types": {
+      "birthday": "Birthday",
+      "anniversary": "Anniversary",
+      "meeting": "Meeting",
+      "deadline": "Deadline",
+      "other": "Other"
+    },
+    "emptyTitle": "No Events",
+    "emptyMessage": "Add your first event to get started.",
+    "errorLoad": "Failed to load events"
+  },
+  "addEvent": {
+    "titleAdd": "Add Event",
+    "titleEdit": "Edit Event",
+    "sections": {
+      "contact": "Contact",
+      "type": "Event Type",
+      "date": "Date",
+      "title": "Title",
+      "reminders": "Reminders",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Select a contact",
+      "quickFill": "Quick Fill",
+      "titlePlaceholder": "e.g., John's Birthday",
+      "recurring": "Recurring Event",
+      "recurringHelper": "Repeats every year (for birthdays, anniversaries)",
+      "notesPlaceholder": "Optional notes about this event",
+      "save": "Save",
+      "update": "Update",
+      "cancel": "Cancel",
+      "delete": "Delete Event"
+    },
+    "types": {
+      "birthday": "Birthday",
+      "anniversary": "Anniversary",
+      "meeting": "Meeting",
+      "deadline": "Deadline",
+      "other": "Other"
+    },
+    "quickTitles": {
+      "birthday": "{{name}}'s Birthday",
+      "anniversary": "Anniversary with {{name}}",
+      "meeting": "Meeting with {{name}}",
+      "deadline": "Deadline for {{name}}",
+      "other": "Event with {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 min before",
+      "60": "1 hour before",
+      "1440": "1 day before",
+      "10080": "1 week before"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "contactRequired": "Please select a contact",
+      "saveFailed": "Failed to save event. Please try again.",
+      "deleteFailed": "Failed to delete event. Please try again."
+    },
+    "delete": {
+      "title": "Delete Event",
+      "message": "Are you sure you want to delete this event?",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "success": {
+      "added": "Event added successfully!",
+      "updated": "Event updated successfully!",
+      "deleted": "Event deleted successfully!"
+    }
+  },
   "contactDetail": {
     "title": "Contact",
     "loading": "Loading...",
@@ -148,6 +233,12 @@
     "errorImageSet": "Failed to set contact photo",
     "errorImageRemove": "Failed to remove photo",
     "recent": "Recent Interactions",
+    "events": "Upcoming Events",
+    "addBirthday": "Birthday",
+    "addEvent": "Event",
+    "noEvents": "No upcoming events",
+    "noEventsDescription": "Add an event for this contact",
+    "recurring": "Recurring",
     "delete": "Delete Contact",
     "deleteConfirm": "Are you sure you want to delete {{name}}?",
     "photoTitle": "Contact Photo",
@@ -177,6 +268,7 @@
     "importFailMsg": "Failed to import contact. Please try again or enter details manually.",
     "permissionTitle": "Permission Denied",
     "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.",
+    "successMsg": "Contact added successfully!",
     "sections": {
       "name": "Name",
       "phones": "Phone Numbers",
@@ -191,6 +283,10 @@
       "cancel": "Cancel",
       "phone": "Phone",
       "email": "Email"
+    },
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "contactInfoRequired": "Please provide at least a phone number or email address"
     }
   },
   "contact": {

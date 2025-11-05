@@ -2,6 +2,7 @@
 // Focused on recurring events and birthday calculations
 
 import { DatabaseError } from './errors';
+import { parseLocalDate, formatDateToString } from '../utils/dateUtils';
 
 /**
  * Get the next occurrence date for a recurring event
@@ -20,8 +21,11 @@ function calculateNextOccurrence(
   // Parse original event date components
   const [eventYear, eventMonth, eventDay] = eventDate.split('-').map(Number);
 
-  // Get today's local date components
-  const today = fromDate ? new Date(fromDate + 'T00:00:00') : new Date();
+  // Get today's local date components using dateUtils
+  const today = fromDate ? parseLocalDate(fromDate) : new Date();
+  if (!today || isNaN(today.getTime())) {
+    return null;
+  }
   today.setHours(0, 0, 0, 0);
   const todayYear = today.getFullYear();
   const todayMonth = today.getMonth() + 1; // getMonth() is 0-based
@@ -54,7 +58,7 @@ function calculateNextOccurrence(
       }
     }
 
-    return formatLocalDate(nextYear, nextMonth, nextDay);
+    return formatDateToString(new Date(nextYear, nextMonth - 1, nextDay));
   } else if (recurrencePattern === 'monthly') {
     let nextYear = todayYear;
     let nextMonth = todayMonth;
@@ -83,7 +87,7 @@ function calculateNextOccurrence(
       nextDay = eventDay > newDaysInMonth ? newDaysInMonth : eventDay;
     }
 
-    return formatLocalDate(nextYear, nextMonth, nextDay);
+    return formatDateToString(new Date(nextYear, nextMonth - 1, nextDay));
   }
 
   return null;
@@ -108,33 +112,6 @@ function getDaysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
 }
 
-/**
- * Format local date as YYYY-MM-DD string
- * @param {number} year - Year
- * @param {number} month - Month (1-12)
- * @param {number} day - Day
- * @returns {string} Formatted date string
- */
-function formatLocalDate(year, month, day) {
-  const yearStr = String(year).padStart(4, '0');
-  const monthStr = String(month).padStart(2, '0');
-  const dayStr = String(day).padStart(2, '0');
-  return `${yearStr}-${monthStr}-${dayStr}`;
-}
-
-/**
- * Parse a YYYY-MM-DD string as a local Date at midnight.
- * Avoids UTC parsing quirks of Date('YYYY-MM-DD').
- * @param {string} ymd
- * @returns {Date}
- */
-function parseLocalYMD(ymd) {
-  if (!ymd || typeof ymd !== 'string') return new Date(NaN);
-  const [y, m, d] = ymd.split('-').map(Number);
-  const dt = new Date(y, (m || 1) - 1, d || 1);
-  dt.setHours(0, 0, 0, 0);
-  return dt;
-}
 
 /**
  * Create the events recurring database module
@@ -213,15 +190,16 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       const today = new Date();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
+      const monthDay = `${month}-${day}`;
 
-      const sql = `SELECT e.*, c.first_name, c.last_name, c.display_name 
-                   FROM events e 
-                   JOIN contacts c ON e.contact_id = c.id 
-                   WHERE e.event_type = 'birthday' 
+      const sql = `SELECT e.*, c.first_name, c.last_name, c.display_name
+                   FROM events e
+                   JOIN contacts c ON e.contact_id = c.id
+                   WHERE e.event_type = 'birthday'
                    AND substr(e.event_date, 6, 5) = ?
                    ORDER BY c.display_name ASC;`;
 
-      const res = await execute(sql, [`${month}-${day}`]);
+      const res = await execute(sql, [monthDay]);
       return res.rows;
     },
 
@@ -248,17 +226,19 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
       for (const event of res.rows) {
         const nextDate = calculateNextOccurrence(event.event_date, 'yearly');
         if (nextDate) {
-          const nextBirthday = parseLocalYMD(nextDate);
-          const daysDiff = Math.round(
-            (nextBirthday - today) / (1000 * 60 * 60 * 24)
-          );
+          const nextBirthday = parseLocalDate(nextDate);
+          if (nextBirthday && !isNaN(nextBirthday.getTime())) {
+            const daysDiff = Math.round(
+              (nextBirthday - today) / (1000 * 60 * 60 * 24)
+            );
 
-          if (daysDiff >= 0 && daysDiff <= days) {
-            birthdays.push({
-              ...event,
-              next_occurrence: nextDate,
-              days_until: daysDiff,
-            });
+            if (daysDiff >= 0 && daysDiff <= days) {
+              birthdays.push({
+                ...event,
+                next_occurrence: nextDate,
+                days_until: daysDiff,
+              });
+            }
           }
         }
       }
@@ -287,17 +267,19 @@ export function createEventsRecurringDB({ execute, batch, transaction }) {
           event.recurrence_pattern
         );
         if (nextDate) {
-          const nextEvent = parseLocalYMD(nextDate);
-          const daysDiff = Math.round(
-            (nextEvent - today) / (1000 * 60 * 60 * 24)
-          );
+          const nextEvent = parseLocalDate(nextDate);
+          if (nextEvent && !isNaN(nextEvent.getTime())) {
+            const daysDiff = Math.round(
+              (nextEvent - today) / (1000 * 60 * 60 * 24)
+            );
 
-          if (daysDiff >= 0 && daysDiff <= days) {
-            upcoming.push({
-              ...event,
-              next_occurrence: nextDate,
-              days_until: daysDiff,
-            });
+            if (daysDiff >= 0 && daysDiff <= days) {
+              upcoming.push({
+                ...event,
+                next_occurrence: nextDate,
+                days_until: daysDiff,
+              });
+            }
           }
         }
       }

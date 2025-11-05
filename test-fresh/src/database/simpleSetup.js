@@ -172,6 +172,53 @@ export async function createBasicTables() {
       ON interactions(interaction_type)
     `);
 
+    // Create events table
+    await execute(`
+      CREATE TABLE IF NOT EXISTS events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contact_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        event_date TEXT NOT NULL,
+        recurring INTEGER DEFAULT 0,
+        recurrence_pattern TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create event_reminders table
+    await execute(`
+      CREATE TABLE IF NOT EXISTS event_reminders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id INTEGER NOT NULL,
+        reminder_datetime TEXT NOT NULL,
+        reminder_type TEXT DEFAULT 'notification',
+        is_sent INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create indexes for events
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_events_contact
+      ON events(contact_id)
+    `);
+
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_events_date
+      ON events(event_date ASC)
+    `);
+
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_events_type
+      ON events(event_type)
+    `);
+
     // Seed default categories
     await seedDefaultCategories();
 

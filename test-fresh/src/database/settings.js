@@ -1,4 +1,4 @@
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 import {
   DEFAULT_SETTINGS,
   validateSettingValue,
@@ -44,6 +44,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
         if (result.rows.length === 0) {
           const defaultSetting = DEFAULT_SETTINGS[settingKey];
           if (defaultSetting) {
+            logger.success('SettingsDB', 'get', { settingKey, isDefault: true });
             return {
               key: settingKey,
               value: defaultSetting.value,
@@ -52,12 +53,14 @@ export function createSettingsDB({ execute, batch, transaction }) {
               isDefault: true,
             };
           }
+          logger.success('SettingsDB', 'get', { settingKey, found: false });
           return null;
         }
 
         const row = result.rows[0];
         const castedValue = castValue(row.setting_value, row.data_type);
 
+        logger.success('SettingsDB', 'get', { settingKey });
         return {
           key: row.setting_key,
           value: castedValue,
@@ -72,6 +75,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
         };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'get', error, { settingKey });
         throw new DatabaseError(
           'Failed to get setting',
           'GET_SETTING_FAILED',
@@ -167,9 +171,11 @@ export function createSettingsDB({ execute, batch, transaction }) {
         ]);
 
         const setting = await this.get(settingKey);
+        logger.success('SettingsDB', 'set', { settingKey });
         return setting;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'set', error, { settingKey, value });
         throw new DatabaseError(
           'Failed to set setting',
           'SET_SETTING_FAILED',
@@ -223,11 +229,14 @@ export function createSettingsDB({ execute, batch, transaction }) {
             isDefault: true,
           }));
 
-        return [...settings, ...defaults].sort((a, b) =>
+        const allSettings = [...settings, ...defaults].sort((a, b) =>
           a.key.localeCompare(b.key)
         );
+        logger.success('SettingsDB', 'getByCategory', { category, count: allSettings.length });
+        return allSettings;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'getByCategory', error, { category });
         throw new DatabaseError(
           'Failed to get settings by category',
           'GET_CATEGORY_FAILED',
@@ -338,9 +347,12 @@ export function createSettingsDB({ execute, batch, transaction }) {
       try {
         await batch(statements);
 
-        return await Promise.all(settings.map(s => this.get(s.key)));
+        const result = await Promise.all(settings.map(s => this.get(s.key)));
+        logger.success('SettingsDB', 'setMultiple', { count: settings.length });
+        return result;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'setMultiple', error, { count: settings.length });
         throw new DatabaseError(
           'Failed to set multiple settings',
           'SET_MULTIPLE_FAILED',
@@ -394,6 +406,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       try {
         await execute(sql, [settingKey, category]);
 
+        logger.success('SettingsDB', 'reset', { settingKey });
         return {
           key: settingKey,
           value: defaultSetting.value,
@@ -404,6 +417,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
         };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'reset', error, { settingKey, category });
         throw new DatabaseError(
           'Failed to reset setting',
           'RESET_SETTING_FAILED',
@@ -448,14 +462,17 @@ export function createSettingsDB({ execute, batch, transaction }) {
             isDefault: true,
           }));
 
-        return [...settings, ...defaults].sort((a, b) => {
+        const allSettings = [...settings, ...defaults].sort((a, b) => {
           if (a.category !== b.category) {
             return a.category.localeCompare(b.category);
           }
           return a.key.localeCompare(b.key);
         });
+        logger.success('SettingsDB', 'getAll', { count: allSettings.length });
+        return allSettings;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'getAll', error);
         throw new DatabaseError(
           'Failed to get all settings',
           'GET_ALL_FAILED',
@@ -695,9 +712,11 @@ export function createSettingsDB({ execute, batch, transaction }) {
           values[key] = value;
         }
 
+        logger.success('SettingsDB', 'getValues', { category, count: normalizedKeys.length });
         return values;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('SettingsDB', 'getValues', error, { category, keys: normalizedKeys });
         throw new DatabaseError(
           'Failed to get multiple values',
           'GET_VALUES_FAILED',

@@ -15,6 +15,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/auth';
+import { logger, ServiceError } from '../errors';
 
 /**
  * Storage keys for authentication-related data in AsyncStorage and SecureStore
@@ -140,7 +141,7 @@ class AuthService {
 
       return { isLockedOut: false, remainingTime: 0 };
     } catch (error) {
-      console.error('Error checking lockout status:', error);
+      logger.error('AuthService', 'checkLockoutStatus', error);
       return { isLockedOut: false, remainingTime: 0 };
     }
   }
@@ -194,7 +195,7 @@ class AuthService {
         attempts: newAttempts,
       };
     } catch (error) {
-      console.error('Error incrementing failed attempts:', error);
+      logger.error('AuthService', 'incrementFailedAttempts', error);
       return { isLockedOut: false, remainingTime: 0, attempts: 0 };
     }
   }
@@ -208,7 +209,7 @@ class AuthService {
       await AsyncStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
       this.failedAttempts = 0;
     } catch (error) {
-      console.error('Error clearing failed attempts:', error);
+      logger.error('AuthService', 'clearFailedAttempts', error);
     }
   }
 
@@ -221,7 +222,7 @@ class AuthService {
       this.failedAttempts = 0;
       this.lockoutUntil = null;
     } catch (error) {
-      console.error('Error clearing lockout:', error);
+      logger.error('AuthService', 'clearLockout', error);
     }
   }
 
@@ -291,7 +292,7 @@ class AuthService {
         canUseBiometric: hasHardware && isEnrolled,
       };
     } catch (error) {
-      console.error('Error checking authentication capabilities:', error);
+      logger.error('AuthService', 'checkAuthenticationCapabilities', error);
       return {
         hasHardware: false,
         isEnrolled: false,
@@ -335,8 +336,8 @@ class AuthService {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN_ENABLED, 'true');
       return true;
     } catch (error) {
-      console.error('Error setting PIN:', error);
-      throw error;
+      logger.error('AuthService', 'setPIN', error);
+      throw new ServiceError('Failed to set PIN', 'AUTH_SET_PIN_ERROR', error);
     }
   }
 
@@ -350,7 +351,7 @@ class AuthService {
       const storedPIN = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.PIN);
       return storedPIN === pin;
     } catch (error) {
-      console.error('Error verifying PIN:', error);
+      logger.error('AuthService', 'verifyPIN', error);
       return false;
     }
   }
@@ -363,7 +364,7 @@ class AuthService {
       const storedPIN = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.PIN);
       return pinEnabled === 'true' && !!storedPIN;
     } catch (error) {
-      console.error('Error checking PIN status:', error);
+      logger.error('AuthService', 'hasPIN', error);
       return false;
     }
   }
@@ -374,8 +375,8 @@ class AuthService {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PIN_ENABLED, 'false');
       return true;
     } catch (error) {
-      console.error('Error removing PIN:', error);
-      throw error;
+      logger.error('AuthService', 'removePIN', error);
+      throw new ServiceError('Failed to remove PIN', 'AUTH_REMOVE_PIN_ERROR', error);
     }
   }
 
@@ -403,12 +404,13 @@ class AuthService {
           : this.mapBiometricError(result.error),
       };
     } catch (error) {
-      console.error('Biometric authentication error:', error);
-      const mappedError = {
-        ...error,
-        errorCode: this.mapBiometricError(error),
-      };
-      throw mappedError;
+      logger.error('AuthService', 'authenticateWithBiometric', error);
+      throw new ServiceError(
+        'Biometric authentication failed',
+        'AUTH_BIOMETRIC_ERROR',
+        error,
+        { errorCode: this.mapBiometricError(error) }
+      );
     }
   }
 
@@ -457,7 +459,7 @@ class AuthService {
         };
       }
     } catch (error) {
-      console.error('PIN authentication error:', error);
+      logger.error('AuthService', 'authenticateWithPIN', error);
       return {
         success: false,
         error: error.message,
@@ -489,10 +491,7 @@ class AuthService {
           }
         } catch (error) {
           // Fall back to PIN if biometric fails
-          console.warn(
-            'Biometric authentication failed, falling back to PIN:',
-            error
-          );
+          logger.warn('AuthService', 'Biometric authentication failed, falling back to PIN', { error: error.message });
         }
       }
 
@@ -504,7 +503,7 @@ class AuthService {
       // Return indication that PIN is required
       return { success: false, method: 'pin_required', hasPIN: true };
     } catch (error) {
-      console.error('Authentication error:', error);
+      logger.error('AuthService', 'authenticate', error);
       return { success: false, error: error.message };
     }
   }
@@ -523,12 +522,12 @@ class AuthService {
 
       this.notifyListeners({ type: 'unlock' });
       this.startAutoLockTimer().catch(error => {
-        console.error('Error starting auto-lock timer after unlock:', error);
+        logger.error('AuthService', 'startAutoLockTimer', error);
       });
 
       return true;
     } catch (error) {
-      console.error('Error handling successful authentication:', error);
+      logger.error('AuthService', 'onSuccessfulAuth', error);
       return false;
     }
   }
@@ -549,7 +548,7 @@ class AuthService {
 
       return this.isLocked;
     } catch (error) {
-      console.error('Error checking lock status:', error);
+      logger.error('AuthService', 'getLockState', error);
       return true; // Default to locked for security
     }
   }
@@ -562,7 +561,7 @@ class AuthService {
       this.notifyListeners({ type: 'lock' });
       return true;
     } catch (error) {
-      console.error('Error locking app:', error);
+      logger.error('AuthService', 'lock', error);
       return false;
     }
   }
@@ -586,7 +585,7 @@ class AuthService {
       await this.startAutoLockTimer();
       return true;
     } catch (error) {
-      console.error('Error enabling auto-lock:', error);
+      logger.error('AuthService', 'enableAutoLock', error);
       return false;
     }
   }
@@ -597,7 +596,7 @@ class AuthService {
       this.clearAutoLockTimer();
       return true;
     } catch (error) {
-      console.error('Error disabling auto-lock:', error);
+      logger.error('AuthService', 'disableAutoLock', error);
       return false;
     }
   }
@@ -609,7 +608,7 @@ class AuthService {
       );
       return enabled === 'true';
     } catch (error) {
-      console.error('Error checking auto-lock status:', error);
+      logger.error('AuthService', 'isAutoLockEnabled', error);
       return false;
     }
   }
@@ -621,7 +620,7 @@ class AuthService {
       );
       return timeout ? parseInt(timeout, 10) : 5; // Default 5 minutes
     } catch (error) {
-      console.error('Error getting auto-lock timeout:', error);
+      logger.error('AuthService', 'getAutoLockTimeout', error);
       return 5;
     }
   }
@@ -652,7 +651,7 @@ class AuthService {
         }, timeoutMs);
       }
     } catch (error) {
-      console.error('Error starting auto-lock timer:', error);
+      logger.error('AuthService', 'startAutoLockTimer', error);
     }
   }
 
@@ -674,8 +673,8 @@ class AuthService {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.BIOMETRIC_ENABLED, 'true');
       return true;
     } catch (error) {
-      console.error('Error enabling biometric:', error);
-      throw error;
+      logger.error('AuthService', 'enableBiometric', error);
+      throw new ServiceError('Failed to enable biometric authentication', 'AUTH_ENABLE_BIOMETRIC_ERROR', error);
     }
   }
 
@@ -684,7 +683,7 @@ class AuthService {
       await AsyncStorage.setItem(AUTH_STORAGE_KEYS.BIOMETRIC_ENABLED, 'false');
       return true;
     } catch (error) {
-      console.error('Error disabling biometric:', error);
+      logger.error('AuthService', 'disableBiometric', error);
       return false;
     }
   }
@@ -696,7 +695,7 @@ class AuthService {
       );
       return enabled === 'true';
     } catch (error) {
-      console.error('Error checking biometric status:', error);
+      logger.error('AuthService', 'isBiometricEnabled', error);
       return false;
     }
   }
@@ -739,7 +738,7 @@ class AuthService {
 
       return true;
     } catch (error) {
-      console.error('Error initializing auth service:', error);
+      logger.error('AuthService', 'initialize', error);
       return false;
     }
   }
@@ -759,7 +758,7 @@ class AuthService {
       try {
         callback(event);
       } catch (error) {
-        console.error('Error in auth listener:', error);
+        logger.error('AuthService', 'notifyListeners', error);
       }
     });
   }
@@ -791,7 +790,7 @@ class AuthService {
 
       return true;
     } catch (error) {
-      console.error('Error resetting auth:', error);
+      logger.error('AuthService', 'resetAuth', error);
       return false;
     }
   }
@@ -801,10 +800,7 @@ class AuthService {
     if (nextAppState === 'background' || nextAppState === 'inactive') {
       // App going to background - start/continue auto-lock timer if enabled
       this.startAutoLockTimer().catch(error => {
-        console.error(
-          'Error starting auto-lock timer on app state change:',
-          error
-        );
+        logger.error('AuthService', 'onAppStateChange - startAutoLockTimer', error);
       });
     } else if (nextAppState === 'active') {
       // App coming to foreground - check if should be locked
@@ -831,7 +827,7 @@ class AuthService {
         }
       }
     } catch (error) {
-      console.error('Error checking auto-lock:', error);
+      logger.error('AuthService', 'checkAutoLock', error);
     }
   }
 }

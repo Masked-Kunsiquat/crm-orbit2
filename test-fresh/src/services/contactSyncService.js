@@ -5,7 +5,7 @@
 
 import * as Contacts from 'expo-contacts';
 import db from '../database';
-import { ServiceError } from './errors';
+import { ServiceError, logger } from '../errors';
 
 /**
  * Contact sync service error codes
@@ -571,7 +571,7 @@ class ContactSyncService {
 
       return newCompany.id;
     } catch (error) {
-      console.warn('Failed to create/lookup company:', error);
+      logger.warn('ContactSyncService', 'Failed to create/lookup company', { companyName, error: error.message });
       return null;
     }
   }
@@ -629,7 +629,7 @@ class ContactSyncService {
           await db.contactsInfo.deleteContactInfo(info.id);
         } catch (e) {
           // continue deleting others
-          console.warn('Failed deleting contact_info during overwrite', e);
+          logger.warn('ContactSyncService', 'Failed deleting contact_info during overwrite', { infoId: info.id, error: e.message });
         }
       }
 

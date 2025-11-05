@@ -2,6 +2,7 @@
   "navigation": {
     "contacts": "Kontakte",
     "interactions": "Interaktionen",
+    "events": "Ereignisse",
     "settings": "Einstellungen"
   },
   "search": {
@@ -138,6 +139,90 @@
       "deleted": "Interaktion erfolgreich gelöscht!"
     }
   },
+  "events": {
+    "title": "Ereignisse",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "filters": {
+      "all": "Alle",
+      "birthday": "Geburtstage",
+      "anniversary": "Jubiläen",
+      "meeting": "Besprechungen",
+      "deadline": "Fristen",
+      "other": "Andere"
+    },
+    "types": {
+      "birthday": "Geburtstag",
+      "anniversary": "Jubiläum",
+      "meeting": "Besprechung",
+      "deadline": "Frist",
+      "other": "Andere"
+    },
+    "emptyTitle": "Keine Ereignisse",
+    "emptyMessage": "Fügen Sie Ihr erstes Ereignis hinzu.",
+    "errorLoad": "Ereignisse konnten nicht geladen werden"
+  },
+  "addEvent": {
+    "titleAdd": "Ereignis hinzufügen",
+    "titleEdit": "Ereignis bearbeiten",
+    "sections": {
+      "contact": "Kontakt",
+      "type": "Ereignistyp",
+      "date": "Datum",
+      "title": "Titel",
+      "reminders": "Erinnerungen",
+      "notes": "Notizen"
+    },
+    "labels": {
+      "selectContact": "Kontakt auswählen",
+      "quickFill": "Schnellausfüllen",
+      "titlePlaceholder": "z.B. Johns Geburtstag",
+      "recurring": "Wiederkehrendes Ereignis",
+      "recurringHelper": "Wiederholt sich jährlich (Geburtstage, Jubiläen)",
+      "notesPlaceholder": "Optionale Notizen zu diesem Ereignis",
+      "save": "Speichern",
+      "update": "Aktualisieren",
+      "cancel": "Abbrechen",
+      "delete": "Ereignis löschen"
+    },
+    "types": {
+      "birthday": "Geburtstag",
+      "anniversary": "Jubiläum",
+      "meeting": "Besprechung",
+      "deadline": "Frist",
+      "other": "Andere"
+    },
+    "quickTitles": {
+      "birthday": "{{name}}s Geburtstag",
+      "anniversary": "Jubiläum mit {{name}}",
+      "meeting": "Besprechung mit {{name}}",
+      "deadline": "Frist für {{name}}",
+      "other": "Ereignis mit {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 Min. vorher",
+      "60": "1 Std. vorher",
+      "1440": "1 Tag vorher",
+      "10080": "1 Woche vorher"
+    },
+    "errors": {
+      "titleRequired": "Titel ist erforderlich",
+      "contactRequired": "Bitte wählen Sie einen Kontakt aus",
+      "saveFailed": "Ereignis konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "deleteFailed": "Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+    },
+    "delete": {
+      "title": "Ereignis löschen",
+      "message": "Möchten Sie dieses Ereignis wirklich löschen?",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen"
+    },
+    "success": {
+      "added": "Ereignis erfolgreich hinzugefügt!",
+      "updated": "Ereignis erfolgreich aktualisiert!",
+      "deleted": "Ereignis erfolgreich gelöscht!"
+    }
+  },
   "contactDetail": {
     "title": "Kontakt",
     "loading": "Wird geladen...",
@@ -145,6 +230,12 @@
     "errorImageSet": "Festlegen des Kontaktfotos fehlgeschlagen",
     "errorImageRemove": "Entfernen des Fotos fehlgeschlagen",
     "recent": "Neueste Interaktionen",
+    "events": "Bevorstehende Ereignisse",
+    "addBirthday": "Geburtstag",
+    "addEvent": "Ereignis",
+    "noEvents": "Keine bevorstehenden Ereignisse",
+    "noEventsDescription": "Fügen Sie ein Ereignis für diesen Kontakt hinzu",
+    "recurring": "Wiederkehrend",
     "delete": "Kontakt löschen",
     "deleteConfirm": "Sind Sie sicher, dass Sie {{name}} löschen möchten?",
     "photoTitle": "Kontaktfoto",
@@ -174,6 +265,7 @@
     "importFailMsg": "Import des Kontakts fehlgeschlagen. Bitte versuchen Sie es erneut oder geben Sie die Details manuell ein.",
     "permissionTitle": "Berechtigung verweigert",
     "permissionMsg": "Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die Kontaktberechtigung in Ihren Geräteeinstellungen.",
+    "successMsg": "Kontakt erfolgreich hinzugefügt!",
     "sections": {
       "name": "Name",
       "phones": "Telefonnummern",
@@ -188,6 +280,10 @@
       "cancel": "Abbrechen",
       "phone": "Telefon",
       "email": "E-Mail"
+    },
+    "validation": {
+      "firstNameRequired": "Vorname ist erforderlich",
+      "contactInfoRequired": "Bitte geben Sie mindestens eine Telefonnummer oder E-Mail-Adresse an"
     }
   },
   "contact": {

@@ -33,7 +33,7 @@ import { createInteractionsSearchDB } from './interactionsSearch';
 import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 // Use modern expo-sqlite async API
 const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
   console.error(
@@ -44,7 +44,7 @@ const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
 });
 
 // Re-export for consumers that import from this module
-export { DatabaseError } from './errors';
+export { DatabaseError } from '../errors';
 
 let _db = null;
 let _initialized = false;
@@ -78,8 +78,10 @@ function getDB() {
 async function openDatabaseConnection(dbName = DEFAULT_DB_NAME) {
   try {
     _db = await openDatabaseAsync(dbName);
+    logger.success('Database', 'openDatabaseConnection', { dbName });
     return _db;
   } catch (err) {
+    logger.error('Database', 'openDatabaseConnection', err, { dbName });
     throw new DatabaseError('Failed to open database', 'OPEN_FAILED', err, {
       dbName,
     });
@@ -119,6 +121,7 @@ export async function execute(sql, params = []) {
     }
     return result;
   } catch (err) {
+    logger.error('Database', 'execute', err, { sql });
     throw new DatabaseError('SQL execution failed', 'SQL_ERROR', err, {
       sql,
       params,
@@ -166,6 +169,7 @@ export async function batch(statements) {
           }
           results[i] = result;
         } catch (error) {
+          logger.error('Database', 'batch-step', error, { index: i, sql });
           throw new DatabaseError(
             'SQL batch step failed',
             'SQL_ERROR',
@@ -179,11 +183,13 @@ export async function batch(statements) {
         }
       }
     });
+    logger.success('Database', 'batch', { count: results.length });
     return results;
   } catch (err) {
     if (err instanceof DatabaseError) {
       throw err;
     }
+    logger.error('Database', 'batch', err);
     throw new DatabaseError(
       'Batch transaction failed',
       'TX_ERROR',
@@ -229,6 +235,7 @@ export async function transaction(work) {
             }
             return result;
           } catch (error) {
+            logger.error('Database', 'transaction-execute', error, { sql });
             throw new DatabaseError(
               'SQL execution failed',
               'SQL_ERROR',
@@ -239,12 +246,15 @@ export async function transaction(work) {
         },
       };
 
-      return await work(wrappedTx);
+      const result = await work(wrappedTx);
+      logger.success('Database', 'transaction');
+      return result;
     });
   } catch (err) {
     if (err instanceof DatabaseError) {
       throw err;
     }
+    logger.error('Database', 'transaction', err);
     throw new DatabaseError(
       'Transaction failed',
       'TX_ERROR',
@@ -297,6 +307,7 @@ export async function initDatabase(options = {}) {
         } catch {}
       }
     } catch (err) {
+      logger.error('Database', 'configurePragmas', err);
       throw new DatabaseError(
         'Failed to configure database PRAGMAs',
         'PRAGMA_FAILED',
@@ -310,7 +321,9 @@ export async function initDatabase(options = {}) {
         onLog && onLog('Running database migrations...');
         await runMigrations({ db, execute, batch, transaction, onLog });
         onLog && onLog('Migrations complete.');
+        logger.success('Database', 'runMigrations');
       } catch (err) {
+        logger.error('Database', 'runMigrations', err);
         throw new DatabaseError(
           'Migration execution failed',
           'MIGRATION_FAILED',
@@ -321,6 +334,7 @@ export async function initDatabase(options = {}) {
     }
 
     _initialized = true;
+    logger.success('Database', 'initDatabase', { dbName: name });
     return db;
   };
 

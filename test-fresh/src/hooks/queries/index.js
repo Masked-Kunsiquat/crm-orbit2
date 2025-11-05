@@ -25,8 +25,11 @@ export {
   useEvent,
   useUpcomingEvents,
   useContactEvents,
+  useEventReminders,
   useCreateEvent,
+  useCreateEventWithReminders,
   useUpdateEvent,
+  useUpdateEventReminders,
   useDeleteEvent,
 } from './useEventQueries';
 
