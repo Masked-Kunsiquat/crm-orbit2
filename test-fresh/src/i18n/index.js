@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getPrimaryLocale } from '../utils/dateUtils';
+import { logger } from '../errors/utils/errorLogger';
 
 import en from '../locales/en.json';
 import es from '../locales/es.json';
@@ -34,8 +35,7 @@ if (!i18n.isInitialized) {
       returnNull: false,
     })
     .catch((error) => {
-      console.error('i18n initialization failed:', error);
-      console.error('Attempted to initialize with language:', deviceLang);
+      logger.error('i18n', 'init', error, { deviceLang });
     });
 }
 

@@ -36,10 +36,10 @@ import { createSettingsDB } from './settings';
 import { DatabaseError, logger } from '../errors';
 // Use modern expo-sqlite async API
 const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
-  console.error(
-    'Modern expo-sqlite API not available. Available SQLite methods:',
-    Object.keys(SQLite)
-  );
+  const availableMethods = Object.keys(SQLite);
+  logger.error('Database', 'checkAPI', new Error('Modern expo-sqlite API not available'), {
+    availableMethods
+  });
   throw new Error('SQLite.openDatabaseAsync method not available');
 });
 
