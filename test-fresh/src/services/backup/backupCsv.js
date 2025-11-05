@@ -5,6 +5,7 @@ import {
   BACKUP_ERROR_CODES,
   buildServiceError,
 } from './backupConstants';
+import { logger } from '../../errors';
 
 /**
  * Sanitize and validate filename for CSV export
@@ -159,6 +160,7 @@ export class BackupCsvExporter {
       try {
         csvPath = safePathJoin(BACKUP_CONFIG.BACKUP_DIR, csvFilename);
       } catch (pathError) {
+        logger.error('BackupCsv', 'exportToCSV', pathError, { filename: csvFilename });
         throw buildServiceError(
           'backupService',
           'exportToCSV',
@@ -221,6 +223,8 @@ export class BackupCsvExporter {
 
       await writeAsStringAsync(csvPath, csvContent);
 
+      logger.success('BackupCsv', 'exportToCSV', { csvPath, table: table || 'all' });
+
       onProgress?.({ stage: 'complete', table: table || 'all', progress: 100 });
 
       // Notify listeners if callback provided
@@ -232,6 +236,7 @@ export class BackupCsvExporter {
 
       return csvPath;
     } catch (error) {
+      logger.error('BackupCsv', 'exportToCSV', error);
       throw buildServiceError(
         'backupService',
         'exportToCSV',

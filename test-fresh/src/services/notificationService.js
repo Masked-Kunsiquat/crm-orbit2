@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import db from '../database';
-import { ServiceError } from './errors';
+import { ServiceError, logger } from '../errors';
 import { toSQLiteDateTime, parseSQLiteDateTime } from '../utils/dateUtils';
 
 /**
@@ -132,7 +132,7 @@ export const notificationService = {
   async initialize() {
     try {
       if (!Device.isDevice) {
-        console.warn('Notifications require a physical device');
+        logger.warn('NotificationService', 'Notifications require a physical device');
         return false;
       }
 
@@ -143,7 +143,7 @@ export const notificationService = {
       }
 
       if (finalStatus !== 'granted') {
-        console.warn('Notification permissions not granted');
+        logger.warn('NotificationService', 'Notification permissions not granted');
         return false;
       }
 
@@ -157,8 +157,10 @@ export const notificationService = {
         });
       }
 
+      logger.success('NotificationService', 'initialize');
       return true;
     } catch (error) {
+      logger.error('NotificationService', 'initialize', error);
       throw new ServiceError('notificationService', 'initialize', error);
     }
   },
@@ -216,12 +218,13 @@ export const notificationService = {
         reminder.reminder_datetime
       );
       if (!originalReminderTime) {
-        console.warn(
-          'Invalid reminder_datetime; skipping schedule:',
-          reminder.reminder_datetime,
-          '(reminder id:',
-          reminder?.id,
-          ')'
+        logger.warn(
+          'NotificationService',
+          'Invalid reminder_datetime; skipping schedule',
+          {
+            reminderDatetime: reminder.reminder_datetime,
+            reminderId: reminder?.id
+          }
         );
         return null;
       }
@@ -253,15 +256,23 @@ export const notificationService = {
         );
 
         timeWasAdjusted = true;
-        console.log(
-          `Reminder ${reminder.id} adjusted for quiet hours from ${originalReminderTime.toISOString()} to ${scheduledTime.toISOString()}`
+        logger.info(
+          'NotificationService',
+          'Reminder adjusted for quiet hours',
+          {
+            reminderId: reminder.id,
+            originalTime: originalReminderTime.toISOString(),
+            adjustedTime: scheduledTime.toISOString()
+          }
         );
       }
 
       // Don't schedule past reminders (check after quiet hours adjustment)
       if (scheduledTime <= now) {
-        console.warn(
-          `Reminder time ${scheduledTime.toISOString()} is in the past, skipping`
+        logger.warn(
+          'NotificationService',
+          'Reminder time is in the past, skipping',
+          { reminderTime: scheduledTime.toISOString() }
         );
         return null;
       }
@@ -269,10 +280,10 @@ export const notificationService = {
       // Use template system for notification content
       const eventDate = parseSQLiteDateTime(event.event_date);
       if (!eventDate) {
-        console.warn(
-          'Invalid event_date for event; proceeding with raw value:',
-          event?.id,
-          event?.event_date
+        logger.warn(
+          'NotificationService',
+          'Invalid event_date for event; proceeding with raw value',
+          { eventId: event?.id, eventDate: event?.event_date }
         );
       }
       const context = {
@@ -338,14 +349,20 @@ export const notificationService = {
           if (typeof affected === 'number' ? affected > 0 : true) {
             scheduledIds.push(notificationId);
           } else {
-            console.warn(
-              `Failed to persist notification_id for reminder ${reminder.id}; excluding from results`
+            logger.warn(
+              'NotificationService',
+              'Failed to persist notification_id for reminder; excluding from results',
+              { reminderId: reminder.id }
             );
           }
         } catch (persistError) {
-          console.warn(
-            `Error persisting notification_id for reminder ${reminder.id}:`,
-            persistError?.message || persistError
+          logger.warn(
+            'NotificationService',
+            'Error persisting notification_id for reminder',
+            {
+              reminderId: reminder.id,
+              error: persistError?.message || persistError
+            }
           );
           // Do not include in returned list since persistence failed
         }
@@ -378,10 +395,10 @@ export const notificationService = {
       const scheduledNotificationIds = [];
       const baseDate = parseSQLiteDateTime(event.event_date);
       if (!baseDate) {
-        console.warn(
-          'Invalid event_date for recurring schedule; skipping:',
-          event?.id,
-          event?.event_date
+        logger.warn(
+          'NotificationService',
+          'Invalid event_date for recurring schedule; skipping',
+          { eventId: event?.id, eventDate: event?.event_date }
         );
         return [];
       }
@@ -451,9 +468,13 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (schedulingError) {
-          console.warn(
-            `Failed to schedule notification for reminder ${reminder.id}:`,
-            schedulingError.message
+          logger.warn(
+            'NotificationService',
+            'Failed to schedule notification for reminder',
+            {
+              reminderId: reminder.id,
+              error: schedulingError.message
+            }
           );
           failedItems.push(reminder.id);
 
@@ -462,9 +483,13 @@ export const notificationService = {
             try {
               await this.cancelNotification(notificationId);
             } catch (cancelError) {
-              console.warn(
-                `Failed to cancel notification ${notificationId} during rollback:`,
-                cancelError.message
+              logger.warn(
+                'NotificationService',
+                'Failed to cancel notification during rollback',
+                {
+                  notificationId,
+                  error: cancelError.message
+                }
               );
             }
           }
@@ -474,9 +499,13 @@ export const notificationService = {
             try {
               await db.eventsReminders.deleteReminder(reminderId);
             } catch (deleteError) {
-              console.warn(
-                `Failed to delete reminder ${reminderId} during rollback:`,
-                deleteError.message
+              logger.warn(
+                'NotificationService',
+                'Failed to delete reminder during rollback',
+                {
+                  reminderId,
+                  error: deleteError.message
+                }
               );
             }
           }
@@ -774,10 +803,10 @@ export const notificationService = {
   formatReminderMessage(event, reminder) {
     const eventDate = parseSQLiteDateTime(event.event_date);
     if (!eventDate) {
-      console.warn(
-        'Invalid event_date in formatReminderMessage; using raw value:',
-        event?.id,
-        event?.event_date
+      logger.warn(
+        'NotificationService',
+        'Invalid event_date in formatReminderMessage; using raw value',
+        { eventId: event?.id, eventDate: event?.event_date }
       );
     }
     const eventTime = eventDate
@@ -813,10 +842,10 @@ export const notificationService = {
     if (event.event_type === 'birthday') {
       const birthDate = parseSQLiteDateTime(event.event_date);
       if (!birthDate) {
-        console.warn(
-          'Invalid event_date for birthday; skipping age calc:',
-          event?.id,
-          event?.event_date
+        logger.warn(
+          'NotificationService',
+          'Invalid event_date for birthday; skipping age calc',
+          { eventId: event?.id, eventDate: event?.event_date }
         );
       }
       const currentYear = eventDate.getFullYear();
@@ -909,10 +938,10 @@ export const notificationService = {
         for (const event of recurringEvents) {
           const baseDate = parseSQLiteDateTime(event.event_date);
           if (!baseDate) {
-            console.warn(
-              'Invalid event_date for recurring generation; skipping event:',
-              event?.id,
-              event?.event_date
+            logger.warn(
+              'NotificationService',
+              'Invalid event_date for recurring generation; skipping event',
+              { eventId: event?.id, eventDate: event?.event_date }
             );
             continue;
           }
@@ -977,9 +1006,13 @@ export const notificationService = {
               await this.cancelNotification(notification.identifier);
               cleanupResult.cancelledCount++;
             } catch (error) {
-              console.warn(
-                `Failed to cancel expired notification ${notification.identifier}:`,
-                error.message
+              logger.warn(
+                'NotificationService',
+                'Failed to cancel expired notification',
+                {
+                  notificationId: notification.identifier,
+                  error: error.message
+                }
               );
             }
           }
@@ -1003,9 +1036,13 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (error) {
-          console.warn(
-            `Failed to schedule reminder ${reminder.id}:`,
-            error.message
+          logger.warn(
+            'NotificationService',
+            'Failed to schedule reminder',
+            {
+              reminderId: reminder.id,
+              error: error.message
+            }
           );
           failedItems.push(reminder.id);
         }
@@ -1028,9 +1065,13 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (error) {
-          console.warn(
-            `Failed to schedule recurring reminder ${reminder.id}:`,
-            error.message
+          logger.warn(
+            'NotificationService',
+            'Failed to schedule recurring reminder',
+            {
+              reminderId: reminder.id,
+              error: error.message
+            }
           );
           failedItems.push(reminder.id);
         }
@@ -1059,9 +1100,11 @@ export const notificationService = {
         }
       });
 
-      console.log(
-        `Sync completed: ${scheduledItems.length} scheduled, ${failedItems.length} failed, ${cleanupResult.cancelledCount} cancelled`
-      );
+      logger.success('NotificationService', 'syncAllReminders', {
+        scheduled: scheduledItems.length,
+        failed: failedItems.length,
+        cancelled: cleanupResult.cancelledCount
+      });
 
       return {
         scheduled: scheduledItems.length,
@@ -1069,20 +1112,28 @@ export const notificationService = {
         cancelled: cleanupResult.cancelledCount,
       };
     } catch (error) {
-      console.error('Sync failed, attempting cleanup...', error);
+      logger.error('NotificationService', 'syncAllReminders', error, {
+        message: 'Sync failed, attempting cleanup'
+      });
 
       // Attempt to rollback any partial external scheduling
       if (scheduledItems.length > 0) {
-        console.log(
-          `Rolling back ${scheduledItems.length} scheduled notifications...`
+        logger.info(
+          'NotificationService',
+          'Rolling back scheduled notifications',
+          { count: scheduledItems.length }
         );
         for (const { notificationId } of scheduledItems) {
           try {
             await this.cancelNotification(notificationId);
           } catch (rollbackError) {
-            console.warn(
-              `Failed to rollback notification ${notificationId}:`,
-              rollbackError.message
+            logger.warn(
+              'NotificationService',
+              'Failed to rollback notification',
+              {
+                notificationId,
+                error: rollbackError.message
+              }
             );
           }
         }

@@ -3,7 +3,7 @@ import { documentDirectory } from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Crypto from 'expo-crypto';
 import db from '../database';
-import { ServiceError } from './errors';
+import { ServiceError, logger } from '../errors';
 
 /**
  * Global file handling configuration.
@@ -144,7 +144,7 @@ const listFilesRecursively = async dir => {
     }
   } catch (error) {
     // Directory doesn't exist or can't be read, return empty array
-    console.warn(`Could not read directory ${dir}:`, error.message);
+    logger.warn('FileService', `Could not read directory ${dir}`, { error: error.message });
   }
   return files;
 };
@@ -261,9 +261,7 @@ export const fileService = {
       if (!attachment) {
         // If attachment not in DB, it might be an orphaned file.
         // The cleanup job will handle it. For now, we can just warn.
-        console.warn(
-          `Attachment with id ${attachmentId} not found in database.`
-        );
+        logger.warn('FileService', `Attachment with id ${attachmentId} not found in database`);
         return;
       }
 
@@ -273,10 +271,9 @@ export const fileService = {
           file.delete();
         }
       } else {
-        console.warn(
-          'Refusing to delete file outside app sandbox:',
-          attachment.file_path
-        );
+        logger.warn('FileService', 'Refusing to delete file outside app sandbox', {
+          filePath: attachment.file_path
+        });
       }
 
       if (attachment.thumbnail_path) {
@@ -286,15 +283,16 @@ export const fileService = {
             thumbnailFile.delete();
           }
         } else {
-          console.warn(
-            'Refusing to delete thumbnail outside app sandbox:',
-            attachment.thumbnail_path
-          );
+          logger.warn('FileService', 'Refusing to delete thumbnail outside app sandbox', {
+            thumbnailPath: attachment.thumbnail_path
+          });
         }
       }
 
       await db.attachments.delete(attachmentId);
+      logger.success('FileService', 'deleteFile', { attachmentId });
     } catch (error) {
+      logger.error('FileService', 'deleteFile', error, { attachmentId });
       throw new ServiceError('fileService', 'deleteFile', error);
     }
   },
@@ -309,8 +307,11 @@ export const fileService = {
   async getFileUri(attachmentId) {
     try {
       const attachment = await db.attachments.getById(attachmentId);
-      return attachment ? attachment.file_path : null;
+      const filePath = attachment ? attachment.file_path : null;
+      logger.success('FileService', 'getFileUri', { attachmentId, found: !!filePath });
+      return filePath;
     } catch (error) {
+      logger.error('FileService', 'getFileUri', error, { attachmentId });
       throw new ServiceError('fileService', 'getFileUri', error);
     }
   },
@@ -342,8 +343,10 @@ export const fileService = {
       const tempFile = new File(manipResult.uri);
       tempFile.move(thumbnailFile);
 
+      logger.success('FileService', 'generateThumbnail', { uuid });
       return thumbnailFile.uri;
     } catch (error) {
+      logger.error('FileService', 'generateThumbnail', error, { imageUri, uuid });
       throw new ServiceError('fileService', 'generateThumbnail', error);
     }
   },
@@ -358,8 +361,11 @@ export const fileService = {
   async getThumbnailUri(attachmentId) {
     try {
       const attachment = await db.attachments.getById(attachmentId);
-      return attachment ? attachment.thumbnail_path : null;
+      const thumbnailPath = attachment ? attachment.thumbnail_path : null;
+      logger.success('FileService', 'getThumbnailUri', { attachmentId, found: !!thumbnailPath });
+      return thumbnailPath;
     } catch (error) {
+      logger.error('FileService', 'getThumbnailUri', error, { attachmentId });
       throw new ServiceError('fileService', 'getThumbnailUri', error);
     }
   },
@@ -400,8 +406,17 @@ export const fileService = {
         dbOrphans && typeof dbOrphans.deletedCount === 'number'
           ? dbOrphans.deletedCount
           : 0;
-      return orphanedCount + deleted;
+
+      const totalDeleted = orphanedCount + deleted;
+      logger.success('FileService', 'cleanOrphanedFiles', {
+        filesDeleted: orphanedCount,
+        dbRecordsDeleted: deleted,
+        totalDeleted
+      });
+
+      return totalDeleted;
     } catch (error) {
+      logger.error('FileService', 'cleanOrphanedFiles', error);
       throw new ServiceError('fileService', 'cleanOrphanedFiles', error);
     }
   },
@@ -414,8 +429,11 @@ export const fileService = {
    */
   async calculateStorageUsed() {
     try {
-      return await db.attachments.getTotalSize();
+      const totalSize = await db.attachments.getTotalSize();
+      logger.success('FileService', 'calculateStorageUsed', { totalSize });
+      return totalSize;
     } catch (error) {
+      logger.error('FileService', 'calculateStorageUsed', error);
       throw new ServiceError('fileService', 'calculateStorageUsed', error);
     }
   },
@@ -460,8 +478,10 @@ export const fileService = {
         );
         savedAttachments.push(attachment);
       }
+      logger.success('FileService', 'saveMultipleFiles', { fileCount: files.length });
       return savedAttachments;
     } catch (error) {
+      logger.error('FileService', 'saveMultipleFiles', error, { fileCount: files.length });
       throw new ServiceError('fileService', 'saveMultipleFiles', error);
     }
   },
@@ -478,7 +498,9 @@ export const fileService = {
       for (const id of attachmentIds) {
         await this.deleteFile(id);
       }
+      logger.success('FileService', 'deleteMultipleFiles', { fileCount: attachmentIds.length });
     } catch (error) {
+      logger.error('FileService', 'deleteMultipleFiles', error, { fileCount: attachmentIds.length });
       throw new ServiceError('fileService', 'deleteMultipleFiles', error);
     }
   },
