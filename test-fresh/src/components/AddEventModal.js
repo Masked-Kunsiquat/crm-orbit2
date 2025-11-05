@@ -173,7 +173,7 @@ export default function AddEventModal({
         event_type: eventType,
         event_date: formatDateToString(eventDate), // YYYY-MM-DD format using local date
         recurring: isRecurring ? 1 : 0,
-        recurrence_pattern: isRecurring && eventType === 'birthday' ? 'yearly' : null,
+        recurrence_pattern: isRecurring && ['birthday', 'anniversary'].includes(eventType) ? 'yearly' : null,
         notes: notes.trim() || null,
       };
 
@@ -346,8 +346,8 @@ export default function AddEventModal({
                     selected={eventType === type.value}
                     onPress={() => {
                       setEventType(type.value);
-                      // Auto-enable recurring for birthdays
-                      if (type.value === 'birthday') {
+                      // Auto-enable recurring for birthdays and anniversaries
+                      if (['birthday', 'anniversary'].includes(type.value)) {
                         setIsRecurring(true);
                       }
                     }}
