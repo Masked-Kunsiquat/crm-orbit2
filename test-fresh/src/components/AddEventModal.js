@@ -242,7 +242,18 @@ export default function AddEventModal({
 
   const addReminder = (minutesBefore) => {
     const reminderTime = new Date(eventDate);
-    reminderTime.setMinutes(reminderTime.getMinutes() - minutesBefore);
+
+    // For all-day events (birthdays, anniversaries), set reminder at 9 AM on the calculated day
+    // instead of midnight minus minutes, which creates unintuitive times like 23:45 previous day
+    if (['birthday', 'anniversary'].includes(eventType)) {
+      reminderTime.setHours(9, 0, 0, 0);
+      // Calculate days before (e.g., 1440 minutes = 1 day)
+      const daysBefore = Math.floor(minutesBefore / 1440);
+      reminderTime.setDate(reminderTime.getDate() - daysBefore);
+    } else {
+      // For timed events (meetings, deadlines), subtract minutes directly
+      reminderTime.setMinutes(reminderTime.getMinutes() - minutesBefore);
+    }
 
     const newReminder = {
       minutes: minutesBefore,
