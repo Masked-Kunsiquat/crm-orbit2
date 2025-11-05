@@ -198,6 +198,7 @@ export async function createBasicTables() {
         reminder_type TEXT DEFAULT 'notification',
         is_sent INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
       )
     `);
