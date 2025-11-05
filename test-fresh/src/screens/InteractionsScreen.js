@@ -7,6 +7,7 @@ import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionDetailModal from '../components/InteractionDetailModal';
 import { contactsDB } from '../database';
 import { useInteractions } from '../hooks/queries';
+import { logger } from '../errors';
 
 const INTERACTION_TYPES = [
   { value: 'all', i18n: 'interactions.filters.all', icon: 'format-list-bulleted' },
@@ -48,7 +49,7 @@ export default function InteractionsScreen({ navigation }) {
         );
         setContacts(contactsMap);
       } catch (error) {
-        console.error('Error loading contacts:', error);
+        logger.error('InteractionsScreen', 'loadContacts', error);
       }
     };
 

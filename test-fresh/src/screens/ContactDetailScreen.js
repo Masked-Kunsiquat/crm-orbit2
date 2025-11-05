@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
+import { logger } from '../errors';
+import { handleError, showAlert } from '../errors';
 import {
   Appbar,
   Text,
@@ -71,28 +73,28 @@ export default function ContactDetailScreen({ route, navigation }) {
   const handleCall = async (phoneNumber) => {
     const normalized = normalizePhoneNumber(phoneNumber);
     if (!normalized) {
-      Alert.alert('Error', 'Invalid phone number');
+      showAlert.error('Invalid phone number');
       return;
     }
     const phoneUrl = `tel:${normalized}`;
     try {
       await Linking.openURL(phoneUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to make phone call');
+      showAlert.error('Unable to make phone call');
     }
   };
 
   const handleMessage = async (phoneNumber) => {
     const normalized = normalizePhoneNumber(phoneNumber);
     if (!normalized) {
-      Alert.alert('Error', 'Invalid phone number');
+      showAlert.error('Invalid phone number');
       return;
     }
     const smsUrl = `sms:${normalized}`;
     try {
       await Linking.openURL(smsUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to send message');
+      showAlert.error('Unable to send message');
     }
   };
 
@@ -101,7 +103,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     try {
       await Linking.openURL(mailUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to open email');
+      showAlert.error('Unable to open email');
     }
   };
 
@@ -156,7 +158,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const handleViewAllInteractions = () => {
     // Navigate to Interactions tab (would need to implement tab navigation focus)
-    Alert.alert('View All', 'Navigate to Interactions tab to see all interactions for this contact');
+    showAlert.error('View All', 'Navigate to Interactions tab to see all interactions for this contact');
   };
 
   const handleAddEventClick = () => {
@@ -199,25 +201,23 @@ export default function ContactDetailScreen({ route, navigation }) {
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    const deleteContact = async () => {
+      try {
+        await deleteContactMutation.mutateAsync(contactId);
+        navigation.goBack();
+      } catch (error) {
+        handleError(error, {
+          component: 'ContactDetailScreen',
+          operation: 'deleteContact',
+          showAlert: true,
+        });
+      }
+    };
+
+    showAlert.confirmDelete(
       'Delete Contact',
       `Are you sure you want to delete ${contact.display_name || contact.first_name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteContactMutation.mutateAsync(contactId);
-              navigation.goBack();
-            } catch (error) {
-              console.error('Error deleting contact:', error);
-              Alert.alert('Error', 'Failed to delete contact');
-            }
-          },
-        },
-      ]
+      deleteContact
     );
   };
 
@@ -248,13 +248,13 @@ export default function ContactDetailScreen({ route, navigation }) {
         const imported = await import('expo-image-picker');
         ImagePicker = imported.default || imported;
       } catch (e) {
-        Alert.alert('Missing dependency', 'Please install expo-image-picker to add photos.');
+        showAlert.error('Missing dependency', 'Please install expo-image-picker to add photos.');
         return;
       }
 
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission required', 'Media library permission is required to select a photo.');
+        showAlert.error('Permission required', 'Media library permission is required to select a photo.');
         return;
       }
 
@@ -296,8 +296,8 @@ export default function ContactDetailScreen({ route, navigation }) {
         try {
           await fileService.deleteFile(newAttachment.id);
         } catch (rollbackError) {
-          console.error('Failed to rollback orphaned attachment (now orphaned):', rollbackError);
-          console.error('Orphaned attachment ID:', newAttachment.id);
+          logger.error('ContactDetailScreen', 'Failed to rollback orphaned attachment (now orphaned):', rollbackError);
+          logger.error('ContactDetailScreen', 'Orphaned attachment ID:', newAttachment.id);
         }
         // Rethrow original mutation error so caller sees the failure
         throw mutationError;
@@ -309,15 +309,15 @@ export default function ContactDetailScreen({ route, navigation }) {
           await fileService.deleteFile(oldAvatarId);
         } catch (cleanupError) {
           // Log but don't throw - old avatar is now orphaned but can be cleaned up later
-          console.warn('Failed to delete old avatar attachment (now orphaned):', cleanupError);
-          console.warn('Orphaned attachment ID:', oldAvatarId);
+          logger.warn('ContactDetailScreen', 'Failed to delete old avatar attachment', { oldAvatarId, error: cleanupError.message });
+          
         }
       }
 
       setShowAvatarDialog(false);
     } catch (e) {
-      console.error('Image pick error', e);
-      Alert.alert('Error', t('contactDetail.errorImageSet'));
+      logger.error('ContactDetailScreen', 'Image pick error', e);
+      showAlert.error(t('contactDetail.errorImageSet'));
     }
   };
 
@@ -332,8 +332,8 @@ export default function ContactDetailScreen({ route, navigation }) {
       });
       setShowAvatarDialog(false);
     } catch (e) {
-      console.error('Remove photo error', e);
-      Alert.alert('Error', t('contactDetail.errorImageRemove'));
+      logger.error('ContactDetailScreen', 'Remove photo error', e);
+      showAlert.error(t('contactDetail.errorImageRemove'));
     }
   };
 

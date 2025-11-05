@@ -6,6 +6,7 @@ import { contactsDB } from '../database';
 import { useEvents } from '../hooks/queries';
 import AddEventModal from '../components/AddEventModal';
 import { compareDates, formatDateSmart } from '../utils/dateUtils';
+import { logger } from '../errors';
 
 const EVENT_TYPES = [
   { value: 'all', i18n: 'events.filters.all', icon: 'calendar' },
@@ -45,7 +46,7 @@ export default function EventsList({ navigation }) {
         );
         setContacts(contactsMap);
       } catch (error) {
-        console.error('Error loading contacts:', error);
+        logger.error('EventsList', 'loadContacts', error);
       }
     };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
+import { handleError, showAlert } from '../errors';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +33,7 @@ export default function ContactsList({ navigation }) {
       const allCategories = await categoriesDB.getAll();
       setCategories(allCategories);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      logger.error('ContactsList', 'Error loading categories:', error);
     }
   };
 
@@ -56,37 +57,37 @@ export default function ContactsList({ navigation }) {
 
   const handleCall = async (contact) => {
     if (!contact.phone) {
-      Alert.alert('Error', 'No phone number available');
+      showAlert.error('No phone number available');
       return;
     }
     const normalized = normalizePhoneNumber(contact.phone);
     if (!normalized) {
-      Alert.alert('Error', 'Invalid phone number');
+      showAlert.error('Invalid phone number');
       return;
     }
     const phoneUrl = `tel:${normalized}`;
     try {
       await Linking.openURL(phoneUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to make phone call');
+      showAlert.error('Unable to make phone call');
     }
   };
 
   const handleMessage = async (contact) => {
     if (!contact.phone) {
-      Alert.alert('Error', 'No phone number available');
+      showAlert.error('No phone number available');
       return;
     }
     const normalized = normalizePhoneNumber(contact.phone);
     if (!normalized) {
-      Alert.alert('Error', 'Invalid phone number');
+      showAlert.error('Invalid phone number');
       return;
     }
     const smsUrl = `sms:${normalized}`;
     try {
       await Linking.openURL(smsUrl);
     } catch (error) {
-      Alert.alert('Error', 'Unable to send message');
+      showAlert.error('Unable to send message');
     }
   };
 
@@ -96,7 +97,7 @@ export default function ContactsList({ navigation }) {
       try {
         await Linking.openURL(mailUrl);
       } catch (error) {
-        Alert.alert('Error', 'Unable to open email');
+        showAlert.error('Unable to open email');
       }
     }
   };
