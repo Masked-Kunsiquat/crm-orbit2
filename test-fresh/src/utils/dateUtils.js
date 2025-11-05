@@ -346,19 +346,12 @@ export function getCurrentISO() {
  * Format date to filename-safe timestamp using local time.
  *
  * @param {Date} date - Date to format (defaults to now)
- * @returns {string} Filename-safe timestamp (YYYY-MM-DDTHH-MM-SS)
+ * @returns {string} Filename-safe timestamp (YYYY-MM-DDTHH-MM-SS) or empty string if invalid
  */
 export function toFilenameTimestamp(date = new Date()) {
   const dateObj = date instanceof Date ? date : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}-${minutes}-${seconds}`;
+    return ''; // Return empty string for invalid input (consistent with formatDateToString, toSQLiteDateTime)
   }
 
   const year = dateObj.getFullYear();
