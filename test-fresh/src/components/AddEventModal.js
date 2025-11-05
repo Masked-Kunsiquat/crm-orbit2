@@ -24,6 +24,7 @@ import {
   useUpdateEventReminders,
   useDeleteEvent,
   useContacts,
+  useEventReminders,
 } from '../hooks/queries';
 import { parseFlexibleDate, formatDateToString } from '../utils/dateUtils';
 
@@ -67,6 +68,10 @@ export default function AddEventModal({
 
   // Use TanStack Query hooks
   const { data: contacts = [] } = useContacts();
+  const { data: fetchedReminders = [] } = useEventReminders(
+    editingEvent?.id,
+    { enabled: !!editingEvent?.id && visible }
+  );
   const createEventMutation = useCreateEvent();
   const createEventWithRemindersMutation = useCreateEventWithReminders();
   const updateEventMutation = useUpdateEvent();
@@ -84,8 +89,14 @@ export default function AddEventModal({
         // Use parseFlexibleDate to handle YYYY-MM-DD strings correctly, fallback to current date
         setEventDate(parseFlexibleDate(editingEvent.event_date) || new Date());
         setIsRecurring(editingEvent.recurring || false);
-        // TODO: Load reminders for this event
-        setReminders([]);
+
+        // Load reminders from fetched data
+        // Convert database format to component format
+        const loadedReminders = (fetchedReminders || []).map(dbReminder => ({
+          minutes: 0, // This will be recalculated if needed
+          datetime: new Date(dbReminder.reminder_datetime),
+        }));
+        setReminders(loadedReminders);
       } else {
         // New event - set defaults
         if (preselectedContactId) {
@@ -93,9 +104,10 @@ export default function AddEventModal({
         }
         setEventDate(new Date());
         setIsRecurring(false);
+        setReminders([]); // Clear reminders for new events
       }
     }
-  }, [visible, preselectedContactId, editingEvent]);
+  }, [visible, preselectedContactId, editingEvent, fetchedReminders]);
 
   const resetForm = () => {
     setTitle('');

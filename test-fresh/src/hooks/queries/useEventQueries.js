@@ -59,6 +59,18 @@ export function useContactEvents(contactId, options = {}) {
 }
 
 /**
+ * Fetch reminders for an event
+ */
+export function useEventReminders(eventId, options = {}) {
+  return useQuery({
+    queryKey: [...eventKeys.detail(eventId), 'reminders'],
+    queryFn: () => eventsRemindersDB.getEventReminders(eventId),
+    enabled: !!eventId,
+    ...options,
+  });
+}
+
+/**
  * Create event mutation
  */
 export function useCreateEvent() {

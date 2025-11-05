@@ -25,6 +25,7 @@ export {
   useEvent,
   useUpcomingEvents,
   useContactEvents,
+  useEventReminders,
   useCreateEvent,
   useCreateEventWithReminders,
   useUpdateEvent,
