@@ -264,6 +264,7 @@
     "importFailMsg": "导入联系人失败。请重试或手动输入详细信息。",
     "permissionTitle": "权限被拒",
     "permissionMsg": "无法访问联系人。请在您的设备设置中启用联系人权限。",
+    "successMsg": "联系人添加成功！",
     "sections": {
       "name": "姓名",
       "phones": "电话号码",
@@ -278,6 +279,10 @@
       "cancel": "取消",
       "phone": "电话",
       "email": "电子邮箱"
+    },
+    "validation": {
+      "firstNameRequired": "名字为必填项",
+      "contactInfoRequired": "请至少提供一个电话号码或电子邮箱地址"
     }
   },
   "contact": {

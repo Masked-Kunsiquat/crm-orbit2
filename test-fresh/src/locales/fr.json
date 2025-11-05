@@ -264,6 +264,7 @@
     "importFailMsg": "Échec de l'importation du contact. Veuillez réessayer ou entrer les détails manuellement.",
     "permissionTitle": "Autorisation refusée",
     "permissionMsg": "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil.",
+    "successMsg": "Contact ajouté avec succès !",
     "sections": {
       "name": "Nom",
       "phones": "Numéros de téléphone",
@@ -278,6 +279,10 @@
       "cancel": "Annuler",
       "phone": "Téléphone",
       "email": "E-mail"
+    },
+    "validation": {
+      "firstNameRequired": "Le prénom est obligatoire",
+      "contactInfoRequired": "Veuillez fournir au moins un numéro de téléphone ou une adresse e-mail"
     }
   },
   "contact": {
