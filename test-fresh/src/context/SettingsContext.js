@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { settingsDB } from '../database';
 import i18n from '../i18n';
 import { getLocales } from 'expo-localization';
+import { logger } from '../errors';
 
 const SettingsContext = createContext({
   leftAction: 'text',
@@ -67,7 +68,7 @@ export function SettingsProvider({ children }) {
       await settingsDB.set('interactions.swipe_right_action', right, 'string');
     } catch (error) {
       // Rollback on failure
-      console.error('Failed to persist swipe action settings:', error);
+      logger.error('SettingsContext', 'setMapping', error);
       setLeftAction(prevLeft);
       setRightAction(prevRight);
       throw error;
@@ -83,7 +84,7 @@ export function SettingsProvider({ children }) {
       await settingsDB.set('display.theme', normalized, 'string');
     } catch (error) {
       // Rollback on failure
-      console.error('Failed to persist theme setting:', error);
+      logger.error('SettingsContext', 'setThemeMode', error);
       setThemeModeState(prevTheme);
       throw error;
     }
@@ -110,7 +111,7 @@ export function SettingsProvider({ children }) {
       }
     } catch (error) {
       // Rollback on failure
-      console.error('Failed to persist language setting:', error);
+      logger.error('SettingsContext', 'setLanguage', error);
       setLanguageState(prevLang);
       // Try to restore previous i18n language
       try {
@@ -122,7 +123,7 @@ export function SettingsProvider({ children }) {
           await i18n.changeLanguage(prevLang);
         }
       } catch (i18nError) {
-        console.error('Failed to rollback i18n language:', i18nError);
+        logger.error('SettingsContext', 'setLanguage - rollback', i18nError);
       }
       throw error;
     }
