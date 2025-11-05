@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   Modal,
   Portal,
@@ -12,6 +12,7 @@ import {
 } from 'react-native-paper';
 import database, { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, transaction as dbTransaction } from '../database';
 import { useTranslation } from 'react-i18next';
+import { handleError, showAlert } from '../errors';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -39,7 +40,11 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
       const allCategories = await categoriesDB.getAll();
       setCategories(allCategories);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      handleError(error, {
+        component: 'EditContactModal',
+        operation: 'loadCategories',
+        showAlert: false,
+      });
     }
   };
 
@@ -80,7 +85,11 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
       const contactCategories = await categoriesRelationsDB.getCategoriesForContact(contact.id);
       setSelectedCategories(contactCategories.map(cat => cat.id));
     } catch (error) {
-      console.error('Error loading contact data:', error);
+      handleError(error, {
+        component: 'EditContactModal',
+        operation: 'loadContactData',
+        showAlert: false,
+      });
     }
   };
 
@@ -147,7 +156,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
 
   const handleSave = async () => {
     if (!firstName.trim()) {
-      Alert.alert('Error', 'First name is required');
+      showAlert.error('First name is required');
       return;
     }
 
@@ -156,7 +165,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
     const validEmails = emails.filter(email => email.value.trim());
 
     if (validPhones.length === 0 && validEmails.length === 0) {
-      Alert.alert('Error', 'Please provide at least a phone number or email address');
+      showAlert.error('Please provide at least a phone number or email address');
       return;
     }
 
@@ -199,10 +208,13 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
 
       onContactUpdated && onContactUpdated();
       onDismiss();
-      Alert.alert('Success', 'Contact updated successfully!');
+      showAlert.success('Contact updated successfully!');
     } catch (error) {
-      console.error('Error updating contact:', error);
-      Alert.alert('Error', 'Failed to update contact. Please try again.');
+      handleError(error, {
+        component: 'EditContactModal',
+        operation: 'handleSave',
+        showAlert: true,
+      });
     } finally {
       setSaving(false);
     }

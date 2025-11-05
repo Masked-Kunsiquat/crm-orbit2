@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Platform } from 'react-native';
 import {
   Modal,
   Portal,
@@ -32,6 +32,7 @@ import {
   formatDateAndTime,
   getPrimaryLocale,
 } from '../utils/dateUtils';
+import { handleError, showAlert } from '../errors';
 
 const EVENT_TYPES = [
   { value: 'birthday', icon: 'cake-variant' },
@@ -135,28 +136,24 @@ export default function AddEventModal({
   const handleDelete = () => {
     if (!isEditMode || !editingEvent) return;
 
-    Alert.alert(
+    showAlert.confirmDelete(
       t('addEvent.delete.title'),
       t('addEvent.delete.message'),
-      [
-        { text: t('addEvent.delete.cancel'), style: 'cancel' },
-        {
-          text: t('addEvent.delete.confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteEventMutation.mutateAsync(editingEvent.id);
-              Alert.alert(t('addEvent.success.deleted'), '');
-              resetForm();
-              onDismiss();
-              if (onEventDeleted) onEventDeleted();
-            } catch (error) {
-              console.error('Delete event error:', error);
-              Alert.alert(t('addEvent.errors.deleteFailed'), '');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await deleteEventMutation.mutateAsync(editingEvent.id);
+          showAlert.success(t('addEvent.success.deleted'), '');
+          resetForm();
+          onDismiss();
+          if (onEventDeleted) onEventDeleted();
+        } catch (error) {
+          handleError(error, {
+            component: 'AddEventModal',
+            operation: 'handleDelete',
+            showAlert: true,
+          });
+        }
+      }
     );
   };
 
@@ -170,12 +167,12 @@ export default function AddEventModal({
   const handleSave = async () => {
     // Validation
     if (!title.trim()) {
-      Alert.alert(t('addEvent.errors.titleRequired'), '');
+      showAlert.error(t('addEvent.errors.titleRequired'), '');
       return;
     }
 
     if (!selectedContactId) {
-      Alert.alert(t('addEvent.errors.contactRequired'), '');
+      showAlert.error(t('addEvent.errors.contactRequired'), '');
       return;
     }
 
@@ -212,7 +209,7 @@ export default function AddEventModal({
           });
         }
 
-        Alert.alert(t('addEvent.success.updated'), '');
+        showAlert.success(t('addEvent.success.updated'), '');
         if (onEventUpdated) onEventUpdated();
       } else {
         // Create event with or without reminders
@@ -228,15 +225,18 @@ export default function AddEventModal({
           await createEventMutation.mutateAsync(eventData);
         }
 
-        Alert.alert(t('addEvent.success.added'), '');
+        showAlert.success(t('addEvent.success.added'), '');
         if (onEventAdded) onEventAdded();
       }
 
       resetForm();
       onDismiss();
     } catch (error) {
-      console.error('Save event error:', error);
-      Alert.alert(t('addEvent.errors.saveFailed'), '');
+      handleError(error, {
+        component: 'AddEventModal',
+        operation: 'handleSave',
+        showAlert: true,
+      });
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Avatar } from 'react-native-paper';
 import { fileService } from '../services/fileService';
+import { logger } from '../errors';
 
 /**
  * Reusable ContactAvatar component
@@ -28,7 +29,7 @@ export default function ContactAvatar({ contact, size = 48, style }) {
             setAvatarUri(uri);
           }
         } catch (error) {
-          console.warn('Failed to load avatar from attachment:', error);
+          logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id, error: error.message });
           if (mounted) {
             setAvatarUri(null);
           }

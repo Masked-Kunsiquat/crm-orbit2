@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   Modal,
   Portal,
@@ -14,6 +14,7 @@ import * as Contacts from 'expo-contacts';
 import { categoriesDB } from '../database';
 import { useTranslation } from 'react-i18next';
 import { useCreateContactWithDetails } from '../hooks/queries';
+import { handleError, showAlert } from '../errors';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -68,7 +69,11 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       const allCategories = await categoriesDB.getAll();
       setCategories(allCategories);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      handleError(error, {
+        component: 'AddContactModal',
+        operation: 'loadCategories',
+        showAlert: false,
+      });
     }
   };
 
@@ -88,7 +93,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       // Request permissions
       const { status } = await Contacts.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(t('addContact.permissionTitle'), t('addContact.permissionMsg'));
+        showAlert.error(t('addContact.permissionMsg'), t('addContact.permissionTitle'));
         return;
       }
 
@@ -129,10 +134,14 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       }
 
       // Show success message
-      Alert.alert(t('addContact.importSuccessTitle'), t('addContact.importSuccessMsg'));
+      showAlert.success(t('addContact.importSuccessMsg'), t('addContact.importSuccessTitle'));
     } catch (error) {
-      console.error('Error importing contact:', error);
-      Alert.alert(t('addContact.importFailTitle'), t('addContact.importFailMsg'));
+      handleError(error, {
+        component: 'AddContactModal',
+        operation: 'handleImportFromContacts',
+        showAlert: true,
+        context: { customMessage: t('addContact.importFailMsg') },
+      });
     }
   };
 
@@ -198,7 +207,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
 
   const handleSave = async () => {
     if (!firstName.trim()) {
-      Alert.alert('Error', 'First name is required');
+      showAlert.error('First name is required');
       return;
     }
 
@@ -207,7 +216,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
     const validEmails = emails.filter(email => email.value.trim());
 
     if (validPhones.length === 0 && validEmails.length === 0) {
-      Alert.alert('Error', 'Please provide at least a phone number or email address');
+      showAlert.error('Please provide at least a phone number or email address');
       return;
     }
 
@@ -223,10 +232,13 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       resetForm();
       onContactAdded && onContactAdded();
       onDismiss();
-      Alert.alert('Success', 'Contact added successfully!');
+      showAlert.success('Contact added successfully!');
     } catch (error) {
-      console.error('Error adding contact:', error);
-      Alert.alert('Error', 'Failed to add contact. Please try again.');
+      handleError(error, {
+        component: 'AddContactModal',
+        operation: 'handleSave',
+        showAlert: true,
+      });
     }
   };
 
