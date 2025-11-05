@@ -538,15 +538,60 @@ export function logErrors(component, operation) {
 }
 ```
 
-**Migration Status:**
-- ✅ `withErrorHandling` higher-order function created
-- ✅ Customizable rethrow, fallback, onError options
-- ✅ Success logging in development mode
-- ✅ `withUIErrorHandling` for React components created
-- ✅ `logErrors` decorator for class methods created
-- ✅ All services use error handling wrappers
-- ✅ All database modules use consistent patterns
-- ⏳ Incremental migration to components/screens ongoing
+**Implementation Decision: ✅ Explicit Try-Catch Approach (Wrapper Available But Not Required)**
+
+After thorough analysis of the codebase, we chose **explicit try-catch blocks with logger** over automatic wrapper functions.
+
+**Rationale:**
+- ✅ More explicit and readable error handling flow
+- ✅ Better IDE support and debugging experience
+- ✅ Easier to customize error handling per operation
+- ✅ No function wrapper indirection or "magic"
+- ✅ Consistent with existing codebase architecture
+- ✅ Direct control over error propagation
+
+**Current Architecture (Working & Preferred):**
+```javascript
+// Database Layer: Throw DatabaseError, no try-catch (errors bubble up)
+async create(data) {
+  if (!data.first_name) {
+    throw new DatabaseError('first_name is required', 'VALIDATION_ERROR');
+  }
+  // ... perform operation, let errors bubble
+}
+
+// Service Layer: Try-catch with logger.error
+async someOperation() {
+  try {
+    const result = await databaseModule.operation();
+    logger.success('ServiceName', 'someOperation');
+    return result;
+  } catch (error) {
+    logger.error('ServiceName', 'someOperation', error);
+    throw error; // Re-throw for UI layer
+  }
+}
+
+// UI Layer: Try-catch with logger + showAlert
+async handleSubmit() {
+  try {
+    await service.someOperation();
+    showAlert.success('Operation completed');
+  } catch (error) {
+    logger.error('ComponentName', 'handleSubmit', error);
+    showAlert.error(error.message);
+  }
+}
+```
+
+**Status:**
+- ✅ `withErrorHandling` wrapper created and available for optional use cases
+- ✅ All 186+ try-catch blocks follow consistent logger.error pattern
+- ✅ Database modules throw DatabaseError (separation of concerns)
+- ✅ Services catch, log, and re-throw (middleware layer)
+- ✅ UI components catch, log, and show user feedback
+- ✅ **Architecture decision documented: Explicit > Implicit**
+- ✅ Zero usage of wrappers (by design - explicit approach preferred)
 
 ---
 
