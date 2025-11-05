@@ -370,8 +370,11 @@ export default function AddEventModal({
                     onPress={() => {
                       setEventType(type.value);
                       // Auto-enable recurring for birthdays and anniversaries
+                      // Disable recurring for other types (meetings, deadlines, other)
                       if (['birthday', 'anniversary'].includes(type.value)) {
                         setIsRecurring(true);
+                      } else {
+                        setIsRecurring(false);
                       }
                     }}
                     icon={type.icon}
@@ -406,18 +409,20 @@ export default function AddEventModal({
               )}
             </View>
 
-            {/* Recurring Toggle */}
-            <View style={styles.section}>
-              <View style={styles.switchRow}>
-                <View>
-                  <Text variant="labelLarge">{t('addEvent.labels.recurring')}</Text>
-                  <Text variant="bodySmall" style={styles.helperText}>
-                    {t('addEvent.labels.recurringHelper')}
-                  </Text>
+            {/* Recurring Toggle - only shown for birthdays and anniversaries */}
+            {['birthday', 'anniversary'].includes(eventType) && (
+              <View style={styles.section}>
+                <View style={styles.switchRow}>
+                  <View>
+                    <Text variant="labelLarge">{t('addEvent.labels.recurring')}</Text>
+                    <Text variant="bodySmall" style={styles.helperText}>
+                      {t('addEvent.labels.recurringHelper')}
+                    </Text>
+                  </View>
+                  <Switch value={isRecurring} onValueChange={setIsRecurring} />
                 </View>
-                <Switch value={isRecurring} onValueChange={setIsRecurring} />
               </View>
-            </View>
+            )}
 
             {/* Title */}
             <View style={styles.section}>
