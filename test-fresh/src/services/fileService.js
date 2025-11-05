@@ -304,9 +304,7 @@ export const fileService = {
   async getFileUri(attachmentId) {
     try {
       const attachment = await db.attachments.getById(attachmentId);
-      const filePath = attachment ? attachment.file_path : null;
-      logger.success('FileService', 'getFileUri', { attachmentId, found: !!filePath });
-      return filePath;
+      return attachment ? attachment.file_path : null;
     } catch (error) {
       logger.error('FileService', 'getFileUri', error, { attachmentId });
       throw new ServiceError('fileService', 'getFileUri', error);
@@ -358,9 +356,7 @@ export const fileService = {
   async getThumbnailUri(attachmentId) {
     try {
       const attachment = await db.attachments.getById(attachmentId);
-      const thumbnailPath = attachment ? attachment.thumbnail_path : null;
-      logger.success('FileService', 'getThumbnailUri', { attachmentId, found: !!thumbnailPath });
-      return thumbnailPath;
+      return attachment ? attachment.thumbnail_path : null;
     } catch (error) {
       logger.error('FileService', 'getThumbnailUri', error, { attachmentId });
       throw new ServiceError('fileService', 'getThumbnailUri', error);
@@ -426,9 +422,7 @@ export const fileService = {
    */
   async calculateStorageUsed() {
     try {
-      const totalSize = await db.attachments.getTotalSize();
-      logger.success('FileService', 'calculateStorageUsed', { totalSize });
-      return totalSize;
+      return await db.attachments.getTotalSize();
     } catch (error) {
       logger.error('FileService', 'calculateStorageUsed', error);
       throw new ServiceError('fileService', 'calculateStorageUsed', error);
