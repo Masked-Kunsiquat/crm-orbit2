@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, ScrollView, Platform } from 'react-native';
 import {
   Modal,
@@ -73,6 +73,9 @@ export default function AddEventModal({
   const [isRecurring, setIsRecurring] = useState(false);
   const [reminders, setReminders] = useState([]);
 
+  // Use a ref to track if we've initialized reminders for the current editing session
+  const remindersInitializedRef = useRef(false);
+
   // Use TanStack Query hooks
   const { data: contacts = [] } = useContacts();
   const { data: fetchedReminders = [] } = useEventReminders(
@@ -97,13 +100,16 @@ export default function AddEventModal({
         setEventDate(parseFlexibleDate(editingEvent.event_date) || new Date());
         setIsRecurring(editingEvent.recurring || false);
 
-        // Load reminders from fetched data
-        // Convert database format to component format
-        const loadedReminders = (fetchedReminders || []).map(dbReminder => ({
-          minutes: 0, // This will be recalculated if needed
-          datetime: new Date(dbReminder.reminder_datetime),
-        }));
-        setReminders(loadedReminders);
+        // Load reminders from fetched data only once when modal opens or editingEvent changes
+        // Don't reload on subsequent refetches to avoid overwriting user's in-progress edits
+        if (!remindersInitializedRef.current && fetchedReminders.length >= 0) {
+          const loadedReminders = fetchedReminders.map(dbReminder => ({
+            minutes: 0, // This will be recalculated if needed
+            datetime: new Date(dbReminder.reminder_datetime),
+          }));
+          setReminders(loadedReminders);
+          remindersInitializedRef.current = true;
+        }
       } else {
         // New event - set defaults
         if (preselectedContactId) {
@@ -112,9 +118,26 @@ export default function AddEventModal({
         setEventDate(new Date());
         setIsRecurring(false);
         setReminders([]); // Clear reminders for new events
+        remindersInitializedRef.current = false; // Reset for next edit session
       }
+    } else {
+      // Modal closed - reset initialization flag
+      remindersInitializedRef.current = false;
     }
-  }, [visible, preselectedContactId, editingEvent, fetchedReminders]);
+  }, [visible, preselectedContactId, editingEvent]);
+
+  // Separate effect to load reminders when they arrive from the query
+  // This handles the case where fetchedReminders loads after the modal opens
+  useEffect(() => {
+    if (visible && editingEvent && !remindersInitializedRef.current && fetchedReminders.length > 0) {
+      const loadedReminders = fetchedReminders.map(dbReminder => ({
+        minutes: 0,
+        datetime: new Date(dbReminder.reminder_datetime),
+      }));
+      setReminders(loadedReminders);
+      remindersInitializedRef.current = true;
+    }
+  }, [fetchedReminders, visible, editingEvent]);
 
   const resetForm = () => {
     setTitle('');
