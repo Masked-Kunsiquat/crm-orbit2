@@ -17,7 +17,14 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { contactsDB } from '../database';
-import { useCreateEvent, useUpdateEvent, useDeleteEvent, useContacts } from '../hooks/queries';
+import {
+  useCreateEvent,
+  useCreateEventWithReminders,
+  useUpdateEvent,
+  useUpdateEventReminders,
+  useDeleteEvent,
+  useContacts,
+} from '../hooks/queries';
 import { parseFlexibleDate, formatDateToString } from '../utils/dateUtils';
 
 const EVENT_TYPES = [
@@ -61,7 +68,9 @@ export default function AddEventModal({
   // Use TanStack Query hooks
   const { data: contacts = [] } = useContacts();
   const createEventMutation = useCreateEvent();
+  const createEventWithRemindersMutation = useCreateEventWithReminders();
   const updateEventMutation = useUpdateEvent();
+  const updateEventRemindersMutation = useUpdateEventReminders();
   const deleteEventMutation = useDeleteEvent();
 
   useEffect(() => {
@@ -157,16 +166,51 @@ export default function AddEventModal({
       };
 
       if (isEditMode) {
+        // Update event
         await updateEventMutation.mutateAsync({
           id: editingEvent.id,
           data: eventData,
         });
+
+        // Update reminders (replaces all existing)
+        if (reminders.length > 0) {
+          const formattedReminders = reminders.map(reminder => ({
+            reminder_datetime: reminder.datetime,
+            reminder_type: 'notification',
+            is_sent: false,
+          }));
+          await updateEventRemindersMutation.mutateAsync({
+            eventId: editingEvent.id,
+            reminders: formattedReminders,
+          });
+        } else {
+          // If no reminders, clear all existing
+          await updateEventRemindersMutation.mutateAsync({
+            eventId: editingEvent.id,
+            reminders: [],
+          });
+        }
+
         Alert.alert(t('addEvent.success.updated'), '');
         if (onEventUpdated) onEventUpdated();
       } else {
-        const newEvent = await createEventMutation.mutateAsync(eventData);
+        // Create event with or without reminders
+        if (reminders.length > 0) {
+          // Format reminders for database
+          const formattedReminders = reminders.map(reminder => ({
+            reminder_datetime: reminder.datetime,
+            reminder_type: 'notification',
+            is_sent: false,
+          }));
 
-        // TODO: Create reminders for this event
+          await createEventWithRemindersMutation.mutateAsync({
+            eventData,
+            reminders: formattedReminders,
+          });
+        } else {
+          // No reminders, just create the event
+          await createEventMutation.mutateAsync(eventData);
+        }
 
         Alert.alert(t('addEvent.success.added'), '');
         if (onEventAdded) onEventAdded();
@@ -425,7 +469,12 @@ export default function AddEventModal({
                 mode="contained"
                 onPress={handleSave}
                 style={styles.saveButton}
-                loading={createEventMutation.isPending || updateEventMutation.isPending}
+                loading={
+                  createEventMutation.isPending ||
+                  createEventWithRemindersMutation.isPending ||
+                  updateEventMutation.isPending ||
+                  updateEventRemindersMutation.isPending
+                }
               >
                 {isEditMode ? t('addEvent.labels.update') : t('addEvent.labels.save')}
               </Button>

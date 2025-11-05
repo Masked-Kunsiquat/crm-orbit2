@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { eventsDB } from '../../database';
+import { eventsDB, eventsRemindersDB } from '../../database';
 
 /**
  * Query keys for event-related queries
@@ -74,6 +74,22 @@ export function useCreateEvent() {
 }
 
 /**
+ * Create event with reminders mutation
+ */
+export function useCreateEventWithReminders() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventData, reminders }) =>
+      eventsRemindersDB.createEventWithReminders(eventData, reminders),
+    onSuccess: () => {
+      // Invalidate all event queries
+      queryClient.invalidateQueries({ queryKey: eventKeys.all });
+    },
+  });
+}
+
+/**
  * Update event mutation
  */
 export function useUpdateEvent() {
@@ -84,6 +100,24 @@ export function useUpdateEvent() {
     onSuccess: (_, { id }) => {
       // Invalidate specific event and lists
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: eventKeys.upcoming() });
+    },
+  });
+}
+
+/**
+ * Update event reminders mutation
+ */
+export function useUpdateEventReminders() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, reminders }) =>
+      eventsRemindersDB.updateEventReminders(eventId, reminders),
+    onSuccess: (_, { eventId }) => {
+      // Invalidate event queries
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.lists() });
       queryClient.invalidateQueries({ queryKey: eventKeys.upcoming() });
     },
