@@ -125,9 +125,10 @@ export function parseFlexibleDate(value) {
  *
  * @param {string|Date} dateValue - Date string (YYYY-MM-DD) or Date object
  * @param {Function} t - i18n translation function (optional)
+ * @param {string} locale - Locale code (default 'en-US')
  * @returns {string} - Formatted date string
  */
-export function formatDateSmart(dateValue, t = null) {
+export function formatDateSmart(dateValue, t = null, locale = 'en-US') {
   const date = typeof dateValue === 'string' ? parseLocalDate(dateValue) : dateValue;
   if (!date || isNaN(date.getTime())) {
     return '';
@@ -148,7 +149,7 @@ export function formatDateSmart(dateValue, t = null) {
   } else if (eventDate.getTime() === tomorrow.getTime()) {
     return t ? t('events.tomorrow') : 'Tomorrow';
   } else {
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(locale);
   }
 }
 

@@ -377,7 +377,7 @@ export default function AddEventModal({
                 icon="calendar"
                 style={styles.dateButton}
               >
-                {formatDateSmart(eventDate, t) || eventDate.toLocaleDateString()}
+                {formatDateSmart(eventDate, t, locale) || eventDate.toLocaleDateString()}
               </Button>
               {showDatePicker && (
                 <DateTimePicker
