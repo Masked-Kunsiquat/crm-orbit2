@@ -12,7 +12,7 @@ import * as Sharing from 'expo-sharing';
 import db from '../database';
 import authService from './authService';
 import fileService from './fileService';
-import { ServiceError } from './errors';
+import { ServiceError, logger } from '../errors';
 import {
   BACKUP_CONFIG,
   BACKUP_TABLES,
@@ -106,14 +106,14 @@ class BackupService {
       return true;
     } catch (error) {
       // Silently handle any initialization errors
-      console.warn('Auto-backup check failed during startup:', error.message);
+      logger.warn('BackupService', 'Auto-backup check failed during startup', { error: error.message });
 
       // Try to at least schedule auto-backup if settings are available
       try {
         await this._scheduleAutoBackup();
         return true;
       } catch (scheduleError) {
-        console.warn('Failed to schedule auto-backup:', scheduleError.message);
+        logger.warn('BackupService', 'Failed to schedule auto-backup', { error: scheduleError.message });
         return false;
       }
     }
@@ -138,7 +138,7 @@ class BackupService {
       try {
         callback(event);
       } catch (error) {
-        console.error('Error in backup listener:', error);
+        logger.error('BackupService', 'notifyListeners', error);
       }
     });
   }
@@ -214,7 +214,7 @@ class BackupService {
           backupData.tables[table] = tableData;
           backupData.metadata.totalRecords += tableData.length;
         } catch (error) {
-          console.warn(`Failed to export table ${table}:`, error);
+          logger.warn('BackupService', `Failed to export table ${table}:`, error);
           backupData.tables[table] = [];
         }
 
@@ -634,7 +634,7 @@ class BackupService {
                 allContactInfo.push(...contactWithInfo.contact_info);
               }
             } catch (error) {
-              console.warn(
+              logger.warn('BackupService', 
                 `Failed to get contact info for contact ${contact.id}:`,
                 error
               );
@@ -653,7 +653,7 @@ class BackupService {
                 });
                 attachment.file_data = fileData;
               } catch (error) {
-                console.warn(
+                logger.warn('BackupService', 
                   `Failed to read attachment ${attachment.id}:`,
                   error
                 );
@@ -687,7 +687,7 @@ class BackupService {
                 });
               }
             } catch (error) {
-              console.warn(
+              logger.warn('BackupService', 
                 `Failed to get relations for category ${category.id}:`,
                 error
               );
@@ -782,7 +782,7 @@ class BackupService {
                     dataToUpdate.file_path = targetPath;
                     delete dataToUpdate.file_data;
                   } catch (fsErr) {
-                    console.warn('Failed to restore attachment file:', fsErr);
+                    logger.warn('BackupService', 'Failed to restore attachment file:', fsErr);
                   }
                 }
                 await db.attachments.update(record.id, dataToUpdate);
@@ -809,7 +809,7 @@ class BackupService {
                   await this._importRecurringEvent(record, true);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn(
+                    logger.warn('BackupService', 
                       'Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)'
                     );
                   }
@@ -823,7 +823,7 @@ class BackupService {
                   await this._importEventReminder(record, true);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn(
+                    logger.warn('BackupService', 
                       'Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)'
                     );
                   }
@@ -837,7 +837,7 @@ class BackupService {
                   await this._importCategoryRelation(record, true);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn(
+                    logger.warn('BackupService', 
                       'Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)'
                     );
                   }
@@ -848,7 +848,7 @@ class BackupService {
               }
               default: {
                 const errorMsg = `Unknown table '${tableName}' during overwrite import`;
-                console.error(errorMsg);
+                logger.error('BackupService', errorMsg);
                 throw buildServiceError(
                   'backupService',
                   '_importTable',
@@ -879,14 +879,14 @@ class BackupService {
                     if (newId !== undefined) {
                       recordData[foreignKey] = newId;
                     } else {
-                      console.warn(
+                      logger.warn('BackupService', 
                         `Missing ID mapping for ${tableName}.${foreignKey}: ${recordData[foreignKey]} -> skipping record`
                       );
                       skipped++;
                       continue;
                     }
                   } else {
-                    console.warn(
+                    logger.warn('BackupService', 
                       `No ID mapping table found for referenced table '${referencedTable}' -> skipping record`
                     );
                     skipped++;
@@ -948,7 +948,7 @@ class BackupService {
                     dataToCreate.file_path = targetPath;
                     delete dataToCreate.file_data;
                   } catch (fsErr) {
-                    console.warn('Failed to restore attachment file:', fsErr);
+                    logger.warn('BackupService', 'Failed to restore attachment file:', fsErr);
                   }
                 }
                 await db.attachments.create(dataToCreate);
@@ -980,7 +980,7 @@ class BackupService {
                   await this._importRecurringEvent(recordData, false);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn(
+                    logger.warn('BackupService', 
                       'Skipping events_recurring import: feature disabled (set BACKUP_FEATURES.IMPORT_RECURRING_EVENTS = true to enable)'
                     );
                   }
@@ -994,7 +994,7 @@ class BackupService {
                   await this._importEventReminder(recordData, false);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn(
+                    logger.warn('BackupService', 
                       'Skipping events_reminders import: feature disabled (set BACKUP_FEATURES.IMPORT_EVENT_REMINDERS = true to enable)'
                     );
                   }
@@ -1008,7 +1008,7 @@ class BackupService {
                   await this._importCategoryRelation(recordData, false);
                 } else {
                   if (!BACKUP_FEATURES.SKIP_IMPORT_WARNINGS) {
-                    console.warn(
+                    logger.warn('BackupService', 
                       'Skipping category_relations import: feature disabled (set BACKUP_FEATURES.IMPORT_CATEGORY_RELATIONS = true to enable)'
                     );
                   }
@@ -1019,7 +1019,7 @@ class BackupService {
               }
               default: {
                 const errorMsg = `Unknown table '${tableName}' during non-overwrite import`;
-                console.error(errorMsg);
+                logger.error('BackupService', errorMsg);
                 throw buildServiceError(
                   'backupService',
                   '_importTable',
@@ -1033,7 +1033,7 @@ class BackupService {
           }
         } catch (error) {
           // Log the actual error for debugging, but continue processing
-          console.warn(
+          logger.warn('BackupService', 
             `Failed to import record in table '${tableName}':`,
             error.message || error
           );
@@ -1050,7 +1050,7 @@ class BackupService {
             skipped++;
           } else {
             // Unexpected error - should be logged and potentially fail the import
-            console.error(
+            logger.error('BackupService', 
               `Unexpected error importing record in table '${tableName}':`,
               error
             );
@@ -1093,7 +1093,7 @@ class BackupService {
 
     // Version compatibility check
     if (backupData.version !== BACKUP_CONFIG.BACKUP_VERSION) {
-      console.warn(
+      logger.warn('BackupService', 
         `Backup version mismatch: ${backupData.version} vs ${BACKUP_CONFIG.BACKUP_VERSION}`
       );
     }
@@ -1135,7 +1135,7 @@ class BackupService {
         try {
           await this.deleteBackup(backup.filename, false);
         } catch (error) {
-          console.warn(
+          logger.warn('BackupService', 
             `Failed to delete old backup ${backup.filename}:`,
             error
           );
@@ -1149,7 +1149,7 @@ class BackupService {
         });
       }
     } catch (error) {
-      console.error('Failed to cleanup old backups:', error);
+      logger.error('BackupService', 'Failed to cleanup old backups:', error);
     }
   }
 
@@ -1174,9 +1174,9 @@ class BackupService {
               filename: `auto-backup-${timestamp}.json`,
               requireAuth: false, // Auto-backups don't require interactive auth
             });
-            console.log('Auto-backup completed successfully');
+            logger.info('BackupService', 'Auto-backup completed successfully');
           } catch (error) {
-            console.error('Auto-backup failed:', error);
+            logger.error('BackupService', 'Auto-backup failed:', error);
             this._notifyListeners({
               type: 'auto_backup_failed',
               error: error.message,
@@ -1184,7 +1184,7 @@ class BackupService {
           }
         }, intervalMs);
 
-        console.log(
+        logger.info('BackupService', 
           `Auto-backup scheduled every ${settings.intervalHours} hours`
         );
         this._notifyListeners({
@@ -1193,7 +1193,7 @@ class BackupService {
         });
       }
     } catch (error) {
-      console.error('Failed to schedule auto-backup:', error);
+      logger.error('BackupService', 'Failed to schedule auto-backup:', error);
     }
   }
 
@@ -1218,7 +1218,7 @@ class BackupService {
       const settings = await this.getBackupSettings();
       this.lastBackupTime = settings.lastBackupTime;
     } catch (error) {
-      console.warn('Failed to load backup settings:', error);
+      logger.warn('BackupService', 'Failed to load backup settings:', error);
       this.lastBackupTime = null;
     }
   }
@@ -1237,7 +1237,7 @@ class BackupService {
         );
       }
     } catch (error) {
-      console.warn('Failed to save backup settings:', error);
+      logger.warn('BackupService', 'Failed to save backup settings:', error);
     }
   }
 

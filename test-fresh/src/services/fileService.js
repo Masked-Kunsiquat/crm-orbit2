@@ -238,10 +238,7 @@ export const fileService = {
           thumbnailFile.delete();
         }
       } catch (cleanupError) {
-        console.error(
-          'Failed to cleanup files during error handling:',
-          cleanupError
-        );
+        logger.error('FileService', 'saveFile - cleanup', cleanupError);
       }
       throw new ServiceError('fileService', 'saveFile', error);
     }
