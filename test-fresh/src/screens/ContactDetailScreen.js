@@ -158,7 +158,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const handleViewAllInteractions = () => {
     // Navigate to Interactions tab (would need to implement tab navigation focus)
-    showAlert.error('View All', 'Navigate to Interactions tab to see all interactions for this contact');
+    showAlert.info('Navigate to Interactions tab to see all interactions for this contact', 'View All');
   };
 
   const handleAddEventClick = () => {
