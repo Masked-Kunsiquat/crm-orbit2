@@ -832,8 +832,7 @@ class BackupService {
                 break;
               }
               default: {
-                const errorMsg = 'Unknown table during overwrite import';
-                logger.error('BackupService', errorMsg, { tableName });
+                logger.error('BackupService', 'Unknown table during overwrite import', { tableName });
                 throw buildServiceError(
                   'backupService',
                   '_importTable',
@@ -993,8 +992,7 @@ class BackupService {
                 break;
               }
               default: {
-                const errorMsg = 'Unknown table during non-overwrite import';
-                logger.error('BackupService', errorMsg, { tableName });
+                logger.error('BackupService', 'Unknown table during non-overwrite import', { tableName });
                 throw buildServiceError(
                   'backupService',
                   '_importTable',
