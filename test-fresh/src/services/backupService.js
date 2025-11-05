@@ -138,7 +138,7 @@ class BackupService {
       try {
         callback(event);
       } catch (error) {
-        logger.error('BackupService', 'notifyListeners', error);
+        logger.error('BackupService', 'notifyListeners', { error: error.message });
       }
     });
   }
@@ -214,7 +214,7 @@ class BackupService {
           backupData.tables[table] = tableData;
           backupData.metadata.totalRecords += tableData.length;
         } catch (error) {
-          logger.warn('BackupService', 'Failed to export table', { table, error });
+          logger.warn('BackupService', 'Failed to export table', { table, error: error.message });
           backupData.tables[table] = [];
         }
 
@@ -634,7 +634,7 @@ class BackupService {
                 allContactInfo.push(...contactWithInfo.contact_info);
               }
             } catch (error) {
-              logger.warn('BackupService', 'Failed to get contact info for contact', { contactId: contact.id, error });
+              logger.warn('BackupService', 'Failed to get contact info for contact', { contactId: contact.id, error: error.message });
             }
           }
           return allContactInfo;
@@ -650,7 +650,7 @@ class BackupService {
                 });
                 attachment.file_data = fileData;
               } catch (error) {
-                logger.warn('BackupService', 'Failed to read attachment', { attachmentId: attachment.id, error });
+                logger.warn('BackupService', 'Failed to read attachment', { attachmentId: attachment.id, error: error.message });
               }
             }
           }
@@ -681,7 +681,7 @@ class BackupService {
                 });
               }
             } catch (error) {
-              logger.warn('BackupService', 'Failed to get relations for category', { categoryId: category.id, error });
+              logger.warn('BackupService', 'Failed to get relations for category', { categoryId: category.id, error: error.message });
             }
           }
           return categoryRelations;
@@ -773,7 +773,7 @@ class BackupService {
                     dataToUpdate.file_path = targetPath;
                     delete dataToUpdate.file_data;
                   } catch (fsErr) {
-                    logger.warn('BackupService', 'Failed to restore attachment file', { error: fsErr });
+                    logger.warn('BackupService', 'Failed to restore attachment file', { error: fsErr.message });
                   }
                 }
                 await db.attachments.update(record.id, dataToUpdate);
@@ -929,7 +929,7 @@ class BackupService {
                     dataToCreate.file_path = targetPath;
                     delete dataToCreate.file_data;
                   } catch (fsErr) {
-                    logger.warn('BackupService', 'Failed to restore attachment file', { error: fsErr });
+                    logger.warn('BackupService', 'Failed to restore attachment file', { error: fsErr.message });
                   }
                 }
                 await db.attachments.create(dataToCreate);
@@ -1008,7 +1008,7 @@ class BackupService {
           }
         } catch (error) {
           // Log the actual error for debugging, but continue processing
-          logger.warn('BackupService', 'Failed to import record in table', { tableName, error: error.message || error });
+          logger.warn('BackupService', 'Failed to import record in table', { tableName, error: error.message });
 
           // Check if it's a constraint violation (record already exists) or a real error
           const errorMessage = error.message || String(error);
@@ -1022,7 +1022,7 @@ class BackupService {
             skipped++;
           } else {
             // Unexpected error - should be logged and potentially fail the import
-            logger.error('BackupService', 'Unexpected error importing record in table', { tableName, error });
+            logger.error('BackupService', 'Unexpected error importing record in table', { tableName, error: error.message });
             skipped++;
 
             // For critical errors, you might want to throw here instead of continuing:
@@ -1102,7 +1102,7 @@ class BackupService {
         try {
           await this.deleteBackup(backup.filename, false);
         } catch (error) {
-          logger.warn('BackupService', 'Failed to delete old backup', { filename: backup.filename, error });
+          logger.warn('BackupService', 'Failed to delete old backup', { filename: backup.filename, error: error.message });
         }
       }
 
@@ -1113,7 +1113,7 @@ class BackupService {
         });
       }
     } catch (error) {
-      logger.error('BackupService', 'Failed to cleanup old backups', { error });
+      logger.error('BackupService', 'Failed to cleanup old backups', { error: error.message });
     }
   }
 
@@ -1140,7 +1140,7 @@ class BackupService {
             });
             logger.info('BackupService', 'Auto-backup completed successfully');
           } catch (error) {
-            logger.error('BackupService', 'Auto-backup failed', { error });
+            logger.error('BackupService', 'Auto-backup failed', { error: error.message });
             this._notifyListeners({
               type: 'auto_backup_failed',
               error: error.message,
@@ -1155,7 +1155,7 @@ class BackupService {
         });
       }
     } catch (error) {
-      logger.error('BackupService', 'Failed to schedule auto-backup', { error });
+      logger.error('BackupService', 'Failed to schedule auto-backup', { error: error.message });
     }
   }
 
@@ -1180,7 +1180,7 @@ class BackupService {
       const settings = await this.getBackupSettings();
       this.lastBackupTime = settings.lastBackupTime;
     } catch (error) {
-      logger.warn('BackupService', 'Failed to load backup settings', { error });
+      logger.warn('BackupService', 'Failed to load backup settings', { error: error.message });
       this.lastBackupTime = null;
     }
   }
@@ -1199,7 +1199,7 @@ class BackupService {
         );
       }
     } catch (error) {
-      logger.warn('BackupService', 'Failed to save backup settings', { error });
+      logger.warn('BackupService', 'Failed to save backup settings', { error: error.message });
     }
   }
 
