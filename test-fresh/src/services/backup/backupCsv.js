@@ -160,7 +160,7 @@ export class BackupCsvExporter {
       try {
         csvPath = safePathJoin(BACKUP_CONFIG.BACKUP_DIR, csvFilename);
       } catch (pathError) {
-        logger.error('BackupCsv', 'exportToCSV', pathError, { filename: csvFilename });
+        logger.error('BackupService', 'exportToCSV', pathError, { filename: csvFilename });
         throw buildServiceError(
           'backupService',
           'exportToCSV',
@@ -223,7 +223,7 @@ export class BackupCsvExporter {
 
       await writeAsStringAsync(csvPath, csvContent);
 
-      logger.success('BackupCsv', 'exportToCSV', { csvPath, table: table || 'all' });
+      logger.success('BackupService', 'exportToCSV', { csvPath, table: table || 'all' });
 
       onProgress?.({ stage: 'complete', table: table || 'all', progress: 100 });
 
@@ -236,7 +236,7 @@ export class BackupCsvExporter {
 
       return csvPath;
     } catch (error) {
-      logger.error('BackupCsv', 'exportToCSV', error);
+      logger.error('BackupService', 'exportToCSV', error);
       throw buildServiceError(
         'backupService',
         'exportToCSV',
