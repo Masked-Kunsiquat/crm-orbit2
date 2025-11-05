@@ -11,9 +11,20 @@
 
 /**
  * Determine if we're in development mode
+ * Safely checks for development environment across different runtimes
  */
 const isDevelopment = () => {
-  return __DEV__ || process.env.NODE_ENV === 'development';
+  // Check React Native __DEV__ global
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    return true;
+  }
+
+  // Fall back to Node.js process.env check
+  if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  return false;
 };
 
 /**
