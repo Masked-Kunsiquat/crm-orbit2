@@ -979,7 +979,7 @@ export const notificationService = {
                 newRecurringReminders.push({
                   id: reminderRes.insertId,
                   event_id: event.id,
-                  reminder_datetime: reminderTime.toISOString(),
+                  reminder_datetime: sqliteReminderTime,
                   reminder_type: 'notification',
                   is_sent: false,
                   title: event.title,
@@ -1077,28 +1077,14 @@ export const notificationService = {
         }
       }
 
-      // Phase 3: Update database with scheduling results in new transaction
-      await db.transaction(async tx => {
-        // Mark successfully scheduled reminders
-        if (scheduledItems.length > 0) {
-          for (const { reminderId, notificationId } of scheduledItems) {
-            await tx.execute(
-              'UPDATE event_reminders SET notification_id = ? WHERE id = ?;',
-              [notificationId, reminderId]
-            );
-          }
-        }
+      // Phase 3: Update database with scheduling results using batch operations
+      if (scheduledItems.length > 0) {
+        await db.eventsReminders.markRemindersScheduled(scheduledItems);
+      }
 
-        // Mark failed reminders (clear notification_id so they can be retried)
-        if (failedItems.length > 0) {
-          for (const reminderId of failedItems) {
-            await tx.execute(
-              'UPDATE event_reminders SET notification_id = NULL WHERE id = ?;',
-              [reminderId]
-            );
-          }
-        }
-      });
+      if (failedItems.length > 0) {
+        await db.eventsReminders.markRemindersFailed(failedItems);
+      }
 
       logger.success('NotificationService', 'syncAllReminders', {
         scheduled: scheduledItems.length,
