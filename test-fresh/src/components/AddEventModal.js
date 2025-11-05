@@ -25,7 +25,13 @@ import {
   useContacts,
   useEventReminders,
 } from '../hooks/queries';
-import { parseFlexibleDate, formatDateToString } from '../utils/dateUtils';
+import {
+  parseFlexibleDate,
+  formatDateToString,
+  formatDateSmart,
+  formatDateAndTime,
+  getPrimaryLocale,
+} from '../utils/dateUtils';
 
 const EVENT_TYPES = [
   { value: 'birthday', icon: 'cake-variant' },
@@ -53,6 +59,7 @@ export default function AddEventModal({
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const locale = getPrimaryLocale();
   const isEditMode = !!editingEvent;
 
   const [title, setTitle] = useState('');
@@ -370,7 +377,7 @@ export default function AddEventModal({
                 icon="calendar"
                 style={styles.dateButton}
               >
-                {eventDate.toLocaleDateString()}
+                {formatDateSmart(eventDate, t) || eventDate.toLocaleDateString()}
               </Button>
               {showDatePicker && (
                 <DateTimePicker
@@ -439,18 +446,21 @@ export default function AddEventModal({
               </View>
               {reminders.length > 0 && (
                 <View style={styles.remindersList}>
-                  {reminders.map((reminder, index) => (
-                    <View key={index} style={styles.reminderItem}>
-                      <Text variant="bodyMedium">
-                        {reminder.datetime.toLocaleString()}
-                      </Text>
-                      <IconButton
-                        icon="close"
-                        size={20}
-                        onPress={() => removeReminder(index)}
-                      />
-                    </View>
-                  ))}
+                  {reminders.map((reminder, index) => {
+                    const { date, time } = formatDateAndTime(reminder.datetime, locale);
+                    return (
+                      <View key={index} style={styles.reminderItem}>
+                        <Text variant="bodyMedium">
+                          {date} {time}
+                        </Text>
+                        <IconButton
+                          icon="close"
+                          size={20}
+                          onPress={() => removeReminder(index)}
+                        />
+                      </View>
+                    );
+                  })}
                 </View>
               )}
             </View>
