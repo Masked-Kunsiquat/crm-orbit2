@@ -48,7 +48,8 @@ export function SettingsProvider({ children }) {
         } else {
           i18n.changeLanguage(normalized).catch(() => {});
         }
-      } catch (_) {
+      } catch (error) {
+        logger.warn('SettingsContext', 'initialization', { error: error.message, stack: error.stack });
         setLeftAction('text');
         setRightAction('call');
         setThemeModeState('system');
