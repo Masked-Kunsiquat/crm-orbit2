@@ -235,6 +235,7 @@
     "addEvent": "Ereignis",
     "noEvents": "Keine bevorstehenden Ereignisse",
     "noEventsDescription": "Fügen Sie ein Ereignis für diesen Kontakt hinzu",
+    "recurring": "Wiederkehrend",
     "delete": "Kontakt löschen",
     "deleteConfirm": "Sind Sie sicher, dass Sie {{name}} löschen möchten?",
     "photoTitle": "Kontaktfoto",

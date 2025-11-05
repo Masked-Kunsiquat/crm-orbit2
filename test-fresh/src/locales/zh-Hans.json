@@ -235,6 +235,7 @@
     "addEvent": "事件",
     "noEvents": "暂无即将到来的事件",
     "noEventsDescription": "为此联系人添加事件",
+    "recurring": "重复",
     "delete": "删除联系人",
     "deleteConfirm": "您确定要删除 {{name}} 吗？",
     "photoTitle": "联系人照片",

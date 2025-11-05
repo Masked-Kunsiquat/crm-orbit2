@@ -511,7 +511,7 @@ export default function ContactDetailScreen({ route, navigation }) {
               <View key={event.id}>
                 <List.Item
                   title={event.title}
-                  description={`${formatDateSmart(event.event_date, t)}${event.recurring ? ' • Recurring' : ''}`}
+                  description={`${formatDateSmart(event.event_date, t)}${event.recurring ? ` • ${t('contactDetail.recurring')}` : ''}`}
                   left={props => <List.Icon {...props} icon={getEventIcon(event.event_type)} />}
                   onPress={() => handleEventPress(event)}
                 />

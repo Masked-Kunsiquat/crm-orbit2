@@ -238,6 +238,7 @@
     "addEvent": "Event",
     "noEvents": "No upcoming events",
     "noEventsDescription": "Add an event for this contact",
+    "recurring": "Recurring",
     "delete": "Delete Contact",
     "deleteConfirm": "Are you sure you want to delete {{name}}?",
     "photoTitle": "Contact Photo",
