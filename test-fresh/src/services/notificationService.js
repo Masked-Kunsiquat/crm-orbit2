@@ -764,6 +764,11 @@ export const notificationService = {
 
       return { title, body, data };
     } catch (error) {
+      logger.warn(
+        'NotificationService',
+        'Template rendering failed, using generic fallback',
+        { eventType: event?.event_type, error: error.message }
+      );
       // Fallback to generic template on error
       const genericTemplate = NOTIFICATION_TEMPLATES.generic;
       return {
