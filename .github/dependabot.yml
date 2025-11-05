@@ -2,7 +2,7 @@ version: 2
 updates:
   # JavaScript/Expo app (npm) in repository root
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/test-fresh/src/"
     schedule:
       interval: "weekly"
       day: "monday"
