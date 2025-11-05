@@ -15,7 +15,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { MIN_PIN_LENGTH, MAX_PIN_LENGTH } from '../constants/auth';
-import { logger } from '../errors';
+import { logger, ServiceError } from '../errors';
 
 /**
  * Storage keys for authentication-related data in AsyncStorage and SecureStore
@@ -337,7 +337,7 @@ class AuthService {
       return true;
     } catch (error) {
       logger.error('AuthService', 'setPIN', error);
-      throw error;
+      throw new ServiceError('Failed to set PIN', 'AUTH_SET_PIN_ERROR', error);
     }
   }
 
@@ -376,7 +376,7 @@ class AuthService {
       return true;
     } catch (error) {
       logger.error('AuthService', 'removePIN', error);
-      throw error;
+      throw new ServiceError('Failed to remove PIN', 'AUTH_REMOVE_PIN_ERROR', error);
     }
   }
 
@@ -405,11 +405,12 @@ class AuthService {
       };
     } catch (error) {
       logger.error('AuthService', 'authenticateWithBiometric', error);
-      const mappedError = {
-        ...error,
-        errorCode: this.mapBiometricError(error),
-      };
-      throw mappedError;
+      throw new ServiceError(
+        'Biometric authentication failed',
+        'AUTH_BIOMETRIC_ERROR',
+        error,
+        { errorCode: this.mapBiometricError(error) }
+      );
     }
   }
 
@@ -673,7 +674,7 @@ class AuthService {
       return true;
     } catch (error) {
       logger.error('AuthService', 'enableBiometric', error);
-      throw error;
+      throw new ServiceError('Failed to enable biometric authentication', 'AUTH_ENABLE_BIOMETRIC_ERROR', error);
     }
   }
 
