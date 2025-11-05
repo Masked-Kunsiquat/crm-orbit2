@@ -29,7 +29,7 @@ export default function ContactAvatar({ contact, size = 48, style }) {
             setAvatarUri(uri);
           }
         } catch (error) {
-          logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id, error: error.message });
+          logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id, error: error.message, stack: error.stack });
           if (mounted) {
             setAvatarUri(null);
           }
