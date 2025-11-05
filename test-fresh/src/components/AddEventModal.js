@@ -96,7 +96,7 @@ export default function AddEventModal({
       setSelectedContactId(null);
     }
     setEventDate(new Date());
-    setIsRecurring(true); // Birthdays are recurring by default
+    setIsRecurring(false);
     setReminders([]);
   };
 
