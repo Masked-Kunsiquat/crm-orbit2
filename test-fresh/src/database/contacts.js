@@ -2,6 +2,7 @@
 // Focused on core contact CRUD operations
 
 import { DatabaseError } from './errors';
+import { safeTrim, filterNonEmptyStrings } from '../utils/stringHelpers';
 
 const CONTACT_FIELDS = [
   'first_name',
@@ -46,11 +47,11 @@ function convertNullableFields(row) {
 // (reserved for future helpers)
 
 function computeDisplayName(data) {
-  const nameParts = [
-    data.first_name?.trim(),
-    data.middle_name?.trim(),
-    data.last_name?.trim(),
-  ].filter(Boolean);
+  const nameParts = filterNonEmptyStrings([
+    data.first_name,
+    data.middle_name,
+    data.last_name,
+  ]);
 
   if (nameParts.length > 0) {
     return nameParts.join(' ');
