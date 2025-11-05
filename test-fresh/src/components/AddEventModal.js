@@ -61,7 +61,7 @@ export default function AddEventModal({
   const { t } = useTranslation();
   const theme = useTheme();
   const locale = getPrimaryLocale();
-  const isEditMode = !!editingEvent;
+  const isEditMode = Boolean(editingEvent && editingEvent.id);
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
