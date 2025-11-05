@@ -207,7 +207,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
 
   const handleSave = async () => {
     if (!firstName.trim()) {
-      showAlert.error('First name is required');
+      showAlert.error(t('addContact.validation.firstNameRequired'));
       return;
     }
 
@@ -216,7 +216,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
     const validEmails = emails.filter(email => email.value.trim());
 
     if (validPhones.length === 0 && validEmails.length === 0) {
-      showAlert.error('Please provide at least a phone number or email address');
+      showAlert.error(t('addContact.validation.contactInfoRequired'));
       return;
     }
 
@@ -232,7 +232,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       resetForm();
       onContactAdded && onContactAdded();
       onDismiss();
-      showAlert.success('Contact added successfully!');
+      showAlert.success(t('addContact.successMsg'));
     } catch (error) {
       handleError(error, {
         component: 'AddContactModal',

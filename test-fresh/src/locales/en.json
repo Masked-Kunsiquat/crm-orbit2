@@ -267,6 +267,7 @@
     "importFailMsg": "Failed to import contact. Please try again or enter details manually.",
     "permissionTitle": "Permission Denied",
     "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.",
+    "successMsg": "Contact added successfully!",
     "sections": {
       "name": "Name",
       "phones": "Phone Numbers",
@@ -281,6 +282,10 @@
       "cancel": "Cancel",
       "phone": "Phone",
       "email": "Email"
+    },
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "contactInfoRequired": "Please provide at least a phone number or email address"
     }
   },
   "contact": {
