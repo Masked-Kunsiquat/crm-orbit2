@@ -252,7 +252,7 @@ export const notificationService = {
         // Persist the adjusted time back to the database
         await db.eventsReminders.updateReminderDateTime(
           reminder.id,
-          scheduledTime.toISOString()
+          toSQLiteDateTime(scheduledTime)
         );
 
         timeWasAdjusted = true;
@@ -431,7 +431,7 @@ export const notificationService = {
         // Build reminder object for database
         reminderData.push({
           event_id: event.id,
-          reminder_datetime: reminderTime.toISOString(),
+          reminder_datetime: toSQLiteDateTime(reminderTime),
           reminder_type: 'notification',
           is_sent: false,
         });
