@@ -16,7 +16,6 @@ import {
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
-import { contactsDB } from '../database';
 import {
   useCreateEvent,
   useCreateEventWithReminders,
@@ -154,6 +153,13 @@ export default function AddEventModal({
     );
   };
 
+  const formatRemindersForDB = (reminders) =>
+    reminders.map(reminder => ({
+      reminder_datetime: reminder.datetime,
+      reminder_type: 'notification',
+      is_sent: false,
+    }));
+
   const handleSave = async () => {
     // Validation
     if (!title.trim()) {
@@ -186,11 +192,7 @@ export default function AddEventModal({
 
         // Update reminders (replaces all existing)
         if (reminders.length > 0) {
-          const formattedReminders = reminders.map(reminder => ({
-            reminder_datetime: reminder.datetime,
-            reminder_type: 'notification',
-            is_sent: false,
-          }));
+          const formattedReminders = formatRemindersForDB(reminders);
           await updateEventRemindersMutation.mutateAsync({
             eventId: editingEvent.id,
             reminders: formattedReminders,
@@ -208,12 +210,7 @@ export default function AddEventModal({
       } else {
         // Create event with or without reminders
         if (reminders.length > 0) {
-          // Format reminders for database
-          const formattedReminders = reminders.map(reminder => ({
-            reminder_datetime: reminder.datetime,
-            reminder_type: 'notification',
-            is_sent: false,
-          }));
+          const formattedReminders = formatRemindersForDB(reminders);
 
           await createEventWithRemindersMutation.mutateAsync({
             eventData,
@@ -240,7 +237,9 @@ export default function AddEventModal({
     const contact = contacts.find(c => c.id === selectedContactId);
     if (!contact) return;
 
-    const contactName = contact.display_name || `${contact.first_name} ${contact.last_name || ''}`.trim();
+    const contactName = contact.display_name ||
+      [contact.first_name, contact.last_name].filter(Boolean).join(' ') ||
+      'Unknown';
     const quickTitle = t(`addEvent.quickTitles.${eventType}`, { name: contactName });
     setTitle(quickTitle);
   };
