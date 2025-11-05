@@ -1,7 +1,7 @@
 // Notes database module
 // Manages notes and general notes functionality
 
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 
 const NOTE_FIELDS = ['contact_id', 'title', 'content', 'is_pinned'];
 
@@ -71,6 +71,7 @@ export function createNotesDB(ctx) {
           throw new DatabaseError('Failed to create note', 'INSERT_FAILED');
         }
 
+        logger.success('NotesDB', 'create', { id });
         return this.getById(id);
       } catch (error) {
         // Handle foreign key constraint errors - check message and nested error properties
@@ -80,9 +81,11 @@ export function createNotesDB(ctx) {
           errorMessage &&
           errorMessage.includes('FOREIGN KEY constraint failed')
         ) {
+          logger.error('NotesDB', 'create', error, { constraint: 'FOREIGN_KEY' });
           throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is
+        logger.error('NotesDB', 'create', error);
         throw error;
       }
     },

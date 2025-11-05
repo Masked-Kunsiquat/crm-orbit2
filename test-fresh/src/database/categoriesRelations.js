@@ -1,7 +1,7 @@
 // Categories Relations database module
 // Focused on contact-category relationship operations
 
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 
 /**
  * Create the categories relations database module
@@ -26,7 +26,11 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
           'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
           [contactId, categoryId]
         );
-        return res && res.rowsAffected ? res.rowsAffected > 0 : false;
+        const success = res && res.rowsAffected ? res.rowsAffected > 0 : false;
+        if (success) {
+          logger.success('CategoriesRelationsDB', 'addContactToCategory', { contactId, categoryId });
+        }
+        return success;
       } catch (error) {
         const msg = String(
           error?.originalError?.message ??
@@ -35,6 +39,7 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
             ''
         );
         if (msg.includes('FOREIGN KEY constraint failed')) {
+          logger.error('CategoriesRelationsDB', 'addContactToCategory', error, { constraint: 'FOREIGN_KEY' });
           throw new DatabaseError(
             'Contact or category not found',
             'NOT_FOUND',
@@ -42,8 +47,10 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
           );
         }
         if (msg.includes('UNIQUE constraint failed')) {
+          logger.warn('CategoriesRelationsDB', 'Relationship already exists', { contactId, categoryId });
           return false; // Relationship already exists
         }
+        logger.error('CategoriesRelationsDB', 'addContactToCategory', error);
         throw error;
       }
     },

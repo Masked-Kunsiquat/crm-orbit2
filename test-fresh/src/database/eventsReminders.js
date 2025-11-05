@@ -1,7 +1,7 @@
 // Events Reminders database module
 // Focused on event reminder management
 
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 import { toSQLiteDateTime } from '../utils/dateUtils';
 
 const REMINDER_FIELDS = [
@@ -231,7 +231,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           'SELECT * FROM event_reminders WHERE id = ?;',
           [res.insertId]
         );
-        return convertBooleanFields(created.rows[0]);
+        const result = convertBooleanFields(created.rows[0]);
+        logger.success('EventsRemindersDB', 'createReminder', { id: res.insertId });
+        return result;
       } catch (error) {
         // Handle foreign key constraint errors - check nested error properties
         const checkForFKError = err => {
@@ -252,9 +254,11 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
         };
 
         if (checkForFKError(error)) {
+          logger.error('EventsRemindersDB', 'createReminder', error);
           throw new DatabaseError('Event not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is
+        logger.error('EventsRemindersDB', 'createReminder', error);
         throw error;
       }
     },
@@ -495,9 +499,12 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           'SELECT * FROM event_reminders WHERE id = ?;',
           [reminderId]
         );
-        return convertBooleanFields(res.rows[0]) || null;
+        const result = convertBooleanFields(res.rows[0]) || null;
+        logger.success('EventsRemindersDB', 'updateReminderDateTime', { reminderId });
+        return result;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('EventsRemindersDB', 'updateReminderDateTime', error, { reminderId });
         throw new DatabaseError(
           'Failed to update reminder datetime',
           'UPDATE_FAILED',
@@ -609,6 +616,10 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
             const result = await tx.execute(sql, chunk);
             totalAffected += result.rowsAffected || 0;
           } catch (error) {
+            logger.error('EventsRemindersDB', 'markRemindersFailed', error, {
+              chunkStart: i,
+              chunkSize: chunk.length
+            });
             throw new DatabaseError(
               `Failed to mark reminders as failed (chunk ${Math.floor(i / CHUNK_SIZE) + 1})`,
               'UPDATE_FAILED',
@@ -668,6 +679,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
             created.push(convertBooleanFields(newReminder.rows[0]));
           }
         } catch (error) {
+          logger.error('EventsRemindersDB', 'createRecurringReminders', error, {
+            reminderData: data
+          });
           throw new DatabaseError(
             'Failed to create recurring reminder',
             'CREATE_FAILED',

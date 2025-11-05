@@ -1,4 +1,4 @@
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 
 export function createAttachmentsDB({ execute, batch, transaction }) {
   const validateRequiredFields = (data, requiredFields) => {
@@ -184,11 +184,14 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         );
 
         if (result.insertId) {
-          return await this.getById(result.insertId);
+          const attachment = await this.getById(result.insertId);
+          logger.success('AttachmentsDB', 'create', { id: result.insertId });
+          return attachment;
         }
         throw new DatabaseError('Failed to create attachment', 'CREATE_FAILED');
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'create', error);
         throw new DatabaseError(
           'Failed to create attachment',
           'CREATE_FAILED',
@@ -202,8 +205,10 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         const result = await execute('SELECT * FROM attachments WHERE id = ?', [
           id,
         ]);
+        logger.success('AttachmentsDB', 'getById', { id, found: !!result.rows[0] });
         return result.rows[0] || null;
       } catch (error) {
+        logger.error('AttachmentsDB', 'getById', error, { id });
         throw new DatabaseError(
           'Failed to get attachment by ID',
           'GET_FAILED',
@@ -244,15 +249,17 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         }
 
         const result = await execute(
-          `SELECT * FROM attachments 
+          `SELECT * FROM attachments
            ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
            LIMIT ? OFFSET ?`,
           [limit, offset]
         );
 
+        logger.success('AttachmentsDB', 'getAll', { count: result.rows.length });
         return result.rows;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'getAll', error);
         throw new DatabaseError(
           'Failed to get all attachments',
           'GET_FAILED',
@@ -311,9 +318,12 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           throw new DatabaseError('Attachment not found', 'NOT_FOUND');
         }
 
-        return await this.getById(id);
+        const attachment = await this.getById(id);
+        logger.success('AttachmentsDB', 'update', { id });
+        return attachment;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'update', error, { id });
         throw new DatabaseError(
           'Failed to update attachment',
           'UPDATE_FAILED',
@@ -332,9 +342,11 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           throw new DatabaseError('Attachment not found', 'NOT_FOUND');
         }
 
+        logger.success('AttachmentsDB', 'delete', { id });
         return { success: true, deletedId: id };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'delete', error, { id });
         throw new DatabaseError(
           'Failed to delete attachment',
           'DELETE_FAILED',
@@ -348,15 +360,17 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         validateEntityType(entityType);
 
         const result = await execute(
-          `SELECT * FROM attachments 
-           WHERE entity_type = ? AND entity_id = ? 
+          `SELECT * FROM attachments
+           WHERE entity_type = ? AND entity_id = ?
            ORDER BY created_at DESC`,
           [entityType, entityId]
         );
 
+        logger.success('AttachmentsDB', 'getByEntity', { entityType, entityId, count: result.rows.length });
         return result.rows;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'getByEntity', error, { entityType, entityId });
         throw new DatabaseError(
           'Failed to get attachments by entity',
           'GET_FAILED',
@@ -374,6 +388,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           [entityType, entityId]
         );
 
+        logger.success('AttachmentsDB', 'deleteByEntity', { entityType, entityId, count: result.rowsAffected });
         return {
           success: true,
           deletedCount: result.rowsAffected,
@@ -382,6 +397,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         };
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'deleteByEntity', error, { entityType, entityId });
         throw new DatabaseError(
           'Failed to delete attachments by entity',
           'DELETE_FAILED',
@@ -398,7 +414,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           LEFT JOIN interactions i ON a.entity_type = 'interaction' AND a.entity_id = i.id
           LEFT JOIN events e ON a.entity_type = 'event' AND a.entity_id = e.id
           LEFT JOIN notes n ON a.entity_type = 'note' AND a.entity_id = n.id
-          WHERE 
+          WHERE
             (a.entity_type = 'contact' AND c.id IS NULL) OR
             (a.entity_type = 'interaction' AND i.id IS NULL) OR
             (a.entity_type = 'event' AND e.id IS NULL) OR
@@ -406,8 +422,10 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           ORDER BY a.created_at DESC
         `);
 
+        logger.success('AttachmentsDB', 'getOrphaned', { count: result.rows.length });
         return result.rows;
       } catch (error) {
+        logger.error('AttachmentsDB', 'getOrphaned', error);
         throw new DatabaseError(
           'Failed to get orphaned attachments',
           'GET_FAILED',
@@ -419,14 +437,14 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     async cleanupOrphaned() {
       try {
         const result = await execute(`
-          DELETE FROM attachments 
+          DELETE FROM attachments
           WHERE id IN (
             SELECT a.id FROM attachments a
             LEFT JOIN contacts c ON a.entity_type = 'contact' AND a.entity_id = c.id
             LEFT JOIN interactions i ON a.entity_type = 'interaction' AND a.entity_id = i.id
             LEFT JOIN events e ON a.entity_type = 'event' AND a.entity_id = e.id
             LEFT JOIN notes n ON a.entity_type = 'note' AND a.entity_id = n.id
-            WHERE 
+            WHERE
               (a.entity_type = 'contact' AND c.id IS NULL) OR
               (a.entity_type = 'interaction' AND i.id IS NULL) OR
               (a.entity_type = 'event' AND e.id IS NULL) OR
@@ -434,11 +452,13 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           )
         `);
 
+        logger.success('AttachmentsDB', 'cleanupOrphaned', { deletedCount: result.rowsAffected });
         return {
           success: true,
           deletedCount: result.rowsAffected,
         };
       } catch (error) {
+        logger.error('AttachmentsDB', 'cleanupOrphaned', error);
         throw new DatabaseError(
           'Failed to cleanup orphaned attachments',
           'DELETE_FAILED',
@@ -454,9 +474,12 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
           updateData.thumbnail_path = newThumbnailPath;
         }
 
-        return await this.update(id, updateData);
+        const result = await this.update(id, updateData);
+        logger.success('AttachmentsDB', 'updateFilePath', { id });
+        return result;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'updateFilePath', error, { id });
         throw new DatabaseError(
           'Failed to update file path',
           'UPDATE_FAILED',
@@ -482,9 +505,12 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         }
 
         const result = await execute(sql, params);
-        return result.rows[0]?.total_size || 0;
+        const totalSize = result.rows[0]?.total_size || 0;
+        logger.success('AttachmentsDB', 'getTotalSize', { totalSize, entityType, entityId });
+        return totalSize;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'getTotalSize', error, { entityType, entityId });
         throw new DatabaseError(
           'Failed to get total size',
           'GET_FAILED',
@@ -526,16 +552,18 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
         }
 
         const result = await execute(
-          `SELECT * FROM attachments 
+          `SELECT * FROM attachments
            WHERE file_type = ?
            ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
            LIMIT ? OFFSET ?`,
           [fileType, limit, offset]
         );
 
+        logger.success('AttachmentsDB', 'getByFileType', { fileType, count: result.rows.length });
         return result.rows;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
+        logger.error('AttachmentsDB', 'getByFileType', error, { fileType });
         throw new DatabaseError(
           'Failed to get attachments by file type',
           'GET_FAILED',

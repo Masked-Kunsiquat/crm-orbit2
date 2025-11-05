@@ -1,7 +1,7 @@
 // Events database module
 // Focused on core event CRUD and search operations
 
-import { DatabaseError } from './errors';
+import { DatabaseError, logger } from '../errors';
 import { addDays, formatDateToString } from '../utils/dateUtils';
 
 const EVENT_FIELDS = [
@@ -88,7 +88,9 @@ export function createEventsDB({ execute, batch, transaction }) {
           [data.contact_id]
         );
 
-        return this.getById(res.insertId);
+        const result = await this.getById(res.insertId);
+        logger.success('EventsDB', 'create', { id: res.insertId });
+        return result;
       } catch (error) {
         // Handle foreign key constraint errors - check message and nested error properties
         const errorMessage =
@@ -97,9 +99,11 @@ export function createEventsDB({ execute, batch, transaction }) {
           errorMessage &&
           errorMessage.includes('FOREIGN KEY constraint failed')
         ) {
+          logger.error('EventsDB', 'create', error);
           throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is
+        logger.error('EventsDB', 'create', error);
         throw error;
       }
     },

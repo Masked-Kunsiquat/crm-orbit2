@@ -6,7 +6,7 @@
  *
  * @module ExpoSqliteAdapter
  */
-import { DatabaseError } from '../errors.js';
+import { DatabaseError, logger } from '../../errors';
 
 /**
  * Creates a migration context for expo-sqlite database operations
@@ -64,7 +64,8 @@ export function createMigrationContext(db, options = {}) {
           { sql, params }
         );
 
-        // Log through the onLog handler instead of console.error
+        // Log through both logger and onLog
+        logger.error('ExpoSqliteAdapter', 'execute', error, { sql });
         onLog(`[ERROR] Migration SQL error: ${wrappedError.message}`, {
           level: 'error',
           sql,
@@ -84,6 +85,7 @@ export function createMigrationContext(db, options = {}) {
           null,
           { statements }
         );
+        logger.error('ExpoSqliteAdapter', 'batch', err);
         onLog(`[ERROR] ${err.message}`, {
           level: 'error',
           context: { statements },
@@ -109,6 +111,7 @@ export function createMigrationContext(db, options = {}) {
         }
         throwIfAborted();
         await db.execAsync('COMMIT;');
+        logger.success('ExpoSqliteAdapter', 'batch', { count: results.length });
         return results;
       } catch (error) {
         try {
@@ -120,6 +123,7 @@ export function createMigrationContext(db, options = {}) {
             rollbackError,
             { statements }
           );
+          logger.error('ExpoSqliteAdapter', 'batch-rollback', rollbackError);
           onLog(
             `[ERROR] Batch rollback error: ${wrappedRollbackError.message}`,
             {
@@ -138,6 +142,7 @@ export function createMigrationContext(db, options = {}) {
           { statements }
         );
 
+        logger.error('ExpoSqliteAdapter', 'batch', error);
         onLog(`[ERROR] Batch operation error: ${wrappedError.message}`, {
           level: 'error',
           error: wrappedError,
@@ -157,6 +162,7 @@ export function createMigrationContext(db, options = {}) {
           'TRANSACTION_BEGIN_ERROR',
           error
         );
+        logger.error('ExpoSqliteAdapter', 'transaction-begin', error);
         onLog(`[ERROR] Transaction BEGIN error: ${wrappedError.message}`, {
           level: 'error',
           error: wrappedError,
@@ -207,6 +213,7 @@ export function createMigrationContext(db, options = {}) {
                 null,
                 { statements }
               );
+              logger.error('ExpoSqliteAdapter', 'transaction-batch', err);
               onLog(`[ERROR] ${err.message}`, {
                 level: 'error',
                 context: { statements },
@@ -264,12 +271,14 @@ export function createMigrationContext(db, options = {}) {
 
         try {
           await db.execAsync('COMMIT;');
+          logger.success('ExpoSqliteAdapter', 'transaction');
         } catch (error) {
           const wrappedError = new DatabaseError(
             `Transaction COMMIT failed: ${error?.message ?? String(error)}`,
             'TRANSACTION_COMMIT_ERROR',
             error
           );
+          logger.error('ExpoSqliteAdapter', 'transaction-commit', error);
           onLog(`[ERROR] Transaction COMMIT error: ${wrappedError.message}`, {
             level: 'error',
             error: wrappedError,
@@ -287,6 +296,7 @@ export function createMigrationContext(db, options = {}) {
             'TRANSACTION_ROLLBACK_ERROR',
             rollbackError
           );
+          logger.error('ExpoSqliteAdapter', 'transaction-rollback', rollbackError);
           onLog(
             `[ERROR] Transaction ROLLBACK error: ${wrappedRollbackError.message}`,
             {
@@ -298,6 +308,7 @@ export function createMigrationContext(db, options = {}) {
 
         // Ensure we throw a DatabaseError
         if (error instanceof DatabaseError) {
+          logger.error('ExpoSqliteAdapter', 'transaction', error);
           throw error;
         } else {
           const wrappedError = new DatabaseError(
@@ -305,6 +316,7 @@ export function createMigrationContext(db, options = {}) {
             'TRANSACTION_ERROR',
             error
           );
+          logger.error('ExpoSqliteAdapter', 'transaction', error);
           onLog(`[ERROR] Transaction error: ${wrappedError.message}`, {
             level: 'error',
             error: wrappedError,
