@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # JavaScript/Expo app (npm) in repository root
+  # JavaScript/Expo app (npm) in `test-fresh/src/` folder
   - package-ecosystem: "npm"
     directory: "/test-fresh/"
     schedule:
