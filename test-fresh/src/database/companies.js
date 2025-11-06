@@ -2,6 +2,7 @@
 // Follows the API pattern defined in src/database/AGENTS.md
 
 import { DatabaseError } from './errors';
+import { safeTrim } from '../utils/stringHelpers';
 
 const COMPANY_FIELDS = [
   'name',
@@ -134,7 +135,7 @@ export function createCompaniesDB(ctx) {
 
     // Search & Filter
     async search(query) {
-      const term = String(query || '').trim();
+      const term = safeTrim(query);
       if (!term) return [];
 
       const q = `%${term}%`;

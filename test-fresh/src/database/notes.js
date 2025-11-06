@@ -2,6 +2,7 @@
 // Manages notes and general notes functionality
 
 import { DatabaseError, logger } from '../errors';
+import { safeTrim } from '../utils/stringHelpers';
 
 const NOTE_FIELDS = ['contact_id', 'title', 'content', 'is_pinned'];
 
@@ -232,7 +233,7 @@ export function createNotesDB(ctx) {
     },
 
     async search(query, options = {}) {
-      const term = String(query || '').trim();
+      const term = safeTrim(query);
       if (!term) return [];
 
       const { limit = 100, offset = 0, contactId = undefined } = options;

@@ -44,7 +44,7 @@ After analyzing **85+ files** across the codebase, we identified **54 specific o
 
 ## 1. Display Name & Contact Formatting Helpers
 
-### **HIGH: Display Name Generation** (12 instances)
+### **HIGH: Display Name Generation** (12 instances → 1 migrated)
 **Severity:** HIGH | **Files:** 12
 
 **Pattern:**
@@ -64,7 +64,7 @@ contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`
 9. `components/AddEventModal.js:266`
 10. `screens/ContactDetailScreen.js:373`
 11. `screens/EventsList.js:110`
-12. `database/contacts.js:168` (variant: joins with filter(Boolean))
+12. ✅ ~~`database/contacts.js:168`~~ - MIGRATED to computeDisplayName helper
 
 **Proposed Helper:**
 ```javascript
@@ -206,14 +206,27 @@ export function capitalize(value) {
 }
 
 export function truncate(value, maxLength = 50, suffix = '...') {
+  // Normalize and validate maxLength
+  let validatedMaxLength = Number(maxLength);
+  validatedMaxLength = Math.floor(validatedMaxLength);
+
+  // If not a finite integer >= 1, fall back to default
+  if (!Number.isFinite(validatedMaxLength) || validatedMaxLength < 1) {
+    validatedMaxLength = 50;
+  }
+
   const str = safeTrim(value);
-  return str.length <= maxLength ? str : str.substring(0, maxLength) + suffix;
+  if (str.length <= validatedMaxLength) {
+    return str;
+  }
+  return str.substring(0, validatedMaxLength) + suffix;
 }
 ```
 
 **Migration Status:**
 - ✅ Helper utility created with 7 functions
-- ✅ Migrated: database/contacts.js (computeDisplayName)
+- ✅ Enhanced: truncate() function with robust maxLength validation (handles zero, negative, non-numeric)
+- ✅ Migrated: database/contacts.js (computeDisplayName in both create and update methods)
 - ✅ Migrated: components/AddContactModal.js (4 instances)
 - ✅ Migrated: components/EditContactModal.js (8 instances)
 - ⏳ Remaining: 17 files with 50+ trim() usages

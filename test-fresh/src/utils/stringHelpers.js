@@ -131,3 +131,38 @@ export function truncate(value, maxLength = 50, suffix = '...') {
   }
   return str.substring(0, validatedMaxLength) + suffix;
 }
+
+/**
+ * Build a display name from contact data
+ * Consolidates the common pattern of constructing display names from first/last names
+ *
+ * @param {Object} contact - Contact object with display_name, first_name, last_name properties
+ * @param {string} fallback - Fallback text if no name available (default: 'Unknown Contact')
+ * @returns {string} Display name
+ *
+ * @example
+ * getContactDisplayName({ display_name: 'John Doe' }) // 'John Doe'
+ * getContactDisplayName({ first_name: 'John', last_name: 'Doe' }) // 'John Doe'
+ * getContactDisplayName({ first_name: 'John' }) // 'John'
+ * getContactDisplayName({}) // 'Unknown Contact'
+ * getContactDisplayName(null) // 'Unknown Contact'
+ */
+export function getContactDisplayName(contact, fallback = 'Unknown Contact') {
+  if (!contact) {
+    return fallback;
+  }
+
+  // Prefer explicit display_name if available
+  if (hasContent(contact.display_name)) {
+    return contact.display_name;
+  }
+
+  // Build from name parts
+  const nameParts = filterNonEmptyStrings([
+    contact.first_name,
+    contact.middle_name,
+    contact.last_name
+  ]);
+
+  return nameParts.length > 0 ? nameParts.join(' ') : fallback;
+}
