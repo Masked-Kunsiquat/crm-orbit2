@@ -2,25 +2,9 @@
 // Focused on contact_info table operations and relationships
 
 import { DatabaseError } from './errors';
+import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 
 const INFO_FIELDS = ['type', 'subtype', 'value', 'label', 'is_primary'];
-
-function pick(obj, fields) {
-  const out = {};
-  for (const key of fields) {
-    if (
-      Object.prototype.hasOwnProperty.call(obj, key) &&
-      obj[key] !== undefined
-    ) {
-      out[key] = obj[key];
-    }
-  }
-  return out;
-}
-
-function placeholders(n) {
-  return new Array(n).fill('?').join(', ');
-}
 
 /**
  * Create the contacts info database module
@@ -286,16 +270,15 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
       if (!current) return null;
 
       const infoData = pick(data, INFO_FIELDS);
-      const sets = Object.keys(infoData).map(k => `${k} = ?`);
-      const vals = Object.keys(infoData).map(k => infoData[k]);
+      const { setClause, values } = buildUpdateSet(infoData);
 
       // Build batch statements
       const statements = [];
 
-      if (sets.length) {
+      if (setClause) {
         statements.push({
-          sql: `UPDATE contact_info SET ${sets.join(', ')} WHERE id = ?;`,
-          params: [...vals, infoId],
+          sql: `UPDATE contact_info SET ${setClause} WHERE id = ?;`,
+          params: [...values, infoId],
         });
       }
 
