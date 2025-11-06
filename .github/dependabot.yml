@@ -1,8 +1,8 @@
 version: 2
 updates:
-  # JavaScript/Expo app (npm) in repository root
+  # JavaScript/Expo app (npm) in `test-fresh/src/` folder
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/test-fresh/"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -23,7 +23,7 @@ updates:
 
   # Keep GitHub Actions up to date as well
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directory: "/test-fresh/"
     schedule:
       interval: "weekly"
       day: "monday"
