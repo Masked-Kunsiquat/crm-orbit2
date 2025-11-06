@@ -165,9 +165,8 @@ export function createContactsDB(ctx) {
       const contactData = pick(data, CONTACT_FIELDS);
       const nameKeys = ['first_name', 'middle_name', 'last_name'];
       if (nameKeys.some(k => k in data) && !('display_name' in data)) {
-        const fn = ({ first_name, middle_name, last_name }) =>
-          [first_name, middle_name, last_name].filter(Boolean).join(' ').trim();
-        contactData.display_name = fn({ ...(existing || {}), ...contactData });
+        const merged = { ...(existing || {}), ...contactData };
+        contactData.display_name = computeDisplayName(merged);
       }
       if (Object.keys(contactData).length === 0) {
         return this.getById(id, tx);
