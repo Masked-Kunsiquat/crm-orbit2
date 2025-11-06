@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { contactsDB, contactsInfoDB, categoriesRelationsDB, transaction } from '../../database';
+import { safeTrim, normalizeTrimLowercase, filterNonEmptyStrings } from '../../utils/stringHelpers';
 
 /**
  * Query keys for contact-related queries
@@ -146,12 +147,12 @@ export function useCreateContactWithDetails() {
         // Use transaction for atomic writes
         let contactId;
         await transaction(async (tx) => {
-          const displayName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ') || 'Unnamed Contact';
+          const displayName = filterNonEmptyStrings([firstName, lastName]).join(' ') || 'Unnamed Contact';
 
           // Create contact
           const insertContact = await tx.execute(
             'INSERT INTO contacts (first_name, last_name, display_name) VALUES (?, ?, ?);',
-            [firstName.trim(), lastName.trim(), displayName]
+            [safeTrim(firstName), safeTrim(lastName), displayName]
           );
 
           // Validate insertId exists (allowing 0 as valid ID)
@@ -165,7 +166,7 @@ export function useCreateContactWithDetails() {
             const phone = phones[i];
             await tx.execute(
               'INSERT INTO contact_info (type, label, value, is_primary, contact_id, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);',
-              ['phone', phone.label, phone.value.trim(), i === 0 ? 1 : 0, contactId]
+              ['phone', phone.label, safeTrim(phone.value), i === 0 ? 1 : 0, contactId]
             );
           }
 
@@ -175,7 +176,7 @@ export function useCreateContactWithDetails() {
             const isPrimary = phones.length === 0 && i === 0 ? 1 : 0;
             await tx.execute(
               'INSERT INTO contact_info (type, label, value, is_primary, contact_id, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);',
-              ['email', email.label, email.value.trim().toLowerCase(), isPrimary, contactId]
+              ['email', email.label, normalizeTrimLowercase(email.value), isPrimary, contactId]
             );
           }
 
@@ -197,8 +198,8 @@ export function useCreateContactWithDetails() {
       } else {
         // Fallback without transaction
         const contact = await contactsDB.create({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          first_name: safeTrim(firstName),
+          last_name: safeTrim(lastName),
         });
 
         const contactInfoItems = [];
@@ -206,7 +207,7 @@ export function useCreateContactWithDetails() {
           contactInfoItems.push({
             type: 'phone',
             label: phone.label,
-            value: phone.value.trim(),
+            value: safeTrim(phone.value),
             is_primary: index === 0,
           });
         });
@@ -214,7 +215,7 @@ export function useCreateContactWithDetails() {
           contactInfoItems.push({
             type: 'email',
             label: email.label,
-            value: email.value.trim().toLowerCase(),
+            value: normalizeTrimLowercase(email.value),
             is_primary: phones.length === 0 && index === 0,
           });
         });

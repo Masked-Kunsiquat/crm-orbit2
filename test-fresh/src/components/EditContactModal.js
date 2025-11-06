@@ -13,6 +13,7 @@ import {
 import database, { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, transaction as dbTransaction } from '../database';
 import { useTranslation } from 'react-i18next';
 import { handleError, showAlert } from '../errors';
+import { hasContent, safeTrim, normalizeTrimLowercase, filterNonEmpty } from '../utils/stringHelpers';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -155,14 +156,14 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
   };
 
   const handleSave = async () => {
-    if (!firstName.trim()) {
+    if (!hasContent(firstName)) {
       showAlert.error('First name is required');
       return;
     }
 
     // Check if at least one phone or email is provided
-    const validPhones = phones.filter(phone => phone.value.trim());
-    const validEmails = emails.filter(email => email.value.trim());
+    const validPhones = filterNonEmpty(phones);
+    const validEmails = filterNonEmpty(emails);
 
     if (validPhones.length === 0 && validEmails.length === 0) {
       showAlert.error('Please provide at least a phone number or email address');
@@ -180,7 +181,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         contactInfoItems.push({
           type: 'phone',
           label: phone.label,
-          value: phone.value.trim(),
+          value: safeTrim(phone.value),
           is_primary: index === 0, // First phone is primary
         });
       });
@@ -190,7 +191,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         contactInfoItems.push({
           type: 'email',
           label: email.label,
-          value: email.value.trim().toLowerCase(),
+          value: normalizeTrimLowercase(email.value),
           is_primary: validPhones.length === 0 && index === 0, // Primary if no phones and first email
         });
       });
@@ -198,8 +199,8 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
       // Make the entire save operation atomic
       await dbTransaction(async (tx) => {
         await contactsDB.update(contact.id, {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          first_name: safeTrim(firstName),
+          last_name: safeTrim(lastName),
         }, tx);
 
         await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems, tx);
@@ -220,9 +221,9 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
     }
   };
 
-  const validPhones = phones.filter(phone => phone.value.trim());
-  const validEmails = emails.filter(email => email.value.trim());
-  const canSave = firstName.trim() && (validPhones.length > 0 || validEmails.length > 0) && !saving;
+  const validPhones = filterNonEmpty(phones);
+  const validEmails = filterNonEmpty(emails);
+  const canSave = hasContent(firstName) && (validPhones.length > 0 || validEmails.length > 0) && !saving;
 
   if (!contact) return null;
 

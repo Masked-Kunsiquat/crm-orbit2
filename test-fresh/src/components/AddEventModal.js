@@ -33,6 +33,7 @@ import {
   getPrimaryLocale,
 } from '../utils/dateUtils';
 import { handleError, showAlert } from '../errors';
+import { safeTrim, hasContent } from '../utils/stringHelpers';
 
 const EVENT_TYPES = [
   { value: 'birthday', icon: 'cake-variant' },
@@ -189,7 +190,7 @@ export default function AddEventModal({
 
   const handleSave = async () => {
     // Validation
-    if (!title.trim()) {
+    if (!hasContent(title)) {
       showAlert.error(t('addEvent.errors.titleRequired'), '');
       return;
     }
@@ -202,12 +203,12 @@ export default function AddEventModal({
     try {
       const eventData = {
         contact_id: selectedContactId,
-        title: title.trim(),
+        title: safeTrim(title),
         event_type: eventType,
         event_date: formatDateToString(eventDate), // YYYY-MM-DD format using local date
         recurring: isRecurring ? 1 : 0,
         recurrence_pattern: isRecurring && ['birthday', 'anniversary'].includes(eventType) ? 'yearly' : null,
-        notes: notes.trim() || null,
+        notes: safeTrim(notes) || null,
       };
 
       if (isEditMode) {

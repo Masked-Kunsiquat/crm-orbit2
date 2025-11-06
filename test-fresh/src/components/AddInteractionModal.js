@@ -18,6 +18,7 @@ import { contactsDB } from '../database';
 import { useCreateInteraction, useUpdateInteraction, useDeleteInteraction, useContacts } from '../hooks/queries';
 import { setDatePart, setTimePart, formatShortDate, formatTime } from '../utils/dateUtils';
 import { handleError, showAlert } from '../errors';
+import { safeTrim, hasContent, filterNonEmptyStrings } from '../utils/stringHelpers';
 
 const INTERACTION_TYPES = [
   { value: 'call', icon: 'phone' },
@@ -117,7 +118,7 @@ export default function AddInteractionModal({
   };
 
   const handleSave = async () => {
-    if (!title.trim()) {
+    if (!hasContent(title)) {
       showAlert.error(t('addInteraction.errors.titleRequired'), '');
       return;
     }
@@ -130,8 +131,8 @@ export default function AddInteractionModal({
     try {
       // Parse duration (in minutes) to seconds
       let durationSeconds = null;
-      if (duration.trim()) {
-        const durationMinutes = parseInt(duration.trim(), 10);
+      if (hasContent(duration)) {
+        const durationMinutes = parseInt(safeTrim(duration), 10);
         if (!isNaN(durationMinutes) && durationMinutes > 0) {
           durationSeconds = durationMinutes * 60;
         }
@@ -139,8 +140,8 @@ export default function AddInteractionModal({
 
       const interactionData = {
         contact_id: selectedContactId,
-        title: title.trim(),
-        note: note.trim() || null,
+        title: safeTrim(title),
+        note: safeTrim(note) || null,
         interaction_type: interactionType,
         duration: durationSeconds,
         interaction_datetime: interactionDateTime.toISOString(),
@@ -172,12 +173,12 @@ export default function AddInteractionModal({
 
   const selectedContact = contacts.find(c => c.id === selectedContactId);
   const isSaving = createInteractionMutation.isPending || updateInteractionMutation.isPending || deleteInteractionMutation.isPending;
-  const canSave = title.trim() && selectedContactId && !isSaving;
+  const canSave = hasContent(title) && selectedContactId && !isSaving;
 
   // Generate quick title suggestions based on interaction type
   const getQuickTitleSuggestion = () => {
     const contactName = selectedContact
-      ? selectedContact.display_name || `${selectedContact.first_name || ''} ${selectedContact.last_name || ''}`.trim()
+      ? selectedContact.display_name || filterNonEmptyStrings([selectedContact.first_name, selectedContact.last_name]).join(' ')
       : 'Contact';
 
     switch (interactionType) {
@@ -274,7 +275,7 @@ export default function AddInteractionModal({
                     disabled={isEditMode} // Can't change contact when editing
                   >
                     {selectedContact
-                      ? selectedContact.display_name || `${selectedContact.first_name || ''} ${selectedContact.last_name || ''}`.trim()
+                      ? selectedContact.display_name || filterNonEmptyStrings([selectedContact.first_name, selectedContact.last_name]).join(' ')
                       : t('addInteraction.labels.selectContact')}
                   </Button>
                 }
@@ -288,7 +289,7 @@ export default function AddInteractionModal({
                         setSelectedContactId(contact.id);
                         setContactMenuVisible(false);
                       }}
-                      title={contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim()}
+                      title={contact.display_name || filterNonEmptyStrings([contact.first_name, contact.last_name]).join(' ')}
                       leadingIcon={selectedContactId === contact.id ? 'check' : undefined}
                     />
                   ))}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
 import { logger } from '../errors';
 import { handleError, showAlert } from '../errors';
+import { safeTrim } from '../utils/stringHelpers';
 import {
   Appbar,
   Text,
@@ -62,7 +63,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
-    const trimmed = phoneNumber.trim();
+    const trimmed = safeTrim(phoneNumber);
     // Preserve leading '+' for international numbers
     const hasPlus = trimmed.startsWith('+');
     const digitsOnly = trimmed.replace(/\D/g, '');
