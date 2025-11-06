@@ -3,6 +3,7 @@
 
 import { DatabaseError } from './errors';
 import { filterNonEmptyStrings } from '../utils/stringHelpers';
+import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
 
 const CONTACT_FIELDS = [
   'first_name',
@@ -16,23 +17,6 @@ const CONTACT_FIELDS = [
   'is_favorite',
   'last_interaction_at',
 ];
-
-function pick(obj, fields) {
-  const out = {};
-  for (const key of fields) {
-    if (
-      Object.prototype.hasOwnProperty.call(obj, key) &&
-      obj[key] !== undefined
-    ) {
-      out[key] = obj[key];
-    }
-  }
-  return out;
-}
-
-function placeholders(n) {
-  return new Array(n).fill('?').join(', ');
-}
 
 function convertNullableFields(row) {
   if (!row) return row;
@@ -83,13 +67,9 @@ export function createContactsDB(ctx) {
       const contactData = pick(data, CONTACT_FIELDS);
       // Compute and assign display_name before building columns/values
       contactData.display_name = computeDisplayName(data);
-      const cols = Object.keys(contactData);
-      const vals = cols.map(k => contactData[k]);
 
-      const insertRes = await execute(
-        `INSERT INTO contacts (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
-        vals
-      );
+      const { sql, values } = buildInsert('contacts', contactData);
+      const insertRes = await execute(`${sql};`, values);
       const id = insertRes.insertId;
       if (!id) {
         throw new DatabaseError('Failed to create contact', 'INSERT_FAILED');
@@ -171,12 +151,11 @@ export function createContactsDB(ctx) {
       if (Object.keys(contactData).length === 0) {
         return this.getById(id, tx);
       }
-      const sets = Object.keys(contactData).map(k => `${k} = ?`);
-      const vals = Object.keys(contactData).map(k => contactData[k]);
+      const { setClause, values } = buildUpdateSet(contactData);
       const execFn = tx?.execute ? tx.execute : execute;
       await execFn(
-        `UPDATE contacts SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
-        [...vals, id]
+        `UPDATE contacts SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
+        [...values, id]
       );
       const updated = await this.getById(id, tx);
       return updated;
