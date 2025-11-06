@@ -3,7 +3,7 @@
 
 import { DatabaseError, logger } from '../errors';
 import { safeTrim } from '../utils/stringHelpers';
-import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
+import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 
 const NOTE_FIELDS = ['contact_id', 'title', 'content', 'is_pinned'];
 

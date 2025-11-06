@@ -2,7 +2,7 @@
 // Focused on core CRUD operations and basic filtering
 
 import { DatabaseError } from './errors';
-import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
+import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 
 const INTERACTION_FIELDS = [
   'contact_id',

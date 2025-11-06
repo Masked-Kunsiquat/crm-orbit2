@@ -3,7 +3,7 @@
 
 import { DatabaseError, logger } from '../errors';
 import { addDays, formatDateToString } from '../utils/dateUtils';
-import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
+import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 
 const EVENT_FIELDS = [
   'contact_id',
