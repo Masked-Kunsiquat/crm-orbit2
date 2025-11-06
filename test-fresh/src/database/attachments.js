@@ -1,4 +1,5 @@
 import { DatabaseError, logger } from '../errors';
+import { safeTrim, hasContent } from '../utils/stringHelpers';
 
 export function createAttachmentsDB({ execute, batch, transaction }) {
   const validateRequiredFields = (data, requiredFields) => {
@@ -59,7 +60,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     if (
       typeof entityId === 'string' &&
       !isNaN(entityId) &&
-      entityId.trim() !== ''
+      hasContent(entityId)
     ) {
       numericValue = Number(entityId);
     }

@@ -19,6 +19,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations/migrationRunner';
+import { safeTrim } from '../utils/stringHelpers';
 import { createContactsDB } from './contacts';
 import { createContactsInfoDB } from './contactsInfo';
 import { createCategoriesDB } from './categories';
@@ -99,7 +100,7 @@ export async function execute(sql, params = []) {
   const db = getDB();
   try {
     let result;
-    const firstToken = sql.trim().split(/\s+/)[0]?.toUpperCase();
+    const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
     const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
 
     if (returnsRows) {
@@ -149,7 +150,7 @@ export async function batch(statements) {
         const { sql, params = [] } = statements[i];
         try {
           let result;
-          const firstToken = sql.trim().split(/\s+/)[0]?.toUpperCase();
+          const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
           const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
 
           if (returnsRows) {
@@ -215,7 +216,7 @@ export async function transaction(work) {
         execute: async (sql, params = []) => {
           try {
             let result;
-            const firstToken = sql.trim().split(/\s+/)[0]?.toUpperCase();
+            const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
             const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
 
             if (returnsRows) {

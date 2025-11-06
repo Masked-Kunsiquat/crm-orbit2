@@ -15,6 +15,7 @@ import { categoriesDB } from '../database';
 import { useTranslation } from 'react-i18next';
 import { useCreateContactWithDetails } from '../hooks/queries';
 import { handleError, showAlert } from '../errors';
+import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -206,14 +207,14 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
   };
 
   const handleSave = async () => {
-    if (!firstName.trim()) {
+    if (!hasContent(firstName)) {
       showAlert.error(t('addContact.validation.firstNameRequired'));
       return;
     }
 
     // Check if at least one phone or email is provided
-    const validPhones = phones.filter(phone => phone.value.trim());
-    const validEmails = emails.filter(email => email.value.trim());
+    const validPhones = filterNonEmpty(phones);
+    const validEmails = filterNonEmpty(emails);
 
     if (validPhones.length === 0 && validEmails.length === 0) {
       showAlert.error(t('addContact.validation.contactInfoRequired'));
@@ -242,9 +243,9 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
     }
   };
 
-  const validPhones = phones.filter(phone => phone.value.trim());
-  const validEmails = emails.filter(email => email.value.trim());
-  const canSave = firstName.trim() && (validPhones.length > 0 || validEmails.length > 0) && !createContactMutation.isPending;
+  const validPhones = filterNonEmpty(phones);
+  const validEmails = filterNonEmpty(emails);
+  const canSave = hasContent(firstName) && (validPhones.length > 0 || validEmails.length > 0) && !createContactMutation.isPending;
 
   return (
     <Portal>

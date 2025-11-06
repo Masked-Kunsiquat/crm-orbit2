@@ -2,6 +2,7 @@
 // Focused on core category CRUD operations
 
 import { DatabaseError } from './errors';
+import { safeTrim, hasContent } from '../utils/stringHelpers';
 
 /**
  * Whitelisted, persisted columns for the categories table.
@@ -74,8 +75,8 @@ export function createCategoriesDB(ctx) {
       if (!data || typeof data.name !== 'string') {
         throw new DatabaseError('name is required', 'VALIDATION_ERROR');
       }
-      const trimmedName = data.name.trim();
-      if (!trimmedName) {
+      const trimmedName = safeTrim(data.name);
+      if (!hasContent(trimmedName)) {
         throw new DatabaseError('name is required', 'VALIDATION_ERROR');
       }
 
@@ -180,8 +181,8 @@ export function createCategoriesDB(ctx) {
         if (typeof data.name !== 'string') {
           throw new DatabaseError('name is required', 'VALIDATION_ERROR');
         }
-        data.name = data.name.trim();
-        if (!data.name) {
+        data.name = safeTrim(data.name);
+        if (!hasContent(data.name)) {
           throw new DatabaseError('name is required', 'VALIDATION_ERROR');
         }
       }

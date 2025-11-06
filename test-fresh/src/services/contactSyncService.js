@@ -6,6 +6,7 @@
 import * as Contacts from 'expo-contacts';
 import db from '../database';
 import { ServiceError, logger } from '../errors';
+import { safeTrim, normalizeTrimLowercase } from '../utils/stringHelpers';
 
 /**
  * Contact sync service error codes
@@ -565,7 +566,7 @@ class ContactSyncService {
 
       // Create new company
       const newCompany = await db.companies.create({
-        name: companyName.trim(),
+        name: safeTrim(companyName),
         // Add minimal company data - user can enhance later
       });
 
@@ -716,9 +717,9 @@ class ContactSyncService {
       const existingInfo = existing?.contact_info || [];
 
       const hasEmail = (val) => {
-        const needle = String(val || '').trim().toLowerCase();
+        const needle = normalizeTrimLowercase(val);
         return existingInfo.some(
-          i => i.type === 'email' && String(i.value || '').trim().toLowerCase() === needle
+          i => i.type === 'email' && normalizeTrimLowercase(i.value) === needle
         );
       };
       const normalizePhone = (v) => String(v || '').replace(/\D/g, '');
@@ -729,15 +730,15 @@ class ContactSyncService {
         );
       };
       const hasUrl = (val) => {
-        const needle = String(val || '').trim();
+        const needle = safeTrim(val);
         return existingInfo.some(
-          i => i.type === 'url' && String(i.value || '').trim() === needle
+          i => i.type === 'url' && safeTrim(i.value) === needle
         );
       };
       const hasAddress = (val) => {
-        const needle = String(val || '').trim();
+        const needle = safeTrim(val);
         return existingInfo.some(
-          i => i.type === 'address' && String(i.value || '').trim() === needle
+          i => i.type === 'address' && safeTrim(i.value) === needle
         );
       };
 

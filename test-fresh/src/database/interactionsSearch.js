@@ -3,6 +3,7 @@
 
 import { DatabaseError } from './errors';
 import { parseLocalDate, addDays, getCurrentISO } from '../utils/dateUtils';
+import { safeTrim } from '../utils/stringHelpers';
 
 const MAX_PAGE_SIZE = 500;
 
@@ -147,7 +148,7 @@ export function createInteractionsSearchDB({ execute }) {
 
     async searchInteractions(query, options = {}) {
       const { limit = 50, offset = 0 } = options;
-      const term = String(query || '').trim();
+      const term = safeTrim(query);
       if (!term || term.length < 2) return [];
 
       const searchTerm = `%${term}%`;
