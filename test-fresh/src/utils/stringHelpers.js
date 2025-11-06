@@ -116,9 +116,18 @@ export function capitalize(value) {
  * truncate('Hello world', 5) // 'Hello...'
  */
 export function truncate(value, maxLength = 50, suffix = '...') {
+  // Normalize and validate maxLength
+  let validatedMaxLength = Number(maxLength);
+  validatedMaxLength = Math.floor(validatedMaxLength);
+
+  // If not a finite integer >= 1, fall back to default
+  if (!Number.isFinite(validatedMaxLength) || validatedMaxLength < 1) {
+    validatedMaxLength = 50;
+  }
+
   const str = safeTrim(value);
-  if (str.length <= maxLength) {
+  if (str.length <= validatedMaxLength) {
     return str;
   }
-  return str.substring(0, maxLength) + suffix;
+  return str.substring(0, validatedMaxLength) + suffix;
 }
