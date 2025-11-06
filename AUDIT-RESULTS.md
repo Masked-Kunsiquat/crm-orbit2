@@ -361,6 +361,11 @@ export function placeholders(count) {
 }
 ```
 
+**Future Enhancement:**
+- 📝 TODO: Add `Number.isInteger()` validation in Category 7/12 (Validation Helpers)
+- Currently non-integer numbers are truncated by `new Array()` which may be unexpected
+- Will implement robust integer validation when systematically adding validation helpers
+
 ---
 
 ### **MEDIUM: Pick/Filter Object Fields** (7+ instances → ✅ ALL MIGRATED)
