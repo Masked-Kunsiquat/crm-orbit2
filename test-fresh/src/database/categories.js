@@ -3,40 +3,13 @@
 
 import { DatabaseError } from './errors';
 import { safeTrim, hasContent } from '../utils/stringHelpers';
+import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
 
 /**
  * Whitelisted, persisted columns for the categories table.
  * Used to sanitize incoming payloads before insert/update.
  */
 const CATEGORY_FIELDS = ['name', 'color', 'icon', 'is_system', 'sort_order'];
-
-/**
- * Pick only allowed fields from an object.
- * @param {Record<string, any>} obj - Source object
- * @param {string[]} fields - Allowed keys
- * @returns {Record<string, any>} A new object with only allowed keys
- */
-function pick(obj, fields) {
-  const out = {};
-  for (const key of fields) {
-    if (
-      Object.prototype.hasOwnProperty.call(obj, key) &&
-      obj[key] !== undefined
-    ) {
-      out[key] = obj[key];
-    }
-  }
-  return out;
-}
-
-/**
- * Create a SQL placeholders string for parameterized queries.
- * @param {number} n - Number of placeholders
- * @returns {string} A comma-separated placeholders string like '?, ?, ?'
- */
-function placeholders(n) {
-  return new Array(n).fill('?').join(', ');
-}
 
 /**
  * Create a categories DB API bound to provided DB helpers.
@@ -90,13 +63,8 @@ export function createCategoriesDB(ctx) {
       if (categoryData.is_system === undefined) categoryData.is_system = false;
       if (categoryData.sort_order === undefined) categoryData.sort_order = 0;
 
-      const cols = Object.keys(categoryData);
-      const vals = cols.map(k => categoryData[k]);
-
-      const insertRes = await execute(
-        `INSERT INTO categories (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
-        vals
-      );
+      const { sql, values } = buildInsert('categories', categoryData);
+      const insertRes = await execute(`${sql};`, values);
 
       const id = insertRes.insertId;
       if (!id) {
@@ -196,11 +164,9 @@ export function createCategoriesDB(ctx) {
         return existing;
       }
 
-      const sets = Object.keys(categoryData).map(k => `${k} = ?`);
-      const vals = Object.keys(categoryData).map(k => categoryData[k]);
-
-      await execute(`UPDATE categories SET ${sets.join(', ')} WHERE id = ?;`, [
-        ...vals,
+      const { setClause, values } = buildUpdateSet(categoryData);
+      await execute(`UPDATE categories SET ${setClause} WHERE id = ?;`, [
+        ...values,
         id,
       ]);
 
