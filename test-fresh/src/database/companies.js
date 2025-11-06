@@ -3,6 +3,7 @@
 
 import { DatabaseError } from './errors';
 import { safeTrim } from '../utils/stringHelpers';
+import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
 
 const COMPANY_FIELDS = [
   'name',
@@ -12,23 +13,6 @@ const COMPANY_FIELDS = [
   'notes',
   'logo_attachment_id',
 ];
-
-function pick(obj, fields) {
-  const out = {};
-  for (const key of fields) {
-    if (
-      Object.prototype.hasOwnProperty.call(obj, key) &&
-      obj[key] !== undefined
-    ) {
-      out[key] = obj[key];
-    }
-  }
-  return out;
-}
-
-function placeholders(n) {
-  return new Array(n).fill('?').join(', ');
-}
 
 /**
  * Create a companies DB API bound to provided DB helpers.
@@ -51,13 +35,8 @@ export function createCompaniesDB(ctx) {
       }
 
       const companyData = pick(data, COMPANY_FIELDS);
-      const cols = Object.keys(companyData);
-      const vals = cols.map(k => companyData[k]);
-
-      const insertRes = await execute(
-        `INSERT INTO companies (${cols.join(', ')}) VALUES (${placeholders(cols.length)});`,
-        vals
-      );
+      const { sql, values } = buildInsert('companies', companyData);
+      const insertRes = await execute(`${sql};`, values);
 
       const id = insertRes.insertId;
       if (!id) {
@@ -117,11 +96,9 @@ export function createCompaniesDB(ctx) {
         return existing;
       }
 
-      const sets = Object.keys(companyData).map(k => `${k} = ?`);
-      const vals = Object.keys(companyData).map(k => companyData[k]);
-
-      await execute(`UPDATE companies SET ${sets.join(', ')} WHERE id = ?;`, [
-        ...vals,
+      const { setClause, values } = buildUpdateSet(companyData);
+      await execute(`UPDATE companies SET ${setClause} WHERE id = ?;`, [
+        ...values,
         id,
       ]);
 
@@ -237,11 +214,10 @@ export function createCompaniesDB(ctx) {
 
         // Update the company we're keeping with merged data
         if (Object.keys(mergedData).length > 0) {
-          const sets = Object.keys(mergedData).map(k => `${k} = ?`);
-          const vals = Object.keys(mergedData).map(k => mergedData[k]);
+          const { setClause, values } = buildUpdateSet(mergedData);
           await tx.execute(
-            `UPDATE companies SET ${sets.join(', ')} WHERE id = ?;`,
-            [...vals, keepId]
+            `UPDATE companies SET ${setClause} WHERE id = ?;`,
+            [...values, keepId]
           );
         }
 
