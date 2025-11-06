@@ -2,7 +2,7 @@
 // Focused on core contact CRUD operations
 
 import { DatabaseError } from './errors';
-import { safeTrim, filterNonEmptyStrings } from '../utils/stringHelpers';
+import { filterNonEmptyStrings } from '../utils/stringHelpers';
 
 const CONTACT_FIELDS = [
   'first_name',
