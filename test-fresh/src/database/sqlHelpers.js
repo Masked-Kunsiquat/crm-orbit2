@@ -7,6 +7,10 @@
  * @returns {string} Comma-separated placeholders (e.g., "?, ?, ?")
  * @example
  * placeholders(3) // Returns: "?, ?, ?"
+ *
+ * @todo Add integer validation in validation helpers phase (Category 7/12)
+ * Currently non-integer numbers are truncated by new Array() which may be unexpected.
+ * Will add Number.isInteger() check when implementing validation helpers.
  */
 export function placeholders(count) {
   if (typeof count !== 'number' || count < 1) {
