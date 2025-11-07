@@ -3,6 +3,7 @@
 
 import { DatabaseError } from './errors';
 import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
+import { is } from '../utils/validators';
 
 const INFO_FIELDS = ['type', 'subtype', 'value', 'label', 'is_primary'];
 
@@ -36,7 +37,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
 
     async addContactInfo(contactId, infoData) {
       // Handle both single object and array of objects
-      const items = Array.isArray(infoData) ? infoData : [infoData];
+      const items = is.array(infoData) ? infoData : [infoData];
 
       if (items.length === 0) {
         throw new DatabaseError(
@@ -108,7 +109,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
     },
 
     async getContactInfoList(ids) {
-      if (!Array.isArray(ids) || ids.length === 0) {
+      if (!is.array(ids) || ids.length === 0) {
         return [];
       }
 
@@ -127,7 +128,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
      * @returns {Promise<boolean>} True on success
      */
     async replaceContactInfo(contactId, infoData, txOverride) {
-      const items = Array.isArray(infoData) ? infoData : [infoData];
+      const items = is.array(infoData) ? infoData : [infoData];
       // Always allow empty replace to just clear info
       const doStatementsBuild = () => {
         const statements = [];
@@ -242,7 +243,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
      * @returns {Promise<Array<object>>}
      */
     async getAllInfoForContacts(contactIds) {
-      if (!Array.isArray(contactIds) || contactIds.length === 0) {
+      if (!is.array(contactIds) || contactIds.length === 0) {
         return [];
       }
       const unique = [...new Set(contactIds)];
