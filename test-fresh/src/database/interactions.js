@@ -3,6 +3,7 @@
 
 import { DatabaseError } from './errors';
 import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
+import { is } from '../utils/validators';
 
 const INTERACTION_FIELDS = [
   'contact_id',
@@ -221,7 +222,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
     // Bulk operations
     async bulkCreate(interactions) {
-      if (!Array.isArray(interactions) || interactions.length === 0) {
+      if (!is.array(interactions) || interactions.length === 0) {
         throw new DatabaseError(
           'bulkCreate requires a non-empty array of interactions',
           'VALIDATION_ERROR'
