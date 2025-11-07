@@ -4,6 +4,7 @@
 import { DatabaseError } from './errors';
 import { safeTrim } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
+import { is } from '../utils/validators';
 
 const COMPANY_FIELDS = [
   'name',
@@ -20,7 +21,7 @@ const COMPANY_FIELDS = [
  */
 export function createCompaniesDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
-  if (typeof execute !== 'function' || typeof batch !== 'function') {
+  if (!is.function(execute) || !is.function(batch)) {
     throw new DatabaseError(
       'companiesDB requires execute and batch helpers',
       'MODULE_INIT_ERROR'
