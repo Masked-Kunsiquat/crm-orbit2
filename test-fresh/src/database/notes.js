@@ -4,6 +4,7 @@
 import { DatabaseError, logger } from '../errors';
 import { safeTrim } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
+import { is } from '../utils/validators';
 
 const NOTE_FIELDS = ['contact_id', 'title', 'content', 'is_pinned'];
 
@@ -23,7 +24,7 @@ function convertBooleanFields(row) {
  */
 export function createNotesDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
-  if (typeof execute !== 'function' || typeof batch !== 'function') {
+  if (!is.function(execute) || !is.function(batch)) {
     throw new DatabaseError(
       'notesDB requires execute and batch helpers',
       'MODULE_INIT_ERROR'
@@ -256,7 +257,7 @@ export function createNotesDB(ctx) {
     },
 
     async bulkDelete(ids) {
-      if (!Array.isArray(ids) || ids.length === 0) {
+      if (!is.array(ids) || ids.length === 0) {
         return 0;
       }
 
