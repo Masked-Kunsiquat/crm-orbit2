@@ -3,6 +3,7 @@
 
 import { DatabaseError, logger } from '../errors';
 import { addDays, formatDateToString } from '../utils/dateUtils';
+import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 
 const EVENT_FIELDS = [
   'contact_id',
@@ -13,23 +14,6 @@ const EVENT_FIELDS = [
   'recurrence_pattern',
   'notes',
 ];
-
-function pick(obj, fields) {
-  const out = {};
-  for (const key of fields) {
-    if (
-      Object.prototype.hasOwnProperty.call(obj, key) &&
-      obj[key] !== undefined
-    ) {
-      out[key] = obj[key];
-    }
-  }
-  return out;
-}
-
-function placeholders(n) {
-  return new Array(n).fill('?').join(', ');
-}
 
 function convertBooleanFields(row) {
   if (!row) return row;
@@ -150,12 +134,10 @@ export function createEventsDB({ execute, batch, transaction }) {
         return existing;
       }
 
-      const sets = Object.keys(eventData).map(k => `${k} = ?`);
-      const vals = Object.values(eventData);
-
+      const { setClause, values } = buildUpdateSet(eventData);
       await execute(
-        `UPDATE events SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
-        [...vals, id]
+        `UPDATE events SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
+        [...values, id]
       );
 
       // Update contact's last_interaction_at

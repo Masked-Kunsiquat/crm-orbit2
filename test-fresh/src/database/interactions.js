@@ -2,6 +2,7 @@
 // Focused on core CRUD operations and basic filtering
 
 import { DatabaseError } from './errors';
+import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 
 const INTERACTION_FIELDS = [
   'contact_id',
@@ -14,23 +15,6 @@ const INTERACTION_FIELDS = [
 ];
 
 const MAX_PAGE_SIZE = 500;
-
-function pick(obj, fields) {
-  const out = {};
-  for (const key of fields) {
-    if (
-      Object.prototype.hasOwnProperty.call(obj, key) &&
-      obj[key] !== undefined
-    ) {
-      out[key] = obj[key];
-    }
-  }
-  return out;
-}
-
-function placeholders(n) {
-  return new Array(n).fill('?').join(', ');
-}
 
 function clampLimit(n, max = MAX_PAGE_SIZE) {
   const num = Number(n) || 0;
@@ -158,8 +142,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         return existing;
       }
 
-      const sets = Object.keys(interactionData).map(k => `${k} = ?`);
-      const vals = Object.values(interactionData);
+      const { setClause, values } = buildUpdateSet(interactionData);
 
       if (!transaction) {
         throw new DatabaseError(
@@ -170,8 +153,8 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
       await transaction(tx => {
         // 1) Update the interaction row
-        const updateSql = `UPDATE interactions SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`;
-        const updatePromise = tx.execute(updateSql, [...vals, id]);
+        const updateSql = `UPDATE interactions SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`;
+        const updatePromise = tx.execute(updateSql, [...values, id]);
 
         // 2) Determine old/new contact IDs
         const oldContactId = existing.contact_id;

@@ -1,7 +1,8 @@
 import { execute } from './index';
+import { logger } from '../errors/utils/errorLogger';
 
 export async function createBasicTables() {
-  console.log('Creating basic database tables...');
+  logger.info('simpleSetup', 'Creating basic database tables');
 
   try {
     // Create attachments table first (referenced by contacts for avatars)
@@ -28,11 +29,11 @@ export async function createBasicTables() {
       const tableInfo = await execute('PRAGMA table_info(attachments);');
       const hasDescriptionColumn = tableInfo.rows.some(col => col.name === 'description');
       if (!hasDescriptionColumn) {
-        console.log('Adding description column to attachments table...');
+        logger.info('simpleSetup', 'Adding description column to attachments table');
         await execute('ALTER TABLE attachments ADD COLUMN description TEXT;');
       }
     } catch (error) {
-      console.warn('Error checking/adding description column:', error);
+      logger.warn('simpleSetup', 'Error checking/adding description column', { error: error.message });
     }
 
     // Create companies table (referenced by contacts)
@@ -74,12 +75,12 @@ export async function createBasicTables() {
       const contactsTableInfo = await execute('PRAGMA table_info(contacts);');
       const hasAvatarAttachmentId = contactsTableInfo.rows.some(col => col.name === 'avatar_attachment_id');
       if (!hasAvatarAttachmentId) {
-        console.log('Adding avatar_attachment_id column to contacts table...');
+        logger.info('simpleSetup', 'Adding avatar_attachment_id column to contacts table');
         await execute('ALTER TABLE contacts ADD COLUMN avatar_attachment_id INTEGER REFERENCES attachments(id) ON DELETE SET NULL;');
-        console.log('avatar_attachment_id column added successfully');
+        logger.success('simpleSetup', 'avatar_attachment_id column added');
       }
     } catch (error) {
-      console.warn('Error checking/adding avatar_attachment_id column:', error);
+      logger.warn('simpleSetup', 'Error checking/adding avatar_attachment_id column', { error: error.message });
     }
 
     // Create contact_info table for phone, email, etc.
@@ -222,10 +223,10 @@ export async function createBasicTables() {
     // Seed default categories
     await seedDefaultCategories();
 
-    console.log('Basic database tables created successfully');
+    logger.success('simpleSetup', 'Basic database tables created');
     return true;
   } catch (error) {
-    console.error('Error creating basic tables:', error);
+    logger.error('simpleSetup', 'createBasicTables', error);
     throw error;
   }
 }
@@ -240,7 +241,7 @@ async function seedDefaultCategories() {
     const count = existing.rows[0]?.count || 0;
 
     if (count > 0) {
-      console.log('Categories already seeded, skipping...');
+      logger.info('simpleSetup', 'Categories already seeded, skipping');
       return;
     }
 
@@ -261,9 +262,9 @@ async function seedDefaultCategories() {
       );
     }
 
-    console.log('Default categories seeded successfully');
+    logger.success('simpleSetup', 'Default categories seeded');
   } catch (error) {
-    console.error('Error seeding default categories:', error);
+    logger.error('simpleSetup', 'seedDefaultCategories', error);
     // Don't throw - allow setup to continue even if seeding fails
   }
 }
