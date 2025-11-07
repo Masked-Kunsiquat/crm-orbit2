@@ -2,6 +2,7 @@
 // Focused on contact-category relationship operations
 
 import { DatabaseError, logger } from '../errors';
+import { is } from '../utils/validators';
 
 /**
  * Create the categories relations database module
@@ -121,7 +122,7 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      * @returns {Promise<Array<{contact_id:number} & any>>}
      */
     async getCategoriesForContacts(contactIds) {
-      if (!Array.isArray(contactIds) || contactIds.length === 0) return [];
+      if (!is.array(contactIds) || contactIds.length === 0) return [];
       const unique = [...new Set(contactIds)];
       const res = await execute(
         `SELECT cc.contact_id, cat.*
@@ -152,7 +153,7 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      * @returns {Promise<boolean>} True on success
      */
     async setContactCategories(contactId, categoryIds, txOverride) {
-      if (!Array.isArray(categoryIds)) {
+      if (!is.array(categoryIds)) {
         throw new DatabaseError(
           'categoryIds must be an array',
           'VALIDATION_ERROR'
