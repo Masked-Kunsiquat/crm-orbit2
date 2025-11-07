@@ -3,6 +3,7 @@
 
 import { DatabaseError, logger } from '../errors';
 import { toSQLiteDateTime } from '../utils/dateUtils';
+import { is } from '../utils/validators';
 
 const REMINDER_FIELDS = [
   'event_id',
@@ -60,9 +61,9 @@ function toSqlDatetime(value) {
   }
 
   let date;
-  if (value instanceof Date) {
+  if (is.date(value)) {
     date = value;
-  } else if (typeof value === 'string') {
+  } else if (is.string(value)) {
     date = new Date(value);
   } else {
     throw new Error(
@@ -471,7 +472,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
       try {
         // Parse the incoming datetime (accept Date or ISO string)
         let parsedDate;
-        if (newDateTime instanceof Date) {
+        if (is.date(newDateTime)) {
           parsedDate = newDateTime;
         } else {
           parsedDate = new Date(newDateTime);
@@ -519,7 +520,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<number>} Number of reminders marked as scheduled
      */
     async markRemindersScheduled(scheduledItems) {
-      if (!Array.isArray(scheduledItems) || scheduledItems.length === 0) {
+      if (!is.array(scheduledItems) || scheduledItems.length === 0) {
         return 0;
       }
 
@@ -574,7 +575,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<number>} Number of reminders marked as failed
      */
     async markRemindersFailed(reminderIds) {
-      if (!Array.isArray(reminderIds) || reminderIds.length === 0) {
+      if (!is.array(reminderIds) || reminderIds.length === 0) {
         return 0;
       }
 
@@ -639,7 +640,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
      * @returns {Promise<object[]>} Created reminders
      */
     async createRecurringReminders(reminderData) {
-      if (!Array.isArray(reminderData) || reminderData.length === 0) {
+      if (!is.array(reminderData) || reminderData.length === 0) {
         return [];
       }
 
