@@ -9,6 +9,7 @@
  */
 
 import { getLocales } from 'expo-localization';
+import { is } from './validators';
 
 // ============================================================================
 // LOCALE DETECTION
@@ -47,7 +48,7 @@ export function getPrimaryLocale() {
  * @returns {Date|null} - Date object at local midnight, or null if invalid
  */
 export function parseLocalDate(dateString) {
-  if (!dateString || typeof dateString !== 'string') {
+  if (!dateString || !is.string(dateString)) {
     return null;
   }
 
@@ -75,12 +76,12 @@ export function formatDateToString(date) {
   }
 
   // If already a string in correct format, return as-is
-  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (is.string(date) && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return date;
   }
 
   // Convert to Date if needed
-  const dateObj = date instanceof Date ? date : parseLocalDate(date);
+  const dateObj = is.date(date) ? date : parseLocalDate(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return '';
   }
@@ -106,12 +107,12 @@ export function parseFlexibleDate(value) {
   }
 
   // Already a Date object
-  if (value instanceof Date) {
+  if (is.date(value)) {
     return isNaN(value.getTime()) ? null : value;
   }
 
   // String in YYYY-MM-DD format - parse as local date
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+  if (is.string(value) && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return parseLocalDate(value);
   }
 
@@ -129,7 +130,7 @@ export function parseFlexibleDate(value) {
  * @returns {string} - Formatted date string
  */
 export function formatDateSmart(dateValue, t = null, locale = 'en-US') {
-  const date = typeof dateValue === 'string' ? parseLocalDate(dateValue) : dateValue;
+  const date = is.string(dateValue) ? parseLocalDate(dateValue) : dateValue;
   if (!date || isNaN(date.getTime())) {
     return '';
   }
@@ -162,8 +163,8 @@ export function formatDateSmart(dateValue, t = null, locale = 'en-US') {
  * @returns {number} - Negative if dateA < dateB, positive if dateA > dateB, 0 if equal
  */
 export function compareDates(dateA, dateB) {
-  const a = typeof dateA === 'string' ? parseLocalDate(dateA) : dateA;
-  const b = typeof dateB === 'string' ? parseLocalDate(dateB) : dateB;
+  const a = is.string(dateA) ? parseLocalDate(dateA) : dateA;
+  const b = is.string(dateB) ? parseLocalDate(dateB) : dateB;
 
   if (!a || isNaN(a.getTime())) return 1; // Invalid dates sort last
   if (!b || isNaN(b.getTime())) return -1;
@@ -178,7 +179,7 @@ export function compareDates(dateA, dateB) {
  * @returns {boolean} - True if date is today
  */
 export function isToday(dateValue) {
-  const date = typeof dateValue === 'string' ? parseLocalDate(dateValue) : dateValue;
+  const date = is.string(dateValue) ? parseLocalDate(dateValue) : dateValue;
   if (!date || isNaN(date.getTime())) {
     return false;
   }
@@ -198,7 +199,7 @@ export function isToday(dateValue) {
  * @returns {boolean} - True if date is before today
  */
 export function isPast(dateValue) {
-  const date = typeof dateValue === 'string' ? parseLocalDate(dateValue) : dateValue;
+  const date = is.string(dateValue) ? parseLocalDate(dateValue) : dateValue;
   if (!date || isNaN(date.getTime())) {
     return false;
   }
@@ -218,7 +219,7 @@ export function isPast(dateValue) {
  * @returns {boolean} - True if date is after today
  */
 export function isFuture(dateValue) {
-  const date = typeof dateValue === 'string' ? parseLocalDate(dateValue) : dateValue;
+  const date = is.string(dateValue) ? parseLocalDate(dateValue) : dateValue;
   if (!date || isNaN(date.getTime())) {
     return false;
   }
@@ -240,7 +241,7 @@ export function isFuture(dateValue) {
  */
 export function addDays(date, days) {
   if (!date && date !== 0) return null; // Check for null/undefined before new Date()
-  const dateObj = typeof date === 'string' ? parseLocalDate(date) : new Date(date);
+  const dateObj = is.string(date) ? parseLocalDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return null;
   }
@@ -261,8 +262,8 @@ export function daysBetween(dateA, dateB) {
   // Check for null/undefined before new Date()
   if ((!dateA && dateA !== 0) || (!dateB && dateB !== 0)) return 0;
 
-  const a = typeof dateA === 'string' ? parseLocalDate(dateA) : new Date(dateA);
-  const b = typeof dateB === 'string' ? parseLocalDate(dateB) : new Date(dateB);
+  const a = is.string(dateA) ? parseLocalDate(dateA) : new Date(dateA);
+  const b = is.string(dateB) ? parseLocalDate(dateB) : new Date(dateB);
 
   if (!a || isNaN(a.getTime()) || !b || isNaN(b.getTime())) {
     return 0;
@@ -288,7 +289,7 @@ export function daysBetween(dateA, dateB) {
  */
 export function toSQLiteDateTime(date) {
   if (!date && date !== 0) return ''; // Check for null/undefined before new Date()
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = is.date(date) ? date : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return '';
   }
@@ -311,7 +312,7 @@ export function toSQLiteDateTime(date) {
  * @returns {Date|null} Parsed date or null if invalid
  */
 export function parseSQLiteDateTime(sqliteDateTime) {
-  if (!sqliteDateTime || typeof sqliteDateTime !== 'string') {
+  if (!sqliteDateTime || !is.string(sqliteDateTime)) {
     return null;
   }
 
@@ -349,7 +350,7 @@ export function getCurrentISO() {
  * @returns {string} Filename-safe timestamp (YYYY-MM-DDTHH-MM-SS) or empty string if invalid
  */
 export function toFilenameTimestamp(date = new Date()) {
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = is.date(date) ? date : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return ''; // Return empty string for invalid input (consistent with formatDateToString, toSQLiteDateTime)
   }
@@ -376,7 +377,7 @@ export function toFilenameTimestamp(date = new Date()) {
  */
 export function addHours(date, hours) {
   if (!date && date !== 0) return null; // Check for null/undefined before new Date()
-  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
+  const dateObj = is.string(date) ? parseFlexibleDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return null;
   }
@@ -395,7 +396,7 @@ export function addHours(date, hours) {
  */
 export function addMinutes(date, minutes) {
   if (!date && date !== 0) return null; // Check for null/undefined before new Date()
-  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : new Date(date);
+  const dateObj = is.string(date) ? parseFlexibleDate(date) : new Date(date);
   if (!dateObj || isNaN(dateObj.getTime())) {
     return null;
   }
@@ -462,7 +463,7 @@ export function setTimePart(datetime, timePart) {
  * @returns {string} Formatted date
  */
 export function formatShortDate(date, locale = 'en-US') {
-  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : date;
+  const dateObj = is.string(date) ? parseFlexibleDate(date) : date;
   if (!dateObj || isNaN(dateObj.getTime())) {
     return '';
   }
@@ -482,7 +483,7 @@ export function formatShortDate(date, locale = 'en-US') {
  * @returns {string} Formatted time
  */
 export function formatTime(date, locale = 'en-US') {
-  const dateObj = typeof date === 'string' ? parseFlexibleDate(date) : date;
+  const dateObj = is.string(date) ? parseFlexibleDate(date) : date;
   if (!dateObj || isNaN(dateObj.getTime())) {
     return '';
   }
@@ -501,7 +502,7 @@ export function formatTime(date, locale = 'en-US') {
  * @returns {{date: string, time: string}} Formatted date and time
  */
 export function formatDateAndTime(datetime, locale = 'en-US') {
-  const dateObj = typeof datetime === 'string' ? parseFlexibleDate(datetime) : datetime;
+  const dateObj = is.string(datetime) ? parseFlexibleDate(datetime) : datetime;
   if (!dateObj || isNaN(dateObj.getTime())) {
     return { date: '', time: '' };
   }
@@ -524,10 +525,10 @@ export function formatDateAndTime(datetime, locale = 'en-US') {
  */
 export function formatRelativeDateTime(input, opts = {}) {
   if (!input) return 'No date';
-  const date = input instanceof Date ? input : parseFlexibleDate(input);
+  const date = is.date(input) ? input : parseFlexibleDate(input);
   if (!date || isNaN(date.getTime())) return 'No date';
 
-  const now = opts.now instanceof Date ? opts.now : new Date();
+  const now = is.date(opts.now) ? opts.now : new Date();
   const locale = opts.locale || getPrimaryLocale();
 
   const diffMs = date.getTime() - now.getTime();
