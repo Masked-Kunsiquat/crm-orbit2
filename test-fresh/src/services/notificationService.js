@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import db from '../database';
 import { ServiceError, logger } from '../errors';
 import { toSQLiteDateTime, parseSQLiteDateTime } from '../utils/dateUtils';
+import { is } from '../utils/validators';
 
 /**
  * Configure notification behavior
@@ -346,7 +347,7 @@ export const notificationService = {
             { reminderId: reminder.id, notificationId },
           ]);
           // Only record IDs that were actually persisted
-          if (typeof affected === 'number' ? affected > 0 : true) {
+          if (is.number(affected) ? affected > 0 : true) {
             scheduledIds.push(notificationId);
           } else {
             logger.warn(
@@ -755,7 +756,7 @@ export const notificationService = {
 
       // Render the template
       const title =
-        typeof template.title === 'function'
+        is.function(template.title)
           ? template.title(event, context)
           : template.title;
 
