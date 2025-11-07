@@ -11,6 +11,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import ContactAvatar from './ContactAvatar';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 // Helper to format interaction datetime
 const formatDateTime = (dateTimeStr) => {
@@ -135,7 +136,7 @@ export default function InteractionDetailModal({ visible, onDismiss, interaction
                   <View style={styles.contactRow}>
                     <ContactAvatar contact={contact} size={32} />
                     <Text variant="bodyLarge" style={[styles.contactName, { color: theme.colors.onSurface }]}>
-                      {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim()}
+                      {getContactDisplayName(contact)}
                     </Text>
                   </View>
                 </View>

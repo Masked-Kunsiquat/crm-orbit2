@@ -26,6 +26,7 @@ import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
 import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
 import { compareDates, formatDateSmart, isFuture, isToday } from '../utils/dateUtils';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -371,7 +372,7 @@ export default function ContactDetailScreen({ route, navigation }) {
             <ContactAvatar contact={contact} size={100} style={styles.avatar} />
           </Pressable>
           <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
-            {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
+            {getContactDisplayName(contact)}
           </Text>
           {(contact.job_title || companyName) && (
             <Text

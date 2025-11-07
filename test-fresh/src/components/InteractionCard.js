@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Card, Text, Icon, useTheme } from 'react-native-paper';
 import ContactAvatar from './ContactAvatar';
 import { formatRelativeDateTime } from '../utils/dateUtils';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 // Helper to format duration (in seconds)
 const formatDuration = (seconds) => {
@@ -73,7 +74,7 @@ export default function InteractionCard({ interaction, onPress, onLongPress, con
                   size={24}
                 />
                 <Text variant="bodyMedium" style={styles.contactName} numberOfLines={1}>
-                  {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown'}
+                  {getContactDisplayName(contact, 'Unknown')}
                 </Text>
               </View>
             )}
