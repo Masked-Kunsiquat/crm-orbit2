@@ -347,7 +347,7 @@ export const notificationService = {
             { reminderId: reminder.id, notificationId },
           ]);
           // Only record IDs that were actually persisted
-          if (is.number(affected) ? affected > 0 : true) {
+          if (is.number(affected) && affected > 0) {
             scheduledIds.push(notificationId);
           } else {
             logger.warn(

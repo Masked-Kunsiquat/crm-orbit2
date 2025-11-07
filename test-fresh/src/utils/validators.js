@@ -27,6 +27,15 @@ export const is = {
 
 /**
  * Email validation using standard regex pattern
+ *
+ * NOTE: This provides basic email format validation suitable for contact storage
+ * in a CRM context. It is intentionally permissive to avoid rejecting legitimate
+ * but unusual email formats. For production applications requiring stricter
+ * validation (e.g., authentication, payment processing), consider:
+ * - RFC 5322 compliant validation
+ * - Using a library like email-validator or validator.js
+ * - Optional DNS MX record validation for critical flows
+ *
  * @param {string} email - Email address to validate
  * @returns {boolean} True if email format is valid
  * @example
