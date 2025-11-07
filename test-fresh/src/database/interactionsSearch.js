@@ -4,6 +4,7 @@
 import { DatabaseError } from './errors';
 import { parseLocalDate, addDays, getCurrentISO } from '../utils/dateUtils';
 import { safeTrim } from '../utils/stringHelpers';
+import { is } from '../utils/validators';
 
 const MAX_PAGE_SIZE = 500;
 
@@ -19,7 +20,7 @@ function clampOffset(n) {
 }
 
 function isDateOnlyString(s) {
-  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  return is.string(s) && /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
 
 function normalizeDateRange(startDate, endDate) {
@@ -217,7 +218,7 @@ export function createInteractionsSearchDB({ execute }) {
 
       if (
         criteria.contactIds &&
-        Array.isArray(criteria.contactIds) &&
+        is.array(criteria.contactIds) &&
         criteria.contactIds.length > 0
       ) {
         const placeholders = criteria.contactIds.map(() => '?').join(', ');
@@ -227,7 +228,7 @@ export function createInteractionsSearchDB({ execute }) {
 
       if (
         criteria.interactionTypes &&
-        Array.isArray(criteria.interactionTypes) &&
+        is.array(criteria.interactionTypes) &&
         criteria.interactionTypes.length > 0
       ) {
         const placeholders = criteria.interactionTypes
