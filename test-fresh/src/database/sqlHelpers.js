@@ -1,20 +1,22 @@
 // SQL Building Helpers
 // Centralized utilities for constructing SQL queries consistently
 
+import { is, isPositiveInteger } from '../utils/validators';
+
 /**
  * Generate SQL parameter placeholders.
  * @param {number} count - Number of placeholders needed
  * @returns {string} Comma-separated placeholders (e.g., "?, ?, ?")
  * @example
  * placeholders(3) // Returns: "?, ?, ?"
- *
- * @todo Add integer validation in validation helpers phase (Category 7/12)
- * Currently non-integer numbers are truncated by new Array() which may be unexpected.
- * Will add Number.isInteger() check when implementing validation helpers.
+ * @throws {Error} When count is not a positive integer
  */
 export function placeholders(count) {
-  if (typeof count !== 'number' || count < 1) {
-    return '';
+  if (!is.number(count) || !isPositiveInteger(count)) {
+    if (is.number(count) && count < 1) {
+      return ''; // Backwards compatibility: return empty string for count < 1
+    }
+    throw new Error(`placeholders() requires a positive integer, got: ${count}`);
   }
   return new Array(count).fill('?').join(', ');
 }
