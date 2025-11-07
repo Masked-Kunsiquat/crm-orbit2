@@ -4,6 +4,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import * as Crypto from 'expo-crypto';
 import db from '../database';
 import { ServiceError, logger } from '../errors';
+import { is } from '../utils/validators';
 
 /**
  * Global file handling configuration.
@@ -82,7 +83,7 @@ const getFileDirectory = fileType => {
  * @returns {boolean} True if the uri is within documentDirectory; otherwise false.
  */
 function isPathInsideDocumentDirectory(uri) {
-  if (!uri || typeof uri !== 'string') return false;
+  if (!uri || !is.string(uri)) return false;
   try {
     const docHref = new URL(documentDirectory).href;
     const targetHref = new URL(uri).href;
@@ -396,7 +397,7 @@ export const fileService = {
 
       const dbOrphans = await db.attachments.cleanupOrphaned();
       const deleted =
-        dbOrphans && typeof dbOrphans.deletedCount === 'number'
+        dbOrphans && is.number(dbOrphans.deletedCount)
           ? dbOrphans.deletedCount
           : 0;
 

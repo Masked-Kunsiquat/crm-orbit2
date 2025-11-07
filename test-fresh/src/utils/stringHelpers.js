@@ -5,6 +5,8 @@
  * and ensure consistent string handling across the application.
  */
 
+import { is } from './validators';
+
 /**
  * Safely trim a value, handling null/undefined cases
  * @param {any} value - Value to trim
@@ -62,11 +64,11 @@ export function hasContent(value) {
  * filterNonEmpty(phones) // [{ value: '555-1234' }]
  */
 export function filterNonEmpty(items, field = 'value') {
-  if (!Array.isArray(items)) {
+  if (!is.array(items)) {
     return [];
   }
   return items.filter(item => {
-    if (!item || typeof item !== 'object') {
+    if (!item || !is.object(item)) {
       return false;
     }
     return hasContent(item[field]);
@@ -82,7 +84,7 @@ export function filterNonEmpty(items, field = 'value') {
  * filterNonEmptyStrings(['hello', '', '  ', 'world']) // ['hello', 'world']
  */
 export function filterNonEmptyStrings(items) {
-  if (!Array.isArray(items)) {
+  if (!is.array(items)) {
     return [];
   }
   return items.filter(hasContent);

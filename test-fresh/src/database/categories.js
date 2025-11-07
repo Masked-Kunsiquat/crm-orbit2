@@ -4,6 +4,7 @@
 import { DatabaseError } from './errors';
 import { safeTrim, hasContent } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
+import { is } from '../utils/validators';
 
 /**
  * Whitelisted, persisted columns for the categories table.
@@ -27,7 +28,7 @@ const CATEGORY_FIELDS = ['name', 'color', 'icon', 'is_system', 'sort_order'];
  */
 export function createCategoriesDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
-  if (typeof execute !== 'function' || typeof batch !== 'function') {
+  if (!is.function(execute) || !is.function(batch)) {
     throw new DatabaseError(
       'categoriesDB requires execute and batch helpers',
       'MODULE_INIT_ERROR'
@@ -45,7 +46,7 @@ export function createCategoriesDB(ctx) {
      */
     async create(data) {
       // Validate and normalize name
-      if (!data || typeof data.name !== 'string') {
+      if (!data || !is.string(data.name)) {
         throw new DatabaseError('name is required', 'VALIDATION_ERROR');
       }
       const trimmedName = safeTrim(data.name);
@@ -146,7 +147,7 @@ export function createCategoriesDB(ctx) {
 
       // Normalize and validate incoming name like create()
       if (Object.prototype.hasOwnProperty.call(data, 'name')) {
-        if (typeof data.name !== 'string') {
+        if (!is.string(data.name)) {
           throw new DatabaseError('name is required', 'VALIDATION_ERROR');
         }
         data.name = safeTrim(data.name);

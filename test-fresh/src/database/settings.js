@@ -5,13 +5,14 @@ import {
   castValue,
   serializeValue,
 } from './settingsHelpers';
+import { is } from '../utils/validators';
 
 export function createSettingsDB({ execute, batch, transaction }) {
   return {
     async get(settingKey) {
       // Enforce hierarchical key and derive category
       const validateSettingKey = k => {
-        if (typeof k !== 'string' || !k.includes('.')) {
+        if (!is.string(k) || !k.includes('.')) {
           throw new DatabaseError(
             'Setting keys must be "category.key"',
             'VALIDATION_ERROR',
@@ -86,7 +87,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
     },
 
     async set(settingKey, value, dataType = null) {
-      if (!settingKey || typeof settingKey !== 'string') {
+      if (!settingKey || !is.string(settingKey)) {
         throw new DatabaseError(
           'Setting key must be a non-empty string',
           'VALIDATION_ERROR',
@@ -186,7 +187,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
     },
 
     async getByCategory(category) {
-      if (!category || typeof category !== 'string') {
+      if (!category || !is.string(category)) {
         throw new DatabaseError(
           'Category must be a non-empty string',
           'VALIDATION_ERROR',
@@ -247,7 +248,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
     },
 
     async setMultiple(settings) {
-      if (!Array.isArray(settings) || settings.length === 0) {
+      if (!is.array(settings) || settings.length === 0) {
         throw new DatabaseError(
           'Settings must be a non-empty array',
           'VALIDATION_ERROR',
@@ -257,7 +258,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
       }
 
       for (const setting of settings) {
-        if (!setting.key || typeof setting.key !== 'string') {
+        if (!setting.key || !is.string(setting.key)) {
           throw new DatabaseError(
             'Each setting must have a valid key',
             'VALIDATION_ERROR',
@@ -363,7 +364,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
     },
 
     async reset(settingKey) {
-      if (!settingKey || typeof settingKey !== 'string') {
+      if (!settingKey || !is.string(settingKey)) {
         throw new DatabaseError(
           'Setting key must be a non-empty string',
           'VALIDATION_ERROR',
@@ -482,7 +483,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
     },
 
     async toggle(settingKey) {
-      if (!settingKey || typeof settingKey !== 'string') {
+      if (!settingKey || !is.string(settingKey)) {
         throw new DatabaseError(
           'Setting key must be a non-empty string',
           'VALIDATION_ERROR',
@@ -518,7 +519,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
     },
 
     async increment(settingKey, amount = 1) {
-      if (!settingKey || typeof settingKey !== 'string') {
+      if (!settingKey || !is.string(settingKey)) {
         throw new DatabaseError(
           'Setting key must be a non-empty string',
           'VALIDATION_ERROR',
@@ -527,7 +528,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
         );
       }
 
-      if (typeof amount !== 'number' || isNaN(amount)) {
+      if (!is.number(amount) || isNaN(amount)) {
         throw new DatabaseError(
           'Increment amount must be a valid number',
           'VALIDATION_ERROR',
@@ -570,7 +571,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
      * @returns {Promise<any>} Setting value or null if not found
      */
     async getValue(category, key, expectedType = null) {
-      if (!category || typeof category !== 'string') {
+      if (!category || !is.string(category)) {
         throw new DatabaseError(
           'Category must be a non-empty string',
           'VALIDATION_ERROR',
@@ -578,7 +579,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           { category }
         );
       }
-      if (!key || typeof key !== 'string') {
+      if (!key || !is.string(key)) {
         throw new DatabaseError(
           'Key must be a non-empty string',
           'VALIDATION_ERROR',
@@ -614,7 +615,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
      * @returns {Promise<Object>} Object mapping keys to their values
      */
     async getValues(category, keys) {
-      if (!category || typeof category !== 'string') {
+      if (!category || !is.string(category)) {
         throw new DatabaseError(
           'Category must be a non-empty string',
           'VALIDATION_ERROR',
@@ -622,7 +623,7 @@ export function createSettingsDB({ execute, batch, transaction }) {
           { category }
         );
       }
-      if (!Array.isArray(keys) || keys.length === 0) {
+      if (!is.array(keys) || keys.length === 0) {
         throw new DatabaseError(
           'Keys must be a non-empty array',
           'VALIDATION_ERROR',
@@ -633,10 +634,10 @@ export function createSettingsDB({ execute, batch, transaction }) {
 
       // Normalize keys to objects with key and optional expectedType
       const normalizedKeys = keys.map(k => {
-        if (typeof k === 'string') {
+        if (is.string(k)) {
           return { key: k };
         }
-        if (typeof k === 'object' && k.key) {
+        if (is.object(k) && k.key) {
           return k;
         }
         throw new DatabaseError(

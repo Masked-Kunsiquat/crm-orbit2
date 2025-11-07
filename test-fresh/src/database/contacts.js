@@ -4,6 +4,7 @@
 import { DatabaseError } from './errors';
 import { filterNonEmptyStrings } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
+import { is } from '../utils/validators';
 
 const CONTACT_FIELDS = [
   'first_name',
@@ -50,7 +51,7 @@ function computeDisplayName(data) {
  */
 export function createContactsDB(ctx) {
   const { execute, batch, transaction } = ctx || {};
-  if (typeof execute !== 'function' || typeof batch !== 'function') {
+  if (!is.function(execute) || !is.function(batch)) {
     throw new DatabaseError(
       'contactsDB requires execute and batch helpers',
       'MODULE_INIT_ERROR'
@@ -164,7 +165,7 @@ export function createContactsDB(ctx) {
     async delete(id) {
       // Perform explicit transactional cleanup to avoid orphaned rows
       // (do not rely on PRAGMA foreign_keys state across environments)
-      if (typeof transaction === 'function') {
+      if (is.function(transaction)) {
         return await transaction(async tx => {
           await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [id]);
           await tx.execute('DELETE FROM contact_categories WHERE contact_id = ?;', [id]);

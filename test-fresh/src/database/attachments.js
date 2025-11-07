@@ -1,5 +1,6 @@
 import { DatabaseError, logger } from '../errors';
 import { safeTrim, hasContent } from '../utils/stringHelpers';
+import { is } from '../utils/validators';
 
 export function createAttachmentsDB({ execute, batch, transaction }) {
   const validateRequiredFields = (data, requiredFields) => {
@@ -38,7 +39,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
   const validateFileSize = fileSize => {
     if (fileSize !== null && fileSize !== undefined) {
       if (
-        typeof fileSize !== 'number' ||
+        !is.number(fileSize) ||
         !Number.isFinite(fileSize) ||
         fileSize < 0
       ) {
@@ -58,7 +59,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     // Convert string numbers to actual numbers
     let numericValue = entityId;
     if (
-      typeof entityId === 'string' &&
+      is.string(entityId) &&
       !isNaN(entityId) &&
       hasContent(entityId)
     ) {
@@ -66,7 +67,7 @@ export function createAttachmentsDB({ execute, batch, transaction }) {
     }
 
     if (
-      typeof numericValue !== 'number' ||
+      !is.number(numericValue) ||
       !Number.isInteger(numericValue) ||
       numericValue <= 0
     ) {
