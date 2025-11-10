@@ -8,6 +8,7 @@ import db from '../database';
 import { ServiceError, logger } from '../errors';
 import { safeTrim, normalizeTrimLowercase } from '../utils/stringHelpers';
 import { normalizePhoneNumber } from '../utils/contactHelpers';
+import { chunk } from '../utils/arrayHelpers';
 
 /**
  * Contact sync service error codes
@@ -159,11 +160,13 @@ class ContactSyncService {
 
       // Process contacts in batches for better performance
       const BATCH_SIZE = 50;
-      for (let i = 0; i < deviceContacts.length; i += BATCH_SIZE) {
-        const batch = deviceContacts.slice(i, i + BATCH_SIZE);
+      const batches = chunk(deviceContacts, BATCH_SIZE);
+
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex];
 
         for (const [index, deviceContact] of batch.entries()) {
-          const overallIndex = i + index;
+          const overallIndex = batchIndex * BATCH_SIZE + index;
 
           try {
             const result = await this._importSingleContact(

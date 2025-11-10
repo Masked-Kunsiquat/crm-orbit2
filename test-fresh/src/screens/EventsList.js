@@ -8,6 +8,7 @@ import AddEventModal from '../components/AddEventModal';
 import { compareDates, formatDateSmart } from '../utils/dateUtils';
 import { logger } from '../errors';
 import { getContactDisplayName } from '../utils/contactHelpers';
+import { unique } from '../utils/arrayHelpers';
 
 const EVENT_TYPES = [
   { value: 'all', i18n: 'events.filters.all', icon: 'calendar' },
@@ -37,7 +38,7 @@ export default function EventsList({ navigation }) {
   // Load contacts when events change
   useEffect(() => {
     const loadContacts = async () => {
-      const contactIds = [...new Set(events.map(e => e.contact_id))];
+      const contactIds = unique(events.map(e => e.contact_id));
 
       try {
         // Batch fetch all contacts in a single query

@@ -4,6 +4,7 @@
 import { DatabaseError } from './errors';
 import { pick, placeholders, buildUpdateSet } from './sqlHelpers';
 import { is } from '../utils/validators';
+import { unique } from '../utils/arrayHelpers';
 
 const INFO_FIELDS = ['type', 'subtype', 'value', 'label', 'is_primary'];
 
@@ -246,11 +247,11 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
       if (!is.array(contactIds) || contactIds.length === 0) {
         return [];
       }
-      const unique = [...new Set(contactIds)];
+      const uniqueIds = unique(contactIds);
       const res = await execute(
-        `SELECT * FROM contact_info WHERE contact_id IN (${unique.map(() => '?').join(', ')})
+        `SELECT * FROM contact_info WHERE contact_id IN (${uniqueIds.map(() => '?').join(', ')})
          ORDER BY contact_id ASC, is_primary DESC, id ASC;`,
-        unique
+        uniqueIds
       );
       return res.rows;
     },

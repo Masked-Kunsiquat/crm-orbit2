@@ -3,6 +3,7 @@
 
 import { DatabaseError, logger } from '../errors';
 import { is } from '../utils/validators';
+import { unique } from '../utils/arrayHelpers';
 
 /**
  * Create the categories relations database module
@@ -123,14 +124,14 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
      */
     async getCategoriesForContacts(contactIds) {
       if (!is.array(contactIds) || contactIds.length === 0) return [];
-      const unique = [...new Set(contactIds)];
+      const uniqueIds = unique(contactIds);
       const res = await execute(
         `SELECT cc.contact_id, cat.*
          FROM categories cat
          INNER JOIN contact_categories cc ON cc.category_id = cat.id
-         WHERE cc.contact_id IN (${unique.map(() => '?').join(', ')})
+         WHERE cc.contact_id IN (${uniqueIds.map(() => '?').join(', ')})
          ORDER BY cc.contact_id ASC, cat.sort_order ASC, cat.name ASC;`,
-        unique
+        uniqueIds
       );
       return res.rows;
     },
@@ -166,7 +167,7 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
           'DELETE FROM contact_categories WHERE contact_id = ?;',
           [contactId]
         );
-        const uniqueCategoryIds = [...new Set(categoryIds)];
+        const uniqueCategoryIds = unique(categoryIds);
         for (const categoryId of uniqueCategoryIds) {
           await txOverride.execute(
             'INSERT INTO contact_categories (contact_id, category_id) VALUES (?, ?);',
@@ -191,7 +192,7 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
         );
 
         // Deduplicate categoryIds to prevent primary key conflicts
-        const uniqueCategoryIds = [...new Set(categoryIds)];
+        const uniqueCategoryIds = unique(categoryIds);
 
         // Add new relationships
         const insertPromises = [];

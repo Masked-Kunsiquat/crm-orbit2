@@ -5,6 +5,7 @@ import { DatabaseError } from './errors';
 import { filterNonEmptyStrings } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
 import { is } from '../utils/validators';
+import { unique } from '../utils/arrayHelpers';
 
 const CONTACT_FIELDS = [
   'first_name',
@@ -90,7 +91,7 @@ export function createContactsDB(ctx) {
         return [];
       }
       // Filter out invalid IDs and remove duplicates
-      const validIds = [...new Set(ids.filter(id => id != null))];
+      const validIds = unique(ids.filter(id => id != null));
       if (validIds.length === 0) {
         return [];
       }
