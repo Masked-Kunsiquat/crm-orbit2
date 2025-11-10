@@ -99,8 +99,15 @@ export function createMutationHandlers(queryClient, keysToInvalidate, options = 
     context = 'Mutation'
   } = options;
 
-  // Normalize keysToInvalidate to always be an array
-  const keys = Array.isArray(keysToInvalidate) ? keysToInvalidate : [keysToInvalidate];
+  // Normalize keysToInvalidate to always be an array of query keys
+  // If it's an array where every element is also an array, treat it as the final list
+  // Otherwise, wrap it in an outer array (so a single queryKey becomes [queryKey])
+  let keys;
+  if (Array.isArray(keysToInvalidate) && keysToInvalidate.every(item => Array.isArray(item))) {
+    keys = keysToInvalidate;
+  } else {
+    keys = [keysToInvalidate];
+  }
 
   return {
     onSuccess: async (...args) => {
