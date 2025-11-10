@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Avatar } from 'react-native-paper';
 import { fileService } from '../services/fileService';
 import { logger } from '../errors';
+import { getInitials } from '../utils/contactHelpers';
 
 /**
  * Reusable ContactAvatar component
@@ -55,12 +56,6 @@ export default function ContactAvatar({ contact, size = 48, style }) {
       mounted = false;
     };
   }, [contact?.avatar_attachment_id, contact?.avatar_uri]);
-
-  const getInitials = (firstName, lastName) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last || '?';
-  };
 
   // Show avatar image if we have a URI
   if (avatarUri) {
