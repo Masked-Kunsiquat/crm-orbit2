@@ -52,16 +52,26 @@ export function isImageFile(filename) {
  * formatFileSize(1536, 1) // '1.5 KB'
  * formatFileSize(5242880) // '5 MB'
  * formatFileSize(null) // 'Unknown'
+ * formatFileSize(-100) // 'Unknown'
+ * formatFileSize(Infinity) // 'Unknown'
  */
 export function formatFileSize(bytes, decimals = 2) {
+  // Handle zero explicitly
   if (bytes === 0) return '0 Bytes';
-  if (!bytes) return 'Unknown';
+
+  // Validate input: must be a finite positive number
+  if (!bytes || !Number.isFinite(bytes) || bytes < 0) {
+    return 'Unknown';
+  }
 
   const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
+  const dm = Math.max(0, decimals); // Ensure non-negative decimals
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  // Clamp index to valid range to handle extremely large values
+  const clampedIndex = Math.min(i, sizes.length - 1);
+
+  return parseFloat((bytes / Math.pow(k, clampedIndex)).toFixed(dm)) + ' ' + sizes[clampedIndex];
 }
