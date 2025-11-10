@@ -77,19 +77,30 @@ export function normalizePhoneNumber(phone) {
 }
 
 /**
- * Format phone number for display (US format)
+ * Format phone number for display (US/NANP format)
  *
- * Supports:
+ * Currently supports North American Numbering Plan (NANP) format:
  * - 10-digit: (555) 123-4567
  * - 11-digit starting with 1: +1 (555) 123-4567
- * - Other formats: returns as-is
+ * - Other formats: returns as-is (preserves international numbers)
+ *
+ * Note: This CRM app supports 5 locales (en, es, de, fr, zh-Hans), which may include
+ * international phone numbers. The current implementation:
+ * - Formats US/Canada numbers for readability
+ * - Preserves international numbers unchanged (e.g., +33 1 42 86 82 00 for France)
+ * - Allows users to store numbers in any format
+ *
+ * Future enhancement: Consider adding locale-aware formatting using a library like
+ * libphonenumber-js when international user base grows. For now, returning the
+ * original format for non-NANP numbers is the safest approach.
  *
  * @param {string|number} phone - Phone number to format
  * @returns {string} Formatted phone number or original if format unknown
  * @example
  * formatPhoneNumber('5551234567') // '(555) 123-4567'
  * formatPhoneNumber('15551234567') // '+1 (555) 123-4567'
- * formatPhoneNumber('123') // '123'
+ * formatPhoneNumber('+33142868200') // '+33142868200' (unchanged)
+ * formatPhoneNumber('123') // '123' (too short, unchanged)
  */
 export function formatPhoneNumber(phone) {
   const cleaned = normalizePhoneNumber(phone);
@@ -104,6 +115,7 @@ export function formatPhoneNumber(phone) {
     return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
   }
 
-  // Unknown format: return as-is
+  // Unknown format: return as-is to preserve international numbers
+  // This ensures French (+33), German (+49), Chinese (+86), etc. numbers display correctly
   return String(phone || '');
 }
