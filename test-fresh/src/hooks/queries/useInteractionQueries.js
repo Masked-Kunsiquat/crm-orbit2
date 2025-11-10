@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { interactionsDB, interactionsSearchDB } from '../../database';
+import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
 /**
  * Query keys for interaction-related queries
@@ -84,10 +85,11 @@ export function useCreateInteraction() {
 
   return useMutation({
     mutationFn: (interactionData) => interactionsDB.create(interactionData),
-    onSuccess: () => {
-      // Invalidate all interaction queries
-      queryClient.invalidateQueries({ queryKey: interactionKeys.all });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      interactionKeys.all,
+      { context: 'useCreateInteraction' }
+    ),
   });
 }
 
@@ -99,12 +101,17 @@ export function useUpdateInteraction() {
 
   return useMutation({
     mutationFn: ({ id, data }) => interactionsDB.update(id, data),
-    onSuccess: (_, { id }) => {
-      // Invalidate specific interaction and lists
-      queryClient.invalidateQueries({ queryKey: interactionKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: interactionKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: interactionKeys.recent() });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      [interactionKeys.lists(), interactionKeys.recent()],
+      {
+        context: 'useUpdateInteraction',
+        onSuccess: (_, { id }) => {
+          // Additional invalidation for specific interaction detail
+          invalidateQueries(queryClient, interactionKeys.detail(id));
+        }
+      }
+    ),
   });
 }
 
@@ -116,9 +123,10 @@ export function useDeleteInteraction() {
 
   return useMutation({
     mutationFn: (id) => interactionsDB.delete(id),
-    onSuccess: () => {
-      // Invalidate all interaction queries
-      queryClient.invalidateQueries({ queryKey: interactionKeys.all });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      interactionKeys.all,
+      { context: 'useDeleteInteraction' }
+    ),
   });
 }
