@@ -248,7 +248,7 @@ export function useUpdateContact() {
     mutationFn: ({ id, data }) => contactsDB.update(id, data),
     ...createMutationHandlers(
       queryClient,
-      [contactKeys.detail, contactKeys.lists(), contactKeys.listsWithInfo()],
+      [contactKeys.details(), contactKeys.lists(), contactKeys.listsWithInfo()],
       {
         context: 'useUpdateContact',
         onSuccess: (_, { id }) => {
