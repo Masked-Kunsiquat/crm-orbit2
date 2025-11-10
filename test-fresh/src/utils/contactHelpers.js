@@ -40,6 +40,8 @@ export function getContactDisplayName(contact, fallback = 'Unknown Contact') {
 /**
  * Extract initials from first and last name
  *
+ * Handles Unicode correctly including emoji and multi-byte characters.
+ *
  * @param {string} firstName - First name
  * @param {string} lastName - Last name (optional)
  * @param {string} fallback - Fallback value if no names provided
@@ -47,14 +49,16 @@ export function getContactDisplayName(contact, fallback = 'Unknown Contact') {
  * @example
  * getInitials('John', 'Doe') // 'JD'
  * getInitials('John') // 'J'
+ * getInitials('José', 'García') // 'JG'
  * getInitials('', '') // '?'
  */
 export function getInitials(firstName, lastName, fallback = '?') {
   const first = safeTrim(firstName);
   const last = safeTrim(lastName);
 
-  const firstInitial = first ? first.charAt(0).toUpperCase() : '';
-  const lastInitial = last ? last.charAt(0).toUpperCase() : '';
+  // Use spread operator to handle multi-byte Unicode characters (emoji, surrogate pairs)
+  const firstInitial = first ? [...first][0].toUpperCase() : '';
+  const lastInitial = last ? [...last][0].toUpperCase() : '';
 
   return firstInitial + lastInitial || fallback;
 }
