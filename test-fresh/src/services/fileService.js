@@ -5,6 +5,7 @@ import * as Crypto from 'expo-crypto';
 import db from '../database';
 import { ServiceError, logger } from '../errors';
 import { is } from '../utils/validators';
+import { getFileExtension } from '../utils/fileHelpers';
 
 /**
  * Global file handling configuration.
@@ -101,7 +102,7 @@ function isPathInsideDocumentDirectory(uri) {
  * @returns {string|null} The detected MIME type or null if unknown.
  */
 function detectMimeTypeFromName(name) {
-  const ext = (name.split('.').pop() || '').toLowerCase();
+  const ext = getFileExtension(name);
   const map = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -194,8 +195,7 @@ export const fileService = {
 
       const fileType = getFileType(mimeType);
       const uuid = Crypto.randomUUID();
-      const parts = originalName.split('.');
-      const fileExtension = parts.length > 1 ? parts.pop().toLowerCase() : '';
+      const fileExtension = getFileExtension(originalName);
       const fileName = `${uuid}.${fileExtension}`;
 
       const directoryPath = getFileDirectory(fileType);
