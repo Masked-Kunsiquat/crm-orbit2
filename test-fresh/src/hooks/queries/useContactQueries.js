@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { contactsDB, contactsInfoDB, categoriesRelationsDB, transaction } from '../../database';
 import { safeTrim, normalizeTrimLowercase, filterNonEmptyStrings } from '../../utils/stringHelpers';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
+import { unique } from '../../utils/arrayHelpers';
 
 /**
  * Query keys for contact-related queries
@@ -182,7 +183,7 @@ export function useCreateContactWithDetails() {
           }
 
           // Insert category relations
-          const uniqueCats = Array.from(new Set(categoryIds));
+          const uniqueCats = unique(categoryIds);
           for (const categoryId of uniqueCats) {
             try {
               await tx.execute(

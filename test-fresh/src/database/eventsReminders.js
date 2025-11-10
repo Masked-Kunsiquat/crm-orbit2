@@ -4,6 +4,7 @@
 import { DatabaseError, logger } from '../errors';
 import { toSQLiteDateTime } from '../utils/dateUtils';
 import { is } from '../utils/validators';
+import { chunk } from '../utils/arrayHelpers';
 
 const REMINDER_FIELDS = [
   'event_id',
@@ -602,10 +603,11 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
 
         // SQLite parameter limit is typically 999, use chunks of 500 for safety
         const CHUNK_SIZE = 500;
+        const chunks = chunk(uniqueValidIds, CHUNK_SIZE);
 
-        for (let i = 0; i < uniqueValidIds.length; i += CHUNK_SIZE) {
-          const chunk = uniqueValidIds.slice(i, i + CHUNK_SIZE);
-          const placeholders = chunk.map(() => '?').join(', ');
+        for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+          const idChunk = chunks[chunkIndex];
+          const placeholders = idChunk.map(() => '?').join(', ');
 
           const sql = `
             UPDATE event_reminders
@@ -614,18 +616,18 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           `;
 
           try {
-            const result = await tx.execute(sql, chunk);
+            const result = await tx.execute(sql, idChunk);
             totalAffected += result.rowsAffected || 0;
           } catch (error) {
             logger.error('EventsRemindersDB', 'markRemindersFailed', error, {
-              chunkStart: i,
-              chunkSize: chunk.length
+              chunkIndex,
+              chunkSize: idChunk.length
             });
             throw new DatabaseError(
-              `Failed to mark reminders as failed (chunk ${Math.floor(i / CHUNK_SIZE) + 1})`,
+              `Failed to mark reminders as failed (chunk ${chunkIndex + 1})`,
               'UPDATE_FAILED',
               error,
-              { chunkStart: i, chunkSize: chunk.length }
+              { chunkIndex, chunkSize: idChunk.length }
             );
           }
         }

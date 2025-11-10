@@ -8,6 +8,7 @@ import InteractionDetailModal from '../components/InteractionDetailModal';
 import { contactsDB } from '../database';
 import { useInteractions } from '../hooks/queries';
 import { logger } from '../errors';
+import { unique } from '../utils/arrayHelpers';
 
 const INTERACTION_TYPES = [
   { value: 'all', i18n: 'interactions.filters.all', icon: 'format-list-bulleted' },
@@ -39,7 +40,7 @@ export default function InteractionsScreen({ navigation }) {
   // Load contacts when interactions change
   useEffect(() => {
     const loadContacts = async () => {
-      const contactIds = [...new Set(interactions.map(i => i.contact_id))];
+      const contactIds = unique(interactions.map(i => i.contact_id));
 
       try {
         // Batch fetch all contacts in a single query
