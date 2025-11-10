@@ -3,7 +3,7 @@
 **Last Updated**: November 10, 2025
 **Project Location**: `crm-orbit/test-fresh/`
 **Repository**: https://github.com/Masked-Kunsiquat/crm-orbit2
-**Status**: Active Development - Helper Functions Implementation Phase (8/12 Complete)
+**Status**: Active Development - Helper Functions Implementation Phase (9/11 Complete)
 
 ---
 
@@ -19,7 +19,7 @@ Expo CRM is a modern, offline-first Customer Relationship Management (CRM) appli
 - **SQLite local storage** with modern async/await API
 - **TanStack Query** for data fetching and caching
 - **Material Design 3** UI with React Native Paper
-- **535+ duplicate patterns eliminated** through systematic helper function implementation
+- **537+ duplicate patterns eliminated** through systematic helper function implementation
 
 ---
 
@@ -95,11 +95,12 @@ crm-orbit/
 - **Screens** (6): ContactsList, ContactDetailScreen (25 KB), InteractionsScreen, EventsList, SettingsScreen (14 KB), AuthLockScreen, PinSetupScreen
 - **Components** (8): ContactCard, ContactAvatar, AddContactModal (17 KB), EditContactModal (16 KB), AddInteractionModal (18 KB), AddEventModal (20 KB), InteractionCard, InteractionDetailModal
 
-**Utilities** (8+ files, 66 KB):
+**Utilities** (9+ files, 69 KB):
 - **validators.js** ✅ (15+ validation functions)
 - **stringHelpers.js** ✅ (7 string functions)
 - **contactHelpers.js** ✅ (4 contact formatting functions)
 - **fileHelpers.js** ✅ (3 file utility functions)
+- **permissionHelpers.js** ✅ (2 permission request functions)
 - **dateUtils.js** (18 KB, 10+ date functions)
 - **__tests__/** (test files)
 
@@ -741,6 +742,46 @@ buildInsert(table, data)      // Complete INSERT statement with placeholders
 **Usage**:
 - 8 database modules (contacts, companies, categories, events, interactions, notes, contactsInfo, attachments)
 - **Impact**: 40+ duplicate SQL patterns eliminated (100% migration)
+
+### ✅ File Helpers (fileHelpers.js)
+
+```javascript
+getFileExtension(filename)    // Extract file extension (lowercase)
+isImageFile(filename)         // Check if file is an image by extension
+formatFileSize(bytes, decimals) // Format bytes to human-readable size
+```
+
+**Supported Image Formats**:
+- Common: jpg, jpeg, png, gif, webp
+- Modern: heic, heif (iOS), avif (AV1 Image Format)
+
+**Usage**:
+- fileService.js for MIME type detection and file handling
+- **Impact**: 2 duplicate file extension patterns eliminated (100% migration)
+
+### ✅ Permission Helpers (permissionHelpers.js)
+
+```javascript
+requestPermission(requestFn, permissionName, customMessage)
+  // Request permission with user feedback
+  // Returns: Promise<boolean>
+
+checkPermission(checkFn, permissionName)
+  // Check permission status without requesting
+  // Returns: Promise<boolean>
+```
+
+**Features**:
+- Consistent error messaging and user alerts
+- Automatic logging (success/warn/error)
+- Try-catch wrapper for safety
+- Custom message support
+
+**Usage**:
+- ContactDetailScreen.js (ImagePicker media library permission)
+- AddContactModal.js (Expo Contacts permission)
+- **Impact**: 2 duplicate permission UI patterns eliminated (100% migration)
+- **Note**: Service-level abstractions (notificationService, contactSyncService) already exist
 
 ---
 
@@ -1395,10 +1436,10 @@ translation.json:
 
 ### Current Phase: Helper Functions Implementation
 
-**Overall Progress**: **8/12 categories complete (67%)**
-**Instances Addressed**: **535+ / 586+ (91%)**
+**Overall Progress**: **9/11 categories complete (82%)**
+**Instances Addressed**: **537+ / 591+ (91%)**
 
-### ✅ Completed Categories (8/12)
+### ✅ Completed Categories (9/11)
 
 #### 1. Error Handling & Logging ✅
 - **File**: `errors/utils/errorLogger.js` (211 lines)
@@ -1465,23 +1506,28 @@ translation.json:
 - **Files**: 1 file migrated (fileService.js)
 - **Features**:
   - getFileExtension() - Safe file extension extraction with validation
-  - isImageFile() - Image type detection by extension (jpg, png, gif, webp, heic, heif)
-  - formatFileSize() - Human-readable byte formatting (Bytes, KB, MB, GB, TB)
+  - isImageFile() - Image type detection by extension (jpg, png, gif, webp, heic, heif, avif)
+  - formatFileSize() - Human-readable byte formatting with robust validation (Bytes, KB, MB, GB, TB)
 - **Impact**: Eliminated duplicate file extension extraction patterns, consistent file handling
 
-### ⏳ Remaining Categories (4/12)
+#### 9. Permission Request Helpers ✅
+- **File**: `utils/permissionHelpers.js` (3.2 KB)
+- **Functions**: 2 helpers (requestPermission, checkPermission)
+- **Instances**: 2/2 (100%)
+- **Files**: 2 UI files migrated (ContactDetailScreen.js, AddContactModal.js)
+- **Features**:
+  - requestPermission() - Request permission with user feedback and error handling
+  - checkPermission() - Check permission status without requesting
+- **Impact**: Consistent permission UX, centralized error handling, DRY principle
+- **Note**: Service files (notificationService, contactSyncService) already have proper abstraction
 
-1. **Permission Request Helpers** (4 instances)
-   - requestPermission wrapper
+### ⏳ Remaining Categories (2/11)
 
-2. **Array Utilities** (4+ instances)
+1. **Array Utilities** (4+ instances)
    - chunk, unique, uniqueBy
 
-3. **Component Patterns** (10+ instances)
+2. **Component Patterns** (10+ instances)
    - useAsyncOperation, loading state management
-
-4. **Date Formatting** (varies)
-   - formatDateSmart usage, date display utilities
 
 ### Code Quality Metrics
 
@@ -1493,12 +1539,12 @@ translation.json:
 | Service Modules | 8 services |
 | Components | 8 UI components |
 | Screens | 6 screens |
-| Utility Modules | 5 helpers (validators, stringHelpers, contactHelpers, fileHelpers, dateUtils) |
+| Utility Modules | 6 helpers (validators, stringHelpers, contactHelpers, fileHelpers, permissionHelpers, dateUtils) |
 | Query Helpers | 1 helper (queryHelpers) |
 | Error Classes | 5 error types |
-| Helper Functions | 47+ functions across 7 utilities |
-| Duplicate Patterns Identified | 586+ |
-| Patterns Eliminated | 535+ (91%) |
+| Helper Functions | 49+ functions across 8 utilities |
+| Duplicate Patterns Identified | 591+ |
+| Patterns Eliminated | 537+ (91%) |
 | Code Reduction | ~400 lines |
 | Test Coverage | dateUtils tested, expanding |
 
