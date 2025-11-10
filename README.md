@@ -111,7 +111,7 @@ This project is actively undergoing code quality improvements and refactoring:
 - **Phase 3 Complete**: String manipulation helpers
 - **Phase 4 Complete**: SQL building helpers
 
-See [AUDIT-RESULTS.md](./AUDIT-RESULTS.md) for detailed progress on helper function implementation (4/12 categories complete).
+See [AUDIT-RESULTS.md](./docs/AUDIT-RESULTS.md) for detailed progress on helper function implementation (4/12 categories complete).
 
 ## Testing
 

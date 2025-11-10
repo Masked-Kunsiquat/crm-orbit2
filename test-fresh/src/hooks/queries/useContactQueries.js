@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { contactsDB, contactsInfoDB, categoriesRelationsDB, transaction } from '../../database';
 import { safeTrim, normalizeTrimLowercase, filterNonEmptyStrings } from '../../utils/stringHelpers';
+import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
 /**
  * Query keys for contact-related queries
@@ -126,11 +127,11 @@ export function useCreateContact() {
 
   return useMutation({
     mutationFn: (contactData) => contactsDB.create(contactData),
-    onSuccess: () => {
-      // Invalidate and refetch all contact lists (basic and enriched)
-      queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: contactKeys.listsWithInfo() });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      [contactKeys.lists(), contactKeys.listsWithInfo()],
+      { context: 'useCreateContact' }
+    ),
   });
 }
 
@@ -229,11 +230,11 @@ export function useCreateContactWithDetails() {
         return contact;
       }
     },
-    onSuccess: () => {
-      // Invalidate all contact lists
-      queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: contactKeys.listsWithInfo() });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      [contactKeys.lists(), contactKeys.listsWithInfo()],
+      { context: 'useCreateContactWithDetails' }
+    ),
   });
 }
 
@@ -245,12 +246,17 @@ export function useUpdateContact() {
 
   return useMutation({
     mutationFn: ({ id, data }) => contactsDB.update(id, data),
-    onSuccess: (_, { id }) => {
-      // Invalidate specific contact and all lists
-      queryClient.invalidateQueries({ queryKey: contactKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: contactKeys.listsWithInfo() });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      [contactKeys.details(), contactKeys.lists(), contactKeys.listsWithInfo()],
+      {
+        context: 'useUpdateContact',
+        onSuccess: (_, { id }) => {
+          // Additional invalidation for specific contact detail
+          invalidateQueries(queryClient, contactKeys.detail(id));
+        }
+      }
+    ),
   });
 }
 
@@ -262,10 +268,11 @@ export function useDeleteContact() {
 
   return useMutation({
     mutationFn: (id) => contactsDB.delete(id),
-    onSuccess: () => {
-      // Invalidate all contact queries
-      queryClient.invalidateQueries({ queryKey: contactKeys.all });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      contactKeys.all,
+      { context: 'useDeleteContact' }
+    ),
   });
 }
 
@@ -306,8 +313,7 @@ export function useToggleFavorite() {
 
     // Refetch on success or error
     onSettled: (_, __, id) => {
-      queryClient.invalidateQueries({ queryKey: contactKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: contactKeys.favorites() });
+      invalidateQueries(queryClient, contactKeys.detail(id), contactKeys.favorites());
     },
   });
 }

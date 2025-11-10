@@ -1,9 +1,9 @@
 # Expo CRM - Technical Documentation
 
-**Last Updated**: November 7, 2025
+**Last Updated**: November 9, 2025
 **Project Location**: `crm-orbit/test-fresh/`
 **Repository**: https://github.com/Masked-Kunsiquat/crm-orbit2
-**Status**: Active Development - Helper Functions Implementation Phase (5/12 Complete)
+**Status**: Active Development - Helper Functions Implementation Phase (7/12 Complete)
 
 ---
 
@@ -19,7 +19,7 @@ Expo CRM is a modern, offline-first Customer Relationship Management (CRM) appli
 - **SQLite local storage** with modern async/await API
 - **TanStack Query** for data fetching and caching
 - **Material Design 3** UI with React Native Paper
-- **490+ duplicate patterns eliminated** through systematic helper function implementation
+- **533+ duplicate patterns eliminated** through systematic helper function implementation
 
 ---
 
@@ -95,11 +95,15 @@ crm-orbit/
 - **Screens** (6): ContactsList, ContactDetailScreen (25 KB), InteractionsScreen, EventsList, SettingsScreen (14 KB), AuthLockScreen, PinSetupScreen
 - **Components** (8): ContactCard, ContactAvatar, AddContactModal (17 KB), EditContactModal (16 KB), AddInteractionModal (18 KB), AddEventModal (20 KB), InteractionCard, InteractionDetailModal
 
-**Utilities** (6+ files, 64 KB):
+**Utilities** (7+ files, 64 KB):
 - **validators.js** ✅ (15+ validation functions)
-- **stringHelpers.js** ✅ (8 string functions)
+- **stringHelpers.js** ✅ (7 string functions)
+- **contactHelpers.js** ✅ (4 contact formatting functions)
 - **dateUtils.js** (18 KB, 10+ date functions)
 - **__tests__/** (test files)
+
+**Hooks** (TanStack Query):
+- **queries/queryHelpers.js** ✅ (2 query helper functions)
 
 **Error Handling** (48 KB):
 - **base/** (AppError, ErrorCodes)
@@ -1390,10 +1394,10 @@ translation.json:
 
 ### Current Phase: Helper Functions Implementation
 
-**Overall Progress**: **5/12 categories complete (42%)**
-**Instances Addressed**: **490+ / 595+ (82%)**
+**Overall Progress**: **7/12 categories complete (58%)**
+**Instances Addressed**: **533+ / 595+ (90%)**
 
-### ✅ Completed Categories (5/12)
+### ✅ Completed Categories (7/12)
 
 #### 1. Error Handling & Logging ✅
 - **File**: `errors/utils/errorLogger.js` (211 lines)
@@ -1411,7 +1415,7 @@ translation.json:
 
 #### 3. String Manipulation ✅
 - **File**: `utils/stringHelpers.js` (4.8 KB)
-- **Functions**: 8 helpers (safeTrim, normalizeTrimLowercase, hasContent, filterNonEmpty, filterNonEmptyStrings, capitalize, truncate, getContactDisplayName)
+- **Functions**: 7 helpers (safeTrim, normalizeTrimLowercase, hasContent, filterNonEmpty, filterNonEmptyStrings, capitalize, truncate)
 - **Instances**: 43/43 (100%)
 - **Files**: 15 files migrated
 - **Impact**: Zero remaining manual `.trim()` operations, consistent string handling
@@ -1430,28 +1434,45 @@ translation.json:
 - **Files**: 23 files (19 DB, 2 services, 2 utils)
 - **Impact**: Zero remaining typeof/Array.isArray patterns, type-safe validation
 
-### ⏳ Remaining Categories (7/12)
+#### 6. Contact Helpers ✅
+- **File**: `utils/contactHelpers.js`
+- **Functions**: 4 helpers (getContactDisplayName, getInitials, normalizePhoneNumber, formatPhoneNumber)
+- **Instances**: 16/16 (100%)
+- **Files**: 11 files migrated (7 components, 2 screens, 1 service, 1 database)
+- **Enhancements**:
+  - getInitials() with Unicode support (multi-byte characters, emoji)
+  - formatPhoneNumber() with international number preservation
+  - Screen wrappers preserve '+' prefix for tel: URLs
+- **Impact**: Zero remaining duplicate contact formatting code
 
-1. **Display Name & Contact Formatting** (12 instances)
-   - getContactDisplayName (1 usage so far), getInitials
+#### 7. TanStack Query Helpers ✅
+- **File**: `hooks/queries/queryHelpers.js` (131 lines)
+- **Functions**: 2 helpers (invalidateQueries, createMutationHandlers)
+- **Instances**: 27/27 (100%)
+- **Files**: 4 query hook files (useContactQueries, useEventQueries, useInteractionQueries, useNoteQueries)
+- **Features**:
+  - invalidateQueries() - Parallel invalidation of multiple query keys
+  - createMutationHandlers() - Standardized onSuccess/onError with automatic invalidation
+  - Supports custom success/error callbacks
+  - Consistent error logging with context for all mutations
+- **Impact**: Eliminated 27 duplicate query invalidation patterns, centralized mutation logic
 
-2. **Phone Number Utilities** (4 instances)
-   - normalizePhoneNumber, formatPhoneNumber
+### ⏳ Remaining Categories (5/12)
 
-3. **TanStack Query Helpers** (27 instances)
-   - invalidateQueries wrapper, mutation handlers
-
-4. **File & Format Helpers** (5 instances)
+1. **File & Format Helpers** (5 instances)
    - getFileExtension, isImageFile, formatFileSize
 
-5. **Permission Request Helpers** (4 instances)
+2. **Permission Request Helpers** (4 instances)
    - requestPermission wrapper
 
-6. **Array Utilities** (4+ instances)
+3. **Array Utilities** (4+ instances)
    - chunk, unique, uniqueBy
 
-7. **Component Patterns** (10+ instances)
+4. **Component Patterns** (10+ instances)
    - useAsyncOperation, loading state management
+
+5. **Date Formatting** (varies)
+   - formatDateSmart usage, date display utilities
 
 ### Code Quality Metrics
 
@@ -1463,11 +1484,12 @@ translation.json:
 | Service Modules | 8 services |
 | Components | 8 UI components |
 | Screens | 6 screens |
-| Utility Modules | 3 helpers (validators, stringHelpers, dateUtils) |
+| Utility Modules | 4 helpers (validators, stringHelpers, contactHelpers, dateUtils) |
+| Query Helpers | 1 helper (queryHelpers) |
 | Error Classes | 5 error types |
-| Helper Functions | 42+ functions across 5 utilities |
+| Helper Functions | 44+ functions across 6 utilities |
 | Duplicate Patterns Identified | 595+ |
-| Patterns Eliminated | 490+ (82%) |
+| Patterns Eliminated | 533+ (90%) |
 | Code Reduction | ~400 lines |
 | Test Coverage | dateUtils tested, expanding |
 

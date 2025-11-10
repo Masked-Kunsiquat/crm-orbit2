@@ -16,7 +16,7 @@ After analyzing **85+ files** across the codebase, we identified **54 specific o
 - **MEDIUM PRIORITY** (3-4 instances): 15 opportunities
 - **LOW PRIORITY** (2 instances): 11 opportunities
 
-### Current Progress: 6/12 Categories ✅
+### Current Progress: 7/12 Categories ✅
 
 **Completed:**
 - ✅ **Error Handling & Logging** - 236+ instances addressed with logger utility
@@ -48,16 +48,22 @@ After analyzing **85+ files** across the codebase, we identified **54 specific o
   - Migrated: 11 display name instances, 1 initials instance, 4 phone normalization instances
   - Zero remaining duplicate contact formatting code
   - Enhanced getInitials() with Unicode support for multi-byte characters
+- ✅ **TanStack Query Helpers** - ALL 27 query invalidation patterns migrated (100% COMPLETE!)
+  - Implementation: `crm-orbit/test-fresh/src/hooks/queries/queryHelpers.js`
+  - 2 helper functions created: invalidateQueries(), createMutationHandlers()
+  - Migrated: 4 query hook files (useContactQueries, useEventQueries, useInteractionQueries, useNoteQueries)
+  - Zero remaining duplicate query invalidation code
+  - Consistent error logging and centralized mutation handling
 
 **Remaining:**
-- 6 categories with ~83 duplicate patterns to address
+- 5 categories with ~56 duplicate patterns to address
 
 ### Expected Impact
 - **~400 lines** of code reduction
 - **85+ files** would benefit from helpers
 - **595+ instances** of duplicate code to be eliminated
 - Significantly improved maintainability and consistency
-- **506+ instances already using helpers** (236+ Error Handling + 55 Alerts + 43 String Manipulation + 40+ SQL Building + 116+ Validation + 16 Contact Helpers)
+- **533+ instances already using helpers** (236+ Error Handling + 55 Alerts + 43 String Manipulation + 40+ SQL Building + 116+ Validation + 16 Contact Helpers + 27 TanStack Query)
 
 ---
 
@@ -994,10 +1000,13 @@ export function validateRequired(data, rules) {
 
 ---
 
-## 8. TanStack Query Helpers
+## 8. ✅ COMPLETED: TanStack Query Helpers
 
-### **HIGH: Query Invalidation Pattern** (27 instances)
-**Severity:** HIGH | **Files:** 5
+**Status:** ✅ FULLY COMPLETE
+**Implementation:** `crm-orbit/test-fresh/src/hooks/queries/queryHelpers.js`
+
+### **HIGH: Query Invalidation Pattern** (27 instances → ALL MIGRATED ✅)
+**Severity:** HIGH | **Files:** 4 → 0 remaining
 
 **Pattern:**
 ```javascript
@@ -1006,46 +1015,42 @@ queryClient.invalidateQueries({ queryKey: someKeys.lists() });
 await queryClient.invalidateQueries({ queryKey: [...] });
 ```
 
-**Detailed Locations:**
+**Locations (ALL MIGRATED):**
 
-**hooks/queries/useContactQueries.js** (9 instances):
-- Line ~50: After createContact mutation
-- Line ~52: Additional invalidation
-- Line ~70: After updateContact mutation
-- Line ~72: Invalidate lists
-- Line ~90: After deleteContact mutation
-- Line ~92: Invalidate all queries
-- Line ~110: After batch operation
-- Line ~130: After import
-- Line ~145: After sync
+**hooks/queries/useContactQueries.js** (9 instances → ALL MIGRATED ✅):
+- ✅ Line 131-132: useCreateContact → createMutationHandlers (2 invalidations)
+- ✅ Line 233-235: useCreateContactWithDetails → createMutationHandlers (2 invalidations)
+- ✅ Line 249-257: useUpdateContact → createMutationHandlers + custom onSuccess (3 invalidations)
+- ✅ Line 271-273: useDeleteContact → createMutationHandlers (1 invalidation)
+- ✅ Line 316: useToggleFavorite onSettled → invalidateQueries (2 invalidations)
 
-**hooks/queries/useEventQueries.js** (5 instances):
-- Line ~45: After createEvent mutation
-- Line ~65: After updateEvent mutation
-- Line ~85: After deleteEvent mutation
-- Line ~100: After batch update
-- Line ~120: After recurring event creation
+**hooks/queries/useEventQueries.js** (10 instances → ALL MIGRATED ✅):
+- ✅ Line 82-84: useCreateEvent → createMutationHandlers (1 invalidation)
+- ✅ Line 99-101: useCreateEventWithReminders → createMutationHandlers (1 invalidation)
+- ✅ Line 115-123: useUpdateEvent → createMutationHandlers + custom onSuccess (3 invalidations)
+- ✅ Line 138-146: useUpdateEventReminders → createMutationHandlers + custom onSuccess (3 invalidations)
+- ✅ Line 160-162: useDeleteEvent → createMutationHandlers (1 invalidation)
 
-**hooks/queries/useInteractionQueries.js** (6 instances):
-- Line ~40: After createInteraction mutation
-- Line ~60: After updateInteraction mutation
-- Line ~80: After deleteInteraction mutation
-- Line ~95: After bulk delete
-- Line ~110: After type change
-- Line ~125: After contact reassignment
+**hooks/queries/useInteractionQueries.js** (6 instances → ALL MIGRATED ✅):
+- ✅ Line 88-90: useCreateInteraction → createMutationHandlers (1 invalidation)
+- ✅ Line 104-112: useUpdateInteraction → createMutationHandlers + custom onSuccess (3 invalidations)
+- ✅ Line 126-128: useDeleteInteraction → createMutationHandlers (1 invalidation)
 
-**hooks/queries/useNoteQueries.js** (7 instances):
-- Line ~35: After createNote mutation
-- Line ~55: After updateNote mutation
-- Line ~75: After deleteNote mutation
-- Line ~90: After pin/unpin
-- Line ~105: After bulk operations
-- Line ~120: After category change
-- Line ~135: After search
+**hooks/queries/useNoteQueries.js** (7 instances → ALL MIGRATED ✅):
+- ✅ Line 70-72: useCreateNote → createMutationHandlers (1 invalidation)
+- ✅ Line 86-94: useUpdateNote → createMutationHandlers + custom onSuccess (3 invalidations)
+- ✅ Line 108-110: useDeleteNote → createMutationHandlers (1 invalidation)
+- ✅ Line 153: useTogglePinned onSettled → invalidateQueries (2 invalidations)
 
-**Proposed Helper:**
+**Total: 27 duplicate invalidation patterns → 0 remaining**
+
+**Implemented Helpers:**
 ```javascript
 // hooks/queries/queryHelpers.js
+
+/**
+ * Invalidate multiple query keys at once
+ */
 export function invalidateQueries(queryClient, ...queryKeys) {
   return Promise.all(
     queryKeys.map(key =>
@@ -1054,15 +1059,62 @@ export function invalidateQueries(queryClient, ...queryKeys) {
   );
 }
 
-export function createMutationHandlers(queryClient, keysToInvalidate) {
+/**
+ * Create standardized mutation handlers with automatic query invalidation
+ */
+export function createMutationHandlers(queryClient, keysToInvalidate, options = {}) {
+  const {
+    onSuccess: customOnSuccess,
+    onError: customOnError,
+    successMessage,
+    context = 'Mutation'
+  } = options;
+
+  // Normalize keysToInvalidate to always be an array
+  const keys = Array.isArray(keysToInvalidate) ? keysToInvalidate : [keysToInvalidate];
+
   return {
-    onSuccess: () => invalidateQueries(queryClient, ...keysToInvalidate),
-    onError: (error) => {
-      logger.error('Mutation', 'failed', error);
+    onSuccess: async (...args) => {
+      // Invalidate all specified queries
+      await invalidateQueries(queryClient, ...keys);
+
+      // Log success if message provided
+      if (successMessage) {
+        logger.success(context, successMessage);
+      }
+
+      // Call custom success handler if provided
+      if (customOnSuccess) {
+        customOnSuccess(...args);
+      }
+    },
+
+    onError: (error, ...args) => {
+      // Log error with context
+      logger.error(context, 'mutation failed', error);
+
+      // Call custom error handler if provided
+      if (customOnError) {
+        customOnError(error, ...args);
+      }
     }
   };
 }
 ```
+
+**Migration Status: ✅ 100% COMPLETE**
+- ✅ queryHelpers.js created with 2 helper functions
+- ✅ invalidateQueries() - Parallel invalidation of multiple query keys
+- ✅ createMutationHandlers() - Standardized mutation handlers with automatic invalidation
+- ✅ **ALL 4 query hook files migrated:**
+  - ✅ useContactQueries.js (9 invalidations → 5 helper calls)
+  - ✅ useEventQueries.js (10 invalidations → 7 helper calls)
+  - ✅ useInteractionQueries.js (6 invalidations → 4 helper calls)
+  - ✅ useNoteQueries.js (7 invalidations → 5 helper calls)
+- ✅ Consistent error logging with context for all mutations
+- ✅ Centralized invalidation logic
+- ✅ Maintains optimistic update patterns (useToggleFavorite, useTogglePinned)
+- ✅ Zero remaining duplicate query invalidation code
 
 ---
 
@@ -1334,12 +1386,12 @@ export function useAsyncOperation(asyncFn) {
 | Error Handling & Logging | 3 | 236+ | 30+ | HIGH | ✅ **COMPLETE** |
 | Alerts | 1 | 55 | 8 | HIGH | ✅ **COMPLETE** |
 | Validation | 15+ | 145+ | 23 | HIGH | ✅ **COMPLETE** |
-| TanStack Query | 2 | 27 | 5 | HIGH | ⏳ TODO |
+| TanStack Query | 2 | 27 | 4 | HIGH | ✅ **COMPLETE** |
 | File Handling | 3 | 5 | 2 | MEDIUM | ⏳ TODO |
 | Permissions | 1 | 4 | 3 | LOW | ⏳ TODO |
 | Array Utilities | 3 | 4+ | 4 | MEDIUM | ⏳ TODO |
 | Component Patterns | 1 | 10+ | 8+ | MEDIUM | ⏳ TODO |
-| **TOTAL** | **44+** | **589+** | **85+** | - | **6/12 Complete** |
+| **TOTAL** | **44+** | **589+** | **85+** | - | **7/12 Complete** |
 
 ---
 
@@ -1372,8 +1424,12 @@ export function useAsyncOperation(asyncFn) {
    - 16 instances migrated across 11 files (11 display name + 1 initials + 4 phone)
    - Enhanced with Unicode support for multi-byte characters
    - Zero remaining duplicate contact formatting code
-7. ⏳ **TanStack Query Helpers** - Better data management patterns
-   - 27 instances across 5 files
+7. ✅ **TanStack Query Helpers** - COMPLETE - Better data management patterns
+   - 2 helper functions: invalidateQueries(), createMutationHandlers()
+   - 27 instances migrated across 4 files (useContactQueries, useEventQueries, useInteractionQueries, useNoteQueries)
+   - Centralized mutation handling with automatic query invalidation
+   - Consistent error logging for all mutations
+   - Zero remaining duplicate query invalidation patterns
 
 ### Week 3: Polish & Optimization (PENDING)
 8. ⏳ **File Helpers** - Service layer improvements
