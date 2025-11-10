@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notesDB } from '../../database';
+import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
 /**
  * Query keys for note-related queries
@@ -66,10 +67,11 @@ export function useCreateNote() {
 
   return useMutation({
     mutationFn: (noteData) => notesDB.create(noteData),
-    onSuccess: () => {
-      // Invalidate all note queries
-      queryClient.invalidateQueries({ queryKey: noteKeys.all });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      noteKeys.all,
+      { context: 'useCreateNote' }
+    ),
   });
 }
 
@@ -81,12 +83,17 @@ export function useUpdateNote() {
 
   return useMutation({
     mutationFn: ({ id, data }) => notesDB.update(id, data),
-    onSuccess: (_, { id }) => {
-      // Invalidate specific note and lists
-      queryClient.invalidateQueries({ queryKey: noteKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: noteKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: noteKeys.pinned() });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      [noteKeys.lists(), noteKeys.pinned()],
+      {
+        context: 'useUpdateNote',
+        onSuccess: (_, { id }) => {
+          // Additional invalidation for specific note detail
+          invalidateQueries(queryClient, noteKeys.detail(id));
+        }
+      }
+    ),
   });
 }
 
@@ -98,10 +105,11 @@ export function useDeleteNote() {
 
   return useMutation({
     mutationFn: (id) => notesDB.delete(id),
-    onSuccess: () => {
-      // Invalidate all note queries
-      queryClient.invalidateQueries({ queryKey: noteKeys.all });
-    },
+    ...createMutationHandlers(
+      queryClient,
+      noteKeys.all,
+      { context: 'useDeleteNote' }
+    ),
   });
 }
 
@@ -142,8 +150,7 @@ export function useTogglePinned() {
 
     // Refetch on success or error
     onSettled: (_, __, id) => {
-      queryClient.invalidateQueries({ queryKey: noteKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: noteKeys.pinned() });
+      invalidateQueries(queryClient, noteKeys.detail(id), noteKeys.pinned());
     },
   });
 }
