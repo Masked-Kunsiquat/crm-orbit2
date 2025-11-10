@@ -3,6 +3,7 @@ import { Avatar } from 'react-native-paper';
 import { fileService } from '../services/fileService';
 import { logger } from '../errors';
 import { getInitials } from '../utils/contactHelpers';
+import { useAsyncLoading } from '../hooks/useAsyncOperation';
 
 /**
  * Reusable ContactAvatar component
@@ -15,7 +16,13 @@ import { getInitials } from '../utils/contactHelpers';
  */
 export default function ContactAvatar({ contact, size = 48, style }) {
   const [avatarUri, setAvatarUri] = useState(null);
-  const [loading, setLoading] = useState(false);
+
+  const { execute: loadAvatarFromAttachment, loading } = useAsyncLoading(
+    async (attachmentId) => {
+      const uri = await fileService.getFileUri(attachmentId);
+      return uri;
+    }
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -23,20 +30,13 @@ export default function ContactAvatar({ contact, size = 48, style }) {
     const loadAvatar = async () => {
       // Priority 1: Load from attachment
       if (contact?.avatar_attachment_id) {
-        setLoading(true);
-        try {
-          const uri = await fileService.getFileUri(contact.avatar_attachment_id);
-          if (mounted) {
+        const uri = await loadAvatarFromAttachment(contact.avatar_attachment_id);
+        if (mounted) {
+          if (uri) {
             setAvatarUri(uri);
-          }
-        } catch (error) {
-          logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id, error: error.message, stack: error.stack });
-          if (mounted) {
+          } else {
+            logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id });
             setAvatarUri(null);
-          }
-        } finally {
-          if (mounted) {
-            setLoading(false);
           }
         }
       }
@@ -55,7 +55,7 @@ export default function ContactAvatar({ contact, size = 48, style }) {
     return () => {
       mounted = false;
     };
-  }, [contact?.avatar_attachment_id, contact?.avatar_uri]);
+  }, [contact?.avatar_attachment_id, contact?.avatar_uri, loadAvatarFromAttachment]);
 
   // Show avatar image if we have a URI
   if (avatarUri) {

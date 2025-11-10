@@ -3,12 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card, HelperText, Text, TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
+import { useAsyncLoading } from '../hooks/useAsyncOperation';
 
 export default function AuthLockScreen() {
   const { authenticate, authenticateWithPIN } = useAuth();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [mode, setMode] = useState('pin'); // 'biometric' | 'pin'
 
@@ -24,38 +24,30 @@ export default function AuthLockScreen() {
 
   const canSubmit = useMemo(() => pin && pin.length >= 4, [pin]);
 
-  const onBiometric = async () => {
-    setBusy(true);
+  const { execute: onBiometric, loading: biometricBusy } = useAsyncLoading(async () => {
     setError('');
-    try {
-      const r = await authenticate({ promptMessage: 'Unlock CRM' });
-      if (!r?.success) {
-        if (r?.method === 'pin_required') {
-          setMode('pin');
-        } else {
-          setError(r?.error || 'Biometric authentication failed');
-        }
+    const r = await authenticate({ promptMessage: 'Unlock CRM' });
+    if (!r?.success) {
+      if (r?.method === 'pin_required') {
+        setMode('pin');
       } else {
-        setMode('biometric');
+        setError(r?.error || 'Biometric authentication failed');
       }
-    } finally {
-      setBusy(false);
+    } else {
+      setMode('biometric');
     }
-  };
+  });
 
-  const onSubmitPin = async () => {
+  const { execute: onSubmitPin, loading: pinBusy } = useAsyncLoading(async () => {
     if (!canSubmit) return;
-    setBusy(true);
     setError('');
-    try {
-      const r = await authenticateWithPIN(pin);
-      if (!r?.success) {
-        setError(r?.error || 'Invalid PIN');
-      }
-    } finally {
-      setBusy(false);
+    const r = await authenticateWithPIN(pin);
+    if (!r?.success) {
+      setError(r?.error || 'Invalid PIN');
     }
-  };
+  });
+
+  const busy = biometricBusy || pinBusy;
 
   // Auto-attempt biometric when available and in biometric mode
   React.useEffect(() => {
