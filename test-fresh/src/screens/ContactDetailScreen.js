@@ -27,6 +27,7 @@ import InteractionDetailModal from '../components/InteractionDetailModal';
 import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
 import { compareDates, formatDateSmart, isFuture, isToday } from '../utils/dateUtils';
 import { getContactDisplayName, normalizePhoneNumber as normalizePhone, formatPhoneNumber as formatPhone } from '../utils/contactHelpers';
+import { requestPermission } from '../utils/permissionHelpers';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -247,11 +248,12 @@ export default function ContactDetailScreen({ route, navigation }) {
         return;
       }
 
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        showAlert.error('Permission required', 'Media library permission is required to select a photo.');
-        return;
-      }
+      const granted = await requestPermission(
+        ImagePicker.requestMediaLibraryPermissionsAsync,
+        'Media library',
+        'Media library permission is required to select a photo.'
+      );
+      if (!granted) return;
 
       // Use modern array syntax for media types (v17+)
       const mediaTypes = ['images'];

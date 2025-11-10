@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useCreateContactWithDetails } from '../hooks/queries';
 import { handleError, showAlert } from '../errors';
 import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
+import { requestPermission } from '../utils/permissionHelpers';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -92,11 +93,12 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
   const handleImportFromContacts = async () => {
     try {
       // Request permissions
-      const { status } = await Contacts.requestPermissionsAsync();
-      if (status !== 'granted') {
-        showAlert.error(t('addContact.permissionMsg'), t('addContact.permissionTitle'));
-        return;
-      }
+      const granted = await requestPermission(
+        Contacts.requestPermissionsAsync,
+        'Contacts',
+        t('addContact.permissionMsg')
+      );
+      if (!granted) return;
 
       // Present the native contact picker (Android requires READ_CONTACTS permission)
       const contact = await Contacts.presentContactPickerAsync();
