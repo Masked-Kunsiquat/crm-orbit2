@@ -26,6 +26,7 @@ const FILE_CONFIG = {
       'image/heic-sequence',
       'image/heif-sequence',
       'image/webp',
+      'image/avif',
     ],
     document: [
       'application/pdf',
@@ -111,6 +112,7 @@ function detectMimeTypeFromName(name) {
     webp: 'image/webp',
     heic: 'image/heic',
     heif: 'image/heif',
+    avif: 'image/avif',
     pdf: 'application/pdf',
     doc: 'application/msword',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
