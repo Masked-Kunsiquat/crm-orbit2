@@ -19,6 +19,7 @@ import { useCreateInteraction, useUpdateInteraction, useDeleteInteraction, useCo
 import { setDatePart, setTimePart, formatShortDate, formatTime } from '../utils/dateUtils';
 import { handleError, showAlert } from '../errors';
 import { safeTrim, hasContent, filterNonEmptyStrings } from '../utils/stringHelpers';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 const INTERACTION_TYPES = [
   { value: 'call', icon: 'phone' },
@@ -178,7 +179,7 @@ export default function AddInteractionModal({
   // Generate quick title suggestions based on interaction type
   const getQuickTitleSuggestion = () => {
     const contactName = selectedContact
-      ? selectedContact.display_name || filterNonEmptyStrings([selectedContact.first_name, selectedContact.last_name]).join(' ')
+      ? getContactDisplayName(selectedContact, 'Contact')
       : 'Contact';
 
     switch (interactionType) {
@@ -275,7 +276,7 @@ export default function AddInteractionModal({
                     disabled={isEditMode} // Can't change contact when editing
                   >
                     {selectedContact
-                      ? selectedContact.display_name || filterNonEmptyStrings([selectedContact.first_name, selectedContact.last_name]).join(' ')
+                      ? getContactDisplayName(selectedContact)
                       : t('addInteraction.labels.selectContact')}
                   </Button>
                 }
@@ -289,7 +290,7 @@ export default function AddInteractionModal({
                         setSelectedContactId(contact.id);
                         setContactMenuVisible(false);
                       }}
-                      title={contact.display_name || filterNonEmptyStrings([contact.first_name, contact.last_name]).join(' ')}
+                      title={getContactDisplayName(contact)}
                       leadingIcon={selectedContactId === contact.id ? 'check' : undefined}
                     />
                   ))}

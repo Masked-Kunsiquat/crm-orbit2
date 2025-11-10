@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Card, Text, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ContactAvatar from './ContactAvatar';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 export default function ContactCard({ contact, onPress }) {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export default function ContactCard({ contact, onPress }) {
             <ContactAvatar contact={contact} size={48} style={styles.avatar} />
             <View style={styles.info}>
               <Text variant="titleMedium" style={styles.name}>
-                {contact.display_name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown Contact'}
+                {getContactDisplayName(contact)}
               </Text>
               {(() => {
                 const companyName = contact.company?.name || contact.company_name;

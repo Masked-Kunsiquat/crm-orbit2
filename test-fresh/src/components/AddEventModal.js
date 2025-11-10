@@ -34,6 +34,7 @@ import {
 } from '../utils/dateUtils';
 import { handleError, showAlert } from '../errors';
 import { safeTrim, hasContent } from '../utils/stringHelpers';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 const EVENT_TYPES = [
   { value: 'birthday', icon: 'cake-variant' },
@@ -268,9 +269,7 @@ export default function AddEventModal({
     const contact = contacts.find(c => c.id === selectedContactId);
     if (!contact) return;
 
-    const contactName = contact.display_name ||
-      [contact.first_name, contact.last_name].filter(Boolean).join(' ') ||
-      'Unknown';
+    const contactName = getContactDisplayName(contact, 'Unknown');
     const quickTitle = t(`addEvent.quickTitles.${eventType}`, { name: contactName });
     setTitle(quickTitle);
   };
@@ -338,7 +337,7 @@ export default function AddEventModal({
                     style={styles.contactButton}
                   >
                     {selectedContact
-                      ? selectedContact.display_name || `${selectedContact.first_name} ${selectedContact.last_name || ''}`
+                      ? getContactDisplayName(selectedContact)
                       : t('addEvent.labels.selectContact')}
                   </Button>
                 }
@@ -351,7 +350,7 @@ export default function AddEventModal({
                         setSelectedContactId(contact.id);
                         setContactMenuVisible(false);
                       }}
-                      title={contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
+                      title={getContactDisplayName(contact)}
                     />
                   ))}
                 </ScrollView>

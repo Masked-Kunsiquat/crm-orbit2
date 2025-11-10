@@ -26,6 +26,7 @@ import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
 import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
 import { compareDates, formatDateSmart, isFuture, isToday } from '../utils/dateUtils';
+import { getContactDisplayName, normalizePhoneNumber as normalizePhone, formatPhoneNumber as formatPhone } from '../utils/contactHelpers';
 
 export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
@@ -66,7 +67,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     const trimmed = safeTrim(phoneNumber);
     // Preserve leading '+' for international numbers
     const hasPlus = trimmed.startsWith('+');
-    const digitsOnly = trimmed.replace(/\D/g, '');
+    const digitsOnly = normalizePhone(trimmed);
     if (!digitsOnly) return '';
     return hasPlus ? `+${digitsOnly}` : digitsOnly;
   };
@@ -222,14 +223,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     );
   };
 
-  const formatPhoneNumber = (phone) => {
-    if (!phone) return '';
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    return phone;
-  };
+  // Use imported formatPhone from contactHelpers (supports 10 and 11 digit formats)
 
   const getEventIcon = (eventType) => {
     const icons = {
@@ -371,7 +365,7 @@ export default function ContactDetailScreen({ route, navigation }) {
             <ContactAvatar contact={contact} size={100} style={styles.avatar} />
           </Pressable>
           <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
-            {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
+            {getContactDisplayName(contact)}
           </Text>
           {(contact.job_title || companyName) && (
             <Text
@@ -434,7 +428,7 @@ export default function ContactDetailScreen({ route, navigation }) {
             {phones.map((phone, index) => (
               <View key={phone.id}>
                 <List.Item
-                  title={formatPhoneNumber(phone.value)}
+                  title={formatPhone(phone.value)}
                   description={phone.label}
                   left={props => <List.Icon {...props} icon="phone" />}
                   right={props => (

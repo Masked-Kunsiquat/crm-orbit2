@@ -7,6 +7,7 @@ import * as Contacts from 'expo-contacts';
 import db from '../database';
 import { ServiceError, logger } from '../errors';
 import { safeTrim, normalizeTrimLowercase } from '../utils/stringHelpers';
+import { normalizePhoneNumber } from '../utils/contactHelpers';
 
 /**
  * Contact sync service error codes
@@ -722,7 +723,7 @@ class ContactSyncService {
           i => i.type === 'email' && normalizeTrimLowercase(i.value) === needle
         );
       };
-      const normalizePhone = (v) => String(v || '').replace(/\D/g, '');
+      const normalizePhone = normalizePhoneNumber;
       const hasPhone = (val) => {
         const needle = normalizePhone(val);
         return existingInfo.some(

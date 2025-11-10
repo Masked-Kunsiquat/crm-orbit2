@@ -10,6 +10,7 @@ import { categoriesDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
 import { useContactsWithInfo } from '../hooks/queries';
 import { safeTrim } from '../utils/stringHelpers';
+import { normalizePhoneNumber as normalizePhone } from '../utils/contactHelpers';
 
 export default function ContactsList({ navigation }) {
   const theme = useTheme();
@@ -51,7 +52,7 @@ export default function ContactsList({ navigation }) {
     const trimmed = safeTrim(phoneNumber);
     // Preserve leading '+' for international numbers
     const hasPlus = trimmed.startsWith('+');
-    const digitsOnly = trimmed.replace(/\D/g, '');
+    const digitsOnly = normalizePhone(trimmed);
     if (!digitsOnly) return '';
     return hasPlus ? `+${digitsOnly}` : digitsOnly;
   };

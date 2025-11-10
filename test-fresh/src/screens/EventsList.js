@@ -7,6 +7,7 @@ import { useEvents } from '../hooks/queries';
 import AddEventModal from '../components/AddEventModal';
 import { compareDates, formatDateSmart } from '../utils/dateUtils';
 import { logger } from '../errors';
+import { getContactDisplayName } from '../utils/contactHelpers';
 
 const EVENT_TYPES = [
   { value: 'all', i18n: 'events.filters.all', icon: 'calendar' },
@@ -108,7 +109,7 @@ export default function EventsList({ navigation }) {
             </Text>
             {contact && (
               <Text variant="bodySmall" style={[styles.contactName, { color: theme.colors.onSurfaceVariant }]}>
-                {contact.display_name || `${contact.first_name} ${contact.last_name || ''}`}
+                {getContactDisplayName(contact)}
               </Text>
             )}
           </View>
