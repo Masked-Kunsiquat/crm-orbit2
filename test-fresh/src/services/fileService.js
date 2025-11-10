@@ -5,6 +5,7 @@ import * as Crypto from 'expo-crypto';
 import db from '../database';
 import { ServiceError, logger } from '../errors';
 import { is } from '../utils/validators';
+import { getFileExtension } from '../utils/fileHelpers';
 
 /**
  * Global file handling configuration.
@@ -25,6 +26,7 @@ const FILE_CONFIG = {
       'image/heic-sequence',
       'image/heif-sequence',
       'image/webp',
+      'image/avif',
     ],
     document: [
       'application/pdf',
@@ -101,7 +103,7 @@ function isPathInsideDocumentDirectory(uri) {
  * @returns {string|null} The detected MIME type or null if unknown.
  */
 function detectMimeTypeFromName(name) {
-  const ext = (name.split('.').pop() || '').toLowerCase();
+  const ext = getFileExtension(name);
   const map = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -110,6 +112,7 @@ function detectMimeTypeFromName(name) {
     webp: 'image/webp',
     heic: 'image/heic',
     heif: 'image/heif',
+    avif: 'image/avif',
     pdf: 'application/pdf',
     doc: 'application/msword',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -194,8 +197,7 @@ export const fileService = {
 
       const fileType = getFileType(mimeType);
       const uuid = Crypto.randomUUID();
-      const parts = originalName.split('.');
-      const fileExtension = parts.length > 1 ? parts.pop().toLowerCase() : '';
+      const fileExtension = getFileExtension(originalName);
       const fileName = `${uuid}.${fileExtension}`;
 
       const directoryPath = getFileDirectory(fileType);

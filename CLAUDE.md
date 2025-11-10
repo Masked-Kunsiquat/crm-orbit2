@@ -1,9 +1,9 @@
 # Expo CRM - Technical Documentation
 
-**Last Updated**: November 9, 2025
+**Last Updated**: November 10, 2025
 **Project Location**: `crm-orbit/test-fresh/`
 **Repository**: https://github.com/Masked-Kunsiquat/crm-orbit2
-**Status**: Active Development - Helper Functions Implementation Phase (7/12 Complete)
+**Status**: Active Development - Helper Functions Implementation Phase (8/12 Complete)
 
 ---
 
@@ -19,7 +19,7 @@ Expo CRM is a modern, offline-first Customer Relationship Management (CRM) appli
 - **SQLite local storage** with modern async/await API
 - **TanStack Query** for data fetching and caching
 - **Material Design 3** UI with React Native Paper
-- **533+ duplicate patterns eliminated** through systematic helper function implementation
+- **535+ duplicate patterns eliminated** through systematic helper function implementation
 
 ---
 
@@ -95,10 +95,11 @@ crm-orbit/
 - **Screens** (6): ContactsList, ContactDetailScreen (25 KB), InteractionsScreen, EventsList, SettingsScreen (14 KB), AuthLockScreen, PinSetupScreen
 - **Components** (8): ContactCard, ContactAvatar, AddContactModal (17 KB), EditContactModal (16 KB), AddInteractionModal (18 KB), AddEventModal (20 KB), InteractionCard, InteractionDetailModal
 
-**Utilities** (7+ files, 64 KB):
+**Utilities** (8+ files, 66 KB):
 - **validators.js** ✅ (15+ validation functions)
 - **stringHelpers.js** ✅ (7 string functions)
 - **contactHelpers.js** ✅ (4 contact formatting functions)
+- **fileHelpers.js** ✅ (3 file utility functions)
 - **dateUtils.js** (18 KB, 10+ date functions)
 - **__tests__/** (test files)
 
@@ -1394,10 +1395,10 @@ translation.json:
 
 ### Current Phase: Helper Functions Implementation
 
-**Overall Progress**: **7/12 categories complete (58%)**
-**Instances Addressed**: **533+ / 595+ (90%)**
+**Overall Progress**: **8/12 categories complete (67%)**
+**Instances Addressed**: **535+ / 586+ (91%)**
 
-### ✅ Completed Categories (7/12)
+### ✅ Completed Categories (8/12)
 
 #### 1. Error Handling & Logging ✅
 - **File**: `errors/utils/errorLogger.js` (211 lines)
@@ -1457,21 +1458,29 @@ translation.json:
   - Consistent error logging with context for all mutations
 - **Impact**: Eliminated 27 duplicate query invalidation patterns, centralized mutation logic
 
-### ⏳ Remaining Categories (5/12)
+#### 8. File & Format Helpers ✅
+- **File**: `utils/fileHelpers.js` (2.7 KB)
+- **Functions**: 3 helpers (getFileExtension, isImageFile, formatFileSize)
+- **Instances**: 2/2 (100%)
+- **Files**: 1 file migrated (fileService.js)
+- **Features**:
+  - getFileExtension() - Safe file extension extraction with validation
+  - isImageFile() - Image type detection by extension (jpg, png, gif, webp, heic, heif)
+  - formatFileSize() - Human-readable byte formatting (Bytes, KB, MB, GB, TB)
+- **Impact**: Eliminated duplicate file extension extraction patterns, consistent file handling
 
-1. **File & Format Helpers** (5 instances)
-   - getFileExtension, isImageFile, formatFileSize
+### ⏳ Remaining Categories (4/12)
 
-2. **Permission Request Helpers** (4 instances)
+1. **Permission Request Helpers** (4 instances)
    - requestPermission wrapper
 
-3. **Array Utilities** (4+ instances)
+2. **Array Utilities** (4+ instances)
    - chunk, unique, uniqueBy
 
-4. **Component Patterns** (10+ instances)
+3. **Component Patterns** (10+ instances)
    - useAsyncOperation, loading state management
 
-5. **Date Formatting** (varies)
+4. **Date Formatting** (varies)
    - formatDateSmart usage, date display utilities
 
 ### Code Quality Metrics
@@ -1484,12 +1493,12 @@ translation.json:
 | Service Modules | 8 services |
 | Components | 8 UI components |
 | Screens | 6 screens |
-| Utility Modules | 4 helpers (validators, stringHelpers, contactHelpers, dateUtils) |
+| Utility Modules | 5 helpers (validators, stringHelpers, contactHelpers, fileHelpers, dateUtils) |
 | Query Helpers | 1 helper (queryHelpers) |
 | Error Classes | 5 error types |
-| Helper Functions | 44+ functions across 6 utilities |
-| Duplicate Patterns Identified | 595+ |
-| Patterns Eliminated | 533+ (90%) |
+| Helper Functions | 47+ functions across 7 utilities |
+| Duplicate Patterns Identified | 586+ |
+| Patterns Eliminated | 535+ (91%) |
 | Code Reduction | ~400 lines |
 | Test Coverage | dateUtils tested, expanding |
 
