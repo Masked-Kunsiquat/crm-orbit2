@@ -400,14 +400,18 @@ function placeholders(n) {
 ```javascript
 // database/sqlHelpers.js
 export function placeholders(count) {
+  if (!is.number(count) || !isPositiveInteger(count)) {
+    throw new Error(`placeholders() requires a positive integer, got: ${count}`);
+  }
   return new Array(count).fill('?').join(', ');
 }
 ```
 
-**Future Enhancement:**
-- 📝 TODO: Add `Number.isInteger()` validation in Category 7/12 (Validation Helpers)
-- Currently non-integer numbers are truncated by `new Array()` which may be unexpected
-- Will implement robust integer validation when systematically adding validation helpers
+**Enhancement Complete: ✅**
+- ✅ Integer validation added using `isPositiveInteger()` from validators.js
+- ✅ Throws descriptive error for non-integer or negative values
+- ✅ Prevents unexpected behavior from non-integer truncation
+- ✅ Completed during Validation Helpers migration (Category 5/12)
 
 ---
 
