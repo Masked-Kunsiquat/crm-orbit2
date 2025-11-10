@@ -25,7 +25,7 @@ export function getFileExtension(filename) {
 /**
  * Check if a file is an image based on its filename extension
  *
- * Supports common image formats including HEIC/HEIF (iOS) and WebP.
+ * Supports common image formats including HEIC/HEIF (iOS), WebP, and AVIF.
  *
  * @param {string} filename - The filename to check
  * @returns {boolean} True if the file extension indicates an image format
@@ -33,10 +33,11 @@ export function getFileExtension(filename) {
  * isImageFile('photo.jpg') // true
  * isImageFile('document.pdf') // false
  * isImageFile('image.HEIC') // true
+ * isImageFile('image.avif') // true
  */
 export function isImageFile(filename) {
   const ext = getFileExtension(filename);
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(ext);
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif'].includes(ext);
 }
 
 /**
