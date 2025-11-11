@@ -41,7 +41,7 @@ describe('sqlHelpers', () => {
         expect(() => placeholders(-1)).toThrow('placeholders() requires a positive integer');
       });
 
-      it('should throw on negative number', () => {
+      it('should throw on large negative number', () => {
         expect(() => placeholders(-100)).toThrow('placeholders() requires a positive integer');
       });
 
