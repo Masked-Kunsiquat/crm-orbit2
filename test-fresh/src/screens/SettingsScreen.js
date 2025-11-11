@@ -15,11 +15,22 @@ const ACTIONS = [
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { leftAction, rightAction, setMapping, themeMode, setThemeMode, language, setLanguage } = useSettings();
+  const {
+    leftAction,
+    rightAction,
+    setMapping,
+    themeMode,
+    setThemeMode,
+    language,
+    setLanguage,
+    companyManagementEnabled,
+    setCompanyManagementEnabled
+  } = useSettings();
   const [expandedSwipe, setExpandedSwipe] = useState(false);
   const [expandedTheme, setExpandedTheme] = useState(false);
   const [expandedSecurity, setExpandedSecurity] = useState(false);
   const [expandedLanguage, setExpandedLanguage] = useState(false);
+  const [expandedFeatures, setExpandedFeatures] = useState(false);
 
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [autoLockEnabled, setAutoLockEnabled] = useState(false);
@@ -204,6 +215,42 @@ export default function SettingsScreen() {
                   </View>
                 ))}
               </View>
+            )}
+          />
+        </List.Accordion>
+      </List.Section>
+
+      {/* Features */}
+      <List.Section style={styles.section}>
+        <List.Accordion
+          title="Features"
+          expanded={expandedFeatures}
+          onPress={() => setExpandedFeatures(e => !e)}
+        >
+          <List.Item
+            title={() => <Text variant="titleSmall">Company Management</Text>}
+            description={() => (
+              <Text variant="bodySmall" style={styles.featureDescription}>
+                Enable company features for professional use (companies tab, company selector in contacts)
+              </Text>
+            )}
+            right={() => (
+              <Switch
+                value={companyManagementEnabled}
+                onValueChange={async (value) => {
+                  try {
+                    await setCompanyManagementEnabled(value);
+                    showAlert.success(
+                      'Success',
+                      value
+                        ? 'Company management enabled. Restart the app to see the Companies tab.'
+                        : 'Company management disabled.'
+                    );
+                  } catch (error) {
+                    showAlert.error('Error', 'Failed to update setting');
+                  }
+                }}
+              />
             )}
           />
         </List.Accordion>
@@ -417,5 +464,9 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     marginLeft: -8,
+  },
+  featureDescription: {
+    color: '#666',
+    marginTop: 4,
   },
 });
