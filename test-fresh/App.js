@@ -9,6 +9,7 @@ import { initDatabase } from './src/database';
 import { createBasicTables } from './src/database/simpleSetup';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
+import CompanyListScreen from './src/screens/CompanyListScreen';
 import InteractionsScreen from './src/screens/InteractionsScreen';
 import EventsList from './src/screens/EventsList';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -94,6 +95,7 @@ export default function App() {
     // Compute routes dynamically based on current language - no state needed!
     const routes = React.useMemo(() => [
       { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
+      { key: 'companies', title: 'Companies', focusedIcon: 'office-building', unfocusedIcon: 'office-building-outline' },
       { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
       { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
       { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
@@ -103,6 +105,8 @@ export default function App() {
       switch (route.key) {
         case 'contacts':
           return <ContactsList navigation={navigation} />;
+        case 'companies':
+          return <CompanyListScreen navigation={navigation} />;
         case 'interactions':
           return <InteractionsScreen />;
         case 'events':
