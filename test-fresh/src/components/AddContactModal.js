@@ -16,6 +16,7 @@ import { categoriesDB } from '../database';
 import { useTranslation } from 'react-i18next';
 import { useCreateContactWithDetails } from '../hooks/queries';
 import { useCompanies } from '../hooks/queries';
+import { useSettings } from '../context/SettingsContext';
 import { handleError, showAlert } from '../errors';
 import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
 import { requestPermission } from '../utils/permissionHelpers';
@@ -52,6 +53,7 @@ const mapEmailLabel = (nativeLabel) => {
 
 export default function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const { t } = useTranslation();
+  const { companyManagementEnabled } = useSettings();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -63,7 +65,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
 
   // Use TanStack Query mutations and queries
   const createContactMutation = useCreateContactWithDetails();
-  const { data: companies = [] } = useCompanies();
+  const { data: companies = [] } = useCompanies({ enabled: companyManagementEnabled });
 
   useEffect(() => {
     if (visible) {
@@ -312,7 +314,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
             </View>
 
             {/* Company Section */}
-            {companies.length > 0 && (
+            {companyManagementEnabled && companies.length > 0 && (
               <View style={styles.section}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
                   Company

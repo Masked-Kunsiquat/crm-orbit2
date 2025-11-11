@@ -9,9 +9,11 @@ const SettingsContext = createContext({
   rightAction: 'call',
   themeMode: 'system', // 'system' | 'light' | 'dark'
   language: 'device', // 'device' | 'en' | 'es' | others
+  companyManagementEnabled: false, // Toggle for company features
   setMapping: (_left, _right) => {},
   setThemeMode: (_mode) => {},
   setLanguage: (_lang) => {},
+  setCompanyManagementEnabled: (_enabled) => {},
 });
 
 export function SettingsProvider({ children }) {
@@ -19,6 +21,7 @@ export function SettingsProvider({ children }) {
   const [rightAction, setRightAction] = useState('call');
   const [themeMode, setThemeModeState] = useState('system');
   const [language, setLanguageState] = useState('device');
+  const [companyManagementEnabled, setCompanyManagementEnabledState] = useState(false);
 
   // Load once on mount
   useEffect(() => {
@@ -48,12 +51,17 @@ export function SettingsProvider({ children }) {
         } else {
           i18n.changeLanguage(normalized).catch(() => {});
         }
+        // company management
+        const companyMgmt = await settingsDB.get('features.company_management_enabled');
+        const companyMgmtVal = companyMgmt?.value;
+        setCompanyManagementEnabledState(companyMgmtVal === true || companyMgmtVal === 'true');
       } catch (error) {
         logger.warn('SettingsContext', 'initialization', { error: error.message, stack: error.stack });
         setLeftAction('text');
         setRightAction('call');
         setThemeModeState('system');
         setLanguageState('device');
+        setCompanyManagementEnabledState(false);
       }
     })();
   }, []);
@@ -130,9 +138,34 @@ export function SettingsProvider({ children }) {
     }
   }, [language]);
 
+  const setCompanyManagementEnabled = useCallback(async (enabled) => {
+    const normalized = Boolean(enabled);
+    const prevEnabled = companyManagementEnabled;
+    // Optimistic update
+    setCompanyManagementEnabledState(normalized);
+    try {
+      await settingsDB.set('features.company_management_enabled', normalized, 'boolean');
+    } catch (error) {
+      // Rollback on failure
+      logger.error('SettingsContext', 'setCompanyManagementEnabled', error);
+      setCompanyManagementEnabledState(prevEnabled);
+      throw error;
+    }
+  }, [companyManagementEnabled]);
+
   const value = useMemo(
-    () => ({ leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage }),
-    [leftAction, rightAction, themeMode, language, setMapping, setThemeMode, setLanguage]
+    () => ({
+      leftAction,
+      rightAction,
+      themeMode,
+      language,
+      companyManagementEnabled,
+      setMapping,
+      setThemeMode,
+      setLanguage,
+      setCompanyManagementEnabled
+    }),
+    [leftAction, rightAction, themeMode, language, companyManagementEnabled, setMapping, setThemeMode, setLanguage, setCompanyManagementEnabled]
   );
 
   return (
