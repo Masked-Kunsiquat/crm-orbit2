@@ -1,14 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Card, HelperText, Text, TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
+import { useAsyncLoading } from '../hooks/useAsyncOperation';
 
 export default function AuthLockScreen() {
   const { authenticate, authenticateWithPIN } = useAuth();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [mode, setMode] = useState('pin'); // 'biometric' | 'pin'
 
@@ -24,47 +24,42 @@ export default function AuthLockScreen() {
 
   const canSubmit = useMemo(() => pin && pin.length >= 4, [pin]);
 
-  const onBiometric = async () => {
-    setBusy(true);
+  // Memoize biometric handler to prevent unnecessary recreations
+  const handleBiometric = useCallback(async () => {
     setError('');
-    try {
-      const r = await authenticate({ promptMessage: 'Unlock CRM' });
-      if (!r?.success) {
-        if (r?.method === 'pin_required') {
-          setMode('pin');
-        } else {
-          setError(r?.error || 'Biometric authentication failed');
-        }
+    const r = await authenticate({ promptMessage: 'Unlock CRM' });
+    if (!r?.success) {
+      if (r?.method === 'pin_required') {
+        setMode('pin');
       } else {
-        setMode('biometric');
+        setError(r?.error || 'Biometric authentication failed');
       }
-    } finally {
-      setBusy(false);
     }
-  };
+    // Note: No need to set mode to 'biometric' on success - already in that mode
+  }, [authenticate]);
 
-  const onSubmitPin = async () => {
+  const { execute: onBiometric, loading: biometricBusy } = useAsyncLoading(handleBiometric);
+
+  // Memoize PIN handler to prevent unnecessary recreations
+  const handleSubmitPin = useCallback(async () => {
     if (!canSubmit) return;
-    setBusy(true);
     setError('');
-    try {
-      const r = await authenticateWithPIN(pin);
-      if (!r?.success) {
-        setError(r?.error || 'Invalid PIN');
-      }
-    } finally {
-      setBusy(false);
+    const r = await authenticateWithPIN(pin);
+    if (!r?.success) {
+      setError(r?.error || 'Invalid PIN');
     }
-  };
+  }, [canSubmit, authenticateWithPIN, pin]);
+
+  const { execute: onSubmitPin, loading: pinBusy } = useAsyncLoading(handleSubmitPin);
+
+  const busy = biometricBusy || pinBusy;
 
   // Auto-attempt biometric when available and in biometric mode
   React.useEffect(() => {
     if (mode === 'biometric' && biometricAvailable) {
-      // fire and forget; errors handled inside
       onBiometric();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, biometricAvailable]);
+  }, [mode, biometricAvailable, onBiometric]);
 
   return (
     <View style={styles.container}>

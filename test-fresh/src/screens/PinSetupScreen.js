@@ -2,27 +2,24 @@ import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Button, Card, HelperText, TextInput } from 'react-native-paper';
 import authService from '../services/authService';
+import { useAsyncLoading } from '../hooks/useAsyncOperation';
 
 export default function PinSetupScreen({ navigation }) {
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
 
   const canSave = useMemo(() => pin1 && pin2 && pin1 === pin2 && pin1.length >= 4, [pin1, pin2]);
 
-  const save = async () => {
-    setBusy(true);
+  const { execute: save, loading: busy } = useAsyncLoading(async () => {
     setError('');
     try {
       await authService.setPIN(pin1);
       navigation.goBack();
     } catch (e) {
       setError(e?.message || 'Failed to set PIN');
-    } finally {
-      setBusy(false);
     }
-  };
+  });
 
   return (
     <View style={styles.container}>

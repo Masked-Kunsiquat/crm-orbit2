@@ -14,6 +14,7 @@ import database, { contactsDB, contactsInfoDB, categoriesDB, categoriesRelations
 import { useTranslation } from 'react-i18next';
 import { handleError, showAlert } from '../errors';
 import { hasContent, safeTrim, normalizeTrimLowercase, filterNonEmpty } from '../utils/stringHelpers';
+import { useAsyncLoading } from '../hooks/useAsyncOperation';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -24,9 +25,46 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
   const [lastName, setLastName] = useState('');
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
   const [emails, setEmails] = useState([{ id: 1, value: '', label: 'Personal' }]);
-  const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+
+  const { execute: saveContact, loading: saving } = useAsyncLoading(async () => {
+    // Build all new contact info
+    const contactInfoItems = [];
+    const validPhones = filterNonEmpty(phones);
+    const validEmails = filterNonEmpty(emails);
+
+    // Add phone numbers
+    validPhones.forEach((phone, index) => {
+      contactInfoItems.push({
+        type: 'phone',
+        label: phone.label,
+        value: safeTrim(phone.value),
+        is_primary: index === 0, // First phone is primary
+      });
+    });
+
+    // Add email addresses
+    validEmails.forEach((email, index) => {
+      contactInfoItems.push({
+        type: 'email',
+        label: email.label,
+        value: normalizeTrimLowercase(email.value),
+        is_primary: validPhones.length === 0 && index === 0, // Primary if no phones and first email
+      });
+    });
+
+    // Make the entire save operation atomic
+    await dbTransaction(async (tx) => {
+      await contactsDB.update(contact.id, {
+        first_name: safeTrim(firstName),
+        last_name: safeTrim(lastName),
+      }, tx);
+
+      await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems, tx);
+      await categoriesRelationsDB.setContactCategories(contact.id, selectedCategories, tx);
+    });
+  });
 
   // Load categories and contact data when modal opens
   useEffect(() => {
@@ -170,43 +208,8 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
       return;
     }
 
-    setSaving(true);
-
     try {
-      // Build all new contact info
-      const contactInfoItems = [];
-
-      // Add phone numbers
-      validPhones.forEach((phone, index) => {
-        contactInfoItems.push({
-          type: 'phone',
-          label: phone.label,
-          value: safeTrim(phone.value),
-          is_primary: index === 0, // First phone is primary
-        });
-      });
-
-      // Add email addresses
-      validEmails.forEach((email, index) => {
-        contactInfoItems.push({
-          type: 'email',
-          label: email.label,
-          value: normalizeTrimLowercase(email.value),
-          is_primary: validPhones.length === 0 && index === 0, // Primary if no phones and first email
-        });
-      });
-
-      // Make the entire save operation atomic
-      await dbTransaction(async (tx) => {
-        await contactsDB.update(contact.id, {
-          first_name: safeTrim(firstName),
-          last_name: safeTrim(lastName),
-        }, tx);
-
-        await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems, tx);
-        await categoriesRelationsDB.setContactCategories(contact.id, selectedCategories, tx);
-      });
-
+      await saveContact();
       onContactUpdated && onContactUpdated();
       onDismiss();
       showAlert.success('Contact updated successfully!');
@@ -216,8 +219,6 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
         operation: 'handleSave',
         showAlert: true,
       });
-    } finally {
-      setSaving(false);
     }
   };
 
