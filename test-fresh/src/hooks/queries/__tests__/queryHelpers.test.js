@@ -110,8 +110,8 @@ describe('queryHelpers', () => {
       it('should handle slow invalidations', async () => {
         const mockQueryClient = {
           invalidateQueries: jest.fn()
-            .mockResolvedValueOnce(new Promise(resolve => setTimeout(resolve, 100)))
-            .mockResolvedValueOnce(new Promise(resolve => setTimeout(resolve, 50)))
+            .mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 100)))
+            .mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 50)))
         };
 
         const start = Date.now();
