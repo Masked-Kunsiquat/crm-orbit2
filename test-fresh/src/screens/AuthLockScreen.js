@@ -57,11 +57,9 @@ export default function AuthLockScreen() {
   // Auto-attempt biometric when available and in biometric mode
   React.useEffect(() => {
     if (mode === 'biometric' && biometricAvailable) {
-      // fire and forget; errors handled inside
       onBiometric();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, biometricAvailable]);
+  }, [mode, biometricAvailable, onBiometric]);
 
   return (
     <View style={styles.container}>
