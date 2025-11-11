@@ -278,17 +278,22 @@ describe('errorLogger', () => {
       expect(data).toEqual({});
     });
 
-    it('should handle various data types', () => {
+    it('should handle array data', () => {
       global.__DEV__ = true;
-
       logger.debug('TestComponent', 'Array data', [1, 2, 3]);
       expect(console.debug.mock.calls[0][1]).toEqual([1, 2, 3]);
+    });
 
+    it('should handle string data', () => {
+      global.__DEV__ = true;
       logger.debug('TestComponent', 'String data', 'test');
-      expect(console.debug.mock.calls[1][1]).toBe('test');
+      expect(console.debug.mock.calls[0][1]).toBe('test');
+    });
 
+    it('should handle number data', () => {
+      global.__DEV__ = true;
       logger.debug('TestComponent', 'Number data', 42);
-      expect(console.debug.mock.calls[2][1]).toBe(42);
+      expect(console.debug.mock.calls[0][1]).toBe(42);
     });
   });
 
