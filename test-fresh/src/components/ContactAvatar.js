@@ -30,12 +30,22 @@ export default function ContactAvatar({ contact, size = 48, style }) {
     const loadAvatar = async () => {
       // Priority 1: Load from attachment
       if (contact?.avatar_attachment_id) {
-        const uri = await loadAvatarFromAttachment(contact.avatar_attachment_id);
-        if (mounted) {
-          if (uri) {
-            setAvatarUri(uri);
-          } else {
-            logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id });
+        try {
+          const uri = await loadAvatarFromAttachment(contact.avatar_attachment_id);
+          if (mounted) {
+            if (uri) {
+              setAvatarUri(uri);
+            } else {
+              logger.warn('ContactAvatar', 'Failed to load avatar from attachment', { attachmentId: contact.avatar_attachment_id });
+              setAvatarUri(null);
+            }
+          }
+        } catch (error) {
+          logger.warn('ContactAvatar', 'Error loading avatar from attachment', {
+            attachmentId: contact.avatar_attachment_id,
+            error
+          });
+          if (mounted) {
             setAvatarUri(null);
           }
         }
