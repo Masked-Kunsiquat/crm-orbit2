@@ -58,3 +58,17 @@ export {
   useUpdateInteraction,
   useDeleteInteraction,
 } from './useInteractionQueries';
+
+// Company queries
+export {
+  companyKeys,
+  useCompanies,
+  useCompany,
+  useCompanyWithContacts,
+  useCompanySearch,
+  useCreateCompany,
+  useUpdateCompany,
+  useDeleteCompany,
+  useUpdateCompanyLogo,
+  useMergeCompanies,
+} from './useCompanyQueries';
