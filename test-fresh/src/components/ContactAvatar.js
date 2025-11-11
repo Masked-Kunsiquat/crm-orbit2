@@ -17,7 +17,7 @@ import { useAsyncLoading } from '../hooks/useAsyncOperation';
 export default function ContactAvatar({ contact, size = 48, style }) {
   const [avatarUri, setAvatarUri] = useState(null);
 
-  const { execute: loadAvatarFromAttachment, loading } = useAsyncLoading(
+  const { execute: loadAvatarFromAttachment } = useAsyncLoading(
     async (attachmentId) => {
       const uri = await fileService.getFileUri(attachmentId);
       return uri;
