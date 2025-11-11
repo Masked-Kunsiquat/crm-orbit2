@@ -361,7 +361,7 @@ describe('errorHandler', () => {
     });
 
     it('should rethrow ValidationError after handling', async () => {
-      const validationError = new ValidationError('Email is required');
+      const validationError = new ValidationError('email', 'Email is required');
       const mockFn = jest.fn(async () => {
         throw validationError;
       });
