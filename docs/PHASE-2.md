@@ -23,7 +23,7 @@
 | `errorLogger.js` | 🔥 Critical | ~80 | ✅ Complete | 49 | Nov 11, 2025 | [416ba44](https://github.com/Masked-Kunsiquat/crm-orbit2/commit/416ba44) |
 | `errorHandler.js` | 🔥 Critical | ~60 | ✅ Complete | 45 | Nov 11, 2025 | [3cbcd42](https://github.com/Masked-Kunsiquat/crm-orbit2/commit/3cbcd42) |
 | **Week 4: Query & Async Helpers** |
-| `queryHelpers.js` | ⭐ High | ~50 | ⏳ Pending | - | - | - |
+| `queryHelpers.js` | ⭐ High | ~50 | ✅ Complete | 41 | Nov 11, 2025 | TBD |
 | `useAsyncOperation.js` | ⭐ High | ~80 | ⏳ Pending | - | - | - |
 | **Week 5: Permission Helpers** |
 | `permissionHelpers.js` | 🎯 Medium | ~40 | ⏳ Pending | - | - | - |
@@ -32,16 +32,16 @@
 | `arrayHelpers.test.js` | - | - | ✅ Exists | 38 | (Pre-Phase 2) | - |
 
 **Summary**:
-- **Total Test Files**: 12 planned (7/10 new, 2 existing)
-- **Total Tests**: 596 current → ~1,000+ target
-- **Progress**: 449/~940 new tests (48%)
-- **Current Coverage**: Validators + StringHelpers + ContactHelpers + FileHelpers + SqlHelpers + ErrorLogger + ErrorHandler complete, 3 modules remaining
+- **Total Test Files**: 12 planned (8/10 new, 2 existing)
+- **Total Tests**: 637 current → ~1,000+ target
+- **Progress**: 490/~940 new tests (52%)
+- **Current Coverage**: Validators + StringHelpers + ContactHelpers + FileHelpers + SqlHelpers + ErrorLogger + ErrorHandler + QueryHelpers complete, 2 modules remaining
 
 ### Overall Phase 2 Progress
 
 | Workstream | Status | Progress | Start Date | Target Completion |
 |------------|--------|----------|------------|-------------------|
-| 1. Test Coverage Expansion | 🟡 In Progress | 7/10 modules | Nov 11, 2025 | Week 5 |
+| 1. Test Coverage Expansion | 🟡 In Progress | 8/10 modules | Nov 11, 2025 | Week 5 |
 | 2. New User-Facing Screens | ⏳ Not Started | 0/3 screens | - | Month 2 |
 | 3. Performance Optimization | ⏳ Not Started | 0/5 tasks | - | Month 2 |
 | 4. Enhanced Search & Filtering | ⏳ Not Started | 0/4 features | - | Month 3 |
@@ -58,7 +58,7 @@ Phase 1 focused on **code quality and maintainability** through systematic helpe
 - ✅ 11/11 helper categories implemented (100% complete)
 - ✅ Clean architecture with factory pattern
 - ✅ Comprehensive error handling
-- 🟡 9 test files (596 tests - validators, stringHelpers, contactHelpers, fileHelpers, sqlHelpers, errorLogger, errorHandler, dateUtils, arrayHelpers) - **449 new tests added!**
+- 🟡 10 test files (637 tests - validators, stringHelpers, contactHelpers, fileHelpers, sqlHelpers, errorLogger, errorHandler, queryHelpers, dateUtils, arrayHelpers) - **490 new tests added!**
 - ⚠️ Missing key user-facing features (Dashboard, Company Management, Analytics)
 - ⚠️ No performance optimization (React.memo, pagination, lazy loading)
 - ⚠️ Basic search/filtering capabilities
