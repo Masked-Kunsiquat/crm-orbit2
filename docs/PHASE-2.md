@@ -26,7 +26,7 @@
 | `queryHelpers.js` | ⭐ High | ~50 | ✅ Complete | 41 | Nov 11, 2025 | [753f0fd](https://github.com/Masked-Kunsiquat/crm-orbit2/commit/753f0fd) |
 | `useAsyncOperation.js` | ⭐ High | ~80 | ✅ Complete | 49 | Nov 11, 2025 | [efea85a](https://github.com/Masked-Kunsiquat/crm-orbit2/commit/efea85a) |
 | **Week 5: Permission Helpers** |
-| `permissionHelpers.js` | 🎯 Medium | ~40 | ✅ Complete | 48 | Nov 11, 2025 | TBD |
+| `permissionHelpers.js` | 🎯 Medium | ~40 | ✅ Complete | 48 | Nov 11, 2025 | [287e2db](https://github.com/Masked-Kunsiquat/crm-orbit2/commit/287e2db) |
 | **Existing Tests** |
 | `dateUtils.test.js` | - | - | ✅ Exists | 109 | (Pre-Phase 2) | - |
 | `arrayHelpers.test.js` | - | - | ✅ Exists | 38 | (Pre-Phase 2) | - |
