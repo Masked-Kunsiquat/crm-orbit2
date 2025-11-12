@@ -133,6 +133,24 @@
         "title": "Erreur",
         "message": "Échec de la mise à jour de l'entreprise"
       }
+    },
+    "list": {
+      "title": "Entreprises",
+      "searchPlaceholder": "Rechercher des entreprises...",
+      "empty": {
+        "title": "Aucune Entreprise Trouvée",
+        "noResults": "Aucune entreprise ne correspond à votre recherche.",
+        "addFirst": "Ajoutez votre première entreprise pour commencer."
+      },
+      "delete": {
+        "title": "Supprimer l'Entreprise",
+        "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les contacts associés.",
+        "success": "Entreprise supprimée avec succès",
+        "error": {
+          "title": "Erreur",
+          "message": "Échec de la suppression de l'entreprise"
+        }
+      }
     }
   },
   "interactions": {

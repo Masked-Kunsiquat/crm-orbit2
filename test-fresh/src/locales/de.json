@@ -133,6 +133,24 @@
         "title": "Fehler",
         "message": "Unternehmen konnte nicht aktualisiert werden"
       }
+    },
+    "list": {
+      "title": "Unternehmen",
+      "searchPlaceholder": "Unternehmen suchen...",
+      "empty": {
+        "title": "Keine Unternehmen Gefunden",
+        "noResults": "Keine Unternehmen entsprechen Ihrer Suche.",
+        "addFirst": "Fügen Sie Ihr erstes Unternehmen hinzu, um zu beginnen."
+      },
+      "delete": {
+        "title": "Unternehmen Löschen",
+        "message": "Möchten Sie \"{{name}}\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht.",
+        "success": "Unternehmen erfolgreich gelöscht",
+        "error": {
+          "title": "Fehler",
+          "message": "Unternehmen konnte nicht gelöscht werden"
+        }
+      }
     }
   },
   "interactions": {

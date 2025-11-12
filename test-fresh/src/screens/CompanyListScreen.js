@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { StyleSheet, FlatList, View } from 'react-native';
 import { showAlert } from '../errors';
 import { Appbar, FAB, Searchbar, Text, Chip, useTheme, Card, IconButton } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import AddCompanyModal from '../components/AddCompanyModal';
 import EditCompanyModal from '../components/EditCompanyModal';
 import { useCompanies, useDeleteCompany } from '../hooks/queries';
 import { INDUSTRIES } from '../constants/industries';
 
 export default function CompanyListScreen({ navigation }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -40,14 +42,14 @@ export default function CompanyListScreen({ navigation }) {
 
   const handleDeleteCompany = (company) => {
     showAlert.confirmDelete(
-      'Delete Company',
-      `Are you sure you want to delete "${company.name}"? This will not delete associated contacts.`,
+      t('companies.list.delete.title'),
+      t('companies.list.delete.message', { name: company.name }),
       async () => {
         try {
           await deleteCompany.mutateAsync(company.id);
-          showAlert.success('Success', 'Company deleted successfully');
+          showAlert.success(t('labels.success'), t('companies.list.delete.success'));
         } catch (error) {
-          showAlert.error('Error', 'Failed to delete company');
+          showAlert.error(t('companies.list.delete.error.title'), t('companies.list.delete.error.message'));
         }
       }
     );
@@ -129,12 +131,12 @@ export default function CompanyListScreen({ navigation }) {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Text variant="headlineSmall" style={styles.emptyTitle}>
-        No Companies Found
+        {t('companies.list.empty.title')}
       </Text>
       <Text variant="bodyMedium" style={styles.emptyMessage}>
         {searchQuery
-          ? 'No companies match your search.'
-          : 'Add your first company to get started.'}
+          ? t('companies.list.empty.noResults')
+          : t('companies.list.empty.addFirst')}
       </Text>
     </View>
   );
@@ -152,11 +154,11 @@ export default function CompanyListScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
       <Appbar.Header>
-        <Appbar.Content title="Companies" />
+        <Appbar.Content title={t('companies.list.title')} />
       </Appbar.Header>
 
       <Searchbar
-        placeholder="Search companies..."
+        placeholder={t('companies.list.searchPlaceholder')}
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchbar}
@@ -172,7 +174,7 @@ export default function CompanyListScreen({ navigation }) {
             mode="flat"
             compact
           >
-            All
+            {t('common.all')}
           </Chip>
           {availableIndustries.map((industry) => (
             <Chip

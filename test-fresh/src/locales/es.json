@@ -133,6 +133,24 @@
         "title": "Error",
         "message": "Error al actualizar la empresa"
       }
+    },
+    "list": {
+      "title": "Empresas",
+      "searchPlaceholder": "Buscar empresas...",
+      "empty": {
+        "title": "No Se Encontraron Empresas",
+        "noResults": "No hay empresas que coincidan con tu búsqueda.",
+        "addFirst": "Agrega tu primera empresa para comenzar."
+      },
+      "delete": {
+        "title": "Eliminar Empresa",
+        "message": "¿Estás seguro de que deseas eliminar \"{{name}}\"? Esto no eliminará los contactos asociados.",
+        "success": "Empresa eliminada exitosamente",
+        "error": {
+          "title": "Error",
+          "message": "Error al eliminar la empresa"
+        }
+      }
     }
   },
   "interactions": {

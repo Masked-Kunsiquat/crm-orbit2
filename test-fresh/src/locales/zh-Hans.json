@@ -133,6 +133,24 @@
         "title": "错误",
         "message": "更新公司失败"
       }
+    },
+    "list": {
+      "title": "公司",
+      "searchPlaceholder": "搜索公司...",
+      "empty": {
+        "title": "未找到公司",
+        "noResults": "没有与您的搜索匹配的公司。",
+        "addFirst": "添加您的第一家公司以开始使用。"
+      },
+      "delete": {
+        "title": "删除公司",
+        "message": "您确定要删除"{{name}}"吗？这不会删除关联的联系人。",
+        "success": "公司删除成功",
+        "error": {
+          "title": "错误",
+          "message": "删除公司失败"
+        }
+      }
     }
   },
   "interactions": {

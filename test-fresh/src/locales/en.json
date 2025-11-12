@@ -136,6 +136,24 @@
         "title": "Error",
         "message": "Failed to update company"
       }
+    },
+    "list": {
+      "title": "Companies",
+      "searchPlaceholder": "Search companies...",
+      "empty": {
+        "title": "No Companies Found",
+        "noResults": "No companies match your search.",
+        "addFirst": "Add your first company to get started."
+      },
+      "delete": {
+        "title": "Delete Company",
+        "message": "Are you sure you want to delete \"{{name}}\"? This will not delete associated contacts.",
+        "success": "Company deleted successfully",
+        "error": {
+          "title": "Error",
+          "message": "Failed to delete company"
+        }
+      }
     }
   },
   "interactions": {
