@@ -5,19 +5,7 @@ import { Appbar, FAB, Searchbar, Text, Chip, useTheme, Card, IconButton } from '
 import AddCompanyModal from '../components/AddCompanyModal';
 import EditCompanyModal from '../components/EditCompanyModal';
 import { useCompanies, useDeleteCompany } from '../hooks/queries';
-
-// Industry options for filtering
-const INDUSTRIES = [
-  'Technology',
-  'Finance',
-  'Healthcare',
-  'Retail',
-  'Manufacturing',
-  'Education',
-  'Consulting',
-  'Real Estate',
-  'Other'
-];
+import { INDUSTRIES } from '../constants/industries';
 
 export default function CompanyListScreen({ navigation }) {
   const theme = useTheme();

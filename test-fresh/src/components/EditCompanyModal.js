@@ -13,18 +13,7 @@ import {
 import { useUpdateCompany } from '../hooks/queries';
 import { showAlert } from '../errors';
 import { hasContent } from '../utils/stringHelpers';
-
-const INDUSTRIES = [
-  'Technology',
-  'Finance',
-  'Healthcare',
-  'Retail',
-  'Manufacturing',
-  'Education',
-  'Consulting',
-  'Real Estate',
-  'Other',
-];
+import { INDUSTRIES } from '../constants/industries';
 
 export default function EditCompanyModal({ visible, company, onDismiss }) {
   const [name, setName] = useState('');
