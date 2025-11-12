@@ -1,407 +1,406 @@
 {
-  "navigation": {
-    "contacts": "联系人",
-    "interactions": "互动",
-    "events": "事件",
-    "settings": "设置"
-  },
-  "search": {
-    "contactsPlaceholder": "搜索联系人..."
-  },
-  "settings": {
-    "title": "设置",
-    "sections": {
-      "security": "安全",
-      "features": "功能",
-      "swipe": "滑动操作",
-      "theme": "主题",
-      "language": "语言"
+    "navigation": {
+        "contacts": "联系人",
+        "interactions": "互动",
+        "events": "事件",
+        "settings": "设置"
     },
-    "language": {
-      "device": "设备默认",
-      "english": "英文",
-      "spanish": "西班牙文",
-      "german": "德文",
-      "french": "法文",
-      "chinese": "简体中文"
+    "search": {
+        "contactsPlaceholder": "搜索联系人..."
     },
-    "appearance": "外观",
-    "security": {
-      "pinSetup": "设置/更改密码 (PIN)",
-      "useBiometric": "使用生物识别",
-      "autoLock": "自动锁定 ({{minutes}} 分钟)",
-      "autoLockTimeout": "自动锁定超时",
-      "minutes_one": "{{count}} 分钟",
-      "minutes_other": "{{count}} 分钟"
-    },
-    "features": {
-      "companyManagement": {
-        "title": "公司管理",
-        "description": "启用公司功能以供专业使用（公司选项卡、联系人中的公司选择器）",
-        "enabled": "公司管理已启用。重启应用以查看公司选项卡。",
-        "disabled": "公司管理已禁用。"
-      }
-    },
-    "errors": {
-      "biometricToggle": {
-        "title": "错误",
-        "message": "无法更新生物识别设置。请重试。"
-      },
-      "autoLockToggle": {
-        "title": "错误",
-        "message": "无法更新自动锁定设置。请重试。"
-      },
-      "autoLockTimeout": {
-        "title": "错误",
-        "message": "无法更新自动锁定超时。请重试。"
-      },
-      "swipeAction": {
-        "title": "错误",
-        "message": "无法更新滑动操作。请重试。"
-      },
-      "theme": {
-        "title": "错误",
-        "message": "无法更新主题。请重试。"
-      },
-      "language": {
-        "title": "错误",
-        "message": "无法更新语言。请重试。"
-      },
-      "featureToggle": {
-        "title": "错误",
-        "message": "更新设置失败"
-      }
-    }
-  },
-  "labels": {
-    "call": "电话",
-    "text": "短信",
-    "left": "左",
-    "right": "右",
-    "system": "系统",
-    "light": "浅色",
-    "dark": "深色",
-    "success": "成功"
-  },
-  "buttons": {
-    "cancel": "取消",
-    "save": "保存"
-  },
-  "common": {
-    "all": "全部"
-  },
-  "industries": {
-    "technology": "科技",
-    "finance": "金融",
-    "healthcare": "医疗保健",
-    "retail": "零售",
-    "manufacturing": "制造业",
-    "education": "教育",
-    "consulting": "咨询",
-    "real estate": "房地产",
-    "other": "其他"
-  },
-  "companies": {
-    "add": {
-      "title": "添加公司",
-      "labels": {
-        "name": "公司名称 *",
-        "industry": "行业",
-        "website": "网站",
-        "address": "地址",
-        "notes": "备注"
-      },
-      "placeholders": {
-        "website": "https://example.com"
-      },
-      "validation": {
-        "title": "验证错误",
-        "requiredName": "公司名称为必填项",
-        "nameTooLong": "公司名称不得超过200个字符"
-      },
-      "success": "公司创建成功",
-      "error": {
-        "title": "错误",
-        "message": "创建公司失败"
-      }
-    },
-    "edit": {
-      "title": "编辑公司",
-      "labels": {
-        "name": "公司名称 *",
-        "industry": "行业",
-        "website": "网站",
-        "address": "地址",
-        "notes": "备注"
-      },
-      "placeholders": {
-        "website": "https://example.com"
-      },
-      "validation": {
-        "title": "验证错误",
-        "requiredName": "公司名称为必填项",
-        "nameTooLong": "公司名称不得超过200个字符"
-      },
-      "success": "公司更新成功",
-      "error": {
-        "title": "错误",
-        "message": "更新公司失败"
-      }
-    },
-    "list": {
-      "title": "公司",
-      "searchPlaceholder": "搜索公司...",
-      "empty": {
-        "title": "未找到公司",
-        "noResults": "没有与您的搜索匹配的公司。",
-        "addFirst": "添加您的第一家公司以开始使用。"
-      },
-      "delete": {
-        "title": "删除公司",
-        "message": "您确定要删除\"{{name}}\"吗？这不会删除关联的联系人。",
-        "success": "公司删除成功",
-        "error": {
-          "title": "错误",
-          "message": "删除公司失败"
+    "settings": {
+        "title": "设置",
+        "sections": {
+            "security": "安全",
+            "features": "功能",
+            "swipe": "滑动操作",
+            "theme": "主题",
+            "language": "语言"
+        },
+        "language": {
+            "device": "设备默认",
+            "english": "英文",
+            "spanish": "西班牙文",
+            "german": "德文",
+            "french": "法文",
+            "chinese": "简体中文"
+        },
+        "appearance": "外观",
+        "security": {
+            "pinSetup": "设置/更改密码 (PIN)",
+            "useBiometric": "使用生物识别",
+            "autoLock": "自动锁定 ({{minutes}} 分钟)",
+            "autoLockTimeout": "自动锁定超时",
+            "minutes_other": "{{count}} 分钟"
+        },
+        "features": {
+            "companyManagement": {
+                "title": "公司管理",
+                "description": "启用公司功能以供专业使用（公司选项卡、联系人中的公司选择器）",
+                "enabled": "公司管理已启用。重启应用以查看公司选项卡。",
+                "disabled": "公司管理已禁用。"
+            }
+        },
+        "errors": {
+            "biometricToggle": {
+                "title": "错误",
+                "message": "无法更新生物识别设置。请重试。"
+            },
+            "autoLockToggle": {
+                "title": "错误",
+                "message": "无法更新自动锁定设置。请重试。"
+            },
+            "autoLockTimeout": {
+                "title": "错误",
+                "message": "无法更新自动锁定超时。请重试。"
+            },
+            "swipeAction": {
+                "title": "错误",
+                "message": "无法更新滑动操作。请重试。"
+            },
+            "theme": {
+                "title": "错误",
+                "message": "无法更新主题。请重试。"
+            },
+            "language": {
+                "title": "错误",
+                "message": "无法更新语言。请重试。"
+            },
+            "featureToggle": {
+                "title": "错误",
+                "message": "更新设置失败"
+            }
         }
-      }
-    }
-  },
-  "interactions": {
-    "title": "互动",
-    "filters": {
-      "all": "全部",
-      "call": "通话",
-      "text": "短信",
-      "email": "电子邮件",
-      "meeting": "会议",
-      "other": "其他"
-    },
-    "emptyTitle": "无互动记录",
-    "emptyMessage": "添加您的第一个互动记录以开始使用。",
-    "errorLoad": "加载互动记录失败"
-  },
-  "addInteraction": {
-    "titleAdd": "添加互动",
-    "titleEdit": "编辑互动",
-    "sections": {
-      "contact": "联系人",
-      "type": "类型",
-      "dateTime": "日期和时间",
-      "title": "标题",
-      "duration": "时长 (分钟)",
-      "notes": "备注"
     },
     "labels": {
-      "selectContact": "选择联系人",
-      "interactionTitle": "互动标题",
-      "titlePlaceholder": "例如：快速电话沟通",
-      "duration": "时长",
-      "durationOptional": "可选",
-      "notes": "附加备注",
-      "notesPlaceholder": "关于此次互动的可选备注",
-      "quickFill": "快速填充",
-      "save": "保存",
-      "update": "更新",
-      "cancel": "取消"
+        "call": "电话",
+        "text": "短信",
+        "left": "左",
+        "right": "右",
+        "system": "系统",
+        "light": "浅色",
+        "dark": "深色",
+        "success": "成功"
     },
-    "types": {
-      "call": "通话",
-      "text": "短信",
-      "email": "电子邮件",
-      "meeting": "会议",
-      "other": "其他"
+    "buttons": {
+        "cancel": "取消",
+        "save": "保存"
     },
-    "quickTitles": {
-      "call": "与 {{name}} 通话",
-      "text": "向 {{name}} 发送短信",
-      "email": "给 {{name}} 发送邮件",
-      "meeting": "与 {{name}} 会议",
-      "other": "与 {{name}} 互动"
+    "common": {
+        "all": "全部"
     },
-    "errors": {
-      "titleRequired": "标题为必填项",
-      "contactRequired": "请选择一个联系人",
-      "saveFailed": "保存互动失败。请重试。",
-      "deleteFailed": "删除互动失败。请重试。"
+    "industries": {
+        "technology": "科技",
+        "finance": "金融",
+        "healthcare": "医疗保健",
+        "retail": "零售",
+        "manufacturing": "制造业",
+        "education": "教育",
+        "consulting": "咨询",
+        "real estate": "房地产",
+        "other": "其他"
     },
-    "delete": {
-      "title": "删除互动",
-      "message": "您确定要删除此互动吗？",
-      "confirm": "删除",
-      "cancel": "取消"
+    "companies": {
+        "add": {
+            "title": "添加公司",
+            "labels": {
+                "name": "公司名称 *",
+                "industry": "行业",
+                "website": "网站",
+                "address": "地址",
+                "notes": "备注"
+            },
+            "placeholders": {
+                "website": "https://example.com"
+            },
+            "validation": {
+                "title": "验证错误",
+                "requiredName": "公司名称为必填项",
+                "nameTooLong": "公司名称不得超过200个字符"
+            },
+            "success": "公司创建成功",
+            "error": {
+                "title": "错误",
+                "message": "创建公司失败"
+            }
+        },
+        "edit": {
+            "title": "编辑公司",
+            "labels": {
+                "name": "公司名称 *",
+                "industry": "行业",
+                "website": "网站",
+                "address": "地址",
+                "notes": "备注"
+            },
+            "placeholders": {
+                "website": "https://example.com"
+            },
+            "validation": {
+                "title": "验证错误",
+                "requiredName": "公司名称为必填项",
+                "nameTooLong": "公司名称不得超过200个字符"
+            },
+            "success": "公司更新成功",
+            "error": {
+                "title": "错误",
+                "message": "更新公司失败"
+            }
+        },
+        "list": {
+            "title": "公司",
+            "searchPlaceholder": "搜索公司...",
+            "empty": {
+                "title": "未找到公司",
+                "noResults": "没有与您的搜索匹配的公司。",
+                "addFirst": "添加您的第一家公司以开始使用。"
+            },
+            "delete": {
+                "title": "删除公司",
+                "message": "您确定要删除\"{{name}}\"吗？这不会删除关联的联系人。",
+                "success": "公司删除成功",
+                "error": {
+                    "title": "错误",
+                    "message": "删除公司失败"
+                }
+            }
+        }
     },
-    "success": {
-      "added": "互动添加成功！",
-      "updated": "互动更新成功！",
-      "deleted": "互动删除成功！"
+    "interactions": {
+        "title": "互动",
+        "filters": {
+            "all": "全部",
+            "call": "通话",
+            "text": "短信",
+            "email": "电子邮件",
+            "meeting": "会议",
+            "other": "其他"
+        },
+        "emptyTitle": "无互动记录",
+        "emptyMessage": "添加您的第一个互动记录以开始使用。",
+        "errorLoad": "加载互动记录失败"
+    },
+    "addInteraction": {
+        "titleAdd": "添加互动",
+        "titleEdit": "编辑互动",
+        "sections": {
+            "contact": "联系人",
+            "type": "类型",
+            "dateTime": "日期和时间",
+            "title": "标题",
+            "duration": "时长 (分钟)",
+            "notes": "备注"
+        },
+        "labels": {
+            "selectContact": "选择联系人",
+            "interactionTitle": "互动标题",
+            "titlePlaceholder": "例如：快速电话沟通",
+            "duration": "时长",
+            "durationOptional": "可选",
+            "notes": "附加备注",
+            "notesPlaceholder": "关于此次互动的可选备注",
+            "quickFill": "快速填充",
+            "save": "保存",
+            "update": "更新",
+            "cancel": "取消"
+        },
+        "types": {
+            "call": "通话",
+            "text": "短信",
+            "email": "电子邮件",
+            "meeting": "会议",
+            "other": "其他"
+        },
+        "quickTitles": {
+            "call": "与 {{name}} 通话",
+            "text": "向 {{name}} 发送短信",
+            "email": "给 {{name}} 发送邮件",
+            "meeting": "与 {{name}} 会议",
+            "other": "与 {{name}} 互动"
+        },
+        "errors": {
+            "titleRequired": "标题为必填项",
+            "contactRequired": "请选择一个联系人",
+            "saveFailed": "保存互动失败。请重试。",
+            "deleteFailed": "删除互动失败。请重试。"
+        },
+        "delete": {
+            "title": "删除互动",
+            "message": "您确定要删除此互动吗？",
+            "confirm": "删除",
+            "cancel": "取消"
+        },
+        "success": {
+            "added": "互动添加成功！",
+            "updated": "互动更新成功！",
+            "deleted": "互动删除成功！"
+        }
+    },
+    "events": {
+        "title": "事件",
+        "today": "今天",
+        "tomorrow": "明天",
+        "filters": {
+            "all": "全部",
+            "birthday": "生日",
+            "anniversary": "纪念日",
+            "meeting": "会议",
+            "deadline": "截止日期",
+            "other": "其他"
+        },
+        "types": {
+            "birthday": "生日",
+            "anniversary": "纪念日",
+            "meeting": "会议",
+            "deadline": "截止日期",
+            "other": "其他"
+        },
+        "emptyTitle": "暂无事件",
+        "emptyMessage": "添加第一个事件开始使用。",
+        "errorLoad": "加载事件失败"
+    },
+    "addEvent": {
+        "titleAdd": "添加事件",
+        "titleEdit": "编辑事件",
+        "sections": {
+            "contact": "联系人",
+            "type": "事件类型",
+            "date": "日期",
+            "title": "标题",
+            "reminders": "提醒",
+            "notes": "备注"
+        },
+        "labels": {
+            "selectContact": "选择联系人",
+            "quickFill": "快速填充",
+            "titlePlaceholder": "例如：张三的生日",
+            "recurring": "重复事件",
+            "recurringHelper": "每年重复（生日、纪念日）",
+            "notesPlaceholder": "关于此事件的可选备注",
+            "save": "保存",
+            "update": "更新",
+            "cancel": "取消",
+            "delete": "删除事件"
+        },
+        "types": {
+            "birthday": "生日",
+            "anniversary": "纪念日",
+            "meeting": "会议",
+            "deadline": "截止日期",
+            "other": "其他"
+        },
+        "quickTitles": {
+            "birthday": "{{name}}的生日",
+            "anniversary": "与{{name}}的纪念日",
+            "meeting": "与{{name}}的会议",
+            "deadline": "{{name}}的截止日期",
+            "other": "与{{name}}的事件"
+        },
+        "reminderTemplates": {
+            "15": "提前15分钟",
+            "60": "提前1小时",
+            "1440": "提前1天",
+            "10080": "提前1周"
+        },
+        "errors": {
+            "titleRequired": "标题为必填项",
+            "contactRequired": "请选择联系人",
+            "saveFailed": "保存事件失败。请重试。",
+            "deleteFailed": "删除事件失败。请重试。"
+        },
+        "delete": {
+            "title": "删除事件",
+            "message": "确定要删除此事件吗？",
+            "confirm": "删除",
+            "cancel": "取消"
+        },
+        "success": {
+            "added": "事件添加成功！",
+            "updated": "事件更新成功！",
+            "deleted": "事件删除成功！"
+        }
+    },
+    "contactDetail": {
+        "title": "联系人",
+        "loading": "正在加载...",
+        "errorLoad": "加载联系人详情失败",
+        "errorImageSet": "设置联系人照片失败",
+        "errorImageRemove": "删除照片失败",
+        "recent": "近期互动",
+        "events": "即将到来的事件",
+        "addBirthday": "生日",
+        "addEvent": "事件",
+        "noEvents": "暂无即将到来的事件",
+        "noEventsDescription": "为此联系人添加事件",
+        "recurring": "重复",
+        "delete": "删除联系人",
+        "deleteConfirm": "您确定要删除 {{name}} 吗？",
+        "photoTitle": "联系人照片",
+        "photoBody": "添加或移除个人资料图片。",
+        "remove": "移除",
+        "addPhoto": "添加照片",
+        "cancel": "取消",
+        "add": "添加"
+    },
+    "categories": {
+        "Family": "家人",
+        "Friends": "朋友",
+        "Work": "工作",
+        "VIP": "重要人物",
+        "Coworkers": "同事",
+        "Clients": "客户",
+        "Leads": "潜在客户",
+        "Vendors": "供应商",
+        "Business": "商业",
+        "Personal": "个人"
+    },
+    "addContact": {
+        "title": "添加联系人",
+        "importSuccessTitle": "联系人已导入",
+        "importSuccessMsg": "联系人信息已导入。请在保存前查看和编辑。",
+        "importFailTitle": "导入失败",
+        "importFailMsg": "导入联系人失败。请重试或手动输入详细信息。",
+        "permissionTitle": "权限被拒",
+        "permissionMsg": "无法访问联系人。请在您的设备设置中启用联系人权限。",
+        "successMsg": "联系人添加成功！",
+        "sections": {
+            "name": "姓名",
+            "phones": "电话号码",
+            "emails": "电子邮箱地址",
+            "categories": "类别"
+        },
+        "labels": {
+            "firstName": "名字",
+            "lastName": "姓氏",
+            "optional": "可选",
+            "save": "保存联系人",
+            "cancel": "取消",
+            "phone": "电话",
+            "email": "电子邮箱"
+        },
+        "validation": {
+            "firstNameRequired": "名字为必填项",
+            "contactInfoRequired": "请至少提供一个电话号码或电子邮箱地址"
+        }
+    },
+    "contact": {
+        "phoneLabels": {
+            "Mobile": "手机",
+            "Home": "住宅",
+            "Work": "工作",
+            "Other": "其他"
+        },
+        "emailLabels": {
+            "Personal": "个人",
+            "Work": "工作",
+            "Other": "其他"
+        }
+    },
+    "editContact": {
+        "title": "编辑联系人",
+        "labels": {
+            "save": "保存更改",
+            "cancel": "取消"
+        }
     }
-  },
-  "events": {
-    "title": "事件",
-    "today": "今天",
-    "tomorrow": "明天",
-    "filters": {
-      "all": "全部",
-      "birthday": "生日",
-      "anniversary": "纪念日",
-      "meeting": "会议",
-      "deadline": "截止日期",
-      "other": "其他"
-    },
-    "types": {
-      "birthday": "生日",
-      "anniversary": "纪念日",
-      "meeting": "会议",
-      "deadline": "截止日期",
-      "other": "其他"
-    },
-    "emptyTitle": "暂无事件",
-    "emptyMessage": "添加第一个事件开始使用。",
-    "errorLoad": "加载事件失败"
-  },
-  "addEvent": {
-    "titleAdd": "添加事件",
-    "titleEdit": "编辑事件",
-    "sections": {
-      "contact": "联系人",
-      "type": "事件类型",
-      "date": "日期",
-      "title": "标题",
-      "reminders": "提醒",
-      "notes": "备注"
-    },
-    "labels": {
-      "selectContact": "选择联系人",
-      "quickFill": "快速填充",
-      "titlePlaceholder": "例如：张三的生日",
-      "recurring": "重复事件",
-      "recurringHelper": "每年重复（生日、纪念日）",
-      "notesPlaceholder": "关于此事件的可选备注",
-      "save": "保存",
-      "update": "更新",
-      "cancel": "取消",
-      "delete": "删除事件"
-    },
-    "types": {
-      "birthday": "生日",
-      "anniversary": "纪念日",
-      "meeting": "会议",
-      "deadline": "截止日期",
-      "other": "其他"
-    },
-    "quickTitles": {
-      "birthday": "{{name}}的生日",
-      "anniversary": "与{{name}}的纪念日",
-      "meeting": "与{{name}}的会议",
-      "deadline": "{{name}}的截止日期",
-      "other": "与{{name}}的事件"
-    },
-    "reminderTemplates": {
-      "15": "提前15分钟",
-      "60": "提前1小时",
-      "1440": "提前1天",
-      "10080": "提前1周"
-    },
-    "errors": {
-      "titleRequired": "标题为必填项",
-      "contactRequired": "请选择联系人",
-      "saveFailed": "保存事件失败。请重试。",
-      "deleteFailed": "删除事件失败。请重试。"
-    },
-    "delete": {
-      "title": "删除事件",
-      "message": "确定要删除此事件吗？",
-      "confirm": "删除",
-      "cancel": "取消"
-    },
-    "success": {
-      "added": "事件添加成功！",
-      "updated": "事件更新成功！",
-      "deleted": "事件删除成功！"
-    }
-  },
-  "contactDetail": {
-    "title": "联系人",
-    "loading": "正在加载...",
-    "errorLoad": "加载联系人详情失败",
-    "errorImageSet": "设置联系人照片失败",
-    "errorImageRemove": "删除照片失败",
-    "recent": "近期互动",
-    "events": "即将到来的事件",
-    "addBirthday": "生日",
-    "addEvent": "事件",
-    "noEvents": "暂无即将到来的事件",
-    "noEventsDescription": "为此联系人添加事件",
-    "recurring": "重复",
-    "delete": "删除联系人",
-    "deleteConfirm": "您确定要删除 {{name}} 吗？",
-    "photoTitle": "联系人照片",
-    "photoBody": "添加或移除个人资料图片。",
-    "remove": "移除",
-    "addPhoto": "添加照片",
-    "cancel": "取消",
-    "add": "添加"
-  },
-  "categories": {
-    "Family": "家人",
-    "Friends": "朋友",
-    "Work": "工作",
-    "VIP": "重要人物",
-    "Coworkers": "同事",
-    "Clients": "客户",
-    "Leads": "潜在客户",
-    "Vendors": "供应商",
-    "Business": "商业",
-    "Personal": "个人"
-  },
-  "addContact": {
-    "title": "添加联系人",
-    "importSuccessTitle": "联系人已导入",
-    "importSuccessMsg": "联系人信息已导入。请在保存前查看和编辑。",
-    "importFailTitle": "导入失败",
-    "importFailMsg": "导入联系人失败。请重试或手动输入详细信息。",
-    "permissionTitle": "权限被拒",
-    "permissionMsg": "无法访问联系人。请在您的设备设置中启用联系人权限。",
-    "successMsg": "联系人添加成功！",
-    "sections": {
-      "name": "姓名",
-      "phones": "电话号码",
-      "emails": "电子邮箱地址",
-      "categories": "类别"
-    },
-    "labels": {
-      "firstName": "名字",
-      "lastName": "姓氏",
-      "optional": "可选",
-      "save": "保存联系人",
-      "cancel": "取消",
-      "phone": "电话",
-      "email": "电子邮箱"
-    },
-    "validation": {
-      "firstNameRequired": "名字为必填项",
-      "contactInfoRequired": "请至少提供一个电话号码或电子邮箱地址"
-    }
-  },
-  "contact": {
-    "phoneLabels": {
-      "Mobile": "手机",
-      "Home": "住宅",
-      "Work": "工作",
-      "Other": "其他"
-    },
-    "emailLabels": {
-      "Personal": "个人",
-      "Work": "工作",
-      "Other": "其他"
-    }
-  },
-  "editContact": {
-    "title": "编辑联系人",
-    "labels": {
-      "save": "保存更改",
-      "cancel": "取消"
-    }
-  }
 }
