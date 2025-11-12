@@ -10,12 +10,14 @@ import {
   IconButton,
   Menu,
 } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { useCreateCompany } from '../hooks/queries';
 import { showAlert } from '../errors';
 import { hasContent } from '../utils/stringHelpers';
 import { INDUSTRIES } from '../constants/industries';
 
 export default function AddCompanyModal({ visible, onDismiss }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
   const [website, setWebsite] = useState('');
@@ -41,12 +43,18 @@ export default function AddCompanyModal({ visible, onDismiss }) {
 
   const handleSave = async () => {
     if (!hasContent(name)) {
-      showAlert.error('Validation Error', 'Company name is required');
+      showAlert.error(
+        t('companies.add.validation.title'),
+        t('companies.add.validation.requiredName')
+      );
       return;
     }
 
     if (name.length > 200) {
-      showAlert.error('Validation Error', 'Company name must be 200 characters or less');
+      showAlert.error(
+        t('companies.add.validation.title'),
+        t('companies.add.validation.nameTooLong')
+      );
       return;
     }
 
@@ -61,9 +69,9 @@ export default function AddCompanyModal({ visible, onDismiss }) {
 
       resetForm();
       onDismiss();
-      showAlert.success('Success', 'Company created successfully');
+      showAlert.success(t('labels.success'), t('companies.add.success'));
     } catch (error) {
-      showAlert.error('Error', 'Failed to create company');
+      showAlert.error(t('companies.add.error.title'), t('companies.add.error.message'));
     }
   };
 
@@ -76,13 +84,13 @@ export default function AddCompanyModal({ visible, onDismiss }) {
       >
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
-            <Text variant="headlineSmall">Add Company</Text>
+            <Text variant="headlineSmall">{t('companies.add.title')}</Text>
             <IconButton icon="close" onPress={handleCancel} />
           </View>
 
           <ScrollView style={styles.scrollView}>
             <TextInput
-              label="Company Name *"
+              label={t('companies.add.labels.name')}
               value={name}
               onChangeText={setName}
               mode="outlined"
@@ -96,7 +104,7 @@ export default function AddCompanyModal({ visible, onDismiss }) {
               onDismiss={() => setShowIndustryMenu(false)}
               anchor={
                 <TextInput
-                  label="Industry"
+                  label={t('companies.add.labels.industry')}
                   value={industry}
                   mode="outlined"
                   style={styles.input}
@@ -119,18 +127,18 @@ export default function AddCompanyModal({ visible, onDismiss }) {
             </Menu>
 
             <TextInput
-              label="Website"
+              label={t('companies.add.labels.website')}
               value={website}
               onChangeText={setWebsite}
               mode="outlined"
               style={styles.input}
               keyboardType="url"
               autoCapitalize="none"
-              placeholder="https://example.com"
+              placeholder={t('companies.add.placeholders.website')}
             />
 
             <TextInput
-              label="Address"
+              label={t('companies.add.labels.address')}
               value={address}
               onChangeText={setAddress}
               mode="outlined"
@@ -140,7 +148,7 @@ export default function AddCompanyModal({ visible, onDismiss }) {
             />
 
             <TextInput
-              label="Notes"
+              label={t('companies.add.labels.notes')}
               value={notes}
               onChangeText={setNotes}
               mode="outlined"
@@ -156,7 +164,7 @@ export default function AddCompanyModal({ visible, onDismiss }) {
               onPress={handleCancel}
               style={styles.button}
             >
-              Cancel
+              {t('buttons.cancel')}
             </Button>
             <Button
               mode="contained"
@@ -165,7 +173,7 @@ export default function AddCompanyModal({ visible, onDismiss }) {
               loading={createCompanyMutation.isPending}
               disabled={createCompanyMutation.isPending}
             >
-              Save
+              {t('buttons.save')}
             </Button>
           </View>
         </Surface>

@@ -83,8 +83,37 @@
     "dark": "Dark",
     "success": "Success"
   },
+  "buttons": {
+    "cancel": "Cancel",
+    "save": "Save"
+  },
   "common": {
     "all": "All"
+  },
+  "companies": {
+    "add": {
+      "title": "Add Company",
+      "labels": {
+        "name": "Company Name *",
+        "industry": "Industry",
+        "website": "Website",
+        "address": "Address",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "Validation Error",
+        "requiredName": "Company name is required",
+        "nameTooLong": "Company name must be 200 characters or less"
+      },
+      "success": "Company created successfully",
+      "error": {
+        "title": "Error",
+        "message": "Failed to create company"
+      }
+    }
   },
   "interactions": {
     "title": "Interactions",

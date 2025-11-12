@@ -80,8 +80,37 @@
     "dark": "深色",
     "success": "成功"
   },
+  "buttons": {
+    "cancel": "取消",
+    "save": "保存"
+  },
   "common": {
     "all": "全部"
+  },
+  "companies": {
+    "add": {
+      "title": "添加公司",
+      "labels": {
+        "name": "公司名称 *",
+        "industry": "行业",
+        "website": "网站",
+        "address": "地址",
+        "notes": "备注"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "验证错误",
+        "requiredName": "公司名称为必填项",
+        "nameTooLong": "公司名称不得超过200个字符"
+      },
+      "success": "公司创建成功",
+      "error": {
+        "title": "错误",
+        "message": "创建公司失败"
+      }
+    }
   },
   "interactions": {
     "title": "互动",

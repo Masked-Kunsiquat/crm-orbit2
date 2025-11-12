@@ -80,8 +80,37 @@
     "dark": "Sombre",
     "success": "Succès"
   },
+  "buttons": {
+    "cancel": "Annuler",
+    "save": "Enregistrer"
+  },
   "common": {
     "all": "Tous"
+  },
+  "companies": {
+    "add": {
+      "title": "Ajouter une Entreprise",
+      "labels": {
+        "name": "Nom de l'Entreprise *",
+        "industry": "Secteur",
+        "website": "Site Web",
+        "address": "Adresse",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://exemple.com"
+      },
+      "validation": {
+        "title": "Erreur de Validation",
+        "requiredName": "Le nom de l'entreprise est requis",
+        "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
+      },
+      "success": "Entreprise créée avec succès",
+      "error": {
+        "title": "Erreur",
+        "message": "Échec de la création de l'entreprise"
+      }
+    }
   },
   "interactions": {
     "title": "Interactions",
