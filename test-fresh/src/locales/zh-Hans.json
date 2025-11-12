@@ -20,7 +20,10 @@
     "language": {
       "device": "设备默认",
       "english": "英文",
-      "spanish": "西班牙文"
+      "spanish": "西班牙文",
+      "german": "德文",
+      "french": "法文",
+      "chinese": "简体中文"
     },
     "appearance": "外观",
     "security": {

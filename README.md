@@ -11,7 +11,8 @@ A modern, mobile-first Customer Relationship Management (CRM) application built 
 - **Notes & Attachments** - Add rich notes and file attachments to contacts, companies, and interactions
 - **Categories & Tags** - Organize contacts with customizable categories and system-defined tags
 - **Search & Filtering** - Powerful search across contacts, companies, and interactions
-- **Internationalization** - Multi-language support with i18next (English, Spanish, French, German)
+- **Internationalization** - Multi-language support with i18next (English, Spanish, French, German, Chinese)
+  - Help translate: [![Translation status](https://hosted.weblate.org/widget/crm-orbit/mobile-app/svg-badge.svg)](https://hosted.weblate.org/engage/crm-orbit/)
 - **Dark Mode** - System-aware dark mode support
 - **Security** - PIN-based authentication with local biometric support
 - **Offline-First** - SQLite-based local storage with full offline capability
@@ -85,6 +86,7 @@ npm start
 - `npm test` - Run Jest tests
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Generate test coverage report
+- `npm run i18n:check` - Check translation coverage across all languages
 
 ## Database Architecture
 
@@ -149,11 +151,25 @@ Translation files are located in `src/locales/`. To add a new language:
 
 ## Contributing
 
-This is a private project. For bugs or feature requests, please open an issue in the repository.
+Contributions are welcome! Here's how you can help:
+
+### Translations
+
+We use [Weblate](https://hosted.weblate.org/engage/crm-orbit/) for managing translations. You can contribute translations without any technical knowledge:
+
+[![Translation status](https://hosted.weblate.org/widget/crm-orbit/mobile-app/multi-auto.svg)](https://hosted.weblate.org/engage/crm-orbit/)
+
+**Supported languages**: English, Spanish, French, German, Chinese (Simplified)
+
+**Want to add a new language?** Open an issue or start translating on Weblate!
+
+### Code Contributions
+
+For bugs or feature requests, please open an issue in the repository.
 
 ## License
 
-Private - All rights reserved.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
