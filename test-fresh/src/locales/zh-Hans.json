@@ -110,6 +110,29 @@
         "title": "错误",
         "message": "创建公司失败"
       }
+    },
+    "edit": {
+      "title": "编辑公司",
+      "labels": {
+        "name": "公司名称 *",
+        "industry": "行业",
+        "website": "网站",
+        "address": "地址",
+        "notes": "备注"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "验证错误",
+        "requiredName": "公司名称为必填项",
+        "nameTooLong": "公司名称不得超过200个字符"
+      },
+      "success": "公司更新成功",
+      "error": {
+        "title": "错误",
+        "message": "更新公司失败"
+      }
     }
   },
   "interactions": {

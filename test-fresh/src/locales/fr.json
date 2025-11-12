@@ -110,6 +110,29 @@
         "title": "Erreur",
         "message": "Échec de la création de l'entreprise"
       }
+    },
+    "edit": {
+      "title": "Modifier l'Entreprise",
+      "labels": {
+        "name": "Nom de l'Entreprise *",
+        "industry": "Secteur",
+        "website": "Site Web",
+        "address": "Adresse",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://exemple.com"
+      },
+      "validation": {
+        "title": "Erreur de Validation",
+        "requiredName": "Le nom de l'entreprise est requis",
+        "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
+      },
+      "success": "Entreprise mise à jour avec succès",
+      "error": {
+        "title": "Erreur",
+        "message": "Échec de la mise à jour de l'entreprise"
+      }
     }
   },
   "interactions": {

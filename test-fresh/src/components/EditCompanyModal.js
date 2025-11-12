@@ -10,12 +10,14 @@ import {
   IconButton,
   Menu,
 } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { useUpdateCompany } from '../hooks/queries';
 import { showAlert } from '../errors';
 import { hasContent } from '../utils/stringHelpers';
 import { INDUSTRIES } from '../constants/industries';
 
 export default function EditCompanyModal({ visible, company, onDismiss }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
   const [website, setWebsite] = useState('');
@@ -52,12 +54,18 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
 
   const handleSave = async () => {
     if (!hasContent(name)) {
-      showAlert.error('Validation Error', 'Company name is required');
+      showAlert.error(
+        t('companies.edit.validation.title'),
+        t('companies.edit.validation.requiredName')
+      );
       return;
     }
 
     if (name.length > 200) {
-      showAlert.error('Validation Error', 'Company name must be 200 characters or less');
+      showAlert.error(
+        t('companies.edit.validation.title'),
+        t('companies.edit.validation.nameTooLong')
+      );
       return;
     }
 
@@ -79,9 +87,9 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
 
       resetForm();
       onDismiss();
-      showAlert.success('Success', 'Company updated successfully');
+      showAlert.success(t('labels.success'), t('companies.edit.success'));
     } catch (error) {
-      showAlert.error('Error', 'Failed to update company');
+      showAlert.error(t('companies.edit.error.title'), t('companies.edit.error.message'));
     }
   };
 
@@ -98,13 +106,13 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
       >
         <Surface style={styles.surface} elevation={4}>
           <View style={styles.header}>
-            <Text variant="headlineSmall">Edit Company</Text>
+            <Text variant="headlineSmall">{t('companies.edit.title')}</Text>
             <IconButton icon="close" onPress={handleCancel} />
           </View>
 
           <ScrollView style={styles.scrollView}>
             <TextInput
-              label="Company Name *"
+              label={t('companies.edit.labels.name')}
               value={name}
               onChangeText={setName}
               mode="outlined"
@@ -118,7 +126,7 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
               onDismiss={() => setShowIndustryMenu(false)}
               anchor={
                 <TextInput
-                  label="Industry"
+                  label={t('companies.edit.labels.industry')}
                   value={industry}
                   mode="outlined"
                   style={styles.input}
@@ -141,18 +149,18 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
             </Menu>
 
             <TextInput
-              label="Website"
+              label={t('companies.edit.labels.website')}
               value={website}
               onChangeText={setWebsite}
               mode="outlined"
               style={styles.input}
               keyboardType="url"
               autoCapitalize="none"
-              placeholder="https://example.com"
+              placeholder={t('companies.edit.placeholders.website')}
             />
 
             <TextInput
-              label="Address"
+              label={t('companies.edit.labels.address')}
               value={address}
               onChangeText={setAddress}
               mode="outlined"
@@ -162,7 +170,7 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
             />
 
             <TextInput
-              label="Notes"
+              label={t('companies.edit.labels.notes')}
               value={notes}
               onChangeText={setNotes}
               mode="outlined"
@@ -178,7 +186,7 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
               onPress={handleCancel}
               style={styles.button}
             >
-              Cancel
+              {t('buttons.cancel')}
             </Button>
             <Button
               mode="contained"
@@ -187,7 +195,7 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
               loading={updateCompanyMutation.isPending}
               disabled={updateCompanyMutation.isPending}
             >
-              Save
+              {t('buttons.save')}
             </Button>
           </View>
         </Surface>

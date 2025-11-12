@@ -110,6 +110,29 @@
         "title": "Fehler",
         "message": "Unternehmen konnte nicht erstellt werden"
       }
+    },
+    "edit": {
+      "title": "Unternehmen Bearbeiten",
+      "labels": {
+        "name": "Unternehmensname *",
+        "industry": "Branche",
+        "website": "Webseite",
+        "address": "Adresse",
+        "notes": "Notizen"
+      },
+      "placeholders": {
+        "website": "https://beispiel.de"
+      },
+      "validation": {
+        "title": "Validierungsfehler",
+        "requiredName": "Unternehmensname ist erforderlich",
+        "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
+      },
+      "success": "Unternehmen erfolgreich aktualisiert",
+      "error": {
+        "title": "Fehler",
+        "message": "Unternehmen konnte nicht aktualisiert werden"
+      }
     }
   },
   "interactions": {

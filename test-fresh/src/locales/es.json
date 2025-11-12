@@ -110,6 +110,29 @@
         "title": "Error",
         "message": "Error al crear la empresa"
       }
+    },
+    "edit": {
+      "title": "Editar Empresa",
+      "labels": {
+        "name": "Nombre de Empresa *",
+        "industry": "Industria",
+        "website": "Sitio Web",
+        "address": "Dirección",
+        "notes": "Notas"
+      },
+      "placeholders": {
+        "website": "https://ejemplo.com"
+      },
+      "validation": {
+        "title": "Error de Validación",
+        "requiredName": "El nombre de la empresa es obligatorio",
+        "nameTooLong": "El nombre de la empresa debe tener 200 caracteres o menos"
+      },
+      "success": "Empresa actualizada exitosamente",
+      "error": {
+        "title": "Error",
+        "message": "Error al actualizar la empresa"
+      }
     }
   },
   "interactions": {
