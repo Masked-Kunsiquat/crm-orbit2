@@ -12,6 +12,7 @@
     "title": "设置",
     "sections": {
       "security": "安全",
+      "features": "功能",
       "swipe": "滑动操作",
       "theme": "主题",
       "language": "语言"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "自动锁定超时",
       "minutes_one": "{{count}} 分钟",
       "minutes_other": "{{count}} 分钟"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "公司管理",
+        "description": "启用公司功能以供专业使用（公司选项卡、联系人中的公司选择器）",
+        "enabled": "公司管理已启用。重启应用以查看公司选项卡。",
+        "disabled": "公司管理已禁用。"
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "错误",
         "message": "无法更新语言。请重试。"
+      },
+      "featureToggle": {
+        "title": "错误",
+        "message": "更新设置失败"
       }
     }
   },
@@ -64,7 +77,8 @@
     "right": "右",
     "system": "系统",
     "light": "浅色",
-    "dark": "深色"
+    "dark": "深色",
+    "success": "成功"
   },
   "common": {
     "all": "全部"

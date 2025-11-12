@@ -223,15 +223,15 @@ export default function SettingsScreen() {
       {/* Features */}
       <List.Section style={styles.section}>
         <List.Accordion
-          title="Features"
+          title={t('settings.sections.features')}
           expanded={expandedFeatures}
           onPress={() => setExpandedFeatures(e => !e)}
         >
           <List.Item
-            title={() => <Text variant="titleSmall">Company Management</Text>}
+            title={() => <Text variant="titleSmall">{t('settings.features.companyManagement.title')}</Text>}
             description={() => (
               <Text variant="bodySmall" style={styles.featureDescription}>
-                Enable company features for professional use (companies tab, company selector in contacts)
+                {t('settings.features.companyManagement.description')}
               </Text>
             )}
             right={() => (
@@ -241,13 +241,16 @@ export default function SettingsScreen() {
                   try {
                     await setCompanyManagementEnabled(value);
                     showAlert.success(
-                      'Success',
+                      t('labels.success'),
                       value
-                        ? 'Company management enabled. Restart the app to see the Companies tab.'
-                        : 'Company management disabled.'
+                        ? t('settings.features.companyManagement.enabled')
+                        : t('settings.features.companyManagement.disabled')
                     );
                   } catch (error) {
-                    showAlert.error('Error', 'Failed to update setting');
+                    showAlert.error(
+                      t('settings.errors.featureToggle.title'),
+                      t('settings.errors.featureToggle.message')
+                    );
                   }
                 }}
               />

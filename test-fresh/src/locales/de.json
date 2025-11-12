@@ -12,6 +12,7 @@
     "title": "Einstellungen",
     "sections": {
       "security": "Sicherheit",
+      "features": "Funktionen",
       "swipe": "Wisch-Aktionen",
       "theme": "Design",
       "language": "Sprache"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "Zeitlimit für automatische Sperre",
       "minutes_one": "{{count}} Min.",
       "minutes_other": "{{count}} Min."
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Unternehmensverwaltung",
+        "description": "Unternehmensfunktionen für professionelle Nutzung aktivieren (Unternehmens-Tab, Unternehmensauswahl in Kontakten)",
+        "enabled": "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen.",
+        "disabled": "Unternehmensverwaltung deaktiviert."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "Fehler",
         "message": "Sprache konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "featureToggle": {
+        "title": "Fehler",
+        "message": "Einstellung konnte nicht aktualisiert werden"
       }
     }
   },
@@ -64,7 +77,8 @@
     "right": "Rechts",
     "system": "System",
     "light": "Hell",
-    "dark": "Dunkel"
+    "dark": "Dunkel",
+    "success": "Erfolg"
   },
   "common": {
     "all": "Alle"

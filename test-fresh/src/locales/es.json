@@ -12,6 +12,7 @@
     "title": "Ajustes",
     "sections": {
       "security": "Seguridad",
+      "features": "Características",
       "swipe": "Acciones de deslizamiento",
       "theme": "Tema",
       "language": "Idioma"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "Tiempo de bloqueo automático",
       "minutes_one": "{{count}} min",
       "minutes_other": "{{count}} min"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Gestión de Empresas",
+        "description": "Habilitar funciones de empresa para uso profesional (pestaña de empresas, selector de empresa en contactos)",
+        "enabled": "Gestión de empresas habilitada. Reinicia la aplicación para ver la pestaña Empresas.",
+        "disabled": "Gestión de empresas deshabilitada."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "Error",
         "message": "No se pudo actualizar el idioma. Por favor, inténtalo de nuevo."
+      },
+      "featureToggle": {
+        "title": "Error",
+        "message": "Error al actualizar la configuración"
       }
     }
   },
@@ -64,7 +77,8 @@
     "right": "Derecha",
     "system": "Sistema",
     "light": "Claro",
-    "dark": "Oscuro"
+    "dark": "Oscuro",
+    "success": "Éxito"
   },
   "common": {
     "all": "Todas"

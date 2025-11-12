@@ -12,6 +12,7 @@
     "title": "Settings",
     "sections": {
       "security": "Security",
+      "features": "Features",
       "swipe": "Swipe Actions",
       "theme": "Theme",
       "language": "Language"
@@ -32,6 +33,14 @@
       "autoLockTimeout": "Auto-Lock Timeout",
       "minutes_one": "{{count}} min",
       "minutes_other": "{{count}} min"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Company Management",
+        "description": "Enable company features for professional use (companies tab, company selector in contacts)",
+        "enabled": "Company management enabled. Restart the app to see the Companies tab.",
+        "disabled": "Company management disabled."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -57,6 +66,10 @@
       "language": {
         "title": "Error",
         "message": "Unable to update language. Please try again."
+      },
+      "featureToggle": {
+        "title": "Error",
+        "message": "Failed to update setting"
       }
     }
   },
@@ -67,7 +80,8 @@
     "right": "Right",
     "system": "System",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "success": "Success"
   },
   "common": {
     "all": "All"

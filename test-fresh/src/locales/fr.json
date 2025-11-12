@@ -12,6 +12,7 @@
     "title": "Paramètres",
     "sections": {
       "security": "Sécurité",
+      "features": "Fonctionnalités",
       "swipe": "Actions de balayage",
       "theme": "Thème",
       "language": "Langue"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "Délai de verrouillage automatique",
       "minutes_one": "{{count}} min",
       "minutes_other": "{{count}} min"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Gestion des Entreprises",
+        "description": "Activer les fonctionnalités d'entreprise pour un usage professionnel (onglet entreprises, sélecteur d'entreprise dans les contacts)",
+        "enabled": "Gestion des entreprises activée. Redémarrez l'application pour voir l'onglet Entreprises.",
+        "disabled": "Gestion des entreprises désactivée."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "Erreur",
         "message": "Impossible de mettre à jour la langue. Veuillez réessayer."
+      },
+      "featureToggle": {
+        "title": "Erreur",
+        "message": "Échec de la mise à jour du paramètre"
       }
     }
   },
@@ -64,7 +77,8 @@
     "right": "Droite",
     "system": "Système",
     "light": "Clair",
-    "dark": "Sombre"
+    "dark": "Sombre",
+    "success": "Succès"
   },
   "common": {
     "all": "Tous"
