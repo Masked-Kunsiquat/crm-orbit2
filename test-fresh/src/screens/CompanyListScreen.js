@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, FlatList, View } from 'react-native';
 import { showAlert } from '../errors';
 import { Appbar, FAB, Searchbar, Text, Chip, useTheme, Card, IconButton } from 'react-native-paper';
-import { useTranslation } from 'react-i18next';
 import AddCompanyModal from '../components/AddCompanyModal';
 import EditCompanyModal from '../components/EditCompanyModal';
 import { useCompanies, useDeleteCompany } from '../hooks/queries';
@@ -22,7 +21,6 @@ const INDUSTRIES = [
 
 export default function CompanyListScreen({ navigation }) {
   const theme = useTheme();
-  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);

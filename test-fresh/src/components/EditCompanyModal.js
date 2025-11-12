@@ -10,7 +10,6 @@ import {
   IconButton,
   Menu,
 } from 'react-native-paper';
-import { useTranslation } from 'react-i18next';
 import { useUpdateCompany } from '../hooks/queries';
 import { showAlert } from '../errors';
 import { hasContent } from '../utils/stringHelpers';
@@ -28,7 +27,6 @@ const INDUSTRIES = [
 ];
 
 export default function EditCompanyModal({ visible, company, onDismiss }) {
-  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
   const [website, setWebsite] = useState('');
