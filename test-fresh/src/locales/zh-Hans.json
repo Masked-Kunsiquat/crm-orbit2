@@ -12,6 +12,7 @@
     "title": "设置",
     "sections": {
       "security": "安全",
+      "features": "功能",
       "swipe": "滑动操作",
       "theme": "主题",
       "language": "语言"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "自动锁定超时",
       "minutes_one": "{{count}} 分钟",
       "minutes_other": "{{count}} 分钟"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "公司管理",
+        "description": "启用公司功能以供专业使用（公司选项卡、联系人中的公司选择器）",
+        "enabled": "公司管理已启用。重启应用以查看公司选项卡。",
+        "disabled": "公司管理已禁用。"
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "错误",
         "message": "无法更新语言。请重试。"
+      },
+      "featureToggle": {
+        "title": "错误",
+        "message": "更新设置失败"
       }
     }
   },
@@ -64,10 +77,92 @@
     "right": "右",
     "system": "系统",
     "light": "浅色",
-    "dark": "深色"
+    "dark": "深色",
+    "success": "成功"
+  },
+  "buttons": {
+    "cancel": "取消",
+    "save": "保存"
   },
   "common": {
     "all": "全部"
+  },
+  "industries": {
+    "technology": "科技",
+    "finance": "金融",
+    "healthcare": "医疗保健",
+    "retail": "零售",
+    "manufacturing": "制造业",
+    "education": "教育",
+    "consulting": "咨询",
+    "real estate": "房地产",
+    "other": "其他"
+  },
+  "companies": {
+    "add": {
+      "title": "添加公司",
+      "labels": {
+        "name": "公司名称 *",
+        "industry": "行业",
+        "website": "网站",
+        "address": "地址",
+        "notes": "备注"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "验证错误",
+        "requiredName": "公司名称为必填项",
+        "nameTooLong": "公司名称不得超过200个字符"
+      },
+      "success": "公司创建成功",
+      "error": {
+        "title": "错误",
+        "message": "创建公司失败"
+      }
+    },
+    "edit": {
+      "title": "编辑公司",
+      "labels": {
+        "name": "公司名称 *",
+        "industry": "行业",
+        "website": "网站",
+        "address": "地址",
+        "notes": "备注"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "验证错误",
+        "requiredName": "公司名称为必填项",
+        "nameTooLong": "公司名称不得超过200个字符"
+      },
+      "success": "公司更新成功",
+      "error": {
+        "title": "错误",
+        "message": "更新公司失败"
+      }
+    },
+    "list": {
+      "title": "公司",
+      "searchPlaceholder": "搜索公司...",
+      "empty": {
+        "title": "未找到公司",
+        "noResults": "没有与您的搜索匹配的公司。",
+        "addFirst": "添加您的第一家公司以开始使用。"
+      },
+      "delete": {
+        "title": "删除公司",
+        "message": "您确定要删除\"{{name}}\"吗？这不会删除关联的联系人。",
+        "success": "公司删除成功",
+        "error": {
+          "title": "错误",
+          "message": "删除公司失败"
+        }
+      }
+    }
   },
   "interactions": {
     "title": "互动",

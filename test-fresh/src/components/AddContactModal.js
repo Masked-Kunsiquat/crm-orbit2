@@ -9,11 +9,14 @@ import {
   Button,
   IconButton,
   Chip,
+  Menu,
 } from 'react-native-paper';
 import * as Contacts from 'expo-contacts';
 import { categoriesDB } from '../database';
 import { useTranslation } from 'react-i18next';
 import { useCreateContactWithDetails } from '../hooks/queries';
+import { useCompanies } from '../hooks/queries';
+import { useSettings } from '../context/SettingsContext';
 import { handleError, showAlert } from '../errors';
 import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
 import { requestPermission } from '../utils/permissionHelpers';
@@ -50,15 +53,19 @@ const mapEmailLabel = (nativeLabel) => {
 
 export default function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const { t } = useTranslation();
+  const { companyManagementEnabled } = useSettings();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
   const [emails, setEmails] = useState([{ id: 1, value: '', label: 'Personal' }]);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  // Use TanStack Query mutation
+  // Use TanStack Query mutations and queries
   const createContactMutation = useCreateContactWithDetails();
+  const { data: companies = [] } = useCompanies({ enabled: companyManagementEnabled });
 
   useEffect(() => {
     if (visible) {
@@ -82,6 +89,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
   const resetForm = () => {
     setFirstName('');
     setLastName('');
+    setSelectedCompany(null);
     setPhones([{ id: 1, value: '', label: 'Mobile' }]);
     setEmails([{ id: 1, value: '', label: 'Personal' }]);
     setSelectedCategories([]);
@@ -227,6 +235,7 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
       await createContactMutation.mutateAsync({
         firstName,
         lastName,
+        companyId: selectedCompany?.id || null,
         phones: validPhones,
         emails: validEmails,
         categoryIds: selectedCategories,
@@ -303,6 +312,49 @@ export default function AddContactModal({ visible, onDismiss, onContactAdded }) 
                 placeholder={t('addContact.labels.optional')}
               />
             </View>
+
+            {/* Company Section */}
+            {companyManagementEnabled && companies.length > 0 && (
+              <View style={styles.section}>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Company
+                </Text>
+                <Menu
+                  visible={showCompanyMenu}
+                  onDismiss={() => setShowCompanyMenu(false)}
+                  anchor={
+                    <TextInput
+                      label="Company"
+                      value={selectedCompany?.name || ''}
+                      mode="outlined"
+                      style={styles.input}
+                      right={<TextInput.Icon icon="chevron-down" />}
+                      onFocus={() => setShowCompanyMenu(true)}
+                      showSoftInputOnFocus={false}
+                      placeholder="Optional"
+                    />
+                  }
+                >
+                  <Menu.Item
+                    onPress={() => {
+                      setSelectedCompany(null);
+                      setShowCompanyMenu(false);
+                    }}
+                    title="None"
+                  />
+                  {companies.map((company) => (
+                    <Menu.Item
+                      key={company.id}
+                      onPress={() => {
+                        setSelectedCompany(company);
+                        setShowCompanyMenu(false);
+                      }}
+                      title={company.name}
+                    />
+                  ))}
+                </Menu>
+              </View>
+            )}
 
             {/* Phone Numbers Section */}
             <View style={styles.section}>

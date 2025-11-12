@@ -9,9 +9,12 @@ import {
   Button,
   IconButton,
   Chip,
+  Menu,
 } from 'react-native-paper';
 import database, { contactsDB, contactsInfoDB, categoriesDB, categoriesRelationsDB, transaction as dbTransaction } from '../database';
 import { useTranslation } from 'react-i18next';
+import { useCompanies } from '../hooks/queries';
+import { useSettings } from '../context/SettingsContext';
 import { handleError, showAlert } from '../errors';
 import { hasContent, safeTrim, normalizeTrimLowercase, filterNonEmpty } from '../utils/stringHelpers';
 import { useAsyncLoading } from '../hooks/useAsyncOperation';
@@ -21,12 +24,18 @@ const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
 
 export default function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   const { t } = useTranslation();
+  const { companyManagementEnabled } = useSettings();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
   const [emails, setEmails] = useState([{ id: 1, value: '', label: 'Personal' }]);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+
+  // Fetch companies if feature is enabled
+  const { data: companies = [] } = useCompanies({ enabled: companyManagementEnabled });
 
   const { execute: saveContact, loading: saving } = useAsyncLoading(async () => {
     // Build all new contact info
@@ -59,6 +68,7 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
       await contactsDB.update(contact.id, {
         first_name: safeTrim(firstName),
         last_name: safeTrim(lastName),
+        company_id: selectedCompany?.id || null,
       }, tx);
 
       await contactsInfoDB.replaceContactInfo(contact.id, contactInfoItems, tx);
@@ -91,6 +101,14 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
     try {
       setFirstName(contact.first_name || '');
       setLastName(contact.last_name || '');
+
+      // Load company if available
+      if (contact.company_id && companies.length > 0) {
+        const company = companies.find(c => c.id === contact.company_id);
+        setSelectedCompany(company || null);
+      } else {
+        setSelectedCompany(null);
+      }
 
       // Load phones
       const contactPhones = (contact.contact_info || []).filter(info => info.type === 'phone');
@@ -273,6 +291,49 @@ export default function EditContactModal({ visible, onDismiss, contact, onContac
                 placeholder={t('addContact.labels.optional')}
               />
             </View>
+
+            {/* Company Section */}
+            {companyManagementEnabled && companies.length > 0 && (
+              <View style={styles.section}>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  {t('addContact.sections.company')}
+                </Text>
+                <Menu
+                  visible={showCompanyMenu}
+                  onDismiss={() => setShowCompanyMenu(false)}
+                  anchor={
+                    <TextInput
+                      label={t('addContact.labels.company')}
+                      value={selectedCompany?.name || ''}
+                      mode="outlined"
+                      style={styles.input}
+                      right={<TextInput.Icon icon="chevron-down" />}
+                      onFocus={() => setShowCompanyMenu(true)}
+                      showSoftInputOnFocus={false}
+                      placeholder={t('addContact.labels.optional')}
+                    />
+                  }
+                >
+                  <Menu.Item
+                    onPress={() => {
+                      setSelectedCompany(null);
+                      setShowCompanyMenu(false);
+                    }}
+                    title="None"
+                  />
+                  {companies.map((company) => (
+                    <Menu.Item
+                      key={company.id}
+                      onPress={() => {
+                        setSelectedCompany(company);
+                        setShowCompanyMenu(false);
+                      }}
+                      title={company.name}
+                    />
+                  ))}
+                </Menu>
+              </View>
+            )}
 
             {/* Phone Numbers Section */}
             <View style={styles.section}>

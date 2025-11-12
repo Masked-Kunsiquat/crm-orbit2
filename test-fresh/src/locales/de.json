@@ -12,6 +12,7 @@
     "title": "Einstellungen",
     "sections": {
       "security": "Sicherheit",
+      "features": "Funktionen",
       "swipe": "Wisch-Aktionen",
       "theme": "Design",
       "language": "Sprache"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "Zeitlimit für automatische Sperre",
       "minutes_one": "{{count}} Min.",
       "minutes_other": "{{count}} Min."
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Unternehmensverwaltung",
+        "description": "Unternehmensfunktionen für professionelle Nutzung aktivieren (Unternehmens-Tab, Unternehmensauswahl in Kontakten)",
+        "enabled": "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen.",
+        "disabled": "Unternehmensverwaltung deaktiviert."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "Fehler",
         "message": "Sprache konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "featureToggle": {
+        "title": "Fehler",
+        "message": "Einstellung konnte nicht aktualisiert werden"
       }
     }
   },
@@ -64,10 +77,92 @@
     "right": "Rechts",
     "system": "System",
     "light": "Hell",
-    "dark": "Dunkel"
+    "dark": "Dunkel",
+    "success": "Erfolg"
+  },
+  "buttons": {
+    "cancel": "Abbrechen",
+    "save": "Speichern"
   },
   "common": {
     "all": "Alle"
+  },
+  "industries": {
+    "technology": "Technologie",
+    "finance": "Finanzen",
+    "healthcare": "Gesundheitswesen",
+    "retail": "Einzelhandel",
+    "manufacturing": "Fertigung",
+    "education": "Bildung",
+    "consulting": "Beratung",
+    "real estate": "Immobilien",
+    "other": "Sonstiges"
+  },
+  "companies": {
+    "add": {
+      "title": "Unternehmen Hinzufügen",
+      "labels": {
+        "name": "Unternehmensname *",
+        "industry": "Branche",
+        "website": "Webseite",
+        "address": "Adresse",
+        "notes": "Notizen"
+      },
+      "placeholders": {
+        "website": "https://beispiel.de"
+      },
+      "validation": {
+        "title": "Validierungsfehler",
+        "requiredName": "Unternehmensname ist erforderlich",
+        "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
+      },
+      "success": "Unternehmen erfolgreich erstellt",
+      "error": {
+        "title": "Fehler",
+        "message": "Unternehmen konnte nicht erstellt werden"
+      }
+    },
+    "edit": {
+      "title": "Unternehmen Bearbeiten",
+      "labels": {
+        "name": "Unternehmensname *",
+        "industry": "Branche",
+        "website": "Webseite",
+        "address": "Adresse",
+        "notes": "Notizen"
+      },
+      "placeholders": {
+        "website": "https://beispiel.de"
+      },
+      "validation": {
+        "title": "Validierungsfehler",
+        "requiredName": "Unternehmensname ist erforderlich",
+        "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
+      },
+      "success": "Unternehmen erfolgreich aktualisiert",
+      "error": {
+        "title": "Fehler",
+        "message": "Unternehmen konnte nicht aktualisiert werden"
+      }
+    },
+    "list": {
+      "title": "Unternehmen",
+      "searchPlaceholder": "Unternehmen suchen...",
+      "empty": {
+        "title": "Keine Unternehmen Gefunden",
+        "noResults": "Keine Unternehmen entsprechen Ihrer Suche.",
+        "addFirst": "Fügen Sie Ihr erstes Unternehmen hinzu, um zu beginnen."
+      },
+      "delete": {
+        "title": "Unternehmen Löschen",
+        "message": "Möchten Sie \"{{name}}\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht.",
+        "success": "Unternehmen erfolgreich gelöscht",
+        "error": {
+          "title": "Fehler",
+          "message": "Unternehmen konnte nicht gelöscht werden"
+        }
+      }
+    }
   },
   "interactions": {
     "title": "Interaktionen",

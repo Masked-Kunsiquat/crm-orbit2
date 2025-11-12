@@ -12,6 +12,7 @@
     "title": "Settings",
     "sections": {
       "security": "Security",
+      "features": "Features",
       "swipe": "Swipe Actions",
       "theme": "Theme",
       "language": "Language"
@@ -32,6 +33,14 @@
       "autoLockTimeout": "Auto-Lock Timeout",
       "minutes_one": "{{count}} min",
       "minutes_other": "{{count}} min"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Company Management",
+        "description": "Enable company features for professional use (companies tab, company selector in contacts)",
+        "enabled": "Company management enabled. Restart the app to see the Companies tab.",
+        "disabled": "Company management disabled."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -57,6 +66,10 @@
       "language": {
         "title": "Error",
         "message": "Unable to update language. Please try again."
+      },
+      "featureToggle": {
+        "title": "Error",
+        "message": "Failed to update setting"
       }
     }
   },
@@ -67,10 +80,92 @@
     "right": "Right",
     "system": "System",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "success": "Success"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "common": {
     "all": "All"
+  },
+  "industries": {
+    "technology": "Technology",
+    "finance": "Finance",
+    "healthcare": "Healthcare",
+    "retail": "Retail",
+    "manufacturing": "Manufacturing",
+    "education": "Education",
+    "consulting": "Consulting",
+    "real estate": "Real Estate",
+    "other": "Other"
+  },
+  "companies": {
+    "add": {
+      "title": "Add Company",
+      "labels": {
+        "name": "Company Name *",
+        "industry": "Industry",
+        "website": "Website",
+        "address": "Address",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "Validation Error",
+        "requiredName": "Company name is required",
+        "nameTooLong": "Company name must be 200 characters or less"
+      },
+      "success": "Company created successfully",
+      "error": {
+        "title": "Error",
+        "message": "Failed to create company"
+      }
+    },
+    "edit": {
+      "title": "Edit Company",
+      "labels": {
+        "name": "Company Name *",
+        "industry": "Industry",
+        "website": "Website",
+        "address": "Address",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "title": "Validation Error",
+        "requiredName": "Company name is required",
+        "nameTooLong": "Company name must be 200 characters or less"
+      },
+      "success": "Company updated successfully",
+      "error": {
+        "title": "Error",
+        "message": "Failed to update company"
+      }
+    },
+    "list": {
+      "title": "Companies",
+      "searchPlaceholder": "Search companies...",
+      "empty": {
+        "title": "No Companies Found",
+        "noResults": "No companies match your search.",
+        "addFirst": "Add your first company to get started."
+      },
+      "delete": {
+        "title": "Delete Company",
+        "message": "Are you sure you want to delete \"{{name}}\"? This will not delete associated contacts.",
+        "success": "Company deleted successfully",
+        "error": {
+          "title": "Error",
+          "message": "Failed to delete company"
+        }
+      }
+    }
   },
   "interactions": {
     "title": "Interactions",

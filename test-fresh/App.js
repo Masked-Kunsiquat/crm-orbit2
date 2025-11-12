@@ -9,6 +9,7 @@ import { initDatabase } from './src/database';
 import { createBasicTables } from './src/database/simpleSetup';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
+import CompanyListScreen from './src/screens/CompanyListScreen';
 import InteractionsScreen from './src/screens/InteractionsScreen';
 import EventsList from './src/screens/EventsList';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -89,20 +90,35 @@ export default function App() {
 
   const MainTabs = ({ navigation }) => {
     const { t, i18n } = useTranslation();
+    const { companyManagementEnabled } = useSettings();
     const [index, setIndex] = React.useState(0);
 
-    // Compute routes dynamically based on current language - no state needed!
-    const routes = React.useMemo(() => [
-      { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
-      { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
-      { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
-      { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
-    ], [i18n.language]); // Only recompute when language actually changes
+    // Compute routes dynamically based on current language and company management setting
+    const routes = React.useMemo(() => {
+      const baseRoutes = [
+        { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
+      ];
+
+      // Conditionally add Companies tab if feature is enabled
+      if (companyManagementEnabled) {
+        baseRoutes.push({ key: 'companies', title: 'Companies', focusedIcon: 'office-building', unfocusedIcon: 'office-building-outline' });
+      }
+
+      baseRoutes.push(
+        { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+        { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
+        { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' }
+      );
+
+      return baseRoutes;
+    }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
 
     const renderScene = ({ route }) => {
       switch (route.key) {
         case 'contacts':
           return <ContactsList navigation={navigation} />;
+        case 'companies':
+          return <CompanyListScreen navigation={navigation} />;
         case 'interactions':
           return <InteractionsScreen />;
         case 'events':

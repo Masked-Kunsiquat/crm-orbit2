@@ -20,7 +20,13 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
   return {
     async getWithContactInfo(id) {
       const [contactRes, infoRes] = await Promise.all([
-        execute('SELECT * FROM contacts WHERE id = ?;', [id]),
+        execute(
+          `SELECT c.*, comp.name as company_name, comp.industry as company_industry
+           FROM contacts c
+           LEFT JOIN companies comp ON c.company_id = comp.id
+           WHERE c.id = ?;`,
+          [id]
+        ),
         execute(
           'SELECT * FROM contact_info WHERE contact_id = ? ORDER BY is_primary DESC, type ASC;',
           [id]

@@ -144,17 +144,17 @@ export function useCreateContactWithDetails() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ firstName, lastName, phones = [], emails = [], categoryIds = [] }) => {
+    mutationFn: async ({ firstName, lastName, companyId = null, phones = [], emails = [], categoryIds = [] }) => {
       if (typeof transaction === 'function') {
         // Use transaction for atomic writes
         let contactId;
         await transaction(async (tx) => {
           const displayName = filterNonEmptyStrings([firstName, lastName]).join(' ') || 'Unnamed Contact';
 
-          // Create contact
+          // Create contact with optional company_id
           const insertContact = await tx.execute(
-            'INSERT INTO contacts (first_name, last_name, display_name) VALUES (?, ?, ?);',
-            [safeTrim(firstName), safeTrim(lastName), displayName]
+            'INSERT INTO contacts (first_name, last_name, display_name, company_id) VALUES (?, ?, ?, ?);',
+            [safeTrim(firstName), safeTrim(lastName), displayName, companyId]
           );
 
           // Validate insertId exists (allowing 0 as valid ID)

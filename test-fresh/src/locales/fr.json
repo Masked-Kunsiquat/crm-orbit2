@@ -12,6 +12,7 @@
     "title": "Paramètres",
     "sections": {
       "security": "Sécurité",
+      "features": "Fonctionnalités",
       "swipe": "Actions de balayage",
       "theme": "Thème",
       "language": "Langue"
@@ -29,6 +30,14 @@
       "autoLockTimeout": "Délai de verrouillage automatique",
       "minutes_one": "{{count}} min",
       "minutes_other": "{{count}} min"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Gestion des Entreprises",
+        "description": "Activer les fonctionnalités d'entreprise pour un usage professionnel (onglet entreprises, sélecteur d'entreprise dans les contacts)",
+        "enabled": "Gestion des entreprises activée. Redémarrez l'application pour voir l'onglet Entreprises.",
+        "disabled": "Gestion des entreprises désactivée."
+      }
     },
     "errors": {
       "biometricToggle": {
@@ -54,6 +63,10 @@
       "language": {
         "title": "Erreur",
         "message": "Impossible de mettre à jour la langue. Veuillez réessayer."
+      },
+      "featureToggle": {
+        "title": "Erreur",
+        "message": "Échec de la mise à jour du paramètre"
       }
     }
   },
@@ -64,10 +77,92 @@
     "right": "Droite",
     "system": "Système",
     "light": "Clair",
-    "dark": "Sombre"
+    "dark": "Sombre",
+    "success": "Succès"
+  },
+  "buttons": {
+    "cancel": "Annuler",
+    "save": "Enregistrer"
   },
   "common": {
     "all": "Tous"
+  },
+  "industries": {
+    "technology": "Technologie",
+    "finance": "Finance",
+    "healthcare": "Santé",
+    "retail": "Commerce de Détail",
+    "manufacturing": "Fabrication",
+    "education": "Éducation",
+    "consulting": "Conseil",
+    "real estate": "Immobilier",
+    "other": "Autre"
+  },
+  "companies": {
+    "add": {
+      "title": "Ajouter une Entreprise",
+      "labels": {
+        "name": "Nom de l'Entreprise *",
+        "industry": "Secteur",
+        "website": "Site Web",
+        "address": "Adresse",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://exemple.com"
+      },
+      "validation": {
+        "title": "Erreur de Validation",
+        "requiredName": "Le nom de l'entreprise est requis",
+        "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
+      },
+      "success": "Entreprise créée avec succès",
+      "error": {
+        "title": "Erreur",
+        "message": "Échec de la création de l'entreprise"
+      }
+    },
+    "edit": {
+      "title": "Modifier l'Entreprise",
+      "labels": {
+        "name": "Nom de l'Entreprise *",
+        "industry": "Secteur",
+        "website": "Site Web",
+        "address": "Adresse",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://exemple.com"
+      },
+      "validation": {
+        "title": "Erreur de Validation",
+        "requiredName": "Le nom de l'entreprise est requis",
+        "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
+      },
+      "success": "Entreprise mise à jour avec succès",
+      "error": {
+        "title": "Erreur",
+        "message": "Échec de la mise à jour de l'entreprise"
+      }
+    },
+    "list": {
+      "title": "Entreprises",
+      "searchPlaceholder": "Rechercher des entreprises...",
+      "empty": {
+        "title": "Aucune Entreprise Trouvée",
+        "noResults": "Aucune entreprise ne correspond à votre recherche.",
+        "addFirst": "Ajoutez votre première entreprise pour commencer."
+      },
+      "delete": {
+        "title": "Supprimer l'Entreprise",
+        "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les contacts associés.",
+        "success": "Entreprise supprimée avec succès",
+        "error": {
+          "title": "Erreur",
+          "message": "Échec de la suppression de l'entreprise"
+        }
+      }
+    }
   },
   "interactions": {
     "title": "Interactions",
