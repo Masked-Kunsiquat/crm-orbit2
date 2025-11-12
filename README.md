@@ -12,7 +12,7 @@ A modern, mobile-first Customer Relationship Management (CRM) application built 
 - **Categories & Tags** - Organize contacts with customizable categories and system-defined tags
 - **Search & Filtering** - Powerful search across contacts, companies, and interactions
 - **Internationalization** - Multi-language support with i18next (English, Spanish, French, German, Chinese)
-  - Help translate: [![Translation status](https://hosted.weblate.org/widget/expo-crm/mobile-app/svg-badge.svg)](https://hosted.weblate.org/engage/expo-crm/)
+  - Help translate: [![Translation status](https://hosted.weblate.org/widget/crm-orbit/mobile-app/svg-badge.svg)](https://hosted.weblate.org/engage/crm-orbit/)
 - **Dark Mode** - System-aware dark mode support
 - **Security** - PIN-based authentication with local biometric support
 - **Offline-First** - SQLite-based local storage with full offline capability
@@ -155,9 +155,9 @@ Contributions are welcome! Here's how you can help:
 
 ### Translations
 
-We use [Weblate](https://hosted.weblate.org/engage/expo-crm/) for managing translations. You can contribute translations without any technical knowledge:
+We use [Weblate](https://hosted.weblate.org/engage/crm-orbit/) for managing translations. You can contribute translations without any technical knowledge:
 
-[![Translation status](https://hosted.weblate.org/widget/expo-crm/mobile-app/multi-auto.svg)](https://hosted.weblate.org/engage/expo-crm/)
+[![Translation status](https://hosted.weblate.org/widget/crm-orbit/mobile-app/multi-auto.svg)](https://hosted.weblate.org/engage/crm-orbit/)
 
 **Supported languages**: English, Spanish, French, German, Chinese (Simplified)
 
