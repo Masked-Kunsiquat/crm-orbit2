@@ -1,407 +1,408 @@
 {
-  "navigation": {
-    "contacts": "Contacts",
-    "interactions": "Interactions",
-    "events": "Événements",
-    "settings": "Paramètres"
-  },
-  "search": {
-    "contactsPlaceholder": "Rechercher des contacts..."
-  },
-  "settings": {
-    "title": "Paramètres",
-    "sections": {
-      "security": "Sécurité",
-      "features": "Fonctionnalités",
-      "swipe": "Actions de balayage",
-      "theme": "Thème",
-      "language": "Langue"
+    "navigation": {
+        "contacts": "Contacts",
+        "interactions": "Interactions",
+        "events": "Événements",
+        "settings": "Paramètres"
     },
-    "language": {
-      "device": "Par défaut de l'appareil",
-      "english": "Anglais",
-      "spanish": "Espagnol",
-      "german": "Allemand",
-      "french": "Français",
-      "chinese": "Chinois simplifié"
+    "search": {
+        "contactsPlaceholder": "Rechercher des contacts..."
     },
-    "appearance": "Apparence",
-    "security": {
-      "pinSetup": "Définir / Modifier le code PIN",
-      "useBiometric": "Utiliser la biométrie",
-      "autoLock": "Verrouillage automatique ({{minutes}} min)",
-      "autoLockTimeout": "Délai de verrouillage automatique",
-      "minutes_one": "{{count}} min",
-      "minutes_other": "{{count}} min"
-    },
-    "features": {
-      "companyManagement": {
-        "title": "Gestion des Entreprises",
-        "description": "Activer les fonctionnalités d'entreprise pour un usage professionnel (onglet entreprises, sélecteur d'entreprise dans les contacts)",
-        "enabled": "Gestion des entreprises activée. Redémarrez l'application pour voir l'onglet Entreprises.",
-        "disabled": "Gestion des entreprises désactivée."
-      }
-    },
-    "errors": {
-      "biometricToggle": {
-        "title": "Erreur",
-        "message": "Impossible de mettre à jour le paramètre biométrique. Veuillez réessayer."
-      },
-      "autoLockToggle": {
-        "title": "Erreur",
-        "message": "Impossible de mettre à jour le paramètre de verrouillage automatique. Veuillez réessayer."
-      },
-      "autoLockTimeout": {
-        "title": "Erreur",
-        "message": "Impossible de mettre à jour le délai de verrouillage automatique. Veuillez réessayer."
-      },
-      "swipeAction": {
-        "title": "Erreur",
-        "message": "Impossible de mettre à jour l'action de balayage. Veuillez réessayer."
-      },
-      "theme": {
-        "title": "Erreur",
-        "message": "Impossible de mettre à jour le thème. Veuillez réessayer."
-      },
-      "language": {
-        "title": "Erreur",
-        "message": "Impossible de mettre à jour la langue. Veuillez réessayer."
-      },
-      "featureToggle": {
-        "title": "Erreur",
-        "message": "Échec de la mise à jour du paramètre"
-      }
-    }
-  },
-  "labels": {
-    "call": "Appel",
-    "text": "Texte",
-    "left": "Gauche",
-    "right": "Droite",
-    "system": "Système",
-    "light": "Clair",
-    "dark": "Sombre",
-    "success": "Succès"
-  },
-  "buttons": {
-    "cancel": "Annuler",
-    "save": "Enregistrer"
-  },
-  "common": {
-    "all": "Tous"
-  },
-  "industries": {
-    "technology": "Technologie",
-    "finance": "Finance",
-    "healthcare": "Santé",
-    "retail": "Commerce de Détail",
-    "manufacturing": "Fabrication",
-    "education": "Éducation",
-    "consulting": "Conseil",
-    "real estate": "Immobilier",
-    "other": "Autre"
-  },
-  "companies": {
-    "add": {
-      "title": "Ajouter une Entreprise",
-      "labels": {
-        "name": "Nom de l'Entreprise *",
-        "industry": "Secteur",
-        "website": "Site Web",
-        "address": "Adresse",
-        "notes": "Notes"
-      },
-      "placeholders": {
-        "website": "https://exemple.com"
-      },
-      "validation": {
-        "title": "Erreur de Validation",
-        "requiredName": "Le nom de l'entreprise est requis",
-        "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
-      },
-      "success": "Entreprise créée avec succès",
-      "error": {
-        "title": "Erreur",
-        "message": "Échec de la création de l'entreprise"
-      }
-    },
-    "edit": {
-      "title": "Modifier l'Entreprise",
-      "labels": {
-        "name": "Nom de l'Entreprise *",
-        "industry": "Secteur",
-        "website": "Site Web",
-        "address": "Adresse",
-        "notes": "Notes"
-      },
-      "placeholders": {
-        "website": "https://exemple.com"
-      },
-      "validation": {
-        "title": "Erreur de Validation",
-        "requiredName": "Le nom de l'entreprise est requis",
-        "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
-      },
-      "success": "Entreprise mise à jour avec succès",
-      "error": {
-        "title": "Erreur",
-        "message": "Échec de la mise à jour de l'entreprise"
-      }
-    },
-    "list": {
-      "title": "Entreprises",
-      "searchPlaceholder": "Rechercher des entreprises...",
-      "empty": {
-        "title": "Aucune Entreprise Trouvée",
-        "noResults": "Aucune entreprise ne correspond à votre recherche.",
-        "addFirst": "Ajoutez votre première entreprise pour commencer."
-      },
-      "delete": {
-        "title": "Supprimer l'Entreprise",
-        "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les contacts associés.",
-        "success": "Entreprise supprimée avec succès",
-        "error": {
-          "title": "Erreur",
-          "message": "Échec de la suppression de l'entreprise"
+    "settings": {
+        "title": "Paramètres",
+        "sections": {
+            "security": "Sécurité",
+            "features": "Fonctionnalités",
+            "swipe": "Actions de balayage",
+            "theme": "Thème",
+            "language": "Langue"
+        },
+        "language": {
+            "device": "Par défaut de l'appareil",
+            "english": "Anglais",
+            "spanish": "Espagnol",
+            "german": "Allemand",
+            "french": "Français",
+            "chinese": "Chinois simplifié"
+        },
+        "appearance": "Apparence",
+        "security": {
+            "pinSetup": "Définir / Modifier le code PIN",
+            "useBiometric": "Utiliser la biométrie",
+            "autoLock": "Verrouillage automatique ({{minutes}} min)",
+            "autoLockTimeout": "Délai de verrouillage automatique",
+            "minutes_one": "{{count}} min",
+            "minutes_many": "",
+            "minutes_other": "{{count}} min"
+        },
+        "features": {
+            "companyManagement": {
+                "title": "Gestion des Entreprises",
+                "description": "Activer les fonctionnalités d'entreprise pour un usage professionnel (onglet entreprises, sélecteur d'entreprise dans les contacts)",
+                "enabled": "Gestion des entreprises activée. Redémarrez l'application pour voir l'onglet Entreprises.",
+                "disabled": "Gestion des entreprises désactivée."
+            }
+        },
+        "errors": {
+            "biometricToggle": {
+                "title": "Erreur",
+                "message": "Impossible de mettre à jour le paramètre biométrique. Veuillez réessayer."
+            },
+            "autoLockToggle": {
+                "title": "Erreur",
+                "message": "Impossible de mettre à jour le paramètre de verrouillage automatique. Veuillez réessayer."
+            },
+            "autoLockTimeout": {
+                "title": "Erreur",
+                "message": "Impossible de mettre à jour le délai de verrouillage automatique. Veuillez réessayer."
+            },
+            "swipeAction": {
+                "title": "Erreur",
+                "message": "Impossible de mettre à jour l'action de balayage. Veuillez réessayer."
+            },
+            "theme": {
+                "title": "Erreur",
+                "message": "Impossible de mettre à jour le thème. Veuillez réessayer."
+            },
+            "language": {
+                "title": "Erreur",
+                "message": "Impossible de mettre à jour la langue. Veuillez réessayer."
+            },
+            "featureToggle": {
+                "title": "Erreur",
+                "message": "Échec de la mise à jour du paramètre"
+            }
         }
-      }
-    }
-  },
-  "interactions": {
-    "title": "Interactions",
-    "filters": {
-      "all": "Toutes",
-      "call": "Appels",
-      "text": "Textos",
-      "email": "E-mail",
-      "meeting": "Réunions",
-      "other": "Autre"
-    },
-    "emptyTitle": "Aucune interaction",
-    "emptyMessage": "Ajoutez votre première interaction pour commencer.",
-    "errorLoad": "Échec du chargement des interactions"
-  },
-  "addInteraction": {
-    "titleAdd": "Ajouter une interaction",
-    "titleEdit": "Modifier l'interaction",
-    "sections": {
-      "contact": "Contact",
-      "type": "Type",
-      "dateTime": "Date et heure",
-      "title": "Titre",
-      "duration": "Durée (minutes)",
-      "notes": "Notes"
     },
     "labels": {
-      "selectContact": "Sélectionner un contact",
-      "interactionTitle": "Titre de l'interaction",
-      "titlePlaceholder": "Exemple : Appel de mise au point rapide",
-      "duration": "Durée",
-      "durationOptional": "Facultatif",
-      "notes": "Notes supplémentaires",
-      "notesPlaceholder": "Notes facultatives sur cette interaction",
-      "quickFill": "Remplissage rapide",
-      "save": "Enregistrer",
-      "update": "Mettre à jour",
-      "cancel": "Annuler"
+        "call": "Appel",
+        "text": "Texte",
+        "left": "Gauche",
+        "right": "Droite",
+        "system": "Système",
+        "light": "Clair",
+        "dark": "Sombre",
+        "success": "Succès"
     },
-    "types": {
-      "call": "Appel",
-      "text": "Texte",
-      "email": "E-mail",
-      "meeting": "Réunion",
-      "other": "Autre"
+    "buttons": {
+        "cancel": "Annuler",
+        "save": "Enregistrer"
     },
-    "quickTitles": {
-      "call": "Appel avec {{name}}",
-      "text": "Texto envoyé à {{name}}",
-      "email": "E-mail envoyé à {{name}}",
-      "meeting": "Réunion avec {{name}}",
-      "other": "Interaction avec {{name}}"
+    "common": {
+        "all": "Tous"
     },
-    "errors": {
-      "titleRequired": "Le titre est requis",
-      "contactRequired": "Veuillez sélectionner un contact",
-      "saveFailed": "Échec de l'enregistrement de l'interaction. Veuillez réessayer.",
-      "deleteFailed": "Échec de la suppression de l'interaction. Veuillez réessayer."
+    "industries": {
+        "technology": "Technologie",
+        "finance": "Finance",
+        "healthcare": "Santé",
+        "retail": "Commerce de Détail",
+        "manufacturing": "Fabrication",
+        "education": "Éducation",
+        "consulting": "Conseil",
+        "real estate": "Immobilier",
+        "other": "Autre"
     },
-    "delete": {
-      "title": "Supprimer l'interaction",
-      "message": "Êtes-vous sûr de vouloir supprimer cette interaction ?",
-      "confirm": "Supprimer",
-      "cancel": "Annuler"
+    "companies": {
+        "add": {
+            "title": "Ajouter une Entreprise",
+            "labels": {
+                "name": "Nom de l'Entreprise *",
+                "industry": "Secteur",
+                "website": "Site Web",
+                "address": "Adresse",
+                "notes": "Notes"
+            },
+            "placeholders": {
+                "website": "https://exemple.com"
+            },
+            "validation": {
+                "title": "Erreur de Validation",
+                "requiredName": "Le nom de l'entreprise est requis",
+                "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
+            },
+            "success": "Entreprise créée avec succès",
+            "error": {
+                "title": "Erreur",
+                "message": "Échec de la création de l'entreprise"
+            }
+        },
+        "edit": {
+            "title": "Modifier l'Entreprise",
+            "labels": {
+                "name": "Nom de l'Entreprise *",
+                "industry": "Secteur",
+                "website": "Site Web",
+                "address": "Adresse",
+                "notes": "Notes"
+            },
+            "placeholders": {
+                "website": "https://exemple.com"
+            },
+            "validation": {
+                "title": "Erreur de Validation",
+                "requiredName": "Le nom de l'entreprise est requis",
+                "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
+            },
+            "success": "Entreprise mise à jour avec succès",
+            "error": {
+                "title": "Erreur",
+                "message": "Échec de la mise à jour de l'entreprise"
+            }
+        },
+        "list": {
+            "title": "Entreprises",
+            "searchPlaceholder": "Rechercher des entreprises...",
+            "empty": {
+                "title": "Aucune Entreprise Trouvée",
+                "noResults": "Aucune entreprise ne correspond à votre recherche.",
+                "addFirst": "Ajoutez votre première entreprise pour commencer."
+            },
+            "delete": {
+                "title": "Supprimer l'Entreprise",
+                "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les contacts associés.",
+                "success": "Entreprise supprimée avec succès",
+                "error": {
+                    "title": "Erreur",
+                    "message": "Échec de la suppression de l'entreprise"
+                }
+            }
+        }
     },
-    "success": {
-      "added": "Interaction ajoutée avec succès !",
-      "updated": "Interaction mise à jour avec succès !",
-      "deleted": "Interaction supprimée avec succès !"
+    "interactions": {
+        "title": "Interactions",
+        "filters": {
+            "all": "Toutes",
+            "call": "Appels",
+            "text": "Textos",
+            "email": "E-mail",
+            "meeting": "Réunions",
+            "other": "Autre"
+        },
+        "emptyTitle": "Aucune interaction",
+        "emptyMessage": "Ajoutez votre première interaction pour commencer.",
+        "errorLoad": "Échec du chargement des interactions"
+    },
+    "addInteraction": {
+        "titleAdd": "Ajouter une interaction",
+        "titleEdit": "Modifier l'interaction",
+        "sections": {
+            "contact": "Contact",
+            "type": "Type",
+            "dateTime": "Date et heure",
+            "title": "Titre",
+            "duration": "Durée (minutes)",
+            "notes": "Notes"
+        },
+        "labels": {
+            "selectContact": "Sélectionner un contact",
+            "interactionTitle": "Titre de l'interaction",
+            "titlePlaceholder": "Exemple : Appel de mise au point rapide",
+            "duration": "Durée",
+            "durationOptional": "Facultatif",
+            "notes": "Notes supplémentaires",
+            "notesPlaceholder": "Notes facultatives sur cette interaction",
+            "quickFill": "Remplissage rapide",
+            "save": "Enregistrer",
+            "update": "Mettre à jour",
+            "cancel": "Annuler"
+        },
+        "types": {
+            "call": "Appel",
+            "text": "Texte",
+            "email": "E-mail",
+            "meeting": "Réunion",
+            "other": "Autre"
+        },
+        "quickTitles": {
+            "call": "Appel avec {{name}}",
+            "text": "Texto envoyé à {{name}}",
+            "email": "E-mail envoyé à {{name}}",
+            "meeting": "Réunion avec {{name}}",
+            "other": "Interaction avec {{name}}"
+        },
+        "errors": {
+            "titleRequired": "Le titre est requis",
+            "contactRequired": "Veuillez sélectionner un contact",
+            "saveFailed": "Échec de l'enregistrement de l'interaction. Veuillez réessayer.",
+            "deleteFailed": "Échec de la suppression de l'interaction. Veuillez réessayer."
+        },
+        "delete": {
+            "title": "Supprimer l'interaction",
+            "message": "Êtes-vous sûr de vouloir supprimer cette interaction ?",
+            "confirm": "Supprimer",
+            "cancel": "Annuler"
+        },
+        "success": {
+            "added": "Interaction ajoutée avec succès !",
+            "updated": "Interaction mise à jour avec succès !",
+            "deleted": "Interaction supprimée avec succès !"
+        }
+    },
+    "events": {
+        "title": "Événements",
+        "today": "Aujourd'hui",
+        "tomorrow": "Demain",
+        "filters": {
+            "all": "Tous",
+            "birthday": "Anniversaires",
+            "anniversary": "Commémorations",
+            "meeting": "Réunions",
+            "deadline": "Échéances",
+            "other": "Autres"
+        },
+        "types": {
+            "birthday": "Anniversaire",
+            "anniversary": "Commémoration",
+            "meeting": "Réunion",
+            "deadline": "Échéance",
+            "other": "Autre"
+        },
+        "emptyTitle": "Aucun événement",
+        "emptyMessage": "Ajoutez votre premier événement pour commencer.",
+        "errorLoad": "Échec du chargement des événements"
+    },
+    "addEvent": {
+        "titleAdd": "Ajouter un événement",
+        "titleEdit": "Modifier l'événement",
+        "sections": {
+            "contact": "Contact",
+            "type": "Type d'événement",
+            "date": "Date",
+            "title": "Titre",
+            "reminders": "Rappels",
+            "notes": "Notes"
+        },
+        "labels": {
+            "selectContact": "Sélectionner un contact",
+            "quickFill": "Remplissage rapide",
+            "titlePlaceholder": "ex., Anniversaire de Jean",
+            "recurring": "Événement récurrent",
+            "recurringHelper": "Se répète chaque année (anniversaires, commémorations)",
+            "notesPlaceholder": "Notes optionnelles sur cet événement",
+            "save": "Enregistrer",
+            "update": "Mettre à jour",
+            "cancel": "Annuler",
+            "delete": "Supprimer l'événement"
+        },
+        "types": {
+            "birthday": "Anniversaire",
+            "anniversary": "Commémoration",
+            "meeting": "Réunion",
+            "deadline": "Échéance",
+            "other": "Autre"
+        },
+        "quickTitles": {
+            "birthday": "Anniversaire de {{name}}",
+            "anniversary": "Commémoration avec {{name}}",
+            "meeting": "Réunion avec {{name}}",
+            "deadline": "Échéance pour {{name}}",
+            "other": "Événement avec {{name}}"
+        },
+        "reminderTemplates": {
+            "15": "15 min avant",
+            "60": "1 heure avant",
+            "1440": "1 jour avant",
+            "10080": "1 semaine avant"
+        },
+        "errors": {
+            "titleRequired": "Le titre est obligatoire",
+            "contactRequired": "Veuillez sélectionner un contact",
+            "saveFailed": "Échec de l'enregistrement de l'événement. Veuillez réessayer.",
+            "deleteFailed": "Échec de la suppression de l'événement. Veuillez réessayer."
+        },
+        "delete": {
+            "title": "Supprimer l'événement",
+            "message": "Êtes-vous sûr de vouloir supprimer cet événement ?",
+            "confirm": "Supprimer",
+            "cancel": "Annuler"
+        },
+        "success": {
+            "added": "Événement ajouté avec succès !",
+            "updated": "Événement mis à jour avec succès !",
+            "deleted": "Événement supprimé avec succès !"
+        }
+    },
+    "contactDetail": {
+        "title": "Détails du contact",
+        "loading": "Chargement...",
+        "errorLoad": "Échec du chargement des détails du contact",
+        "errorImageSet": "Échec de la définition de la photo de contact",
+        "errorImageRemove": "Échec de la suppression de la photo",
+        "recent": "Interactions récentes",
+        "events": "Événements à venir",
+        "addBirthday": "Anniversaire",
+        "addEvent": "Événement",
+        "noEvents": "Aucun événement à venir",
+        "noEventsDescription": "Ajouter un événement pour ce contact",
+        "recurring": "Récurrent",
+        "delete": "Supprimer le contact",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer {{name}} ?",
+        "photoTitle": "Photo du contact",
+        "photoBody": "Ajouter ou supprimer une photo de profil.",
+        "remove": "Supprimer",
+        "addPhoto": "Ajouter une photo",
+        "cancel": "Annuler",
+        "add": "Ajouter"
+    },
+    "categories": {
+        "Family": "Famille",
+        "Friends": "Amis",
+        "Work": "Travail",
+        "VIP": "VIP",
+        "Coworkers": "Collègues",
+        "Clients": "Clients",
+        "Leads": "Prospects",
+        "Vendors": "Fournisseurs",
+        "Business": "Affaires",
+        "Personal": "Personnel"
+    },
+    "addContact": {
+        "title": "Ajouter un contact",
+        "importSuccessTitle": "Contact importé",
+        "importSuccessMsg": "Les informations du contact ont été importées. Veuillez les examiner et les modifier au besoin avant d'enregistrer.",
+        "importFailTitle": "Échec de l'importation",
+        "importFailMsg": "Échec de l'importation du contact. Veuillez réessayer ou entrer les détails manuellement.",
+        "permissionTitle": "Autorisation refusée",
+        "permissionMsg": "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil.",
+        "successMsg": "Contact ajouté avec succès !",
+        "sections": {
+            "name": "Nom",
+            "phones": "Numéros de téléphone",
+            "emails": "Adresses e-mail",
+            "categories": "Catégories"
+        },
+        "labels": {
+            "firstName": "Prénom",
+            "lastName": "Nom de famille",
+            "optional": "Facultatif",
+            "save": "Enregistrer le contact",
+            "cancel": "Annuler",
+            "phone": "Téléphone",
+            "email": "E-mail"
+        },
+        "validation": {
+            "firstNameRequired": "Le prénom est obligatoire",
+            "contactInfoRequired": "Veuillez fournir au moins un numéro de téléphone ou une adresse e-mail"
+        }
+    },
+    "contact": {
+        "phoneLabels": {
+            "Mobile": "Portable",
+            "Home": "Maison",
+            "Work": "Travail",
+            "Other": "Autre"
+        },
+        "emailLabels": {
+            "Personal": "Personnel",
+            "Work": "Travail",
+            "Other": "Autre"
+        }
+    },
+    "editContact": {
+        "title": "Modifier le contact",
+        "labels": {
+            "save": "Enregistrer les modifications",
+            "cancel": "Annuler"
+        }
     }
-  },
-  "events": {
-    "title": "Événements",
-    "today": "Aujourd'hui",
-    "tomorrow": "Demain",
-    "filters": {
-      "all": "Tous",
-      "birthday": "Anniversaires",
-      "anniversary": "Commémorations",
-      "meeting": "Réunions",
-      "deadline": "Échéances",
-      "other": "Autres"
-    },
-    "types": {
-      "birthday": "Anniversaire",
-      "anniversary": "Commémoration",
-      "meeting": "Réunion",
-      "deadline": "Échéance",
-      "other": "Autre"
-    },
-    "emptyTitle": "Aucun événement",
-    "emptyMessage": "Ajoutez votre premier événement pour commencer.",
-    "errorLoad": "Échec du chargement des événements"
-  },
-  "addEvent": {
-    "titleAdd": "Ajouter un événement",
-    "titleEdit": "Modifier l'événement",
-    "sections": {
-      "contact": "Contact",
-      "type": "Type d'événement",
-      "date": "Date",
-      "title": "Titre",
-      "reminders": "Rappels",
-      "notes": "Notes"
-    },
-    "labels": {
-      "selectContact": "Sélectionner un contact",
-      "quickFill": "Remplissage rapide",
-      "titlePlaceholder": "ex., Anniversaire de Jean",
-      "recurring": "Événement récurrent",
-      "recurringHelper": "Se répète chaque année (anniversaires, commémorations)",
-      "notesPlaceholder": "Notes optionnelles sur cet événement",
-      "save": "Enregistrer",
-      "update": "Mettre à jour",
-      "cancel": "Annuler",
-      "delete": "Supprimer l'événement"
-    },
-    "types": {
-      "birthday": "Anniversaire",
-      "anniversary": "Commémoration",
-      "meeting": "Réunion",
-      "deadline": "Échéance",
-      "other": "Autre"
-    },
-    "quickTitles": {
-      "birthday": "Anniversaire de {{name}}",
-      "anniversary": "Commémoration avec {{name}}",
-      "meeting": "Réunion avec {{name}}",
-      "deadline": "Échéance pour {{name}}",
-      "other": "Événement avec {{name}}"
-    },
-    "reminderTemplates": {
-      "15": "15 min avant",
-      "60": "1 heure avant",
-      "1440": "1 jour avant",
-      "10080": "1 semaine avant"
-    },
-    "errors": {
-      "titleRequired": "Le titre est obligatoire",
-      "contactRequired": "Veuillez sélectionner un contact",
-      "saveFailed": "Échec de l'enregistrement de l'événement. Veuillez réessayer.",
-      "deleteFailed": "Échec de la suppression de l'événement. Veuillez réessayer."
-    },
-    "delete": {
-      "title": "Supprimer l'événement",
-      "message": "Êtes-vous sûr de vouloir supprimer cet événement ?",
-      "confirm": "Supprimer",
-      "cancel": "Annuler"
-    },
-    "success": {
-      "added": "Événement ajouté avec succès !",
-      "updated": "Événement mis à jour avec succès !",
-      "deleted": "Événement supprimé avec succès !"
-    }
-  },
-  "contactDetail": {
-    "title": "Détails du contact",
-    "loading": "Chargement...",
-    "errorLoad": "Échec du chargement des détails du contact",
-    "errorImageSet": "Échec de la définition de la photo de contact",
-    "errorImageRemove": "Échec de la suppression de la photo",
-    "recent": "Interactions récentes",
-    "events": "Événements à venir",
-    "addBirthday": "Anniversaire",
-    "addEvent": "Événement",
-    "noEvents": "Aucun événement à venir",
-    "noEventsDescription": "Ajouter un événement pour ce contact",
-    "recurring": "Récurrent",
-    "delete": "Supprimer le contact",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer {{name}} ?",
-    "photoTitle": "Photo du contact",
-    "photoBody": "Ajouter ou supprimer une photo de profil.",
-    "remove": "Supprimer",
-    "addPhoto": "Ajouter une photo",
-    "cancel": "Annuler",
-    "add": "Ajouter"
-  },
-  "categories": {
-    "Family": "Famille",
-    "Friends": "Amis",
-    "Work": "Travail",
-    "VIP": "VIP",
-    "Coworkers": "Collègues",
-    "Clients": "Clients",
-    "Leads": "Prospects",
-    "Vendors": "Fournisseurs",
-    "Business": "Affaires",
-    "Personal": "Personnel"
-  },
-  "addContact": {
-    "title": "Ajouter un contact",
-    "importSuccessTitle": "Contact importé",
-    "importSuccessMsg": "Les informations du contact ont été importées. Veuillez les examiner et les modifier au besoin avant d'enregistrer.",
-    "importFailTitle": "Échec de l'importation",
-    "importFailMsg": "Échec de l'importation du contact. Veuillez réessayer ou entrer les détails manuellement.",
-    "permissionTitle": "Autorisation refusée",
-    "permissionMsg": "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil.",
-    "successMsg": "Contact ajouté avec succès !",
-    "sections": {
-      "name": "Nom",
-      "phones": "Numéros de téléphone",
-      "emails": "Adresses e-mail",
-      "categories": "Catégories"
-    },
-    "labels": {
-      "firstName": "Prénom",
-      "lastName": "Nom de famille",
-      "optional": "Facultatif",
-      "save": "Enregistrer le contact",
-      "cancel": "Annuler",
-      "phone": "Téléphone",
-      "email": "E-mail"
-    },
-    "validation": {
-      "firstNameRequired": "Le prénom est obligatoire",
-      "contactInfoRequired": "Veuillez fournir au moins un numéro de téléphone ou une adresse e-mail"
-    }
-  },
-  "contact": {
-    "phoneLabels": {
-      "Mobile": "Portable",
-      "Home": "Maison",
-      "Work": "Travail",
-      "Other": "Autre"
-    },
-    "emailLabels": {
-      "Personal": "Personnel",
-      "Work": "Travail",
-      "Other": "Autre"
-    }
-  },
-  "editContact": {
-    "title": "Modifier le contact",
-    "labels": {
-      "save": "Enregistrer les modifications",
-      "cancel": "Annuler"
-    }
-  }
 }
