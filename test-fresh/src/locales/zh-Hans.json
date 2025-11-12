@@ -87,6 +87,17 @@
   "common": {
     "all": "全部"
   },
+  "industries": {
+    "technology": "科技",
+    "finance": "金融",
+    "healthcare": "医疗保健",
+    "retail": "零售",
+    "manufacturing": "制造业",
+    "education": "教育",
+    "consulting": "咨询",
+    "real estate": "房地产",
+    "other": "其他"
+  },
   "companies": {
     "add": {
       "title": "添加公司",

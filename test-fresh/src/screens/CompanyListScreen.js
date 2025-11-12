@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import AddCompanyModal from '../components/AddCompanyModal';
 import EditCompanyModal from '../components/EditCompanyModal';
 import { useCompanies, useDeleteCompany } from '../hooks/queries';
-import { INDUSTRIES } from '../constants/industries';
+import { INDUSTRIES, getIndustryLabel } from '../constants/industries';
 
 export default function CompanyListScreen({ navigation }) {
   const { t } = useTranslation();
@@ -101,7 +101,7 @@ export default function CompanyListScreen({ navigation }) {
             </Text>
             {item.industry && (
               <Text variant="bodySmall" style={styles.industry}>
-                {item.industry}
+                {getIndustryLabel(item.industry, t)}
               </Text>
             )}
             {item.address && (
@@ -185,7 +185,7 @@ export default function CompanyListScreen({ navigation }) {
               mode="flat"
               compact
             >
-              {industry}
+              {getIndustryLabel(industry, t)}
             </Chip>
           ))}
         </View>

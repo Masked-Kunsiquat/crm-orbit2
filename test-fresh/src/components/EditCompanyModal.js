@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useUpdateCompany } from '../hooks/queries';
 import { showAlert } from '../errors';
 import { hasContent } from '../utils/stringHelpers';
-import { INDUSTRIES } from '../constants/industries';
+import { INDUSTRIES, getIndustryLabel } from '../constants/industries';
 
 export default function EditCompanyModal({ visible, company, onDismiss }) {
   const { t } = useTranslation();
@@ -127,7 +127,7 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
               anchor={
                 <TextInput
                   label={t('companies.edit.labels.industry')}
-                  value={industry}
+                  value={getIndustryLabel(industry, t)}
                   mode="outlined"
                   style={styles.input}
                   right={<TextInput.Icon icon="chevron-down" />}
@@ -143,7 +143,7 @@ export default function EditCompanyModal({ visible, company, onDismiss }) {
                     setIndustry(ind);
                     setShowIndustryMenu(false);
                   }}
-                  title={ind}
+                  title={getIndustryLabel(ind, t)}
                 />
               ))}
             </Menu>

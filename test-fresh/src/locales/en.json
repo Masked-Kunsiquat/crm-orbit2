@@ -90,6 +90,17 @@
   "common": {
     "all": "All"
   },
+  "industries": {
+    "technology": "Technology",
+    "finance": "Finance",
+    "healthcare": "Healthcare",
+    "retail": "Retail",
+    "manufacturing": "Manufacturing",
+    "education": "Education",
+    "consulting": "Consulting",
+    "real estate": "Real Estate",
+    "other": "Other"
+  },
   "companies": {
     "add": {
       "title": "Add Company",

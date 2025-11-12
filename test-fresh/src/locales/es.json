@@ -87,6 +87,17 @@
   "common": {
     "all": "Todas"
   },
+  "industries": {
+    "technology": "Tecnología",
+    "finance": "Finanzas",
+    "healthcare": "Salud",
+    "retail": "Comercio Minorista",
+    "manufacturing": "Manufactura",
+    "education": "Educación",
+    "consulting": "Consultoría",
+    "real estate": "Bienes Raíces",
+    "other": "Otro"
+  },
   "companies": {
     "add": {
       "title": "Agregar Empresa",
