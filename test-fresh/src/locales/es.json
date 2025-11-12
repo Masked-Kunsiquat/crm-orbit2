@@ -20,7 +20,10 @@
     "language": {
       "device": "Predeterminado del dispositivo",
       "english": "Inglés",
-      "spanish": "Español"
+      "spanish": "Español",
+      "german": "Alemán",
+      "french": "Francés",
+      "chinese": "Chino simplificado"
     },
     "appearance": "Apariencia",
     "security": {
