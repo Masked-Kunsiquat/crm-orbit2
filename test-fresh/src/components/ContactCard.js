@@ -64,11 +64,12 @@ function ContactCard({ contact, onPress }) {
 }
 
 // Memoize to prevent unnecessary re-renders in list views
-// Only re-render if contact ID or updated_at timestamp changes
+// Only re-render if contact ID, updated_at, or onPress callback changes
 export default React.memo(ContactCard, (prevProps, nextProps) => {
   return (
     prevProps.contact.id === nextProps.contact.id &&
-    prevProps.contact.updated_at === nextProps.contact.updated_at
+    prevProps.contact.updated_at === nextProps.contact.updated_at &&
+    prevProps.onPress === nextProps.onPress
   );
 });
 

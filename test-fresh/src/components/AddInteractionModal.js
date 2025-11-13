@@ -553,12 +553,16 @@ const styles = StyleSheet.create({
 });
 
 // Memoize modal to prevent unnecessary re-renders
-// Modal only needs to re-render when visibility, editingInteraction, or callbacks change
+// Modal only needs to re-render when visibility, editingInteraction, preselectedContactId, or callbacks change
 export default React.memo(AddInteractionModal, (prevProps, nextProps) => {
   return (
     prevProps.visible === nextProps.visible &&
     prevProps.preselectedContactId === nextProps.preselectedContactId &&
     prevProps.editingInteraction?.id === nextProps.editingInteraction?.id &&
-    prevProps.editingInteraction?.updated_at === nextProps.editingInteraction?.updated_at
+    prevProps.editingInteraction?.updated_at === nextProps.editingInteraction?.updated_at &&
+    prevProps.onDismiss === nextProps.onDismiss &&
+    prevProps.onInteractionAdded === nextProps.onInteractionAdded &&
+    prevProps.onInteractionUpdated === nextProps.onInteractionUpdated &&
+    prevProps.onInteractionDeleted === nextProps.onInteractionDeleted
   );
 });
