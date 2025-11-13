@@ -7,6 +7,7 @@ import { useInteractions } from '../hooks/queries/useInteractionQueries';
 import { useEvents } from '../hooks/queries/useEventQueries';
 import { useInteractionStats, useTopContacts } from '../hooks/queries/useAnalyticsQueries';
 import { logger } from '../errors/utils/errorLogger';
+import { filterByDateRange } from '../utils/dateUtils';
 import { ScreenContainer, StatsCard, StatsRow, SectionCard, EmptyState } from '../components/layout';
 
 export default function AnalyticsScreen({ navigation }) {
@@ -64,24 +65,13 @@ export default function AnalyticsScreen({ navigation }) {
   const isLoading = loadingContacts || loadingInteractions || loadingEvents || loadingStats || loadingTopContacts;
 
   // Apply date filter locally to interactions and events
-  const filterByDateRange = (items, dateField) => {
-    if (dateRange === 'all') return items;
+  const filteredInteractions = dateRange === 'all'
+    ? interactions
+    : filterByDateRange(interactions, 'interaction_datetime', dateFilter);
 
-    const { startDate, endDate } = dateFilter;
-    if (!startDate || !endDate) return items;
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // Include the entire end date
-
-    return items.filter(item => {
-      const itemDate = new Date(item[dateField]);
-      return itemDate >= start && itemDate <= end;
-    });
-  };
-
-  const filteredInteractions = filterByDateRange(interactions, 'interaction_datetime');
-  const filteredEvents = filterByDateRange(events, 'event_date');
+  const filteredEvents = dateRange === 'all'
+    ? events
+    : filterByDateRange(events, 'event_date', dateFilter);
 
   // Calculate analytics
   const totalContacts = contacts.length;
