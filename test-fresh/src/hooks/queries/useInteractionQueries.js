@@ -21,6 +21,8 @@ export function useInteractions(options = {}) {
   return useQuery({
     queryKey: interactionKeys.lists(),
     queryFn: () => interactionsDB.getAll(options),
+    staleTime: 1 * 60 * 1000, // 1 minute (interactions update frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }
@@ -33,6 +35,8 @@ export function useInteraction(id, options = {}) {
     queryKey: interactionKeys.detail(id),
     queryFn: () => interactionsDB.getById(id),
     enabled: !!id,
+    staleTime: 1 * 60 * 1000, // 1 minute (interactions update frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }
@@ -45,6 +49,8 @@ export function useContactInteractions(contactId, options = {}) {
     queryKey: interactionKeys.byContact(contactId),
     queryFn: () => interactionsSearchDB.getByContact(contactId),
     enabled: !!contactId,
+    staleTime: 1 * 60 * 1000, // 1 minute (interactions update frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }
@@ -57,6 +63,8 @@ export function useInteractionsByType(type, options = {}) {
     queryKey: interactionKeys.byType(type),
     queryFn: () => interactionsSearchDB.getByType(type),
     enabled: !!type,
+    staleTime: 1 * 60 * 1000, // 1 minute (interactions update frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }
@@ -73,6 +81,8 @@ export function useRecentInteractions(limit = 10, options = {}) {
         orderBy: 'interaction_datetime',
         orderDir: 'DESC',
       }),
+    staleTime: 1 * 60 * 1000, // 1 minute (interactions update frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }

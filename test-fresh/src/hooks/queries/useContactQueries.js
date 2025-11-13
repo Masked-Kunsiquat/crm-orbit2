@@ -25,8 +25,8 @@ export function useContacts(options) {
   return useQuery({
     queryKey: contactKeys.lists(),
     queryFn: () => contactsDB.getAll(options),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes (contacts change infrequently)
+    gcTime: 30 * 60 * 1000, // 30 minutes
     ...options,
   });
 }
@@ -79,8 +79,8 @@ export function useContactsWithInfo(options) {
         return { ...c, contact_info, phone, email, categories };
       });
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes (contacts change infrequently)
+    gcTime: 30 * 60 * 1000, // 30 minutes
     ...options,
   });
 }
@@ -147,8 +147,8 @@ export function useInfiniteContacts(queryOptions = {}) {
       return lastPage.nextOffset;
     },
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes (contacts change infrequently)
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 }
 
@@ -218,8 +218,8 @@ export function useInfiniteContactsWithInfo(queryOptions = {}) {
       return lastPage.nextOffset;
     },
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes (contacts change infrequently)
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 }
 

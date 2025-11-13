@@ -20,6 +20,8 @@ export function useEvents(options = {}) {
   return useQuery({
     queryKey: eventKeys.lists(),
     queryFn: () => eventsDB.getAll(options),
+    staleTime: 5 * 60 * 1000, // 5 minutes (events have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -32,6 +34,8 @@ export function useEvent(id, options = {}) {
     queryKey: eventKeys.detail(id),
     queryFn: () => eventsDB.getById(id),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes (events have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -43,6 +47,8 @@ export function useUpcomingEvents(options = {}) {
   return useQuery({
     queryKey: eventKeys.upcoming(),
     queryFn: () => eventsDB.getUpcoming(),
+    staleTime: 5 * 60 * 1000, // 5 minutes (events have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -55,6 +61,8 @@ export function useContactEvents(contactId, options = {}) {
     queryKey: eventKeys.byContact(contactId),
     queryFn: () => eventsDB.getByContact(contactId),
     enabled: !!contactId,
+    staleTime: 5 * 60 * 1000, // 5 minutes (events have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -67,6 +75,8 @@ export function useEventReminders(eventId, options = {}) {
     queryKey: [...eventKeys.detail(eventId), 'reminders'],
     queryFn: () => eventsRemindersDB.getEventReminders(eventId),
     enabled: !!eventId,
+    staleTime: 5 * 60 * 1000, // 5 minutes (events have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -98,8 +108,8 @@ export function useInfiniteEvents(queryOptions = {}) {
       return lastPage.nextOffset;
     },
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes (events have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
   });
 }
 

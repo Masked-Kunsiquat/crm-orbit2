@@ -20,6 +20,8 @@ export function useNotes(options = {}) {
   return useQuery({
     queryKey: noteKeys.lists(),
     queryFn: () => notesDB.getAll(options),
+    staleTime: 5 * 60 * 1000, // 5 minutes (notes have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -32,6 +34,8 @@ export function useNote(id, options = {}) {
     queryKey: noteKeys.detail(id),
     queryFn: () => notesDB.getById(id),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes (notes have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -44,6 +48,8 @@ export function useContactNotes(contactId, options = {}) {
     queryKey: noteKeys.byContact(contactId),
     queryFn: () => notesDB.getByContact(contactId),
     enabled: !!contactId,
+    staleTime: 5 * 60 * 1000, // 5 minutes (notes have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
@@ -55,6 +61,8 @@ export function usePinnedNotes(options = {}) {
   return useQuery({
     queryKey: noteKeys.pinned(),
     queryFn: () => notesDB.getPinned(),
+    staleTime: 5 * 60 * 1000, // 5 minutes (notes have moderate updates)
+    gcTime: 15 * 60 * 1000, // 15 minutes
     ...options,
   });
 }
