@@ -93,28 +93,43 @@ export default function App() {
   const MainTabs = ({ navigation }) => {
     const { t, i18n } = useTranslation();
     const { companyManagementEnabled } = useSettings();
-    const [index, setIndex] = React.useState(0);
+    const [index, setIndex] = React.useState(2); // Start on Dashboard
 
     // Compute routes dynamically based on current language and company management setting
     const routes = React.useMemo(() => {
-      const baseRoutes = [
-        { key: 'dashboard', title: t('navigation.dashboard'), focusedIcon: 'view-dashboard', unfocusedIcon: 'view-dashboard-outline' },
+      // Dashboard in center for prominence
+      const routes = [
         { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
-      ];
-
-      // Conditionally add Companies tab if feature is enabled
-      if (companyManagementEnabled) {
-        baseRoutes.push({ key: 'companies', title: 'Companies', focusedIcon: 'office-building', unfocusedIcon: 'office-building-outline' });
-      }
-
-      baseRoutes.push(
         { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+        { key: 'dashboard', title: t('navigation.dashboard'), focusedIcon: 'view-dashboard', unfocusedIcon: 'view-dashboard-outline' },
         { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
         { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' }
-      );
+      ];
 
-      return baseRoutes;
+      // If Companies enabled, insert after Contacts (keeps Dashboard centered)
+      if (companyManagementEnabled) {
+        routes.splice(1, 0, {
+          key: 'companies',
+          title: 'Companies',
+          focusedIcon: 'office-building',
+          unfocusedIcon: 'office-building-outline'
+        });
+      }
+
+      return routes;
     }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
+
+    // When company management is toggled, adjust index to keep Dashboard selected
+    React.useEffect(() => {
+      const dashboardIndex = routes.findIndex(r => r.key === 'dashboard');
+      if (dashboardIndex !== -1 && index !== dashboardIndex && routes[index]?.key !== 'dashboard') {
+        // If we're not already on dashboard and the current tab isn't dashboard, move to dashboard
+        const currentTabKey = routes[index]?.key;
+        if (!currentTabKey) {
+          setIndex(dashboardIndex);
+        }
+      }
+    }, [routes, companyManagementEnabled]);
 
     // Compute clamped index synchronously during render
     const safeIndex = Math.max(0, Math.min(index, routes.length - 1));
