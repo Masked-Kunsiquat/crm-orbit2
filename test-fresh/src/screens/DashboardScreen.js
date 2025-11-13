@@ -196,7 +196,7 @@ export default function DashboardScreen({ navigation }) {
       <AddInteractionModal
         visible={showAddInteractionModal}
         onDismiss={() => setShowAddInteractionModal(false)}
-        onSave={() => {
+        onInteractionAdded={() => {
           setShowAddInteractionModal(false);
           refetchInteractions();
         }}
@@ -204,7 +204,7 @@ export default function DashboardScreen({ navigation }) {
       <AddEventModal
         visible={showAddEventModal}
         onDismiss={() => setShowAddEventModal(false)}
-        onSave={() => {
+        onEventAdded={() => {
           setShowAddEventModal(false);
           refetchEvents();
         }}
