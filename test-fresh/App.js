@@ -114,15 +114,16 @@ export default function App() {
       return baseRoutes;
     }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
 
-    // Clamp index immediately when routes change to prevent crash
-    const safeIndex = React.useMemo(() => {
-      const clamped = Math.min(index, routes.length - 1);
-      if (clamped !== index && clamped >= 0) {
+    // Compute clamped index synchronously during render
+    const safeIndex = Math.max(0, Math.min(index, routes.length - 1));
+
+    // Update index state if it's out of bounds (runs after render)
+    React.useEffect(() => {
+      const clamped = Math.max(0, Math.min(index, routes.length - 1));
+      if (clamped !== index) {
         console.log(`[MainTabs] Clamping index from ${index} to ${clamped} (routes.length=${routes.length})`);
-        // Defer state update to avoid render during render
-        Promise.resolve().then(() => setIndex(clamped));
+        setIndex(clamped);
       }
-      return Math.max(0, clamped);
     }, [index, routes.length]);
 
     const renderScene = ({ route }) => {
