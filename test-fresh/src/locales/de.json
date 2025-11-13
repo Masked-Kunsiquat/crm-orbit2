@@ -1,30 +1,30 @@
 {
     "navigation": {
-        "dashboard": "",
+        "dashboard": "Dashboard",
         "contacts": "Kontakte",
-        "companies": "",
+        "companies": "Unternehmen",
         "interactions": "Interaktionen",
         "events": "Ereignisse",
         "settings": "Einstellungen"
     },
     "dashboard": {
-        "title": "",
-        "loading": "",
+        "title": "Dashboard",
+        "loading": "Wird geladen...",
         "stats": {
-            "contacts": "",
-            "interactions": "",
-            "events": ""
+            "contacts": "Kontakte",
+            "interactions": "Interaktionen",
+            "events": "Ereignisse"
         },
         "upcomingEvents": {
-            "title": "",
-            "subtitle": "",
-            "empty": ""
+            "title": "Bevorstehende Ereignisse",
+            "subtitle": "Nächste 5 Ereignisse",
+            "empty": "Keine bevorstehenden Ereignisse"
         },
         "quickActions": {
-            "title": "",
-            "addContact": "",
-            "addInteraction": "",
-            "addEvent": ""
+            "title": "Schnellaktionen",
+            "addContact": "Kontakt hinzufügen",
+            "addInteraction": "Interaktion hinzufügen",
+            "addEvent": "Ereignis hinzufügen"
         }
     },
     "search": {
@@ -424,6 +424,37 @@
         "labels": {
             "save": "Änderungen speichern",
             "cancel": "Abbrechen"
+        }
+    },
+    "analytics": {
+        "title": "Analytik",
+        "dateRange": {
+            "title": "Datumsbereich",
+            "all": "Gesamtzeitraum",
+            "7days": "Letzte 7 Tage",
+            "30days": "Letzte 30 Tage",
+            "90days": "Letzte 90 Tage"
+        },
+        "overview": {
+            "title": "Überblick",
+            "totalContacts": "Gesamtzahl Kontakte",
+            "totalInteractions": "Gesamtzahl Interaktionen",
+            "totalEvents": "Gesamtzahl Ereignisse"
+        },
+        "interactions": {
+            "title": "Interaktions-Aufschlüsselung",
+            "empty": "Noch keine Interaktionen",
+            "uniqueContacts": "{{count}} eindeutige Kontakte"
+        },
+        "events": {
+            "title": "Ereignisübersicht",
+            "upcoming": "Bevorstehend",
+            "past": "Vergangen"
+        },
+        "topContacts": {
+            "title": "Aktivste Kontakte",
+            "empty": "Keine Interaktionsdaten verfügbar",
+            "interactionCount": "{{count}} Interaktionen"
         }
     }
 }
