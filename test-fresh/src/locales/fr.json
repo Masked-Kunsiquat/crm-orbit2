@@ -1,30 +1,30 @@
 {
     "navigation": {
-        "dashboard": "",
+        "dashboard": "Tableau de bord",
         "contacts": "Contacts",
-        "companies": "",
+        "companies": "Entreprises",
         "interactions": "Interactions",
         "events": "Événements",
         "settings": "Paramètres"
     },
     "dashboard": {
-        "title": "",
-        "loading": "",
+        "title": "Tableau de bord",
+        "loading": "Chargement...",
         "stats": {
-            "contacts": "",
-            "interactions": "",
-            "events": ""
+            "contacts": "Contacts",
+            "interactions": "Interactions",
+            "events": "Événements"
         },
         "upcomingEvents": {
-            "title": "",
-            "subtitle": "",
-            "empty": ""
+            "title": "Événements à venir",
+            "subtitle": "Prochain 5 événements",
+            "empty": "Aucun événement à venir"
         },
         "quickActions": {
-            "title": "",
-            "addContact": "",
-            "addInteraction": "",
-            "addEvent": ""
+            "title": "Actions rapides",
+            "addContact": "Ajouter un contact",
+            "addInteraction": "Ajouter une interaction",
+            "addEvent": "Ajouter un événement"
         }
     },
     "search": {
@@ -425,6 +425,37 @@
         "labels": {
             "save": "Enregistrer les modifications",
             "cancel": "Annuler"
+        }
+    },
+    "analytics": {
+        "title": "Analytique",
+        "dateRange": {
+            "title": "Période couverte",
+            "all": "Tout le temps",
+            "7days": "7 derniers jours",
+            "30days": "30 derniers jours",
+            "90days": "90 derniers jours"
+        },
+        "overview": {
+            "title": "Aperçu général",
+            "totalContacts": "Contacts totaux",
+            "totalInteractions": "Interactions totales",
+            "totalEvents": "Événements totaux"
+        },
+        "interactions": {
+            "title": "Décomposition des interactions",
+            "empty": "Aucune interaction pour le moment",
+            "uniqueContacts": "{{count}} contacts uniques"
+        },
+        "events": {
+            "title": "Déroulement des événements",
+            "upcoming": "À venir",
+            "past": "Passés"
+        },
+        "topContacts": {
+            "title": "Contacts les plus actifs",
+            "empty": "Aucune donnée d'interaction disponible",
+            "interactionCount": "{{count}} interactions"
         }
     }
 }
