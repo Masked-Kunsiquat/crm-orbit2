@@ -10,13 +10,18 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
  * Usage:
  * <LazyModal
  *   visible={showModal}
- *   onDismiss={handleDismiss}
  *   loader={() => import('./AddContactModal')}
  * >
- *   {(Component) => <Component onSave={handleSave} />}
+ *   {(Component) => (
+ *     <Component
+ *       visible={showModal}
+ *       onDismiss={handleDismiss}
+ *       onSave={handleSave}
+ *     />
+ *   )}
  * </LazyModal>
  */
-export default function LazyModal({ visible, onDismiss, loader, children }) {
+export default function LazyModal({ visible, loader, children }) {
   const [Component, setComponent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
