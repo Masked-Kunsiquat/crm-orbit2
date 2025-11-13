@@ -50,6 +50,10 @@ export default function DashboardScreen({ navigation }) {
     <View style={styles.container}>
       <Appbar.Header elevated>
         <Appbar.Content title={t('dashboard.title')} />
+        <Appbar.Action
+          icon="chart-bar"
+          onPress={() => navigation.navigate('Analytics')}
+        />
       </Appbar.Header>
 
       <ScrollView
