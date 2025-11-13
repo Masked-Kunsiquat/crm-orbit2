@@ -205,7 +205,32 @@ export const fileService = {
       directory.create({ intermediates: true, idempotent: true });
 
       destFile = new File(directoryPath, fileName);
-      sourceFile.copy(destFile);
+
+      // Compress images before saving to reduce storage usage
+      if (fileType === 'image') {
+        try {
+          const compressed = await ImageManipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: 800 } }], // Max width 800px
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+          );
+          const compressedFile = new File(compressed.uri);
+          compressedFile.move(destFile);
+          logger.success('FileService', 'saveFile - compressed image', {
+            originalSize: sourceFile.size,
+            compressedSize: destFile.size,
+          });
+        } catch (compressionError) {
+          // Fallback to original if compression fails
+          logger.warn('FileService', 'Image compression failed, using original', {
+            error: compressionError.message,
+          });
+          sourceFile.copy(destFile);
+        }
+      } else {
+        // Non-images: direct copy
+        sourceFile.copy(destFile);
+      }
 
       if (destFile.size > FILE_CONFIG.MAX_FILE_SIZE) {
         destFile.delete();
