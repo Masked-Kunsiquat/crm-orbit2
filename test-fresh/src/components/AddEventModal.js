@@ -104,7 +104,7 @@ function AddEventModal({
 
         // Load reminders from fetched data only once when modal opens or editingEvent changes
         // Don't reload on subsequent refetches to avoid overwriting user's in-progress edits
-        if (!remindersInitializedRef.current && fetchedReminders.length >= 0) {
+        if (!remindersInitializedRef.current && fetchedReminders.length > 0) {
           const loadedReminders = fetchedReminders.map(dbReminder => ({
             minutes: 0, // This will be recalculated if needed
             datetime: new Date(dbReminder.reminder_datetime),
@@ -640,12 +640,16 @@ const styles = StyleSheet.create({
 });
 
 // Memoize modal to prevent unnecessary re-renders
-// Modal only needs to re-render when visibility, editingEvent, or callbacks change
+// Modal only needs to re-render when visibility, editingEvent, preselectedContactId, or callbacks change
 export default React.memo(AddEventModal, (prevProps, nextProps) => {
   return (
     prevProps.visible === nextProps.visible &&
     prevProps.preselectedContactId === nextProps.preselectedContactId &&
     prevProps.editingEvent?.id === nextProps.editingEvent?.id &&
-    prevProps.editingEvent?.updated_at === nextProps.editingEvent?.updated_at
+    prevProps.editingEvent?.updated_at === nextProps.editingEvent?.updated_at &&
+    prevProps.onDismiss === nextProps.onDismiss &&
+    prevProps.onEventAdded === nextProps.onEventAdded &&
+    prevProps.onEventUpdated === nextProps.onEventUpdated &&
+    prevProps.onEventDeleted === nextProps.onEventDeleted
   );
 });
