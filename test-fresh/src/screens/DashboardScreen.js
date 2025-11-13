@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
   statCardContent: {
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 4,
   },
   statNumber: {
     fontWeight: 'bold',
@@ -244,6 +245,7 @@ const styles = StyleSheet.create({
   statLabel: {
     textAlign: 'center',
     width: '100%',
+    fontSize: 12,
   },
   card: {
     marginBottom: 16,
