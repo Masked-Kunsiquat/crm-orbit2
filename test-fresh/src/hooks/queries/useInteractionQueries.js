@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { interactionsDB, interactionsSearchDB } from '../../database';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
@@ -74,6 +74,38 @@ export function useRecentInteractions(limit = 10, options = {}) {
         orderDir: 'DESC',
       }),
     ...options,
+  });
+}
+
+/**
+ * Fetch interactions with infinite scrolling support
+ * Use this for InteractionsScreen to support pagination with large datasets
+ */
+export function useInfiniteInteractions(queryOptions = {}) {
+  const PAGE_SIZE = 50; // Load 50 interactions per page
+
+  return useInfiniteQuery({
+    queryKey: interactionKeys.lists(),
+    queryFn: async ({ pageParam = 0 }) => {
+      const interactions = await interactionsDB.getAll({
+        limit: PAGE_SIZE,
+        offset: pageParam,
+        orderBy: 'interaction_datetime',
+        orderDir: 'DESC',
+        ...queryOptions,
+      });
+      return { interactions, nextOffset: pageParam + PAGE_SIZE };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // If we received fewer interactions than PAGE_SIZE, we've reached the end
+      if (lastPage.interactions.length < PAGE_SIZE) {
+        return undefined;
+      }
+      return lastPage.nextOffset;
+    },
+    initialPageParam: 0,
+    staleTime: 1 * 60 * 1000, // 1 minute (interactions update frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 

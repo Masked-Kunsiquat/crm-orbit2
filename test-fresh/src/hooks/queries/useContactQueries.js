@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { contactsDB, contactsInfoDB, categoriesRelationsDB, transaction } from '../../database';
 import { safeTrim, normalizeTrimLowercase, filterNonEmptyStrings } from '../../utils/stringHelpers';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
@@ -117,6 +117,109 @@ export function useContactSearch(query, options = {}) {
     queryFn: () => contactsDB.search(query),
     enabled: query.length >= 2, // Only search with 2+ characters
     ...options,
+  });
+}
+
+/**
+ * Fetch contacts with infinite scrolling support
+ * Use this for ContactsList to support pagination with large datasets
+ */
+export function useInfiniteContacts(queryOptions = {}) {
+  const PAGE_SIZE = 50; // Load 50 contacts per page
+
+  return useInfiniteQuery({
+    queryKey: contactKeys.lists(),
+    queryFn: async ({ pageParam = 0 }) => {
+      const contacts = await contactsDB.getAll({
+        limit: PAGE_SIZE,
+        offset: pageParam,
+        orderBy: 'last_name',
+        orderDir: 'ASC',
+        ...queryOptions,
+      });
+      return { contacts, nextOffset: pageParam + PAGE_SIZE };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // If we received fewer contacts than PAGE_SIZE, we've reached the end
+      if (lastPage.contacts.length < PAGE_SIZE) {
+        return undefined;
+      }
+      return lastPage.nextOffset;
+    },
+    initialPageParam: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+/**
+ * Fetch contacts with info (phone/email/categories) with infinite scrolling
+ * Use this for ContactsList with enriched data
+ */
+export function useInfiniteContactsWithInfo(queryOptions = {}) {
+  const PAGE_SIZE = 50; // Load 50 contacts per page
+
+  return useInfiniteQuery({
+    queryKey: contactKeys.listsWithInfo(),
+    queryFn: async ({ pageParam = 0 }) => {
+      const contacts = await contactsDB.getAll({
+        limit: PAGE_SIZE,
+        offset: pageParam,
+        orderBy: 'last_name',
+        orderDir: 'ASC',
+        ...queryOptions,
+      });
+
+      if (!contacts.length) {
+        return { contacts: [], nextOffset: pageParam + PAGE_SIZE };
+      }
+
+      // Batch fetch related data to avoid N+1 queries
+      const ids = contacts.map(c => c.id);
+
+      // 1) All contact_info rows for these contacts
+      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
+      const infoByContact = new Map();
+      for (const row of allInfoRows) {
+        const list = infoByContact.get(row.contact_id) || [];
+        list.push(row);
+        infoByContact.set(row.contact_id, list);
+      }
+
+      // 2) All categories for these contacts
+      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
+      const catsByContact = new Map();
+      for (const row of allCatRows) {
+        const list = catsByContact.get(row.contact_id) || [];
+        const { contact_id, ...cat } = row;
+        list.push(cat);
+        catsByContact.set(row.contact_id, list);
+      }
+
+      // Merge and enrich contacts
+      const enrichedContacts = contacts.map(c => {
+        const contact_info = infoByContact.get(c.id) || [];
+        const phones = contact_info.filter(i => i.type === 'phone');
+        const emails = contact_info.filter(i => i.type === 'email');
+        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
+        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
+        const categories = catsByContact.get(c.id) || [];
+
+        return { ...c, contact_info, phone, email, categories };
+      });
+
+      return { contacts: enrichedContacts, nextOffset: pageParam + PAGE_SIZE };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // If we received fewer contacts than PAGE_SIZE, we've reached the end
+      if (lastPage.contacts.length < PAGE_SIZE) {
+        return undefined;
+      }
+      return lastPage.nextOffset;
+    },
+    initialPageParam: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 

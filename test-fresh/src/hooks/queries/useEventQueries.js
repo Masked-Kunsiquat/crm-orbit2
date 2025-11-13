@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { eventsDB, eventsRemindersDB } from '../../database';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
@@ -68,6 +68,38 @@ export function useEventReminders(eventId, options = {}) {
     queryFn: () => eventsRemindersDB.getEventReminders(eventId),
     enabled: !!eventId,
     ...options,
+  });
+}
+
+/**
+ * Fetch events with infinite scrolling support
+ * Use this for EventsList to support pagination with large datasets
+ */
+export function useInfiniteEvents(queryOptions = {}) {
+  const PAGE_SIZE = 50; // Load 50 events per page
+
+  return useInfiniteQuery({
+    queryKey: eventKeys.lists(),
+    queryFn: async ({ pageParam = 0 }) => {
+      const events = await eventsDB.getAll({
+        limit: PAGE_SIZE,
+        offset: pageParam,
+        orderBy: 'event_date',
+        orderDir: 'ASC',
+        ...queryOptions,
+      });
+      return { events, nextOffset: pageParam + PAGE_SIZE };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // If we received fewer events than PAGE_SIZE, we've reached the end
+      if (lastPage.events.length < PAGE_SIZE) {
+        return undefined;
+      }
+      return lastPage.nextOffset;
+    },
+    initialPageParam: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
