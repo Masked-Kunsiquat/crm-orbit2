@@ -166,7 +166,7 @@ export default function DashboardScreen({ navigation }) {
           refetchEvents();
         }}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
