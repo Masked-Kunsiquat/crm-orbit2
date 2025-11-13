@@ -7,7 +7,7 @@ import { useInteractions } from '../hooks/queries/useInteractionQueries';
 import { useEvents } from '../hooks/queries/useEventQueries';
 import { useInteractionStats, useTopContacts } from '../hooks/queries/useAnalyticsQueries';
 import { logger } from '../errors/utils/errorLogger';
-import { filterByDateRange } from '../utils/dateUtils';
+import { filterByDateRange, isFuture, isPast, isToday } from '../utils/dateUtils';
 import { ScreenContainer, StatsCard, StatsRow, SectionCard, EmptyState } from '../components/layout';
 
 export default function AnalyticsScreen({ navigation }) {
@@ -78,10 +78,10 @@ export default function AnalyticsScreen({ navigation }) {
   const totalInteractions = filteredInteractions.length;
   const totalEvents = filteredEvents.length;
 
-  // Events breakdown
-  const now = new Date();
-  const upcomingEvents = filteredEvents.filter(e => new Date(e.event_date) >= now).length;
-  const pastEvents = filteredEvents.filter(e => new Date(e.event_date) < now).length;
+  // Events breakdown - use date utilities to properly categorize by calendar date
+  // Events today or in the future are "upcoming", events before today are "past"
+  const upcomingEvents = filteredEvents.filter(e => isFuture(e.event_date) || isToday(e.event_date)).length;
+  const pastEvents = filteredEvents.filter(e => isPast(e.event_date)).length;
 
   // Interaction types breakdown
   const interactionTypes = filteredInteractions.reduce((acc, interaction) => {
