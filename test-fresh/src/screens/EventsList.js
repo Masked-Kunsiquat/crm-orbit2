@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, ScrollView, TouchableOpacity } from 'react-native';
 import { Appbar, FAB, Chip, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { EmptyState } from '../components/layout';
 import { contactsDB } from '../database';
 import { useEvents } from '../hooks/queries';
 import AddEventModal from '../components/AddEventModal';
@@ -138,19 +139,14 @@ export default function EventsList({ navigation }) {
   };
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text variant="headlineSmall" style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>
-        {t('events.emptyTitle')}
-      </Text>
-      <Text variant="bodyMedium" style={[styles.emptyMessage, { color: theme.colors.onSurfaceVariant }]}>
-        {t('events.emptyMessage')}
-      </Text>
+    <View style={styles.emptyContainer}>
+      <EmptyState message={t('events.emptyMessage')} />
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
-      <Appbar.Header>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Appbar.Header elevated>
         <Appbar.Content title={t('events.title')} />
         <Appbar.Action
           icon={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'}
@@ -241,18 +237,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 48,
-  },
-  emptyTitle: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptyMessage: {
-    textAlign: 'center',
   },
   eventCard: {
     marginHorizontal: 16,

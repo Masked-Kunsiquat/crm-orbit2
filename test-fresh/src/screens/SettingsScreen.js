@@ -171,7 +171,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
+      <Appbar.Header elevated>
         <Appbar.Content title={t('settings.title')} />
       </Appbar.Header>
 

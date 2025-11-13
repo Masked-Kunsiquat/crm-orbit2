@@ -27,6 +27,37 @@
             "addEvent": "Add Event"
         }
     },
+    "analytics": {
+        "title": "Analytics",
+        "dateRange": {
+            "title": "Date Range",
+            "all": "All Time",
+            "7days": "Last 7 Days",
+            "30days": "Last 30 Days",
+            "90days": "Last 90 Days"
+        },
+        "overview": {
+            "title": "Overview",
+            "totalContacts": "Total Contacts",
+            "totalInteractions": "Total Interactions",
+            "totalEvents": "Total Events"
+        },
+        "interactions": {
+            "title": "Interactions Breakdown",
+            "empty": "No interactions yet",
+            "uniqueContacts": "{{count}} unique contacts"
+        },
+        "events": {
+            "title": "Events Breakdown",
+            "upcoming": "Upcoming",
+            "past": "Past"
+        },
+        "topContacts": {
+            "title": "Most Active Contacts",
+            "empty": "No interaction data available",
+            "interactionCount": "{{count}} interactions"
+        }
+    },
     "search": {
         "contactsPlaceholder": "Search contacts..."
     },

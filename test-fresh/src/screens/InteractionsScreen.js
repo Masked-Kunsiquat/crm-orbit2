@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import InteractionCard from '../components/InteractionCard';
 import AddInteractionModal from '../components/AddInteractionModal';
 import InteractionDetailModal from '../components/InteractionDetailModal';
+import { EmptyState } from '../components/layout';
 import { contactsDB } from '../database';
 import { useInteractions } from '../hooks/queries';
 import { logger } from '../errors';
@@ -143,19 +144,14 @@ export default function InteractionsScreen({ navigation }) {
   };
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text variant="headlineSmall" style={styles.emptyTitle}>
-        {t('interactions.emptyTitle')}
-      </Text>
-      <Text variant="bodyMedium" style={styles.emptyMessage}>
-        {t('interactions.emptyMessage')}
-      </Text>
+    <View style={styles.emptyContainer}>
+      <EmptyState message={t('interactions.emptyMessage')} />
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
-      <Appbar.Header>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Appbar.Header elevated>
         <Appbar.Content title={t('interactions.title')} />
         <Appbar.Action
           icon={sortOrder === 'desc' ? 'sort-calendar-descending' : 'sort-calendar-ascending'}
@@ -231,7 +227,6 @@ export default function InteractionsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   filterScroll: {
     maxHeight: 50,
@@ -256,19 +251,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 48,
-  },
-  emptyTitle: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptyMessage: {
-    textAlign: 'center',
-    color: '#666',
   },
   fab: {
     position: 'absolute',
