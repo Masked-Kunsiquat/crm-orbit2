@@ -111,7 +111,7 @@ export default function App() {
       if (companyManagementEnabled) {
         routes.splice(1, 0, {
           key: 'companies',
-          title: 'Companies',
+          title: t('navigation.companies'),
           focusedIcon: 'office-building',
           unfocusedIcon: 'office-building-outline'
         });

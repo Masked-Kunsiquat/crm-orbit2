@@ -2,6 +2,7 @@
     "navigation": {
         "dashboard": "",
         "contacts": "联系人",
+        "companies": "",
         "interactions": "互动",
         "events": "事件",
         "settings": "设置"

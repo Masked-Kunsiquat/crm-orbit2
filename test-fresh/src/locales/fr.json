@@ -2,6 +2,7 @@
     "navigation": {
         "dashboard": "",
         "contacts": "Contacts",
+        "companies": "",
         "interactions": "Interactions",
         "events": "Événements",
         "settings": "Paramètres"
