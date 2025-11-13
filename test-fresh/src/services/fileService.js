@@ -189,7 +189,7 @@ export const fileService = {
         );
       }
 
-      const mimeType =
+      let mimeType =
         detectMimeTypeFromName(originalName) ?? 'application/octet-stream';
       if (!this.validateFileType(mimeType)) {
         throw new Error(`Unsupported file type: ${mimeType}`);
@@ -197,7 +197,14 @@ export const fileService = {
 
       const fileType = getFileType(mimeType);
       const uuid = Crypto.randomUUID();
-      const fileExtension = getFileExtension(originalName);
+      let fileExtension = getFileExtension(originalName);
+
+      // Images will be compressed to JPEG, so normalize extension and MIME type
+      if (fileType === 'image') {
+        fileExtension = 'jpg';
+        mimeType = 'image/jpeg';
+      }
+
       const fileName = `${uuid}.${fileExtension}`;
 
       const directoryPath = getFileDirectory(fileType);
@@ -252,7 +259,7 @@ export const fileService = {
         file_path: destFile.uri,
         file_type: fileType,
         mime_type: mimeType,
-        file_size: sourceFile.size,
+        file_size: destFile.size ?? sourceFile.size,
         thumbnail_path: thumbnailPath,
       };
 
