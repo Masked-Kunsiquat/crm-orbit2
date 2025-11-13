@@ -113,6 +113,13 @@ export default function App() {
       return baseRoutes;
     }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
 
+    // Reset index to 0 (Contacts) when routes change and current index is out of bounds
+    React.useEffect(() => {
+      if (index >= routes.length) {
+        setIndex(0);
+      }
+    }, [routes.length, index]);
+
     const renderScene = ({ route }) => {
       switch (route.key) {
         case 'contacts':
