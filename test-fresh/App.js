@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigation } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigation, Icon } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
 import { createBasicTables } from './src/database/simpleSetup';
+import DashboardScreen from './src/screens/DashboardScreen';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
 import CompanyListScreen from './src/screens/CompanyListScreen';
@@ -97,6 +98,7 @@ export default function App() {
     // Compute routes dynamically based on current language and company management setting
     const routes = React.useMemo(() => {
       const baseRoutes = [
+        { key: 'dashboard', title: t('navigation.dashboard'), focusedIcon: 'view-dashboard', unfocusedIcon: 'view-dashboard-outline' },
         { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
       ];
 
@@ -128,6 +130,8 @@ export default function App() {
 
     const renderScene = ({ route }) => {
       switch (route.key) {
+        case 'dashboard':
+          return <DashboardScreen navigation={navigation} />;
         case 'contacts':
           return <ContactsList navigation={navigation} />;
         case 'companies':
@@ -150,6 +154,12 @@ export default function App() {
         renderScene={renderScene}
         labeled
         sceneAnimationEnabled
+        renderIcon={({ route, focused, color }) => {
+          const iconName = focused ? route.focusedIcon : route.unfocusedIcon;
+          // Make Dashboard icon slightly larger for prominence
+          const iconSize = route.key === 'dashboard' ? 26 : 24;
+          return <Icon source={iconName} size={iconSize} color={color} />;
+        }}
       />
     );
   };

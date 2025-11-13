@@ -1,9 +1,30 @@
 {
     "navigation": {
+        "dashboard": "",
         "contacts": "Contacts",
         "interactions": "Interactions",
         "events": "Événements",
         "settings": "Paramètres"
+    },
+    "dashboard": {
+        "title": "",
+        "loading": "",
+        "stats": {
+            "contacts": "",
+            "interactions": "",
+            "events": ""
+        },
+        "upcomingEvents": {
+            "title": "",
+            "subtitle": "",
+            "empty": ""
+        },
+        "quickActions": {
+            "title": "",
+            "addContact": "",
+            "addInteraction": "",
+            "addEvent": ""
+        }
     },
     "search": {
         "contactsPlaceholder": "Rechercher des contacts..."

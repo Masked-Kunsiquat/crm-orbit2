@@ -1,9 +1,30 @@
 {
     "navigation": {
+        "dashboard": "Dashboard",
         "contacts": "Contacts",
         "interactions": "Interactions",
         "events": "Events",
         "settings": "Settings"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "loading": "Loading...",
+        "stats": {
+            "contacts": "Contacts",
+            "interactions": "Interactions",
+            "events": "Events"
+        },
+        "upcomingEvents": {
+            "title": "Upcoming Events",
+            "subtitle": "Next 5 events",
+            "empty": "No upcoming events"
+        },
+        "quickActions": {
+            "title": "Quick Actions",
+            "addContact": "Add Contact",
+            "addInteraction": "Add Interaction",
+            "addEvent": "Add Event"
+        }
     },
     "search": {
         "contactsPlaceholder": "Search contacts..."
