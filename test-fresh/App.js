@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigation } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigation, Icon } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
 import { createBasicTables } from './src/database/simpleSetup';
+import DashboardScreen from './src/screens/DashboardScreen';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
 import CompanyListScreen from './src/screens/CompanyListScreen';
@@ -92,42 +93,52 @@ export default function App() {
   const MainTabs = ({ navigation }) => {
     const { t, i18n } = useTranslation();
     const { companyManagementEnabled } = useSettings();
-    const [index, setIndex] = React.useState(0);
+    // Track active route by key instead of brittle numeric index
+    const [activeKey, setActiveKey] = React.useState('dashboard');
 
     // Compute routes dynamically based on current language and company management setting
     const routes = React.useMemo(() => {
-      const baseRoutes = [
+      // Dashboard in center for prominence
+      const routes = [
         { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
-      ];
-
-      // Conditionally add Companies tab if feature is enabled
-      if (companyManagementEnabled) {
-        baseRoutes.push({ key: 'companies', title: 'Companies', focusedIcon: 'office-building', unfocusedIcon: 'office-building-outline' });
-      }
-
-      baseRoutes.push(
         { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+        { key: 'dashboard', title: t('navigation.dashboard'), focusedIcon: 'view-dashboard', unfocusedIcon: 'view-dashboard-outline' },
         { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
         { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' }
-      );
+      ];
 
-      return baseRoutes;
+      // If Companies enabled, insert after Contacts (keeps Dashboard centered)
+      if (companyManagementEnabled) {
+        routes.splice(1, 0, {
+          key: 'companies',
+          title: t('navigation.companies'),
+          focusedIcon: 'office-building',
+          unfocusedIcon: 'office-building-outline'
+        });
+      }
+
+      return routes;
     }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
 
-    // Compute clamped index synchronously during render
-    const safeIndex = Math.max(0, Math.min(index, routes.length - 1));
+    // Derive numeric index from active key (stable across route reordering)
+    const index = React.useMemo(() => {
+      const idx = routes.findIndex(r => r.key === activeKey);
+      // Fallback to dashboard if activeKey not found
+      return idx !== -1 ? idx : routes.findIndex(r => r.key === 'dashboard');
+    }, [routes, activeKey]);
 
-    // Update index state if it's out of bounds (runs after render)
-    React.useEffect(() => {
-      const clamped = Math.max(0, Math.min(index, routes.length - 1));
-      if (clamped !== index) {
-        console.log(`[MainTabs] Clamping index from ${index} to ${clamped} (routes.length=${routes.length})`);
-        setIndex(clamped);
+    // Handle tab changes by updating activeKey instead of numeric index
+    const handleIndexChange = React.useCallback((newIndex) => {
+      const newKey = routes[newIndex]?.key;
+      if (newKey) {
+        setActiveKey(newKey);
       }
-    }, [index, routes.length]);
+    }, [routes]);
 
     const renderScene = ({ route }) => {
       switch (route.key) {
+        case 'dashboard':
+          return <DashboardScreen navigation={navigation} />;
         case 'contacts':
           return <ContactsList navigation={navigation} />;
         case 'companies':
@@ -145,11 +156,17 @@ export default function App() {
 
     return (
       <BottomNavigation
-        navigationState={{ index: safeIndex, routes }}
-        onIndexChange={setIndex}
+        navigationState={{ index, routes }}
+        onIndexChange={handleIndexChange}
         renderScene={renderScene}
         labeled
         sceneAnimationEnabled
+        renderIcon={({ route, focused, color }) => {
+          const iconName = focused ? route.focusedIcon : route.unfocusedIcon;
+          // Make Dashboard icon slightly larger for prominence
+          const iconSize = route.key === 'dashboard' ? 26 : 24;
+          return <Icon source={iconName} size={iconSize} color={color} />;
+        }}
       />
     );
   };

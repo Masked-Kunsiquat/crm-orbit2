@@ -1,9 +1,31 @@
 {
     "navigation": {
+        "dashboard": "",
         "contacts": "联系人",
+        "companies": "",
         "interactions": "互动",
         "events": "事件",
         "settings": "设置"
+    },
+    "dashboard": {
+        "title": "",
+        "loading": "",
+        "stats": {
+            "contacts": "",
+            "interactions": "",
+            "events": ""
+        },
+        "upcomingEvents": {
+            "title": "",
+            "subtitle": "",
+            "empty": ""
+        },
+        "quickActions": {
+            "title": "",
+            "addContact": "",
+            "addInteraction": "",
+            "addEvent": ""
+        }
     },
     "search": {
         "contactsPlaceholder": "搜索联系人..."
