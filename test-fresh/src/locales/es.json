@@ -426,5 +426,36 @@
             "save": "Guardar cambios",
             "cancel": "Cancelar"
         }
+    },
+    "analytics": {
+        "title": "Análisis",
+        "dateRange": {
+            "title": "Rango de fechas",
+            "all": "Todo el tiempo",
+            "7days": "Últimos 7 Días",
+            "30days": "Últimos 30 Días",
+            "90days": "Últimos 90 Días"
+        },
+        "overview": {
+            "title": "Resumen",
+            "totalContacts": "Contactos totales",
+            "totalInteractions": "Interacciones totales",
+            "totalEvents": "Eventos totales"
+        },
+        "interactions": {
+            "title": "Desglose de interacciones",
+            "empty": "Ninguna interaccion todavía",
+            "uniqueContacts": "{{count}} contactos únicos"
+        },
+        "events": {
+            "title": "Desglose de eventos",
+            "upcoming": "Próximos",
+            "past": "Pasados"
+        },
+        "topContacts": {
+            "title": "Contactos más activos",
+            "empty": "No hay datos de interacción disponibles",
+            "interactionCount": "{{count}} interacciones"
+        }
     }
 }
