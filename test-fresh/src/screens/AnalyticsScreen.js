@@ -63,18 +63,38 @@ export default function AnalyticsScreen({ navigation }) {
 
   const isLoading = loadingContacts || loadingInteractions || loadingEvents || loadingStats || loadingTopContacts;
 
+  // Apply date filter locally to interactions and events
+  const filterByDateRange = (items, dateField) => {
+    if (dateRange === 'all') return items;
+
+    const { startDate, endDate } = dateFilter;
+    if (!startDate || !endDate) return items;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); // Include the entire end date
+
+    return items.filter(item => {
+      const itemDate = new Date(item[dateField]);
+      return itemDate >= start && itemDate <= end;
+    });
+  };
+
+  const filteredInteractions = filterByDateRange(interactions, 'interaction_datetime');
+  const filteredEvents = filterByDateRange(events, 'event_date');
+
   // Calculate analytics
   const totalContacts = contacts.length;
-  const totalInteractions = interactions.length;
-  const totalEvents = events.length;
+  const totalInteractions = filteredInteractions.length;
+  const totalEvents = filteredEvents.length;
 
   // Events breakdown
   const now = new Date();
-  const upcomingEvents = events.filter(e => new Date(e.event_date) >= now).length;
-  const pastEvents = events.filter(e => new Date(e.event_date) < now).length;
+  const upcomingEvents = filteredEvents.filter(e => new Date(e.event_date) >= now).length;
+  const pastEvents = filteredEvents.filter(e => new Date(e.event_date) < now).length;
 
   // Interaction types breakdown
-  const interactionTypes = interactions.reduce((acc, interaction) => {
+  const interactionTypes = filteredInteractions.reduce((acc, interaction) => {
     const type = interaction.custom_type || interaction.interaction_type || 'other';
     acc[type] = (acc[type] || 0) + 1;
     return acc;

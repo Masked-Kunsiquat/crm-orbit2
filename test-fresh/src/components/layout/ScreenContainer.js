@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView, RefreshControl } from 'react-native';
-import { Appbar } from 'react-native-paper';
+import { Appbar, useTheme } from 'react-native-paper';
 
 /**
  * Standard screen container with header and scrollable content
@@ -16,8 +16,10 @@ export default function ScreenContainer({
   onRefresh,
   scrollable = true,
 }) {
+  const theme = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         {showBackButton && navigation && (
           <Appbar.BackAction onPress={() => navigation.goBack()} />
