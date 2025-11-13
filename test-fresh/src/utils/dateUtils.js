@@ -605,12 +605,20 @@ export function filterByDateRange(items, dateField, dateRange) {
     return items;
   }
 
-  const start = new Date(dateRange.startDate);
-  const end = new Date(dateRange.endDate);
+  // Use parseLocalDate to avoid UTC shift issues with YYYY-MM-DD strings
+  const start = parseLocalDate(dateRange.startDate);
+  const end = parseLocalDate(dateRange.endDate);
+
+  if (!start || !end) {
+    return items; // Invalid date range, return unfiltered
+  }
+
   end.setHours(23, 59, 59, 999); // Include the entire end date
 
   return items.filter(item => {
-    const itemDate = new Date(item[dateField]);
+    // Use parseFlexibleDate to handle both YYYY-MM-DD and datetime strings
+    const itemDate = parseFlexibleDate(item[dateField]);
+    if (!itemDate) return false; // Skip items with invalid dates
     return itemDate >= start && itemDate <= end;
   });
 }
