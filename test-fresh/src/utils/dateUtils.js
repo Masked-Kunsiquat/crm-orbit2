@@ -580,3 +580,45 @@ export function formatRelativeDateTime(input, opts = {}) {
     return value < 0 ? `${base} ago` : `in ${base}`;
   }
 }
+
+// ============================================================================
+// DATE RANGE FILTERING
+// ============================================================================
+
+/**
+ * Filter an array of items by a date range.
+ * Useful for filtering interactions, events, or any time-based data.
+ *
+ * @param {Array} items - Array of objects to filter
+ * @param {string} dateField - Name of the date field to filter by (e.g., 'event_date', 'interaction_datetime')
+ * @param {Object} dateRange - Date range filter with startDate and endDate (YYYY-MM-DD format)
+ * @param {string} dateRange.startDate - Start date (YYYY-MM-DD), inclusive
+ * @param {string} dateRange.endDate - End date (YYYY-MM-DD), inclusive (entire day)
+ * @returns {Array} Filtered array
+ */
+export function filterByDateRange(items, dateField, dateRange) {
+  if (!items || !is.array(items)) {
+    return [];
+  }
+
+  if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
+    return items;
+  }
+
+  // Use parseLocalDate to avoid UTC shift issues with YYYY-MM-DD strings
+  const start = parseLocalDate(dateRange.startDate);
+  const end = parseLocalDate(dateRange.endDate);
+
+  if (!start || !end) {
+    return items; // Invalid date range, return unfiltered
+  }
+
+  end.setHours(23, 59, 59, 999); // Include the entire end date
+
+  return items.filter(item => {
+    // Use parseFlexibleDate to handle both YYYY-MM-DD and datetime strings
+    const itemDate = parseFlexibleDate(item[dateField]);
+    if (!itemDate) return false; // Skip items with invalid dates
+    return itemDate >= start && itemDate <= end;
+  });
+}

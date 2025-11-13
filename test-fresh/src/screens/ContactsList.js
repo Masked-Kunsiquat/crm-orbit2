@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
-import { handleError, showAlert } from '../errors';
+import { handleError, showAlert, logger } from '../errors';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
+import { EmptyState } from '../components/layout';
 import { categoriesDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
 import { useContactsWithInfo } from '../hooks/queries';
@@ -203,19 +204,16 @@ export default function ContactsList({ navigation }) {
   };
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text variant="headlineSmall" style={styles.emptyTitle}>
-        No Contacts Found
-      </Text>
-      <Text variant="bodyMedium" style={styles.emptyMessage}>
-        {searchQuery ? 'No contacts match your search.' : 'Add your first contact to get started.'}
-      </Text>
+    <View style={styles.emptyContainer}>
+      <EmptyState
+        message={searchQuery ? 'No contacts match your search.' : 'Add your first contact to get started.'}
+      />
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
-      <Appbar.Header>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Appbar.Header elevated>
         <Appbar.Content title={t('navigation.contacts')} />
       </Appbar.Header>
 
@@ -295,7 +293,6 @@ export default function ContactsList({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   searchbar: {
     margin: 16,
@@ -338,19 +335,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 48,
-  },
-  emptyTitle: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptyMessage: {
-    textAlign: 'center',
-    color: '#666',
   },
   fab: {
     position: 'absolute',

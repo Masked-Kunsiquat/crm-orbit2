@@ -337,7 +337,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   if (loading || !contact) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <Appbar.Header>
+        <Appbar.Header elevated>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title={t('contactDetail.title')} />
         </Appbar.Header>
@@ -354,7 +354,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header>
+      <Appbar.Header elevated>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="" />
         <Appbar.Action icon="pencil" onPress={handleEdit} />
@@ -643,7 +643,6 @@ export default function ContactDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
@@ -656,40 +655,30 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     paddingVertical: 32,
-    backgroundColor: '#fff',
   },
   avatar: {
     marginBottom: 16,
-    backgroundColor: '#1976d2',
   },
   name: {
     fontWeight: '600',
     marginBottom: 4,
-    color: '#212121',
-  },
-  company: {
-    color: '#757575',
   },
   quickActions: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 32,
     paddingVertical: 24,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   actionButton: {
     alignItems: 'center',
     gap: 8,
   },
   actionLabel: {
-    color: '#1976d2',
     fontWeight: '500',
   },
   section: {
     marginTop: 12,
-    backgroundColor: '#fff',
     borderRadius: 8,
     marginHorizontal: 16,
     overflow: 'hidden',
