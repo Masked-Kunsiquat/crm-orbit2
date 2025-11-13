@@ -89,7 +89,7 @@ function ContactAvatar({ contact, size = 48, style }) {
 }
 
 // Memoize to prevent unnecessary re-renders
-// Only re-render if contact ID, avatar attachment, or name changes
+// Only re-render if contact ID, avatar attachment, name, size, or style changes
 export default React.memo(ContactAvatar, (prevProps, nextProps) => {
   return (
     prevProps.contact?.id === nextProps.contact?.id &&
@@ -97,6 +97,7 @@ export default React.memo(ContactAvatar, (prevProps, nextProps) => {
     prevProps.contact?.avatar_uri === nextProps.contact?.avatar_uri &&
     prevProps.contact?.first_name === nextProps.contact?.first_name &&
     prevProps.contact?.last_name === nextProps.contact?.last_name &&
-    prevProps.size === nextProps.size
+    prevProps.size === nextProps.size &&
+    prevProps.style === nextProps.style
   );
 });

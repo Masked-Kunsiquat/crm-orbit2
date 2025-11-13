@@ -98,12 +98,14 @@ function InteractionCard({ interaction, onPress, onLongPress, contact }) {
 }
 
 // Memoize to prevent unnecessary re-renders in list views
-// Only re-render if interaction ID or updated_at timestamp changes
+// Only re-render if interaction ID, updated_at, contact ID, or callbacks change
 export default React.memo(InteractionCard, (prevProps, nextProps) => {
   return (
     prevProps.interaction.id === nextProps.interaction.id &&
     prevProps.interaction.updated_at === nextProps.interaction.updated_at &&
-    prevProps.contact?.id === nextProps.contact?.id
+    prevProps.contact?.id === nextProps.contact?.id &&
+    prevProps.onPress === nextProps.onPress &&
+    prevProps.onLongPress === nextProps.onLongPress
   );
 });
 

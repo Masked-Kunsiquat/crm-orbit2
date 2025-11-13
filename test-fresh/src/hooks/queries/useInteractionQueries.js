@@ -7,7 +7,7 @@ import { invalidateQueries, createMutationHandlers } from './queryHelpers';
  */
 export const interactionKeys = {
   all: ['interactions'],
-  lists: () => [...interactionKeys.all, 'list'],
+  lists: (mode) => mode ? [...interactionKeys.all, 'list', mode] : [...interactionKeys.all, 'list'],
   detail: (id) => [...interactionKeys.all, 'detail', id],
   byContact: (contactId) => [...interactionKeys.all, 'contact', contactId],
   byType: (type) => [...interactionKeys.all, 'type', type],
@@ -95,7 +95,7 @@ export function useInfiniteInteractions(queryOptions = {}) {
   const PAGE_SIZE = 50; // Load 50 interactions per page
 
   return useInfiniteQuery({
-    queryKey: interactionKeys.lists(),
+    queryKey: interactionKeys.lists('infinite'),
     queryFn: async ({ pageParam = 0 }) => {
       const interactions = await interactionsDB.getAll({
         limit: PAGE_SIZE,
@@ -145,7 +145,7 @@ export function useUpdateInteraction() {
     mutationFn: ({ id, data }) => interactionsDB.update(id, data),
     ...createMutationHandlers(
       queryClient,
-      [interactionKeys.lists(), interactionKeys.recent()],
+      [interactionKeys.lists(), interactionKeys.lists('infinite'), interactionKeys.recent()],
       {
         context: 'useUpdateInteraction',
         onSuccess: (_, { id }) => {
