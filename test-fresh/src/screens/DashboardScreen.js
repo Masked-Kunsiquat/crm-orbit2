@@ -66,7 +66,12 @@ export default function DashboardScreen({ navigation }) {
               <Text variant="headlineLarge" style={[styles.statNumber, { color: theme.colors.onPrimaryContainer }]}>
                 {contactCount}
               </Text>
-              <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer }}>
+              <Text
+                variant="bodySmall"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                style={[styles.statLabel, { color: theme.colors.onPrimaryContainer }]}
+              >
                 {t('dashboard.stats.contacts')}
               </Text>
             </Card.Content>
@@ -77,7 +82,12 @@ export default function DashboardScreen({ navigation }) {
               <Text variant="headlineLarge" style={[styles.statNumber, { color: theme.colors.onSecondaryContainer }]}>
                 {interactionCount}
               </Text>
-              <Text variant="bodyMedium" style={{ color: theme.colors.onSecondaryContainer }}>
+              <Text
+                variant="bodySmall"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                style={[styles.statLabel, { color: theme.colors.onSecondaryContainer }]}
+              >
                 {t('dashboard.stats.interactions')}
               </Text>
             </Card.Content>
@@ -88,7 +98,12 @@ export default function DashboardScreen({ navigation }) {
               <Text variant="headlineLarge" style={[styles.statNumber, { color: theme.colors.onTertiaryContainer }]}>
                 {eventCount}
               </Text>
-              <Text variant="bodyMedium" style={{ color: theme.colors.onTertiaryContainer }}>
+              <Text
+                variant="bodySmall"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                style={[styles.statLabel, { color: theme.colors.onTertiaryContainer }]}
+              >
                 {t('dashboard.stats.events')}
               </Text>
             </Card.Content>
@@ -225,6 +240,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontWeight: 'bold',
     marginBottom: 4,
+  },
+  statLabel: {
+    textAlign: 'center',
+    width: '100%',
   },
   card: {
     marginBottom: 16,
