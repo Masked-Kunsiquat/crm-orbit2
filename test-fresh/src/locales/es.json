@@ -1,30 +1,30 @@
 {
     "navigation": {
-        "dashboard": "",
+        "dashboard": "Panel de control",
         "contacts": "Contactos",
-        "companies": "",
+        "companies": "Empresas",
         "interactions": "Interacciones",
         "events": "Eventos",
         "settings": "Ajustes"
     },
     "dashboard": {
-        "title": "",
-        "loading": "",
+        "title": "Panel de control",
+        "loading": "Cargando...",
         "stats": {
-            "contacts": "",
-            "interactions": "",
-            "events": ""
+            "contacts": "Contactos",
+            "interactions": "Interacciones",
+            "events": "Eventos"
         },
         "upcomingEvents": {
-            "title": "",
-            "subtitle": "",
-            "empty": ""
+            "title": "Próximos eventos",
+            "subtitle": "Próximos 5 eventos",
+            "empty": "No hay eventos próximos"
         },
         "quickActions": {
-            "title": "",
-            "addContact": "",
-            "addInteraction": "",
-            "addEvent": ""
+            "title": "Acciones rápidas",
+            "addContact": "Agregar contacto",
+            "addInteraction": "Agregar interacción",
+            "addEvent": "Agregar evento"
         }
     },
     "search": {
@@ -426,6 +426,5 @@
             "save": "Guardar cambios",
             "cancel": "Cancelar"
         }
-    },
-    "analytics": ""
+    }
 }
