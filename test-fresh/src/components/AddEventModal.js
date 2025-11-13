@@ -51,7 +51,7 @@ const REMINDER_TEMPLATES = [
   { label: '1 week before', minutes: 10080 },
 ];
 
-export default function AddEventModal({
+function AddEventModal({
   visible,
   onDismiss,
   onEventAdded,
@@ -637,4 +637,15 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
   },
+});
+
+// Memoize modal to prevent unnecessary re-renders
+// Modal only needs to re-render when visibility, editingEvent, or callbacks change
+export default React.memo(AddEventModal, (prevProps, nextProps) => {
+  return (
+    prevProps.visible === nextProps.visible &&
+    prevProps.preselectedContactId === nextProps.preselectedContactId &&
+    prevProps.editingEvent?.id === nextProps.editingEvent?.id &&
+    prevProps.editingEvent?.updated_at === nextProps.editingEvent?.updated_at
+  );
 });
