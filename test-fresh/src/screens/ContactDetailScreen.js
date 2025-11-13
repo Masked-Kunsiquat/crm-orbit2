@@ -663,7 +663,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  company: {},
   quickActions: {
     flexDirection: 'row',
     justifyContent: 'center',
