@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, RefreshControl } from 'react-native';
-import { Appbar, Card, Text, Chip, useTheme, IconButton } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
+import { Card, Text, Chip, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useContacts } from '../hooks/queries/useContactQueries';
 import { useInteractions } from '../hooks/queries/useInteractionQueries';
 import { useEvents } from '../hooks/queries/useEventQueries';
 import { useInteractionStats, useTopContacts } from '../hooks/queries/useAnalyticsQueries';
 import { logger } from '../errors/utils/errorLogger';
+import { ScreenContainer, StatsCard, StatsRow, SectionCard, EmptyState } from '../components/layout';
 
 export default function AnalyticsScreen({ navigation }) {
   const { t } = useTranslation();
@@ -80,105 +81,85 @@ export default function AnalyticsScreen({ navigation }) {
   }, {});
 
   return (
-    <View style={styles.container}>
-      <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={t('analytics.title')} />
-      </Appbar.Header>
+    <ScreenContainer
+      title={t('analytics.title')}
+      navigation={navigation}
+      showBackButton
+      refreshing={refreshing}
+      onRefresh={handleRefresh}
+    >
+      {/* Date Range Filter */}
+      <SectionCard>
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          {t('analytics.dateRange.title')}
+        </Text>
+        <View style={styles.chipContainer}>
+          <Chip
+            selected={dateRange === 'all'}
+            onPress={() => setDateRange('all')}
+            style={styles.chip}
+          >
+            {t('analytics.dateRange.all')}
+          </Chip>
+          <Chip
+            selected={dateRange === '7days'}
+            onPress={() => setDateRange('7days')}
+            style={styles.chip}
+          >
+            {t('analytics.dateRange.7days')}
+          </Chip>
+          <Chip
+            selected={dateRange === '30days'}
+            onPress={() => setDateRange('30days')}
+            style={styles.chip}
+          >
+            {t('analytics.dateRange.30days')}
+          </Chip>
+          <Chip
+            selected={dateRange === '90days'}
+            onPress={() => setDateRange('90days')}
+            style={styles.chip}
+          >
+            {t('analytics.dateRange.90days')}
+          </Chip>
+        </View>
+      </SectionCard>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
-        {/* Date Range Filter */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
-              {t('analytics.dateRange.title')}
-            </Text>
-            <View style={styles.chipContainer}>
-              <Chip
-                selected={dateRange === 'all'}
-                onPress={() => setDateRange('all')}
-                style={styles.chip}
-              >
-                {t('analytics.dateRange.all')}
-              </Chip>
-              <Chip
-                selected={dateRange === '7days'}
-                onPress={() => setDateRange('7days')}
-                style={styles.chip}
-              >
-                {t('analytics.dateRange.7days')}
-              </Chip>
-              <Chip
-                selected={dateRange === '30days'}
-                onPress={() => setDateRange('30days')}
-                style={styles.chip}
-              >
-                {t('analytics.dateRange.30days')}
-              </Chip>
-              <Chip
-                selected={dateRange === '90days'}
-                onPress={() => setDateRange('90days')}
-                style={styles.chip}
-              >
-                {t('analytics.dateRange.90days')}
-              </Chip>
-            </View>
-          </Card.Content>
-        </Card>
+      {/* Overview Stats */}
+      <StatsRow>
+        <StatsCard
+          value={totalContacts}
+          label={t('analytics.overview.totalContacts')}
+          variant="primary"
+        />
+        <StatsCard
+          value={totalInteractions}
+          label={t('analytics.overview.totalInteractions')}
+          variant="secondary"
+        />
+        <StatsCard
+          value={totalEvents}
+          label={t('analytics.overview.totalEvents')}
+          variant="tertiary"
+        />
+      </StatsRow>
 
-        {/* Overview Stats */}
-        <Card style={styles.card}>
-          <Card.Title title={t('analytics.overview.title')} />
-          <Card.Content>
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.primary }]}>
-                  {totalContacts}
+      {/* Interaction Breakdown */}
+      <SectionCard title={t('analytics.interactions.title')}>
+        {Object.keys(interactionTypes).length === 0 ? (
+          <EmptyState message={t('analytics.interactions.empty')} />
+        ) : (
+          <>
+            {Object.entries(interactionTypes).map(([type, count]) => (
+              <View key={type} style={styles.breakdownItem}>
+                <Text variant="bodyLarge" style={styles.breakdownType}>
+                  {t(`interactions.filters.${type}`, type)}
                 </Text>
-                <Text variant="bodyMedium">{t('analytics.overview.totalContacts')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.secondary }]}>
-                  {totalInteractions}
+                <Text variant="bodyLarge" style={[styles.breakdownCount, { color: theme.colors.primary }]}>
+                  {count}
                 </Text>
-                <Text variant="bodyMedium">{t('analytics.overview.totalInteractions')}</Text>
               </View>
-              <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.tertiary }]}>
-                  {totalEvents}
-                </Text>
-                <Text variant="bodyMedium">{t('analytics.overview.totalEvents')}</Text>
-              </View>
-            </View>
-          </Card.Content>
-        </Card>
-
-        {/* Interaction Breakdown */}
-        <Card style={styles.card}>
-          <Card.Title title={t('analytics.interactions.title')} />
-          <Card.Content>
-            {Object.keys(interactionTypes).length === 0 ? (
-              <Text variant="bodyMedium" style={styles.emptyText}>
-                {t('analytics.interactions.empty')}
-              </Text>
-            ) : (
-              Object.entries(interactionTypes).map(([type, count]) => (
-                <View key={type} style={styles.breakdownItem}>
-                  <Text variant="bodyLarge" style={styles.breakdownType}>
-                    {t(`interactions.filters.${type}`, type)}
-                  </Text>
-                  <Text variant="bodyLarge" style={[styles.breakdownCount, { color: theme.colors.primary }]}>
-                    {count}
-                  </Text>
-                </View>
-              ))
-            )}
+            ))}
             {stats && stats.totalInteractions > 0 && (
               <View style={styles.statsDetail}>
                 <Text variant="bodySmall" style={styles.mutedText}>
@@ -186,83 +167,60 @@ export default function AnalyticsScreen({ navigation }) {
                 </Text>
               </View>
             )}
-          </Card.Content>
-        </Card>
+          </>
+        )}
+      </SectionCard>
 
-        {/* Event Breakdown */}
-        <Card style={styles.card}>
-          <Card.Title title={t('analytics.events.title')} />
-          <Card.Content>
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.tertiary }]}>
-                  {upcomingEvents}
+      {/* Event Breakdown */}
+      <SectionCard title={t('analytics.events.title')}>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.tertiary }]}>
+              {upcomingEvents}
+            </Text>
+            <Text variant="bodyMedium">{t('analytics.events.upcoming')}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.outline }]}>
+              {pastEvents}
+            </Text>
+            <Text variant="bodyMedium">{t('analytics.events.past')}</Text>
+          </View>
+        </View>
+      </SectionCard>
+
+      {/* Top Contacts */}
+      <SectionCard title={t('analytics.topContacts.title')}>
+        {loadingTopContacts ? (
+          <EmptyState message={t('dashboard.loading')} />
+        ) : topContacts.length === 0 ? (
+          <EmptyState message={t('analytics.topContacts.empty')} />
+        ) : (
+          topContacts.map((contact, index) => (
+            <View key={contact.id} style={styles.topContactItem}>
+              <View style={styles.topContactRank}>
+                <Text variant="labelLarge" style={{ color: theme.colors.primary }}>
+                  #{index + 1}
                 </Text>
-                <Text variant="bodyMedium">{t('analytics.events.upcoming')}</Text>
               </View>
-              <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.outline }]}>
-                  {pastEvents}
+              <View style={styles.topContactInfo}>
+                <Text variant="bodyLarge">{contact.display_name}</Text>
+                <Text variant="bodySmall" style={styles.mutedText}>
+                  {t('analytics.topContacts.interactionCount', { count: contact.interaction_count })}
                 </Text>
-                <Text variant="bodyMedium">{t('analytics.events.past')}</Text>
               </View>
+              <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
+                {contact.interaction_count}
+              </Text>
             </View>
-          </Card.Content>
-        </Card>
-
-        {/* Top Contacts */}
-        <Card style={styles.card}>
-          <Card.Title title={t('analytics.topContacts.title')} />
-          <Card.Content>
-            {loadingTopContacts ? (
-              <Text variant="bodyMedium" style={styles.emptyText}>
-                {t('dashboard.loading')}
-              </Text>
-            ) : topContacts.length === 0 ? (
-              <Text variant="bodyMedium" style={styles.emptyText}>
-                {t('analytics.topContacts.empty')}
-              </Text>
-            ) : (
-              topContacts.map((contact, index) => (
-                <View key={contact.id} style={styles.topContactItem}>
-                  <View style={styles.topContactRank}>
-                    <Text variant="labelLarge" style={{ color: theme.colors.primary }}>
-                      #{index + 1}
-                    </Text>
-                  </View>
-                  <View style={styles.topContactInfo}>
-                    <Text variant="bodyLarge">{contact.display_name}</Text>
-                    <Text variant="bodySmall" style={styles.mutedText}>
-                      {t('analytics.topContacts.interactionCount', { count: contact.interaction_count })}
-                    </Text>
-                  </View>
-                  <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
-                    {contact.interaction_count}
-                  </Text>
-                </View>
-              ))
-            )}
-          </Card.Content>
-        </Card>
-      </ScrollView>
-    </View>
+          ))
+        )}
+      </SectionCard>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  card: {
-    marginBottom: 16,
-    elevation: 2,
-  },
   sectionTitle: {
     marginBottom: 12,
   },
@@ -311,11 +269,6 @@ const styles = StyleSheet.create({
   },
   mutedText: {
     opacity: 0.7,
-  },
-  emptyText: {
-    textAlign: 'center',
-    opacity: 0.6,
-    paddingVertical: 16,
   },
   topContactItem: {
     flexDirection: 'row',
