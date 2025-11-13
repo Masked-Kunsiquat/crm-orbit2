@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { handleError, showAlert } from '../errors';
-import { Appbar, RadioButton, Text, List, Divider, Switch } from 'react-native-paper';
+import { Appbar, RadioButton, Text, List, Divider, Switch, Portal, Dialog, Button } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { logger } from '../errors';
 
 const ACTIONS = [
   { label: 'Call', value: 'call' },
@@ -31,6 +32,8 @@ export default function SettingsScreen() {
   const [expandedSecurity, setExpandedSecurity] = useState(false);
   const [expandedLanguage, setExpandedLanguage] = useState(false);
   const [expandedFeatures, setExpandedFeatures] = useState(false);
+  const [successDialogVisible, setSuccessDialogVisible] = useState(false);
+  const [successDialogMessage, setSuccessDialogMessage] = useState('');
 
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [autoLockEnabled, setAutoLockEnabled] = useState(false);
@@ -240,13 +243,14 @@ export default function SettingsScreen() {
                 onValueChange={async (value) => {
                   try {
                     await setCompanyManagementEnabled(value);
-                    showAlert.success(
-                      t('labels.success'),
+                    setSuccessDialogMessage(
                       value
                         ? t('settings.features.companyManagement.enabled')
                         : t('settings.features.companyManagement.disabled')
                     );
+                    setSuccessDialogVisible(true);
                   } catch (error) {
+                    logger.error('SettingsScreen', 'toggleCompanyManagement', error);
                     showAlert.error(
                       t('settings.errors.featureToggle.title'),
                       t('settings.errors.featureToggle.message')
@@ -425,6 +429,19 @@ export default function SettingsScreen() {
     </List.Accordion>
   </List.Section>
       </ScrollView>
+
+      {/* Themed Success Dialog */}
+      <Portal>
+        <Dialog visible={successDialogVisible} onDismiss={() => setSuccessDialogVisible(false)}>
+          <Dialog.Title>{t('labels.success')}</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">{successDialogMessage}</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setSuccessDialogVisible(false)}>OK</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }

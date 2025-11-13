@@ -22,6 +22,7 @@ import { useColorScheme } from 'react-native';
 import i18n from './src/i18n';
 import { useTranslation, I18nextProvider } from 'react-i18next';
 import QueryProvider from './src/providers/QueryProvider';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 const Stack = createNativeStackNavigator();
 
@@ -113,6 +114,18 @@ export default function App() {
       return baseRoutes;
     }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
 
+    // Compute clamped index synchronously during render
+    const safeIndex = Math.max(0, Math.min(index, routes.length - 1));
+
+    // Update index state if it's out of bounds (runs after render)
+    React.useEffect(() => {
+      const clamped = Math.max(0, Math.min(index, routes.length - 1));
+      if (clamped !== index) {
+        console.log(`[MainTabs] Clamping index from ${index} to ${clamped} (routes.length=${routes.length})`);
+        setIndex(clamped);
+      }
+    }, [index, routes.length]);
+
     const renderScene = ({ route }) => {
       switch (route.key) {
         case 'contacts':
@@ -132,7 +145,7 @@ export default function App() {
 
     return (
       <BottomNavigation
-        navigationState={{ index, routes }}
+        navigationState={{ index: safeIndex, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}
         labeled
@@ -149,13 +162,15 @@ export default function App() {
             <I18nextProvider i18n={i18n}>
               <AuthProvider>
                 <AuthGate>
-                  <NavigationContainer>
-                    <Stack.Navigator screenOptions={{ headerShown: false }}>
-                      <Stack.Screen name="MainTabs" component={MainTabs} />
-                      <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
-                      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
-                    </Stack.Navigator>
-                  </NavigationContainer>
+                  <ErrorBoundary>
+                    <NavigationContainer>
+                      <Stack.Navigator screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="MainTabs" component={MainTabs} />
+                        <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
+                        <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+                      </Stack.Navigator>
+                    </NavigationContainer>
+                  </ErrorBoundary>
                 </AuthGate>
               </AuthProvider>
             </I18nextProvider>
