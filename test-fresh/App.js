@@ -93,7 +93,8 @@ export default function App() {
   const MainTabs = ({ navigation }) => {
     const { t, i18n } = useTranslation();
     const { companyManagementEnabled } = useSettings();
-    const [index, setIndex] = React.useState(2); // Start on Dashboard
+    // Track active route by key instead of brittle numeric index
+    const [activeKey, setActiveKey] = React.useState('dashboard');
 
     // Compute routes dynamically based on current language and company management setting
     const routes = React.useMemo(() => {
@@ -119,29 +120,20 @@ export default function App() {
       return routes;
     }, [i18n.language, companyManagementEnabled]); // Recompute when language or company setting changes
 
-    // When company management is toggled, adjust index to keep Dashboard selected
-    React.useEffect(() => {
-      const dashboardIndex = routes.findIndex(r => r.key === 'dashboard');
-      if (dashboardIndex !== -1 && index !== dashboardIndex && routes[index]?.key !== 'dashboard') {
-        // If we're not already on dashboard and the current tab isn't dashboard, move to dashboard
-        const currentTabKey = routes[index]?.key;
-        if (!currentTabKey) {
-          setIndex(dashboardIndex);
-        }
-      }
-    }, [routes, companyManagementEnabled]);
+    // Derive numeric index from active key (stable across route reordering)
+    const index = React.useMemo(() => {
+      const idx = routes.findIndex(r => r.key === activeKey);
+      // Fallback to dashboard if activeKey not found
+      return idx !== -1 ? idx : routes.findIndex(r => r.key === 'dashboard');
+    }, [routes, activeKey]);
 
-    // Compute clamped index synchronously during render
-    const safeIndex = Math.max(0, Math.min(index, routes.length - 1));
-
-    // Update index state if it's out of bounds (runs after render)
-    React.useEffect(() => {
-      const clamped = Math.max(0, Math.min(index, routes.length - 1));
-      if (clamped !== index) {
-        console.log(`[MainTabs] Clamping index from ${index} to ${clamped} (routes.length=${routes.length})`);
-        setIndex(clamped);
+    // Handle tab changes by updating activeKey instead of numeric index
+    const handleIndexChange = React.useCallback((newIndex) => {
+      const newKey = routes[newIndex]?.key;
+      if (newKey) {
+        setActiveKey(newKey);
       }
-    }, [index, routes.length]);
+    }, [routes]);
 
     const renderScene = ({ route }) => {
       switch (route.key) {
@@ -164,8 +156,8 @@ export default function App() {
 
     return (
       <BottomNavigation
-        navigationState={{ index: safeIndex, routes }}
-        onIndexChange={setIndex}
+        navigationState={{ index, routes }}
+        onIndexChange={handleIndexChange}
         renderScene={renderScene}
         labeled
         sceneAnimationEnabled
