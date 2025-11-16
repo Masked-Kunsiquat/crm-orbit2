@@ -457,5 +457,27 @@
             "empty": "Aucune donnée d'interaction disponible",
             "interactionCount": "{{count}} interactions"
         }
+    },
+    "globalSearch": {
+        "title": "Rechercher",
+        "searchPlaceholder": "Rechercher contacts, entreprises, interactions, événements...",
+        "searching": "Recherche en cours...",
+        "sections": {
+            "contacts": "Contacts",
+            "companies": "Entreprises",
+            "interactions": "Interactions",
+            "events": "Événements",
+            "notes": "Notes"
+        },
+        "emptyState": {
+            "prompt": "Commencez à taper pour rechercher",
+            "hint": "Recherchez dans tous vos contacts, entreprises, interactions, événements et notes",
+            "noResults": "Aucun résultat trouvé",
+            "tryDifferent": "Essayez un terme de recherche différent"
+        },
+        "noContact": "Aucune information de contact",
+        "noIndustry": "Aucune industrie",
+        "untitled": "Sans titre",
+        "note": "Note"
     }
 }

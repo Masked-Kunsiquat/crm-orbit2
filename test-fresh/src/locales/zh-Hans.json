@@ -424,5 +424,27 @@
             "save": "保存更改",
             "cancel": "取消"
         }
+    },
+    "globalSearch": {
+        "title": "搜索",
+        "searchPlaceholder": "搜索联系人、公司、互动、事件...",
+        "searching": "搜索中...",
+        "sections": {
+            "contacts": "联系人",
+            "companies": "公司",
+            "interactions": "互动",
+            "events": "事件",
+            "notes": "笔记"
+        },
+        "emptyState": {
+            "prompt": "开始输入以搜索",
+            "hint": "在所有联系人、公司、互动、事件和笔记中搜索",
+            "noResults": "未找到结果",
+            "tryDifferent": "尝试不同的搜索词"
+        },
+        "noContact": "无联系信息",
+        "noIndustry": "无行业",
+        "untitled": "无标题",
+        "note": "笔记"
     }
 }

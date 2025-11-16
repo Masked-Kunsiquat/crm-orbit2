@@ -456,5 +456,27 @@
             "save": "Save Changes",
             "cancel": "Cancel"
         }
+    },
+    "globalSearch": {
+        "title": "Search",
+        "searchPlaceholder": "Search contacts, companies, interactions, events...",
+        "searching": "Searching...",
+        "sections": {
+            "contacts": "Contacts",
+            "companies": "Companies",
+            "interactions": "Interactions",
+            "events": "Events",
+            "notes": "Notes"
+        },
+        "emptyState": {
+            "prompt": "Start typing to search",
+            "hint": "Search across all your contacts, companies, interactions, events, and notes",
+            "noResults": "No results found",
+            "tryDifferent": "Try a different search term"
+        },
+        "noContact": "No contact info",
+        "noIndustry": "No industry",
+        "untitled": "Untitled",
+        "note": "Note"
     }
 }
