@@ -9,8 +9,9 @@ import m003 from './003_performance_indexes.js';
 import m004 from './004_add_display_name_column.js';
 import m005 from './005_add_avatar_attachment_id.js';
 import m006 from './006_add_event_reminders_updated_at.js';
+import m007 from './007_add_events_interactions_updated_at.js';
 
-const MIGRATIONS = [m001, m002, m003, m004, m005, m006];
+const MIGRATIONS = [m001, m002, m003, m004, m005, m006, m007];
 
 // Ensure unique, sorted by version
 const seen = new Set();
