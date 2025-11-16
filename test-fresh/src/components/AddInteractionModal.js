@@ -29,7 +29,7 @@ const INTERACTION_TYPES = [
   { value: 'other', icon: 'note-text' },
 ];
 
-export default function AddInteractionModal({
+function AddInteractionModal({
   visible,
   onDismiss,
   onInteractionAdded,
@@ -550,4 +550,23 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
   },
+});
+
+// Memoize modal to prevent unnecessary re-renders
+// Modal only needs to re-render when visibility, editingInteraction, preselectedContactId, or callbacks change
+//
+// IMPORTANT: Relies on updated_at invariant - the database layer MUST bump updated_at
+// whenever any interaction fields change (see interactions.js:157).
+// If updated_at is not properly maintained, the modal may show stale data when editing.
+export default React.memo(AddInteractionModal, (prevProps, nextProps) => {
+  return (
+    prevProps.visible === nextProps.visible &&
+    prevProps.preselectedContactId === nextProps.preselectedContactId &&
+    prevProps.editingInteraction?.id === nextProps.editingInteraction?.id &&
+    prevProps.editingInteraction?.updated_at === nextProps.editingInteraction?.updated_at &&
+    prevProps.onDismiss === nextProps.onDismiss &&
+    prevProps.onInteractionAdded === nextProps.onInteractionAdded &&
+    prevProps.onInteractionUpdated === nextProps.onInteractionUpdated &&
+    prevProps.onInteractionDeleted === nextProps.onInteractionDeleted
+  );
 });

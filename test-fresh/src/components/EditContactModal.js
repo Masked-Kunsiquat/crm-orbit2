@@ -22,7 +22,7 @@ import { useAsyncLoading } from '../hooks/useAsyncOperation';
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
 
-export default function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
+function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   const { t } = useTranslation();
   const { companyManagementEnabled } = useSettings();
   const [firstName, setFirstName] = useState('');
@@ -584,4 +584,14 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
   },
+});
+
+// Memoize modal to prevent unnecessary re-renders
+// Modal only needs to re-render when visibility, contact, or callbacks change
+export default React.memo(EditContactModal, (prevProps, nextProps) => {
+  return (
+    prevProps.visible === nextProps.visible &&
+    prevProps.contact?.id === nextProps.contact?.id &&
+    prevProps.contact?.updated_at === nextProps.contact?.updated_at
+  );
 });

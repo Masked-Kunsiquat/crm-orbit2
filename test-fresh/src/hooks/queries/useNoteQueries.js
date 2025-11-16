@@ -3,6 +3,13 @@ import { notesDB } from '../../database';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
 /**
+ * Cache tuning constants for note queries
+ * Notes have moderate update frequency
+ */
+const NOTE_STALE_MS = 5 * 60 * 1000; // 5 minutes
+const NOTE_GC_MS = 15 * 60 * 1000; // 15 minutes
+
+/**
  * Query keys for note-related queries
  */
 export const noteKeys = {
@@ -20,6 +27,8 @@ export function useNotes(options = {}) {
   return useQuery({
     queryKey: noteKeys.lists(),
     queryFn: () => notesDB.getAll(options),
+    staleTime: NOTE_STALE_MS,
+    gcTime: NOTE_GC_MS,
     ...options,
   });
 }
@@ -32,6 +41,8 @@ export function useNote(id, options = {}) {
     queryKey: noteKeys.detail(id),
     queryFn: () => notesDB.getById(id),
     enabled: !!id,
+    staleTime: NOTE_STALE_MS,
+    gcTime: NOTE_GC_MS,
     ...options,
   });
 }
@@ -44,6 +55,8 @@ export function useContactNotes(contactId, options = {}) {
     queryKey: noteKeys.byContact(contactId),
     queryFn: () => notesDB.getByContact(contactId),
     enabled: !!contactId,
+    staleTime: NOTE_STALE_MS,
+    gcTime: NOTE_GC_MS,
     ...options,
   });
 }
@@ -55,6 +68,8 @@ export function usePinnedNotes(options = {}) {
   return useQuery({
     queryKey: noteKeys.pinned(),
     queryFn: () => notesDB.getPinned(),
+    staleTime: NOTE_STALE_MS,
+    gcTime: NOTE_GC_MS,
     ...options,
   });
 }

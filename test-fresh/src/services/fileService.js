@@ -189,7 +189,7 @@ export const fileService = {
         );
       }
 
-      const mimeType =
+      let mimeType =
         detectMimeTypeFromName(originalName) ?? 'application/octet-stream';
       if (!this.validateFileType(mimeType)) {
         throw new Error(`Unsupported file type: ${mimeType}`);
@@ -197,7 +197,18 @@ export const fileService = {
 
       const fileType = getFileType(mimeType);
       const uuid = Crypto.randomUUID();
-      const fileExtension = getFileExtension(originalName);
+      let fileExtension = getFileExtension(originalName);
+
+      // Only convert iOS-specific formats (HEIC/HEIF) to JPEG for compatibility
+      // Preserve other formats (PNG transparency, GIF animation, etc.)
+      const shouldConvertToJpeg = fileType === 'image' &&
+        (mimeType.includes('heic') || mimeType.includes('heif'));
+
+      if (shouldConvertToJpeg) {
+        fileExtension = 'jpg';
+        mimeType = 'image/jpeg';
+      }
+
       const fileName = `${uuid}.${fileExtension}`;
 
       const directoryPath = getFileDirectory(fileType);
@@ -205,7 +216,37 @@ export const fileService = {
       directory.create({ intermediates: true, idempotent: true });
 
       destFile = new File(directoryPath, fileName);
-      sourceFile.copy(destFile);
+
+      // Resize and optionally convert images
+      if (fileType === 'image') {
+        try {
+          const manipulateOptions = shouldConvertToJpeg
+            ? { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+            : { compress: 0.9, format: ImageManipulator.SaveFormat.PNG };
+
+          const compressed = await ImageManipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: 800 } }], // Max width 800px
+            manipulateOptions
+          );
+          const compressedFile = new File(compressed.uri);
+          compressedFile.move(destFile);
+          logger.success('FileService', 'saveFile - processed image', {
+            originalSize: sourceFile.size,
+            processedSize: destFile.size,
+            converted: shouldConvertToJpeg,
+          });
+        } catch (compressionError) {
+          // Fallback to original if processing fails
+          logger.warn('FileService', 'Image processing failed, using original', {
+            error: compressionError.message,
+          });
+          sourceFile.copy(destFile);
+        }
+      } else {
+        // Non-images: direct copy
+        sourceFile.copy(destFile);
+      }
 
       if (destFile.size > FILE_CONFIG.MAX_FILE_SIZE) {
         destFile.delete();
@@ -227,7 +268,9 @@ export const fileService = {
         file_path: destFile.uri,
         file_type: fileType,
         mime_type: mimeType,
-        file_size: sourceFile.size,
+        // Fallback to sourceFile.size is logically unreachable after line 251 validation,
+        // but provides defensive safety if File API behavior changes or returns undefined
+        file_size: destFile.size ?? sourceFile.size,
         thumbnail_path: thumbnailPath,
       };
 

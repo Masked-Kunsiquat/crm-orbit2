@@ -62,7 +62,7 @@ const getTypeIcon = (type) => {
   }
 };
 
-export default function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEdit }) {
+function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEdit }) {
   const theme = useTheme();
 
   if (!interaction) return null;
@@ -292,4 +292,15 @@ const styles = StyleSheet.create({
   spacer: {
     height: 20,
   },
+});
+
+// Memoize modal to prevent unnecessary re-renders
+// Modal only needs to re-render when visibility, interaction, contact, or callbacks change
+export default React.memo(InteractionDetailModal, (prevProps, nextProps) => {
+  return (
+    prevProps.visible === nextProps.visible &&
+    prevProps.interaction?.id === nextProps.interaction?.id &&
+    prevProps.interaction?.updated_at === nextProps.interaction?.updated_at &&
+    prevProps.contact?.id === nextProps.contact?.id
+  );
 });

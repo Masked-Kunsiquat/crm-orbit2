@@ -39,7 +39,7 @@ const getTypeIcon = (type) => {
   }
 };
 
-export default function InteractionCard({ interaction, onPress, onLongPress, contact }) {
+function InteractionCard({ interaction, onPress, onLongPress, contact }) {
   const theme = useTheme();
   const typeInfo = getTypeIcon(interaction.interaction_type || interaction.custom_type);
   const durationStr = formatDuration(interaction.duration);
@@ -96,6 +96,18 @@ export default function InteractionCard({ interaction, onPress, onLongPress, con
     </Card>
   );
 }
+
+// Memoize to prevent unnecessary re-renders in list views
+// Only re-render if interaction ID, updated_at, contact ID, or callbacks change
+export default React.memo(InteractionCard, (prevProps, nextProps) => {
+  return (
+    prevProps.interaction.id === nextProps.interaction.id &&
+    prevProps.interaction.updated_at === nextProps.interaction.updated_at &&
+    prevProps.contact?.id === nextProps.contact?.id &&
+    prevProps.onPress === nextProps.onPress &&
+    prevProps.onLongPress === nextProps.onLongPress
+  );
+});
 
 const styles = StyleSheet.create({
   card: {

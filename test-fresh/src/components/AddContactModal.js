@@ -51,7 +51,7 @@ const mapEmailLabel = (nativeLabel) => {
   return 'Other';
 };
 
-export default function AddContactModal({ visible, onDismiss, onContactAdded }) {
+function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const { t } = useTranslation();
   const { companyManagementEnabled } = useSettings();
   const [firstName, setFirstName] = useState('');
@@ -614,3 +614,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+// Memoize modal to prevent unnecessary re-renders
+// Modal only needs to re-render when visibility or callbacks change
+export default React.memo(AddContactModal);

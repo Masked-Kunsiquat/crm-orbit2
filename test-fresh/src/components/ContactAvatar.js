@@ -14,7 +14,7 @@ import { useAsyncLoading } from '../hooks/useAsyncOperation';
  * 2. avatar_uri (legacy, direct URI)
  * 3. Initials fallback
  */
-export default function ContactAvatar({ contact, size = 48, style }) {
+function ContactAvatar({ contact, size = 48, style }) {
   const [avatarUri, setAvatarUri] = useState(null);
 
   const { execute: loadAvatarFromAttachment } = useAsyncLoading(
@@ -87,3 +87,17 @@ export default function ContactAvatar({ contact, size = 48, style }) {
     />
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+// Only re-render if contact ID, avatar attachment/URI, name, size, or style changes
+export default React.memo(ContactAvatar, (prevProps, nextProps) => {
+  return (
+    prevProps.contact?.id === nextProps.contact?.id &&
+    prevProps.contact?.avatar_attachment_id === nextProps.contact?.avatar_attachment_id &&
+    prevProps.contact?.avatar_uri === nextProps.contact?.avatar_uri &&
+    prevProps.contact?.first_name === nextProps.contact?.first_name &&
+    prevProps.contact?.last_name === nextProps.contact?.last_name &&
+    prevProps.size === nextProps.size &&
+    prevProps.style === nextProps.style
+  );
+});
