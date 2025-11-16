@@ -52,6 +52,10 @@ export default function DashboardScreen({ navigation }) {
       navigation={navigation}
       headerActions={[
         {
+          icon: 'magnify',
+          onPress: () => navigation.navigate('GlobalSearch'),
+        },
+        {
           icon: 'chart-bar',
           onPress: () => navigation.navigate('Analytics'),
         },

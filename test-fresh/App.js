@@ -15,6 +15,7 @@ import InteractionsScreen from './src/screens/InteractionsScreen';
 import EventsList from './src/screens/EventsList';
 import SettingsScreen from './src/screens/SettingsScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
+import GlobalSearchScreen from './src/screens/GlobalSearchScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AuthLockScreen from './src/screens/AuthLockScreen';
@@ -186,6 +187,7 @@ export default function App() {
                         <Stack.Screen name="MainTabs" component={MainTabs} />
                         <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
                         <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+                        <Stack.Screen name="GlobalSearch" component={GlobalSearchScreen} />
                         <Stack.Screen name="PinSetup" component={PinSetupScreen} />
                       </Stack.Navigator>
                     </NavigationContainer>
