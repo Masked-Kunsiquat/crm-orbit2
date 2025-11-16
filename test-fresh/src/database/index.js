@@ -34,6 +34,7 @@ import { createInteractionsSearchDB } from './interactionsSearch';
 import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
+import { createGlobalSearchDB } from './globalSearch';
 import { DatabaseError, logger } from '../errors';
 // Use modern expo-sqlite async API
 const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
@@ -407,6 +408,7 @@ export const interactionsDB = createInteractionsDB({
 });
 export const interactionsStatsDB = createInteractionsStatsDB({ execute });
 export const interactionsSearchDB = createInteractionsSearchDB({ execute });
+export const globalSearchDB = createGlobalSearchDB({ execute });
 export const notesDB = createNotesDB({ execute, batch, transaction });
 export const attachmentsDB = createAttachmentsDB({
   execute,
@@ -441,6 +443,7 @@ const database = {
   interactions: interactionsDB,
   interactionsStats: interactionsStatsDB,
   interactionsSearch: interactionsSearchDB,
+  globalSearch: globalSearchDB,
   notes: notesDB,
   attachments: attachmentsDB,
   settings: settingsDB,
