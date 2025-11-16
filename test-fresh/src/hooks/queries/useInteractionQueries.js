@@ -94,6 +94,9 @@ export function useRecentInteractions(limit = 10, options = {}) {
 export function useInfiniteInteractions(queryOptions = {}) {
   const PAGE_SIZE = 50; // Load 50 interactions per page
 
+  // Extract only safe filter options to prevent pagination parameter override
+  const { limit, offset, orderBy, orderDir, ...safeOptions } = queryOptions;
+
   return useInfiniteQuery({
     queryKey: interactionKeys.lists('infinite'),
     queryFn: async ({ pageParam = 0 }) => {
@@ -102,7 +105,7 @@ export function useInfiniteInteractions(queryOptions = {}) {
         offset: pageParam,
         orderBy: 'interaction_datetime',
         orderDir: 'DESC',
-        ...queryOptions,
+        ...safeOptions,
       });
       return { interactions, nextOffset: pageParam + PAGE_SIZE };
     },
