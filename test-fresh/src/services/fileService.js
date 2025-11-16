@@ -199,8 +199,12 @@ export const fileService = {
       const uuid = Crypto.randomUUID();
       let fileExtension = getFileExtension(originalName);
 
-      // Images will be compressed to JPEG, so normalize extension and MIME type
-      if (fileType === 'image') {
+      // Only convert iOS-specific formats (HEIC/HEIF) to JPEG for compatibility
+      // Preserve other formats (PNG transparency, GIF animation, etc.)
+      const shouldConvertToJpeg = fileType === 'image' &&
+        (mimeType.includes('heic') || mimeType.includes('heif'));
+
+      if (shouldConvertToJpeg) {
         fileExtension = 'jpg';
         mimeType = 'image/jpeg';
       }
@@ -213,23 +217,28 @@ export const fileService = {
 
       destFile = new File(directoryPath, fileName);
 
-      // Compress images before saving to reduce storage usage
+      // Resize and optionally convert images
       if (fileType === 'image') {
         try {
+          const manipulateOptions = shouldConvertToJpeg
+            ? { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+            : { compress: 0.9, format: ImageManipulator.SaveFormat.PNG };
+
           const compressed = await ImageManipulator.manipulateAsync(
             uri,
             [{ resize: { width: 800 } }], // Max width 800px
-            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+            manipulateOptions
           );
           const compressedFile = new File(compressed.uri);
           compressedFile.move(destFile);
-          logger.success('FileService', 'saveFile - compressed image', {
+          logger.success('FileService', 'saveFile - processed image', {
             originalSize: sourceFile.size,
-            compressedSize: destFile.size,
+            processedSize: destFile.size,
+            converted: shouldConvertToJpeg,
           });
         } catch (compressionError) {
-          // Fallback to original if compression fails
-          logger.warn('FileService', 'Image compression failed, using original', {
+          // Fallback to original if processing fails
+          logger.warn('FileService', 'Image processing failed, using original', {
             error: compressionError.message,
           });
           sourceFile.copy(destFile);
