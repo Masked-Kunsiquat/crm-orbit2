@@ -268,6 +268,8 @@ export const fileService = {
         file_path: destFile.uri,
         file_type: fileType,
         mime_type: mimeType,
+        // Fallback to sourceFile.size is logically unreachable after line 251 validation,
+        // but provides defensive safety if File API behavior changes or returns undefined
         file_size: destFile.size ?? sourceFile.size,
         thumbnail_path: thumbnailPath,
       };

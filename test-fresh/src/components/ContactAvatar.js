@@ -89,7 +89,7 @@ function ContactAvatar({ contact, size = 48, style }) {
 }
 
 // Memoize to prevent unnecessary re-renders
-// Only re-render if contact ID, avatar attachment, name, size, or style changes
+// Only re-render if contact ID, avatar attachment/URI, name, size, or style changes
 export default React.memo(ContactAvatar, (prevProps, nextProps) => {
   return (
     prevProps.contact?.id === nextProps.contact?.id &&

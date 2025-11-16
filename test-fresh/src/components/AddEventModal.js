@@ -641,6 +641,10 @@ const styles = StyleSheet.create({
 
 // Memoize modal to prevent unnecessary re-renders
 // Modal only needs to re-render when visibility, editingEvent, preselectedContactId, or callbacks change
+//
+// IMPORTANT: Relies on updated_at invariant - the database layer MUST bump updated_at
+// whenever any event fields change (see events.js:139).
+// If updated_at is not properly maintained, the modal may show stale data when editing.
 export default React.memo(AddEventModal, (prevProps, nextProps) => {
   return (
     prevProps.visible === nextProps.visible &&

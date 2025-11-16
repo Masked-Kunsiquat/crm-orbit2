@@ -90,6 +90,17 @@ export function useRecentInteractions(limit = 10, options = {}) {
 /**
  * Fetch interactions with infinite scrolling support
  * Use this for InteractionsScreen to support pagination with large datasets
+ *
+ * PAGINATION STRATEGY: Offset-based (current implementation)
+ * - Uses offset + PAGE_SIZE for pagination
+ * - Works well for historical data (interaction history)
+ * - Known limitation: if interactions are created/deleted during pagination,
+ *   items may be duplicated or skipped
+ *
+ * FUTURE ENHANCEMENT: Consider cursor-based pagination if users report
+ * pagination inconsistencies. Would use interaction_datetime or ID as cursor:
+ *   WHERE interaction_datetime < cursor ORDER BY interaction_datetime DESC
+ * This would prevent duplication/skipping but requires database schema support.
  */
 export function useInfiniteInteractions(queryOptions = {}) {
   const PAGE_SIZE = 50; // Load 50 interactions per page
