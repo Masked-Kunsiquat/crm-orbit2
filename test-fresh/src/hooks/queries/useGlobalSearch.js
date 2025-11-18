@@ -31,7 +31,7 @@ export function useGlobalSearch(query, options = {}) {
       }
     },
     // Only run query if search term is at least 2 characters
-    enabled: query && query.trim().length >= 2,
+    enabled: typeof query === 'string' && query.trim().length >= 2,
     // Cache search results for 30 seconds
     staleTime: 30 * 1000,
     gcTime: 2 * 60 * 1000, // 2 minutes
