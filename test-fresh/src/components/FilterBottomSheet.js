@@ -25,13 +25,14 @@ export default function FilterBottomSheet({
   const theme = useTheme();
   const { t } = useTranslation();
 
-  // Filter state
-  const [selectedCategories, setSelectedCategories] = useState(initialFilters.categoryIds || []);
-  const [categoryLogic, setCategoryLogic] = useState(initialFilters.categoryLogic || 'OR');
-  const [selectedCompany, setSelectedCompany] = useState(initialFilters.companyId || null);
-  const [dateAddedRange, setDateAddedRange] = useState(initialFilters.dateAddedRange || null);
-  const [interactionDays, setInteractionDays] = useState(initialFilters.interactionDays || null);
-  const [hasUpcomingEvents, setHasUpcomingEvents] = useState(initialFilters.hasUpcomingEvents || false);
+  // Filter state - handle null initialFilters
+  const filters = initialFilters || {};
+  const [selectedCategories, setSelectedCategories] = useState(filters.categoryIds || []);
+  const [categoryLogic, setCategoryLogic] = useState(filters.categoryLogic || 'OR');
+  const [selectedCompany, setSelectedCompany] = useState(filters.companyId || null);
+  const [dateAddedRange, setDateAddedRange] = useState(filters.dateAddedRange || null);
+  const [interactionDays, setInteractionDays] = useState(filters.interactionDays || null);
+  const [hasUpcomingEvents, setHasUpcomingEvents] = useState(filters.hasUpcomingEvents || false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
