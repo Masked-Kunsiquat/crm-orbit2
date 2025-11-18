@@ -326,11 +326,17 @@ export function createContactsDB(ctx) {
 
       // Interaction activity filter (last N days)
       if (interactionDays != null) {
-        where.push(`EXISTS (
-          SELECT 1 FROM interactions i
-          WHERE i.contact_id = c.id
-          AND DATE(i.interaction_datetime) >= DATE('now', '-${interactionDays} days')
-        )`);
+        const days = Number.isFinite(Number(interactionDays))
+          ? Math.max(1, Math.floor(Number(interactionDays)))
+          : null;
+        if (days != null) {
+          where.push(`EXISTS (
+            SELECT 1 FROM interactions i
+            WHERE i.contact_id = c.id
+            AND DATE(i.interaction_datetime) >= DATE('now', ?)
+          )`);
+          params.push(`-${days} days`);
+        }
       }
 
       // Has upcoming events filter
