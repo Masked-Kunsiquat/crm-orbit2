@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { StyleSheet, SectionList, View, TouchableOpacity } from 'react-native';
 import {
   Appbar,
@@ -35,6 +35,16 @@ export default function GlobalSearchScreen({ navigation }) {
     debounceTimeout.current = setTimeout(() => {
       setDebouncedQuery(query);
     }, 300);
+  }, []);
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+        debounceTimeout.current = null;
+      }
+    };
   }, []);
 
   // Perform global search using TanStack Query
