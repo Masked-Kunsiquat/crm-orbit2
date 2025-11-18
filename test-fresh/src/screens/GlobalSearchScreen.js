@@ -288,7 +288,7 @@ function InteractionResult({ item, onPress }) {
     <TouchableOpacity onPress={onPress}>
       <Card.Title
         title={item.title || t('globalSearch.untitled')}
-        subtitle={`${item.contact_name} • ${formatDateSmart(item.interaction_datetime)}`}
+        subtitle={`${item.contact_name} • ${formatDateSmart(item.interaction_datetime, t)}`}
         left={(props) => (
           <Avatar.Icon {...props} icon={interactionIcon} size={40} />
         )}
@@ -307,7 +307,7 @@ function EventResult({ item, onPress }) {
     <TouchableOpacity onPress={onPress}>
       <Card.Title
         title={item.title}
-        subtitle={formatDateSmart(item.event_date)}
+        subtitle={formatDateSmart(item.event_date, t)}
         description={item.contact_name || null}
         left={(props) => (
           <Avatar.Icon {...props} icon="calendar" size={40} />
