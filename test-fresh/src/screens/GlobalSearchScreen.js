@@ -326,15 +326,16 @@ function NoteResult({ item, onPress }) {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  // Truncate note content
-  const truncatedContent = item.content.length > 100
-    ? item.content.substring(0, 100) + '...'
-    : item.content;
+  // Truncate note content safely
+  const content = (item.content || '').toString();
+  const truncatedContent = content.length > 100
+    ? content.substring(0, 100) + '...'
+    : content;
 
   return (
     <TouchableOpacity onPress={onPress}>
       <Card.Title
-        title={truncatedContent}
+        title={truncatedContent || t('globalSearch.note')}
         subtitle={item.related_name || t('globalSearch.note')}
         left={(props) => (
           <Avatar.Icon
