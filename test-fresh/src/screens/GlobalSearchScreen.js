@@ -212,7 +212,6 @@ export default function GlobalSearchScreen({ navigation }) {
         onChangeText={handleSearchChange}
         value={searchQuery}
         style={styles.searchbar}
-        autoFocus
       />
 
       {sections.length === 0 ? (
