@@ -107,8 +107,7 @@ export default function GlobalSearchScreen({ navigation }) {
         navigation.navigate('ContactDetail', { contactId: item.id });
         break;
       case 'company':
-        // Navigate back to MainTabs - CompanyListScreen will handle filtering if needed
-        navigation.navigate('MainTabs', { screen: 'companies', companyId: item.id });
+        navigation.navigate('CompanyList', { companyId: item.id });
         break;
       case 'interaction':
         // Navigate to contact detail showing interaction
@@ -117,8 +116,7 @@ export default function GlobalSearchScreen({ navigation }) {
         }
         break;
       case 'event':
-        // Navigate back to MainTabs - EventsList will handle filtering if needed
-        navigation.navigate('MainTabs', { screen: 'events', eventId: item.id });
+        navigation.navigate('EventsList', { eventId: item.id });
         break;
       case 'note':
         // Navigate to related contact

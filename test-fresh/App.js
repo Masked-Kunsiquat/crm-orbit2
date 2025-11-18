@@ -188,6 +188,8 @@ export default function App() {
                         <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
                         <Stack.Screen name="Analytics" component={AnalyticsScreen} />
                         <Stack.Screen name="GlobalSearch" component={GlobalSearchScreen} />
+                        <Stack.Screen name="EventsList" component={EventsList} />
+                        <Stack.Screen name="CompanyList" component={CompanyListScreen} />
                         <Stack.Screen name="PinSetup" component={PinSetupScreen} />
                       </Stack.Navigator>
                     </NavigationContainer>
