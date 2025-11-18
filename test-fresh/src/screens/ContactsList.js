@@ -179,7 +179,7 @@ export default function ContactsList({ navigation }) {
              company.includes(query) ||
              phone.includes(query);
     });
-  }, [categoryFilteredContacts, searchQuery]);
+  }, [baseContactsList, searchQuery]);
 
   // Left actions are revealed by a RIGHT swipe (gesture to the right)
   // so they should reflect the RIGHT-swipe mapping
