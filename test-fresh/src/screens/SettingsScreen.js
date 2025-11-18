@@ -201,7 +201,9 @@ export default function SettingsScreen() {
       async () => {
         setResettingDatabase(true);
         try {
-          await resetDatabase();
+          // Get the current database instance and pass it to resetDatabase
+          const db = database.getDB();
+          await resetDatabase(db);
           showAlert.success(
             t('settings.database.resetSuccess'),
             t('settings.database.resetComplete')
