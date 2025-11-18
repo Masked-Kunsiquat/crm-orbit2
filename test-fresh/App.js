@@ -6,7 +6,6 @@ import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigatio
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
-import { createBasicTables } from './src/database/simpleSetup';
 import DashboardScreen from './src/screens/DashboardScreen';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
@@ -40,16 +39,12 @@ export default function App() {
       try {
         console.log('Initializing database with modern expo-sqlite API...');
 
-        // Initialize database connection
+        // Initialize database connection with migrations enabled
         await initDatabase({
-          runMigrationsOnInit: false, // Skip complex migrations, use simple setup
+          runMigrationsOnInit: true, // Run migrations to ensure schema is up to date
           onLog: console.log,
         });
-        console.log('Database connection initialized');
-
-        // Create basic tables
-        await createBasicTables();
-        console.log('Basic tables created successfully');
+        console.log('Database initialized with migrations');
 
         setIsDbReady(true);
       } catch (error) {
