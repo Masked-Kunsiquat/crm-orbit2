@@ -47,17 +47,17 @@ export function createGlobalSearchDB({ execute }) {
         const searchTerm = `%${term.toLowerCase()}%`;
 
         // Execute all searches in parallel for performance
-        const [contacts, companies, interactions, events, notes] = await Promise.all([
+        // Note: notes table doesn't exist in simpleSetup.js schema yet
+        const [contacts, companies, interactions, events] = await Promise.all([
           this.searchContacts(searchTerm, limit),
           this.searchCompanies(searchTerm, limit),
           this.searchInteractions(searchTerm, limit),
           this.searchEvents(searchTerm, limit),
-          this.searchNotes(searchTerm, limit),
         ]);
 
         logger.success('GlobalSearchDB', 'search', {
           query: term,
-          totalResults: contacts.length + companies.length + interactions.length + events.length + notes.length,
+          totalResults: contacts.length + companies.length + interactions.length + events.length,
         });
 
         return {
@@ -65,7 +65,7 @@ export function createGlobalSearchDB({ execute }) {
           companies,
           interactions,
           events,
-          notes,
+          notes: [], // Notes table not yet implemented in simpleSetup.js
         };
       } catch (error) {
         logger.error('GlobalSearchDB', 'search', error, { query });
@@ -121,7 +121,6 @@ export function createGlobalSearchDB({ execute }) {
             id,
             name,
             industry,
-            logo_attachment_id,
             created_at
           FROM companies
           WHERE
@@ -155,7 +154,7 @@ export function createGlobalSearchDB({ execute }) {
             i.custom_type,
             i.interaction_datetime,
             c.display_name AS contact_name,
-            c.avatar_attachment_id AS contact_avatar
+            c.avatar_uri AS contact_avatar
           FROM interactions i
           JOIN contacts c ON i.contact_id = c.id
           WHERE
@@ -208,38 +207,6 @@ export function createGlobalSearchDB({ execute }) {
       }
     },
 
-    /**
-     * Search notes by title and content
-     * @private
-     */
-    async searchNotes(searchTerm, limit) {
-      try {
-        const sql = `
-          SELECT
-            n.id,
-            n.contact_id,
-            n.title,
-            n.content,
-            n.is_pinned,
-            n.created_at,
-            c.display_name AS related_name,
-            c.avatar_uri AS contact_avatar
-          FROM notes n
-          LEFT JOIN contacts c ON n.contact_id = c.id
-          WHERE
-            LOWER(n.title) LIKE ? OR
-            LOWER(n.content) LIKE ?
-          ORDER BY n.is_pinned DESC, n.created_at DESC
-          LIMIT ?;
-        `;
-
-        const res = await execute(sql, [searchTerm, searchTerm, limit]);
-        return res.rows || [];
-      } catch (error) {
-        logger.error('GlobalSearchDB', 'searchNotes', error, { searchTerm });
-        return [];
-      }
-    },
   };
 }
 
