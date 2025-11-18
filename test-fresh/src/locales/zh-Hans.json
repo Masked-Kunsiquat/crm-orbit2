@@ -109,7 +109,9 @@
         "save": "保存"
     },
     "common": {
-        "all": "全部"
+        "all": "全部",
+        "cancel": "",
+        "save": ""
     },
     "industries": {
         "technology": "科技",
@@ -466,5 +468,18 @@
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
+    },
+    "savedSearches": {
+        "title": "",
+        "save": "",
+        "saveSearchTitle": "",
+        "searchName": "",
+        "nameRequired": "",
+        "saveSuccess": "",
+        "searchSaved": "",
+        "saveError": "",
+        "noSavedSearches": "",
+        "deleteTitle": "",
+        "deleteMessage": ""
     }
 }

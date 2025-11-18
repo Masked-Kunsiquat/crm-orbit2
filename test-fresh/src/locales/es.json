@@ -111,7 +111,9 @@
         "save": "Guardar"
     },
     "common": {
-        "all": "Todas"
+        "all": "Todas",
+        "cancel": "",
+        "save": ""
     },
     "industries": {
         "technology": "Tecnología",
@@ -499,5 +501,18 @@
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
+    },
+    "savedSearches": {
+        "title": "",
+        "save": "",
+        "saveSearchTitle": "",
+        "searchName": "",
+        "nameRequired": "",
+        "saveSuccess": "",
+        "searchSaved": "",
+        "saveError": "",
+        "noSavedSearches": "",
+        "deleteTitle": "",
+        "deleteMessage": ""
     }
 }

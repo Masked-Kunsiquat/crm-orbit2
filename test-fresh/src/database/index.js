@@ -35,6 +35,7 @@ import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
 import { createGlobalSearchDB } from './globalSearch';
+import { createSavedSearchesDB } from './savedSearches';
 import { DatabaseError, logger } from '../errors';
 // Use modern expo-sqlite async API
 const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
@@ -416,6 +417,7 @@ export const attachmentsDB = createAttachmentsDB({
   transaction,
 });
 export const settingsDB = createSettingsDB({ execute, batch, transaction });
+export const savedSearchesDB = createSavedSearchesDB({ execute, batch });
 
 /**
  * Unified database API surface available to the rest of the app.
@@ -447,6 +449,7 @@ const database = {
   notes: notesDB,
   attachments: attachmentsDB,
   settings: settingsDB,
+  savedSearches: savedSearchesDB,
 };
 
 export default database;

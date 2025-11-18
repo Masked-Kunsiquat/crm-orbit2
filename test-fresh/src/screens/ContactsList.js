@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
 import { handleError, showAlert, logger } from '../errors';
 import { Swipeable } from 'react-native-gesture-handler';
-import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper';
+import { Appbar, FAB, Searchbar, Text, Chip, useTheme, Menu, IconButton } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
@@ -11,6 +11,7 @@ import { EmptyState } from '../components/layout';
 import { categoriesDB, companiesDB, contactsDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
 import { useContactsWithInfo } from '../hooks/queries';
+import { useSavedSearches, useDeleteSavedSearch } from '../hooks/queries/useSavedSearchQueries';
 import { safeTrim } from '../utils/stringHelpers';
 import { normalizePhoneNumber as normalizePhone } from '../utils/contactHelpers';
 
@@ -25,10 +26,15 @@ export default function ContactsList({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [advancedFilters, setAdvancedFilters] = useState(null);
   const [filteredContactsList, setFilteredContactsList] = useState([]);
+  const [showSavedSearchesMenu, setShowSavedSearchesMenu] = useState(false);
   const { leftAction, rightAction } = useSettings();
 
   // Use TanStack Query for enriched contacts data (with contact_info and categories)
   const { data: contactsWithInfo = [], isLoading: loading, refetch, isFetching: refreshing } = useContactsWithInfo();
+
+  // Saved searches
+  const { data: savedSearches = [] } = useSavedSearches('contacts');
+  const deleteSavedSearch = useDeleteSavedSearch();
 
   useEffect(() => {
     loadCategories();
@@ -149,6 +155,29 @@ export default function ContactsList({ navigation }) {
     // No need to manually refetch - TanStack Query mutations will invalidate the cache
   };
 
+  const handleLoadSavedSearch = (savedSearch) => {
+    setShowSavedSearchesMenu(false);
+    setAdvancedFilters(savedSearch.filters);
+    setSelectedCategory(null); // Clear simple category filter
+    logger.success('ContactsList', 'handleLoadSavedSearch', { name: savedSearch.name });
+  };
+
+  const handleDeleteSavedSearch = async (savedSearch) => {
+    try {
+      showAlert.confirmDelete(
+        t('savedSearches.deleteTitle'),
+        t('savedSearches.deleteMessage', { name: savedSearch.name }),
+        async () => {
+          await deleteSavedSearch.mutateAsync(savedSearch.id);
+          logger.success('ContactsList', 'handleDeleteSavedSearch', { id: savedSearch.id });
+        }
+      );
+    } catch (error) {
+      logger.error('ContactsList', 'handleDeleteSavedSearch', error);
+      // Error already shown by mutation handler
+    }
+  };
+
   // Use advanced filters if present, otherwise fall back to category filter
   const baseContactsList = React.useMemo(() => {
     if (advancedFilters) {
@@ -257,6 +286,34 @@ export default function ContactsList({ navigation }) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         <Appbar.Content title={t('navigation.contacts')} />
+        <Menu
+          visible={showSavedSearchesMenu}
+          onDismiss={() => setShowSavedSearchesMenu(false)}
+          anchor={
+            <Appbar.Action
+              icon="bookmark-outline"
+              onPress={() => setShowSavedSearchesMenu(true)}
+              accessibilityLabel={t('savedSearches.title')}
+            />
+          }
+        >
+          {savedSearches.length === 0 ? (
+            <Menu.Item
+              title={t('savedSearches.noSavedSearches')}
+              disabled
+            />
+          ) : (
+            savedSearches.map((search) => (
+              <Menu.Item
+                key={search.id}
+                title={search.name}
+                onPress={() => handleLoadSavedSearch(search)}
+                trailingIcon="delete"
+                onPressTrailing={() => handleDeleteSavedSearch(search)}
+              />
+            ))
+          )}
+        </Menu>
         <Appbar.Action
           icon="filter-variant"
           onPress={() => setShowFilterSheet(true)}

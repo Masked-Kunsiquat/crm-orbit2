@@ -9,10 +9,15 @@ import {
   SegmentedButtons,
   useTheme,
   IconButton,
+  Dialog,
+  TextInput,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { logger } from '../errors/utils/errorLogger';
+import { useCreateSavedSearch } from '../hooks/queries/useSavedSearchQueries';
+import { showAlert } from '../errors/utils/errorHandler';
+import { safeTrim, hasContent } from '../utils/stringHelpers';
 
 export default function FilterBottomSheet({
   visible,
@@ -24,6 +29,7 @@ export default function FilterBottomSheet({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
+  const createSavedSearch = useCreateSavedSearch();
 
   // Filter state - handle null initialFilters
   const filters = initialFilters || {};
@@ -35,6 +41,10 @@ export default function FilterBottomSheet({
   const [hasUpcomingEvents, setHasUpcomingEvents] = useState(filters.hasUpcomingEvents || false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+  // Save search dialog state
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [searchName, setSearchName] = useState('');
 
   const toggleCategory = useCallback((categoryId) => {
     setSelectedCategories((prev) => {
@@ -68,6 +78,40 @@ export default function FilterBottomSheet({
     setInteractionDays(null);
     setHasUpcomingEvents(false);
   }, []);
+
+  const handleSaveSearch = useCallback(async () => {
+    const trimmedName = safeTrim(searchName);
+
+    if (!hasContent(trimmedName)) {
+      showAlert.error(t('savedSearches.saveError'), t('savedSearches.nameRequired'));
+      return;
+    }
+
+    try {
+      const filters = {
+        categoryIds: selectedCategories.length > 0 ? selectedCategories : null,
+        categoryLogic: selectedCategories.length > 1 ? categoryLogic : null,
+        companyId: selectedCompany,
+        dateAddedRange,
+        interactionDays,
+        hasUpcomingEvents: hasUpcomingEvents || null,
+      };
+
+      await createSavedSearch.mutateAsync({
+        name: trimmedName,
+        entity_type: 'contacts',
+        filters,
+      });
+
+      setShowSaveDialog(false);
+      setSearchName('');
+      showAlert.success(t('savedSearches.saveSuccess'), t('savedSearches.searchSaved'));
+      logger.success('FilterBottomSheet', 'handleSaveSearch', { name: trimmedName });
+    } catch (error) {
+      logger.error('FilterBottomSheet', 'handleSaveSearch', error);
+      // Error already shown by mutation handler
+    }
+  }, [searchName, selectedCategories, categoryLogic, selectedCompany, dateAddedRange, interactionDays, hasUpcomingEvents, createSavedSearch, t]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -282,6 +326,16 @@ export default function FilterBottomSheet({
           >
             {t('filters.clear')}
           </Button>
+          {activeFilterCount > 0 && (
+            <Button
+              mode="outlined"
+              onPress={() => setShowSaveDialog(true)}
+              style={styles.footerButton}
+              icon="content-save"
+            >
+              {t('savedSearches.save')}
+            </Button>
+          )}
           <Button
             mode="contained"
             onPress={handleApply}
@@ -310,6 +364,44 @@ export default function FilterBottomSheet({
           />
         )}
       </Modal>
+
+      {/* Save Search Dialog */}
+      <Dialog
+        visible={showSaveDialog}
+        onDismiss={() => {
+          setShowSaveDialog(false);
+          setSearchName('');
+        }}
+      >
+        <Dialog.Title>{t('savedSearches.saveSearchTitle')}</Dialog.Title>
+        <Dialog.Content>
+          <TextInput
+            label={t('savedSearches.searchName')}
+            value={searchName}
+            onChangeText={setSearchName}
+            mode="outlined"
+            autoFocus
+            onSubmitEditing={handleSaveSearch}
+          />
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            onPress={() => {
+              setShowSaveDialog(false);
+              setSearchName('');
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onPress={handleSaveSearch}
+            loading={createSavedSearch.isPending}
+            disabled={!hasContent(searchName)}
+          >
+            {t('common.save')}
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
     </Portal>
   );
 }
