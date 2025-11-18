@@ -37,7 +37,8 @@
             "features": "Funktionen",
             "swipe": "Wisch-Aktionen",
             "theme": "Design",
-            "language": "Sprache"
+            "language": "Sprache",
+            "database": ""
         },
         "language": {
             "device": "Gerätestandard",
@@ -63,6 +64,24 @@
                 "enabled": "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen.",
                 "disabled": "Unternehmensverwaltung deaktiviert."
             }
+        },
+        "database": {
+            "runMigrations": "",
+            "migrationsDescription": "",
+            "run": "",
+            "migrationsSuccess": "",
+            "migrationsComplete": "",
+            "migrationsError": "",
+            "migrationsFailed": "",
+            "resetDatabase": "",
+            "resetDescription": "",
+            "reset": "",
+            "resetTitle": "",
+            "resetWarning": "",
+            "resetSuccess": "",
+            "resetComplete": "",
+            "resetError": "",
+            "resetFailed": ""
         },
         "errors": {
             "biometricToggle": {
@@ -475,6 +494,10 @@
             "hint": "Durchsuchen Sie alle Ihre Kontakte, Unternehmen, Interaktionen, Ereignisse und Notizen",
             "noResults": "Keine Ergebnisse gefunden",
             "tryDifferent": "Versuchen Sie einen anderen Suchbegriff"
+        },
+        "error": {
+            "title": "",
+            "message": ""
         },
         "noContact": "Keine Kontaktinformationen",
         "noIndustry": "Keine Branche",

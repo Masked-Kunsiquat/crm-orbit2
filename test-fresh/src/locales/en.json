@@ -68,7 +68,8 @@
             "features": "Features",
             "swipe": "Swipe Actions",
             "theme": "Theme",
-            "language": "Language"
+            "language": "Language",
+            "database": "Database"
         },
         "language": {
             "device": "Device default",
@@ -94,6 +95,24 @@
                 "enabled": "Company management enabled. Restart the app to see the Companies tab.",
                 "disabled": "Company management disabled."
             }
+        },
+        "database": {
+            "runMigrations": "Run Database Migrations",
+            "migrationsDescription": "Apply any pending database schema updates. This is safe and won't delete your data.",
+            "run": "Run",
+            "migrationsSuccess": "Success",
+            "migrationsComplete": "Database migrations completed successfully",
+            "migrationsError": "Migration Error",
+            "migrationsFailed": "Failed to run database migrations",
+            "resetDatabase": "Reset Database",
+            "resetDescription": "Delete all data and restart with a fresh database. This cannot be undone!",
+            "reset": "Reset",
+            "resetTitle": "Reset Database?",
+            "resetWarning": "This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?",
+            "resetSuccess": "Success",
+            "resetComplete": "Database reset successfully. Please restart the app.",
+            "resetError": "Reset Error",
+            "resetFailed": "Failed to reset database"
         },
         "errors": {
             "biometricToggle": {
@@ -475,6 +494,10 @@
             "hint": "Search across all your contacts, companies, interactions, events, and notes",
             "noResults": "No results found",
             "tryDifferent": "Try a different search term"
+        },
+        "error": {
+            "title": "Search Error",
+            "message": "Unable to perform search. Please try again."
         },
         "noContact": "No contact info",
         "noIndustry": "No industry",

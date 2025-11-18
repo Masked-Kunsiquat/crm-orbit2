@@ -37,7 +37,8 @@
             "features": "Características",
             "swipe": "Acciones de deslizamiento",
             "theme": "Tema",
-            "language": "Idioma"
+            "language": "Idioma",
+            "database": ""
         },
         "language": {
             "device": "Predeterminado del dispositivo",
@@ -64,6 +65,24 @@
                 "enabled": "Gestión de empresas habilitada. Reinicia la aplicación para ver la pestaña Empresas.",
                 "disabled": "Gestión de empresas deshabilitada."
             }
+        },
+        "database": {
+            "runMigrations": "",
+            "migrationsDescription": "",
+            "run": "",
+            "migrationsSuccess": "",
+            "migrationsComplete": "",
+            "migrationsError": "",
+            "migrationsFailed": "",
+            "resetDatabase": "",
+            "resetDescription": "",
+            "reset": "",
+            "resetTitle": "",
+            "resetWarning": "",
+            "resetSuccess": "",
+            "resetComplete": "",
+            "resetError": "",
+            "resetFailed": ""
         },
         "errors": {
             "biometricToggle": {
@@ -476,6 +495,10 @@
             "hint": "Busque en todos sus contactos, empresas, interacciones, eventos y notas",
             "noResults": "No se encontraron resultados",
             "tryDifferent": "Intente con un término de búsqueda diferente"
+        },
+        "error": {
+            "title": "",
+            "message": ""
         },
         "noContact": "Sin información de contacto",
         "noIndustry": "Sin industria",

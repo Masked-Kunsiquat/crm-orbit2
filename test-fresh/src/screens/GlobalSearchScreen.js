@@ -48,7 +48,7 @@ export default function GlobalSearchScreen({ navigation }) {
   }, []);
 
   // Perform global search using TanStack Query
-  const { data: results, isLoading, isFetching } = useGlobalSearch(debouncedQuery);
+  const { data: results, isLoading, isFetching, error, isError } = useGlobalSearch(debouncedQuery);
 
   // Transform results into SectionList format
   const sections = useMemo(() => {
@@ -166,6 +166,19 @@ export default function GlobalSearchScreen({ navigation }) {
           </Text>
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
             {t('globalSearch.emptyState.hint')}
+          </Text>
+        </View>
+      );
+    }
+
+    if (isError) {
+      return (
+        <View style={styles.emptyState}>
+          <Text variant="titleMedium" style={{ color: theme.colors.error }}>
+            {t('globalSearch.error.title')}
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
+            {t('globalSearch.error.message')}
           </Text>
         </View>
       );

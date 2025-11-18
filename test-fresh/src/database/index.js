@@ -355,6 +355,33 @@ export function isInitialized() {
   return _initialized && !!_db;
 }
 
+/**
+ * Run pending database migrations manually.
+ * Useful for development or when migrations need to be run without full reinitialization.
+ * @returns {Promise<void>}
+ */
+export async function runPendingMigrations() {
+  if (!_db) {
+    throw new DatabaseError(
+      'Database has not been initialized. Call initDatabase() first.',
+      'DB_NOT_INITIALIZED'
+    );
+  }
+
+  try {
+    logger.info('Database', 'runPendingMigrations', 'Starting manual migration run...');
+    await runMigrations({ db: _db, execute, batch, transaction });
+    logger.success('Database', 'runPendingMigrations', 'Migrations completed successfully');
+  } catch (err) {
+    logger.error('Database', 'runPendingMigrations', err);
+    throw new DatabaseError(
+      'Failed to run pending migrations',
+      'MIGRATION_FAILED',
+      err
+    );
+  }
+}
+
 // Unified API surface (module placeholders until implemented)
 /**
  * Create a placeholder proxy for not-yet-implemented database modules.
@@ -427,6 +454,7 @@ const database = {
   init: initDatabase,
   isInitialized,
   getDB,
+  runPendingMigrations,
 
   // low-level helpers
   execute,

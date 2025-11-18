@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { handleError, showAlert } from '../errors';
 import { Appbar, RadioButton, Text, List, Divider, Switch, Portal, Dialog, Button } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
+import database from '../database';
+import { resetDatabase } from '../database/resetDb';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../errors';
@@ -32,6 +34,9 @@ export default function SettingsScreen() {
   const [expandedSecurity, setExpandedSecurity] = useState(false);
   const [expandedLanguage, setExpandedLanguage] = useState(false);
   const [expandedFeatures, setExpandedFeatures] = useState(false);
+  const [expandedDatabase, setExpandedDatabase] = useState(false);
+  const [runningMigrations, setRunningMigrations] = useState(false);
+  const [resettingDatabase, setResettingDatabase] = useState(false);
   const [successDialogVisible, setSuccessDialogVisible] = useState(false);
   const [successDialogMessage, setSuccessDialogMessage] = useState('');
 
@@ -169,6 +174,52 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleRunMigrations = async () => {
+    setRunningMigrations(true);
+    try {
+      await database.runPendingMigrations();
+      showAlert.success(
+        t('settings.database.migrationsSuccess'),
+        t('settings.database.migrationsComplete')
+      );
+      logger.success('SettingsScreen', 'handleRunMigrations', 'Migrations completed');
+    } catch (error) {
+      logger.error('SettingsScreen', 'handleRunMigrations', error);
+      showAlert.error(
+        t('settings.database.migrationsError'),
+        error.message || t('settings.database.migrationsFailed')
+      );
+    } finally {
+      setRunningMigrations(false);
+    }
+  };
+
+  const handleResetDatabase = async () => {
+    showAlert.confirmDelete(
+      t('settings.database.resetTitle'),
+      t('settings.database.resetWarning'),
+      async () => {
+        setResettingDatabase(true);
+        try {
+          await resetDatabase();
+          showAlert.success(
+            t('settings.database.resetSuccess'),
+            t('settings.database.resetComplete')
+          );
+          logger.success('SettingsScreen', 'handleResetDatabase', 'Database reset');
+        } catch (error) {
+          logger.error('SettingsScreen', 'handleResetDatabase', error);
+          showAlert.error(
+            t('settings.database.resetError'),
+            error.message || t('settings.database.resetFailed')
+          );
+        } finally {
+          setResettingDatabase(false);
+        }
+      }
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Appbar.Header elevated>
@@ -258,6 +309,60 @@ export default function SettingsScreen() {
                   }
                 }}
               />
+            )}
+          />
+        </List.Accordion>
+      </List.Section>
+
+      {/* Database */}
+      <List.Section style={styles.section}>
+        <List.Accordion
+          title={t('settings.sections.database')}
+          expanded={expandedDatabase}
+          onPress={() => setExpandedDatabase(e => !e)}
+        >
+          <List.Item
+            title={() => <Text variant="titleSmall">{t('settings.database.runMigrations')}</Text>}
+            description={() => (
+              <Text variant="bodySmall" style={styles.featureDescription}>
+                {t('settings.database.migrationsDescription')}
+              </Text>
+            )}
+            right={() => (
+              runningMigrations ? (
+                <ActivityIndicator size="small" style={{ marginRight: 16 }} />
+              ) : (
+                <Button
+                  mode="outlined"
+                  onPress={handleRunMigrations}
+                  disabled={runningMigrations || resettingDatabase}
+                  compact
+                >
+                  {t('settings.database.run')}
+                </Button>
+              )
+            )}
+          />
+          <List.Item
+            title={() => <Text variant="titleSmall">{t('settings.database.resetDatabase')}</Text>}
+            description={() => (
+              <Text variant="bodySmall" style={styles.featureDescription}>
+                {t('settings.database.resetDescription')}
+              </Text>
+            )}
+            right={() => (
+              resettingDatabase ? (
+                <ActivityIndicator size="small" style={{ marginRight: 16 }} />
+              ) : (
+                <Button
+                  mode="outlined"
+                  onPress={handleResetDatabase}
+                  disabled={runningMigrations || resettingDatabase}
+                  compact
+                >
+                  {t('settings.database.reset')}
+                </Button>
+              )
             )}
           />
         </List.Accordion>

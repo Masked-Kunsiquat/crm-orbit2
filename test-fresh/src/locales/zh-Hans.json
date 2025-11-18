@@ -37,7 +37,8 @@
             "features": "功能",
             "swipe": "滑动操作",
             "theme": "主题",
-            "language": "语言"
+            "language": "语言",
+            "database": ""
         },
         "language": {
             "device": "设备默认",
@@ -62,6 +63,24 @@
                 "enabled": "公司管理已启用。重启应用以查看公司选项卡。",
                 "disabled": "公司管理已禁用。"
             }
+        },
+        "database": {
+            "runMigrations": "",
+            "migrationsDescription": "",
+            "run": "",
+            "migrationsSuccess": "",
+            "migrationsComplete": "",
+            "migrationsError": "",
+            "migrationsFailed": "",
+            "resetDatabase": "",
+            "resetDescription": "",
+            "reset": "",
+            "resetTitle": "",
+            "resetWarning": "",
+            "resetSuccess": "",
+            "resetComplete": "",
+            "resetError": "",
+            "resetFailed": ""
         },
         "errors": {
             "biometricToggle": {
@@ -443,6 +462,10 @@
             "hint": "在所有联系人、公司、互动、事件和笔记中搜索",
             "noResults": "未找到结果",
             "tryDifferent": "尝试不同的搜索词"
+        },
+        "error": {
+            "title": "",
+            "message": ""
         },
         "noContact": "无联系信息",
         "noIndustry": "无行业",
