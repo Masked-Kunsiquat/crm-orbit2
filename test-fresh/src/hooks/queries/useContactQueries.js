@@ -12,11 +12,58 @@ export const contactKeys = {
   lists: () => [...contactKeys.all, 'list'],
   list: (filters) => [...contactKeys.lists(), filters],
   listsWithInfo: () => [...contactKeys.all, 'list-with-info'],
+  filteredWithInfo: (filters) => [...contactKeys.all, 'filtered-with-info', filters],
   details: () => [...contactKeys.all, 'detail'],
   detail: (id) => [...contactKeys.details(), id],
   favorites: () => [...contactKeys.all, 'favorites'],
   search: (query) => [...contactKeys.all, 'search', query],
 };
+
+/**
+ * Enrich contacts with contact_info (phone/email) and categories
+ * Shared helper to avoid N+1 queries and ensure consistent data shape
+ * @param {Array} contacts - Array of contact objects from database
+ * @returns {Promise<Array>} Enriched contacts with contact_info, phone, email, categories
+ */
+export async function enrichContactsWithInfo(contacts) {
+  if (!contacts.length) {
+    return [];
+  }
+
+  // Batch fetch related data to avoid N+1 queries
+  const ids = contacts.map(c => c.id);
+
+  // 1) All contact_info rows for these contacts
+  const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
+  const infoByContact = new Map();
+  for (const row of allInfoRows) {
+    const list = infoByContact.get(row.contact_id) || [];
+    list.push(row);
+    infoByContact.set(row.contact_id, list);
+  }
+
+  // 2) All categories for these contacts
+  const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
+  const catsByContact = new Map();
+  for (const row of allCatRows) {
+    const list = catsByContact.get(row.contact_id) || [];
+    const { contact_id, ...cat } = row;
+    list.push(cat);
+    catsByContact.set(row.contact_id, list);
+  }
+
+  // Merge and enrich contacts
+  return contacts.map(c => {
+    const contact_info = infoByContact.get(c.id) || [];
+    const phones = contact_info.filter(i => i.type === 'phone');
+    const emails = contact_info.filter(i => i.type === 'email');
+    const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
+    const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
+    const categories = catsByContact.get(c.id) || [];
+
+    return { ...c, contact_info, phone, email, categories };
+  });
+}
 
 /**
  * Fetch all contacts (basic data only)
@@ -40,47 +87,28 @@ export function useContactsWithInfo(options) {
     queryKey: contactKeys.listsWithInfo(),
     queryFn: async () => {
       const contacts = await contactsDB.getAll(options);
-
-      if (!contacts.length) {
-        return [];
-      }
-
-      // Batch fetch related data to avoid N+1 queries
-      const ids = contacts.map(c => c.id);
-
-      // 1) All contact_info rows for these contacts
-      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
-      const infoByContact = new Map();
-      for (const row of allInfoRows) {
-        const list = infoByContact.get(row.contact_id) || [];
-        list.push(row);
-        infoByContact.set(row.contact_id, list);
-      }
-
-      // 2) All categories for these contacts
-      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
-      const catsByContact = new Map();
-      for (const row of allCatRows) {
-        const list = catsByContact.get(row.contact_id) || [];
-        const { contact_id, ...cat } = row;
-        list.push(cat);
-        catsByContact.set(row.contact_id, list);
-      }
-
-      // Merge and enrich contacts
-      return contacts.map(c => {
-        const contact_info = infoByContact.get(c.id) || [];
-        const phones = contact_info.filter(i => i.type === 'phone');
-        const emails = contact_info.filter(i => i.type === 'email');
-        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
-        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
-        const categories = catsByContact.get(c.id) || [];
-
-        return { ...c, contact_info, phone, email, categories };
-      });
+      return enrichContactsWithInfo(contacts);
     },
     staleTime: 10 * 60 * 1000, // 10 minutes (contacts change infrequently)
     gcTime: 30 * 60 * 1000, // 30 minutes
+    ...options,
+  });
+}
+
+/**
+ * Fetch filtered contacts enriched with contact_info and categories
+ * Use this when applying advanced filters to ensure enriched data shape
+ */
+export function useFilteredContactsWithInfo(filters, options = {}) {
+  return useQuery({
+    queryKey: contactKeys.filteredWithInfo(filters),
+    queryFn: async () => {
+      const contacts = await contactsDB.getFiltered(filters);
+      return enrichContactsWithInfo(contacts);
+    },
+    enabled: !!filters, // Only run when filters are provided
+    staleTime: 5 * 60 * 1000, // 5 minutes (filtered results may change more frequently)
+    gcTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   });
 }
@@ -170,44 +198,7 @@ export function useInfiniteContactsWithInfo(queryOptions = {}) {
         ...queryOptions,
       });
 
-      if (!contacts.length) {
-        return { contacts: [], nextOffset: pageParam + PAGE_SIZE };
-      }
-
-      // Batch fetch related data to avoid N+1 queries
-      const ids = contacts.map(c => c.id);
-
-      // 1) All contact_info rows for these contacts
-      const allInfoRows = await contactsInfoDB.getAllInfoForContacts(ids);
-      const infoByContact = new Map();
-      for (const row of allInfoRows) {
-        const list = infoByContact.get(row.contact_id) || [];
-        list.push(row);
-        infoByContact.set(row.contact_id, list);
-      }
-
-      // 2) All categories for these contacts
-      const allCatRows = await categoriesRelationsDB.getCategoriesForContacts(ids);
-      const catsByContact = new Map();
-      for (const row of allCatRows) {
-        const list = catsByContact.get(row.contact_id) || [];
-        const { contact_id, ...cat } = row;
-        list.push(cat);
-        catsByContact.set(row.contact_id, list);
-      }
-
-      // Merge and enrich contacts
-      const enrichedContacts = contacts.map(c => {
-        const contact_info = infoByContact.get(c.id) || [];
-        const phones = contact_info.filter(i => i.type === 'phone');
-        const emails = contact_info.filter(i => i.type === 'email');
-        const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
-        const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
-        const categories = catsByContact.get(c.id) || [];
-
-        return { ...c, contact_info, phone, email, categories };
-      });
-
+      const enrichedContacts = await enrichContactsWithInfo(contacts);
       return { contacts: enrichedContacts, nextOffset: pageParam + PAGE_SIZE };
     },
     getNextPageParam: (lastPage, allPages) => {

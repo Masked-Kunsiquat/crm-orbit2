@@ -6,8 +6,10 @@
 // Contact queries
 export {
   contactKeys,
+  enrichContactsWithInfo,
   useContacts,
   useContactsWithInfo,
+  useFilteredContactsWithInfo,
   useContact,
   useFavoriteContacts,
   useContactSearch,

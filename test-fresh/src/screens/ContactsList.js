@@ -8,9 +8,9 @@ import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
 import FilterBottomSheet from '../components/FilterBottomSheet';
 import { EmptyState } from '../components/layout';
-import { categoriesDB, companiesDB, contactsDB } from '../database';
+import { categoriesDB, companiesDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
-import { useContactsWithInfo } from '../hooks/queries';
+import { useContactsWithInfo, useFilteredContactsWithInfo } from '../hooks/queries';
 import { useSavedSearches, useDeleteSavedSearch } from '../hooks/queries/useSavedSearchQueries';
 import { safeTrim } from '../utils/stringHelpers';
 import { normalizePhoneNumber as normalizePhone } from '../utils/contactHelpers';
@@ -25,12 +25,14 @@ export default function ContactsList({ navigation }) {
   const [companies, setCompanies] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [advancedFilters, setAdvancedFilters] = useState(null);
-  const [filteredContactsList, setFilteredContactsList] = useState([]);
   const [showSavedSearchesMenu, setShowSavedSearchesMenu] = useState(false);
   const { leftAction, rightAction } = useSettings();
 
   // Use TanStack Query for enriched contacts data (with contact_info and categories)
   const { data: contactsWithInfo = [], isLoading: loading, refetch, isFetching: refreshing } = useContactsWithInfo();
+
+  // Filtered contacts with enrichment (phone/email/categories)
+  const { data: filteredContactsList = [] } = useFilteredContactsWithInfo(advancedFilters);
 
   // Saved searches
   const { data: savedSearches = [] } = useSavedSearches('contacts');
@@ -40,14 +42,6 @@ export default function ContactsList({ navigation }) {
     loadCategories();
     loadCompanies();
   }, []);
-
-  useEffect(() => {
-    if (advancedFilters) {
-      loadFilteredContacts();
-    } else {
-      setFilteredContactsList([]);
-    }
-  }, [advancedFilters]);
 
   const loadCategories = async () => {
     try {
@@ -64,16 +58,6 @@ export default function ContactsList({ navigation }) {
       setCompanies(allCompanies);
     } catch (error) {
       logger.error('ContactsList', 'Error loading companies:', error);
-    }
-  };
-
-  const loadFilteredContacts = async () => {
-    try {
-      const results = await contactsDB.getFiltered(advancedFilters);
-      setFilteredContactsList(results);
-    } catch (error) {
-      logger.error('ContactsList', 'Error loading filtered contacts:', error);
-      showAlert.error(t('errors.generic'), 'Failed to apply filters');
     }
   };
 
