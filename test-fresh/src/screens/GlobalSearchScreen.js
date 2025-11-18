@@ -200,7 +200,7 @@ export default function GlobalSearchScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header>
+      <Appbar.Header elevated>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={t('globalSearch.title')} />
       </Appbar.Header>
