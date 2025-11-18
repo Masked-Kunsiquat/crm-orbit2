@@ -245,7 +245,7 @@ function ContactResult({ item, onPress }) {
         left={(props) => (
           <Avatar.Text
             {...props}
-            label={getInitials(item)}
+            label={getInitials(item.first_name, item.last_name)}
             size={40}
           />
         )}
