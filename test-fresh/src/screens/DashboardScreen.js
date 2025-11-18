@@ -54,6 +54,7 @@ export default function DashboardScreen({ navigation }) {
         {
           icon: 'magnify',
           onPress: () => navigation.navigate('GlobalSearch'),
+          accessibilityLabel: t('globalSearch.title'),
         },
         {
           icon: 'chart-bar',

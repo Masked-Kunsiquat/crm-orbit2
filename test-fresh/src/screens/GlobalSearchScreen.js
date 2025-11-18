@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { StyleSheet, SectionList, View, TouchableOpacity } from 'react-native';
 import {
   Appbar,
@@ -24,7 +24,7 @@ export default function GlobalSearchScreen({ navigation }) {
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   // Debounce search to avoid excessive queries
-  const debounceTimeout = React.useRef(null);
+  const debounceTimeout = useRef(null);
   const handleSearchChange = useCallback((query) => {
     setSearchQuery(query);
 
@@ -51,7 +51,7 @@ export default function GlobalSearchScreen({ navigation }) {
   const { data: results, isLoading, isFetching } = useGlobalSearch(debouncedQuery);
 
   // Transform results into SectionList format
-  const sections = React.useMemo(() => {
+  const sections = useMemo(() => {
     if (!results) return [];
 
     const sections = [];
@@ -107,8 +107,8 @@ export default function GlobalSearchScreen({ navigation }) {
         navigation.navigate('ContactDetail', { contactId: item.id });
         break;
       case 'company':
-        // Navigate to company detail or list with filter
-        navigation.navigate('Companies');
+        // Navigate to companies list with selected company ID
+        navigation.navigate('Companies', { companyId: item.id });
         break;
       case 'interaction':
         // Navigate to contact detail showing interaction
@@ -117,8 +117,8 @@ export default function GlobalSearchScreen({ navigation }) {
         }
         break;
       case 'event':
-        // Navigate to events list or event detail
-        navigation.navigate('Events');
+        // Navigate to events list with selected event ID
+        navigation.navigate('Events', { eventId: item.id });
         break;
       case 'note':
         // Navigate to related entity
@@ -201,7 +201,7 @@ export default function GlobalSearchScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={t('globalSearch.title')} />

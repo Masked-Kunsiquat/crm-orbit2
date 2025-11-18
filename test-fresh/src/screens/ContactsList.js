@@ -215,7 +215,11 @@ export default function ContactsList({ navigation }) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         <Appbar.Content title={t('navigation.contacts')} />
-        <Appbar.Action icon="magnify" onPress={() => navigation.navigate('GlobalSearch')} />
+        <Appbar.Action
+          icon="magnify"
+          onPress={() => navigation.navigate('GlobalSearch')}
+          accessibilityLabel={t('globalSearch.title')}
+        />
       </Appbar.Header>
 
       <Searchbar

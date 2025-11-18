@@ -44,7 +44,7 @@ export function createGlobalSearchDB({ execute }) {
         }
 
         const limit = options.limit || MAX_RESULTS_PER_ENTITY;
-        const searchTerm = `%${term}%`;
+        const searchTerm = `%${term.toLowerCase()}%`;
 
         // Execute all searches in parallel for performance
         const [contacts, companies, interactions, events, notes] = await Promise.all([
@@ -91,12 +91,12 @@ export function createGlobalSearchDB({ execute }) {
             GROUP_CONCAT(DISTINCT CASE WHEN ci.type = 'phone' AND ci.is_primary = 1 THEN ci.value END) AS primary_phone,
             GROUP_CONCAT(DISTINCT CASE WHEN ci.type = 'email' AND ci.is_primary = 1 THEN ci.value END) AS primary_email
           FROM contacts c
-          LEFT JOIN contact_info ci ON c.id = ci.contact_id
+          LEFT JOIN contact_info ci ON c.id = ci.contact_id AND ci.is_primary = 1
           WHERE
-            c.display_name LIKE ? OR
-            c.first_name LIKE ? OR
-            c.last_name LIKE ? OR
-            ci.value LIKE ?
+            LOWER(c.display_name) LIKE ? OR
+            LOWER(c.first_name) LIKE ? OR
+            LOWER(c.last_name) LIKE ? OR
+            EXISTS (SELECT 1 FROM contact_info ci2 WHERE ci2.contact_id = c.id AND LOWER(ci2.value) LIKE ?)
           GROUP BY c.id
           ORDER BY c.is_favorite DESC, c.display_name ASC
           LIMIT ?;
@@ -125,8 +125,8 @@ export function createGlobalSearchDB({ execute }) {
             created_at
           FROM companies
           WHERE
-            name LIKE ? OR
-            industry LIKE ?
+            LOWER(name) LIKE ? OR
+            LOWER(industry) LIKE ?
           ORDER BY name ASC
           LIMIT ?;
         `;
@@ -159,9 +159,9 @@ export function createGlobalSearchDB({ execute }) {
           FROM interactions i
           JOIN contacts c ON i.contact_id = c.id
           WHERE
-            i.title LIKE ? OR
-            i.note LIKE ? OR
-            c.display_name LIKE ?
+            LOWER(i.title) LIKE ? OR
+            LOWER(i.note) LIKE ? OR
+            LOWER(c.display_name) LIKE ?
           ORDER BY i.interaction_datetime DESC
           LIMIT ?;
         `;
@@ -195,10 +195,10 @@ export function createGlobalSearchDB({ execute }) {
           FROM events e
           LEFT JOIN contacts c ON e.contact_id = c.id
           WHERE
-            e.title LIKE ? OR
-            e.description LIKE ? OR
-            e.location LIKE ? OR
-            c.display_name LIKE ?
+            LOWER(e.title) LIKE ? OR
+            LOWER(e.description) LIKE ? OR
+            LOWER(e.location) LIKE ? OR
+            LOWER(c.display_name) LIKE ?
           ORDER BY e.event_date DESC, e.event_time DESC
           LIMIT ?;
         `;
@@ -229,13 +229,15 @@ export function createGlobalSearchDB({ execute }) {
               WHEN n.entity_type = 'contact' THEN c.display_name
               WHEN n.entity_type = 'interaction' THEN i.title
               WHEN n.entity_type = 'event' THEN e.title
+              WHEN n.entity_type = 'company' THEN co.name
               ELSE NULL
             END AS related_name
           FROM notes n
           LEFT JOIN contacts c ON n.entity_type = 'contact' AND n.entity_id = c.id
           LEFT JOIN interactions i ON n.entity_type = 'interaction' AND n.entity_id = i.id
           LEFT JOIN events e ON n.entity_type = 'event' AND n.entity_id = e.id
-          WHERE n.content LIKE ?
+          LEFT JOIN companies co ON n.entity_type = 'company' AND n.entity_id = co.id
+          WHERE LOWER(n.content) LIKE ?
           ORDER BY n.is_pinned DESC, n.created_at DESC
           LIMIT ?;
         `;
