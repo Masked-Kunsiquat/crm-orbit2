@@ -279,6 +279,103 @@ export function createContactsDB(ctx) {
       const updated = await this.getById(id);
       return updated;
     },
+
+    /**
+     * Get filtered contacts with advanced filtering options
+     * @param {Object} filters - Filter options
+     * @param {number[]} filters.categoryIds - Category IDs to filter by
+     * @param {string} filters.categoryLogic - 'AND' or 'OR' for category filtering
+     * @param {number} filters.companyId - Company ID to filter by
+     * @param {Object} filters.dateAddedRange - {start, end} date range (YYYY-MM-DD)
+     * @param {number} filters.interactionDays - Last N days with interactions
+     * @param {boolean} filters.hasUpcomingEvents - Filter contacts with upcoming events
+     * @param {number} filters.limit - Result limit
+     * @param {number} filters.offset - Result offset
+     * @returns {Promise<Object[]>} Filtered contacts
+     */
+    async getFiltered(filters = {}) {
+      const {
+        categoryIds = null,
+        categoryLogic = 'OR',
+        companyId = null,
+        dateAddedRange = null,
+        interactionDays = null,
+        hasUpcomingEvents = null,
+        limit = 100,
+        offset = 0,
+      } = filters;
+
+      const where = [];
+      const params = [];
+
+      // Company filter
+      if (companyId != null) {
+        where.push('c.company_id = ?');
+        params.push(companyId);
+      }
+
+      // Date added range filter
+      if (dateAddedRange?.start) {
+        where.push('DATE(c.created_at) >= ?');
+        params.push(dateAddedRange.start);
+      }
+      if (dateAddedRange?.end) {
+        where.push('DATE(c.created_at) <= ?');
+        params.push(dateAddedRange.end);
+      }
+
+      // Interaction activity filter (last N days)
+      if (interactionDays != null) {
+        where.push(`EXISTS (
+          SELECT 1 FROM interactions i
+          WHERE i.contact_id = c.id
+          AND DATE(i.interaction_datetime) >= DATE('now', '-${interactionDays} days')
+        )`);
+      }
+
+      // Has upcoming events filter
+      if (hasUpcomingEvents === true) {
+        where.push(`EXISTS (
+          SELECT 1 FROM events e
+          WHERE e.contact_id = c.id
+          AND DATE(e.event_date) >= DATE('now')
+        )`);
+      }
+
+      // Category filter with AND/OR logic
+      let fromClause = 'FROM contacts c';
+      if (categoryIds && categoryIds.length > 0) {
+        if (categoryLogic === 'AND') {
+          // Contact must have ALL selected categories
+          const categoryJoins = categoryIds.map((_, index) =>
+            `INNER JOIN contact_categories cc${index} ON cc${index}.contact_id = c.id AND cc${index}.category_id = ?`
+          ).join(' ');
+          fromClause = `FROM contacts c ${categoryJoins}`;
+          params.push(...categoryIds);
+        } else {
+          // Contact must have ANY of the selected categories
+          where.push(`EXISTS (
+            SELECT 1 FROM contact_categories cc
+            WHERE cc.contact_id = c.id
+            AND cc.category_id IN (${categoryIds.map(() => '?').join(',')})
+          )`);
+          params.push(...categoryIds);
+        }
+      }
+
+      const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+      const sql = `
+        SELECT DISTINCT c.*
+        ${fromClause}
+        ${whereClause}
+        ORDER BY c.last_name ASC, c.first_name ASC
+        LIMIT ? OFFSET ?
+      `;
+
+      params.push(limit, offset);
+      const res = await execute(sql, params);
+      return res.rows.map(convertNullableFields);
+    },
   };
 }
 

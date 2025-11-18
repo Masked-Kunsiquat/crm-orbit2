@@ -6,8 +6,9 @@ import { Appbar, FAB, Searchbar, Text, Chip, useTheme } from 'react-native-paper
 import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
+import FilterBottomSheet from '../components/FilterBottomSheet';
 import { EmptyState } from '../components/layout';
-import { categoriesDB } from '../database';
+import { categoriesDB, companiesDB, contactsDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
 import { useContactsWithInfo } from '../hooks/queries';
 import { safeTrim } from '../utils/stringHelpers';
@@ -18,8 +19,12 @@ export default function ContactsList({ navigation }) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [advancedFilters, setAdvancedFilters] = useState(null);
+  const [filteredContactsList, setFilteredContactsList] = useState([]);
   const { leftAction, rightAction } = useSettings();
 
   // Use TanStack Query for enriched contacts data (with contact_info and categories)
@@ -27,9 +32,16 @@ export default function ContactsList({ navigation }) {
 
   useEffect(() => {
     loadCategories();
+    loadCompanies();
   }, []);
 
-  // Mapping provided via SettingsContext; no local loader needed
+  useEffect(() => {
+    if (advancedFilters) {
+      loadFilteredContacts();
+    } else {
+      setFilteredContactsList([]);
+    }
+  }, [advancedFilters]);
 
   const loadCategories = async () => {
     try {
@@ -38,6 +50,30 @@ export default function ContactsList({ navigation }) {
     } catch (error) {
       logger.error('ContactsList', 'Error loading categories:', error);
     }
+  };
+
+  const loadCompanies = async () => {
+    try {
+      const allCompanies = await companiesDB.getAll();
+      setCompanies(allCompanies);
+    } catch (error) {
+      logger.error('ContactsList', 'Error loading companies:', error);
+    }
+  };
+
+  const loadFilteredContacts = async () => {
+    try {
+      const results = await contactsDB.getFiltered(advancedFilters);
+      setFilteredContactsList(results);
+    } catch (error) {
+      logger.error('ContactsList', 'Error loading filtered contacts:', error);
+      showAlert.error(t('errors.generic'), 'Failed to apply filters');
+    }
+  };
+
+  const handleApplyFilters = (filters) => {
+    setAdvancedFilters(filters);
+    setSelectedCategory(null); // Clear simple category filter
   };
 
   const handleRefresh = async () => {
@@ -113,20 +149,26 @@ export default function ContactsList({ navigation }) {
     // No need to manually refetch - TanStack Query mutations will invalidate the cache
   };
 
-  // Filter by category
-  const categoryFilteredContacts = React.useMemo(() => {
-    if (!selectedCategory) return contactsWithInfo;
-    // Filter by selected category
-    return contactsWithInfo.filter(contact =>
-      contact.categories?.some(cat => cat.id === selectedCategory.id)
-    );
-  }, [contactsWithInfo, selectedCategory]);
+  // Use advanced filters if present, otherwise fall back to category filter
+  const baseContactsList = React.useMemo(() => {
+    if (advancedFilters) {
+      // Use pre-filtered list from database query
+      return filteredContactsList;
+    }
+    if (selectedCategory) {
+      // Use simple category filter
+      return contactsWithInfo.filter(contact =>
+        contact.categories?.some(cat => cat.id === selectedCategory.id)
+      );
+    }
+    return contactsWithInfo;
+  }, [advancedFilters, filteredContactsList, contactsWithInfo, selectedCategory]);
 
   // Filter by search query
   const filteredContacts = React.useMemo(() => {
-    if (!searchQuery) return categoryFilteredContacts;
+    if (!searchQuery) return baseContactsList;
     const query = searchQuery.toLowerCase();
-    return categoryFilteredContacts.filter(contact => {
+    return baseContactsList.filter(contact => {
       const name = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
       const displayName = (contact.display_name || '').toLowerCase();
       const company = (contact.company_name || '').toLowerCase();
@@ -216,6 +258,11 @@ export default function ContactsList({ navigation }) {
       <Appbar.Header elevated>
         <Appbar.Content title={t('navigation.contacts')} />
         <Appbar.Action
+          icon="filter-variant"
+          onPress={() => setShowFilterSheet(true)}
+          accessibilityLabel={t('filters.title')}
+        />
+        <Appbar.Action
           icon="magnify"
           onPress={() => navigation.navigate('GlobalSearch')}
           accessibilityLabel={t('globalSearch.title')}
@@ -290,6 +337,15 @@ export default function ContactsList({ navigation }) {
         visible={showAddModal}
         onDismiss={() => setShowAddModal(false)}
         onContactAdded={handleContactAdded}
+      />
+
+      <FilterBottomSheet
+        visible={showFilterSheet}
+        onDismiss={() => setShowFilterSheet(false)}
+        onApply={handleApplyFilters}
+        categories={categories}
+        companies={companies}
+        initialFilters={advancedFilters}
       />
     </View>
   );

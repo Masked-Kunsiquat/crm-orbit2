@@ -446,5 +446,25 @@
         "noIndustry": "无行业",
         "untitled": "无标题",
         "note": "笔记"
+    },
+    "filters": {
+        "title": "",
+        "categories": "",
+        "categoryLogic": "",
+        "or": "",
+        "and": "",
+        "company": "",
+        "dateAdded": "",
+        "startDate": "",
+        "endDate": "",
+        "to": "",
+        "clearDateRange": "",
+        "interactionActivity": "",
+        "last7Days": "",
+        "last30Days": "",
+        "last90Days": "",
+        "hasUpcomingEvents": "",
+        "clear": "",
+        "apply": ""
     }
 }
