@@ -175,7 +175,7 @@ export function createGlobalSearchDB({ execute }) {
     },
 
     /**
-     * Search events by title, description, location, or contact name
+     * Search events by title, notes, or contact name
      * @private
      */
     async searchEvents(searchTerm, limit) {
@@ -185,25 +185,22 @@ export function createGlobalSearchDB({ execute }) {
             e.id,
             e.contact_id,
             e.title,
-            e.description,
+            e.notes,
             e.event_date,
-            e.event_time,
-            e.location,
-            e.all_day,
+            e.event_type,
             c.display_name AS contact_name,
-            c.avatar_attachment_id AS contact_avatar
+            c.avatar_uri AS contact_avatar
           FROM events e
           LEFT JOIN contacts c ON e.contact_id = c.id
           WHERE
             LOWER(e.title) LIKE ? OR
-            LOWER(e.description) LIKE ? OR
-            LOWER(e.location) LIKE ? OR
+            LOWER(e.notes) LIKE ? OR
             LOWER(c.display_name) LIKE ?
-          ORDER BY e.event_date DESC, e.event_time DESC
+          ORDER BY e.event_date DESC
           LIMIT ?;
         `;
 
-        const res = await execute(sql, [searchTerm, searchTerm, searchTerm, searchTerm, limit]);
+        const res = await execute(sql, [searchTerm, searchTerm, searchTerm, limit]);
         return res.rows || [];
       } catch (error) {
         logger.error('GlobalSearchDB', 'searchEvents', error, { searchTerm });
@@ -212,7 +209,7 @@ export function createGlobalSearchDB({ execute }) {
     },
 
     /**
-     * Search notes by content
+     * Search notes by title and content
      * @private
      */
     async searchNotes(searchTerm, limit) {
@@ -220,29 +217,23 @@ export function createGlobalSearchDB({ execute }) {
         const sql = `
           SELECT
             n.id,
-            n.entity_type,
-            n.entity_id,
+            n.contact_id,
+            n.title,
             n.content,
             n.is_pinned,
             n.created_at,
-            CASE
-              WHEN n.entity_type = 'contact' THEN c.display_name
-              WHEN n.entity_type = 'interaction' THEN i.title
-              WHEN n.entity_type = 'event' THEN e.title
-              WHEN n.entity_type = 'company' THEN co.name
-              ELSE NULL
-            END AS related_name
+            c.display_name AS related_name,
+            c.avatar_uri AS contact_avatar
           FROM notes n
-          LEFT JOIN contacts c ON n.entity_type = 'contact' AND n.entity_id = c.id
-          LEFT JOIN interactions i ON n.entity_type = 'interaction' AND n.entity_id = i.id
-          LEFT JOIN events e ON n.entity_type = 'event' AND n.entity_id = e.id
-          LEFT JOIN companies co ON n.entity_type = 'company' AND n.entity_id = co.id
-          WHERE LOWER(n.content) LIKE ?
+          LEFT JOIN contacts c ON n.contact_id = c.id
+          WHERE
+            LOWER(n.title) LIKE ? OR
+            LOWER(n.content) LIKE ?
           ORDER BY n.is_pinned DESC, n.created_at DESC
           LIMIT ?;
         `;
 
-        const res = await execute(sql, [searchTerm, limit]);
+        const res = await execute(sql, [searchTerm, searchTerm, limit]);
         return res.rows || [];
       } catch (error) {
         logger.error('GlobalSearchDB', 'searchNotes', error, { searchTerm });

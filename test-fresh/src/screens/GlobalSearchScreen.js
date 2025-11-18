@@ -121,9 +121,9 @@ export default function GlobalSearchScreen({ navigation }) {
         navigation.navigate('Events', { eventId: item.id });
         break;
       case 'note':
-        // Navigate to related entity
-        if (item.entity_type === 'contact' && item.entity_id) {
-          navigation.navigate('ContactDetail', { contactId: item.entity_id });
+        // Navigate to related contact
+        if (item.contact_id) {
+          navigation.navigate('ContactDetail', { contactId: item.contact_id });
         }
         break;
       default:
@@ -309,7 +309,7 @@ function EventResult({ item, onPress }) {
     <TouchableOpacity onPress={onPress}>
       <Card.Title
         title={item.title}
-        subtitle={`${formatDateSmart(item.event_date)}${item.location ? ' • ' + item.location : ''}`}
+        subtitle={formatDateSmart(item.event_date)}
         description={item.contact_name || null}
         left={(props) => (
           <Avatar.Icon {...props} icon="calendar" size={40} />
@@ -331,10 +331,13 @@ function NoteResult({ item, onPress }) {
     ? content.substring(0, 100) + '...'
     : content;
 
+  // Use title if available, otherwise truncated content
+  const displayTitle = item.title || truncatedContent || t('globalSearch.note');
+
   return (
     <TouchableOpacity onPress={onPress}>
       <Card.Title
-        title={truncatedContent || t('globalSearch.note')}
+        title={displayTitle}
         subtitle={item.related_name || t('globalSearch.note')}
         left={(props) => (
           <Avatar.Icon
