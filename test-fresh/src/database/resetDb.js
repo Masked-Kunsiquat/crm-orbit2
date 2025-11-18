@@ -14,21 +14,31 @@ import * as SQLite from 'expo-sqlite';
  */
 export async function resetDatabase(db, dbName = 'crm_orbit.db') {
   try {
-    console.log('Resetting database...');
+    console.log('[resetDatabase] Starting reset...');
 
     // Close the provided database connection
     if (db && typeof db.closeAsync === 'function') {
+      console.log('[resetDatabase] Closing database connection...');
       await db.closeAsync();
-      console.log('Database connection closed.');
+      console.log('[resetDatabase] Database connection closed.');
+    } else {
+      console.warn('[resetDatabase] No valid database instance provided or closeAsync not available');
     }
 
     // Delete the database using SQLite's deleteDatabaseAsync
+    console.log(`[resetDatabase] Deleting database file: ${dbName}`);
     await SQLite.deleteDatabaseAsync(dbName);
+    console.log('[resetDatabase] Database file deleted successfully.');
 
-    console.log('Database reset complete. Restart the app to recreate.');
+    console.log('[resetDatabase] Reset complete. IMPORTANT: You MUST restart the app manually for changes to take effect!');
     return true;
   } catch (error) {
-    console.error('Error resetting database:', error);
+    console.error('[resetDatabase] Error during reset:', error);
+    console.error('[resetDatabase] Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     throw error;
   }
 }

@@ -109,8 +109,8 @@
             "reset": "Reset",
             "resetTitle": "Reset Database?",
             "resetWarning": "This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?",
-            "resetSuccess": "Success",
-            "resetComplete": "Database reset successfully. Please restart the app.",
+            "resetSuccess": "Database Deleted",
+            "resetComplete": "Database file deleted. IMPORTANT: Swipe up to fully close this app, then reopen it to recreate the database with migrations.",
             "resetError": "Reset Error",
             "resetFailed": "Failed to reset database"
         },
