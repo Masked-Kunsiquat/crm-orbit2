@@ -9,7 +9,7 @@ import {
   getContactDisplayName,
   getInitials,
   normalizePhoneNumber,
-  formatPhoneNumber
+  formatPhoneNumber,
 } from '../contactHelpers';
 
 describe('contactHelpers', () => {
@@ -37,7 +37,7 @@ describe('contactHelpers', () => {
       const contact = {
         first_name: 'John',
         middle_name: 'Michael',
-        last_name: 'Doe'
+        last_name: 'Doe',
       };
       expect(getContactDisplayName(contact)).toBe('John Michael Doe');
     });
@@ -61,7 +61,7 @@ describe('contactHelpers', () => {
       const contact = {
         first_name: 'John',
         middle_name: '',
-        last_name: 'Doe'
+        last_name: 'Doe',
       };
       expect(getContactDisplayName(contact)).toBe('John Doe');
     });
@@ -70,14 +70,16 @@ describe('contactHelpers', () => {
       const contact = {
         first_name: 'John',
         middle_name: '   ',
-        last_name: 'Doe'
+        last_name: 'Doe',
       };
       expect(getContactDisplayName(contact)).toBe('John Doe');
     });
 
     it('should use default fallback for empty contact', () => {
       expect(getContactDisplayName({})).toBe('Unknown Contact');
-      expect(getContactDisplayName({ first_name: '', last_name: '' })).toBe('Unknown Contact');
+      expect(getContactDisplayName({ first_name: '', last_name: '' })).toBe(
+        'Unknown Contact'
+      );
     });
 
     it('should use custom fallback', () => {
@@ -94,7 +96,7 @@ describe('contactHelpers', () => {
       const contact = {
         display_name: 'Johnny',
         first_name: 'John',
-        last_name: 'Doe'
+        last_name: 'Doe',
       };
       expect(getContactDisplayName(contact)).toBe('Johnny');
     });
@@ -102,7 +104,7 @@ describe('contactHelpers', () => {
     it('should handle Unicode characters in names', () => {
       const contact = {
         first_name: 'José',
-        last_name: 'García'
+        last_name: 'García',
       };
       expect(getContactDisplayName(contact)).toBe('José García');
     });
@@ -111,7 +113,7 @@ describe('contactHelpers', () => {
       const contact = {
         first_name: 'François',
         middle_name: 'René',
-        last_name: 'Müller'
+        last_name: 'Müller',
       };
       expect(getContactDisplayName(contact)).toBe('François René Müller');
     });
@@ -119,7 +121,7 @@ describe('contactHelpers', () => {
     it('should handle Chinese characters', () => {
       const contact = {
         first_name: '李',
-        last_name: '明'
+        last_name: '明',
       };
       expect(getContactDisplayName(contact)).toBe('李 明');
     });
@@ -133,7 +135,7 @@ describe('contactHelpers', () => {
       const contact = {
         display_name: '',
         first_name: 'John',
-        last_name: 'Doe'
+        last_name: 'Doe',
       };
       expect(getContactDisplayName(contact)).toBe('John Doe');
     });
@@ -142,7 +144,7 @@ describe('contactHelpers', () => {
       const contact = {
         display_name: '   ',
         first_name: 'John',
-        last_name: 'Doe'
+        last_name: 'Doe',
       };
       expect(getContactDisplayName(contact)).toBe('John Doe');
     });
@@ -278,7 +280,9 @@ describe('contactHelpers', () => {
     });
 
     it('should remove all non-digit characters', () => {
-      expect(normalizePhoneNumber('(555) 123-4567 ext. 123')).toBe('5551234567123');
+      expect(normalizePhoneNumber('(555) 123-4567 ext. 123')).toBe(
+        '5551234567123'
+      );
       expect(normalizePhoneNumber('555-123-4567 x123')).toBe('5551234567123');
       expect(normalizePhoneNumber('Phone: 555-123-4567')).toBe('5551234567');
     });
@@ -372,7 +376,9 @@ describe('contactHelpers', () => {
 
     it('should handle numbers with extensions (preserves original format)', () => {
       // Extensions are not normalized, so they remain in original format
-      expect(formatPhoneNumber('(555) 123-4567 ext. 123')).toBe('(555) 123-4567 ext. 123');
+      expect(formatPhoneNumber('(555) 123-4567 ext. 123')).toBe(
+        '(555) 123-4567 ext. 123'
+      );
     });
 
     it('should handle zero as input', () => {

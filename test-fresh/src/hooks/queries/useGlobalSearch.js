@@ -9,7 +9,7 @@ import { logger } from '../../errors/utils/errorLogger';
  */
 export const globalSearchKeys = {
   all: ['globalSearch'],
-  search: (query) => [...globalSearchKeys.all, 'search', query],
+  search: query => [...globalSearchKeys.all, 'search', query],
 };
 
 /**

@@ -38,7 +38,8 @@ export default function AuthLockScreen() {
     // Note: No need to set mode to 'biometric' on success - already in that mode
   }, [authenticate]);
 
-  const { execute: onBiometric, loading: biometricBusy } = useAsyncLoading(handleBiometric);
+  const { execute: onBiometric, loading: biometricBusy } =
+    useAsyncLoading(handleBiometric);
 
   // Memoize PIN handler to prevent unnecessary recreations
   const handleSubmitPin = useCallback(async () => {
@@ -50,7 +51,8 @@ export default function AuthLockScreen() {
     }
   }, [canSubmit, authenticateWithPIN, pin]);
 
-  const { execute: onSubmitPin, loading: pinBusy } = useAsyncLoading(handleSubmitPin);
+  const { execute: onSubmitPin, loading: pinBusy } =
+    useAsyncLoading(handleSubmitPin);
 
   const busy = biometricBusy || pinBusy;
 
@@ -68,10 +70,16 @@ export default function AuthLockScreen() {
         <Card.Content>
           {mode === 'biometric' && biometricAvailable ? (
             <View>
-              <Text style={{ marginBottom: 12 }}>Waiting for biometric authentication…</Text>
+              <Text style={{ marginBottom: 12 }}>
+                Waiting for biometric authentication…
+              </Text>
               {!!error && <HelperText type="error">{error}</HelperText>}
               <View style={styles.actions}>
-                <Button mode="outlined" onPress={() => setMode('pin')} disabled={busy}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setMode('pin')}
+                  disabled={busy}
+                >
                   Use PIN instead
                 </Button>
               </View>
@@ -88,11 +96,20 @@ export default function AuthLockScreen() {
               />
               {!!error && <HelperText type="error">{error}</HelperText>}
               <View style={styles.actions}>
-                <Button mode="contained" onPress={onSubmitPin} disabled={!canSubmit || busy}>
+                <Button
+                  mode="contained"
+                  onPress={onSubmitPin}
+                  disabled={!canSubmit || busy}
+                >
                   Unlock
                 </Button>
                 {biometricAvailable && (
-                  <Button style={styles.bioBtn} mode="text" onPress={() => setMode('biometric')} disabled={busy}>
+                  <Button
+                    style={styles.bioBtn}
+                    mode="text"
+                    onPress={() => setMode('biometric')}
+                    disabled={busy}
+                  >
                     Use Biometrics
                   </Button>
                 )}
@@ -108,6 +125,11 @@ export default function AuthLockScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 16 },
   card: { paddingBottom: 8 },
-  actions: { marginTop: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  actions: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   bioBtn: { marginLeft: 8 },
 });

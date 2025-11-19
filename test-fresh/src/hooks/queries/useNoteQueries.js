@@ -15,8 +15,8 @@ const NOTE_GC_MS = 15 * 60 * 1000; // 15 minutes
 export const noteKeys = {
   all: ['notes'],
   lists: () => [...noteKeys.all, 'list'],
-  detail: (id) => [...noteKeys.all, 'detail', id],
-  byContact: (contactId) => [...noteKeys.all, 'contact', contactId],
+  detail: id => [...noteKeys.all, 'detail', id],
+  byContact: contactId => [...noteKeys.all, 'contact', contactId],
   pinned: () => [...noteKeys.all, 'pinned'],
 };
 
@@ -81,12 +81,10 @@ export function useCreateNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (noteData) => notesDB.create(noteData),
-    ...createMutationHandlers(
-      queryClient,
-      noteKeys.all,
-      { context: 'useCreateNote' }
-    ),
+    mutationFn: noteData => notesDB.create(noteData),
+    ...createMutationHandlers(queryClient, noteKeys.all, {
+      context: 'useCreateNote',
+    }),
   });
 }
 
@@ -106,7 +104,7 @@ export function useUpdateNote() {
         onSuccess: (_, { id }) => {
           // Additional invalidation for specific note detail
           invalidateQueries(queryClient, noteKeys.detail(id));
-        }
+        },
       }
     ),
   });
@@ -119,12 +117,10 @@ export function useDeleteNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => notesDB.delete(id),
-    ...createMutationHandlers(
-      queryClient,
-      noteKeys.all,
-      { context: 'useDeleteNote' }
-    ),
+    mutationFn: id => notesDB.delete(id),
+    ...createMutationHandlers(queryClient, noteKeys.all, {
+      context: 'useDeleteNote',
+    }),
   });
 }
 
@@ -135,10 +131,10 @@ export function useTogglePinned() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => notesDB.togglePinned(id),
+    mutationFn: id => notesDB.togglePinned(id),
 
     // Optimistic update
-    onMutate: async (id) => {
+    onMutate: async id => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: noteKeys.detail(id) });
 

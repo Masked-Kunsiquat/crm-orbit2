@@ -34,58 +34,82 @@ describe('sqlHelpers', () => {
 
     describe('invalid inputs', () => {
       it('should throw on zero', () => {
-        expect(() => placeholders(0)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(0)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on negative number', () => {
-        expect(() => placeholders(-1)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(-1)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on large negative number', () => {
-        expect(() => placeholders(-100)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(-100)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on float', () => {
-        expect(() => placeholders(3.5)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(3.5)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on string', () => {
-        expect(() => placeholders('3')).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders('3')).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on null', () => {
-        expect(() => placeholders(null)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(null)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on undefined', () => {
-        expect(() => placeholders(undefined)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(undefined)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on object', () => {
-        expect(() => placeholders({})).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders({})).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on array', () => {
-        expect(() => placeholders([])).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders([])).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on NaN', () => {
-        expect(() => placeholders(NaN)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(NaN)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on Infinity', () => {
-        expect(() => placeholders(Infinity)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(Infinity)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
 
       it('should throw on -Infinity', () => {
-        expect(() => placeholders(-Infinity)).toThrow('placeholders() requires a positive integer');
+        expect(() => placeholders(-Infinity)).toThrow(
+          'placeholders() requires a positive integer'
+        );
       });
     });
 
     describe('SQL injection safety', () => {
       it('should not be affected by malicious count values', () => {
         // Since we validate the input, these should all throw
-        expect(() => placeholders("1; DROP TABLE users--")).toThrow();
+        expect(() => placeholders('1; DROP TABLE users--')).toThrow();
         expect(() => placeholders("' OR '1'='1")).toThrow();
       });
 
@@ -221,7 +245,10 @@ describe('sqlHelpers', () => {
       it('should handle object values', () => {
         const obj = { meta: { created: '2024-01-01' }, settings: {} };
         const result = pick(obj, ['meta', 'settings']);
-        expect(result).toEqual({ meta: { created: '2024-01-01' }, settings: {} });
+        expect(result).toEqual({
+          meta: { created: '2024-01-01' },
+          settings: {},
+        });
       });
 
       it('should handle Date values', () => {
@@ -253,19 +280,23 @@ describe('sqlHelpers', () => {
 
     describe('edge cases', () => {
       it('should handle special characters in field names', () => {
-        const obj = { 'field-name': 'value1', 'field_name': 'value2', 'field.name': 'value3' };
+        const obj = {
+          'field-name': 'value1',
+          field_name: 'value2',
+          'field.name': 'value3',
+        };
         const result = pick(obj, ['field-name', 'field_name', 'field.name']);
         expect(result).toEqual({
           'field-name': 'value1',
-          'field_name': 'value2',
-          'field.name': 'value3'
+          field_name: 'value2',
+          'field.name': 'value3',
         });
       });
 
       it('should handle numeric field names', () => {
-        const obj = { '0': 'zero', '1': 'one', '2': 'two' };
+        const obj = { 0: 'zero', 1: 'one', 2: 'two' };
         const result = pick(obj, ['0', '1']);
-        expect(result).toEqual({ '0': 'zero', '1': 'one' });
+        expect(result).toEqual({ 0: 'zero', 1: 'one' });
       });
 
       it('should create new object (not mutate original)', () => {
@@ -291,7 +322,7 @@ describe('sqlHelpers', () => {
           email: 'john@example.com',
           password: 'secret123',
           malicious_field: 'DROP TABLE users',
-          created_at: '2024-01-01'
+          created_at: '2024-01-01',
         };
         const allowedFields = ['first_name', 'last_name', 'email', 'password'];
         const result = pick(userData, allowedFields);
@@ -300,7 +331,7 @@ describe('sqlHelpers', () => {
           first_name: 'John',
           last_name: 'Doe',
           email: 'john@example.com',
-          password: 'secret123'
+          password: 'secret123',
         });
         expect(result).not.toHaveProperty('malicious_field');
         expect(result).not.toHaveProperty('created_at');
@@ -311,7 +342,7 @@ describe('sqlHelpers', () => {
           name: 'John Updated',
           age: 31,
           id: 123, // Should not be updatable
-          created_at: '2024-01-01' // Should not be updatable
+          created_at: '2024-01-01', // Should not be updatable
         };
         const allowedFields = ['name', 'age'];
         const result = pick(updateData, allowedFields);
@@ -333,7 +364,7 @@ describe('sqlHelpers', () => {
         const result = buildUpdateSet(data);
         expect(result).toEqual({
           setClause: 'name = ?',
-          values: ['John']
+          values: ['John'],
         });
       });
 
@@ -350,18 +381,26 @@ describe('sqlHelpers', () => {
           last_name: 'Doe',
           email: 'john@example.com',
           age: 30,
-          active: true
+          active: true,
         };
         const result = buildUpdateSet(data);
-        expect(result.setClause).toBe('first_name = ?, last_name = ?, email = ?, age = ?, active = ?');
-        expect(result.values).toEqual(['John', 'Doe', 'john@example.com', 30, true]);
+        expect(result.setClause).toBe(
+          'first_name = ?, last_name = ?, email = ?, age = ?, active = ?'
+        );
+        expect(result.values).toEqual([
+          'John',
+          'Doe',
+          'john@example.com',
+          30,
+          true,
+        ]);
       });
 
       it('should handle empty data object', () => {
         const result = buildUpdateSet({});
         expect(result).toEqual({
           setClause: '',
-          values: []
+          values: [],
         });
       });
     });
@@ -447,19 +486,22 @@ describe('sqlHelpers', () => {
       it('should safely handle SQL-like values', () => {
         const data = {
           name: "'; DROP TABLE users--",
-          email: "admin' OR '1'='1"
+          email: "admin' OR '1'='1",
         };
         const result = buildUpdateSet(data);
 
         // Values are parameterized, so they're safe
         expect(result.setClause).toBe('name = ?, email = ?');
-        expect(result.values).toEqual(["'; DROP TABLE users--", "admin' OR '1'='1"]);
+        expect(result.values).toEqual([
+          "'; DROP TABLE users--",
+          "admin' OR '1'='1",
+        ]);
       });
     });
 
     describe('edge cases', () => {
       it('should handle special characters in field names', () => {
-        const data = { 'field-name': 'value1', 'field_name': 'value2' };
+        const data = { 'field-name': 'value1', field_name: 'value2' };
         const result = buildUpdateSet(data);
         expect(result.setClause).toContain('field-name = ?');
         expect(result.setClause).toContain('field_name = ?');
@@ -489,7 +531,9 @@ describe('sqlHelpers', () => {
         const updateSQL = `UPDATE users SET ${setClause} WHERE id = ?`;
         const allValues = [...values, 123];
 
-        expect(updateSQL).toBe('UPDATE users SET name = ?, age = ? WHERE id = ?');
+        expect(updateSQL).toBe(
+          'UPDATE users SET name = ?, age = ? WHERE id = ?'
+        );
         expect(allValues).toEqual(['John', 30, 123]);
       });
 
@@ -498,12 +542,19 @@ describe('sqlHelpers', () => {
           first_name: 'Jane',
           last_name: 'Smith',
           email: 'jane@example.com',
-          updated_at: '2024-01-01'
+          updated_at: '2024-01-01',
         };
         const { setClause, values } = buildUpdateSet(userData);
 
-        expect(setClause).toBe('first_name = ?, last_name = ?, email = ?, updated_at = ?');
-        expect(values).toEqual(['Jane', 'Smith', 'jane@example.com', '2024-01-01']);
+        expect(setClause).toBe(
+          'first_name = ?, last_name = ?, email = ?, updated_at = ?'
+        );
+        expect(values).toEqual([
+          'Jane',
+          'Smith',
+          'jane@example.com',
+          '2024-01-01',
+        ]);
       });
     });
   });
@@ -517,7 +568,7 @@ describe('sqlHelpers', () => {
         const result = buildInsert('users', { name: 'John' });
         expect(result).toEqual({
           sql: 'INSERT INTO users (name) VALUES (?)',
-          values: ['John']
+          values: ['John'],
         });
       });
 
@@ -533,18 +584,26 @@ describe('sqlHelpers', () => {
           last_name: 'Doe',
           email: 'john@example.com',
           age: 30,
-          active: true
+          active: true,
         };
         const result = buildInsert('contacts', data);
 
         expect(result.sql).toBe(
           'INSERT INTO contacts (first_name, last_name, email, age, active) VALUES (?, ?, ?, ?, ?)'
         );
-        expect(result.values).toEqual(['John', 'Doe', 'john@example.com', 30, true]);
+        expect(result.values).toEqual([
+          'John',
+          'Doe',
+          'john@example.com',
+          30,
+          true,
+        ]);
       });
 
       it('should throw on empty data object', () => {
-        expect(() => buildInsert('users', {})).toThrow('Cannot build INSERT with empty data object');
+        expect(() => buildInsert('users', {})).toThrow(
+          'Cannot build INSERT with empty data object'
+        );
       });
     });
 
@@ -560,8 +619,12 @@ describe('sqlHelpers', () => {
       });
 
       it('should handle long table names', () => {
-        const result = buildInsert('very_long_table_name_for_testing', { name: 'John' });
-        expect(result.sql).toContain('INSERT INTO very_long_table_name_for_testing');
+        const result = buildInsert('very_long_table_name_for_testing', {
+          name: 'John',
+        });
+        expect(result.sql).toContain(
+          'INSERT INTO very_long_table_name_for_testing'
+        );
       });
     });
 
@@ -608,7 +671,7 @@ describe('sqlHelpers', () => {
           active: true,
           email: null,
           score: 0,
-          notes: ''
+          notes: '',
         };
         const result = buildInsert('users', data);
         expect(result.values).toEqual(['John', 30, true, null, 0, '']);
@@ -653,20 +716,27 @@ describe('sqlHelpers', () => {
       it('should safely handle SQL-like table names', () => {
         // Note: In production, table names should be validated/whitelisted
         // This test shows the function doesn't sanitize table names
-        const result = buildInsert('users; DROP TABLE test--', { name: 'John' });
+        const result = buildInsert('users; DROP TABLE test--', {
+          name: 'John',
+        });
         expect(result.sql).toContain('users; DROP TABLE test--');
       });
 
       it('should safely handle SQL-like values via parameterization', () => {
         const data = {
           name: "'; DROP TABLE users--",
-          email: "admin' OR '1'='1"
+          email: "admin' OR '1'='1",
         };
         const result = buildInsert('users', data);
 
         // Values are parameterized, so they're safe
-        expect(result.sql).toBe('INSERT INTO users (name, email) VALUES (?, ?)');
-        expect(result.values).toEqual(["'; DROP TABLE users--", "admin' OR '1'='1"]);
+        expect(result.sql).toBe(
+          'INSERT INTO users (name, email) VALUES (?, ?)'
+        );
+        expect(result.values).toEqual([
+          "'; DROP TABLE users--",
+          "admin' OR '1'='1",
+        ]);
       });
 
       it('should not execute malicious column names', () => {
@@ -681,7 +751,7 @@ describe('sqlHelpers', () => {
 
     describe('edge cases', () => {
       it('should handle special characters in column names', () => {
-        const data = { 'field-name': 'value1', 'field_name': 'value2' };
+        const data = { 'field-name': 'value1', field_name: 'value2' };
         const result = buildInsert('test', data);
         expect(result.sql).toContain('field-name');
         expect(result.sql).toContain('field_name');
@@ -703,7 +773,7 @@ describe('sqlHelpers', () => {
       });
 
       it('should handle numeric column names', () => {
-        const data = { '0': 'zero', '1': 'one' };
+        const data = { 0: 'zero', 1: 'one' };
         const result = buildInsert('test', data);
         expect(result.sql).toBe('INSERT INTO test (0, 1) VALUES (?, ?)');
         expect(result.values).toEqual(['zero', 'one']);
@@ -719,7 +789,7 @@ describe('sqlHelpers', () => {
           phone: '555-1234',
           company_id: 1,
           created_at: '2024-01-01',
-          updated_at: '2024-01-01'
+          updated_at: '2024-01-01',
         };
         const result = buildInsert('contacts', contactData);
 
@@ -734,14 +804,16 @@ describe('sqlHelpers', () => {
           last_name: 'Doe',
           email: 'john@example.com',
           malicious_field: 'DROP TABLE users',
-          id: 123 // Should not be inserted
+          id: 123, // Should not be inserted
         };
 
         const allowedFields = ['first_name', 'last_name', 'email'];
         const filtered = pick(userData, allowedFields);
         const result = buildInsert('users', filtered);
 
-        expect(result.sql).toBe('INSERT INTO users (first_name, last_name, email) VALUES (?, ?, ?)');
+        expect(result.sql).toBe(
+          'INSERT INTO users (first_name, last_name, email) VALUES (?, ?, ?)'
+        );
         expect(result.values).toEqual(['John', 'Doe', 'john@example.com']);
         expect(result.sql).not.toContain('malicious_field');
         expect(result.sql).not.toContain('id');
@@ -750,7 +822,9 @@ describe('sqlHelpers', () => {
 
     describe('error handling', () => {
       it('should throw descriptive error for empty data', () => {
-        expect(() => buildInsert('users', {})).toThrow('Cannot build INSERT with empty data object');
+        expect(() => buildInsert('users', {})).toThrow(
+          'Cannot build INSERT with empty data object'
+        );
       });
 
       it('should not throw for single field', () => {

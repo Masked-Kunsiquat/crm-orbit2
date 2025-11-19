@@ -57,7 +57,11 @@ export function createGlobalSearchDB({ execute }) {
 
         logger.success('GlobalSearchDB', 'search', {
           query: term,
-          totalResults: contacts.length + companies.length + interactions.length + events.length,
+          totalResults:
+            contacts.length +
+            companies.length +
+            interactions.length +
+            events.length,
         });
 
         return {
@@ -69,7 +73,11 @@ export function createGlobalSearchDB({ execute }) {
         };
       } catch (error) {
         logger.error('GlobalSearchDB', 'search', error, { query });
-        throw new DatabaseError('Failed to perform global search', 'QUERY_ERROR', error);
+        throw new DatabaseError(
+          'Failed to perform global search',
+          'QUERY_ERROR',
+          error
+        );
       }
     },
 
@@ -102,7 +110,13 @@ export function createGlobalSearchDB({ execute }) {
           LIMIT ?;
         `;
 
-        const res = await execute(sql, [searchTerm, searchTerm, searchTerm, searchTerm, limit]);
+        const res = await execute(sql, [
+          searchTerm,
+          searchTerm,
+          searchTerm,
+          searchTerm,
+          limit,
+        ]);
         return res.rows || [];
       } catch (error) {
         logger.error('GlobalSearchDB', 'searchContacts', error, { searchTerm });
@@ -133,7 +147,9 @@ export function createGlobalSearchDB({ execute }) {
         const res = await execute(sql, [searchTerm, searchTerm, limit]);
         return res.rows || [];
       } catch (error) {
-        logger.error('GlobalSearchDB', 'searchCompanies', error, { searchTerm });
+        logger.error('GlobalSearchDB', 'searchCompanies', error, {
+          searchTerm,
+        });
         return [];
       }
     },
@@ -165,10 +181,17 @@ export function createGlobalSearchDB({ execute }) {
           LIMIT ?;
         `;
 
-        const res = await execute(sql, [searchTerm, searchTerm, searchTerm, limit]);
+        const res = await execute(sql, [
+          searchTerm,
+          searchTerm,
+          searchTerm,
+          limit,
+        ]);
         return res.rows || [];
       } catch (error) {
-        logger.error('GlobalSearchDB', 'searchInteractions', error, { searchTerm });
+        logger.error('GlobalSearchDB', 'searchInteractions', error, {
+          searchTerm,
+        });
         return [];
       }
     },
@@ -199,14 +222,18 @@ export function createGlobalSearchDB({ execute }) {
           LIMIT ?;
         `;
 
-        const res = await execute(sql, [searchTerm, searchTerm, searchTerm, limit]);
+        const res = await execute(sql, [
+          searchTerm,
+          searchTerm,
+          searchTerm,
+          limit,
+        ]);
         return res.rows || [];
       } catch (error) {
         logger.error('GlobalSearchDB', 'searchEvents', error, { searchTerm });
         return [];
       }
     },
-
   };
 }
 

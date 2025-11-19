@@ -19,7 +19,9 @@ export default function ScreenContainer({
   const theme = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header elevated>
         {showBackButton && navigation && (
           <Appbar.BackAction onPress={() => navigation.goBack()} />

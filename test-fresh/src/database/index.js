@@ -38,13 +38,20 @@ import { createGlobalSearchDB } from './globalSearch';
 import { createSavedSearchesDB } from './savedSearches';
 import { DatabaseError, logger } from '../errors';
 // Use modern expo-sqlite async API
-const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
-  const availableMethods = Object.keys(SQLite);
-  logger.error('Database', 'checkAPI', new Error('Modern expo-sqlite API not available'), {
-    availableMethods
+const openDatabaseAsync =
+  SQLite.openDatabaseAsync ||
+  (() => {
+    const availableMethods = Object.keys(SQLite);
+    logger.error(
+      'Database',
+      'checkAPI',
+      new Error('Modern expo-sqlite API not available'),
+      {
+        availableMethods,
+      }
+    );
+    throw new Error('SQLite.openDatabaseAsync method not available');
   });
-  throw new Error('SQLite.openDatabaseAsync method not available');
-});
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from '../errors';
@@ -54,7 +61,6 @@ let _initialized = false;
 let _initInflight = null;
 
 const DEFAULT_DB_NAME = 'crm_orbit.db';
-
 
 /**
  * Get the open database instance.
@@ -103,7 +109,13 @@ export async function execute(sql, params = []) {
   try {
     let result;
     const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
-    const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+    const returnsRows = [
+      'SELECT',
+      'PRAGMA',
+      'WITH',
+      'EXPLAIN',
+      'VALUES',
+    ].includes(firstToken);
 
     if (returnsRows) {
       // Use getAllAsync for SELECT queries
@@ -153,7 +165,13 @@ export async function batch(statements) {
         try {
           let result;
           const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
-          const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+          const returnsRows = [
+            'SELECT',
+            'PRAGMA',
+            'WITH',
+            'EXPLAIN',
+            'VALUES',
+          ].includes(firstToken);
 
           if (returnsRows) {
             const rows = await db.getAllAsync(sql, params);
@@ -173,16 +191,11 @@ export async function batch(statements) {
           results[i] = result;
         } catch (error) {
           logger.error('Database', 'batch-step', error, { index: i, sql });
-          throw new DatabaseError(
-            'SQL batch step failed',
-            'SQL_ERROR',
-            error,
-            {
-              index: i,
-              sql,
-              params,
-            }
-          );
+          throw new DatabaseError('SQL batch step failed', 'SQL_ERROR', error, {
+            index: i,
+            sql,
+            params,
+          });
         }
       }
     });
@@ -193,11 +206,7 @@ export async function batch(statements) {
       throw err;
     }
     logger.error('Database', 'batch', err);
-    throw new DatabaseError(
-      'Batch transaction failed',
-      'TX_ERROR',
-      err
-    );
+    throw new DatabaseError('Batch transaction failed', 'TX_ERROR', err);
   }
 }
 
@@ -219,7 +228,13 @@ export async function transaction(work) {
           try {
             let result;
             const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
-            const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+            const returnsRows = [
+              'SELECT',
+              'PRAGMA',
+              'WITH',
+              'EXPLAIN',
+              'VALUES',
+            ].includes(firstToken);
 
             if (returnsRows) {
               const rows = await db.getAllAsync(sql, params);
@@ -258,11 +273,7 @@ export async function transaction(work) {
       throw err;
     }
     logger.error('Database', 'transaction', err);
-    throw new DatabaseError(
-      'Transaction failed',
-      'TX_ERROR',
-      err
-    );
+    throw new DatabaseError('Transaction failed', 'TX_ERROR', err);
   }
 }
 
@@ -369,9 +380,17 @@ export async function runPendingMigrations() {
   }
 
   try {
-    logger.info('Database', 'runPendingMigrations', 'Starting manual migration run...');
+    logger.info(
+      'Database',
+      'runPendingMigrations',
+      'Starting manual migration run...'
+    );
     await runMigrations({ db: _db, execute, batch, transaction });
-    logger.success('Database', 'runPendingMigrations', 'Migrations completed successfully');
+    logger.success(
+      'Database',
+      'runPendingMigrations',
+      'Migrations completed successfully'
+    );
   } catch (err) {
     logger.error('Database', 'runPendingMigrations', err);
     throw new DatabaseError(

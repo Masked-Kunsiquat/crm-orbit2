@@ -7,11 +7,7 @@ import { safeTrim } from '../utils/stringHelpers';
 import { pick, buildUpdateSet, buildInsert } from './sqlHelpers';
 import { logger } from '../errors/utils/errorLogger';
 
-const SAVED_SEARCH_FIELDS = [
-  'name',
-  'entity_type',
-  'filters',
-];
+const SAVED_SEARCH_FIELDS = ['name', 'entity_type', 'filters'];
 
 const VALID_ENTITY_TYPES = ['contacts', 'interactions', 'events'];
 
@@ -54,7 +50,10 @@ export function createSavedSearchesDB(ctx) {
       }
 
       if (!data?.filters || typeof data.filters !== 'object') {
-        throw new DatabaseError('filters must be an object', 'VALIDATION_ERROR');
+        throw new DatabaseError(
+          'filters must be an object',
+          'VALIDATION_ERROR'
+        );
       }
 
       const searchData = pick(data, SAVED_SEARCH_FIELDS);
@@ -68,10 +67,16 @@ export function createSavedSearchesDB(ctx) {
       const id = insertRes.insertId;
 
       if (!id) {
-        throw new DatabaseError('Failed to create saved search', 'INSERT_FAILED');
+        throw new DatabaseError(
+          'Failed to create saved search',
+          'INSERT_FAILED'
+        );
       }
 
-      logger.success('SavedSearchesDB', 'create', { id, name: searchData.name });
+      logger.success('SavedSearchesDB', 'create', {
+        id,
+        name: searchData.name,
+      });
       return this.getById(id);
     },
 
@@ -81,7 +86,9 @@ export function createSavedSearchesDB(ctx) {
      * @returns {Promise<Object|null>} Saved search with parsed filters
      */
     async getById(id) {
-      const res = await execute('SELECT * FROM saved_searches WHERE id = ?;', [id]);
+      const res = await execute('SELECT * FROM saved_searches WHERE id = ?;', [
+        id,
+      ]);
       const search = res.rows[0] || null;
 
       if (search) {
@@ -119,7 +126,9 @@ export function createSavedSearchesDB(ctx) {
         try {
           search.filters = JSON.parse(search.filters);
         } catch (error) {
-          logger.error('SavedSearchesDB', 'getByEntityType', error, { id: search.id });
+          logger.error('SavedSearchesDB', 'getByEntityType', error, {
+            id: search.id,
+          });
           search.filters = {};
         }
         return search;
@@ -177,7 +186,10 @@ export function createSavedSearchesDB(ctx) {
 
       if (updateData.filters !== undefined) {
         if (typeof updateData.filters !== 'object') {
-          throw new DatabaseError('filters must be an object', 'VALIDATION_ERROR');
+          throw new DatabaseError(
+            'filters must be an object',
+            'VALIDATION_ERROR'
+          );
         }
         updateData.filters = JSON.stringify(updateData.filters);
       }
@@ -202,7 +214,9 @@ export function createSavedSearchesDB(ctx) {
      * @returns {Promise<number>} Rows affected
      */
     async delete(id) {
-      const res = await execute('DELETE FROM saved_searches WHERE id = ?;', [id]);
+      const res = await execute('DELETE FROM saved_searches WHERE id = ?;', [
+        id,
+      ]);
       logger.success('SavedSearchesDB', 'delete', { id });
       return res.rowsAffected || 0;
     },

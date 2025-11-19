@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import { StyleSheet, SectionList, View, TouchableOpacity } from 'react-native';
 import {
   Appbar,
@@ -25,7 +31,7 @@ export default function GlobalSearchScreen({ navigation }) {
 
   // Debounce search to avoid excessive queries
   const debounceTimeout = useRef(null);
-  const handleSearchChange = useCallback((query) => {
+  const handleSearchChange = useCallback(query => {
     setSearchQuery(query);
 
     if (debounceTimeout.current) {
@@ -48,7 +54,13 @@ export default function GlobalSearchScreen({ navigation }) {
   }, []);
 
   // Perform global search using TanStack Query
-  const { data: results, isLoading, isFetching, error, isError } = useGlobalSearch(debouncedQuery);
+  const {
+    data: results,
+    isLoading,
+    isFetching,
+    error,
+    isError,
+  } = useGlobalSearch(debouncedQuery);
 
   // Transform results into SectionList format
   const sections = useMemo(() => {
@@ -99,38 +111,50 @@ export default function GlobalSearchScreen({ navigation }) {
     return sections;
   }, [results, t]);
 
-  const handleResultPress = useCallback((item, type) => {
-    logger.success('GlobalSearchScreen', 'handleResultPress', { type, itemId: item.id });
+  const handleResultPress = useCallback(
+    (item, type) => {
+      logger.success('GlobalSearchScreen', 'handleResultPress', {
+        type,
+        itemId: item.id,
+      });
 
-    switch (type) {
-      case 'contact':
-        navigation.navigate('ContactDetail', { contactId: item.id });
-        break;
-      case 'company':
-        navigation.navigate('CompanyList', { companyId: item.id });
-        break;
-      case 'interaction':
-        // Navigate to contact detail showing interaction
-        if (item.contact_id) {
-          navigation.navigate('ContactDetail', { contactId: item.contact_id });
-        }
-        break;
-      case 'event':
-        navigation.navigate('EventsList', { eventId: item.id });
-        break;
-      case 'note':
-        // Navigate to related contact
-        if (item.contact_id) {
-          navigation.navigate('ContactDetail', { contactId: item.contact_id });
-        }
-        break;
-      default:
-        logger.warn('GlobalSearchScreen', 'Unknown result type', { type });
-    }
-  }, [navigation]);
+      switch (type) {
+        case 'contact':
+          navigation.navigate('ContactDetail', { contactId: item.id });
+          break;
+        case 'company':
+          navigation.navigate('CompanyList', { companyId: item.id });
+          break;
+        case 'interaction':
+          // Navigate to contact detail showing interaction
+          if (item.contact_id) {
+            navigation.navigate('ContactDetail', {
+              contactId: item.contact_id,
+            });
+          }
+          break;
+        case 'event':
+          navigation.navigate('EventsList', { eventId: item.id });
+          break;
+        case 'note':
+          // Navigate to related contact
+          if (item.contact_id) {
+            navigation.navigate('ContactDetail', {
+              contactId: item.contact_id,
+            });
+          }
+          break;
+        default:
+          logger.warn('GlobalSearchScreen', 'Unknown result type', { type });
+      }
+    },
+    [navigation]
+  );
 
   const renderSectionHeader = ({ section }) => (
-    <View style={[styles.sectionHeader, { backgroundColor: theme.colors.surface }]}>
+    <View
+      style={[styles.sectionHeader, { backgroundColor: theme.colors.surface }]}
+    >
       <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
         {section.title}
       </Text>
@@ -143,15 +167,40 @@ export default function GlobalSearchScreen({ navigation }) {
   const renderItem = ({ item, section }) => {
     switch (section.type) {
       case 'contact':
-        return <ContactResult item={item} onPress={() => handleResultPress(item, 'contact')} />;
+        return (
+          <ContactResult
+            item={item}
+            onPress={() => handleResultPress(item, 'contact')}
+          />
+        );
       case 'company':
-        return <CompanyResult item={item} onPress={() => handleResultPress(item, 'company')} />;
+        return (
+          <CompanyResult
+            item={item}
+            onPress={() => handleResultPress(item, 'company')}
+          />
+        );
       case 'interaction':
-        return <InteractionResult item={item} onPress={() => handleResultPress(item, 'interaction')} />;
+        return (
+          <InteractionResult
+            item={item}
+            onPress={() => handleResultPress(item, 'interaction')}
+          />
+        );
       case 'event':
-        return <EventResult item={item} onPress={() => handleResultPress(item, 'event')} />;
+        return (
+          <EventResult
+            item={item}
+            onPress={() => handleResultPress(item, 'event')}
+          />
+        );
       case 'note':
-        return <NoteResult item={item} onPress={() => handleResultPress(item, 'note')} />;
+        return (
+          <NoteResult
+            item={item}
+            onPress={() => handleResultPress(item, 'note')}
+          />
+        );
       default:
         return null;
     }
@@ -161,10 +210,16 @@ export default function GlobalSearchScreen({ navigation }) {
     if (!debouncedQuery || debouncedQuery.trim().length < 2) {
       return (
         <View style={styles.emptyState}>
-          <Text variant="titleMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text
+            variant="titleMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
             {t('globalSearch.emptyState.prompt')}
           </Text>
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+          >
             {t('globalSearch.emptyState.hint')}
           </Text>
         </View>
@@ -177,7 +232,10 @@ export default function GlobalSearchScreen({ navigation }) {
           <Text variant="titleMedium" style={{ color: theme.colors.error }}>
             {t('globalSearch.error.title')}
           </Text>
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+          >
             {t('globalSearch.error.message')}
           </Text>
         </View>
@@ -188,7 +246,10 @@ export default function GlobalSearchScreen({ navigation }) {
       return (
         <View style={styles.emptyState}>
           <ActivityIndicator size="large" />
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 16 }}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant, marginTop: 16 }}
+          >
             {t('globalSearch.searching')}
           </Text>
         </View>
@@ -198,10 +259,16 @@ export default function GlobalSearchScreen({ navigation }) {
     if (sections.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <Text variant="titleMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text
+            variant="titleMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
             {t('globalSearch.emptyState.noResults')}
           </Text>
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+          >
             {t('globalSearch.emptyState.tryDifferent')}
           </Text>
         </View>
@@ -212,7 +279,9 @@ export default function GlobalSearchScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header elevated>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={t('globalSearch.title')} />
@@ -251,17 +320,26 @@ function ContactResult({ item, onPress }) {
     <TouchableOpacity onPress={onPress}>
       <Card.Title
         title={item.display_name}
-        subtitle={item.primary_phone || item.primary_email || t('globalSearch.noContact')}
-        left={(props) => (
+        subtitle={
+          item.primary_phone ||
+          item.primary_email ||
+          t('globalSearch.noContact')
+        }
+        left={props => (
           <Avatar.Text
             {...props}
             label={getInitials(item.first_name, item.last_name)}
             size={40}
           />
         )}
-        right={(props) =>
+        right={props =>
           item.is_favorite ? (
-            <Avatar.Icon {...props} icon="star" size={24} style={{ backgroundColor: 'transparent' }} />
+            <Avatar.Icon
+              {...props}
+              icon="star"
+              size={24}
+              style={{ backgroundColor: 'transparent' }}
+            />
           ) : null
         }
         style={{ paddingVertical: 8 }}
@@ -280,9 +358,7 @@ function CompanyResult({ item, onPress }) {
       <Card.Title
         title={item.name}
         subtitle={item.industry || t('globalSearch.noIndustry')}
-        left={(props) => (
-          <Avatar.Icon {...props} icon="domain" size={40} />
-        )}
+        left={props => <Avatar.Icon {...props} icon="domain" size={40} />}
         style={{ paddingVertical: 8 }}
       />
     </TouchableOpacity>
@@ -302,7 +378,7 @@ function InteractionResult({ item, onPress }) {
       <Card.Title
         title={item.title || t('globalSearch.untitled')}
         subtitle={`${item.contact_name} • ${formatDateSmart(item.interaction_datetime, t)}`}
-        left={(props) => (
+        left={props => (
           <Avatar.Icon {...props} icon={interactionIcon} size={40} />
         )}
         style={{ paddingVertical: 8 }}
@@ -322,9 +398,7 @@ function EventResult({ item, onPress }) {
         title={item.title}
         subtitle={formatDateSmart(item.event_date, t)}
         description={item.contact_name || null}
-        left={(props) => (
-          <Avatar.Icon {...props} icon="calendar" size={40} />
-        )}
+        left={props => <Avatar.Icon {...props} icon="calendar" size={40} />}
         style={{ paddingVertical: 8 }}
       />
     </TouchableOpacity>
@@ -338,9 +412,8 @@ function NoteResult({ item, onPress }) {
 
   // Truncate note content safely
   const content = (item.content || '').toString();
-  const truncatedContent = content.length > 100
-    ? content.substring(0, 100) + '...'
-    : content;
+  const truncatedContent =
+    content.length > 100 ? content.substring(0, 100) + '...' : content;
 
   // Use title if available, otherwise truncated content
   const displayTitle = item.title || truncatedContent || t('globalSearch.note');
@@ -350,10 +423,10 @@ function NoteResult({ item, onPress }) {
       <Card.Title
         title={displayTitle}
         subtitle={item.related_name || t('globalSearch.note')}
-        left={(props) => (
+        left={props => (
           <Avatar.Icon
             {...props}
-            icon={item.is_pinned ? "pin" : "note-text"}
+            icon={item.is_pinned ? 'pin' : 'note-text'}
             size={40}
           />
         )}

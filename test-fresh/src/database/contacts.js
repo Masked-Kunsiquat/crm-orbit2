@@ -168,11 +168,21 @@ export function createContactsDB(ctx) {
       // (do not rely on PRAGMA foreign_keys state across environments)
       if (is.function(transaction)) {
         return await transaction(async tx => {
-          await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [id]);
-          await tx.execute('DELETE FROM contact_categories WHERE contact_id = ?;', [id]);
-          await tx.execute('DELETE FROM interactions WHERE contact_id = ?;', [id]);
+          await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [
+            id,
+          ]);
+          await tx.execute(
+            'DELETE FROM contact_categories WHERE contact_id = ?;',
+            [id]
+          );
+          await tx.execute('DELETE FROM interactions WHERE contact_id = ?;', [
+            id,
+          ]);
           // Delete the contact last
-          const delRes = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
+          const delRes = await tx.execute(
+            'DELETE FROM contacts WHERE id = ?;',
+            [id]
+          );
           return delRes.rowsAffected || 0;
         });
       }
@@ -180,7 +190,10 @@ export function createContactsDB(ctx) {
       // Fallback to batch (runs inside a transaction in our DB layer)
       const results = await batch([
         { sql: 'DELETE FROM contact_info WHERE contact_id = ?;', params: [id] },
-        { sql: 'DELETE FROM contact_categories WHERE contact_id = ?;', params: [id] },
+        {
+          sql: 'DELETE FROM contact_categories WHERE contact_id = ?;',
+          params: [id],
+        },
         { sql: 'DELETE FROM interactions WHERE contact_id = ?;', params: [id] },
         { sql: 'DELETE FROM contacts WHERE id = ?;', params: [id] },
       ]);
@@ -353,9 +366,12 @@ export function createContactsDB(ctx) {
       if (categoryIds && categoryIds.length > 0) {
         if (categoryLogic === 'AND') {
           // Contact must have ALL selected categories
-          const categoryJoins = categoryIds.map((_, index) =>
-            `INNER JOIN contact_categories cc${index} ON cc${index}.contact_id = c.id AND cc${index}.category_id = ?`
-          ).join(' ');
+          const categoryJoins = categoryIds
+            .map(
+              (_, index) =>
+                `INNER JOIN contact_categories cc${index} ON cc${index}.contact_id = c.id AND cc${index}.category_id = ?`
+            )
+            .join(' ');
           fromClause = `FROM contacts c ${categoryJoins}`;
           params.push(...categoryIds);
         } else {
@@ -369,7 +385,8 @@ export function createContactsDB(ctx) {
         }
       }
 
-      const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+      const whereClause =
+        where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
       const sql = `
         SELECT DISTINCT c.*
         ${fromClause}

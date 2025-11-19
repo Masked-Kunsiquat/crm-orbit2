@@ -376,7 +376,11 @@ class AuthService {
       return true;
     } catch (error) {
       logger.error('AuthService', 'removePIN', error);
-      throw new ServiceError('Failed to remove PIN', 'AUTH_REMOVE_PIN_ERROR', error);
+      throw new ServiceError(
+        'Failed to remove PIN',
+        'AUTH_REMOVE_PIN_ERROR',
+        error
+      );
     }
   }
 
@@ -491,7 +495,11 @@ class AuthService {
           }
         } catch (error) {
           // Fall back to PIN if biometric fails
-          logger.warn('AuthService', 'Biometric authentication failed, falling back to PIN', { error: error.message });
+          logger.warn(
+            'AuthService',
+            'Biometric authentication failed, falling back to PIN',
+            { error: error.message }
+          );
         }
       }
 
@@ -674,7 +682,11 @@ class AuthService {
       return true;
     } catch (error) {
       logger.error('AuthService', 'enableBiometric', error);
-      throw new ServiceError('Failed to enable biometric authentication', 'AUTH_ENABLE_BIOMETRIC_ERROR', error);
+      throw new ServiceError(
+        'Failed to enable biometric authentication',
+        'AUTH_ENABLE_BIOMETRIC_ERROR',
+        error
+      );
     }
   }
 
@@ -800,7 +812,11 @@ class AuthService {
     if (nextAppState === 'background' || nextAppState === 'inactive') {
       // App going to background - start/continue auto-lock timer if enabled
       this.startAutoLockTimer().catch(error => {
-        logger.error('AuthService', 'onAppStateChange - startAutoLockTimer', error);
+        logger.error(
+          'AuthService',
+          'onAppStateChange - startAutoLockTimer',
+          error
+        );
       });
     } else if (nextAppState === 'active') {
       // App coming to foreground - check if should be locked

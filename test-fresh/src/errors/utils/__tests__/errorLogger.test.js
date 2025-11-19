@@ -353,7 +353,7 @@ describe('errorLogger', () => {
   describe('withErrorHandling', () => {
     it('should wrap async function and log success', async () => {
       global.__DEV__ = true;
-      const mockFn = jest.fn(async (x) => x * 2);
+      const mockFn = jest.fn(async x => x * 2);
       const wrapped = withErrorHandling(mockFn, 'TestComponent', 'testOp');
 
       const result = await wrapped(5);
@@ -485,7 +485,7 @@ describe('errorLogger', () => {
       global.__DEV__ = true;
 
       const descriptor = {
-        value: jest.fn(async (x) => x * 2),
+        value: jest.fn(async x => x * 2),
       };
 
       logErrors('TestComponent', 'testMethod')({}, 'testMethod', descriptor);
@@ -523,7 +523,11 @@ describe('errorLogger', () => {
         value: jest.fn(async () => 'test'),
       };
 
-      const result = logErrors('TestComponent', 'testMethod')({}, 'testMethod', descriptor);
+      const result = logErrors('TestComponent', 'testMethod')(
+        {},
+        'testMethod',
+        descriptor
+      );
 
       expect(result).toBe(descriptor);
       expect(result.value).toBeDefined();

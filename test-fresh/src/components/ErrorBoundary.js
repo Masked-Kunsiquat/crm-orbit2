@@ -46,7 +46,8 @@ class ErrorBoundary extends React.Component {
                 Something Went Wrong
               </Text>
               <Text variant="bodyMedium" style={styles.message}>
-                The app encountered an unexpected error. Details have been logged.
+                The app encountered an unexpected error. Details have been
+                logged.
               </Text>
 
               {__DEV__ && this.state.error && (
@@ -59,7 +60,10 @@ class ErrorBoundary extends React.Component {
                   </Text>
                   {this.state.error.stack && (
                     <>
-                      <Text variant="titleSmall" style={[styles.errorTitle, { marginTop: 12 }]}>
+                      <Text
+                        variant="titleSmall"
+                        style={[styles.errorTitle, { marginTop: 12 }]}
+                      >
                         Stack Trace:
                       </Text>
                       <Text variant="bodySmall" style={styles.errorText}>
@@ -67,16 +71,20 @@ class ErrorBoundary extends React.Component {
                       </Text>
                     </>
                   )}
-                  {this.state.errorInfo && this.state.errorInfo.componentStack && (
-                    <>
-                      <Text variant="titleSmall" style={[styles.errorTitle, { marginTop: 12 }]}>
-                        Component Stack:
-                      </Text>
-                      <Text variant="bodySmall" style={styles.errorText}>
-                        {this.state.errorInfo.componentStack}
-                      </Text>
-                    </>
-                  )}
+                  {this.state.errorInfo &&
+                    this.state.errorInfo.componentStack && (
+                      <>
+                        <Text
+                          variant="titleSmall"
+                          style={[styles.errorTitle, { marginTop: 12 }]}
+                        >
+                          Component Stack:
+                        </Text>
+                        <Text variant="bodySmall" style={styles.errorText}>
+                          {this.state.errorInfo.componentStack}
+                        </Text>
+                      </>
+                    )}
                 </ScrollView>
               )}
             </Card.Content>

@@ -9,7 +9,12 @@ export class AppError extends Error {
    * @param {Error} [originalError=null] - Underlying error that caused this error
    * @param {object} [context=null] - Additional context for debugging
    */
-  constructor(message, code = 'APP_ERROR', originalError = null, context = null) {
+  constructor(
+    message,
+    code = 'APP_ERROR',
+    originalError = null,
+    context = null
+  ) {
     super(message);
     this.name = 'AppError';
     this.code = code;

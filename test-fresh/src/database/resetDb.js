@@ -22,7 +22,9 @@ export async function resetDatabase(db, dbName = 'crm_orbit.db') {
       await db.closeAsync();
       console.log('[resetDatabase] Database connection closed.');
     } else {
-      console.warn('[resetDatabase] No valid database instance provided or closeAsync not available');
+      console.warn(
+        '[resetDatabase] No valid database instance provided or closeAsync not available'
+      );
     }
 
     // Delete the database using SQLite's deleteDatabaseAsync
@@ -30,14 +32,16 @@ export async function resetDatabase(db, dbName = 'crm_orbit.db') {
     await SQLite.deleteDatabaseAsync(dbName);
     console.log('[resetDatabase] Database file deleted successfully.');
 
-    console.log('[resetDatabase] Reset complete. IMPORTANT: You MUST restart the app manually for changes to take effect!');
+    console.log(
+      '[resetDatabase] Reset complete. IMPORTANT: You MUST restart the app manually for changes to take effect!'
+    );
     return true;
   } catch (error) {
     console.error('[resetDatabase] Error during reset:', error);
     console.error('[resetDatabase] Error details:', {
       message: error.message,
       code: error.code,
-      stack: error.stack
+      stack: error.stack,
     });
     throw error;
   }

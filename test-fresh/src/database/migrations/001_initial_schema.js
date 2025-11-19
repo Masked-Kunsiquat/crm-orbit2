@@ -387,9 +387,14 @@ export default {
         END;
       `);
 
-      console.log('[Migration 001] FTS5 full-text search enabled for interactions');
+      console.log(
+        '[Migration 001] FTS5 full-text search enabled for interactions'
+      );
     } catch (error) {
-      console.warn('[Migration 001] FTS5 not available, skipping full-text search setup:', error.message);
+      console.warn(
+        '[Migration 001] FTS5 not available, skipping full-text search setup:',
+        error.message
+      );
     }
 
     // ============================================================================
@@ -603,7 +608,9 @@ export default {
         ('Clients', '#673AB7', 'domain', 1);
     `);
 
-    console.log('[Migration 001] Initial schema created successfully with all features');
+    console.log(
+      '[Migration 001] Initial schema created successfully with all features'
+    );
   },
 
   async down(ctx) {

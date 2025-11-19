@@ -33,9 +33,7 @@ import { logger } from '../../errors';
  */
 export function invalidateQueries(queryClient, ...queryKeys) {
   return Promise.all(
-    queryKeys.map(key =>
-      queryClient.invalidateQueries({ queryKey: key })
-    )
+    queryKeys.map(key => queryClient.invalidateQueries({ queryKey: key }))
   );
 }
 
@@ -91,19 +89,26 @@ export function invalidateQueries(queryClient, ...queryKeys) {
  *   }
  * })
  */
-export function createMutationHandlers(queryClient, keysToInvalidate, options = {}) {
+export function createMutationHandlers(
+  queryClient,
+  keysToInvalidate,
+  options = {}
+) {
   const {
     onSuccess: customOnSuccess,
     onError: customOnError,
     successMessage,
-    context = 'Mutation'
+    context = 'Mutation',
   } = options;
 
   // Normalize keysToInvalidate to always be an array of query keys
   // If it's an array where every element is also an array, treat it as the final list
   // Otherwise, wrap it in an outer array (so a single queryKey becomes [queryKey])
   let keys;
-  if (Array.isArray(keysToInvalidate) && keysToInvalidate.every(item => Array.isArray(item))) {
+  if (
+    Array.isArray(keysToInvalidate) &&
+    keysToInvalidate.every(item => Array.isArray(item))
+  ) {
     keys = keysToInvalidate;
   } else {
     keys = [keysToInvalidate];
@@ -133,6 +138,6 @@ export function createMutationHandlers(queryClient, keysToInvalidate, options = 
       if (customOnError) {
         customOnError(error, ...args);
       }
-    }
+    },
   };
 }

@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import { interactionsDB, interactionsSearchDB } from '../../database';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
@@ -7,10 +12,13 @@ import { invalidateQueries, createMutationHandlers } from './queryHelpers';
  */
 export const interactionKeys = {
   all: ['interactions'],
-  lists: (mode) => mode ? [...interactionKeys.all, 'list', mode] : [...interactionKeys.all, 'list'],
-  detail: (id) => [...interactionKeys.all, 'detail', id],
-  byContact: (contactId) => [...interactionKeys.all, 'contact', contactId],
-  byType: (type) => [...interactionKeys.all, 'type', type],
+  lists: mode =>
+    mode
+      ? [...interactionKeys.all, 'list', mode]
+      : [...interactionKeys.all, 'list'],
+  detail: id => [...interactionKeys.all, 'detail', id],
+  byContact: contactId => [...interactionKeys.all, 'contact', contactId],
+  byType: type => [...interactionKeys.all, 'type', type],
   recent: () => [...interactionKeys.all, 'recent'],
 };
 
@@ -140,12 +148,10 @@ export function useCreateInteraction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (interactionData) => interactionsDB.create(interactionData),
-    ...createMutationHandlers(
-      queryClient,
-      interactionKeys.all,
-      { context: 'useCreateInteraction' }
-    ),
+    mutationFn: interactionData => interactionsDB.create(interactionData),
+    ...createMutationHandlers(queryClient, interactionKeys.all, {
+      context: 'useCreateInteraction',
+    }),
   });
 }
 
@@ -159,13 +165,17 @@ export function useUpdateInteraction() {
     mutationFn: ({ id, data }) => interactionsDB.update(id, data),
     ...createMutationHandlers(
       queryClient,
-      [interactionKeys.lists(), interactionKeys.lists('infinite'), interactionKeys.recent()],
+      [
+        interactionKeys.lists(),
+        interactionKeys.lists('infinite'),
+        interactionKeys.recent(),
+      ],
       {
         context: 'useUpdateInteraction',
         onSuccess: (_, { id }) => {
           // Additional invalidation for specific interaction detail
           invalidateQueries(queryClient, interactionKeys.detail(id));
-        }
+        },
       }
     ),
   });
@@ -178,11 +188,9 @@ export function useDeleteInteraction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => interactionsDB.delete(id),
-    ...createMutationHandlers(
-      queryClient,
-      interactionKeys.all,
-      { context: 'useDeleteInteraction' }
-    ),
+    mutationFn: id => interactionsDB.delete(id),
+    ...createMutationHandlers(queryClient, interactionKeys.all, {
+      context: 'useDeleteInteraction',
+    }),
   });
 }

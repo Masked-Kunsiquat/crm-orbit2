@@ -6,7 +6,7 @@ import { formatRelativeDateTime } from '../utils/dateUtils';
 import { getContactDisplayName } from '../utils/contactHelpers';
 
 // Helper to format duration (in seconds)
-const formatDuration = (seconds) => {
+const formatDuration = seconds => {
   if (!seconds || seconds <= 0) return null;
 
   const hours = Math.floor(seconds / 3600);
@@ -23,7 +23,7 @@ const formatDuration = (seconds) => {
 };
 
 // Get icon and color for interaction type
-const getTypeIcon = (type) => {
+const getTypeIcon = type => {
   switch (type) {
     case 'call':
       return { name: 'phone', color: '#4CAF50' };
@@ -41,22 +41,38 @@ const getTypeIcon = (type) => {
 
 function InteractionCard({ interaction, onPress, onLongPress, contact }) {
   const theme = useTheme();
-  const typeInfo = getTypeIcon(interaction.interaction_type || interaction.custom_type);
+  const typeInfo = getTypeIcon(
+    interaction.interaction_type || interaction.custom_type
+  );
   const durationStr = formatDuration(interaction.duration);
 
   return (
-    <Card style={styles.card} onPress={onPress} onLongPress={onLongPress} mode="elevated">
+    <Card
+      style={styles.card}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      mode="elevated"
+    >
       <Card.Content style={styles.content}>
         <View style={styles.row}>
           {/* Interaction Type Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: typeInfo.color + '20' }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: typeInfo.color + '20' },
+            ]}
+          >
             <Icon source={typeInfo.name} size={24} color={typeInfo.color} />
           </View>
 
           {/* Main Content */}
           <View style={styles.mainContent}>
             <View style={styles.header}>
-              <Text variant="titleMedium" style={styles.title} numberOfLines={1}>
+              <Text
+                variant="titleMedium"
+                style={styles.title}
+                numberOfLines={1}
+              >
                 {interaction.title}
               </Text>
               {durationStr && (
@@ -69,11 +85,12 @@ function InteractionCard({ interaction, onPress, onLongPress, contact }) {
             {/* Contact Info */}
             {contact && (
               <View style={styles.contactRow}>
-                <ContactAvatar
-                  contact={contact}
-                  size={24}
-                />
-                <Text variant="bodyMedium" style={styles.contactName} numberOfLines={1}>
+                <ContactAvatar contact={contact} size={24} />
+                <Text
+                  variant="bodyMedium"
+                  style={styles.contactName}
+                  numberOfLines={1}
+                >
                   {getContactDisplayName(contact, 'Unknown')}
                 </Text>
               </View>
@@ -87,7 +104,10 @@ function InteractionCard({ interaction, onPress, onLongPress, contact }) {
             )}
 
             {/* Date */}
-            <Text variant="bodySmall" style={[styles.date, { color: theme.colors.onSurfaceVariant }]}>
+            <Text
+              variant="bodySmall"
+              style={[styles.date, { color: theme.colors.onSurfaceVariant }]}
+            >
               {formatRelativeDateTime(interaction.interaction_datetime)}
             </Text>
           </View>

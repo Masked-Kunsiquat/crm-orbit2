@@ -74,7 +74,9 @@ export async function initSimpleDatabase() {
 
 export function getSimpleDatabase() {
   if (!db) {
-    throw new Error('Database not initialized. Call initSimpleDatabase() first.');
+    throw new Error(
+      'Database not initialized. Call initSimpleDatabase() first.'
+    );
   }
   return db;
 }

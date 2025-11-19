@@ -51,39 +51,42 @@ export function useAsyncOperation(asyncFn, options = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const execute = useCallback(async (...args) => {
-    setLoading(true);
-    setError(null);
+  const execute = useCallback(
+    async (...args) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const result = await asyncFn(...args);
+      try {
+        const result = await asyncFn(...args);
 
-      if (component && operation) {
-        logger.success(component, operation, { args });
+        if (component && operation) {
+          logger.success(component, operation, { args });
+        }
+
+        if (onSuccess) {
+          onSuccess(result);
+        }
+
+        return result;
+      } catch (err) {
+        setError(err);
+
+        if (component && operation) {
+          logger.error(component, operation, err, { args });
+        }
+
+        if (onError) {
+          onError(err);
+        }
+
+        // Return null to indicate failure (allows caller to check result)
+        return null;
+      } finally {
+        setLoading(false);
       }
-
-      if (onSuccess) {
-        onSuccess(result);
-      }
-
-      return result;
-    } catch (err) {
-      setError(err);
-
-      if (component && operation) {
-        logger.error(component, operation, err, { args });
-      }
-
-      if (onError) {
-        onError(err);
-      }
-
-      // Return null to indicate failure (allows caller to check result)
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [asyncFn, component, operation, onError, onSuccess]);
+    },
+    [asyncFn, component, operation, onError, onSuccess]
+  );
 
   const reset = useCallback(() => {
     setLoading(false);
@@ -113,14 +116,17 @@ export function useAsyncOperation(asyncFn, options = {}) {
 export function useAsyncLoading(asyncFn) {
   const [loading, setLoading] = useState(false);
 
-  const execute = useCallback(async (...args) => {
-    setLoading(true);
-    try {
-      return await asyncFn(...args);
-    } finally {
-      setLoading(false);
-    }
-  }, [asyncFn]);
+  const execute = useCallback(
+    async (...args) => {
+      setLoading(true);
+      try {
+        return await asyncFn(...args);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [asyncFn]
+  );
 
   return { execute, loading };
 }

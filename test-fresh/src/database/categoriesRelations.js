@@ -30,7 +30,10 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
         );
         const success = res && res.rowsAffected ? res.rowsAffected > 0 : false;
         if (success) {
-          logger.success('CategoriesRelationsDB', 'addContactToCategory', { contactId, categoryId });
+          logger.success('CategoriesRelationsDB', 'addContactToCategory', {
+            contactId,
+            categoryId,
+          });
         }
         return success;
       } catch (error) {
@@ -41,7 +44,9 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
             ''
         );
         if (msg.includes('FOREIGN KEY constraint failed')) {
-          logger.error('CategoriesRelationsDB', 'addContactToCategory', error, { constraint: 'FOREIGN_KEY' });
+          logger.error('CategoriesRelationsDB', 'addContactToCategory', error, {
+            constraint: 'FOREIGN_KEY',
+          });
           throw new DatabaseError(
             'Contact or category not found',
             'NOT_FOUND',
@@ -49,7 +54,10 @@ export function createCategoriesRelationsDB({ execute, batch, transaction }) {
           );
         }
         if (msg.includes('UNIQUE constraint failed')) {
-          logger.warn('CategoriesRelationsDB', 'Relationship already exists', { contactId, categoryId });
+          logger.warn('CategoriesRelationsDB', 'Relationship already exists', {
+            contactId,
+            categoryId,
+          });
           return false; // Relationship already exists
         }
         logger.error('CategoriesRelationsDB', 'addContactToCategory', error);

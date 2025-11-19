@@ -12,16 +12,16 @@ import { logger } from '../../errors';
 // Mock dependencies
 jest.mock('../../errors/utils/errorHandler', () => ({
   showAlert: {
-    error: jest.fn()
-  }
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('../../errors', () => ({
   logger: {
     success: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
-  }
+    error: jest.fn(),
+  },
 }));
 
 describe('permissionHelpers', () => {
@@ -36,7 +36,9 @@ describe('permissionHelpers', () => {
   describe('requestPermission', () => {
     describe('granted status', () => {
       it('should return true when permission is granted', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'granted' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'granted' });
         const result = await requestPermission(mockRequestFn, 'Media library');
 
         expect(result).toBe(true);
@@ -44,7 +46,9 @@ describe('permissionHelpers', () => {
       });
 
       it('should log success when permission is granted', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'granted' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'granted' });
         await requestPermission(mockRequestFn, 'Contacts');
 
         expect(logger.success).toHaveBeenCalledWith(
@@ -53,13 +57,15 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Contacts',
             status: 'granted',
-            granted: true
+            granted: true,
           }
         );
       });
 
       it('should not show alert when permission is granted', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'granted' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'granted' });
         await requestPermission(mockRequestFn, 'Camera');
 
         expect(showAlert.error).not.toHaveBeenCalled();
@@ -106,7 +112,7 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Microphone',
             status: 'denied',
-            granted: false
+            granted: false,
           }
         );
       });
@@ -114,14 +120,18 @@ describe('permissionHelpers', () => {
 
     describe('undetermined status', () => {
       it('should return false when status is undetermined', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'undetermined' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'undetermined' });
         const result = await requestPermission(mockRequestFn, 'Calendar');
 
         expect(result).toBe(false);
       });
 
       it('should show error alert when status is undetermined', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'undetermined' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'undetermined' });
         await requestPermission(mockRequestFn, 'Calendar');
 
         expect(showAlert.error).toHaveBeenCalledWith(
@@ -131,7 +141,9 @@ describe('permissionHelpers', () => {
       });
 
       it('should log warning when status is undetermined', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'undetermined' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'undetermined' });
         await requestPermission(mockRequestFn, 'Reminders');
 
         expect(logger.warn).toHaveBeenCalledWith(
@@ -140,7 +152,7 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Reminders',
             status: 'undetermined',
-            granted: false
+            granted: false,
           }
         );
       });
@@ -148,14 +160,18 @@ describe('permissionHelpers', () => {
 
     describe('restricted status (iOS)', () => {
       it('should return false when status is restricted', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'restricted' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'restricted' });
         const result = await requestPermission(mockRequestFn, 'Photos');
 
         expect(result).toBe(false);
       });
 
       it('should show error alert when status is restricted', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'restricted' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'restricted' });
         await requestPermission(mockRequestFn, 'Photos');
 
         expect(showAlert.error).toHaveBeenCalledWith(
@@ -167,7 +183,9 @@ describe('permissionHelpers', () => {
 
     describe('error handling', () => {
       it('should return false when requestFn throws error', async () => {
-        const mockRequestFn = jest.fn().mockRejectedValue(new Error('Permission system error'));
+        const mockRequestFn = jest
+          .fn()
+          .mockRejectedValue(new Error('Permission system error'));
         const result = await requestPermission(mockRequestFn, 'Media library');
 
         expect(result).toBe(false);
@@ -187,7 +205,9 @@ describe('permissionHelpers', () => {
       });
 
       it('should show error alert when requestFn throws', async () => {
-        const mockRequestFn = jest.fn().mockRejectedValue(new Error('Network error'));
+        const mockRequestFn = jest
+          .fn()
+          .mockRejectedValue(new Error('Network error'));
         await requestPermission(mockRequestFn, 'Contacts');
 
         expect(showAlert.error).toHaveBeenCalledWith(
@@ -208,7 +228,9 @@ describe('permissionHelpers', () => {
 
     describe('edge cases', () => {
       it('should handle empty permission name', async () => {
-        const mockRequestFn = jest.fn().mockResolvedValue({ status: 'granted' });
+        const mockRequestFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'granted' });
         const result = await requestPermission(mockRequestFn, '');
 
         expect(result).toBe(true);
@@ -217,7 +239,7 @@ describe('permissionHelpers', () => {
           'requestPermission',
           expect.objectContaining({
             permissionName: '',
-            granted: true
+            granted: true,
           })
         );
       });
@@ -256,7 +278,9 @@ describe('permissionHelpers', () => {
 
     describe('integration scenarios', () => {
       it('should handle typical ImagePicker flow', async () => {
-        const mockImagePickerRequest = jest.fn().mockResolvedValue({ status: 'granted' });
+        const mockImagePickerRequest = jest
+          .fn()
+          .mockResolvedValue({ status: 'granted' });
         const result = await requestPermission(
           mockImagePickerRequest,
           'Media library',
@@ -269,7 +293,9 @@ describe('permissionHelpers', () => {
       });
 
       it('should handle typical Contacts flow with denial', async () => {
-        const mockContactsRequest = jest.fn().mockResolvedValue({ status: 'denied' });
+        const mockContactsRequest = jest
+          .fn()
+          .mockResolvedValue({ status: 'denied' });
         const result = await requestPermission(
           mockContactsRequest,
           'Contacts',
@@ -285,13 +311,10 @@ describe('permissionHelpers', () => {
       });
 
       it('should handle typical Location flow with system error', async () => {
-        const mockLocationRequest = jest.fn().mockRejectedValue(
-          new Error('Location services disabled')
-        );
-        const result = await requestPermission(
-          mockLocationRequest,
-          'Location'
-        );
+        const mockLocationRequest = jest
+          .fn()
+          .mockRejectedValue(new Error('Location services disabled'));
+        const result = await requestPermission(mockLocationRequest, 'Location');
 
         expect(result).toBe(false);
         expect(logger.error).toHaveBeenCalled();
@@ -327,7 +350,7 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Camera',
             status: 'granted',
-            granted: true
+            granted: true,
           }
         );
       });
@@ -351,7 +374,7 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Location',
             status: 'denied',
-            granted: false
+            granted: false,
           }
         );
       });
@@ -367,14 +390,18 @@ describe('permissionHelpers', () => {
 
     describe('undetermined status', () => {
       it('should return false when status is undetermined', async () => {
-        const mockCheckFn = jest.fn().mockResolvedValue({ status: 'undetermined' });
+        const mockCheckFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'undetermined' });
         const result = await checkPermission(mockCheckFn, 'Calendar');
 
         expect(result).toBe(false);
       });
 
       it('should log success with granted false when status is undetermined', async () => {
-        const mockCheckFn = jest.fn().mockResolvedValue({ status: 'undetermined' });
+        const mockCheckFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'undetermined' });
         await checkPermission(mockCheckFn, 'Reminders');
 
         expect(logger.success).toHaveBeenCalledWith(
@@ -383,7 +410,7 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Reminders',
             status: 'undetermined',
-            granted: false
+            granted: false,
           }
         );
       });
@@ -391,14 +418,18 @@ describe('permissionHelpers', () => {
 
     describe('restricted status (iOS)', () => {
       it('should return false when status is restricted', async () => {
-        const mockCheckFn = jest.fn().mockResolvedValue({ status: 'restricted' });
+        const mockCheckFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'restricted' });
         const result = await checkPermission(mockCheckFn, 'Photos');
 
         expect(result).toBe(false);
       });
 
       it('should log success with granted false when status is restricted', async () => {
-        const mockCheckFn = jest.fn().mockResolvedValue({ status: 'restricted' });
+        const mockCheckFn = jest
+          .fn()
+          .mockResolvedValue({ status: 'restricted' });
         await checkPermission(mockCheckFn, 'Photos');
 
         expect(logger.success).toHaveBeenCalledWith(
@@ -407,7 +438,7 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Photos',
             status: 'restricted',
-            granted: false
+            granted: false,
           }
         );
       });
@@ -415,7 +446,9 @@ describe('permissionHelpers', () => {
 
     describe('error handling', () => {
       it('should return false when checkFn throws error', async () => {
-        const mockCheckFn = jest.fn().mockRejectedValue(new Error('System error'));
+        const mockCheckFn = jest
+          .fn()
+          .mockRejectedValue(new Error('System error'));
         const result = await checkPermission(mockCheckFn, 'Camera');
 
         expect(result).toBe(false);
@@ -472,7 +505,7 @@ describe('permissionHelpers', () => {
           'checkPermission',
           expect.objectContaining({
             permissionName: '',
-            granted: true
+            granted: true,
           })
         );
       });
@@ -486,7 +519,7 @@ describe('permissionHelpers', () => {
           'PermissionHelpers',
           'checkPermission',
           expect.objectContaining({
-            permissionName: 'Media & Storage'
+            permissionName: 'Media & Storage',
           })
         );
       });
@@ -494,7 +527,9 @@ describe('permissionHelpers', () => {
 
     describe('integration scenarios', () => {
       it('should handle typical Contacts.getPermissionsAsync flow', async () => {
-        const mockContactsCheck = jest.fn().mockResolvedValue({ status: 'granted' });
+        const mockContactsCheck = jest
+          .fn()
+          .mockResolvedValue({ status: 'granted' });
         const result = await checkPermission(mockContactsCheck, 'Contacts');
 
         expect(result).toBe(true);
@@ -505,13 +540,15 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Contacts',
             status: 'granted',
-            granted: true
+            granted: true,
           }
         );
       });
 
       it('should handle typical Camera.getCameraPermissionsAsync flow with denial', async () => {
-        const mockCameraCheck = jest.fn().mockResolvedValue({ status: 'denied' });
+        const mockCameraCheck = jest
+          .fn()
+          .mockResolvedValue({ status: 'denied' });
         const result = await checkPermission(mockCameraCheck, 'Camera');
 
         expect(result).toBe(false);
@@ -521,16 +558,16 @@ describe('permissionHelpers', () => {
           {
             permissionName: 'Camera',
             status: 'denied',
-            granted: false
+            granted: false,
           }
         );
         expect(showAlert.error).not.toHaveBeenCalled();
       });
 
       it('should handle typical Location.getForegroundPermissionsAsync flow with error', async () => {
-        const mockLocationCheck = jest.fn().mockRejectedValue(
-          new Error('Location services unavailable')
-        );
+        const mockLocationCheck = jest
+          .fn()
+          .mockRejectedValue(new Error('Location services unavailable'));
         const result = await checkPermission(mockLocationCheck, 'Location');
 
         expect(result).toBe(false);
@@ -561,7 +598,9 @@ describe('permissionHelpers', () => {
         const mockCheckFn = jest.fn().mockRejectedValue(new Error('Error'));
 
         // Should not throw, just return false
-        await expect(checkPermission(mockCheckFn, 'Contacts')).resolves.toBe(false);
+        await expect(checkPermission(mockCheckFn, 'Contacts')).resolves.toBe(
+          false
+        );
       });
     });
   });
@@ -600,14 +639,20 @@ describe('permissionHelpers', () => {
     });
 
     it('should handle multiple permission checks in parallel', async () => {
-      const mockCameraCheck = jest.fn().mockResolvedValue({ status: 'granted' });
-      const mockContactsCheck = jest.fn().mockResolvedValue({ status: 'denied' });
-      const mockLocationCheck = jest.fn().mockResolvedValue({ status: 'granted' });
+      const mockCameraCheck = jest
+        .fn()
+        .mockResolvedValue({ status: 'granted' });
+      const mockContactsCheck = jest
+        .fn()
+        .mockResolvedValue({ status: 'denied' });
+      const mockLocationCheck = jest
+        .fn()
+        .mockResolvedValue({ status: 'granted' });
 
       const [camera, contacts, location] = await Promise.all([
         checkPermission(mockCameraCheck, 'Camera'),
         checkPermission(mockContactsCheck, 'Contacts'),
-        checkPermission(mockLocationCheck, 'Location')
+        checkPermission(mockLocationCheck, 'Location'),
       ]);
 
       expect(camera).toBe(true);

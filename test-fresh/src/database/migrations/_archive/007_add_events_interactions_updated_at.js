@@ -34,24 +34,34 @@ export default {
 
     // Check if updated_at columns already exist
     const eventsTableInfo = await ctx.execute('PRAGMA table_info(events);');
-    const interactionsTableInfo = await ctx.execute('PRAGMA table_info(interactions);');
+    const interactionsTableInfo = await ctx.execute(
+      'PRAGMA table_info(interactions);'
+    );
 
     let eventsColumns = [];
     if (Array.isArray(eventsTableInfo)) {
       eventsColumns = eventsTableInfo;
     } else if (eventsTableInfo?.rows) {
-      eventsColumns = Array.isArray(eventsTableInfo.rows) ? eventsTableInfo.rows : [];
+      eventsColumns = Array.isArray(eventsTableInfo.rows)
+        ? eventsTableInfo.rows
+        : [];
     }
 
     let interactionsColumns = [];
     if (Array.isArray(interactionsTableInfo)) {
       interactionsColumns = interactionsTableInfo;
     } else if (interactionsTableInfo?.rows) {
-      interactionsColumns = Array.isArray(interactionsTableInfo.rows) ? interactionsTableInfo.rows : [];
+      interactionsColumns = Array.isArray(interactionsTableInfo.rows)
+        ? interactionsTableInfo.rows
+        : [];
     }
 
-    const eventsHasUpdatedAt = eventsColumns.some(col => col.name === 'updated_at');
-    const interactionsHasUpdatedAt = interactionsColumns.some(col => col.name === 'updated_at');
+    const eventsHasUpdatedAt = eventsColumns.some(
+      col => col.name === 'updated_at'
+    );
+    const interactionsHasUpdatedAt = interactionsColumns.some(
+      col => col.name === 'updated_at'
+    );
 
     const statements = [];
 

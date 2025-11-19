@@ -1,6 +1,20 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { contactsDB, contactsInfoDB, categoriesRelationsDB, transaction } from '../../database';
-import { safeTrim, normalizeTrimLowercase, filterNonEmptyStrings } from '../../utils/stringHelpers';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
+import {
+  contactsDB,
+  contactsInfoDB,
+  categoriesRelationsDB,
+  transaction,
+} from '../../database';
+import {
+  safeTrim,
+  normalizeTrimLowercase,
+  filterNonEmptyStrings,
+} from '../../utils/stringHelpers';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 import { unique } from '../../utils/arrayHelpers';
 
@@ -10,13 +24,17 @@ import { unique } from '../../utils/arrayHelpers';
 export const contactKeys = {
   all: ['contacts'],
   lists: () => [...contactKeys.all, 'list'],
-  list: (filters) => [...contactKeys.lists(), filters],
+  list: filters => [...contactKeys.lists(), filters],
   listsWithInfo: () => [...contactKeys.all, 'list-with-info'],
-  filteredWithInfo: (filters) => [...contactKeys.all, 'filtered-with-info', filters],
+  filteredWithInfo: filters => [
+    ...contactKeys.all,
+    'filtered-with-info',
+    filters,
+  ],
   details: () => [...contactKeys.all, 'detail'],
-  detail: (id) => [...contactKeys.details(), id],
+  detail: id => [...contactKeys.details(), id],
   favorites: () => [...contactKeys.all, 'favorites'],
-  search: (query) => [...contactKeys.all, 'search', query],
+  search: query => [...contactKeys.all, 'search', query],
 };
 
 /**
@@ -57,8 +75,10 @@ export async function enrichContactsWithInfo(contacts) {
     const contact_info = infoByContact.get(c.id) || [];
     const phones = contact_info.filter(i => i.type === 'phone');
     const emails = contact_info.filter(i => i.type === 'email');
-    const phone = phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
-    const email = emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
+    const phone =
+      phones.find(p => p.is_primary)?.value || phones[0]?.value || null;
+    const email =
+      emails.find(e => e.is_primary)?.value || emails[0]?.value || null;
     const categories = catsByContact.get(c.id) || [];
 
     return { ...c, contact_info, phone, email, categories };
@@ -221,7 +241,7 @@ export function useCreateContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (contactData) => contactsDB.create(contactData),
+    mutationFn: contactData => contactsDB.create(contactData),
     ...createMutationHandlers(
       queryClient,
       [contactKeys.lists(), contactKeys.listsWithInfo()],
@@ -238,12 +258,21 @@ export function useCreateContactWithDetails() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ firstName, lastName, companyId = null, phones = [], emails = [], categoryIds = [] }) => {
+    mutationFn: async ({
+      firstName,
+      lastName,
+      companyId = null,
+      phones = [],
+      emails = [],
+      categoryIds = [],
+    }) => {
       if (typeof transaction === 'function') {
         // Use transaction for atomic writes
         let contactId;
-        await transaction(async (tx) => {
-          const displayName = filterNonEmptyStrings([firstName, lastName]).join(' ') || 'Unnamed Contact';
+        await transaction(async tx => {
+          const displayName =
+            filterNonEmptyStrings([firstName, lastName]).join(' ') ||
+            'Unnamed Contact';
 
           // Create contact with optional company_id
           const insertContact = await tx.execute(
@@ -252,8 +281,13 @@ export function useCreateContactWithDetails() {
           );
 
           // Validate insertId exists (allowing 0 as valid ID)
-          if (typeof insertContact.insertId === 'undefined' || insertContact.insertId === null) {
-            throw new Error('Failed to create contact: insertId is missing from database response');
+          if (
+            typeof insertContact.insertId === 'undefined' ||
+            insertContact.insertId === null
+          ) {
+            throw new Error(
+              'Failed to create contact: insertId is missing from database response'
+            );
           }
           contactId = insertContact.insertId;
 
@@ -262,7 +296,13 @@ export function useCreateContactWithDetails() {
             const phone = phones[i];
             await tx.execute(
               'INSERT INTO contact_info (type, label, value, is_primary, contact_id, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);',
-              ['phone', phone.label, safeTrim(phone.value), i === 0 ? 1 : 0, contactId]
+              [
+                'phone',
+                phone.label,
+                safeTrim(phone.value),
+                i === 0 ? 1 : 0,
+                contactId,
+              ]
             );
           }
 
@@ -272,7 +312,13 @@ export function useCreateContactWithDetails() {
             const isPrimary = phones.length === 0 && i === 0 ? 1 : 0;
             await tx.execute(
               'INSERT INTO contact_info (type, label, value, is_primary, contact_id, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);',
-              ['email', email.label, normalizeTrimLowercase(email.value), isPrimary, contactId]
+              [
+                'email',
+                email.label,
+                normalizeTrimLowercase(email.value),
+                isPrimary,
+                contactId,
+              ]
             );
           }
 
@@ -319,7 +365,10 @@ export function useCreateContactWithDetails() {
         await contactsInfoDB.addContactInfo(contact.id, contactInfoItems);
 
         for (const categoryId of categoryIds) {
-          await categoriesRelationsDB.addContactToCategory(contact.id, categoryId);
+          await categoriesRelationsDB.addContactToCategory(
+            contact.id,
+            categoryId
+          );
         }
 
         return contact;
@@ -349,7 +398,7 @@ export function useUpdateContact() {
         onSuccess: (_, { id }) => {
           // Additional invalidation for specific contact detail
           invalidateQueries(queryClient, contactKeys.detail(id));
-        }
+        },
       }
     ),
   });
@@ -362,12 +411,10 @@ export function useDeleteContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => contactsDB.delete(id),
-    ...createMutationHandlers(
-      queryClient,
-      contactKeys.all,
-      { context: 'useDeleteContact' }
-    ),
+    mutationFn: id => contactsDB.delete(id),
+    ...createMutationHandlers(queryClient, contactKeys.all, {
+      context: 'useDeleteContact',
+    }),
   });
 }
 
@@ -378,10 +425,10 @@ export function useToggleFavorite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => contactsDB.toggleFavorite(id),
+    mutationFn: id => contactsDB.toggleFavorite(id),
 
     // Optimistic update
-    onMutate: async (id) => {
+    onMutate: async id => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: contactKeys.detail(id) });
 
@@ -402,13 +449,20 @@ export function useToggleFavorite() {
     // Rollback on error
     onError: (err, id, context) => {
       if (context?.previousContact) {
-        queryClient.setQueryData(contactKeys.detail(id), context.previousContact);
+        queryClient.setQueryData(
+          contactKeys.detail(id),
+          context.previousContact
+        );
       }
     },
 
     // Refetch on success or error
     onSettled: (_, __, id) => {
-      invalidateQueries(queryClient, contactKeys.detail(id), contactKeys.favorites());
+      invalidateQueries(
+        queryClient,
+        contactKeys.detail(id),
+        contactKeys.favorites()
+      );
     },
   });
 }

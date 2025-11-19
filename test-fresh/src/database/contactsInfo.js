@@ -175,9 +175,10 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
       };
 
       if (txOverride && txOverride.execute) {
-        await txOverride.execute('DELETE FROM contact_info WHERE contact_id = ?;', [
-          contactId,
-        ]);
+        await txOverride.execute(
+          'DELETE FROM contact_info WHERE contact_id = ?;',
+          [contactId]
+        );
         for (const info of items) {
           if (!info) continue;
           const record = pick(info, INFO_FIELDS);

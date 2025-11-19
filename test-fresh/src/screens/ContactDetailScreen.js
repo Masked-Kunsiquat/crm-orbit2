@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Linking, Alert, Pressable } from 'react-native';
-import { logger } from '../errors';
-import { handleError, showAlert } from '../errors';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Linking,
+  Alert,
+  Pressable,
+} from 'react-native';
+import { logger, handleError, showAlert } from '../errors';
+
 import { safeTrim } from '../utils/stringHelpers';
 import {
   Appbar,
@@ -24,9 +31,24 @@ import AddInteractionModal from '../components/AddInteractionModal';
 import AddEventModal from '../components/AddEventModal';
 import InteractionCard from '../components/InteractionCard';
 import InteractionDetailModal from '../components/InteractionDetailModal';
-import { useContact, useContactInteractions, useDeleteContact, useUpdateContact, useContactEvents } from '../hooks/queries';
-import { compareDates, formatDateSmart, isFuture, isToday } from '../utils/dateUtils';
-import { getContactDisplayName, normalizePhoneNumber as normalizePhone, formatPhoneNumber as formatPhone } from '../utils/contactHelpers';
+import {
+  useContact,
+  useContactInteractions,
+  useDeleteContact,
+  useUpdateContact,
+  useContactEvents,
+} from '../hooks/queries';
+import {
+  compareDates,
+  formatDateSmart,
+  isFuture,
+  isToday,
+} from '../utils/dateUtils';
+import {
+  getContactDisplayName,
+  normalizePhoneNumber as normalizePhone,
+  formatPhoneNumber as formatPhone,
+} from '../utils/contactHelpers';
 import { requestPermission } from '../utils/permissionHelpers';
 
 export default function ContactDetailScreen({ route, navigation }) {
@@ -41,7 +63,8 @@ export default function ContactDetailScreen({ route, navigation }) {
   const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [editingInteraction, setEditingInteraction] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
-  const outlineColor = theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
+  const outlineColor =
+    theme.colors?.outlineVariant || theme.colors?.outline || '#e0e0e0';
 
   // Use TanStack Query for contact and interactions data
   const { data: contact, isLoading: loading } = useContact(contactId);
@@ -63,7 +86,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       .slice(0, 3);
   }, [allEvents]);
 
-  const normalizePhoneNumber = (phoneNumber) => {
+  const normalizePhoneNumber = phoneNumber => {
     if (!phoneNumber) return '';
     const trimmed = safeTrim(phoneNumber);
     // Preserve leading '+' for international numbers
@@ -73,7 +96,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     return hasPlus ? `+${digitsOnly}` : digitsOnly;
   };
 
-  const handleCall = async (phoneNumber) => {
+  const handleCall = async phoneNumber => {
     const normalized = normalizePhoneNumber(phoneNumber);
     if (!normalized) {
       showAlert.error('Invalid phone number');
@@ -87,7 +110,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     }
   };
 
-  const handleMessage = async (phoneNumber) => {
+  const handleMessage = async phoneNumber => {
     const normalized = normalizePhoneNumber(phoneNumber);
     if (!normalized) {
       showAlert.error('Invalid phone number');
@@ -101,7 +124,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     }
   };
 
-  const handleEmail = async (emailAddress) => {
+  const handleEmail = async emailAddress => {
     const mailUrl = `mailto:${emailAddress}`;
     try {
       await Linking.openURL(mailUrl);
@@ -130,13 +153,13 @@ export default function ContactDetailScreen({ route, navigation }) {
     // Query will auto-refetch due to cache invalidation from mutation
   };
 
-  const handleInteractionPress = (interaction) => {
+  const handleInteractionPress = interaction => {
     // Regular tap - show detail modal
     setSelectedInteraction(interaction);
     setShowDetailModal(true);
   };
 
-  const handleInteractionLongPress = (interaction) => {
+  const handleInteractionLongPress = interaction => {
     // Long press - open in edit mode
     setEditingInteraction(interaction);
     setShowAddInteractionModal(true);
@@ -161,7 +184,10 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   const handleViewAllInteractions = () => {
     // Navigate to Interactions tab (would need to implement tab navigation focus)
-    showAlert.info('Navigate to Interactions tab to see all interactions for this contact', 'View All');
+    showAlert.info(
+      'Navigate to Interactions tab to see all interactions for this contact',
+      'View All'
+    );
   };
 
   const handleAddEventClick = () => {
@@ -181,7 +207,7 @@ export default function ContactDetailScreen({ route, navigation }) {
     setShowAddEventModal(true);
   };
 
-  const handleEventPress = (event) => {
+  const handleEventPress = event => {
     setEditingEvent(event);
     setShowAddEventModal(true);
   };
@@ -226,7 +252,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   // Use imported formatPhone from contactHelpers (supports 10 and 11 digit formats)
 
-  const getEventIcon = (eventType) => {
+  const getEventIcon = eventType => {
     const icons = {
       birthday: 'cake-variant',
       anniversary: 'heart',
@@ -244,7 +270,10 @@ export default function ContactDetailScreen({ route, navigation }) {
         const imported = await import('expo-image-picker');
         ImagePicker = imported.default || imported;
       } catch (e) {
-        showAlert.error('Missing dependency', 'Please install expo-image-picker to add photos.');
+        showAlert.error(
+          'Missing dependency',
+          'Please install expo-image-picker to add photos.'
+        );
         return;
       }
 
@@ -285,7 +314,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       try {
         await updateContactMutation.mutateAsync({
           id: contactId,
-          data: { avatar_attachment_id: newAttachment.id }
+          data: { avatar_attachment_id: newAttachment.id },
         });
         // TanStack Query will auto-refetch via invalidation in mutation's onSuccess
       } catch (mutationError) {
@@ -293,8 +322,16 @@ export default function ContactDetailScreen({ route, navigation }) {
         try {
           await fileService.deleteFile(newAttachment.id);
         } catch (rollbackError) {
-          logger.error('ContactDetailScreen', 'Failed to rollback orphaned attachment (now orphaned):', rollbackError);
-          logger.error('ContactDetailScreen', 'Orphaned attachment ID:', newAttachment.id);
+          logger.error(
+            'ContactDetailScreen',
+            'Failed to rollback orphaned attachment (now orphaned):',
+            rollbackError
+          );
+          logger.error(
+            'ContactDetailScreen',
+            'Orphaned attachment ID:',
+            newAttachment.id
+          );
         }
         // Rethrow original mutation error so caller sees the failure
         throw mutationError;
@@ -306,8 +343,11 @@ export default function ContactDetailScreen({ route, navigation }) {
           await fileService.deleteFile(oldAvatarId);
         } catch (cleanupError) {
           // Log but don't throw - old avatar is now orphaned but can be cleaned up later
-          logger.warn('ContactDetailScreen', 'Failed to delete old avatar attachment', { oldAvatarId, error: cleanupError.message });
-          
+          logger.warn(
+            'ContactDetailScreen',
+            'Failed to delete old avatar attachment',
+            { oldAvatarId, error: cleanupError.message }
+          );
         }
       }
 
@@ -325,7 +365,7 @@ export default function ContactDetailScreen({ route, navigation }) {
       }
       await updateContactMutation.mutateAsync({
         id: contactId,
-        data: { avatar_attachment_id: null }
+        data: { avatar_attachment_id: null },
       });
       setShowAvatarDialog(false);
     } catch (e) {
@@ -336,7 +376,9 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   if (loading || !contact) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
         <Appbar.Header elevated>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title={t('contactDetail.title')} />
@@ -348,12 +390,18 @@ export default function ContactDetailScreen({ route, navigation }) {
     );
   }
 
-  const phones = (contact.contact_info || []).filter(info => info.type === 'phone');
-  const emails = (contact.contact_info || []).filter(info => info.type === 'email');
+  const phones = (contact.contact_info || []).filter(
+    info => info.type === 'phone'
+  );
+  const emails = (contact.contact_info || []).filter(
+    info => info.type === 'email'
+  );
   const companyName = contact.company?.name || contact.company_name;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header elevated>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="" />
@@ -362,27 +410,46 @@ export default function ContactDetailScreen({ route, navigation }) {
 
       <ScrollView style={styles.content}>
         {/* Header Section - iOS style */}
-        <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+        <View
+          style={[styles.header, { backgroundColor: theme.colors.surface }]}
+        >
           <Pressable onPress={() => setShowAvatarDialog(true)}>
             <ContactAvatar contact={contact} size={100} style={styles.avatar} />
           </Pressable>
-          <Text variant="headlineMedium" style={[styles.name, { color: theme.colors.onSurface }]}>
+          <Text
+            variant="headlineMedium"
+            style={[styles.name, { color: theme.colors.onSurface }]}
+          >
             {getContactDisplayName(contact)}
           </Text>
           {(contact.job_title || companyName) && (
             <Text
               variant="bodyMedium"
-              style={[styles.company, { color: theme.colors.onSurfaceVariant || theme.colors.onSurface }]}
+              style={[
+                styles.company,
+                {
+                  color:
+                    theme.colors.onSurfaceVariant || theme.colors.onSurface,
+                },
+              ]}
             >
               {contact.job_title && companyName
                 ? `${contact.job_title} at ${companyName}`
-                : (contact.job_title || companyName)}
+                : contact.job_title || companyName}
             </Text>
           )}
         </View>
 
         {/* Quick Actions - Material Design style */}
-        <View style={[styles.quickActions, { backgroundColor: theme.colors.surface, borderBottomColor: outlineColor }]}>
+        <View
+          style={[
+            styles.quickActions,
+            {
+              backgroundColor: theme.colors.surface,
+              borderBottomColor: outlineColor,
+            },
+          ]}
+        >
           {phones.length > 0 && (
             <View style={styles.actionButton}>
               <IconButton
@@ -393,7 +460,12 @@ export default function ContactDetailScreen({ route, navigation }) {
                 iconColor="#fff"
                 onPress={() => handleMessage(phones[0].value)}
               />
-              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>{t('labels.text')}</Text>
+              <Text
+                variant="labelSmall"
+                style={[styles.actionLabel, { color: theme.colors.primary }]}
+              >
+                {t('labels.text')}
+              </Text>
             </View>
           )}
           {phones.length > 0 && (
@@ -406,7 +478,12 @@ export default function ContactDetailScreen({ route, navigation }) {
                 iconColor="#fff"
                 onPress={() => handleCall(phones[0].value)}
               />
-              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>{t('labels.call')}</Text>
+              <Text
+                variant="labelSmall"
+                style={[styles.actionLabel, { color: theme.colors.primary }]}
+              >
+                {t('labels.call')}
+              </Text>
             </View>
           )}
           {emails.length > 0 && (
@@ -419,14 +496,22 @@ export default function ContactDetailScreen({ route, navigation }) {
                 iconColor="#fff"
                 onPress={() => handleEmail(emails[0].value)}
               />
-              <Text variant="labelSmall" style={[styles.actionLabel, { color: theme.colors.primary }]}>email</Text>
+              <Text
+                variant="labelSmall"
+                style={[styles.actionLabel, { color: theme.colors.primary }]}
+              >
+                email
+              </Text>
             </View>
           )}
         </View>
 
         {/* Phone Numbers Section - iOS grouped list style */}
         {phones.length > 0 && (
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={0}
+          >
             {phones.map((phone, index) => (
               <View key={phone.id}>
                 <List.Item
@@ -456,7 +541,10 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         {/* Email Addresses Section */}
         {emails.length > 0 && (
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={0}
+          >
             {emails.map((email, index) => (
               <View key={email.id}>
                 <List.Item
@@ -479,7 +567,10 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         {/* Upcoming Events Section */}
         <View style={styles.sectionHeader}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
+          <Text
+            variant="titleMedium"
+            style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+          >
             {t('contactDetail.events')}
           </Text>
           <View style={styles.eventHeaderButtons}>
@@ -503,13 +594,21 @@ export default function ContactDetailScreen({ route, navigation }) {
         </View>
 
         {upcomingEvents.length > 0 ? (
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={0}
+          >
             {upcomingEvents.map((event, index) => (
               <View key={event.id}>
                 <List.Item
                   title={event.title}
                   description={`${formatDateSmart(event.event_date, t)}${event.recurring ? ` • ${t('contactDetail.recurring')}` : ''}`}
-                  left={props => <List.Icon {...props} icon={getEventIcon(event.event_type)} />}
+                  left={props => (
+                    <List.Icon
+                      {...props}
+                      icon={getEventIcon(event.event_type)}
+                    />
+                  )}
                   onPress={() => handleEventPress(event)}
                 />
                 {index < upcomingEvents.length - 1 && <Divider />}
@@ -517,7 +616,10 @@ export default function ContactDetailScreen({ route, navigation }) {
             ))}
           </Surface>
         ) : (
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={0}
+          >
             <List.Item
               title={t('contactDetail.noEvents')}
               description={t('contactDetail.noEventsDescription')}
@@ -529,7 +631,10 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         {/* Recent Interactions Section */}
         <View style={styles.sectionHeader}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
+          <Text
+            variant="titleMedium"
+            style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+          >
             {t('contactDetail.recent')}
           </Text>
           <Button
@@ -544,7 +649,7 @@ export default function ContactDetailScreen({ route, navigation }) {
 
         {recentInteractions.length > 0 ? (
           <View style={styles.interactionsContainer}>
-            {recentInteractions.map((interaction) => (
+            {recentInteractions.map(interaction => (
               <InteractionCard
                 key={interaction.id}
                 interaction={interaction}
@@ -564,7 +669,10 @@ export default function ContactDetailScreen({ route, navigation }) {
             )}
           </View>
         ) : (
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={0}
+          >
             <List.Item
               title="No interactions yet"
               description="Add your first interaction with this contact"
@@ -575,7 +683,10 @@ export default function ContactDetailScreen({ route, navigation }) {
         )}
 
         {/* Delete Button - iOS style at bottom */}
-        <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={0}>
+        <Surface
+          style={[styles.section, { backgroundColor: theme.colors.surface }]}
+          elevation={0}
+        >
           <List.Item
             title={t('contactDetail.delete')}
             titleStyle={[styles.deleteText, { color: theme.colors.error }]}
@@ -622,14 +733,19 @@ export default function ContactDetailScreen({ route, navigation }) {
       />
 
       <Portal>
-        <Dialog visible={showAvatarDialog} onDismiss={() => setShowAvatarDialog(false)}>
+        <Dialog
+          visible={showAvatarDialog}
+          onDismiss={() => setShowAvatarDialog(false)}
+        >
           <Dialog.Title>Contact Photo</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">Add or remove a profile picture.</Text>
           </Dialog.Content>
           <Dialog.Actions>
             {contact?.avatar_attachment_id ? (
-              <Button onPress={removePhoto} textColor="#d32f2f">{t('contactDetail.remove')}</Button>
+              <Button onPress={removePhoto} textColor="#d32f2f">
+                {t('contactDetail.remove')}
+              </Button>
             ) : null}
             <Button onPress={pickImageFromLibrary}>Add Photo</Button>
             <Button onPress={() => setShowAvatarDialog(false)}>Cancel</Button>

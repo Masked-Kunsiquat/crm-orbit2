@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { handleError, showAlert } from '../errors';
-import { Appbar, RadioButton, Text, List, Divider, Switch, Portal, Dialog, Button } from 'react-native-paper';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { handleError, showAlert, logger } from '../errors';
+import {
+  Appbar,
+  RadioButton,
+  Text,
+  List,
+  Divider,
+  Switch,
+  Portal,
+  Dialog,
+  Button,
+} from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
 import database from '../database';
 import { resetDatabase } from '../database/resetDb';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { logger } from '../errors';
 
 const ACTIONS = [
   { label: 'Call', value: 'call' },
@@ -27,7 +42,7 @@ export default function SettingsScreen() {
     language,
     setLanguage,
     companyManagementEnabled,
-    setCompanyManagementEnabled
+    setCompanyManagementEnabled,
   } = useSettings();
   const [expandedSwipe, setExpandedSwipe] = useState(false);
   const [expandedTheme, setExpandedTheme] = useState(false);
@@ -105,7 +120,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const changeAutoLockTimeout = async (minutes) => {
+  const changeAutoLockTimeout = async minutes => {
     const prev = autoLockTimeout;
     setAutoLockTimeout(minutes);
     // If auto-lock is enabled, persist immediately and restart timer
@@ -114,7 +129,11 @@ export default function SettingsScreen() {
         const ok = await authService.enableAutoLock(minutes);
         if (!ok) throw new Error('enableAutoLock (update timeout) failed');
       } catch (e) {
-        logger.error('SettingsScreen', 'Failed to update auto-lock timeout:', e);
+        logger.error(
+          'SettingsScreen',
+          'Failed to update auto-lock timeout:',
+          e
+        );
         setAutoLockTimeout(prev);
         showAlert.error(
           t('settings.errors.autoLockTimeout.title'),
@@ -124,12 +143,16 @@ export default function SettingsScreen() {
     }
   };
 
-  const onSelectCall = async (side) => {
+  const onSelectCall = async side => {
     try {
       if (side === 'left') await setMapping('call', 'text');
       else await setMapping('text', 'call');
     } catch (error) {
-      logger.error('SettingsScreen', 'Failed to update swipe action mapping:', error);
+      logger.error(
+        'SettingsScreen',
+        'Failed to update swipe action mapping:',
+        error
+      );
       showAlert.error(
         t('settings.errors.swipeAction.title'),
         t('settings.errors.swipeAction.message')
@@ -137,12 +160,16 @@ export default function SettingsScreen() {
     }
   };
 
-  const onSelectText = async (side) => {
+  const onSelectText = async side => {
     try {
       if (side === 'left') await setMapping('text', 'call');
       else await setMapping('call', 'text');
     } catch (error) {
-      logger.error('SettingsScreen', 'Failed to update swipe action mapping:', error);
+      logger.error(
+        'SettingsScreen',
+        'Failed to update swipe action mapping:',
+        error
+      );
       showAlert.error(
         t('settings.errors.swipeAction.title'),
         t('settings.errors.swipeAction.message')
@@ -150,7 +177,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleThemeChange = async (mode) => {
+  const handleThemeChange = async mode => {
     try {
       await setThemeMode(mode);
     } catch (error) {
@@ -162,7 +189,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLanguageChange = async (lang) => {
+  const handleLanguageChange = async lang => {
     try {
       await setLanguage(lang);
     } catch (error) {
@@ -182,7 +209,11 @@ export default function SettingsScreen() {
         t('settings.database.migrationsSuccess'),
         t('settings.database.migrationsComplete')
       );
-      logger.success('SettingsScreen', 'handleRunMigrations', 'Migrations completed');
+      logger.success(
+        'SettingsScreen',
+        'handleRunMigrations',
+        'Migrations completed'
+      );
     } catch (error) {
       logger.error('SettingsScreen', 'handleRunMigrations', error);
       showAlert.error(
@@ -208,7 +239,11 @@ export default function SettingsScreen() {
             t('settings.database.resetSuccess'),
             t('settings.database.resetComplete')
           );
-          logger.success('SettingsScreen', 'handleResetDatabase', 'Database reset');
+          logger.success(
+            'SettingsScreen',
+            'handleResetDatabase',
+            'Database reset'
+          );
         } catch (error) {
           logger.error('SettingsScreen', 'handleResetDatabase', error);
           showAlert.error(
@@ -231,315 +266,386 @@ export default function SettingsScreen() {
       <ScrollView style={styles.scrollView}>
         {/* Security */}
         <List.Section style={styles.section}>
-        <List.Accordion
-          title={t('settings.sections.security')}
-          expanded={expandedSecurity}
-          onPress={() => setExpandedSecurity(e => !e)}
-        >
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.security.pinSetup')}</Text>}
-            onPress={() => navigation.navigate('PinSetup')}
-          />
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.security.useBiometric')}</Text>}
-            right={() => (
-              <Switch value={biometricEnabled} onValueChange={toggleBiometric} />
-            )}
-          />
-          <List.Item
-            title={() => (
-              <Text variant="titleSmall">{t('settings.security.autoLock', { minutes: autoLockTimeout })}</Text>
-            )}
-            right={() => (
-              <Switch value={autoLockEnabled} onValueChange={toggleAutoLock} />
-            )}
-          />
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.security.autoLockTimeout')}</Text>}
-            description={() => (
-              <View style={styles.timeoutOptions}>
-                {[1, 5, 10, 30].map((m) => (
-                  <View key={m} style={styles.timeoutOption}>
-                    <RadioButton
-                      value={`auto-timeout-${m}`}
-                      status={autoLockTimeout === m ? 'checked' : 'unchecked'}
-                      onPress={() => changeAutoLockTimeout(m)}
-                    />
-                    <Text style={styles.timeoutLabel}>
-                      {t('settings.security.minutes', { count: m })}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          />
-        </List.Accordion>
-      </List.Section>
-
-      {/* Features */}
-      <List.Section style={styles.section}>
-        <List.Accordion
-          title={t('settings.sections.features')}
-          expanded={expandedFeatures}
-          onPress={() => setExpandedFeatures(e => !e)}
-        >
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.features.companyManagement.title')}</Text>}
-            description={() => (
-              <Text variant="bodySmall" style={styles.featureDescription}>
-                {t('settings.features.companyManagement.description')}
-              </Text>
-            )}
-            right={() => (
-              <Switch
-                value={companyManagementEnabled}
-                onValueChange={async (value) => {
-                  try {
-                    await setCompanyManagementEnabled(value);
-                    setSuccessDialogMessage(
-                      value
-                        ? t('settings.features.companyManagement.enabled')
-                        : t('settings.features.companyManagement.disabled')
-                    );
-                    setSuccessDialogVisible(true);
-                  } catch (error) {
-                    logger.error('SettingsScreen', 'toggleCompanyManagement', error);
-                    showAlert.error(
-                      t('settings.errors.featureToggle.title'),
-                      t('settings.errors.featureToggle.message')
-                    );
-                  }
-                }}
-              />
-            )}
-          />
-        </List.Accordion>
-      </List.Section>
-
-      {/* Database */}
-      <List.Section style={styles.section}>
-        <List.Accordion
-          title={t('settings.sections.database')}
-          expanded={expandedDatabase}
-          onPress={() => setExpandedDatabase(e => !e)}
-        >
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.database.runMigrations')}</Text>}
-            description={() => (
-              <Text variant="bodySmall" style={styles.featureDescription}>
-                {t('settings.database.migrationsDescription')}
-              </Text>
-            )}
-            right={() => (
-              runningMigrations ? (
-                <ActivityIndicator size="small" style={{ marginRight: 16 }} />
-              ) : (
-                <Button
-                  mode="outlined"
-                  onPress={handleRunMigrations}
-                  disabled={runningMigrations || resettingDatabase}
-                  compact
-                >
-                  {t('settings.database.run')}
-                </Button>
-              )
-            )}
-          />
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.database.resetDatabase')}</Text>}
-            description={() => (
-              <Text variant="bodySmall" style={styles.featureDescription}>
-                {t('settings.database.resetDescription')}
-              </Text>
-            )}
-            right={() => (
-              resettingDatabase ? (
-                <ActivityIndicator size="small" style={{ marginRight: 16 }} />
-              ) : (
-                <Button
-                  mode="outlined"
-                  onPress={handleResetDatabase}
-                  disabled={runningMigrations || resettingDatabase}
-                  compact
-                >
-                  {t('settings.database.reset')}
-                </Button>
-              )
-            )}
-          />
-        </List.Accordion>
-      </List.Section>
-
-      {/* Swipe Actions */}
-      <List.Section style={styles.section}>
-        <List.Accordion
-          title={t('settings.sections.swipe')}
-          expanded={expandedSwipe}
-          onPress={() => setExpandedSwipe(e => !e)}
-        >
-          <List.Item
-            title={() => (
-              <Text variant="titleSmall">{t('labels.call')}</Text>
-            )}
-            right={() => (
-              <View style={styles.rowOptions}>
-                <Text style={styles.optionLabel}>{t('labels.left')}</Text>
-                <RadioButton
-                  value="call-left"
-                  status={leftAction === 'call' ? 'checked' : 'unchecked'}
-                  onPress={() => onSelectCall('left')}
+          <List.Accordion
+            title={t('settings.sections.security')}
+            expanded={expandedSecurity}
+            onPress={() => setExpandedSecurity(e => !e)}
+          >
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.security.pinSetup')}
+                </Text>
+              )}
+              onPress={() => navigation.navigate('PinSetup')}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.security.useBiometric')}
+                </Text>
+              )}
+              right={() => (
+                <Switch
+                  value={biometricEnabled}
+                  onValueChange={toggleBiometric}
                 />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.right')}</Text>
-                <RadioButton
-                  value="call-right"
-                  status={rightAction === 'call' ? 'checked' : 'unchecked'}
-                  onPress={() => onSelectCall('right')}
+              )}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.security.autoLock', {
+                    minutes: autoLockTimeout,
+                  })}
+                </Text>
+              )}
+              right={() => (
+                <Switch
+                  value={autoLockEnabled}
+                  onValueChange={toggleAutoLock}
                 />
-              </View>
-            )}
-          />
+              )}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.security.autoLockTimeout')}
+                </Text>
+              )}
+              description={() => (
+                <View style={styles.timeoutOptions}>
+                  {[1, 5, 10, 30].map(m => (
+                    <View key={m} style={styles.timeoutOption}>
+                      <RadioButton
+                        value={`auto-timeout-${m}`}
+                        status={autoLockTimeout === m ? 'checked' : 'unchecked'}
+                        onPress={() => changeAutoLockTimeout(m)}
+                      />
+                      <Text style={styles.timeoutLabel}>
+                        {t('settings.security.minutes', { count: m })}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            />
+          </List.Accordion>
+        </List.Section>
 
-          <Divider style={styles.divider} />
+        {/* Features */}
+        <List.Section style={styles.section}>
+          <List.Accordion
+            title={t('settings.sections.features')}
+            expanded={expandedFeatures}
+            onPress={() => setExpandedFeatures(e => !e)}
+          >
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.features.companyManagement.title')}
+                </Text>
+              )}
+              description={() => (
+                <Text variant="bodySmall" style={styles.featureDescription}>
+                  {t('settings.features.companyManagement.description')}
+                </Text>
+              )}
+              right={() => (
+                <Switch
+                  value={companyManagementEnabled}
+                  onValueChange={async value => {
+                    try {
+                      await setCompanyManagementEnabled(value);
+                      setSuccessDialogMessage(
+                        value
+                          ? t('settings.features.companyManagement.enabled')
+                          : t('settings.features.companyManagement.disabled')
+                      );
+                      setSuccessDialogVisible(true);
+                    } catch (error) {
+                      logger.error(
+                        'SettingsScreen',
+                        'toggleCompanyManagement',
+                        error
+                      );
+                      showAlert.error(
+                        t('settings.errors.featureToggle.title'),
+                        t('settings.errors.featureToggle.message')
+                      );
+                    }
+                  }}
+                />
+              )}
+            />
+          </List.Accordion>
+        </List.Section>
 
-          <List.Item
-            title={() => (
-              <Text variant="titleSmall">{t('labels.text')}</Text>
-            )}
-            right={() => (
-              <View style={styles.rowOptions}>
-                <Text style={styles.optionLabel}>{t('labels.left')}</Text>
-                <RadioButton
-                  value="text-left"
-                  status={leftAction === 'text' ? 'checked' : 'unchecked'}
-                  onPress={() => onSelectText('left')}
-                />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.right')}</Text>
-                <RadioButton
-                  value="text-right"
-                  status={rightAction === 'text' ? 'checked' : 'unchecked'}
-                  onPress={() => onSelectText('right')}
-                />
-              </View>
-            )}
-          />
-        </List.Accordion>
-  </List.Section>
+        {/* Database */}
+        <List.Section style={styles.section}>
+          <List.Accordion
+            title={t('settings.sections.database')}
+            expanded={expandedDatabase}
+            onPress={() => setExpandedDatabase(e => !e)}
+          >
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.database.runMigrations')}
+                </Text>
+              )}
+              description={() => (
+                <Text variant="bodySmall" style={styles.featureDescription}>
+                  {t('settings.database.migrationsDescription')}
+                </Text>
+              )}
+              right={() =>
+                runningMigrations ? (
+                  <ActivityIndicator size="small" style={{ marginRight: 16 }} />
+                ) : (
+                  <Button
+                    mode="outlined"
+                    onPress={handleRunMigrations}
+                    disabled={runningMigrations || resettingDatabase}
+                    compact
+                  >
+                    {t('settings.database.run')}
+                  </Button>
+                )
+              }
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.database.resetDatabase')}
+                </Text>
+              )}
+              description={() => (
+                <Text variant="bodySmall" style={styles.featureDescription}>
+                  {t('settings.database.resetDescription')}
+                </Text>
+              )}
+              right={() =>
+                resettingDatabase ? (
+                  <ActivityIndicator size="small" style={{ marginRight: 16 }} />
+                ) : (
+                  <Button
+                    mode="outlined"
+                    onPress={handleResetDatabase}
+                    disabled={runningMigrations || resettingDatabase}
+                    compact
+                  >
+                    {t('settings.database.reset')}
+                  </Button>
+                )
+              }
+            />
+          </List.Accordion>
+        </List.Section>
 
-  {/* Theme */}
-  <List.Section style={styles.section}>
-        <List.Accordion
-          title={t('settings.sections.theme')}
-          expanded={expandedTheme}
-          onPress={() => setExpandedTheme(e => !e)}
-        >
-          <List.Item
-            title={() => <Text variant="titleSmall">{t('settings.appearance')}</Text>}
-            right={() => (
-              <View style={styles.rowOptions}>
-                <Text style={styles.optionLabel}>{t('labels.system')}</Text>
-                <RadioButton
-                  value="theme-system"
-                  status={themeMode === 'system' ? 'checked' : 'unchecked'}
-                  onPress={() => handleThemeChange('system')}
-                />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.light')}</Text>
-                <RadioButton
-                  value="theme-light"
-                  status={themeMode === 'light' ? 'checked' : 'unchecked'}
-                  onPress={() => handleThemeChange('light')}
-                />
-                <Text style={[styles.optionLabel, { marginLeft: 8 }]}>{t('labels.dark')}</Text>
-                <RadioButton
-                  value="theme-dark"
-                  status={themeMode === 'dark' ? 'checked' : 'unchecked'}
-                  onPress={() => handleThemeChange('dark')}
-                />
-              </View>
-            )}
-          />
-        </List.Accordion>
-  </List.Section>
+        {/* Swipe Actions */}
+        <List.Section style={styles.section}>
+          <List.Accordion
+            title={t('settings.sections.swipe')}
+            expanded={expandedSwipe}
+            onPress={() => setExpandedSwipe(e => !e)}
+          >
+            <List.Item
+              title={() => <Text variant="titleSmall">{t('labels.call')}</Text>}
+              right={() => (
+                <View style={styles.rowOptions}>
+                  <Text style={styles.optionLabel}>{t('labels.left')}</Text>
+                  <RadioButton
+                    value="call-left"
+                    status={leftAction === 'call' ? 'checked' : 'unchecked'}
+                    onPress={() => onSelectCall('left')}
+                  />
+                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
+                    {t('labels.right')}
+                  </Text>
+                  <RadioButton
+                    value="call-right"
+                    status={rightAction === 'call' ? 'checked' : 'unchecked'}
+                    onPress={() => onSelectCall('right')}
+                  />
+                </View>
+              )}
+            />
 
-  {/* Language */}
-  <List.Section style={styles.section}>
-    <List.Accordion
-      title={t('settings.sections.language')}
-      expanded={expandedLanguage}
-      onPress={() => setExpandedLanguage(e => !e)}
-    >
-      <List.Item
-        title={() => <Text variant="titleSmall">{t('settings.language.device')}</Text>}
-        right={() => (
-          <RadioButton
-            value="lang-device"
-            status={language === 'device' ? 'checked' : 'unchecked'}
-            onPress={() => handleLanguageChange('device')}
-          />
-        )}
-        onPress={() => handleLanguageChange('device')}
-      />
-      <List.Item
-        title={() => <Text variant="titleSmall">{t('settings.language.english')}</Text>}
-        right={() => (
-          <RadioButton
-            value="lang-en"
-            status={language === 'en' ? 'checked' : 'unchecked'}
-            onPress={() => handleLanguageChange('en')}
-          />
-        )}
-        onPress={() => handleLanguageChange('en')}
-      />
-      <List.Item
-        title={() => <Text variant="titleSmall">{t('settings.language.spanish')}</Text>}
-        right={() => (
-          <RadioButton
-            value="lang-es"
-            status={language === 'es' ? 'checked' : 'unchecked'}
-            onPress={() => handleLanguageChange('es')}
-          />
-        )}
-        onPress={() => handleLanguageChange('es')}
-      />
-      <List.Item
-        title={() => <Text variant="titleSmall">{t('settings.language.german')}</Text>}
-        right={() => (
-          <RadioButton
-            value="lang-de"
-            status={language === 'de' ? 'checked' : 'unchecked'}
-            onPress={() => handleLanguageChange('de')}
-          />
-        )}
-        onPress={() => handleLanguageChange('de')}
-      />
-      <List.Item
-        title={() => <Text variant="titleSmall">{t('settings.language.french')}</Text>}
-        right={() => (
-          <RadioButton
-            value="lang-fr"
-            status={language === 'fr' ? 'checked' : 'unchecked'}
-            onPress={() => handleLanguageChange('fr')}
-          />
-        )}
-        onPress={() => handleLanguageChange('fr')}
-      />
-      <List.Item
-        title={() => <Text variant="titleSmall">{t('settings.language.chinese')}</Text>}
-        right={() => (
-          <RadioButton
-            value="lang-zh"
-            status={language === 'zh' ? 'checked' : 'unchecked'}
-            onPress={() => handleLanguageChange('zh')}
-          />
-        )}
-        onPress={() => handleLanguageChange('zh')}
-      />
-    </List.Accordion>
-  </List.Section>
+            <Divider style={styles.divider} />
+
+            <List.Item
+              title={() => <Text variant="titleSmall">{t('labels.text')}</Text>}
+              right={() => (
+                <View style={styles.rowOptions}>
+                  <Text style={styles.optionLabel}>{t('labels.left')}</Text>
+                  <RadioButton
+                    value="text-left"
+                    status={leftAction === 'text' ? 'checked' : 'unchecked'}
+                    onPress={() => onSelectText('left')}
+                  />
+                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
+                    {t('labels.right')}
+                  </Text>
+                  <RadioButton
+                    value="text-right"
+                    status={rightAction === 'text' ? 'checked' : 'unchecked'}
+                    onPress={() => onSelectText('right')}
+                  />
+                </View>
+              )}
+            />
+          </List.Accordion>
+        </List.Section>
+
+        {/* Theme */}
+        <List.Section style={styles.section}>
+          <List.Accordion
+            title={t('settings.sections.theme')}
+            expanded={expandedTheme}
+            onPress={() => setExpandedTheme(e => !e)}
+          >
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">{t('settings.appearance')}</Text>
+              )}
+              right={() => (
+                <View style={styles.rowOptions}>
+                  <Text style={styles.optionLabel}>{t('labels.system')}</Text>
+                  <RadioButton
+                    value="theme-system"
+                    status={themeMode === 'system' ? 'checked' : 'unchecked'}
+                    onPress={() => handleThemeChange('system')}
+                  />
+                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
+                    {t('labels.light')}
+                  </Text>
+                  <RadioButton
+                    value="theme-light"
+                    status={themeMode === 'light' ? 'checked' : 'unchecked'}
+                    onPress={() => handleThemeChange('light')}
+                  />
+                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
+                    {t('labels.dark')}
+                  </Text>
+                  <RadioButton
+                    value="theme-dark"
+                    status={themeMode === 'dark' ? 'checked' : 'unchecked'}
+                    onPress={() => handleThemeChange('dark')}
+                  />
+                </View>
+              )}
+            />
+          </List.Accordion>
+        </List.Section>
+
+        {/* Language */}
+        <List.Section style={styles.section}>
+          <List.Accordion
+            title={t('settings.sections.language')}
+            expanded={expandedLanguage}
+            onPress={() => setExpandedLanguage(e => !e)}
+          >
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.language.device')}
+                </Text>
+              )}
+              right={() => (
+                <RadioButton
+                  value="lang-device"
+                  status={language === 'device' ? 'checked' : 'unchecked'}
+                  onPress={() => handleLanguageChange('device')}
+                />
+              )}
+              onPress={() => handleLanguageChange('device')}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.language.english')}
+                </Text>
+              )}
+              right={() => (
+                <RadioButton
+                  value="lang-en"
+                  status={language === 'en' ? 'checked' : 'unchecked'}
+                  onPress={() => handleLanguageChange('en')}
+                />
+              )}
+              onPress={() => handleLanguageChange('en')}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.language.spanish')}
+                </Text>
+              )}
+              right={() => (
+                <RadioButton
+                  value="lang-es"
+                  status={language === 'es' ? 'checked' : 'unchecked'}
+                  onPress={() => handleLanguageChange('es')}
+                />
+              )}
+              onPress={() => handleLanguageChange('es')}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.language.german')}
+                </Text>
+              )}
+              right={() => (
+                <RadioButton
+                  value="lang-de"
+                  status={language === 'de' ? 'checked' : 'unchecked'}
+                  onPress={() => handleLanguageChange('de')}
+                />
+              )}
+              onPress={() => handleLanguageChange('de')}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.language.french')}
+                </Text>
+              )}
+              right={() => (
+                <RadioButton
+                  value="lang-fr"
+                  status={language === 'fr' ? 'checked' : 'unchecked'}
+                  onPress={() => handleLanguageChange('fr')}
+                />
+              )}
+              onPress={() => handleLanguageChange('fr')}
+            />
+            <List.Item
+              title={() => (
+                <Text variant="titleSmall">
+                  {t('settings.language.chinese')}
+                </Text>
+              )}
+              right={() => (
+                <RadioButton
+                  value="lang-zh"
+                  status={language === 'zh' ? 'checked' : 'unchecked'}
+                  onPress={() => handleLanguageChange('zh')}
+                />
+              )}
+              onPress={() => handleLanguageChange('zh')}
+            />
+          </List.Accordion>
+        </List.Section>
       </ScrollView>
 
       {/* Themed Success Dialog */}
       <Portal>
-        <Dialog visible={successDialogVisible} onDismiss={() => setSuccessDialogVisible(false)}>
+        <Dialog
+          visible={successDialogVisible}
+          onDismiss={() => setSuccessDialogVisible(false)}
+        >
           <Dialog.Title>{t('labels.success')}</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">{successDialogMessage}</Text>

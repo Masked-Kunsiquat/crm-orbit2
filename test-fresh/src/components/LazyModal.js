@@ -31,12 +31,12 @@ export default function LazyModal({ visible, loader, children }) {
     if (visible && !hasLoaded && !loading) {
       setLoading(true);
       loader()
-        .then((module) => {
+        .then(module => {
           setComponent(() => module.default || module);
           setHasLoaded(true);
           setLoading(false);
         })
-        .catch((error) => {
+        .catch(error => {
           console.error('LazyModal: Failed to load component', error);
           setLoading(false);
         });

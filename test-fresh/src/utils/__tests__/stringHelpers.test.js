@@ -13,7 +13,7 @@ import {
   filterNonEmpty,
   filterNonEmptyStrings,
   capitalize,
-  truncate
+  truncate,
 } from '../stringHelpers';
 
 describe('stringHelpers', () => {
@@ -83,7 +83,9 @@ describe('stringHelpers', () => {
 
     it('should handle email addresses', () => {
       expect(normalizeTrimLowercase('John@Email.COM')).toBe('john@email.com');
-      expect(normalizeTrimLowercase('  USER@EXAMPLE.COM  ')).toBe('user@example.com');
+      expect(normalizeTrimLowercase('  USER@EXAMPLE.COM  ')).toBe(
+        'user@example.com'
+      );
     });
 
     it('should handle empty strings', () => {
@@ -171,26 +173,16 @@ describe('stringHelpers', () => {
         { value: '555-1234' },
         { value: '  ' },
         { value: '' },
-        { value: 'valid' }
+        { value: 'valid' },
       ];
       const result = filterNonEmpty(items);
-      expect(result).toEqual([
-        { value: '555-1234' },
-        { value: 'valid' }
-      ]);
+      expect(result).toEqual([{ value: '555-1234' }, { value: 'valid' }]);
     });
 
     it('should handle custom field names', () => {
-      const items = [
-        { label: 'John' },
-        { label: '  ' },
-        { label: 'Jane' }
-      ];
+      const items = [{ label: 'John' }, { label: '  ' }, { label: 'Jane' }];
       const result = filterNonEmpty(items, 'label');
-      expect(result).toEqual([
-        { label: 'John' },
-        { label: 'Jane' }
-      ]);
+      expect(result).toEqual([{ label: 'John' }, { label: 'Jane' }]);
     });
 
     it('should handle empty arrays', () => {
@@ -210,13 +202,10 @@ describe('stringHelpers', () => {
         { value: 'valid' },
         null,
         undefined,
-        { value: 'also valid' }
+        { value: 'also valid' },
       ];
       const result = filterNonEmpty(items);
-      expect(result).toEqual([
-        { value: 'valid' },
-        { value: 'also valid' }
-      ]);
+      expect(result).toEqual([{ value: 'valid' }, { value: 'also valid' }]);
     });
 
     it('should filter out non-object items', () => {
@@ -225,38 +214,26 @@ describe('stringHelpers', () => {
         'string',
         123,
         true,
-        { value: 'also valid' }
+        { value: 'also valid' },
       ];
       const result = filterNonEmpty(items);
-      expect(result).toEqual([
-        { value: 'valid' },
-        { value: 'also valid' }
-      ]);
+      expect(result).toEqual([{ value: 'valid' }, { value: 'also valid' }]);
     });
 
     it('should handle missing field', () => {
       const items = [
         { value: 'has value' },
         { other: 'no value field' },
-        { value: 'valid' }
+        { value: 'valid' },
       ];
       const result = filterNonEmpty(items);
-      expect(result).toEqual([
-        { value: 'has value' },
-        { value: 'valid' }
-      ]);
+      expect(result).toEqual([{ value: 'has value' }, { value: 'valid' }]);
     });
 
     it('should handle whitespace-only values', () => {
-      const items = [
-        { value: '   ' },
-        { value: '\t\n' },
-        { value: 'valid' }
-      ];
+      const items = [{ value: '   ' }, { value: '\t\n' }, { value: 'valid' }];
       const result = filterNonEmpty(items);
-      expect(result).toEqual([
-        { value: 'valid' }
-      ]);
+      expect(result).toEqual([{ value: 'valid' }]);
     });
 
     it('should handle real-world phone number example', () => {
@@ -264,12 +241,12 @@ describe('stringHelpers', () => {
         { value: '555-1234', label: 'Home' },
         { value: '', label: 'Work' },
         { value: '   ', label: 'Mobile' },
-        { value: '555-5678', label: 'Office' }
+        { value: '555-5678', label: 'Office' },
       ];
       const result = filterNonEmpty(phones);
       expect(result).toEqual([
         { value: '555-1234', label: 'Home' },
-        { value: '555-5678', label: 'Office' }
+        { value: '555-5678', label: 'Office' },
       ]);
     });
   });
@@ -474,10 +451,13 @@ describe('stringHelpers', () => {
     });
 
     it('should handle real-world use case', () => {
-      const longNote = 'This is a very long note that needs to be truncated for display in a list view where space is limited';
+      const longNote =
+        'This is a very long note that needs to be truncated for display in a list view where space is limited';
       const result = truncate(longNote, 50);
       // Should truncate at exactly 50 characters and add '...'
-      expect(result).toBe('This is a very long note that needs to be truncate...');
+      expect(result).toBe(
+        'This is a very long note that needs to be truncate...'
+      );
       expect(result.length).toBe(53); // 50 chars + '...' (3 chars)
     });
 

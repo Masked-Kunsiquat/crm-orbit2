@@ -133,7 +133,10 @@ export const notificationService = {
   async initialize() {
     try {
       if (!Device.isDevice) {
-        logger.warn('NotificationService', 'Notifications require a physical device');
+        logger.warn(
+          'NotificationService',
+          'Notifications require a physical device'
+        );
         return false;
       }
 
@@ -144,7 +147,10 @@ export const notificationService = {
       }
 
       if (finalStatus !== 'granted') {
-        logger.warn('NotificationService', 'Notification permissions not granted');
+        logger.warn(
+          'NotificationService',
+          'Notification permissions not granted'
+        );
         return false;
       }
 
@@ -224,7 +230,7 @@ export const notificationService = {
           'Invalid reminder_datetime; skipping schedule',
           {
             reminderDatetime: reminder.reminder_datetime,
-            reminderId: reminder?.id
+            reminderId: reminder?.id,
           }
         );
         return null;
@@ -263,7 +269,7 @@ export const notificationService = {
           {
             reminderId: reminder.id,
             originalTime: originalReminderTime.toISOString(),
-            adjustedTime: scheduledTime.toISOString()
+            adjustedTime: scheduledTime.toISOString(),
           }
         );
       }
@@ -362,7 +368,7 @@ export const notificationService = {
             'Error persisting notification_id for reminder',
             {
               reminderId: reminder.id,
-              error: persistError?.message || persistError
+              error: persistError?.message || persistError,
             }
           );
           // Do not include in returned list since persistence failed
@@ -474,7 +480,7 @@ export const notificationService = {
             'Failed to schedule notification for reminder',
             {
               reminderId: reminder.id,
-              error: schedulingError.message
+              error: schedulingError.message,
             }
           );
           failedItems.push(reminder.id);
@@ -489,7 +495,7 @@ export const notificationService = {
                 'Failed to cancel notification during rollback',
                 {
                   notificationId,
-                  error: cancelError.message
+                  error: cancelError.message,
                 }
               );
             }
@@ -505,7 +511,7 @@ export const notificationService = {
                 'Failed to delete reminder during rollback',
                 {
                   reminderId,
-                  error: deleteError.message
+                  error: deleteError.message,
                 }
               );
             }
@@ -755,10 +761,9 @@ export const notificationService = {
       }
 
       // Render the template
-      const title =
-        is.function(template.title)
-          ? template.title(event, context)
-          : template.title;
+      const title = is.function(template.title)
+        ? template.title(event, context)
+        : template.title;
 
       const body = template.body(event, context);
       const data = template.data(event, context);
@@ -1017,7 +1022,7 @@ export const notificationService = {
                 'Failed to cancel expired notification',
                 {
                   notificationId: notification.identifier,
-                  error: error.message
+                  error: error.message,
                 }
               );
             }
@@ -1042,14 +1047,10 @@ export const notificationService = {
             failedItems.push(reminder.id);
           }
         } catch (error) {
-          logger.warn(
-            'NotificationService',
-            'Failed to schedule reminder',
-            {
-              reminderId: reminder.id,
-              error: error.message
-            }
-          );
+          logger.warn('NotificationService', 'Failed to schedule reminder', {
+            reminderId: reminder.id,
+            error: error.message,
+          });
           failedItems.push(reminder.id);
         }
       }
@@ -1076,7 +1077,7 @@ export const notificationService = {
             'Failed to schedule recurring reminder',
             {
               reminderId: reminder.id,
-              error: error.message
+              error: error.message,
             }
           );
           failedItems.push(reminder.id);
@@ -1095,7 +1096,7 @@ export const notificationService = {
       logger.success('NotificationService', 'syncAllReminders', {
         scheduled: scheduledItems.length,
         failed: failedItems.length,
-        cancelled: cleanupResult.cancelledCount
+        cancelled: cleanupResult.cancelledCount,
       });
 
       return {
@@ -1105,7 +1106,7 @@ export const notificationService = {
       };
     } catch (error) {
       logger.error('NotificationService', 'syncAllReminders', error, {
-        message: 'Sync failed, attempting cleanup'
+        message: 'Sync failed, attempting cleanup',
       });
 
       // Attempt to rollback any partial external scheduling
@@ -1124,7 +1125,7 @@ export const notificationService = {
               'Failed to rollback notification',
               {
                 notificationId,
-                error: rollbackError.message
+                error: rollbackError.message,
               }
             );
           }

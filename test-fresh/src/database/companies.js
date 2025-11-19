@@ -216,10 +216,10 @@ export function createCompaniesDB(ctx) {
         // Update the company we're keeping with merged data
         if (Object.keys(mergedData).length > 0) {
           const { setClause, values } = buildUpdateSet(mergedData);
-          await tx.execute(
-            `UPDATE companies SET ${setClause} WHERE id = ?;`,
-            [...values, keepId]
-          );
+          await tx.execute(`UPDATE companies SET ${setClause} WHERE id = ?;`, [
+            ...values,
+            keepId,
+          ]);
         }
 
         // Delete the company being merged

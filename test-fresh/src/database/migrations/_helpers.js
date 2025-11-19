@@ -177,7 +177,9 @@ export async function recreateTable(ctx, options) {
 
   const tempTableName = `${tableName}_new`;
 
-  console.log(`[recreateTable] Starting 12-step procedure for table: ${tableName}`);
+  console.log(
+    `[recreateTable] Starting 12-step procedure for table: ${tableName}`
+  );
 
   // STEP 1: Check and disable foreign keys if enabled
   console.log('[recreateTable] Step 1: Checking foreign key constraints...');
@@ -185,12 +187,16 @@ export async function recreateTable(ctx, options) {
   const foreignKeysEnabled = fkResult.rows?.[0]?.foreign_keys === 1;
 
   if (foreignKeysEnabled) {
-    console.log('[recreateTable] Foreign keys enabled, disabling temporarily...');
+    console.log(
+      '[recreateTable] Foreign keys enabled, disabling temporarily...'
+    );
     await execute('PRAGMA foreign_keys=OFF;');
   }
 
   // STEP 2: Start transaction (handled by migration runner, but we log it)
-  console.log('[recreateTable] Step 2: Transaction should be active (handled by migration runner)');
+  console.log(
+    '[recreateTable] Step 2: Transaction should be active (handled by migration runner)'
+  );
 
   // STEP 3: Remember associated indexes, triggers, and views
   console.log('[recreateTable] Step 3: Querying associated schema objects...');
@@ -199,13 +205,20 @@ export async function recreateTable(ctx, options) {
     [tableName]
   );
   const associatedObjects = schemaResult.rows || [];
-  console.log(`[recreateTable] Found ${associatedObjects.length} associated objects (indexes, triggers, views)`);
+  console.log(
+    `[recreateTable] Found ${associatedObjects.length} associated objects (indexes, triggers, views)`
+  );
 
   // STEP 4: Create new table with desired schema
-  console.log('[recreateTable] Step 4: Creating new table with revised schema...');
+  console.log(
+    '[recreateTable] Step 4: Creating new table with revised schema...'
+  );
   // Replace table name in SQL with temp name
   const tempTableSQL = newTableSQL.replace(
-    new RegExp(`CREATE\\s+TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?${tableName}\\b`, 'i'),
+    new RegExp(
+      `CREATE\\s+TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?${tableName}\\b`,
+      'i'
+    ),
     `CREATE TABLE ${tempTableName}`
   );
   await execute(tempTableSQL);
@@ -213,7 +226,9 @@ export async function recreateTable(ctx, options) {
 
   // STEP 5: Transfer data from old table to new table
   console.log('[recreateTable] Step 5: Transferring data...');
-  const transferSQL = dataMigrationSQL || `INSERT INTO ${tempTableName} SELECT * FROM ${tableName};`;
+  const transferSQL =
+    dataMigrationSQL ||
+    `INSERT INTO ${tempTableName} SELECT * FROM ${tableName};`;
   await execute(transferSQL);
   console.log('[recreateTable] Data transfer complete');
 
@@ -232,7 +247,9 @@ export async function recreateTable(ctx, options) {
 
   // Recreate indexes
   if (recreateIndexes.length > 0) {
-    console.log(`[recreateTable] Recreating ${recreateIndexes.length} indexes...`);
+    console.log(
+      `[recreateTable] Recreating ${recreateIndexes.length} indexes...`
+    );
     for (const indexSQL of recreateIndexes) {
       await execute(indexSQL);
     }
@@ -240,7 +257,9 @@ export async function recreateTable(ctx, options) {
 
   // Recreate triggers
   if (recreateTriggers.length > 0) {
-    console.log(`[recreateTable] Recreating ${recreateTriggers.length} triggers...`);
+    console.log(
+      `[recreateTable] Recreating ${recreateTriggers.length} triggers...`
+    );
     for (const triggerSQL of recreateTriggers) {
       await execute(triggerSQL);
     }
@@ -256,22 +275,29 @@ export async function recreateTable(ctx, options) {
 
   // STEP 10: Verify foreign key constraints (if originally enabled)
   if (foreignKeysEnabled && !skipForeignKeyCheck) {
-    console.log('[recreateTable] Step 10: Verifying foreign key constraints...');
+    console.log(
+      '[recreateTable] Step 10: Verifying foreign key constraints...'
+    );
     const fkCheckResult = await execute('PRAGMA foreign_key_check;');
     const violations = fkCheckResult.rows || [];
 
     if (violations.length > 0) {
-      console.error('[recreateTable] Foreign key constraint violations detected:', violations);
+      console.error(
+        '[recreateTable] Foreign key constraint violations detected:',
+        violations
+      );
       throw new Error(
         `Foreign key constraint violations detected after table recreation. ` +
-        `Table: ${violations[0]?.table}, Violations: ${violations.length}`
+          `Table: ${violations[0]?.table}, Violations: ${violations.length}`
       );
     }
     console.log('[recreateTable] Foreign key check passed');
   }
 
   // STEP 11: Commit transaction (handled by migration runner)
-  console.log('[recreateTable] Step 11: Transaction commit (handled by migration runner)');
+  console.log(
+    '[recreateTable] Step 11: Transaction commit (handled by migration runner)'
+  );
 
   // STEP 12: Re-enable foreign keys if they were originally enabled
   if (foreignKeysEnabled) {

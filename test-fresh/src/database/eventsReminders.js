@@ -234,7 +234,9 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           [res.insertId]
         );
         const result = convertBooleanFields(created.rows[0]);
-        logger.success('EventsRemindersDB', 'createReminder', { id: res.insertId });
+        logger.success('EventsRemindersDB', 'createReminder', {
+          id: res.insertId,
+        });
         return result;
       } catch (error) {
         // Handle foreign key constraint errors - check nested error properties
@@ -502,11 +504,15 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           [reminderId]
         );
         const result = convertBooleanFields(res.rows[0]) || null;
-        logger.success('EventsRemindersDB', 'updateReminderDateTime', { reminderId });
+        logger.success('EventsRemindersDB', 'updateReminderDateTime', {
+          reminderId,
+        });
         return result;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        logger.error('EventsRemindersDB', 'updateReminderDateTime', error, { reminderId });
+        logger.error('EventsRemindersDB', 'updateReminderDateTime', error, {
+          reminderId,
+        });
         throw new DatabaseError(
           'Failed to update reminder datetime',
           'UPDATE_FAILED',
@@ -621,7 +627,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           } catch (error) {
             logger.error('EventsRemindersDB', 'markRemindersFailed', error, {
               chunkIndex,
-              chunkSize: idChunk.length
+              chunkSize: idChunk.length,
             });
             throw new DatabaseError(
               `Failed to mark reminders as failed (chunk ${chunkIndex + 1})`,
@@ -683,7 +689,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
           }
         } catch (error) {
           logger.error('EventsRemindersDB', 'createRecurringReminders', error, {
-            reminderData: data
+            reminderData: data,
           });
           throw new DatabaseError(
             'Failed to create recurring reminder',

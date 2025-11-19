@@ -148,7 +148,9 @@ const listFilesRecursively = async dir => {
     }
   } catch (error) {
     // Directory doesn't exist or can't be read, return empty array
-    logger.warn('FileService', `Could not read directory ${dir}`, { error: error.message });
+    logger.warn('FileService', `Could not read directory ${dir}`, {
+      error: error.message,
+    });
   }
   return files;
 };
@@ -201,7 +203,8 @@ export const fileService = {
 
       // Only convert iOS-specific formats (HEIC/HEIF) to JPEG for compatibility
       // Preserve other formats (PNG transparency, GIF animation, etc.)
-      const shouldConvertToJpeg = fileType === 'image' &&
+      const shouldConvertToJpeg =
+        fileType === 'image' &&
         (mimeType.includes('heic') || mimeType.includes('heif'));
 
       if (shouldConvertToJpeg) {
@@ -238,9 +241,13 @@ export const fileService = {
           });
         } catch (compressionError) {
           // Fallback to original if processing fails
-          logger.warn('FileService', 'Image processing failed, using original', {
-            error: compressionError.message,
-          });
+          logger.warn(
+            'FileService',
+            'Image processing failed, using original',
+            {
+              error: compressionError.message,
+            }
+          );
           sourceFile.copy(destFile);
         }
       } else {
@@ -304,7 +311,10 @@ export const fileService = {
       if (!attachment) {
         // If attachment not in DB, it might be an orphaned file.
         // The cleanup job will handle it. For now, we can just warn.
-        logger.warn('FileService', `Attachment with id ${attachmentId} not found in database`);
+        logger.warn(
+          'FileService',
+          `Attachment with id ${attachmentId} not found in database`
+        );
         return;
       }
 
@@ -314,9 +324,13 @@ export const fileService = {
           file.delete();
         }
       } else {
-        logger.warn('FileService', 'Refusing to delete file outside app sandbox', {
-          filePath: attachment.file_path
-        });
+        logger.warn(
+          'FileService',
+          'Refusing to delete file outside app sandbox',
+          {
+            filePath: attachment.file_path,
+          }
+        );
       }
 
       if (attachment.thumbnail_path) {
@@ -326,9 +340,13 @@ export const fileService = {
             thumbnailFile.delete();
           }
         } else {
-          logger.warn('FileService', 'Refusing to delete thumbnail outside app sandbox', {
-            thumbnailPath: attachment.thumbnail_path
-          });
+          logger.warn(
+            'FileService',
+            'Refusing to delete thumbnail outside app sandbox',
+            {
+              thumbnailPath: attachment.thumbnail_path,
+            }
+          );
         }
       }
 
@@ -387,7 +405,10 @@ export const fileService = {
       logger.success('FileService', 'generateThumbnail', { uuid });
       return thumbnailFile.uri;
     } catch (error) {
-      logger.error('FileService', 'generateThumbnail', error, { imageUri, uuid });
+      logger.error('FileService', 'generateThumbnail', error, {
+        imageUri,
+        uuid,
+      });
       throw new ServiceError('fileService', 'generateThumbnail', error);
     }
   },
@@ -450,7 +471,7 @@ export const fileService = {
       logger.success('FileService', 'cleanOrphanedFiles', {
         filesDeleted: orphanedCount,
         dbRecordsDeleted: deleted,
-        totalDeleted
+        totalDeleted,
       });
 
       return totalDeleted;
@@ -515,10 +536,14 @@ export const fileService = {
         );
         savedAttachments.push(attachment);
       }
-      logger.success('FileService', 'saveMultipleFiles', { fileCount: files.length });
+      logger.success('FileService', 'saveMultipleFiles', {
+        fileCount: files.length,
+      });
       return savedAttachments;
     } catch (error) {
-      logger.error('FileService', 'saveMultipleFiles', error, { fileCount: files.length });
+      logger.error('FileService', 'saveMultipleFiles', error, {
+        fileCount: files.length,
+      });
       throw new ServiceError('fileService', 'saveMultipleFiles', error);
     }
   },
@@ -535,9 +560,13 @@ export const fileService = {
       for (const id of attachmentIds) {
         await this.deleteFile(id);
       }
-      logger.success('FileService', 'deleteMultipleFiles', { fileCount: attachmentIds.length });
+      logger.success('FileService', 'deleteMultipleFiles', {
+        fileCount: attachmentIds.length,
+      });
     } catch (error) {
-      logger.error('FileService', 'deleteMultipleFiles', error, { fileCount: attachmentIds.length });
+      logger.error('FileService', 'deleteMultipleFiles', error, {
+        fileCount: attachmentIds.length,
+      });
       throw new ServiceError('fileService', 'deleteMultipleFiles', error);
     }
   },

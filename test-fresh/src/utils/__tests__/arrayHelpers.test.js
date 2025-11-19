@@ -35,7 +35,9 @@ describe('arrayHelpers', () => {
 
     it('should throw TypeError if first argument is not an array', () => {
       expect(() => chunk('not array', 2)).toThrow(TypeError);
-      expect(() => chunk('not array', 2)).toThrow('First argument must be an array');
+      expect(() => chunk('not array', 2)).toThrow(
+        'First argument must be an array'
+      );
     });
 
     it('should throw TypeError if first argument is null', () => {
@@ -48,12 +50,16 @@ describe('arrayHelpers', () => {
 
     it('should throw TypeError if chunk size is not an integer', () => {
       expect(() => chunk([1, 2, 3], 2.5)).toThrow(TypeError);
-      expect(() => chunk([1, 2, 3], 2.5)).toThrow('Chunk size must be a positive integer');
+      expect(() => chunk([1, 2, 3], 2.5)).toThrow(
+        'Chunk size must be a positive integer'
+      );
     });
 
     it('should throw TypeError if chunk size is zero', () => {
       expect(() => chunk([1, 2, 3], 0)).toThrow(TypeError);
-      expect(() => chunk([1, 2, 3], 0)).toThrow('Chunk size must be a positive integer');
+      expect(() => chunk([1, 2, 3], 0)).toThrow(
+        'Chunk size must be a positive integer'
+      );
     });
 
     it('should throw TypeError if chunk size is negative', () => {
@@ -145,7 +151,7 @@ describe('arrayHelpers', () => {
       const input = [
         { id: 1, name: 'Alice' },
         { id: 2, name: 'Bob' },
-        { id: 1, name: 'Alice Duplicate' }
+        { id: 1, name: 'Alice Duplicate' },
       ];
       const result = uniqueBy(input, 'id');
 
@@ -158,7 +164,7 @@ describe('arrayHelpers', () => {
       const input = [
         { id: 1, value: 100 },
         { id: 2, value: 200 },
-        { id: 3, value: 100 }
+        { id: 3, value: 100 },
       ];
       const result = uniqueBy(input, obj => obj.value);
 
@@ -176,7 +182,7 @@ describe('arrayHelpers', () => {
       const input = [
         { id: 1, name: 'First' },
         { id: 1, name: 'Second' },
-        { id: 1, name: 'Third' }
+        { id: 1, name: 'Third' },
       ];
       const result = uniqueBy(input, 'id');
 
@@ -185,11 +191,7 @@ describe('arrayHelpers', () => {
     });
 
     it('should handle array with no duplicates', () => {
-      const input = [
-        { id: 1 },
-        { id: 2 },
-        { id: 3 }
-      ];
+      const input = [{ id: 1 }, { id: 2 }, { id: 3 }];
       const result = uniqueBy(input, 'id');
 
       expect(result).toHaveLength(3);
@@ -199,7 +201,7 @@ describe('arrayHelpers', () => {
       const input = [
         { user: { id: 1 }, data: 'a' },
         { user: { id: 2 }, data: 'b' },
-        { user: { id: 1 }, data: 'c' }
+        { user: { id: 1 }, data: 'c' },
       ];
       const result = uniqueBy(input, obj => obj.user.id);
 
@@ -213,7 +215,7 @@ describe('arrayHelpers', () => {
         { id: 1, name: 'Alice' },
         { id: null, name: 'Bob' },
         { id: undefined, name: 'Charlie' },
-        { id: null, name: 'Dave' }
+        { id: null, name: 'Dave' },
       ];
       const result = uniqueBy(input, 'id');
 
@@ -225,12 +227,16 @@ describe('arrayHelpers', () => {
 
     it('should throw TypeError if first argument is not an array', () => {
       expect(() => uniqueBy('not array', 'id')).toThrow(TypeError);
-      expect(() => uniqueBy('not array', 'id')).toThrow('First argument must be an array');
+      expect(() => uniqueBy('not array', 'id')).toThrow(
+        'First argument must be an array'
+      );
     });
 
     it('should throw TypeError if key is not string or function', () => {
       expect(() => uniqueBy([{ id: 1 }], 123)).toThrow(TypeError);
-      expect(() => uniqueBy([{ id: 1 }], 123)).toThrow('Key must be a string or function');
+      expect(() => uniqueBy([{ id: 1 }], 123)).toThrow(
+        'Key must be a string or function'
+      );
     });
 
     it('should throw TypeError if key is null', () => {
@@ -244,7 +250,7 @@ describe('arrayHelpers', () => {
     it('should work with large arrays', () => {
       const largeArray = Array.from({ length: 1000 }, (_, i) => ({
         id: i % 100,
-        value: i
+        value: i,
       }));
       const result = uniqueBy(largeArray, 'id');
 

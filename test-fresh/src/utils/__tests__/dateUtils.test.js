@@ -37,7 +37,8 @@ import {
 
 describe('dateUtils', () => {
   // Helper to create a local date at midnight
-  const createLocalDate = (year, month, day) => new Date(year, month - 1, day, 0, 0, 0, 0);
+  const createLocalDate = (year, month, day) =>
+    new Date(year, month - 1, day, 0, 0, 0, 0);
 
   describe('getPrimaryLocale', () => {
     it('should return a locale string', () => {
@@ -204,7 +205,7 @@ describe('dateUtils', () => {
     });
 
     it('should use translation function if provided', () => {
-      const t = jest.fn((key) => key === 'events.today' ? 'Heute' : 'Morgen');
+      const t = jest.fn(key => (key === 'events.today' ? 'Heute' : 'Morgen'));
       const today = formatDateToString(new Date());
       formatDateSmart(today, t);
       expect(t).toHaveBeenCalledWith('events.today');

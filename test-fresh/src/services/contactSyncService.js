@@ -576,7 +576,10 @@ class ContactSyncService {
 
       return newCompany.id;
     } catch (error) {
-      logger.warn('ContactSyncService', 'Failed to create/lookup company', { companyName, error: error.message });
+      logger.warn('ContactSyncService', 'Failed to create/lookup company', {
+        companyName,
+        error: error.message,
+      });
       return null;
     }
   }
@@ -634,7 +637,11 @@ class ContactSyncService {
           await db.contactsInfo.deleteContactInfo(info.id);
         } catch (e) {
           // continue deleting others
-          logger.warn('ContactSyncService', 'Failed deleting contact_info during overwrite', { infoId: info.id, error: e.message });
+          logger.warn(
+            'ContactSyncService',
+            'Failed deleting contact_info during overwrite',
+            { infoId: info.id, error: e.message }
+          );
         }
       }
 
@@ -720,26 +727,26 @@ class ContactSyncService {
       const existing = await db.contactsInfo.getWithContactInfo(contactId);
       const existingInfo = existing?.contact_info || [];
 
-      const hasEmail = (val) => {
+      const hasEmail = val => {
         const needle = normalizeTrimLowercase(val);
         return existingInfo.some(
           i => i.type === 'email' && normalizeTrimLowercase(i.value) === needle
         );
       };
       const normalizePhone = normalizePhoneNumber;
-      const hasPhone = (val) => {
+      const hasPhone = val => {
         const needle = normalizePhone(val);
         return existingInfo.some(
           i => i.type === 'phone' && normalizePhone(i.value) === needle
         );
       };
-      const hasUrl = (val) => {
+      const hasUrl = val => {
         const needle = safeTrim(val);
         return existingInfo.some(
           i => i.type === 'url' && safeTrim(i.value) === needle
         );
       };
-      const hasAddress = (val) => {
+      const hasAddress = val => {
         const needle = safeTrim(val);
         return existingInfo.some(
           i => i.type === 'address' && safeTrim(i.value) === needle
@@ -749,35 +756,61 @@ class ContactSyncService {
       const toAdd = [];
 
       if (deviceContact.emails?.length) {
-        deviceContact.emails.forEach((email) => {
+        deviceContact.emails.forEach(email => {
           if (email?.email && !hasEmail(email.email)) {
-            toAdd.push({ type: 'email', value: email.email, label: email.label || 'other', is_primary: 0 });
+            toAdd.push({
+              type: 'email',
+              value: email.email,
+              label: email.label || 'other',
+              is_primary: 0,
+            });
           }
         });
       }
 
       if (deviceContact.phoneNumbers?.length) {
-        deviceContact.phoneNumbers.forEach((phone) => {
+        deviceContact.phoneNumbers.forEach(phone => {
           if (phone?.number && !hasPhone(phone.number)) {
-            toAdd.push({ type: 'phone', value: phone.number, label: phone.label || 'other', is_primary: 0 });
+            toAdd.push({
+              type: 'phone',
+              value: phone.number,
+              label: phone.label || 'other',
+              is_primary: 0,
+            });
           }
         });
       }
 
       if (deviceContact.addresses?.length) {
-        deviceContact.addresses.forEach((address) => {
-          const parts = [address.street, address.city, address.region, address.postalCode, address.country].filter(Boolean);
+        deviceContact.addresses.forEach(address => {
+          const parts = [
+            address.street,
+            address.city,
+            address.region,
+            address.postalCode,
+            address.country,
+          ].filter(Boolean);
           const addressStr = parts.join(', ');
           if (addressStr && !hasAddress(addressStr)) {
-            toAdd.push({ type: 'address', value: addressStr, label: address.label || 'other', is_primary: 0 });
+            toAdd.push({
+              type: 'address',
+              value: addressStr,
+              label: address.label || 'other',
+              is_primary: 0,
+            });
           }
         });
       }
 
       if (deviceContact.urlAddresses?.length) {
-        deviceContact.urlAddresses.forEach((url) => {
+        deviceContact.urlAddresses.forEach(url => {
           if (url?.url && !hasUrl(url.url)) {
-            toAdd.push({ type: 'url', value: url.url, label: url.label || 'other', is_primary: 0 });
+            toAdd.push({
+              type: 'url',
+              value: url.url,
+              label: url.label || 'other',
+              is_primary: 0,
+            });
           }
         });
       }

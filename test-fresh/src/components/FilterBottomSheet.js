@@ -20,7 +20,7 @@ import { useCreateSavedSearch } from '../hooks/queries/useSavedSearchQueries';
 import { showAlert } from '../errors/utils/errorHandler';
 import { safeTrim, hasContent } from '../utils/stringHelpers';
 
-const formatDateToLocalYMD = (date) => {
+const formatDateToLocalYMD = date => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -46,12 +46,24 @@ export default function FilterBottomSheet({
 
   // Filter state - handle null initialFilters
   const filters = initialFilters || {};
-  const [selectedCategories, setSelectedCategories] = useState(filters.categoryIds || []);
-  const [categoryLogic, setCategoryLogic] = useState(filters.categoryLogic || 'OR');
-  const [selectedCompany, setSelectedCompany] = useState(filters.companyId || null);
-  const [dateAddedRange, setDateAddedRange] = useState(filters.dateAddedRange || null);
-  const [interactionDays, setInteractionDays] = useState(filters.interactionDays || null);
-  const [hasUpcomingEvents, setHasUpcomingEvents] = useState(filters.hasUpcomingEvents || false);
+  const [selectedCategories, setSelectedCategories] = useState(
+    filters.categoryIds || []
+  );
+  const [categoryLogic, setCategoryLogic] = useState(
+    filters.categoryLogic || 'OR'
+  );
+  const [selectedCompany, setSelectedCompany] = useState(
+    filters.companyId || null
+  );
+  const [dateAddedRange, setDateAddedRange] = useState(
+    filters.dateAddedRange || null
+  );
+  const [interactionDays, setInteractionDays] = useState(
+    filters.interactionDays || null
+  );
+  const [hasUpcomingEvents, setHasUpcomingEvents] = useState(
+    filters.hasUpcomingEvents || false
+  );
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
@@ -59,14 +71,24 @@ export default function FilterBottomSheet({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [searchName, setSearchName] = useState('');
 
-  const buildFilters = useCallback(() => ({
-    categoryIds: selectedCategories.length > 0 ? selectedCategories : null,
-    categoryLogic: selectedCategories.length > 1 ? categoryLogic : null,
-    companyId: selectedCompany,
-    dateAddedRange,
-    interactionDays,
-    hasUpcomingEvents: hasUpcomingEvents || null,
-  }), [selectedCategories, categoryLogic, selectedCompany, dateAddedRange, interactionDays, hasUpcomingEvents]);
+  const buildFilters = useCallback(
+    () => ({
+      categoryIds: selectedCategories.length > 0 ? selectedCategories : null,
+      categoryLogic: selectedCategories.length > 1 ? categoryLogic : null,
+      companyId: selectedCompany,
+      dateAddedRange,
+      interactionDays,
+      hasUpcomingEvents: hasUpcomingEvents || null,
+    }),
+    [
+      selectedCategories,
+      categoryLogic,
+      selectedCompany,
+      dateAddedRange,
+      interactionDays,
+      hasUpcomingEvents,
+    ]
+  );
 
   useEffect(() => {
     const nextFilters = initialFilters || {};
@@ -82,10 +104,10 @@ export default function FilterBottomSheet({
     setSearchName('');
   }, [initialFilters]);
 
-  const toggleCategory = useCallback((categoryId) => {
-    setSelectedCategories((prev) => {
+  const toggleCategory = useCallback(categoryId => {
+    setSelectedCategories(prev => {
       if (prev.includes(categoryId)) {
-        return prev.filter((id) => id !== categoryId);
+        return prev.filter(id => id !== categoryId);
       }
       return [...prev, categoryId];
     });
@@ -112,7 +134,10 @@ export default function FilterBottomSheet({
     const trimmedName = safeTrim(searchName);
 
     if (!hasContent(trimmedName)) {
-      showAlert.error(t('savedSearches.saveError'), t('savedSearches.nameRequired'));
+      showAlert.error(
+        t('savedSearches.saveError'),
+        t('savedSearches.nameRequired')
+      );
       return;
     }
 
@@ -127,8 +152,13 @@ export default function FilterBottomSheet({
 
       setShowSaveDialog(false);
       setSearchName('');
-      showAlert.success(t('savedSearches.saveSuccess'), t('savedSearches.searchSaved'));
-      logger.success('FilterBottomSheet', 'handleSaveSearch', { name: trimmedName });
+      showAlert.success(
+        t('savedSearches.saveSuccess'),
+        t('savedSearches.searchSaved')
+      );
+      logger.success('FilterBottomSheet', 'handleSaveSearch', {
+        name: trimmedName,
+      });
     } catch (error) {
       logger.error('FilterBottomSheet', 'handleSaveSearch', error);
       // Error already shown by mutation handler
@@ -143,12 +173,18 @@ export default function FilterBottomSheet({
     if (interactionDays) count++;
     if (hasUpcomingEvents) count++;
     return count;
-  }, [selectedCategories, selectedCompany, dateAddedRange, interactionDays, hasUpcomingEvents]);
+  }, [
+    selectedCategories,
+    selectedCompany,
+    dateAddedRange,
+    interactionDays,
+    hasUpcomingEvents,
+  ]);
 
   const handleStartDateChange = useCallback((event, selectedDate) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
-      setDateAddedRange((prev) => ({
+      setDateAddedRange(prev => ({
         start: formatDateToLocalYMD(selectedDate),
         end: prev?.end || null,
       }));
@@ -158,7 +194,7 @@ export default function FilterBottomSheet({
   const handleEndDateChange = useCallback((event, selectedDate) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
-      setDateAddedRange((prev) => ({
+      setDateAddedRange(prev => ({
         start: prev?.start || null,
         end: formatDateToLocalYMD(selectedDate),
       }));
@@ -173,237 +209,317 @@ export default function FilterBottomSheet({
         contentContainerStyle={styles.modal}
       >
         <Surface style={styles.surface} elevation={4}>
-          <View style={[
-            styles.header,
-            { borderBottomColor: theme.colors.outlineVariant }
-          ]}>
-            <Text variant="titleLarge" style={{ color: theme.colors.onSurface }}>
+          <View
+            style={[
+              styles.header,
+              { borderBottomColor: theme.colors.outlineVariant },
+            ]}
+          >
+            <Text
+              variant="titleLarge"
+              style={{ color: theme.colors.onSurface }}
+            >
               {t('filters.title')}
             </Text>
-            <IconButton icon="close" onPress={onDismiss} iconColor={theme.colors.onSurface} />
+            <IconButton
+              icon="close"
+              onPress={onDismiss}
+              iconColor={theme.colors.onSurface}
+            />
           </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Categories Section */}
-          {categories.length > 0 && (
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-                {t('filters.categories')}
-              </Text>
-              <View style={styles.chips}>
-                {categories.map((category) => (
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Categories Section */}
+            {categories.length > 0 && (
+              <View style={styles.section}>
+                <Text
+                  variant="titleMedium"
+                  style={[
+                    styles.sectionTitle,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  {t('filters.categories')}
+                </Text>
+                <View style={styles.chips}>
+                  {categories.map(category => (
+                    <Chip
+                      key={category.id}
+                      selected={selectedCategories.includes(category.id)}
+                      onPress={() => toggleCategory(category.id)}
+                      style={styles.chip}
+                      mode="outlined"
+                      textStyle={{
+                        color: selectedCategories.includes(category.id)
+                          ? theme.colors.onSecondaryContainer
+                          : theme.colors.onSurface,
+                      }}
+                    >
+                      {category.name}
+                    </Chip>
+                  ))}
+                </View>
+
+                {selectedCategories.length > 1 && (
+                  <View style={styles.logicSection}>
+                    <Text
+                      variant="bodySmall"
+                      style={[
+                        styles.logicLabel,
+                        { color: theme.colors.onSurfaceVariant },
+                      ]}
+                    >
+                      {t('filters.categoryLogic')}
+                    </Text>
+                    <SegmentedButtons
+                      value={categoryLogic}
+                      onValueChange={setCategoryLogic}
+                      buttons={[
+                        { value: 'OR', label: t('filters.or') },
+                        { value: 'AND', label: t('filters.and') },
+                      ]}
+                      style={styles.segmentedButtons}
+                    />
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Company Filter */}
+            {companies.length > 0 && (
+              <View style={styles.section}>
+                <Text
+                  variant="titleMedium"
+                  style={[
+                    styles.sectionTitle,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  {t('filters.company')}
+                </Text>
+                <View style={styles.chips}>
                   <Chip
-                    key={category.id}
-                    selected={selectedCategories.includes(category.id)}
-                    onPress={() => toggleCategory(category.id)}
+                    selected={!selectedCompany}
+                    onPress={() => setSelectedCompany(null)}
                     style={styles.chip}
                     mode="outlined"
-                    textStyle={{ color: selectedCategories.includes(category.id) ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
+                    textStyle={{
+                      color: !selectedCompany
+                        ? theme.colors.onSecondaryContainer
+                        : theme.colors.onSurface,
+                    }}
                   >
-                    {category.name}
+                    {t('common.all')}
                   </Chip>
-                ))}
-              </View>
-
-              {selectedCategories.length > 1 && (
-                <View style={styles.logicSection}>
-                  <Text variant="bodySmall" style={[styles.logicLabel, { color: theme.colors.onSurfaceVariant }]}>
-                    {t('filters.categoryLogic')}
-                  </Text>
-                  <SegmentedButtons
-                    value={categoryLogic}
-                    onValueChange={setCategoryLogic}
-                    buttons={[
-                      { value: 'OR', label: t('filters.or') },
-                      { value: 'AND', label: t('filters.and') },
-                    ]}
-                    style={styles.segmentedButtons}
-                  />
+                  {companies.map(company => (
+                    <Chip
+                      key={company.id}
+                      selected={selectedCompany === company.id}
+                      onPress={() => setSelectedCompany(company.id)}
+                      style={styles.chip}
+                      mode="outlined"
+                      textStyle={{
+                        color:
+                          selectedCompany === company.id
+                            ? theme.colors.onSecondaryContainer
+                            : theme.colors.onSurface,
+                      }}
+                    >
+                      {company.name}
+                    </Chip>
+                  ))}
                 </View>
+              </View>
+            )}
+
+            {/* Date Added Range */}
+            <View style={styles.section}>
+              <Text
+                variant="titleMedium"
+                style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+              >
+                {t('filters.dateAdded')}
+              </Text>
+              <View style={styles.dateButtons}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowStartDatePicker(true)}
+                  style={styles.dateButton}
+                  textColor={theme.colors.onSurface}
+                >
+                  {dateAddedRange?.start || t('filters.startDate')}
+                </Button>
+                <Text
+                  variant="bodyMedium"
+                  style={[
+                    styles.dateSeparator,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  {t('filters.to')}
+                </Text>
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowEndDatePicker(true)}
+                  style={styles.dateButton}
+                  textColor={theme.colors.onSurface}
+                >
+                  {dateAddedRange?.end || t('filters.endDate')}
+                </Button>
+              </View>
+              {dateAddedRange && (
+                <Button
+                  mode="text"
+                  onPress={() => setDateAddedRange(null)}
+                  compact
+                  textColor={theme.colors.primary}
+                >
+                  {t('filters.clearDateRange')}
+                </Button>
               )}
             </View>
-          )}
 
-          {/* Company Filter */}
-          {companies.length > 0 && (
+            {/* Interaction Activity */}
             <View style={styles.section}>
-              <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-                {t('filters.company')}
+              <Text
+                variant="titleMedium"
+                style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+              >
+                {t('filters.interactionActivity')}
               </Text>
               <View style={styles.chips}>
                 <Chip
-                  selected={!selectedCompany}
-                  onPress={() => setSelectedCompany(null)}
+                  selected={!interactionDays}
+                  onPress={() => setInteractionDays(null)}
                   style={styles.chip}
                   mode="outlined"
-                  textStyle={{ color: !selectedCompany ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
+                  textStyle={{
+                    color: !interactionDays
+                      ? theme.colors.onSecondaryContainer
+                      : theme.colors.onSurface,
+                  }}
                 >
                   {t('common.all')}
                 </Chip>
-                {companies.map((company) => (
-                  <Chip
-                    key={company.id}
-                    selected={selectedCompany === company.id}
-                    onPress={() => setSelectedCompany(company.id)}
-                    style={styles.chip}
-                    mode="outlined"
-                    textStyle={{ color: selectedCompany === company.id ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
-                  >
-                    {company.name}
-                  </Chip>
-                ))}
+                <Chip
+                  selected={interactionDays === 7}
+                  onPress={() => setInteractionDays(7)}
+                  style={styles.chip}
+                  mode="outlined"
+                  textStyle={{
+                    color:
+                      interactionDays === 7
+                        ? theme.colors.onSecondaryContainer
+                        : theme.colors.onSurface,
+                  }}
+                >
+                  {t('filters.last7Days')}
+                </Chip>
+                <Chip
+                  selected={interactionDays === 30}
+                  onPress={() => setInteractionDays(30)}
+                  style={styles.chip}
+                  mode="outlined"
+                  textStyle={{
+                    color:
+                      interactionDays === 30
+                        ? theme.colors.onSecondaryContainer
+                        : theme.colors.onSurface,
+                  }}
+                >
+                  {t('filters.last30Days')}
+                </Chip>
+                <Chip
+                  selected={interactionDays === 90}
+                  onPress={() => setInteractionDays(90)}
+                  style={styles.chip}
+                  mode="outlined"
+                  textStyle={{
+                    color:
+                      interactionDays === 90
+                        ? theme.colors.onSecondaryContainer
+                        : theme.colors.onSurface,
+                  }}
+                >
+                  {t('filters.last90Days')}
+                </Chip>
               </View>
             </View>
-          )}
 
-          {/* Date Added Range */}
-          <View style={styles.section}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-              {t('filters.dateAdded')}
-            </Text>
-            <View style={styles.dateButtons}>
-              <Button
-                mode="outlined"
-                onPress={() => setShowStartDatePicker(true)}
-                style={styles.dateButton}
-                textColor={theme.colors.onSurface}
-              >
-                {dateAddedRange?.start || t('filters.startDate')}
-              </Button>
-              <Text variant="bodyMedium" style={[styles.dateSeparator, { color: theme.colors.onSurface }]}>
-                {t('filters.to')}
-              </Text>
-              <Button
-                mode="outlined"
-                onPress={() => setShowEndDatePicker(true)}
-                style={styles.dateButton}
-                textColor={theme.colors.onSurface}
-              >
-                {dateAddedRange?.end || t('filters.endDate')}
-              </Button>
-            </View>
-            {dateAddedRange && (
-              <Button
-                mode="text"
-                onPress={() => setDateAddedRange(null)}
-                compact
-                textColor={theme.colors.primary}
-              >
-                {t('filters.clearDateRange')}
-              </Button>
-            )}
-          </View>
-
-          {/* Interaction Activity */}
-          <View style={styles.section}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-              {t('filters.interactionActivity')}
-            </Text>
-            <View style={styles.chips}>
+            {/* Has Upcoming Events */}
+            <View style={styles.section}>
               <Chip
-                selected={!interactionDays}
-                onPress={() => setInteractionDays(null)}
-                style={styles.chip}
+                selected={hasUpcomingEvents}
+                onPress={() => setHasUpcomingEvents(!hasUpcomingEvents)}
+                icon={hasUpcomingEvents ? 'check' : undefined}
                 mode="outlined"
-                textStyle={{ color: !interactionDays ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
+                textStyle={{
+                  color: hasUpcomingEvents
+                    ? theme.colors.onSecondaryContainer
+                    : theme.colors.onSurface,
+                }}
               >
-                {t('common.all')}
-              </Chip>
-              <Chip
-                selected={interactionDays === 7}
-                onPress={() => setInteractionDays(7)}
-                style={styles.chip}
-                mode="outlined"
-                textStyle={{ color: interactionDays === 7 ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
-              >
-                {t('filters.last7Days')}
-              </Chip>
-              <Chip
-                selected={interactionDays === 30}
-                onPress={() => setInteractionDays(30)}
-                style={styles.chip}
-                mode="outlined"
-                textStyle={{ color: interactionDays === 30 ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
-              >
-                {t('filters.last30Days')}
-              </Chip>
-              <Chip
-                selected={interactionDays === 90}
-                onPress={() => setInteractionDays(90)}
-                style={styles.chip}
-                mode="outlined"
-                textStyle={{ color: interactionDays === 90 ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
-              >
-                {t('filters.last90Days')}
+                {t('filters.hasUpcomingEvents')}
               </Chip>
             </View>
-          </View>
+          </ScrollView>
 
-          {/* Has Upcoming Events */}
-          <View style={styles.section}>
-            <Chip
-              selected={hasUpcomingEvents}
-              onPress={() => setHasUpcomingEvents(!hasUpcomingEvents)}
-              icon={hasUpcomingEvents ? 'check' : undefined}
-              mode="outlined"
-              textStyle={{ color: hasUpcomingEvents ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
-            >
-              {t('filters.hasUpcomingEvents')}
-            </Chip>
-          </View>
-        </ScrollView>
-
-        {/* Footer Actions */}
-        <View style={[
-          styles.footer,
-          { borderTopColor: theme.colors.outlineVariant }
-        ]}>
-          <Button
-            mode="outlined"
-            onPress={handleClear}
-            style={styles.footerButton}
-            textColor={theme.colors.onSurface}
+          {/* Footer Actions */}
+          <View
+            style={[
+              styles.footer,
+              { borderTopColor: theme.colors.outlineVariant },
+            ]}
           >
-            {t('filters.clear')}
-          </Button>
-          {activeFilterCount > 0 && (
             <Button
               mode="outlined"
-              onPress={() => setShowSaveDialog(true)}
+              onPress={handleClear}
               style={styles.footerButton}
-              icon="content-save"
               textColor={theme.colors.onSurface}
             >
-              {t('savedSearches.save')}
+              {t('filters.clear')}
             </Button>
-          )}
-          <Button
-            mode="contained"
-            onPress={handleApply}
-            style={styles.footerButton}
-          >
-            {t('filters.apply')}
-            {activeFilterCount > 0 && ` (${activeFilterCount})`}
-          </Button>
-        </View>
+            {activeFilterCount > 0 && (
+              <Button
+                mode="outlined"
+                onPress={() => setShowSaveDialog(true)}
+                style={styles.footerButton}
+                icon="content-save"
+                textColor={theme.colors.onSurface}
+              >
+                {t('savedSearches.save')}
+              </Button>
+            )}
+            <Button
+              mode="contained"
+              onPress={handleApply}
+              style={styles.footerButton}
+            >
+              {t('filters.apply')}
+              {activeFilterCount > 0 && ` (${activeFilterCount})`}
+            </Button>
+          </View>
 
-        {/* Date Pickers */}
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={parseDateOrDefault(dateAddedRange?.start, new Date())}
-            mode="date"
-            display="default"
-            onChange={handleStartDateChange}
-          />
-        )}
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={parseDateOrDefault(dateAddedRange?.end, new Date())}
-            mode="date"
-            display="default"
-            onChange={handleEndDateChange}
-          />
-        )}
+          {/* Date Pickers */}
+          {showStartDatePicker && (
+            <DateTimePicker
+              value={parseDateOrDefault(dateAddedRange?.start, new Date())}
+              mode="date"
+              display="default"
+              onChange={handleStartDateChange}
+            />
+          )}
+          {showEndDatePicker && (
+            <DateTimePicker
+              value={parseDateOrDefault(dateAddedRange?.end, new Date())}
+              mode="date"
+              display="default"
+              onChange={handleEndDateChange}
+            />
+          )}
         </Surface>
       </Modal>
 

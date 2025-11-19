@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, View, Linking, Alert, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  FlatList,
+  View,
+  Linking,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import { handleError, showAlert, logger } from '../errors';
 import { Swipeable } from 'react-native-gesture-handler';
-import { Appbar, FAB, Searchbar, Text, Chip, useTheme, Menu, IconButton } from 'react-native-paper';
+import {
+  Appbar,
+  FAB,
+  Searchbar,
+  Text,
+  Chip,
+  useTheme,
+  Menu,
+  IconButton,
+} from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ContactCard from '../components/ContactCard';
 import AddContactModal from '../components/AddContactModal';
@@ -10,8 +26,14 @@ import FilterBottomSheet from '../components/FilterBottomSheet';
 import { EmptyState } from '../components/layout';
 import { categoriesDB, companiesDB } from '../database';
 import { useSettings } from '../context/SettingsContext';
-import { useContactsWithInfo, useFilteredContactsWithInfo } from '../hooks/queries';
-import { useSavedSearches, useDeleteSavedSearch } from '../hooks/queries/useSavedSearchQueries';
+import {
+  useContactsWithInfo,
+  useFilteredContactsWithInfo,
+} from '../hooks/queries';
+import {
+  useSavedSearches,
+  useDeleteSavedSearch,
+} from '../hooks/queries/useSavedSearchQueries';
 import { safeTrim } from '../utils/stringHelpers';
 import { normalizePhoneNumber as normalizePhone } from '../utils/contactHelpers';
 
@@ -29,10 +51,16 @@ export default function ContactsList({ navigation }) {
   const { leftAction, rightAction } = useSettings();
 
   // Use TanStack Query for enriched contacts data (with contact_info and categories)
-  const { data: contactsWithInfo = [], isLoading: loading, refetch, isFetching: refreshing } = useContactsWithInfo();
+  const {
+    data: contactsWithInfo = [],
+    isLoading: loading,
+    refetch,
+    isFetching: refreshing,
+  } = useContactsWithInfo();
 
   // Filtered contacts with enrichment (phone/email/categories)
-  const { data: filteredContactsList = [] } = useFilteredContactsWithInfo(advancedFilters);
+  const { data: filteredContactsList = [] } =
+    useFilteredContactsWithInfo(advancedFilters);
 
   // Saved searches
   const { data: savedSearches = [] } = useSavedSearches('contacts');
@@ -61,7 +89,7 @@ export default function ContactsList({ navigation }) {
     }
   };
 
-  const handleApplyFilters = (filters) => {
+  const handleApplyFilters = filters => {
     setAdvancedFilters(filters);
     setSelectedCategory(null); // Clear simple category filter
   };
@@ -70,11 +98,11 @@ export default function ContactsList({ navigation }) {
     await refetch();
   };
 
-  const handleContactPress = (contact) => {
+  const handleContactPress = contact => {
     navigation.navigate('ContactDetail', { contactId: contact.id });
   };
 
-  const normalizePhoneNumber = (phoneNumber) => {
+  const normalizePhoneNumber = phoneNumber => {
     if (!phoneNumber) return '';
     const trimmed = safeTrim(phoneNumber);
     // Preserve leading '+' for international numbers
@@ -84,7 +112,7 @@ export default function ContactsList({ navigation }) {
     return hasPlus ? `+${digitsOnly}` : digitsOnly;
   };
 
-  const handleCall = async (contact) => {
+  const handleCall = async contact => {
     if (!contact.phone) {
       showAlert.error('No phone number available');
       return;
@@ -102,7 +130,7 @@ export default function ContactsList({ navigation }) {
     }
   };
 
-  const handleMessage = async (contact) => {
+  const handleMessage = async contact => {
     if (!contact.phone) {
       showAlert.error('No phone number available');
       return;
@@ -120,7 +148,7 @@ export default function ContactsList({ navigation }) {
     }
   };
 
-  const handleEmail = async (contact) => {
+  const handleEmail = async contact => {
     if (contact.email) {
       const mailUrl = `mailto:${contact.email}`;
       try {
@@ -139,21 +167,25 @@ export default function ContactsList({ navigation }) {
     // No need to manually refetch - TanStack Query mutations will invalidate the cache
   };
 
-  const handleLoadSavedSearch = (savedSearch) => {
+  const handleLoadSavedSearch = savedSearch => {
     setShowSavedSearchesMenu(false);
     setAdvancedFilters(savedSearch.filters);
     setSelectedCategory(null); // Clear simple category filter
-    logger.success('ContactsList', 'handleLoadSavedSearch', { name: savedSearch.name });
+    logger.success('ContactsList', 'handleLoadSavedSearch', {
+      name: savedSearch.name,
+    });
   };
 
-  const handleDeleteSavedSearch = async (savedSearch) => {
+  const handleDeleteSavedSearch = async savedSearch => {
     try {
       showAlert.confirmDelete(
         t('savedSearches.deleteTitle'),
         t('savedSearches.deleteMessage', { name: savedSearch.name }),
         async () => {
           await deleteSavedSearch.mutateAsync(savedSearch.id);
-          logger.success('ContactsList', 'handleDeleteSavedSearch', { id: savedSearch.id });
+          logger.success('ContactsList', 'handleDeleteSavedSearch', {
+            id: savedSearch.id,
+          });
         }
       );
     } catch (error) {
@@ -175,44 +207,60 @@ export default function ContactsList({ navigation }) {
       );
     }
     return contactsWithInfo;
-  }, [advancedFilters, filteredContactsList, contactsWithInfo, selectedCategory]);
+  }, [
+    advancedFilters,
+    filteredContactsList,
+    contactsWithInfo,
+    selectedCategory,
+  ]);
 
   // Filter by search query
   const filteredContacts = React.useMemo(() => {
     if (!searchQuery) return baseContactsList;
     const query = searchQuery.toLowerCase();
     return baseContactsList.filter(contact => {
-      const name = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
+      const name =
+        `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
       const displayName = (contact.display_name || '').toLowerCase();
       const company = (contact.company_name || '').toLowerCase();
       const phone = (contact.phone || '').toLowerCase();
 
-      return name.includes(query) ||
-             displayName.includes(query) ||
-             company.includes(query) ||
-             phone.includes(query);
+      return (
+        name.includes(query) ||
+        displayName.includes(query) ||
+        company.includes(query) ||
+        phone.includes(query)
+      );
     });
   }, [baseContactsList, searchQuery]);
 
   // Left actions are revealed by a RIGHT swipe (gesture to the right)
   // so they should reflect the RIGHT-swipe mapping
   const renderLeftActions = () => (
-    <View style={[
-      styles.swipeAction,
-      rightAction === 'call' ? styles.callAction : styles.textAction,
-    ]}>
-      <Text style={styles.swipeActionText}>{rightAction === 'call' ? 'Call' : 'Text'}</Text>
+    <View
+      style={[
+        styles.swipeAction,
+        rightAction === 'call' ? styles.callAction : styles.textAction,
+      ]}
+    >
+      <Text style={styles.swipeActionText}>
+        {rightAction === 'call' ? 'Call' : 'Text'}
+      </Text>
     </View>
   );
 
   // Right actions are revealed by a LEFT swipe (gesture to the left)
   // so they should reflect the LEFT-swipe mapping
   const renderRightActions = () => (
-    <View style={[
-      styles.swipeAction,
-      leftAction === 'text' ? styles.textAction : styles.callAction,
-    ]}>
-      <Text style={styles.swipeActionText}>{leftAction === 'text' ? 'Text' : 'Call'}</Text>
+    <View
+      style={[
+        styles.swipeAction,
+        leftAction === 'text' ? styles.textAction : styles.callAction,
+      ]}
+    >
+      <Text style={styles.swipeActionText}>
+        {leftAction === 'text' ? 'Text' : 'Call'}
+      </Text>
     </View>
   );
 
@@ -220,7 +268,7 @@ export default function ContactsList({ navigation }) {
     const canPhone = !!item.phone;
     // Keep a ref to close the swipeable after triggering an action
     const swipeRef = React.createRef();
-    const onOpen = (direction) => {
+    const onOpen = direction => {
       if (!canPhone) return;
       // direction refers to the side that opened: 'left' side opens on RIGHT swipe, 'right' side opens on LEFT swipe
       if (direction === 'left') {
@@ -232,14 +280,13 @@ export default function ContactsList({ navigation }) {
       }
       // Close the swipeable so the row resets when user returns
       setTimeout(() => {
-        try { swipeRef.current?.close(); } catch {}
+        try {
+          swipeRef.current?.close();
+        } catch {}
       }, 200);
     };
     const content = (
-      <ContactCard
-        contact={item}
-        onPress={() => handleContactPress(item)}
-      />
+      <ContactCard contact={item} onPress={() => handleContactPress(item)} />
     );
     // Only enable swipe when a phone number exists
     if (!canPhone) return content;
@@ -261,13 +308,19 @@ export default function ContactsList({ navigation }) {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <EmptyState
-        message={searchQuery ? 'No contacts match your search.' : 'Add your first contact to get started.'}
+        message={
+          searchQuery
+            ? 'No contacts match your search.'
+            : 'Add your first contact to get started.'
+        }
       />
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header elevated>
         <Appbar.Content title={t('navigation.contacts')} />
         <Menu
@@ -282,12 +335,9 @@ export default function ContactsList({ navigation }) {
           }
         >
           {savedSearches.length === 0 ? (
-            <Menu.Item
-              title={t('savedSearches.noSavedSearches')}
-              disabled
-            />
+            <Menu.Item title={t('savedSearches.noSavedSearches')} disabled />
           ) : (
-            savedSearches.map((search) => (
+            savedSearches.map(search => (
               <Menu.Item
                 key={search.id}
                 title={search.name}
@@ -334,14 +384,16 @@ export default function ContactsList({ navigation }) {
           >
             {t('common.all')}
           </Chip>
-          {categories.map((category) => (
+          {categories.map(category => (
             <Chip
               key={category.id}
               selected={selectedCategory?.id === category.id}
               onPress={() => setSelectedCategory(category)}
               style={[
                 styles.categoryChip,
-                selectedCategory?.id === category.id && { backgroundColor: category.color }
+                selectedCategory?.id === category.id && {
+                  backgroundColor: category.color,
+                },
               ]}
               mode="flat"
               icon={category.icon}
@@ -360,19 +412,17 @@ export default function ContactsList({ navigation }) {
       <FlatList
         data={filteredContacts}
         renderItem={renderContact}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         style={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListEmptyComponent={!loading ? renderEmptyState : null}
-        contentContainerStyle={filteredContacts.length === 0 ? styles.emptyContainer : null}
+        contentContainerStyle={
+          filteredContacts.length === 0 ? styles.emptyContainer : null
+        }
       />
 
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={handleAddContact}
-      />
+      <FAB icon="plus" style={styles.fab} onPress={handleAddContact} />
 
       <AddContactModal
         visible={showAddModal}

@@ -8,8 +8,8 @@ jest.mock('../../../errors', () => ({
     error: jest.fn(),
     warn: jest.fn(),
     info: jest.fn(),
-    debug: jest.fn()
-  }
+    debug: jest.fn(),
+  },
 }));
 
 describe('queryHelpers', () => {
@@ -24,20 +24,20 @@ describe('queryHelpers', () => {
     describe('basic functionality', () => {
       it('should invalidate single query key', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         await invalidateQueries(mockQueryClient, ['contacts']);
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledTimes(1);
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts']
+          queryKey: ['contacts'],
         });
       });
 
       it('should invalidate multiple query keys', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         await invalidateQueries(
@@ -49,19 +49,19 @@ describe('queryHelpers', () => {
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledTimes(3);
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts']
+          queryKey: ['contacts'],
         });
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts', 'list']
+          queryKey: ['contacts', 'list'],
         });
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts', 'detail']
+          queryKey: ['contacts', 'detail'],
         });
       });
 
       it('should handle empty query keys array', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         await invalidateQueries(mockQueryClient);
@@ -71,7 +71,7 @@ describe('queryHelpers', () => {
 
       it('should return Promise that resolves when all invalidations complete', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const result = await invalidateQueries(
@@ -89,10 +89,10 @@ describe('queryHelpers', () => {
       it('should invalidate queries in parallel', async () => {
         const callOrder = [];
         const mockQueryClient = {
-          invalidateQueries: jest.fn((params) => {
+          invalidateQueries: jest.fn(params => {
             callOrder.push(params.queryKey);
             return Promise.resolve();
-          })
+          }),
         };
 
         await invalidateQueries(
@@ -109,9 +109,14 @@ describe('queryHelpers', () => {
 
       it('should handle slow invalidations', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn()
-            .mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 100)))
-            .mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 50)))
+          invalidateQueries: jest
+            .fn()
+            .mockImplementationOnce(
+              () => new Promise(resolve => setTimeout(resolve, 100))
+            )
+            .mockImplementationOnce(
+              () => new Promise(resolve => setTimeout(resolve, 50))
+            ),
         };
 
         const start = Date.now();
@@ -128,7 +133,9 @@ describe('queryHelpers', () => {
     describe('error handling', () => {
       it('should propagate error if invalidation fails', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockRejectedValue(new Error('Invalidation failed'))
+          invalidateQueries: jest
+            .fn()
+            .mockRejectedValue(new Error('Invalidation failed')),
         };
 
         await expect(
@@ -138,14 +145,20 @@ describe('queryHelpers', () => {
 
       it('should fail if any invalidation fails', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn()
+          invalidateQueries: jest
+            .fn()
             .mockResolvedValueOnce(undefined)
             .mockRejectedValueOnce(new Error('Second invalidation failed'))
-            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce(undefined),
         };
 
         await expect(
-          invalidateQueries(mockQueryClient, ['contacts'], ['events'], ['interactions'])
+          invalidateQueries(
+            mockQueryClient,
+            ['contacts'],
+            ['events'],
+            ['interactions']
+          )
         ).rejects.toThrow('Second invalidation failed');
       });
     });
@@ -153,37 +166,38 @@ describe('queryHelpers', () => {
     describe('query key formats', () => {
       it('should handle simple string keys', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         await invalidateQueries(mockQueryClient, 'contacts', 'events');
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: 'contacts'
+          queryKey: 'contacts',
         });
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: 'events'
+          queryKey: 'events',
         });
       });
 
       it('should handle nested array keys', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
-        await invalidateQueries(
-          mockQueryClient,
-          ['contacts', 'list', { filters: { active: true } }]
-        );
+        await invalidateQueries(mockQueryClient, [
+          'contacts',
+          'list',
+          { filters: { active: true } },
+        ]);
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts', 'list', { filters: { active: true } }]
+          queryKey: ['contacts', 'list', { filters: { active: true } }],
         });
       });
 
       it('should handle mixed key types', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         await invalidateQueries(
@@ -200,13 +214,13 @@ describe('queryHelpers', () => {
     describe('real-world usage scenarios', () => {
       it('should invalidate all contact-related queries', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const contactKeys = {
           all: ['contacts'],
           lists: () => ['contacts', 'list'],
-          listsWithInfo: () => ['contacts', 'list', 'withInfo']
+          listsWithInfo: () => ['contacts', 'list', 'withInfo'],
         };
 
         await invalidateQueries(
@@ -221,7 +235,7 @@ describe('queryHelpers', () => {
 
       it('should work in mutation onSuccess handler', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const onSuccess = async () => {
@@ -242,7 +256,7 @@ describe('queryHelpers', () => {
     describe('basic structure', () => {
       it('should return object with onSuccess and onError handlers', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
@@ -255,7 +269,7 @@ describe('queryHelpers', () => {
 
       it('should work without options parameter', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
@@ -266,10 +280,14 @@ describe('queryHelpers', () => {
 
       it('should work with empty options object', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
-        const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {});
+        const handlers = createMutationHandlers(
+          mockQueryClient,
+          ['contacts'],
+          {}
+        );
 
         expect(handlers.onSuccess).toBeDefined();
         expect(handlers.onError).toBeDefined();
@@ -279,7 +297,7 @@ describe('queryHelpers', () => {
     describe('onSuccess handler', () => {
       it('should invalidate single query key on success', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
@@ -287,18 +305,18 @@ describe('queryHelpers', () => {
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledTimes(1);
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts']
+          queryKey: ['contacts'],
         });
       });
 
       it('should invalidate multiple query keys on success', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, [
           ['contacts', 'list'],
-          ['contacts', 'detail']
+          ['contacts', 'detail'],
         ]);
         await handlers.onSuccess();
 
@@ -307,27 +325,31 @@ describe('queryHelpers', () => {
 
       it('should call custom onSuccess handler after invalidation', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnSuccess = jest.fn();
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          onSuccess: customOnSuccess
+          onSuccess: customOnSuccess,
         });
         await handlers.onSuccess('data', 'variables', 'context');
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalled();
-        expect(customOnSuccess).toHaveBeenCalledWith('data', 'variables', 'context');
+        expect(customOnSuccess).toHaveBeenCalledWith(
+          'data',
+          'variables',
+          'context'
+        );
       });
 
       it('should log success message if provided', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
           successMessage: 'Contact created successfully',
-          context: 'useCreateContact'
+          context: 'useCreateContact',
         });
         await handlers.onSuccess();
 
@@ -339,7 +361,7 @@ describe('queryHelpers', () => {
 
       it('should not log if successMessage not provided', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
@@ -350,12 +372,12 @@ describe('queryHelpers', () => {
 
       it('should pass all arguments to custom onSuccess', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnSuccess = jest.fn();
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          onSuccess: customOnSuccess
+          onSuccess: customOnSuccess,
         });
 
         const data = { id: 1, name: 'John' };
@@ -371,11 +393,11 @@ describe('queryHelpers', () => {
     describe('onError handler', () => {
       it('should log error with context', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          context: 'useCreateContact'
+          context: 'useCreateContact',
         });
 
         const error = new Error('Creation failed');
@@ -390,7 +412,7 @@ describe('queryHelpers', () => {
 
       it('should use default context if not provided', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
@@ -406,12 +428,12 @@ describe('queryHelpers', () => {
 
       it('should call custom onError handler', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnError = jest.fn();
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          onError: customOnError
+          onError: customOnError,
         });
 
         const error = new Error('Creation failed');
@@ -423,12 +445,12 @@ describe('queryHelpers', () => {
 
       it('should pass all arguments to custom onError', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnError = jest.fn();
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          onError: customOnError
+          onError: customOnError,
         });
 
         const error = new Error('Creation failed');
@@ -442,7 +464,7 @@ describe('queryHelpers', () => {
 
       it('should handle errors without custom handler', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
@@ -456,25 +478,25 @@ describe('queryHelpers', () => {
     describe('key normalization', () => {
       it('should handle single query key (not wrapped in array)', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts']);
         await handlers.onSuccess();
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts']
+          queryKey: ['contacts'],
         });
       });
 
       it('should handle array of query keys', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, [
           ['contacts', 'list'],
-          ['contacts', 'detail']
+          ['contacts', 'detail'],
         ]);
         await handlers.onSuccess();
 
@@ -483,12 +505,12 @@ describe('queryHelpers', () => {
 
       it('should handle nested array structures', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, [
           ['contacts', 'list', { filters: {} }],
-          ['events', 'upcoming']
+          ['events', 'upcoming'],
         ]);
         await handlers.onSuccess();
 
@@ -499,12 +521,12 @@ describe('queryHelpers', () => {
     describe('integration scenarios', () => {
       it('should work in useMutation hook', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const contactKeys = {
           all: ['contacts'],
-          lists: () => ['contacts', 'list']
+          lists: () => ['contacts', 'list'],
         };
 
         const handlers = createMutationHandlers(
@@ -518,23 +540,27 @@ describe('queryHelpers', () => {
 
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledTimes(2);
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts']
+          queryKey: ['contacts'],
         });
         expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['contacts', 'list']
+          queryKey: ['contacts', 'list'],
         });
       });
 
       it('should handle mutation with custom success callback', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const onSuccessCallback = jest.fn();
 
-        const handlers = createMutationHandlers(mockQueryClient, [['contacts']], {
-          context: 'useCreateContact',
-          onSuccess: onSuccessCallback
-        });
+        const handlers = createMutationHandlers(
+          mockQueryClient,
+          [['contacts']],
+          {
+            context: 'useCreateContact',
+            onSuccess: onSuccessCallback,
+          }
+        );
 
         const newContact = { id: 1, name: 'John' };
         await handlers.onSuccess(newContact);
@@ -545,14 +571,18 @@ describe('queryHelpers', () => {
 
       it('should handle mutation with custom error callback', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const onErrorCallback = jest.fn();
 
-        const handlers = createMutationHandlers(mockQueryClient, [['contacts']], {
-          context: 'useCreateContact',
-          onError: onErrorCallback
-        });
+        const handlers = createMutationHandlers(
+          mockQueryClient,
+          [['contacts']],
+          {
+            context: 'useCreateContact',
+            onError: onErrorCallback,
+          }
+        );
 
         const error = new Error('Network error');
         handlers.onError(error);
@@ -569,7 +599,7 @@ describe('queryHelpers', () => {
     describe('edge cases', () => {
       it('should handle empty keysToInvalidate', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, []);
@@ -581,12 +611,12 @@ describe('queryHelpers', () => {
 
       it('should handle null custom handlers', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
           onSuccess: null,
-          onError: null
+          onError: null,
         });
 
         await expect(handlers.onSuccess()).resolves.not.toThrow();
@@ -595,12 +625,12 @@ describe('queryHelpers', () => {
 
       it('should handle undefined custom handlers', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
           onSuccess: undefined,
-          onError: undefined
+          onError: undefined,
         });
 
         await expect(handlers.onSuccess()).resolves.not.toThrow();
@@ -609,44 +639,48 @@ describe('queryHelpers', () => {
 
       it('should handle errors in custom onSuccess', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnSuccess = jest.fn(() => {
           throw new Error('Custom handler error');
         });
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          onSuccess: customOnSuccess
+          onSuccess: customOnSuccess,
         });
 
-        await expect(handlers.onSuccess()).rejects.toThrow('Custom handler error');
+        await expect(handlers.onSuccess()).rejects.toThrow(
+          'Custom handler error'
+        );
       });
 
       it('should handle errors in custom onError', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnError = jest.fn(() => {
           throw new Error('Custom error handler error');
         });
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          onError: customOnError
+          onError: customOnError,
         });
 
-        expect(() => handlers.onError(new Error('test'))).toThrow('Custom error handler error');
+        expect(() => handlers.onError(new Error('test'))).toThrow(
+          'Custom error handler error'
+        );
       });
     });
 
     describe('logger integration', () => {
       it('should log with custom context', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
           context: 'MyCustomMutation',
-          successMessage: 'Operation completed'
+          successMessage: 'Operation completed',
         });
 
         await handlers.onSuccess();
@@ -659,11 +693,11 @@ describe('queryHelpers', () => {
 
       it('should not log success without successMessage', async () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
-          context: 'MyCustomMutation'
+          context: 'MyCustomMutation',
         });
 
         await handlers.onSuccess();
@@ -673,13 +707,13 @@ describe('queryHelpers', () => {
 
       it('should always log errors regardless of custom handler', () => {
         const mockQueryClient = {
-          invalidateQueries: jest.fn().mockResolvedValue(undefined)
+          invalidateQueries: jest.fn().mockResolvedValue(undefined),
         };
         const customOnError = jest.fn();
 
         const handlers = createMutationHandlers(mockQueryClient, ['contacts'], {
           context: 'useCreateContact',
-          onError: customOnError
+          onError: customOnError,
         });
 
         const error = new Error('Test error');

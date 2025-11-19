@@ -11,10 +11,14 @@ import { logger } from '../../errors/utils/errorLogger';
 export const savedSearchKeys = {
   all: ['savedSearches'],
   lists: () => [...savedSearchKeys.all, 'list'],
-  list: (entityType) => [...savedSearchKeys.lists(), { entityType }],
+  list: entityType => [...savedSearchKeys.lists(), { entityType }],
   details: () => [...savedSearchKeys.all, 'detail'],
-  detail: (id) => [...savedSearchKeys.details(), id],
-  search: (query, entityType) => [...savedSearchKeys.all, 'search', { query, entityType }],
+  detail: id => [...savedSearchKeys.details(), id],
+  search: (query, entityType) => [
+    ...savedSearchKeys.all,
+    'search',
+    { query, entityType },
+  ],
 };
 
 /**
@@ -72,7 +76,7 @@ export function useCreateSavedSearch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => database.savedSearches.create(data),
+    mutationFn: data => database.savedSearches.create(data),
     ...createMutationHandlers(queryClient, [savedSearchKeys.all], {
       successMessage: 'Search saved successfully',
       context: 'useCreateSavedSearch',
@@ -91,10 +95,13 @@ export function useUpdateSavedSearch() {
     ...createMutationHandlers(queryClient, [savedSearchKeys.all], {
       successMessage: 'Search updated successfully',
       context: 'useUpdateSavedSearch',
-      onSuccess: (updatedSearch) => {
+      onSuccess: updatedSearch => {
         // Also invalidate the specific search detail
         if (updatedSearch?.id) {
-          invalidateQueries(queryClient, savedSearchKeys.detail(updatedSearch.id));
+          invalidateQueries(
+            queryClient,
+            savedSearchKeys.detail(updatedSearch.id)
+          );
         }
       },
     }),
@@ -108,7 +115,7 @@ export function useDeleteSavedSearch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => database.savedSearches.delete(id),
+    mutationFn: id => database.savedSearches.delete(id),
     ...createMutationHandlers(queryClient, [savedSearchKeys.all], {
       successMessage: 'Search deleted successfully',
       context: 'useDeleteSavedSearch',

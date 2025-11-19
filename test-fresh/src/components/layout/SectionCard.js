@@ -10,16 +10,12 @@ export default function SectionCard({
   subtitle,
   children,
   actions,
-  style
+  style,
 }) {
   return (
     <Card style={[styles.card, style]}>
       {(title || subtitle || actions) && (
-        <Card.Title
-          title={title}
-          subtitle={subtitle}
-          right={actions}
-        />
+        <Card.Title title={title} subtitle={subtitle} right={actions} />
       )}
       <Card.Content>{children}</Card.Content>
     </Card>

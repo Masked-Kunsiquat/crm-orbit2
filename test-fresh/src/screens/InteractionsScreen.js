@@ -12,11 +12,19 @@ import { logger } from '../errors';
 import { unique } from '../utils/arrayHelpers';
 
 const INTERACTION_TYPES = [
-  { value: 'all', i18n: 'interactions.filters.all', icon: 'format-list-bulleted' },
+  {
+    value: 'all',
+    i18n: 'interactions.filters.all',
+    icon: 'format-list-bulleted',
+  },
   { value: 'call', i18n: 'interactions.filters.call', icon: 'phone' },
   { value: 'text', i18n: 'interactions.filters.text', icon: 'message-text' },
   { value: 'email', i18n: 'interactions.filters.email', icon: 'email' },
-  { value: 'meeting', i18n: 'interactions.filters.meeting', icon: 'calendar-account' },
+  {
+    value: 'meeting',
+    i18n: 'interactions.filters.meeting',
+    icon: 'calendar-account',
+  },
   { value: 'other', i18n: 'interactions.filters.other', icon: 'note-text' },
 ];
 
@@ -32,7 +40,12 @@ export default function InteractionsScreen({ navigation }) {
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = newest first, 'asc' = oldest first
 
   // Use TanStack Query for interactions data
-  const { data: interactions = [], isLoading: loading, refetch, isFetching: refreshing } = useInteractions({
+  const {
+    data: interactions = [],
+    isLoading: loading,
+    refetch,
+    isFetching: refreshing,
+  } = useInteractions({
     limit: 500,
     orderBy: 'interaction_datetime',
     orderDir: 'DESC',
@@ -67,7 +80,8 @@ export default function InteractionsScreen({ navigation }) {
     // Filter by type
     if (selectedType !== 'all') {
       filtered = filtered.filter(
-        i => i.interaction_type === selectedType || i.custom_type === selectedType
+        i =>
+          i.interaction_type === selectedType || i.custom_type === selectedType
       );
     }
 
@@ -85,13 +99,13 @@ export default function InteractionsScreen({ navigation }) {
     await refetch();
   };
 
-  const handleInteractionPress = (interaction) => {
+  const handleInteractionPress = interaction => {
     // Regular tap - show detail modal
     setSelectedInteraction(interaction);
     setShowDetailModal(true);
   };
 
-  const handleInteractionLongPress = (interaction) => {
+  const handleInteractionLongPress = interaction => {
     // Long press - open in edit mode
     setEditingInteraction(interaction);
     setShowAddModal(true);
@@ -127,7 +141,7 @@ export default function InteractionsScreen({ navigation }) {
   };
 
   const toggleSortOrder = () => {
-    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+    setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
   };
 
   const renderInteraction = ({ item }) => {
@@ -150,11 +164,17 @@ export default function InteractionsScreen({ navigation }) {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header elevated>
         <Appbar.Content title={t('interactions.title')} />
         <Appbar.Action
-          icon={sortOrder === 'desc' ? 'sort-calendar-descending' : 'sort-calendar-ascending'}
+          icon={
+            sortOrder === 'desc'
+              ? 'sort-calendar-descending'
+              : 'sort-calendar-ascending'
+          }
           onPress={toggleSortOrder}
         />
       </Appbar.Header>
@@ -166,7 +186,7 @@ export default function InteractionsScreen({ navigation }) {
         style={styles.filterScroll}
         contentContainerStyle={styles.filterContent}
       >
-        {INTERACTION_TYPES.map((type) => (
+        {INTERACTION_TYPES.map(type => (
           <Chip
             key={type.value}
             selected={selectedType === type.value}
@@ -185,29 +205,29 @@ export default function InteractionsScreen({ navigation }) {
       <FlatList
         data={filteredInteractions}
         renderItem={renderInteraction}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         style={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListEmptyComponent={!loading ? renderEmptyState : null}
         contentContainerStyle={
-          filteredInteractions.length === 0 ? styles.emptyContainer : styles.listContent
+          filteredInteractions.length === 0
+            ? styles.emptyContainer
+            : styles.listContent
         }
       />
 
       {/* FAB for adding new interaction */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={handleAddInteraction}
-      />
+      <FAB icon="plus" style={styles.fab} onPress={handleAddInteraction} />
 
       {/* Detail Modal */}
       <InteractionDetailModal
         visible={showDetailModal}
         onDismiss={() => setShowDetailModal(false)}
         interaction={selectedInteraction}
-        contact={selectedInteraction ? contacts[selectedInteraction.contact_id] : null}
+        contact={
+          selectedInteraction ? contacts[selectedInteraction.contact_id] : null
+        }
         onEdit={handleDetailEdit}
       />
 

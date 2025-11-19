@@ -14,8 +14,8 @@ import {
 import * as Contacts from 'expo-contacts';
 import { categoriesDB } from '../database';
 import { useTranslation } from 'react-i18next';
-import { useCreateContactWithDetails } from '../hooks/queries';
-import { useCompanies } from '../hooks/queries';
+import { useCreateContactWithDetails, useCompanies } from '../hooks/queries';
+
 import { useSettings } from '../context/SettingsContext';
 import { handleError, showAlert } from '../errors';
 import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
@@ -29,10 +29,11 @@ const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
  * @param {string} nativeLabel - The label from native contact
  * @returns {string} - One of our PHONE_LABELS
  */
-const mapPhoneLabel = (nativeLabel) => {
+const mapPhoneLabel = nativeLabel => {
   if (!nativeLabel) return 'Mobile';
   const normalized = nativeLabel.toLowerCase();
-  if (normalized.includes('mobile') || normalized.includes('cell')) return 'Mobile';
+  if (normalized.includes('mobile') || normalized.includes('cell'))
+    return 'Mobile';
   if (normalized.includes('home')) return 'Home';
   if (normalized.includes('work')) return 'Work';
   return 'Other';
@@ -43,11 +44,12 @@ const mapPhoneLabel = (nativeLabel) => {
  * @param {string} nativeLabel - The label from native contact
  * @returns {string} - One of our EMAIL_LABELS
  */
-const mapEmailLabel = (nativeLabel) => {
+const mapEmailLabel = nativeLabel => {
   if (!nativeLabel) return 'Personal';
   const normalized = nativeLabel.toLowerCase();
   if (normalized.includes('work')) return 'Work';
-  if (normalized.includes('personal') || normalized.includes('home')) return 'Personal';
+  if (normalized.includes('personal') || normalized.includes('home'))
+    return 'Personal';
   return 'Other';
 };
 
@@ -59,13 +61,17 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
-  const [emails, setEmails] = useState([{ id: 1, value: '', label: 'Personal' }]);
+  const [emails, setEmails] = useState([
+    { id: 1, value: '', label: 'Personal' },
+  ]);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   // Use TanStack Query mutations and queries
   const createContactMutation = useCreateContactWithDetails();
-  const { data: companies = [] } = useCompanies({ enabled: companyManagementEnabled });
+  const { data: companies = [] } = useCompanies({
+    enabled: companyManagementEnabled,
+  });
 
   useEffect(() => {
     if (visible) {
@@ -145,7 +151,10 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
       }
 
       // Show success message
-      showAlert.success(t('addContact.importSuccessMsg'), t('addContact.importSuccessTitle'));
+      showAlert.success(
+        t('addContact.importSuccessMsg'),
+        t('addContact.importSuccessTitle')
+      );
     } catch (error) {
       handleError(error, {
         component: 'AddContactModal',
@@ -156,7 +165,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
     }
   };
 
-  const toggleCategory = (categoryId) => {
+  const toggleCategory = categoryId => {
     if (selectedCategories.includes(categoryId)) {
       setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
     } else {
@@ -181,36 +190,36 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
   };
 
   const updatePhoneValue = (id, value) => {
-    setPhones(phones.map(phone =>
-      phone.id === id ? { ...phone, value } : phone
-    ));
+    setPhones(
+      phones.map(phone => (phone.id === id ? { ...phone, value } : phone))
+    );
   };
 
   const updatePhoneLabel = (id, label) => {
-    setPhones(phones.map(phone =>
-      phone.id === id ? { ...phone, label } : phone
-    ));
+    setPhones(
+      phones.map(phone => (phone.id === id ? { ...phone, label } : phone))
+    );
   };
 
   const updateEmailValue = (id, value) => {
-    setEmails(emails.map(email =>
-      email.id === id ? { ...email, value } : email
-    ));
+    setEmails(
+      emails.map(email => (email.id === id ? { ...email, value } : email))
+    );
   };
 
   const updateEmailLabel = (id, label) => {
-    setEmails(emails.map(email =>
-      email.id === id ? { ...email, label } : email
-    ));
+    setEmails(
+      emails.map(email => (email.id === id ? { ...email, label } : email))
+    );
   };
 
-  const removePhoneEntry = (id) => {
+  const removePhoneEntry = id => {
     if (phones.length > 1) {
       setPhones(phones.filter(phone => phone.id !== id));
     }
   };
 
-  const removeEmailEntry = (id) => {
+  const removeEmailEntry = id => {
     if (emails.length > 1) {
       setEmails(emails.filter(email => email.id !== id));
     }
@@ -256,7 +265,10 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
 
   const validPhones = filterNonEmpty(phones);
   const validEmails = filterNonEmpty(emails);
-  const canSave = hasContent(firstName) && (validPhones.length > 0 || validEmails.length > 0) && !createContactMutation.isPending;
+  const canSave =
+    hasContent(firstName) &&
+    (validPhones.length > 0 || validEmails.length > 0) &&
+    !createContactMutation.isPending;
 
   return (
     <Portal>
@@ -287,13 +299,16 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
             </View>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Name Section */}
             <View style={styles.section}>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
-              {t('addContact.sections.name')}
-            </Text>
-            <TextInput
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                {t('addContact.sections.name')}
+              </Text>
+              <TextInput
                 label={t('addContact.labels.firstName')}
                 value={firstName}
                 onChangeText={setFirstName}
@@ -342,7 +357,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
                     }}
                     title="None"
                   />
-                  {companies.map((company) => (
+                  {companies.map(company => (
                     <Menu.Item
                       key={company.id}
                       onPress={() => {
@@ -373,7 +388,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
               {phones.map((phone, index) => (
                 <View key={phone.id} style={styles.entryContainer}>
                   <View style={styles.labelChips}>
-                    {PHONE_LABELS.map((label) => (
+                    {PHONE_LABELS.map(label => (
                       <Chip
                         key={label}
                         selected={phone.label === label}
@@ -389,7 +404,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
                     <TextInput
                       label={`${t('contact.phoneLabels.' + phone.label)} ${t('addContact.labels.phone')}`}
                       value={phone.value}
-                      onChangeText={(value) => updatePhoneValue(phone.id, value)}
+                      onChangeText={value => updatePhoneValue(phone.id, value)}
                       mode="outlined"
                       style={styles.inputFlex}
                       keyboardType="phone-pad"
@@ -425,7 +440,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
               {emails.map((email, index) => (
                 <View key={email.id} style={styles.entryContainer}>
                   <View style={styles.labelChips}>
-                    {EMAIL_LABELS.map((label) => (
+                    {EMAIL_LABELS.map(label => (
                       <Chip
                         key={label}
                         selected={email.label === label}
@@ -441,7 +456,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
                     <TextInput
                       label={`${t('contact.emailLabels.' + email.label)} ${t('addContact.labels.email')}`}
                       value={email.value}
-                      onChangeText={(value) => updateEmailValue(email.id, value)}
+                      onChangeText={value => updateEmailValue(email.id, value)}
                       mode="outlined"
                       style={styles.inputFlex}
                       keyboardType="email-address"
@@ -468,19 +483,25 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
                   {t('addContact.sections.categories')}
                 </Text>
                 <View style={styles.categoryChips}>
-                  {categories.map((category) => (
+                  {categories.map(category => (
                     <Chip
                       key={category.id}
                       selected={selectedCategories.includes(category.id)}
                       onPress={() => toggleCategory(category.id)}
                       style={[
                         styles.categoryChip,
-                        selectedCategories.includes(category.id) && { backgroundColor: category.color }
+                        selectedCategories.includes(category.id) && {
+                          backgroundColor: category.color,
+                        },
                       ]}
                       mode="flat"
                       icon={category.icon}
                     >
-                      {(() => { const key = `categories.${category.name}`; const translated = t(key); return translated === key ? category.name : translated; })()}
+                      {(() => {
+                        const key = `categories.${category.name}`;
+                        const translated = t(key);
+                        return translated === key ? category.name : translated;
+                      })()}
                     </Chip>
                   ))}
                 </View>

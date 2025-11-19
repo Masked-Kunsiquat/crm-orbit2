@@ -19,10 +19,14 @@ function ContactCard({ contact, onPress }) {
                 {getContactDisplayName(contact)}
               </Text>
               {(() => {
-                const companyName = contact.company?.name || contact.company_name;
+                const companyName =
+                  contact.company?.name || contact.company_name;
                 const job = contact.job_title;
                 if (!companyName && !job) return null;
-                const line = job && companyName ? `${job} at ${companyName}` : (job || companyName);
+                const line =
+                  job && companyName
+                    ? `${job} at ${companyName}`
+                    : job || companyName;
                 return (
                   <Text variant="bodySmall" style={styles.company}>
                     {line}
@@ -39,8 +43,14 @@ function ContactCard({ contact, onPress }) {
                     key={index}
                     compact
                     mode="outlined"
-                    style={[styles.categoryChipOutline, { borderColor: category.color || '#90caf9' }]}
-                    textStyle={[styles.categoryTextOutline, { color: category.color || '#1976d2' }]}
+                    style={[
+                      styles.categoryChipOutline,
+                      { borderColor: category.color || '#90caf9' },
+                    ]}
+                    textStyle={[
+                      styles.categoryTextOutline,
+                      { color: category.color || '#1976d2' },
+                    ]}
                   >
                     {(() => {
                       const key = `categories.${category.name}`;
@@ -50,7 +60,12 @@ function ContactCard({ contact, onPress }) {
                   </Chip>
                 ))}
                 {contact.categories.length > 2 && (
-                  <Chip compact mode="outlined" style={styles.moreChipOutline} textStyle={styles.moreChipText}>
+                  <Chip
+                    compact
+                    mode="outlined"
+                    style={styles.moreChipOutline}
+                    textStyle={styles.moreChipText}
+                  >
                     +{contact.categories.length - 2}
                   </Chip>
                 )}
