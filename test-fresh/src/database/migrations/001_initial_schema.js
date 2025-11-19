@@ -397,6 +397,8 @@ export default {
     // ============================================================================
 
     // Display name triggers (migration 004)
+    // NOTE: The display_name computation logic is duplicated in both INSERT and UPDATE triggers.
+    // If you modify the logic, ensure both triggers are updated identically.
     await execute(`
       CREATE TRIGGER IF NOT EXISTS contacts_display_name_insert
       AFTER INSERT ON contacts
@@ -486,6 +488,86 @@ export default {
     `);
 
     // Updated_at triggers (migration 007)
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_attachments_updated_at
+      AFTER UPDATE ON attachments
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE attachments SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_companies_updated_at
+      AFTER UPDATE ON companies
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE companies SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_contacts_updated_at
+      AFTER UPDATE ON contacts
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE contacts SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_contact_info_updated_at
+      AFTER UPDATE ON contact_info
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE contact_info SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_categories_updated_at
+      AFTER UPDATE ON categories
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE categories SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_event_reminders_updated_at
+      AFTER UPDATE ON event_reminders
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE event_reminders SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_notes_updated_at
+      AFTER UPDATE ON notes
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE notes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    await execute(`
+      CREATE TRIGGER IF NOT EXISTS trg_saved_searches_updated_at
+      AFTER UPDATE ON saved_searches
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE saved_searches SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
     await execute(`
       CREATE TRIGGER IF NOT EXISTS trg_events_updated_at
       AFTER UPDATE ON events
