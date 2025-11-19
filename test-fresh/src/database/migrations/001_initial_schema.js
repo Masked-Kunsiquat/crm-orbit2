@@ -100,7 +100,8 @@ export default {
         is_primary INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
+        FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE,
+        UNIQUE(contact_id, type, value)
       );
     `);
 
@@ -227,6 +228,12 @@ export default {
     // ============================================================================
     // PART 3: Performance Indexes (migration 003)
     // ============================================================================
+
+    // Attachments polymorphic lookup index
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_attachments_entity_type_id
+      ON attachments(entity_type, entity_id);
+    `);
 
     // Contacts indexes
     await execute(`
