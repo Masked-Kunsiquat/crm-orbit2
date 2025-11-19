@@ -272,19 +272,31 @@ simpleSetup.js           # Table creation
 resetDb.js               # Database reset utility
 ```
 
-**Migration System** (9 files, 64 KB):
+**Migration System** (4 active files + 8 archived):
 ```
 migrations/
-├── 001_initial_schema.js           # Core 13 tables (11 KB)
-├── 002_seed_data.js                # Initial categories (5 KB)
-├── 003_performance_indexes.js      # Database indexes (3 KB)
-├── 004_add_display_name_column.js  # Display name support (6 KB)
-├── 005_add_avatar_attachment_id.js # Avatar support (2 KB)
-├── 006_add_event_reminders_updated_at.js  # Timestamps (2 KB)
+├── 001_initial_schema.js           # Consolidated initial schema (522 lines, 15 KB)
+│                                     # Includes: all tables, indexes, triggers, FTS, seed data
 ├── _helpers.js                     # Migration utilities (3 KB)
 ├── migrationRunner.js              # Orchestration (8 KB)
-└── registry.js                     # Migration registry (1.5 KB)
+├── registry.js                     # Migration registry (1.5 KB)
+└── _archive/                       # Historical migrations (archived for reference)
+    ├── 001_initial_schema.js       # Original schema
+    ├── 002_seed_data.js            # Initial categories
+    ├── 003_performance_indexes.js  # Database indexes
+    ├── 004_add_display_name_column.js
+    ├── 005_add_avatar_attachment_id.js
+    ├── 006_add_event_reminders_updated_at.js
+    ├── 007_add_events_interactions_updated_at.js
+    └── 008_add_saved_searches_table.js
 ```
+
+**Migration Strategy**:
+- **Consolidated baseline**: Single 001_initial_schema.js for fresh installs
+- **Version tracking**: Automatic via migration_meta table
+- **Future migrations**: Start from version 002, build incrementally
+- **Rollback support**: down() method for each migration
+- **SQLite constraints**: See "SQLite Schema Alteration Best Practices" section for complex changes
 
 **Adapter** (1):
 ```
@@ -295,32 +307,39 @@ adapters/expoSqliteAdapter.js  # SQLite API compatibility layer
 
 ```sql
 -- Core entities
-contacts              # first/last/middle name, display_name, avatar_attachment_id, company_id
-companies             # name, industry, logo_attachment_id
+contacts              # first/last/middle name, display_name, avatar_attachment_id, company_id, is_favorite
+companies             # name, industry, website, address, notes, logo_attachment_id
 contact_info          # contact_id, type (phone/email/address), value, label, is_primary
 
 -- Activity tracking
-interactions          # contact_id, type, subject, body, interaction_date, location
-events                # contact_id, title, description, event_date, event_time, location, all_day
-notes                 # entity_type, entity_id, content, is_pinned
+interactions          # contact_id, interaction_datetime, title, note, interaction_type, custom_type, duration, updated_at
+events                # contact_id, title, description, event_date, event_time, location, all_day, recurring, recurrence_pattern, updated_at
+notes                 # contact_id, title, content, is_pinned
 
 -- File management
 attachments           # file_name, mime_type, file_size, data (base64), thumbnail_data
 
 -- Organization
 categories            # name, color, icon, is_system
-category_relations    # contact_id, category_id (many-to-many)
+contact_categories    # contact_id, category_id (many-to-many junction table)
 
 -- Event features
 event_reminders       # event_id, reminder_time, is_sent, updated_at
-events_recurring      # event_id, frequency, interval, days_of_week, end_date
 
--- Search
-interactions_search   # FTS5 virtual table for full-text search
+-- Search & Filters
+interactions_search   # FTS5 virtual table for full-text search (interaction_id, title, note)
+saved_searches        # name, entity_type, filters (JSON), created_at, updated_at
 
 -- Configuration
-settings              # key, value (JSON), type
+user_preferences      # key, value, created_at, updated_at
 ```
+
+**Key Schema Notes**:
+- **TEXT for dates**: All datetime fields use TEXT type (YYYY-MM-DD HH:MM:SS format) to avoid UTC timezone issues
+- **INTEGER for booleans**: All boolean flags stored as 0/1 integers
+- **Recurring events**: Inline in events table (recurring, recurrence_pattern) not separate table
+- **Updated timestamps**: Auto-updated via triggers on events and interactions tables
+- **Display name**: Auto-computed via triggers on INSERT/UPDATE of name fields
 
 ### Database Module Pattern
 
