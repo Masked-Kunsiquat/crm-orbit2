@@ -1,6 +1,6 @@
 // TanStack Query hooks for saved searches
 
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import database from '../../database';
 import { createMutationHandlers, invalidateQueries } from './queryHelpers';
 import { logger } from '../../errors/utils/errorLogger';
@@ -69,12 +69,13 @@ export function useSearchSavedSearches(query, entityType = null, options = {}) {
  * Create a new saved search
  */
 export function useCreateSavedSearch() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (data) => database.savedSearches.create(data),
-    ...createMutationHandlers({
-      invalidateKeys: [savedSearchKeys.all],
+    ...createMutationHandlers(queryClient, [savedSearchKeys.all], {
       successMessage: 'Search saved successfully',
-      errorContext: { operation: 'createSavedSearch' },
+      context: 'useCreateSavedSearch',
     }),
   });
 }
@@ -83,16 +84,17 @@ export function useCreateSavedSearch() {
  * Update a saved search
  */
 export function useUpdateSavedSearch() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ id, data }) => database.savedSearches.update(id, data),
-    ...createMutationHandlers({
-      invalidateKeys: [savedSearchKeys.all],
+    ...createMutationHandlers(queryClient, [savedSearchKeys.all], {
       successMessage: 'Search updated successfully',
-      errorContext: { operation: 'updateSavedSearch' },
-      onSuccessCallback: (updatedSearch) => {
+      context: 'useUpdateSavedSearch',
+      onSuccess: (updatedSearch) => {
         // Also invalidate the specific search detail
         if (updatedSearch?.id) {
-          invalidateQueries([savedSearchKeys.detail(updatedSearch.id)]);
+          invalidateQueries(queryClient, savedSearchKeys.detail(updatedSearch.id));
         }
       },
     }),
@@ -103,12 +105,13 @@ export function useUpdateSavedSearch() {
  * Delete a saved search
  */
 export function useDeleteSavedSearch() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (id) => database.savedSearches.delete(id),
-    ...createMutationHandlers({
-      invalidateKeys: [savedSearchKeys.all],
+    ...createMutationHandlers(queryClient, [savedSearchKeys.all], {
       successMessage: 'Search deleted successfully',
-      errorContext: { operation: 'deleteSavedSearch' },
+      context: 'useDeleteSavedSearch',
     }),
   });
 }
