@@ -36,16 +36,22 @@ export default {
     // PART 1: Core Tables (from simpleSetup.js)
     // ============================================================================
 
-    // Attachments table - stores file data as base64
+    // Attachments table - stores file metadata and paths
     await execute(`
       CREATE TABLE IF NOT EXISTS attachments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entity_type TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
         file_name TEXT NOT NULL,
-        mime_type TEXT,
+        original_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
         file_size INTEGER,
-        data TEXT,
-        thumbnail_data TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
+        thumbnail_path TEXT,
+        description TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -54,30 +60,30 @@ export default {
       CREATE TABLE IF NOT EXISTS companies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        industry TEXT,
         website TEXT,
-        address TEXT,
+        industry TEXT,
         notes TEXT,
-        logo_attachment_id INTEGER,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now')),
-        FOREIGN KEY (logo_attachment_id) REFERENCES attachments(id) ON DELETE SET NULL
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-    // Contacts table with display_name and avatar_attachment_id (migrations 004 + 005)
+    // Contacts table
     await execute(`
       CREATE TABLE IF NOT EXISTS contacts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         first_name TEXT NOT NULL,
-        middle_name TEXT,
         last_name TEXT,
-        company_id INTEGER,
-        is_favorite INTEGER DEFAULT 0,
+        middle_name TEXT,
         display_name TEXT,
+        avatar_uri TEXT,
         avatar_attachment_id INTEGER,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now')),
+        company_id INTEGER,
+        job_title TEXT,
+        is_favorite INTEGER DEFAULT 0,
+        last_interaction_at TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,
         FOREIGN KEY (avatar_attachment_id) REFERENCES attachments(id) ON DELETE SET NULL
       );
@@ -88,11 +94,12 @@ export default {
       CREATE TABLE IF NOT EXISTS contact_info (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('phone','email','address')),
-        value TEXT NOT NULL,
+        type TEXT NOT NULL,
         label TEXT,
+        value TEXT NOT NULL,
         is_primary INTEGER DEFAULT 0,
-        created_at TEXT DEFAULT (datetime('now')),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
       );
     `);
@@ -102,21 +109,26 @@ export default {
       CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
-        color TEXT,
+        color TEXT DEFAULT '#2196f3',
         icon TEXT,
+        description TEXT,
         is_system INTEGER DEFAULT 0,
-        created_at TEXT DEFAULT (datetime('now'))
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // Contact-Category junction table
     await execute(`
       CREATE TABLE IF NOT EXISTS contact_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
         category_id INTEGER NOT NULL,
-        PRIMARY KEY (contact_id, category_id),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE,
-        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+        UNIQUE(contact_id, category_id)
       );
     `);
 
@@ -134,51 +146,50 @@ export default {
       );
     `);
 
-    // Interactions table with updated_at (migration 007)
+    // Interactions table
     await execute(`
       CREATE TABLE IF NOT EXISTS interactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
         interaction_datetime TEXT NOT NULL,
-        title TEXT,
+        title TEXT NOT NULL,
         note TEXT,
-        interaction_type TEXT CHECK(interaction_type IN ('call','text','email','meeting','other')),
+        interaction_type TEXT NOT NULL,
         custom_type TEXT,
         duration INTEGER,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now')),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
       );
     `);
 
-    // Events table with recurring fields and updated_at (migration 007)
+    // Events table
     await execute(`
       CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
         title TEXT NOT NULL,
-        description TEXT,
+        event_type TEXT NOT NULL,
         event_date TEXT NOT NULL,
-        event_time TEXT,
-        location TEXT,
-        all_day INTEGER DEFAULT 0,
         recurring INTEGER DEFAULT 0,
         recurrence_pattern TEXT,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now')),
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
       );
     `);
 
-    // Event reminders table with updated_at (migration 006)
+    // Event reminders table
     await execute(`
       CREATE TABLE IF NOT EXISTS event_reminders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         event_id INTEGER NOT NULL,
-        reminder_time TEXT NOT NULL,
+        reminder_datetime TEXT NOT NULL,
+        reminder_type TEXT DEFAULT 'notification',
         is_sent INTEGER DEFAULT 0,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now')),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
       );
     `);
@@ -303,7 +314,7 @@ export default {
 
     await execute(`
       CREATE INDEX IF NOT EXISTS idx_event_reminders_time
-      ON event_reminders(reminder_time, is_sent);
+      ON event_reminders(reminder_datetime, is_sent);
     `);
 
     // Notes indexes
