@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   Modal,
   Portal,
+  Surface,
   Text,
   Button,
   Chip,
@@ -148,22 +149,18 @@ export default function FilterBottomSheet({
       <Modal
         visible={visible}
         onDismiss={onDismiss}
-        contentContainerStyle={[
-          styles.modal,
-          {
-            backgroundColor: theme.colors.elevation.level2,
-          }
-        ]}
+        contentContainerStyle={styles.modal}
       >
-        <View style={[
-          styles.header,
-          { borderBottomColor: theme.colors.outlineVariant }
-        ]}>
-          <Text variant="titleLarge" style={{ color: theme.colors.onSurface }}>
-            {t('filters.title')}
-          </Text>
-          <IconButton icon="close" onPress={onDismiss} iconColor={theme.colors.onSurface} />
-        </View>
+        <Surface style={styles.surface} elevation={4}>
+          <View style={[
+            styles.header,
+            { borderBottomColor: theme.colors.outlineVariant }
+          ]}>
+            <Text variant="titleLarge" style={{ color: theme.colors.onSurface }}>
+              {t('filters.title')}
+            </Text>
+            <IconButton icon="close" onPress={onDismiss} iconColor={theme.colors.onSurface} />
+          </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Categories Section */}
@@ -386,6 +383,7 @@ export default function FilterBottomSheet({
             onChange={handleEndDateChange}
           />
         )}
+        </Surface>
       </Modal>
 
       {/* Save Search Dialog */}
@@ -431,9 +429,13 @@ export default function FilterBottomSheet({
 
 const styles = StyleSheet.create({
   modal: {
+    flex: 1,
+    justifyContent: 'center',
     margin: 20,
-    borderRadius: 12,
+  },
+  surface: {
     maxHeight: '90%',
+    borderRadius: 16,
   },
   header: {
     flexDirection: 'row',
