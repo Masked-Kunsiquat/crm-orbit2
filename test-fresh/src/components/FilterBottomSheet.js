@@ -150,12 +150,19 @@ export default function FilterBottomSheet({
         onDismiss={onDismiss}
         contentContainerStyle={[
           styles.modal,
-          { backgroundColor: theme.colors.surface }
+          {
+            backgroundColor: theme.colors.elevation.level2,
+          }
         ]}
       >
-        <View style={styles.header}>
-          <Text variant="titleLarge">{t('filters.title')}</Text>
-          <IconButton icon="close" onPress={onDismiss} />
+        <View style={[
+          styles.header,
+          { borderBottomColor: theme.colors.outlineVariant }
+        ]}>
+          <Text variant="titleLarge" style={{ color: theme.colors.onSurface }}>
+            {t('filters.title')}
+          </Text>
+          <IconButton icon="close" onPress={onDismiss} iconColor={theme.colors.onSurface} />
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -318,7 +325,10 @@ export default function FilterBottomSheet({
         </ScrollView>
 
         {/* Footer Actions */}
-        <View style={styles.footer}>
+        <View style={[
+          styles.footer,
+          { borderTopColor: theme.colors.outlineVariant }
+        ]}>
           <Button
             mode="outlined"
             onPress={handleClear}
@@ -417,10 +427,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    paddingBottom: 8,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
   content: {
     paddingHorizontal: 16,
+    paddingTop: 16,
     maxHeight: 500,
   },
   section: {
@@ -462,7 +474,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
+    paddingTop: 12,
     gap: 12,
+    borderTopWidth: 1,
   },
   footerButton: {
     flex: 1,
