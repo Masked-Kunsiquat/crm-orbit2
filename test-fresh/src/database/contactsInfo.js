@@ -96,7 +96,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
 
       // Always update last interaction when contact info is modified
       statements.push({
-        sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+        sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
         params: [contactId],
       });
 
@@ -168,7 +168,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
 
         // Touch parent contact for last interaction timestamp
         statements.push({
-          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           params: [contactId],
         });
         return statements;
@@ -200,7 +200,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
           );
         }
         await txOverride.execute(
-          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [contactId]
         );
         return true;
@@ -232,7 +232,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
             );
           }
           await tx.execute(
-            'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+            'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
             [contactId]
           );
         });
@@ -314,7 +314,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
       // Always update last interaction when contact info is modified
       if (statements.length > 0) {
         statements.push({
-          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           params: [current.contact_id],
         });
         await batch(statements);
@@ -339,7 +339,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
         const results = await batch([
           { sql: 'DELETE FROM contact_info WHERE id = ?;', params: [infoId] },
           {
-            sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+            sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
             params: [current.contact_id],
           },
         ]);
@@ -366,7 +366,7 @@ export function createContactsInfoDB({ execute, batch, transaction }) {
         // Update parent contact's last interaction timestamp
         if (rowsAffected > 0) {
           await tx.execute(
-            'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+            'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
             [current.contact_id]
           );
         }

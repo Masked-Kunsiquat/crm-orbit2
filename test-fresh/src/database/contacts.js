@@ -281,11 +281,11 @@ export function createContactsDB(ctx) {
     async toggleFavorite(id) {
       await batch([
         {
-          sql: 'UPDATE contacts SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END WHERE id = ?;',
-          params: [id],
-        },
-        {
-          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          sql: `UPDATE contacts
+                SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END,
+                    last_interaction_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;`,
           params: [id],
         },
       ]);

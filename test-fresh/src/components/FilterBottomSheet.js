@@ -28,8 +28,43 @@ const formatDateToLocalYMD = date => {
 };
 
 const parseDateOrDefault = (dateString, fallbackDate) => {
-  const timestamp = dateString ? Date.parse(dateString) : NaN;
-  return Number.isNaN(timestamp) ? fallbackDate : new Date(timestamp);
+  if (!dateString || typeof dateString !== 'string') {
+    return fallbackDate;
+  }
+
+  const segments = dateString.split('-');
+  if (segments.length !== 3) {
+    return fallbackDate;
+  }
+
+  const [yearStr, monthStr, dayStr] = segments;
+  const year = Number.parseInt(yearStr, 10);
+  const month = Number.parseInt(monthStr, 10);
+  const day = Number.parseInt(dayStr, 10);
+
+  if (
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return fallbackDate;
+  }
+
+  const parsedDate = new Date(year, month - 1, day);
+  // Ensure we didn't roll over to a different date (e.g., Feb 30)
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return fallbackDate;
+  }
+
+  return parsedDate;
 };
 
 export default function FilterBottomSheet({

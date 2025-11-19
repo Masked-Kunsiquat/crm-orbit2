@@ -68,7 +68,7 @@ export function createEventsDB({ execute, batch, transaction }) {
 
         // Update contact's last_interaction_at
         await execute(
-          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [data.contact_id]
         );
 
@@ -142,7 +142,7 @@ export function createEventsDB({ execute, batch, transaction }) {
 
       // Update contact's last_interaction_at
       await execute(
-        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
         [existing.contact_id]
       );
 

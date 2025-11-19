@@ -193,7 +193,7 @@ export function createCompaniesDB(ctx) {
 
         // Update all contacts to point to the company we're keeping
         const updateContactsRes = await tx.execute(
-          'UPDATE contacts SET company_id = ? WHERE company_id = ?;',
+          'UPDATE contacts SET company_id = ?, updated_at = CURRENT_TIMESTAMP WHERE company_id = ?;',
           [keepId, mergeId]
         );
 

@@ -150,7 +150,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
 
         // Update contact's last_interaction_at
         await tx.execute(
-          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [eventData.contact_id]
         );
 
@@ -331,7 +331,7 @@ export function createEventsRemindersDB({ execute, batch, transaction }) {
 
         // Update contact's last_interaction_at
         await tx.execute(
-          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [event.contact_id]
         );
 
