@@ -169,7 +169,7 @@ export default function FilterBottomSheet({
           {/* Categories Section */}
           {categories.length > 0 && (
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
                 {t('filters.categories')}
               </Text>
               <View style={styles.chips}>
@@ -180,6 +180,7 @@ export default function FilterBottomSheet({
                     onPress={() => toggleCategory(category.id)}
                     style={styles.chip}
                     mode="outlined"
+                    textStyle={{ color: selectedCategories.includes(category.id) ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
                   >
                     {category.name}
                   </Chip>
@@ -188,7 +189,7 @@ export default function FilterBottomSheet({
 
               {selectedCategories.length > 1 && (
                 <View style={styles.logicSection}>
-                  <Text variant="bodySmall" style={styles.logicLabel}>
+                  <Text variant="bodySmall" style={[styles.logicLabel, { color: theme.colors.onSurfaceVariant }]}>
                     {t('filters.categoryLogic')}
                   </Text>
                   <SegmentedButtons
@@ -208,7 +209,7 @@ export default function FilterBottomSheet({
           {/* Company Filter */}
           {companies.length > 0 && (
             <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
                 {t('filters.company')}
               </Text>
               <View style={styles.chips}>
@@ -217,6 +218,7 @@ export default function FilterBottomSheet({
                   onPress={() => setSelectedCompany(null)}
                   style={styles.chip}
                   mode="outlined"
+                  textStyle={{ color: !selectedCompany ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
                 >
                   {t('common.all')}
                 </Chip>
@@ -227,6 +229,7 @@ export default function FilterBottomSheet({
                     onPress={() => setSelectedCompany(company.id)}
                     style={styles.chip}
                     mode="outlined"
+                    textStyle={{ color: selectedCompany === company.id ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
                   >
                     {company.name}
                   </Chip>
@@ -237,7 +240,7 @@ export default function FilterBottomSheet({
 
           {/* Date Added Range */}
           <View style={styles.section}>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
               {t('filters.dateAdded')}
             </Text>
             <View style={styles.dateButtons}>
@@ -245,16 +248,18 @@ export default function FilterBottomSheet({
                 mode="outlined"
                 onPress={() => setShowStartDatePicker(true)}
                 style={styles.dateButton}
+                textColor={theme.colors.onSurface}
               >
                 {dateAddedRange?.start || t('filters.startDate')}
               </Button>
-              <Text variant="bodyMedium" style={styles.dateSeparator}>
+              <Text variant="bodyMedium" style={[styles.dateSeparator, { color: theme.colors.onSurface }]}>
                 {t('filters.to')}
               </Text>
               <Button
                 mode="outlined"
                 onPress={() => setShowEndDatePicker(true)}
                 style={styles.dateButton}
+                textColor={theme.colors.onSurface}
               >
                 {dateAddedRange?.end || t('filters.endDate')}
               </Button>
@@ -264,6 +269,7 @@ export default function FilterBottomSheet({
                 mode="text"
                 onPress={() => setDateAddedRange(null)}
                 compact
+                textColor={theme.colors.primary}
               >
                 {t('filters.clearDateRange')}
               </Button>
@@ -272,7 +278,7 @@ export default function FilterBottomSheet({
 
           {/* Interaction Activity */}
           <View style={styles.section}>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
               {t('filters.interactionActivity')}
             </Text>
             <View style={styles.chips}>
@@ -281,6 +287,7 @@ export default function FilterBottomSheet({
                 onPress={() => setInteractionDays(null)}
                 style={styles.chip}
                 mode="outlined"
+                textStyle={{ color: !interactionDays ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
               >
                 {t('common.all')}
               </Chip>
@@ -289,6 +296,7 @@ export default function FilterBottomSheet({
                 onPress={() => setInteractionDays(7)}
                 style={styles.chip}
                 mode="outlined"
+                textStyle={{ color: interactionDays === 7 ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
               >
                 {t('filters.last7Days')}
               </Chip>
@@ -297,6 +305,7 @@ export default function FilterBottomSheet({
                 onPress={() => setInteractionDays(30)}
                 style={styles.chip}
                 mode="outlined"
+                textStyle={{ color: interactionDays === 30 ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
               >
                 {t('filters.last30Days')}
               </Chip>
@@ -305,6 +314,7 @@ export default function FilterBottomSheet({
                 onPress={() => setInteractionDays(90)}
                 style={styles.chip}
                 mode="outlined"
+                textStyle={{ color: interactionDays === 90 ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
               >
                 {t('filters.last90Days')}
               </Chip>
@@ -318,6 +328,7 @@ export default function FilterBottomSheet({
               onPress={() => setHasUpcomingEvents(!hasUpcomingEvents)}
               icon={hasUpcomingEvents ? 'check' : undefined}
               mode="outlined"
+              textStyle={{ color: hasUpcomingEvents ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
             >
               {t('filters.hasUpcomingEvents')}
             </Chip>
@@ -333,6 +344,7 @@ export default function FilterBottomSheet({
             mode="outlined"
             onPress={handleClear}
             style={styles.footerButton}
+            textColor={theme.colors.onSurface}
           >
             {t('filters.clear')}
           </Button>
@@ -342,6 +354,7 @@ export default function FilterBottomSheet({
               onPress={() => setShowSaveDialog(true)}
               style={styles.footerButton}
               icon="content-save"
+              textColor={theme.colors.onSurface}
             >
               {t('savedSearches.save')}
             </Button>
