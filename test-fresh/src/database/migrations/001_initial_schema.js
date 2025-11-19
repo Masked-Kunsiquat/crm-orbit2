@@ -124,10 +124,13 @@ export default {
     await execute(`
       CREATE TABLE IF NOT EXISTS user_preferences (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT NOT NULL UNIQUE,
-        value TEXT,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now'))
+        category TEXT NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT,
+        data_type TEXT DEFAULT 'string',
+        is_enabled INTEGER DEFAULT 1,
+        updated_at TEXT DEFAULT (datetime('now')),
+        UNIQUE (category, setting_key)
       );
     `);
 
