@@ -29,13 +29,15 @@ export default {
   version: 1,
   name: 'initial_schema',
 
-  async up(db) {
+  async up(ctx) {
+    const { execute } = ctx;
+
     // ============================================================================
     // PART 1: Core Tables (from simpleSetup.js)
     // ============================================================================
 
     // Attachments table - stores file data as base64
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS attachments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         file_name TEXT NOT NULL,
@@ -48,7 +50,7 @@ export default {
     `);
 
     // Companies table
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS companies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -64,7 +66,7 @@ export default {
     `);
 
     // Contacts table with display_name and avatar_attachment_id (migrations 004 + 005)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS contacts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         first_name TEXT NOT NULL,
@@ -82,7 +84,7 @@ export default {
     `);
 
     // Contact info table (phones, emails, addresses)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS contact_info (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
@@ -96,7 +98,7 @@ export default {
     `);
 
     // Categories table
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
@@ -108,7 +110,7 @@ export default {
     `);
 
     // Contact-Category junction table
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS contact_categories (
         contact_id INTEGER NOT NULL,
         category_id INTEGER NOT NULL,
@@ -119,7 +121,7 @@ export default {
     `);
 
     // User preferences table
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS user_preferences (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         key TEXT NOT NULL UNIQUE,
@@ -130,7 +132,7 @@ export default {
     `);
 
     // Interactions table with updated_at (migration 007)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS interactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
@@ -147,7 +149,7 @@ export default {
     `);
 
     // Events table with recurring fields and updated_at (migration 007)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER NOT NULL,
@@ -166,7 +168,7 @@ export default {
     `);
 
     // Event reminders table with updated_at (migration 006)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS event_reminders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         event_id INTEGER NOT NULL,
@@ -183,7 +185,7 @@ export default {
     // ============================================================================
 
     // Notes table (from notes.js module)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         contact_id INTEGER,
@@ -197,7 +199,7 @@ export default {
     `);
 
     // Saved searches table (migration 008)
-    await db.execAsync(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS saved_searches (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -213,107 +215,107 @@ export default {
     // ============================================================================
 
     // Contacts indexes
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contacts_company
       ON contacts(company_id) WHERE company_id IS NOT NULL;
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contacts_favorite
       ON contacts(is_favorite) WHERE is_favorite = 1;
     `);
 
     // Display name index with case-insensitive collation (migration 004)
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contacts_display_name
       ON contacts(display_name COLLATE NOCASE);
     `);
 
     // Avatar attachment index (migration 005)
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contacts_avatar_attachment
       ON contacts(avatar_attachment_id) WHERE avatar_attachment_id IS NOT NULL;
     `);
 
     // Contact info indexes
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contact_info_contact
       ON contact_info(contact_id);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contact_info_type
       ON contact_info(type);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_contact_info_primary
       ON contact_info(contact_id, is_primary) WHERE is_primary = 1;
     `);
 
     // Interaction indexes (migration 003)
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_interactions_contact_datetime
       ON interactions(contact_id, interaction_datetime DESC);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_interactions_datetime_desc
       ON interactions(interaction_datetime DESC);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_interactions_type_datetime
       ON interactions(interaction_type, interaction_datetime DESC)
       WHERE interaction_type IS NOT NULL;
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_interactions_custom_type_datetime
       ON interactions(custom_type, interaction_datetime DESC)
       WHERE custom_type IS NOT NULL;
     `);
 
     // Events indexes
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_events_contact
       ON events(contact_id);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_events_date
       ON events(event_date);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_events_recurring
       ON events(recurring) WHERE recurring = 1;
     `);
 
     // Event reminders index
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_event_reminders_event
       ON event_reminders(event_id);
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_event_reminders_time
       ON event_reminders(reminder_time, is_sent);
     `);
 
     // Notes indexes
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_notes_contact
       ON notes(contact_id) WHERE contact_id IS NOT NULL;
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_notes_pinned
       ON notes(is_pinned) WHERE is_pinned = 1;
     `);
 
     // Saved searches index (migration 008)
-    await db.execAsync(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_saved_searches_entity_type
       ON saved_searches(entity_type);
     `);
@@ -324,7 +326,7 @@ export default {
 
     // Create FTS5 virtual table for interactions search (optional, skip if FTS5 not available)
     try {
-      await db.execAsync(`
+      await execute(`
         CREATE VIRTUAL TABLE IF NOT EXISTS interactions_search USING fts5(
           interaction_id UNINDEXED,
           title,
@@ -335,7 +337,7 @@ export default {
       `);
 
       // Trigger to keep FTS table in sync on INSERT
-      await db.execAsync(`
+      await execute(`
         CREATE TRIGGER IF NOT EXISTS interactions_search_insert
         AFTER INSERT ON interactions
         BEGIN
@@ -345,7 +347,7 @@ export default {
       `);
 
       // Trigger to keep FTS table in sync on UPDATE
-      await db.execAsync(`
+      await execute(`
         CREATE TRIGGER IF NOT EXISTS interactions_search_update
         AFTER UPDATE ON interactions
         BEGIN
@@ -356,7 +358,7 @@ export default {
       `);
 
       // Trigger to keep FTS table in sync on DELETE
-      await db.execAsync(`
+      await execute(`
         CREATE TRIGGER IF NOT EXISTS interactions_search_delete
         AFTER DELETE ON interactions
         BEGIN
@@ -374,7 +376,7 @@ export default {
     // ============================================================================
 
     // Display name triggers (migration 004)
-    await db.execAsync(`
+    await execute(`
       CREATE TRIGGER IF NOT EXISTS contacts_display_name_insert
       AFTER INSERT ON contacts
       FOR EACH ROW
@@ -418,7 +420,7 @@ export default {
       END;
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE TRIGGER IF NOT EXISTS contacts_display_name_update
       AFTER UPDATE OF first_name, middle_name, last_name ON contacts
       FOR EACH ROW
@@ -463,7 +465,7 @@ export default {
     `);
 
     // Updated_at triggers (migration 007)
-    await db.execAsync(`
+    await execute(`
       CREATE TRIGGER IF NOT EXISTS trg_events_updated_at
       AFTER UPDATE ON events
       FOR EACH ROW
@@ -473,7 +475,7 @@ export default {
       END;
     `);
 
-    await db.execAsync(`
+    await execute(`
       CREATE TRIGGER IF NOT EXISTS trg_interactions_updated_at
       AFTER UPDATE ON interactions
       FOR EACH ROW
@@ -488,7 +490,7 @@ export default {
     // ============================================================================
 
     // Seed default categories
-    await db.execAsync(`
+    await execute(`
       INSERT OR IGNORE INTO categories (name, color, icon, is_system)
       VALUES
         ('Friends', '#4CAF50', 'account-group', 1),
@@ -501,21 +503,23 @@ export default {
     console.log('[Migration 001] Initial schema created successfully with all features');
   },
 
-  async down(db) {
+  async down(ctx) {
+    const { execute } = ctx;
+
     // Drop all tables in reverse dependency order
-    await db.execAsync('DROP TABLE IF EXISTS interactions_search;');
-    await db.execAsync('DROP TABLE IF EXISTS saved_searches;');
-    await db.execAsync('DROP TABLE IF EXISTS notes;');
-    await db.execAsync('DROP TABLE IF EXISTS event_reminders;');
-    await db.execAsync('DROP TABLE IF EXISTS events;');
-    await db.execAsync('DROP TABLE IF EXISTS interactions;');
-    await db.execAsync('DROP TABLE IF EXISTS contact_categories;');
-    await db.execAsync('DROP TABLE IF EXISTS contact_info;');
-    await db.execAsync('DROP TABLE IF EXISTS contacts;');
-    await db.execAsync('DROP TABLE IF EXISTS categories;');
-    await db.execAsync('DROP TABLE IF EXISTS user_preferences;');
-    await db.execAsync('DROP TABLE IF EXISTS companies;');
-    await db.execAsync('DROP TABLE IF EXISTS attachments;');
+    await execute('DROP TABLE IF EXISTS interactions_search;');
+    await execute('DROP TABLE IF EXISTS saved_searches;');
+    await execute('DROP TABLE IF EXISTS notes;');
+    await execute('DROP TABLE IF EXISTS event_reminders;');
+    await execute('DROP TABLE IF EXISTS events;');
+    await execute('DROP TABLE IF EXISTS interactions;');
+    await execute('DROP TABLE IF EXISTS contact_categories;');
+    await execute('DROP TABLE IF EXISTS contact_info;');
+    await execute('DROP TABLE IF EXISTS contacts;');
+    await execute('DROP TABLE IF EXISTS categories;');
+    await execute('DROP TABLE IF EXISTS user_preferences;');
+    await execute('DROP TABLE IF EXISTS companies;');
+    await execute('DROP TABLE IF EXISTS attachments;');
 
     console.log('[Migration 001] Schema rolled back successfully');
   },
