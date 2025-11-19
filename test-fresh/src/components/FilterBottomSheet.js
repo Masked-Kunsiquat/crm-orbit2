@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   Modal,
@@ -19,6 +19,18 @@ import { logger } from '../errors/utils/errorLogger';
 import { useCreateSavedSearch } from '../hooks/queries/useSavedSearchQueries';
 import { showAlert } from '../errors/utils/errorHandler';
 import { safeTrim, hasContent } from '../utils/stringHelpers';
+
+const formatDateToLocalYMD = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const parseDateOrDefault = (dateString, fallbackDate) => {
+  const timestamp = dateString ? Date.parse(dateString) : NaN;
+  return Number.isNaN(timestamp) ? fallbackDate : new Date(timestamp);
+};
 
 export default function FilterBottomSheet({
   visible,
@@ -47,6 +59,29 @@ export default function FilterBottomSheet({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [searchName, setSearchName] = useState('');
 
+  const buildFilters = useCallback(() => ({
+    categoryIds: selectedCategories.length > 0 ? selectedCategories : null,
+    categoryLogic: selectedCategories.length > 1 ? categoryLogic : null,
+    companyId: selectedCompany,
+    dateAddedRange,
+    interactionDays,
+    hasUpcomingEvents: hasUpcomingEvents || null,
+  }), [selectedCategories, categoryLogic, selectedCompany, dateAddedRange, interactionDays, hasUpcomingEvents]);
+
+  useEffect(() => {
+    const nextFilters = initialFilters || {};
+    setSelectedCategories(nextFilters.categoryIds || []);
+    setCategoryLogic(nextFilters.categoryLogic || 'OR');
+    setSelectedCompany(nextFilters.companyId || null);
+    setDateAddedRange(nextFilters.dateAddedRange || null);
+    setInteractionDays(nextFilters.interactionDays || null);
+    setHasUpcomingEvents(nextFilters.hasUpcomingEvents || false);
+    setShowStartDatePicker(false);
+    setShowEndDatePicker(false);
+    setShowSaveDialog(false);
+    setSearchName('');
+  }, [initialFilters]);
+
   const toggleCategory = useCallback((categoryId) => {
     setSelectedCategories((prev) => {
       if (prev.includes(categoryId)) {
@@ -57,19 +92,12 @@ export default function FilterBottomSheet({
   }, []);
 
   const handleApply = useCallback(() => {
-    const filters = {
-      categoryIds: selectedCategories.length > 0 ? selectedCategories : null,
-      categoryLogic: selectedCategories.length > 1 ? categoryLogic : null,
-      companyId: selectedCompany,
-      dateAddedRange,
-      interactionDays,
-      hasUpcomingEvents: hasUpcomingEvents || null,
-    };
+    const filters = buildFilters();
 
     logger.success('FilterBottomSheet', 'handleApply', { filters });
     onApply(filters);
     onDismiss();
-  }, [selectedCategories, categoryLogic, selectedCompany, dateAddedRange, interactionDays, hasUpcomingEvents, onApply, onDismiss]);
+  }, [buildFilters, onApply, onDismiss]);
 
   const handleClear = useCallback(() => {
     setSelectedCategories([]);
@@ -89,14 +117,7 @@ export default function FilterBottomSheet({
     }
 
     try {
-      const filters = {
-        categoryIds: selectedCategories.length > 0 ? selectedCategories : null,
-        categoryLogic: selectedCategories.length > 1 ? categoryLogic : null,
-        companyId: selectedCompany,
-        dateAddedRange,
-        interactionDays,
-        hasUpcomingEvents: hasUpcomingEvents || null,
-      };
+      const filters = buildFilters();
 
       await createSavedSearch.mutateAsync({
         name: trimmedName,
@@ -112,7 +133,7 @@ export default function FilterBottomSheet({
       logger.error('FilterBottomSheet', 'handleSaveSearch', error);
       // Error already shown by mutation handler
     }
-  }, [searchName, selectedCategories, categoryLogic, selectedCompany, dateAddedRange, interactionDays, hasUpcomingEvents, createSavedSearch, t]);
+  }, [searchName, buildFilters, createSavedSearch, t]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -128,7 +149,7 @@ export default function FilterBottomSheet({
     setShowStartDatePicker(false);
     if (selectedDate) {
       setDateAddedRange((prev) => ({
-        start: selectedDate.toISOString().split('T')[0],
+        start: formatDateToLocalYMD(selectedDate),
         end: prev?.end || null,
       }));
     }
@@ -139,7 +160,7 @@ export default function FilterBottomSheet({
     if (selectedDate) {
       setDateAddedRange((prev) => ({
         start: prev?.start || null,
-        end: selectedDate.toISOString().split('T')[0],
+        end: formatDateToLocalYMD(selectedDate),
       }));
     }
   }, []);
@@ -369,7 +390,7 @@ export default function FilterBottomSheet({
         {/* Date Pickers */}
         {showStartDatePicker && (
           <DateTimePicker
-            value={dateAddedRange?.start ? new Date(dateAddedRange.start) : new Date()}
+            value={parseDateOrDefault(dateAddedRange?.start, new Date())}
             mode="date"
             display="default"
             onChange={handleStartDateChange}
@@ -377,7 +398,7 @@ export default function FilterBottomSheet({
         )}
         {showEndDatePicker && (
           <DateTimePicker
-            value={dateAddedRange?.end ? new Date(dateAddedRange.end) : new Date()}
+            value={parseDateOrDefault(dateAddedRange?.end, new Date())}
             mode="date"
             display="default"
             onChange={handleEndDateChange}
