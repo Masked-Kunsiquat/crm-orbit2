@@ -293,10 +293,16 @@ migrations/
 
 **Migration Strategy**:
 - **Consolidated baseline**: Single 001_initial_schema.js for fresh installs
-- **Version tracking**: Automatic via migration_meta table
+- **Version tracking**: Automatic via `migrations` table (tracks version, name, applied_at)
 - **Future migrations**: Start from version 002, build incrementally
 - **Rollback support**: down() method for each migration
-- **SQLite constraints**: See "SQLite Schema Alteration Best Practices" section for complex changes
+- **Complex schema changes**: Use `recreateTable()` helper from _helpers.js
+- **Migration helpers** (_helpers.js):
+  - `getExec()` - Normalize execution context
+  - `runAll()` - Execute statements with batch support
+  - `runAllSequential()` - Execute statements strictly in order
+  - `recreateTable()` - Implements SQLite's 12-step procedure for arbitrary table alterations
+  - `getTableSchema()` - Extract indexes/triggers/views for table recreation
 
 **Adapter** (1):
 ```
@@ -508,6 +514,159 @@ const database = {
 - Consider using the migration system's transaction support to ensure atomic schema changes.
 
 **Example Use Case**: Changing a column's type from TEXT to INTEGER, adding a NOT NULL constraint, or reordering columns all require the 12-step procedure.
+
+### Using the `recreateTable()` Helper
+
+The migration system includes a `recreateTable()` helper in `migrations/_helpers.js` that implements the 12-step procedure automatically. This is the **recommended approach** for all complex schema changes.
+
+**Example 1: Drop a Column**
+```javascript
+// migration 002_remove_legacy_field.js
+import { recreateTable, getTableSchema } from './_helpers.js';
+
+export default {
+  version: 2,
+  name: 'remove_legacy_field',
+
+  async up(ctx) {
+    // Get existing indexes to preserve them
+    const indexes = await getTableSchema(ctx, 'contacts', 'index');
+    const indexSQL = indexes.map(idx => idx.sql);
+
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          last_name TEXT,
+          email TEXT
+          -- Removed 'legacy_field' column
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, last_name, email)
+        SELECT id, first_name, last_name, email FROM contacts
+      `,
+      recreateIndexes: indexSQL
+    });
+  },
+
+  async down(ctx) {
+    // Cannot restore dropped column data
+    throw new Error('Cannot rollback column removal - data loss would occur');
+  }
+};
+```
+
+**Example 2: Change Column Type**
+```javascript
+// migration 003_change_age_type.js
+import { recreateTable } from './_helpers.js';
+
+export default {
+  version: 3,
+  name: 'change_age_type_to_integer',
+
+  async up(ctx) {
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          age INTEGER  -- Changed from TEXT to INTEGER
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, age)
+        SELECT id, first_name, CAST(age AS INTEGER) FROM contacts
+        WHERE age IS NOT NULL AND age != ''
+      `
+    });
+  },
+
+  async down(ctx) {
+    // Reverse: INTEGER back to TEXT
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          age TEXT
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, age)
+        SELECT id, first_name, CAST(age AS TEXT) FROM contacts
+      `
+    });
+  }
+};
+```
+
+**Example 3: Add NOT NULL Constraint with Default**
+```javascript
+// migration 004_add_status_field.js
+import { recreateTable, getTableSchema } from './_helpers.js';
+
+export default {
+  version: 4,
+  name: 'add_status_not_null',
+
+  async up(ctx) {
+    const triggers = await getTableSchema(ctx, 'contacts', 'trigger');
+    const triggerSQL = triggers.map(t => t.sql);
+
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active'  -- New NOT NULL column
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, status)
+        SELECT id, first_name, COALESCE(status, 'active') FROM contacts
+      `,
+      recreateTriggers: triggerSQL
+    });
+  },
+
+  async down(ctx) {
+    const triggers = await getTableSchema(ctx, 'contacts', 'trigger');
+
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          status TEXT  -- Remove NOT NULL constraint
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, status)
+        SELECT id, first_name, status FROM contacts
+      `,
+      recreateTriggers: triggers.map(t => t.sql)
+    });
+  }
+};
+```
+
+**When to Use `recreateTable()`**:
+- ✅ Dropping columns
+- ✅ Changing column data types
+- ✅ Adding NOT NULL constraints to existing columns
+- ✅ Reordering columns
+- ✅ Adding CHECK constraints
+- ✅ Modifying PRIMARY KEY or UNIQUE constraints
+- ❌ NOT needed for simple `ADD COLUMN` (use ALTER TABLE directly)
+- ❌ NOT needed for `RENAME COLUMN` (use ALTER TABLE directly)
 
 ---
 
