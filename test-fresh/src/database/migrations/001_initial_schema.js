@@ -207,8 +207,8 @@ export default {
         title TEXT,
         content TEXT NOT NULL,
         is_pinned INTEGER DEFAULT 0,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now')),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
       );
     `);
@@ -220,8 +220,8 @@ export default {
         name TEXT NOT NULL,
         entity_type TEXT NOT NULL CHECK(entity_type IN ('contacts', 'interactions', 'events')),
         filters TEXT NOT NULL,
-        created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
