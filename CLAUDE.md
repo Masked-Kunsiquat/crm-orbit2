@@ -452,6 +452,44 @@ const database = {
 };
 ```
 
+### SQLite Schema Alteration Best Practices
+
+**IMPORTANT**: SQLite has limited ALTER TABLE support. You cannot drop columns, change column types, add constraints, or reorder columns using simple ALTER TABLE statements. For complex schema changes, use the following 12-step procedure from the SQLite documentation:
+
+**12-Step Procedure for Making Arbitrary Table Schema Changes**:
+
+1. If foreign key constraints are enabled, disable them using `PRAGMA foreign_keys=OFF`.
+
+2. Start a transaction with `BEGIN TRANSACTION`.
+
+3. Remember the format of all indexes, triggers, and views associated with table X. This information will be needed in step 8 below. One way to do this is to run a query like the following: `SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'`.
+
+4. Use `CREATE TABLE` to create a new table "new_X" that is in the desired revised format of table X. Make sure that the name "new_X" does not collide with any existing table name, of course.
+
+5. Transfer content from X into new_X using a statement like: `INSERT INTO new_X SELECT ... FROM X`.
+
+6. Drop the old table X: `DROP TABLE X`.
+
+7. Change the name of new_X to X using: `ALTER TABLE new_X RENAME TO X`.
+
+8. Use `CREATE INDEX`, `CREATE TRIGGER`, and `CREATE VIEW` to recreate indexes, triggers, and views associated with table X. Perhaps use the old format of the triggers, indexes, and views saved from step 3 above as a guide, making changes as appropriate for the alteration.
+
+9. If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
+
+10. If foreign key constraints were originally enabled then run `PRAGMA foreign_key_check` to verify that the schema change did not break any foreign key constraints.
+
+11. Commit the transaction started in step 2 with `COMMIT`.
+
+12. If foreign keys constraints were originally enabled, reenable them now with `PRAGMA foreign_keys=ON`.
+
+**Notes**:
+- The procedure above is completely general and will work even if the schema change causes the information stored in the table to change. However, if the only changes to the table are to add columns (not NULL columns with default values or nullable columns), drop columns, or change column names, then a quicker procedure can be used.
+- SQLite only supports a limited subset of ALTER TABLE: `RENAME TABLE`, `RENAME COLUMN`, and `ADD COLUMN` (with restrictions).
+- For production migrations, always test the 12-step procedure thoroughly before deploying.
+- Consider using the migration system's transaction support to ensure atomic schema changes.
+
+**Example Use Case**: Changing a column's type from TEXT to INTEGER, adding a NOT NULL constraint, or reordering columns all require the 12-step procedure.
+
 ---
 
 ## Services & Business Logic
