@@ -61,12 +61,16 @@ export default function BaseModal({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
+  const fadeAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
 
   // Animate modal entry/exit
   useEffect(() => {
     if (visible) {
+      // Reset to 0 before animating in
+      slideAnim.setValue(0);
+      fadeAnim.setValue(0);
+
       Animated.parallel([
         Animated.spring(slideAnim, {
           toValue: 1,
@@ -94,7 +98,7 @@ export default function BaseModal({
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim, fadeAnim]);
 
   const handleDismiss = () => {
     if (dismissable) {
