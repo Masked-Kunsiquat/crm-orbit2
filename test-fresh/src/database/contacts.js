@@ -322,6 +322,21 @@ export function createContactsDB(ctx) {
       const where = [];
       const params = [];
 
+      // Category filter with AND/OR logic - handle AND logic first to insert params at beginning
+      let fromClause = 'FROM contacts c';
+      if (categoryIds && categoryIds.length > 0 && categoryLogic === 'AND') {
+        // Contact must have ALL selected categories
+        const categoryJoins = categoryIds
+          .map(
+            (_, index) =>
+              `INNER JOIN contact_categories cc${index} ON cc${index}.contact_id = c.id AND cc${index}.category_id = ?`
+          )
+          .join(' ');
+        fromClause = `FROM contacts c ${categoryJoins}`;
+        // Add categoryIds at the beginning since JOIN placeholders come first in SQL
+        params.push(...categoryIds);
+      }
+
       // Company filter
       if (companyId != null) {
         where.push('c.company_id = ?');
@@ -364,28 +379,15 @@ export function createContactsDB(ctx) {
         params.push(today);
       }
 
-      // Category filter with AND/OR logic
-      let fromClause = 'FROM contacts c';
-      if (categoryIds && categoryIds.length > 0) {
-        if (categoryLogic === 'AND') {
-          // Contact must have ALL selected categories
-          const categoryJoins = categoryIds
-            .map(
-              (_, index) =>
-                `INNER JOIN contact_categories cc${index} ON cc${index}.contact_id = c.id AND cc${index}.category_id = ?`
-            )
-            .join(' ');
-          fromClause = `FROM contacts c ${categoryJoins}`;
-          params.push(...categoryIds);
-        } else {
-          // Contact must have ANY of the selected categories
-          where.push(`EXISTS (
-            SELECT 1 FROM contact_categories cc
-            WHERE cc.contact_id = c.id
-            AND cc.category_id IN (${categoryIds.map(() => '?').join(',')})
-          )`);
-          params.push(...categoryIds);
-        }
+      // Category filter with OR logic (handled separately since params come after WHERE)
+      if (categoryIds && categoryIds.length > 0 && categoryLogic === 'OR') {
+        // Contact must have ANY of the selected categories
+        where.push(`EXISTS (
+          SELECT 1 FROM contact_categories cc
+          WHERE cc.contact_id = c.id
+          AND cc.category_id IN (${categoryIds.map(() => '?').join(',')})
+        )`);
+        params.push(...categoryIds);
       }
 
       const whereClause =

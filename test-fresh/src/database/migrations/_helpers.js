@@ -211,27 +211,36 @@ export async function recreateTable(ctx, options) {
     );
 
     // If caller didn't provide recreate arrays, populate them from associatedObjects
+    // Filter out null SQL (auto-indexes have sql = NULL)
     const indexesToRecreate =
       recreateIndexes.length > 0
         ? recreateIndexes
-        : associatedObjects.filter(obj => obj.type === 'index').map(obj => obj.sql);
+        : associatedObjects
+            .filter(obj => obj.type === 'index' && obj.sql)
+            .map(obj => obj.sql);
     const triggersToRecreate =
       recreateTriggers.length > 0
         ? recreateTriggers
-        : associatedObjects.filter(obj => obj.type === 'trigger').map(obj => obj.sql);
+        : associatedObjects
+            .filter(obj => obj.type === 'trigger' && obj.sql)
+            .map(obj => obj.sql);
     const viewsToRecreate =
       recreateViews.length > 0
         ? recreateViews
-        : associatedObjects.filter(obj => obj.type === 'view').map(obj => obj.sql);
+        : associatedObjects
+            .filter(obj => obj.type === 'view' && obj.sql)
+            .map(obj => obj.sql);
 
     // STEP 4: Create new table with desired schema
     console.log(
       '[recreateTable] Step 4: Creating new table with revised schema...'
     );
     // Replace table name in SQL with temp name
+    // Escape regex special characters in table name
+    const escapedTableName = tableName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const tempTableSQL = newTableSQL.replace(
       new RegExp(
-        `CREATE\\s+TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?${tableName}\\b`,
+        `CREATE\\s+TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?${escapedTableName}\\b`,
         'i'
       ),
       `CREATE TABLE ${tempTableName}`
