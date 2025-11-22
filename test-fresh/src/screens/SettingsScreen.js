@@ -252,8 +252,20 @@ export default function SettingsScreen() {
   };
 
   // Filter sections based on search query
-  const shouldShowSection = (sectionKey, searchTerms) => {
+  const shouldShowSection = (sectionKey) => {
     if (!searchQuery) return true;
+
+    // Centralized mapping of section keys to search terms
+    const sectionSearchTerms = {
+      appearance: ['appearance', 'theme', 'dark', 'light', 'color'],
+      security: ['security', 'pin', 'biometric', 'lock', 'password', 'fingerprint'],
+      language: ['language', 'english', 'spanish', 'french', 'german', 'chinese'],
+      features: ['features', 'company', 'management'],
+      swipe: ['swipe', 'actions', 'call', 'text', 'gesture'],
+      data: ['data', 'database', 'migrations', 'reset', 'backup'],
+    };
+
+    const searchTerms = sectionSearchTerms[sectionKey] || [];
     const query = searchQuery.toLowerCase();
     return searchTerms.some(term => term.toLowerCase().includes(query));
   };
@@ -277,7 +289,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Appearance Section */}
-        {shouldShowSection('appearance', ['appearance', 'theme', 'dark', 'light', 'color']) && (
+        {shouldShowSection('appearance') && (
           <List.Section style={styles.section}>
             <List.Accordion
               title={t('settings.sections.appearance')}
@@ -318,7 +330,7 @@ export default function SettingsScreen() {
         <Divider />
 
         {/* Security Section */}
-        {shouldShowSection('security', ['security', 'pin', 'biometric', 'lock', 'password', 'fingerprint']) && (
+        {shouldShowSection('security') && (
           <List.Section style={styles.section}>
             <List.Accordion
               title={t('settings.sections.security')}
@@ -386,7 +398,7 @@ export default function SettingsScreen() {
         <Divider />
 
         {/* Language Section */}
-        {shouldShowSection('language', ['language', 'english', 'spanish', 'french', 'german', 'chinese']) && (
+        {shouldShowSection('language') && (
           <List.Section style={styles.section}>
             <List.Accordion
               title={t('settings.sections.language')}
@@ -434,7 +446,7 @@ export default function SettingsScreen() {
         <Divider />
 
         {/* Features Section */}
-        {shouldShowSection('features', ['features', 'company', 'management']) && (
+        {shouldShowSection('features') && (
           <List.Section style={styles.section}>
             <List.Accordion
               title={t('settings.sections.features')}
@@ -477,7 +489,7 @@ export default function SettingsScreen() {
         <Divider />
 
         {/* Swipe Actions Section */}
-        {shouldShowSection('swipe', ['swipe', 'actions', 'call', 'text', 'gesture']) && (
+        {shouldShowSection('swipe') && (
           <List.Section style={styles.section}>
             <List.Accordion
               title={t('settings.sections.swipe')}
@@ -550,7 +562,7 @@ export default function SettingsScreen() {
         <Divider />
 
         {/* Data Management Section */}
-        {shouldShowSection('data', ['data', 'database', 'migrations', 'reset', 'backup']) && (
+        {shouldShowSection('data') && (
           <List.Section style={styles.section}>
             <List.Accordion
               title={t('settings.sections.data')}
@@ -605,7 +617,7 @@ export default function SettingsScreen() {
 
         {/* Empty state for no search results */}
         {searchQuery && !Object.keys(expandedSections).some(key =>
-          shouldShowSection(key, [])
+          shouldShowSection(key)
         ) && (
           <View style={styles.emptyState}>
             <List.Icon icon="magnify" size={64} color={theme.colors.outline} />
