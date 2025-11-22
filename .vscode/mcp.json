@@ -1,9 +1,21 @@
 {
 	"servers": {
+		"memory": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-memory"
+			]
+		},
 		"github": {
-			"type": "http",
-			"url": "https://api.githubcopilot.com/mcp/"
+			"command": "npx",
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-github"
+			],
+			"env": {
+				"GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+			}
 		}
-	},
-	"inputs": []
+	}
 }
