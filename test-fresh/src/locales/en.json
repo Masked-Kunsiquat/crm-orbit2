@@ -63,13 +63,25 @@
     },
     "settings": {
         "title": "Settings",
+        "searchPlaceholder": "Search for a setting...",
+        "noResults": "No settings match your search",
         "sections": {
+            "appearance": "Appearance",
             "security": "Security",
+            "securityDescription": "Manage PIN, biometric authentication, and auto-lock",
             "features": "Features",
+            "featuresDescription": "Customize app features and functionality",
             "swipe": "Swipe Actions",
+            "swipeDescription": "Configure contact list swipe gestures",
             "theme": "Theme",
             "language": "Language",
+            "languageDescription": "Choose your preferred language",
+            "data": "Data Management",
+            "dataDescription": "Database maintenance and reset options",
             "database": "Database"
+        },
+        "appearance": {
+            "theme": "Theme"
         },
         "language": {
             "device": "Device default",
@@ -82,8 +94,11 @@
         "appearance": "Appearance",
         "security": {
             "pinSetup": "Set / Change PIN",
+            "pinDescription": "Create or update your security PIN",
             "useBiometric": "Use Biometric",
+            "biometricDescription": "Enable fingerprint or face recognition",
             "autoLock": "Auto-Lock ({{minutes}} min)",
+            "autoLockDescription": "Lock app when inactive",
             "autoLockTimeout": "Auto-Lock Timeout",
             "minutes_one": "{{count}} min",
             "minutes_other": "{{count}} min"
@@ -153,7 +168,8 @@
         "system": "System",
         "light": "Light",
         "dark": "Dark",
-        "success": "Success"
+        "success": "Success",
+        "ok": "OK"
     },
     "buttons": {
         "cancel": "Cancel",

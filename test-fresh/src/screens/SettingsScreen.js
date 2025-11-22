@@ -3,13 +3,12 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
-import { handleError, showAlert, logger } from '../errors';
+import { showAlert, logger } from '../errors';
 import {
   Appbar,
-  RadioButton,
+  Searchbar,
   Text,
   List,
   Divider,
@@ -17,6 +16,9 @@ import {
   Portal,
   Dialog,
   Button,
+  useTheme,
+  RadioButton,
+  SegmentedButtons,
 } from 'react-native-paper';
 import { useSettings } from '../context/SettingsContext';
 import authService from '../services/authService';
@@ -25,14 +27,11 @@ import { resetDatabase } from '../database/resetDb';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
-const ACTIONS = [
-  { label: 'Call', value: 'call' },
-  { label: 'Text', value: 'text' },
-];
-
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const theme = useTheme();
+
   const {
     leftAction,
     rightAction,
@@ -44,20 +43,32 @@ export default function SettingsScreen() {
     companyManagementEnabled,
     setCompanyManagementEnabled,
   } = useSettings();
-  const [expandedSwipe, setExpandedSwipe] = useState(false);
-  const [expandedTheme, setExpandedTheme] = useState(false);
-  const [expandedSecurity, setExpandedSecurity] = useState(false);
-  const [expandedLanguage, setExpandedLanguage] = useState(false);
-  const [expandedFeatures, setExpandedFeatures] = useState(false);
-  const [expandedDatabase, setExpandedDatabase] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Section expansion states
+  const [expandedSections, setExpandedSections] = useState({
+    appearance: false,
+    security: false,
+    features: false,
+    swipe: false,
+    language: false,
+    data: false,
+  });
+
+  // Loading states
   const [runningMigrations, setRunningMigrations] = useState(false);
   const [resettingDatabase, setResettingDatabase] = useState(false);
+
+  // Dialog states
   const [successDialogVisible, setSuccessDialogVisible] = useState(false);
   const [successDialogMessage, setSuccessDialogMessage] = useState('');
 
+  // Biometric and auto-lock states
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [autoLockEnabled, setAutoLockEnabled] = useState(false);
-  const [autoLockTimeout, setAutoLockTimeout] = useState(5); // minutes
+  const [autoLockTimeout, setAutoLockTimeout] = useState(5);
 
   React.useEffect(() => {
     (async () => {
@@ -74,6 +85,13 @@ export default function SettingsScreen() {
     })();
   }, []);
 
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const toggleBiometric = async () => {
     const prev = biometricEnabled;
     try {
@@ -87,8 +105,7 @@ export default function SettingsScreen() {
         setBiometricEnabled(true);
       }
     } catch (e) {
-      logger.error('SettingsScreen', 'Failed to toggle biometric:', e);
-      // Revert UI to reflect real state
+      logger.error('SettingsScreen', 'toggleBiometric', e);
       setBiometricEnabled(prev);
       showAlert.error(
         t('settings.errors.biometricToggle.title'),
@@ -110,8 +127,7 @@ export default function SettingsScreen() {
         setAutoLockEnabled(true);
       }
     } catch (e) {
-      logger.error('SettingsScreen', 'Failed to toggle auto-lock:', e);
-      // Revert UI to reflect real state
+      logger.error('SettingsScreen', 'toggleAutoLock', e);
       setAutoLockEnabled(prev);
       showAlert.error(
         t('settings.errors.autoLockToggle.title'),
@@ -120,20 +136,15 @@ export default function SettingsScreen() {
     }
   };
 
-  const changeAutoLockTimeout = async minutes => {
+  const changeAutoLockTimeout = async (minutes) => {
     const prev = autoLockTimeout;
     setAutoLockTimeout(minutes);
-    // If auto-lock is enabled, persist immediately and restart timer
     if (autoLockEnabled) {
       try {
         const ok = await authService.enableAutoLock(minutes);
         if (!ok) throw new Error('enableAutoLock (update timeout) failed');
       } catch (e) {
-        logger.error(
-          'SettingsScreen',
-          'Failed to update auto-lock timeout:',
-          e
-        );
+        logger.error('SettingsScreen', 'changeAutoLockTimeout', e);
         setAutoLockTimeout(prev);
         showAlert.error(
           t('settings.errors.autoLockTimeout.title'),
@@ -143,16 +154,12 @@ export default function SettingsScreen() {
     }
   };
 
-  const onSelectCall = async side => {
+  const onSelectCall = async (side) => {
     try {
       if (side === 'left') await setMapping('call', 'text');
       else await setMapping('text', 'call');
     } catch (error) {
-      logger.error(
-        'SettingsScreen',
-        'Failed to update swipe action mapping:',
-        error
-      );
+      logger.error('SettingsScreen', 'onSelectCall', error);
       showAlert.error(
         t('settings.errors.swipeAction.title'),
         t('settings.errors.swipeAction.message')
@@ -160,16 +167,12 @@ export default function SettingsScreen() {
     }
   };
 
-  const onSelectText = async side => {
+  const onSelectText = async (side) => {
     try {
       if (side === 'left') await setMapping('text', 'call');
       else await setMapping('call', 'text');
     } catch (error) {
-      logger.error(
-        'SettingsScreen',
-        'Failed to update swipe action mapping:',
-        error
-      );
+      logger.error('SettingsScreen', 'onSelectText', error);
       showAlert.error(
         t('settings.errors.swipeAction.title'),
         t('settings.errors.swipeAction.message')
@@ -177,11 +180,11 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleThemeChange = async mode => {
+  const handleThemeChange = async (mode) => {
     try {
       await setThemeMode(mode);
     } catch (error) {
-      logger.error('SettingsScreen', 'Failed to update theme:', error);
+      logger.error('SettingsScreen', 'handleThemeChange', error);
       showAlert.error(
         t('settings.errors.theme.title'),
         t('settings.errors.theme.message')
@@ -189,11 +192,11 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLanguageChange = async lang => {
+  const handleLanguageChange = async (lang) => {
     try {
       await setLanguage(lang);
     } catch (error) {
-      logger.error('SettingsScreen', 'Failed to update language:', error);
+      logger.error('SettingsScreen', 'handleLanguageChange', error);
       showAlert.error(
         t('settings.errors.language.title'),
         t('settings.errors.language.message')
@@ -209,11 +212,7 @@ export default function SettingsScreen() {
         t('settings.database.migrationsSuccess'),
         t('settings.database.migrationsComplete')
       );
-      logger.success(
-        'SettingsScreen',
-        'handleRunMigrations',
-        'Migrations completed'
-      );
+      logger.success('SettingsScreen', 'handleRunMigrations', 'Migrations completed');
     } catch (error) {
       logger.error('SettingsScreen', 'handleRunMigrations', error);
       showAlert.error(
@@ -232,18 +231,13 @@ export default function SettingsScreen() {
       async () => {
         setResettingDatabase(true);
         try {
-          // Get the current database instance and pass it to resetDatabase
           const db = database.getDB();
           await resetDatabase(db);
           showAlert.success(
             t('settings.database.resetSuccess'),
             t('settings.database.resetComplete')
           );
-          logger.success(
-            'SettingsScreen',
-            'handleResetDatabase',
-            'Database reset'
-          );
+          logger.success('SettingsScreen', 'handleResetDatabase', 'Database reset');
         } catch (error) {
           logger.error('SettingsScreen', 'handleResetDatabase', error);
           showAlert.error(
@@ -257,6 +251,13 @@ export default function SettingsScreen() {
     );
   };
 
+  // Filter sections based on search query
+  const shouldShowSection = (sectionKey, searchTerms) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return searchTerms.some(term => term.toLowerCase().includes(query));
+  };
+
   return (
     <View style={styles.container}>
       <Appbar.Header elevated>
@@ -264,383 +265,360 @@ export default function SettingsScreen() {
       </Appbar.Header>
 
       <ScrollView style={styles.scrollView}>
-        {/* Security */}
-        <List.Section style={styles.section}>
-          <List.Accordion
-            title={t('settings.sections.security')}
-            expanded={expandedSecurity}
-            onPress={() => setExpandedSecurity(e => !e)}
-          >
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.security.pinSetup')}
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Searchbar
+            placeholder={t('settings.searchPlaceholder')}
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={styles.searchbar}
+            elevation={1}
+          />
+        </View>
+
+        {/* Appearance Section */}
+        {shouldShowSection('appearance', ['appearance', 'theme', 'dark', 'light', 'color']) && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.appearance')}
+              left={props => <List.Icon {...props} icon="palette-outline" />}
+              expanded={expandedSections.appearance}
+              onPress={() => toggleSection('appearance')}
+            >
+              <View style={styles.segmentedButtonContainer}>
+                <Text variant="labelLarge" style={styles.settingLabel}>
+                  {t('settings.appearance.theme')}
                 </Text>
-              )}
-              onPress={() => navigation.navigate('PinSetup')}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.security.useBiometric')}
-                </Text>
-              )}
-              right={() => (
-                <Switch
-                  value={biometricEnabled}
-                  onValueChange={toggleBiometric}
+                <SegmentedButtons
+                  value={themeMode}
+                  onValueChange={handleThemeChange}
+                  buttons={[
+                    {
+                      value: 'light',
+                      label: t('labels.light'),
+                      icon: 'white-balance-sunny',
+                    },
+                    {
+                      value: 'dark',
+                      label: t('labels.dark'),
+                      icon: 'moon-waning-crescent',
+                    },
+                    {
+                      value: 'system',
+                      label: t('labels.system'),
+                      icon: 'cellphone',
+                    },
+                  ]}
                 />
-              )}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.security.autoLock', {
-                    minutes: autoLockTimeout,
-                  })}
-                </Text>
-              )}
-              right={() => (
-                <Switch
-                  value={autoLockEnabled}
-                  onValueChange={toggleAutoLock}
-                />
-              )}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.security.autoLockTimeout')}
-                </Text>
-              )}
-              description={() => (
-                <View style={styles.timeoutOptions}>
-                  {[1, 5, 10, 30].map(m => (
-                    <View key={m} style={styles.timeoutOption}>
-                      <RadioButton
-                        value={`auto-timeout-${m}`}
-                        status={autoLockTimeout === m ? 'checked' : 'unchecked'}
-                        onPress={() => changeAutoLockTimeout(m)}
+              </View>
+            </List.Accordion>
+          </List.Section>
+        )}
+
+        <Divider />
+
+        {/* Security Section */}
+        {shouldShowSection('security', ['security', 'pin', 'biometric', 'lock', 'password', 'fingerprint']) && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.security')}
+              description={t('settings.sections.securityDescription')}
+              left={props => <List.Icon {...props} icon="shield-lock-outline" />}
+              expanded={expandedSections.security}
+              onPress={() => toggleSection('security')}
+            >
+              <List.Item
+                title={t('settings.security.pinSetup')}
+                description={t('settings.security.pinDescription')}
+                left={props => <List.Icon {...props} icon="key-variant" />}
+                onPress={() => navigation.navigate('PinSetup')}
+                right={props => <List.Icon {...props} icon="chevron-right" />}
+              />
+
+              <List.Item
+                title={t('settings.security.useBiometric')}
+                description={t('settings.security.biometricDescription')}
+                left={props => <List.Icon {...props} icon="fingerprint" />}
+                right={() => (
+                  <Switch
+                    value={biometricEnabled}
+                    onValueChange={toggleBiometric}
+                  />
+                )}
+              />
+
+              <List.Item
+                title={t('settings.security.autoLock', { minutes: autoLockTimeout })}
+                description={t('settings.security.autoLockDescription')}
+                left={props => <List.Icon {...props} icon="lock-clock" />}
+                right={() => (
+                  <Switch
+                    value={autoLockEnabled}
+                    onValueChange={toggleAutoLock}
+                  />
+                )}
+              />
+
+              {autoLockEnabled && (
+                <View style={styles.radioGroupContainer}>
+                  <Text variant="labelMedium" style={styles.radioGroupLabel}>
+                    {t('settings.security.autoLockTimeout')}
+                  </Text>
+                  <RadioButton.Group
+                    onValueChange={value => changeAutoLockTimeout(parseInt(value))}
+                    value={autoLockTimeout.toString()}
+                  >
+                    {[1, 5, 10, 30].map(minutes => (
+                      <RadioButton.Item
+                        key={minutes}
+                        label={t('settings.security.minutes', { count: minutes })}
+                        value={minutes.toString()}
+                        position="leading"
                       />
-                      <Text style={styles.timeoutLabel}>
-                        {t('settings.security.minutes', { count: m })}
+                    ))}
+                  </RadioButton.Group>
+                </View>
+              )}
+            </List.Accordion>
+          </List.Section>
+        )}
+
+        <Divider />
+
+        {/* Language Section */}
+        {shouldShowSection('language', ['language', 'english', 'spanish', 'french', 'german', 'chinese']) && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.language')}
+              description={t('settings.sections.languageDescription')}
+              left={props => <List.Icon {...props} icon="translate" />}
+              expanded={expandedSections.language}
+              onPress={() => toggleSection('language')}
+            >
+              <RadioButton.Group onValueChange={handleLanguageChange} value={language}>
+                <RadioButton.Item
+                  label={t('settings.language.device')}
+                  value="device"
+                  position="leading"
+                />
+                <RadioButton.Item
+                  label={t('settings.language.english')}
+                  value="en"
+                  position="leading"
+                />
+                <RadioButton.Item
+                  label={t('settings.language.spanish')}
+                  value="es"
+                  position="leading"
+                />
+                <RadioButton.Item
+                  label={t('settings.language.french')}
+                  value="fr"
+                  position="leading"
+                />
+                <RadioButton.Item
+                  label={t('settings.language.german')}
+                  value="de"
+                  position="leading"
+                />
+                <RadioButton.Item
+                  label={t('settings.language.chinese')}
+                  value="zh"
+                  position="leading"
+                />
+              </RadioButton.Group>
+            </List.Accordion>
+          </List.Section>
+        )}
+
+        <Divider />
+
+        {/* Features Section */}
+        {shouldShowSection('features', ['features', 'company', 'management']) && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.features')}
+              description={t('settings.sections.featuresDescription')}
+              left={props => <List.Icon {...props} icon="tune-variant" />}
+              expanded={expandedSections.features}
+              onPress={() => toggleSection('features')}
+            >
+              <List.Item
+                title={t('settings.features.companyManagement.title')}
+                description={t('settings.features.companyManagement.description')}
+                left={props => <List.Icon {...props} icon="domain" />}
+                right={() => (
+                  <Switch
+                    value={companyManagementEnabled}
+                    onValueChange={async value => {
+                      try {
+                        await setCompanyManagementEnabled(value);
+                        setSuccessDialogMessage(
+                          value
+                            ? t('settings.features.companyManagement.enabled')
+                            : t('settings.features.companyManagement.disabled')
+                        );
+                        setSuccessDialogVisible(true);
+                      } catch (error) {
+                        logger.error('SettingsScreen', 'toggleCompanyManagement', error);
+                        showAlert.error(
+                          t('settings.errors.featureToggle.title'),
+                          t('settings.errors.featureToggle.message')
+                        );
+                      }
+                    }}
+                  />
+                )}
+              />
+            </List.Accordion>
+          </List.Section>
+        )}
+
+        <Divider />
+
+        {/* Swipe Actions Section */}
+        {shouldShowSection('swipe', ['swipe', 'actions', 'call', 'text', 'gesture']) && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.swipe')}
+              description={t('settings.sections.swipeDescription')}
+              left={props => <List.Icon {...props} icon="gesture-swipe-horizontal" />}
+              expanded={expandedSections.swipe}
+              onPress={() => toggleSection('swipe')}
+            >
+              <List.Item
+                title={t('labels.call')}
+                left={props => <List.Icon {...props} icon="phone" />}
+                right={() => (
+                  <View style={styles.swipeActionRow}>
+                    <View style={styles.swipeOption}>
+                      <Text variant="labelSmall" style={styles.swipeLabel}>
+                        {t('labels.left')}
                       </Text>
+                      <RadioButton
+                        value="call-left"
+                        status={leftAction === 'call' ? 'checked' : 'unchecked'}
+                        onPress={() => onSelectCall('left')}
+                      />
                     </View>
-                  ))}
-                </View>
-              )}
-            />
-          </List.Accordion>
-        </List.Section>
+                    <View style={styles.swipeOption}>
+                      <Text variant="labelSmall" style={styles.swipeLabel}>
+                        {t('labels.right')}
+                      </Text>
+                      <RadioButton
+                        value="call-right"
+                        status={rightAction === 'call' ? 'checked' : 'unchecked'}
+                        onPress={() => onSelectCall('right')}
+                      />
+                    </View>
+                  </View>
+                )}
+              />
 
-        {/* Features */}
-        <List.Section style={styles.section}>
-          <List.Accordion
-            title={t('settings.sections.features')}
-            expanded={expandedFeatures}
-            onPress={() => setExpandedFeatures(e => !e)}
-          >
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.features.companyManagement.title')}
-                </Text>
-              )}
-              description={() => (
-                <Text variant="bodySmall" style={styles.featureDescription}>
-                  {t('settings.features.companyManagement.description')}
-                </Text>
-              )}
-              right={() => (
-                <Switch
-                  value={companyManagementEnabled}
-                  onValueChange={async value => {
-                    try {
-                      await setCompanyManagementEnabled(value);
-                      setSuccessDialogMessage(
-                        value
-                          ? t('settings.features.companyManagement.enabled')
-                          : t('settings.features.companyManagement.disabled')
-                      );
-                      setSuccessDialogVisible(true);
-                    } catch (error) {
-                      logger.error(
-                        'SettingsScreen',
-                        'toggleCompanyManagement',
-                        error
-                      );
-                      showAlert.error(
-                        t('settings.errors.featureToggle.title'),
-                        t('settings.errors.featureToggle.message')
-                      );
-                    }
-                  }}
-                />
-              )}
-            />
-          </List.Accordion>
-        </List.Section>
+              <List.Item
+                title={t('labels.text')}
+                left={props => <List.Icon {...props} icon="message-text" />}
+                right={() => (
+                  <View style={styles.swipeActionRow}>
+                    <View style={styles.swipeOption}>
+                      <Text variant="labelSmall" style={styles.swipeLabel}>
+                        {t('labels.left')}
+                      </Text>
+                      <RadioButton
+                        value="text-left"
+                        status={leftAction === 'text' ? 'checked' : 'unchecked'}
+                        onPress={() => onSelectText('left')}
+                      />
+                    </View>
+                    <View style={styles.swipeOption}>
+                      <Text variant="labelSmall" style={styles.swipeLabel}>
+                        {t('labels.right')}
+                      </Text>
+                      <RadioButton
+                        value="text-right"
+                        status={rightAction === 'text' ? 'checked' : 'unchecked'}
+                        onPress={() => onSelectText('right')}
+                      />
+                    </View>
+                  </View>
+                )}
+              />
+            </List.Accordion>
+          </List.Section>
+        )}
 
-        {/* Database */}
-        <List.Section style={styles.section}>
-          <List.Accordion
-            title={t('settings.sections.database')}
-            expanded={expandedDatabase}
-            onPress={() => setExpandedDatabase(e => !e)}
-          >
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.database.runMigrations')}
-                </Text>
-              )}
-              description={() => (
-                <Text variant="bodySmall" style={styles.featureDescription}>
-                  {t('settings.database.migrationsDescription')}
-                </Text>
-              )}
-              right={() =>
-                runningMigrations ? (
-                  <ActivityIndicator size="small" style={{ marginRight: 16 }} />
-                ) : (
-                  <Button
-                    mode="outlined"
-                    onPress={handleRunMigrations}
-                    disabled={runningMigrations || resettingDatabase}
-                    compact
-                  >
-                    {t('settings.database.run')}
-                  </Button>
-                )
-              }
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.database.resetDatabase')}
-                </Text>
-              )}
-              description={() => (
-                <Text variant="bodySmall" style={styles.featureDescription}>
-                  {t('settings.database.resetDescription')}
-                </Text>
-              )}
-              right={() =>
-                resettingDatabase ? (
-                  <ActivityIndicator size="small" style={{ marginRight: 16 }} />
-                ) : (
-                  <Button
-                    mode="outlined"
-                    onPress={handleResetDatabase}
-                    disabled={runningMigrations || resettingDatabase}
-                    compact
-                  >
-                    {t('settings.database.reset')}
-                  </Button>
-                )
-              }
-            />
-          </List.Accordion>
-        </List.Section>
+        <Divider />
 
-        {/* Swipe Actions */}
-        <List.Section style={styles.section}>
-          <List.Accordion
-            title={t('settings.sections.swipe')}
-            expanded={expandedSwipe}
-            onPress={() => setExpandedSwipe(e => !e)}
-          >
-            <List.Item
-              title={() => <Text variant="titleSmall">{t('labels.call')}</Text>}
-              right={() => (
-                <View style={styles.rowOptions}>
-                  <Text style={styles.optionLabel}>{t('labels.left')}</Text>
-                  <RadioButton
-                    value="call-left"
-                    status={leftAction === 'call' ? 'checked' : 'unchecked'}
-                    onPress={() => onSelectCall('left')}
-                  />
-                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
-                    {t('labels.right')}
-                  </Text>
-                  <RadioButton
-                    value="call-right"
-                    status={rightAction === 'call' ? 'checked' : 'unchecked'}
-                    onPress={() => onSelectCall('right')}
-                  />
-                </View>
-              )}
-            />
+        {/* Data Management Section */}
+        {shouldShowSection('data', ['data', 'database', 'migrations', 'reset', 'backup']) && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.data')}
+              description={t('settings.sections.dataDescription')}
+              left={props => <List.Icon {...props} icon="database" />}
+              expanded={expandedSections.data}
+              onPress={() => toggleSection('data')}
+            >
+              <List.Item
+                title={t('settings.database.runMigrations')}
+                description={t('settings.database.migrationsDescription')}
+                left={props => <List.Icon {...props} icon="database-sync" />}
+                right={() =>
+                  runningMigrations ? (
+                    <ActivityIndicator size="small" style={{ marginRight: 16 }} />
+                  ) : (
+                    <Button
+                      mode="outlined"
+                      onPress={handleRunMigrations}
+                      disabled={runningMigrations || resettingDatabase}
+                      compact
+                    >
+                      {t('settings.database.run')}
+                    </Button>
+                  )
+                }
+              />
 
-            <Divider style={styles.divider} />
+              <List.Item
+                title={t('settings.database.resetDatabase')}
+                description={t('settings.database.resetDescription')}
+                left={props => <List.Icon {...props} icon="database-remove" color={theme.colors.error} />}
+                right={() =>
+                  resettingDatabase ? (
+                    <ActivityIndicator size="small" style={{ marginRight: 16 }} />
+                  ) : (
+                    <Button
+                      mode="outlined"
+                      onPress={handleResetDatabase}
+                      disabled={runningMigrations || resettingDatabase}
+                      compact
+                      textColor={theme.colors.error}
+                    >
+                      {t('settings.database.reset')}
+                    </Button>
+                  )
+                }
+              />
+            </List.Accordion>
+          </List.Section>
+        )}
 
-            <List.Item
-              title={() => <Text variant="titleSmall">{t('labels.text')}</Text>}
-              right={() => (
-                <View style={styles.rowOptions}>
-                  <Text style={styles.optionLabel}>{t('labels.left')}</Text>
-                  <RadioButton
-                    value="text-left"
-                    status={leftAction === 'text' ? 'checked' : 'unchecked'}
-                    onPress={() => onSelectText('left')}
-                  />
-                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
-                    {t('labels.right')}
-                  </Text>
-                  <RadioButton
-                    value="text-right"
-                    status={rightAction === 'text' ? 'checked' : 'unchecked'}
-                    onPress={() => onSelectText('right')}
-                  />
-                </View>
-              )}
-            />
-          </List.Accordion>
-        </List.Section>
+        {/* Empty state for no search results */}
+        {searchQuery && !Object.keys(expandedSections).some(key =>
+          shouldShowSection(key, [])
+        ) && (
+          <View style={styles.emptyState}>
+            <List.Icon icon="magnify" size={64} color={theme.colors.outline} />
+            <Text variant="bodyLarge" style={styles.emptyStateText}>
+              {t('settings.noResults')}
+            </Text>
+          </View>
+        )}
 
-        {/* Theme */}
-        <List.Section style={styles.section}>
-          <List.Accordion
-            title={t('settings.sections.theme')}
-            expanded={expandedTheme}
-            onPress={() => setExpandedTheme(e => !e)}
-          >
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">{t('settings.appearance')}</Text>
-              )}
-              right={() => (
-                <View style={styles.rowOptions}>
-                  <Text style={styles.optionLabel}>{t('labels.system')}</Text>
-                  <RadioButton
-                    value="theme-system"
-                    status={themeMode === 'system' ? 'checked' : 'unchecked'}
-                    onPress={() => handleThemeChange('system')}
-                  />
-                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
-                    {t('labels.light')}
-                  </Text>
-                  <RadioButton
-                    value="theme-light"
-                    status={themeMode === 'light' ? 'checked' : 'unchecked'}
-                    onPress={() => handleThemeChange('light')}
-                  />
-                  <Text style={[styles.optionLabel, { marginLeft: 8 }]}>
-                    {t('labels.dark')}
-                  </Text>
-                  <RadioButton
-                    value="theme-dark"
-                    status={themeMode === 'dark' ? 'checked' : 'unchecked'}
-                    onPress={() => handleThemeChange('dark')}
-                  />
-                </View>
-              )}
-            />
-          </List.Accordion>
-        </List.Section>
-
-        {/* Language */}
-        <List.Section style={styles.section}>
-          <List.Accordion
-            title={t('settings.sections.language')}
-            expanded={expandedLanguage}
-            onPress={() => setExpandedLanguage(e => !e)}
-          >
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.language.device')}
-                </Text>
-              )}
-              right={() => (
-                <RadioButton
-                  value="lang-device"
-                  status={language === 'device' ? 'checked' : 'unchecked'}
-                  onPress={() => handleLanguageChange('device')}
-                />
-              )}
-              onPress={() => handleLanguageChange('device')}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.language.english')}
-                </Text>
-              )}
-              right={() => (
-                <RadioButton
-                  value="lang-en"
-                  status={language === 'en' ? 'checked' : 'unchecked'}
-                  onPress={() => handleLanguageChange('en')}
-                />
-              )}
-              onPress={() => handleLanguageChange('en')}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.language.spanish')}
-                </Text>
-              )}
-              right={() => (
-                <RadioButton
-                  value="lang-es"
-                  status={language === 'es' ? 'checked' : 'unchecked'}
-                  onPress={() => handleLanguageChange('es')}
-                />
-              )}
-              onPress={() => handleLanguageChange('es')}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.language.german')}
-                </Text>
-              )}
-              right={() => (
-                <RadioButton
-                  value="lang-de"
-                  status={language === 'de' ? 'checked' : 'unchecked'}
-                  onPress={() => handleLanguageChange('de')}
-                />
-              )}
-              onPress={() => handleLanguageChange('de')}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.language.french')}
-                </Text>
-              )}
-              right={() => (
-                <RadioButton
-                  value="lang-fr"
-                  status={language === 'fr' ? 'checked' : 'unchecked'}
-                  onPress={() => handleLanguageChange('fr')}
-                />
-              )}
-              onPress={() => handleLanguageChange('fr')}
-            />
-            <List.Item
-              title={() => (
-                <Text variant="titleSmall">
-                  {t('settings.language.chinese')}
-                </Text>
-              )}
-              right={() => (
-                <RadioButton
-                  value="lang-zh"
-                  status={language === 'zh' ? 'checked' : 'unchecked'}
-                  onPress={() => handleLanguageChange('zh')}
-                />
-              )}
-              onPress={() => handleLanguageChange('zh')}
-            />
-          </List.Accordion>
-        </List.Section>
+        <View style={styles.bottomPadding} />
       </ScrollView>
 
-      {/* Themed Success Dialog */}
+      {/* Success Dialog */}
       <Portal>
         <Dialog
           visible={successDialogVisible}
@@ -651,7 +629,9 @@ export default function SettingsScreen() {
             <Text variant="bodyMedium">{successDialogMessage}</Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setSuccessDialogVisible(false)}>OK</Button>
+            <Button onPress={() => setSuccessDialogVisible(false)}>
+              {t('labels.ok')}
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -666,40 +646,55 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  searchbar: {
+    elevation: 1,
+  },
   section: {
-    paddingHorizontal: 8,
+    marginVertical: 0,
   },
-  divider: {
-    marginVertical: 8,
+  segmentedButtonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
-  rowOptions: {
+  settingLabel: {
+    marginBottom: 12,
+  },
+  radioGroupContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  radioGroupLabel: {
+    marginBottom: 8,
+    marginLeft: 16,
+  },
+  swipeActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
     paddingRight: 8,
   },
-  optionLabel: {
-    color: '#666',
-    marginRight: 4,
-  },
-  timeoutOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  timeoutOption: {
+  swipeOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
+    gap: 4,
   },
-  timeoutLabel: {
-    color: '#666',
-    fontSize: 14,
-    marginLeft: -8,
+  swipeLabel: {
+    opacity: 0.6,
   },
-  featureDescription: {
-    color: '#666',
-    marginTop: 4,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+  },
+  emptyStateText: {
+    marginTop: 16,
+    opacity: 0.6,
+  },
+  bottomPadding: {
+    height: 24,
   },
 });
