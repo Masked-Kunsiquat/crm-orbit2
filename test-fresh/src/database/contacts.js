@@ -6,6 +6,7 @@ import { filterNonEmptyStrings } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
 import { is } from '../utils/validators';
 import { unique } from '../utils/arrayHelpers';
+import { formatDateToString } from '../utils/dateUtils';
 
 const CONTACT_FIELDS = [
   'first_name',
@@ -354,11 +355,13 @@ export function createContactsDB(ctx) {
 
       // Has upcoming events filter
       if (hasUpcomingEvents === true) {
+        const today = formatDateToString(new Date());
         where.push(`EXISTS (
           SELECT 1 FROM events e
           WHERE e.contact_id = c.id
-          AND DATE(e.event_date) >= DATE('now')
+          AND DATE(e.event_date) >= ?
         )`);
+        params.push(today);
       }
 
       // Category filter with AND/OR logic

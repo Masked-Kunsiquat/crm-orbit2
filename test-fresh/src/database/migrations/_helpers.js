@@ -193,119 +193,138 @@ export async function recreateTable(ctx, options) {
     await execute('PRAGMA foreign_keys=OFF;');
   }
 
-  // STEP 2: Start transaction (handled by migration runner, but we log it)
-  console.log(
-    '[recreateTable] Step 2: Transaction should be active (handled by migration runner)'
-  );
-
-  // STEP 3: Remember associated indexes, triggers, and views
-  console.log('[recreateTable] Step 3: Querying associated schema objects...');
-  const schemaResult = await execute(
-    `SELECT type, sql FROM sqlite_schema WHERE tbl_name = ? AND type IN ('index', 'trigger', 'view') ORDER BY type;`,
-    [tableName]
-  );
-  const associatedObjects = schemaResult.rows || [];
-  console.log(
-    `[recreateTable] Found ${associatedObjects.length} associated objects (indexes, triggers, views)`
-  );
-
-  // STEP 4: Create new table with desired schema
-  console.log(
-    '[recreateTable] Step 4: Creating new table with revised schema...'
-  );
-  // Replace table name in SQL with temp name
-  const tempTableSQL = newTableSQL.replace(
-    new RegExp(
-      `CREATE\\s+TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?${tableName}\\b`,
-      'i'
-    ),
-    `CREATE TABLE ${tempTableName}`
-  );
-  await execute(tempTableSQL);
-  console.log(`[recreateTable] Created temporary table: ${tempTableName}`);
-
-  // STEP 5: Transfer data from old table to new table
-  console.log('[recreateTable] Step 5: Transferring data...');
-  const transferSQL =
-    dataMigrationSQL ||
-    `INSERT INTO ${tempTableName} SELECT * FROM ${tableName};`;
-  await execute(transferSQL);
-  console.log('[recreateTable] Data transfer complete');
-
-  // STEP 6: Drop old table
-  console.log('[recreateTable] Step 6: Dropping old table...');
-  await execute(`DROP TABLE ${tableName};`);
-  console.log(`[recreateTable] Dropped table: ${tableName}`);
-
-  // STEP 7: Rename new table to old name
-  console.log('[recreateTable] Step 7: Renaming new table to original name...');
-  await execute(`ALTER TABLE ${tempTableName} RENAME TO ${tableName};`);
-  console.log(`[recreateTable] Renamed ${tempTableName} to ${tableName}`);
-
-  // STEP 8: Recreate indexes, triggers, and views
-  console.log('[recreateTable] Step 8: Recreating associated objects...');
-
-  // Recreate indexes
-  if (recreateIndexes.length > 0) {
+  try {
+    // STEP 2: Start transaction (handled by migration runner, but we log it)
     console.log(
-      `[recreateTable] Recreating ${recreateIndexes.length} indexes...`
+      '[recreateTable] Step 2: Transaction should be active (handled by migration runner)'
     );
-    for (const indexSQL of recreateIndexes) {
-      await execute(indexSQL);
-    }
-  }
 
-  // Recreate triggers
-  if (recreateTriggers.length > 0) {
+    // STEP 3: Remember associated indexes, triggers, and views
+    console.log('[recreateTable] Step 3: Querying associated schema objects...');
+    const schemaResult = await execute(
+      `SELECT type, sql FROM sqlite_schema WHERE tbl_name = ? AND type IN ('index', 'trigger', 'view') ORDER BY type;`,
+      [tableName]
+    );
+    const associatedObjects = schemaResult.rows || [];
     console.log(
-      `[recreateTable] Recreating ${recreateTriggers.length} triggers...`
+      `[recreateTable] Found ${associatedObjects.length} associated objects (indexes, triggers, views)`
     );
-    for (const triggerSQL of recreateTriggers) {
-      await execute(triggerSQL);
-    }
-  }
 
-  // STEP 9: Recreate views (if any were provided)
-  if (recreateViews.length > 0) {
-    console.log('[recreateTable] Step 9: Recreating views...');
-    for (const viewSQL of recreateViews) {
-      await execute(viewSQL);
-    }
-  }
+    // If caller didn't provide recreate arrays, populate them from associatedObjects
+    const indexesToRecreate =
+      recreateIndexes.length > 0
+        ? recreateIndexes
+        : associatedObjects.filter(obj => obj.type === 'index').map(obj => obj.sql);
+    const triggersToRecreate =
+      recreateTriggers.length > 0
+        ? recreateTriggers
+        : associatedObjects.filter(obj => obj.type === 'trigger').map(obj => obj.sql);
+    const viewsToRecreate =
+      recreateViews.length > 0
+        ? recreateViews
+        : associatedObjects.filter(obj => obj.type === 'view').map(obj => obj.sql);
 
-  // STEP 10: Verify foreign key constraints (if originally enabled)
-  if (foreignKeysEnabled && !skipForeignKeyCheck) {
+    // STEP 4: Create new table with desired schema
     console.log(
-      '[recreateTable] Step 10: Verifying foreign key constraints...'
+      '[recreateTable] Step 4: Creating new table with revised schema...'
     );
-    const fkCheckResult = await execute('PRAGMA foreign_key_check;');
-    const violations = fkCheckResult.rows || [];
+    // Replace table name in SQL with temp name
+    const tempTableSQL = newTableSQL.replace(
+      new RegExp(
+        `CREATE\\s+TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?${tableName}\\b`,
+        'i'
+      ),
+      `CREATE TABLE ${tempTableName}`
+    );
+    await execute(tempTableSQL);
+    console.log(`[recreateTable] Created temporary table: ${tempTableName}`);
 
-    if (violations.length > 0) {
-      console.error(
-        '[recreateTable] Foreign key constraint violations detected:',
-        violations
+    // STEP 5: Transfer data from old table to new table
+    console.log('[recreateTable] Step 5: Transferring data...');
+    const transferSQL =
+      dataMigrationSQL ||
+      `INSERT INTO ${tempTableName} SELECT * FROM ${tableName};`;
+    await execute(transferSQL);
+    console.log('[recreateTable] Data transfer complete');
+
+    // STEP 6: Drop old table
+    console.log('[recreateTable] Step 6: Dropping old table...');
+    await execute(`DROP TABLE ${tableName};`);
+    console.log(`[recreateTable] Dropped table: ${tableName}`);
+
+    // STEP 7: Rename new table to old name
+    console.log('[recreateTable] Step 7: Renaming new table to original name...');
+    await execute(`ALTER TABLE ${tempTableName} RENAME TO ${tableName};`);
+    console.log(`[recreateTable] Renamed ${tempTableName} to ${tableName}`);
+
+    // STEP 8: Recreate indexes, triggers, and views
+    console.log('[recreateTable] Step 8: Recreating associated objects...');
+
+    // Recreate indexes
+    if (indexesToRecreate.length > 0) {
+      console.log(
+        `[recreateTable] Recreating ${indexesToRecreate.length} indexes...`
       );
-      throw new Error(
-        `Foreign key constraint violations detected after table recreation. ` +
-          `Table: ${violations[0]?.table}, Violations: ${violations.length}`
-      );
+      for (const indexSQL of indexesToRecreate) {
+        await execute(indexSQL);
+      }
     }
-    console.log('[recreateTable] Foreign key check passed');
+
+    // Recreate triggers
+    if (triggersToRecreate.length > 0) {
+      console.log(
+        `[recreateTable] Recreating ${triggersToRecreate.length} triggers...`
+      );
+      for (const triggerSQL of triggersToRecreate) {
+        await execute(triggerSQL);
+      }
+    }
+
+    // STEP 9: Recreate views (if any were provided)
+    if (viewsToRecreate.length > 0) {
+      console.log('[recreateTable] Step 9: Recreating views...');
+      for (const viewSQL of viewsToRecreate) {
+        await execute(viewSQL);
+      }
+    }
+
+    // STEP 10: Verify foreign key constraints (if originally enabled)
+    if (foreignKeysEnabled && !skipForeignKeyCheck) {
+      console.log(
+        '[recreateTable] Step 10: Verifying foreign key constraints...'
+      );
+      const fkCheckResult = await execute('PRAGMA foreign_key_check;');
+      const violations = fkCheckResult.rows || [];
+
+      if (violations.length > 0) {
+        console.error(
+          '[recreateTable] Foreign key constraint violations detected:',
+          violations
+        );
+        throw new Error(
+          `Foreign key constraint violations detected after table recreation. ` +
+            `Table: ${violations[0]?.table}, Violations: ${violations.length}`
+        );
+      }
+      console.log('[recreateTable] Foreign key check passed');
+    }
+
+    // STEP 11: Commit transaction (handled by migration runner)
+    console.log(
+      '[recreateTable] Step 11: Transaction commit (handled by migration runner)'
+    );
+
+    console.log(`[recreateTable] ✅ Successfully recreated table: ${tableName}`);
+  } catch (error) {
+    console.error(`[recreateTable] Error during table recreation:`, error);
+    throw error;
+  } finally {
+    // STEP 12: Re-enable foreign keys if they were originally enabled
+    if (foreignKeysEnabled) {
+      console.log('[recreateTable] Step 12: Re-enabling foreign keys...');
+      await execute('PRAGMA foreign_keys=ON;');
+    }
   }
-
-  // STEP 11: Commit transaction (handled by migration runner)
-  console.log(
-    '[recreateTable] Step 11: Transaction commit (handled by migration runner)'
-  );
-
-  // STEP 12: Re-enable foreign keys if they were originally enabled
-  if (foreignKeysEnabled) {
-    console.log('[recreateTable] Step 12: Re-enabling foreign keys...');
-    await execute('PRAGMA foreign_keys=ON;');
-  }
-
-  console.log(`[recreateTable] ✅ Successfully recreated table: ${tableName}`);
 }
 
 /**
