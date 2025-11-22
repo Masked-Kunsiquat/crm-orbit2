@@ -91,7 +91,6 @@
             "french": "French",
             "chinese": "Chinese (Simplified)"
         },
-        "appearance": "Appearance",
         "security": {
             "pinSetup": "Set / Change PIN",
             "pinDescription": "Create or update your security PIN",
