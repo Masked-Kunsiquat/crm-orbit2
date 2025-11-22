@@ -422,6 +422,7 @@ function AddInteractionModal({
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleDateChange}
           maximumDate={new Date()}
+          themeVariant={theme.dark ? 'dark' : 'light'}
         />
       )}
 
@@ -432,6 +433,7 @@ function AddInteractionModal({
           mode="time"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleTimeChange}
+          themeVariant={theme.dark ? 'dark' : 'light'}
         />
       )}
     </>

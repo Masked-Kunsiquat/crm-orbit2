@@ -417,6 +417,7 @@ function AddEventModal({
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={handleDateChange}
+                  themeVariant={theme.dark ? 'dark' : 'light'}
                 />
               )}
             </View>
