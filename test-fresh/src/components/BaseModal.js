@@ -1,9 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
   ScrollView,
-  Animated,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
@@ -61,44 +60,6 @@ export default function BaseModal({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
-  const fadeAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
-
-  // Animate modal entry/exit
-  useEffect(() => {
-    if (visible) {
-      // Reset to 0 before animating in
-      slideAnim.setValue(0);
-      fadeAnim.setValue(0);
-
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 1,
-          useNativeDriver: true,
-          tension: 50,
-          friction: 10,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, slideAnim, fadeAnim]);
 
   const handleDismiss = () => {
     if (dismissable) {
@@ -107,30 +68,6 @@ export default function BaseModal({
   };
 
   const maxHeightValue = SCREEN_HEIGHT * maxHeight;
-
-  // Bottom sheet transforms
-  const bottomSheetTransform = bottomSheet
-    ? {
-        transform: [
-          {
-            translateY: slideAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [SCREEN_HEIGHT, 0],
-            }),
-          },
-        ],
-      }
-    : {
-        transform: [
-          {
-            scale: slideAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.9, 1],
-            }),
-          },
-        ],
-        opacity: fadeAnim,
-      };
 
   const surfaceStyle = bottomSheet
     ? [
@@ -174,18 +111,17 @@ export default function BaseModal({
           style={styles.keyboardView}
         >
           <Surface style={surfaceStyle} elevation={5}>
-            <Animated.View style={[styles.animatedContent, bottomSheetTransform]}>
-              {/* Drag handle for bottom sheet */}
-              {bottomSheet && (
-                <View style={styles.dragHandleContainer}>
-                  <View
-                    style={[
-                      styles.dragHandle,
-                      { backgroundColor: theme.colors.surfaceVariant },
-                    ]}
-                  />
-                </View>
-              )}
+            {/* Drag handle for bottom sheet */}
+            {bottomSheet && (
+              <View style={styles.dragHandleContainer}>
+                <View
+                  style={[
+                    styles.dragHandle,
+                    { backgroundColor: theme.colors.surfaceVariant },
+                  ]}
+                />
+              </View>
+            )}
 
               {/* Header */}
               <View style={styles.header}>
@@ -250,7 +186,6 @@ export default function BaseModal({
                   </View>
                 </>
               )}
-            </Animated.View>
           </Surface>
         </KeyboardAvoidingView>
       </Modal>
@@ -282,9 +217,6 @@ const styles = StyleSheet.create({
   surface: {
     flex: 1,
     overflow: 'hidden',
-  },
-  animatedContent: {
-    flex: 1,
   },
   dragHandleContainer: {
     alignItems: 'center',
