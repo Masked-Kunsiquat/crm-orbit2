@@ -48,7 +48,6 @@
             "french": "法文",
             "chinese": "简体中文"
         },
-        "appearance": "外观",
         "security": {
             "pinSetup": "设置/更改密码 (PIN)",
             "useBiometric": "使用生物识别",

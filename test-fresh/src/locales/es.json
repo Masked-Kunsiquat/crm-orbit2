@@ -48,7 +48,6 @@
             "french": "Francés",
             "chinese": "Chino simplificado"
         },
-        "appearance": "Apariencia",
         "security": {
             "pinSetup": "Configurar / Cambiar PIN",
             "useBiometric": "Usar biométrico",
