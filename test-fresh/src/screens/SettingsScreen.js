@@ -27,6 +27,16 @@ import { resetDatabase } from '../database/resetDb';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
+// Section search terms mapping
+const SECTION_SEARCH_TERMS = {
+  appearance: ['appearance', 'theme', 'dark', 'light', 'color'],
+  security: ['security', 'pin', 'biometric', 'lock', 'password', 'fingerprint'],
+  language: ['language', 'english', 'spanish', 'french', 'german', 'chinese'],
+  features: ['features', 'company', 'management'],
+  swipe: ['swipe', 'actions', 'call', 'text', 'gesture'],
+  data: ['data', 'database', 'migrations', 'reset', 'backup'],
+};
+
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -255,17 +265,7 @@ export default function SettingsScreen() {
   const shouldShowSection = (sectionKey) => {
     if (!searchQuery) return true;
 
-    // Centralized mapping of section keys to search terms
-    const sectionSearchTerms = {
-      appearance: ['appearance', 'theme', 'dark', 'light', 'color'],
-      security: ['security', 'pin', 'biometric', 'lock', 'password', 'fingerprint'],
-      language: ['language', 'english', 'spanish', 'french', 'german', 'chinese'],
-      features: ['features', 'company', 'management'],
-      swipe: ['swipe', 'actions', 'call', 'text', 'gesture'],
-      data: ['data', 'database', 'migrations', 'reset', 'backup'],
-    };
-
-    const searchTerms = sectionSearchTerms[sectionKey] || [];
+    const searchTerms = SECTION_SEARCH_TERMS[sectionKey] || [];
     const query = searchQuery.toLowerCase();
     return searchTerms.some(term => term.toLowerCase().includes(query));
   };
