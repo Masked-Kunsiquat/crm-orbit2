@@ -137,7 +137,6 @@ export default function BaseModal({
           borderTopRightRadius: 28,
           paddingBottom: insets.bottom || 12,
         },
-        bottomSheetTransform,
       ]
     : [
         styles.centeredSurface,
@@ -145,7 +144,6 @@ export default function BaseModal({
           maxHeight: maxHeightValue,
           borderRadius: 28,
         },
-        bottomSheetTransform,
       ];
 
   const ContentWrapper = scrollable ? ScrollView : View;
@@ -171,8 +169,8 @@ export default function BaseModal({
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <Animated.View style={surfaceStyle}>
-            <Surface style={styles.surface} elevation={5}>
+          <Surface style={surfaceStyle} elevation={5}>
+            <Animated.View style={[styles.animatedContent, bottomSheetTransform]}>
               {/* Drag handle for bottom sheet */}
               {bottomSheet && (
                 <View style={styles.dragHandleContainer}>
@@ -248,8 +246,8 @@ export default function BaseModal({
                   </View>
                 </>
               )}
-            </Surface>
-          </Animated.View>
+            </Animated.View>
+          </Surface>
         </KeyboardAvoidingView>
       </Modal>
     </Portal>
@@ -280,6 +278,9 @@ const styles = StyleSheet.create({
   surface: {
     flex: 1,
     overflow: 'hidden',
+  },
+  animatedContent: {
+    flex: 1,
   },
   dragHandleContainer: {
     alignItems: 'center',
