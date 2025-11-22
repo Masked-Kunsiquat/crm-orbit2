@@ -1,12 +1,19 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { AppState } from 'react-native';
 import authService from '../services/authService';
 
 const AuthContext = createContext({
   isLocked: true,
   initializing: true,
-  authenticate: async (_options) => ({ success: false }),
-  authenticateWithPIN: async (_pin) => ({ success: false }),
+  authenticate: async _options => ({ success: false }),
+  authenticateWithPIN: async _pin => ({ success: false }),
   lock: async () => false,
   unlock: async () => false,
   refresh: async () => {},
@@ -18,7 +25,7 @@ export function AuthProvider({ children }) {
 
   // Subscribe to service events
   useEffect(() => {
-    const remove = authService.addListener(async (evt) => {
+    const remove = authService.addListener(async evt => {
       if (evt?.type === 'lock' || evt?.type === 'unlock') {
         const state = await authService.getLockState();
         setIsLocked(state);
@@ -52,7 +59,7 @@ export function AuthProvider({ children }) {
 
   // Handle app state transitions for auto-lock
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (next) => {
+    const sub = AppState.addEventListener('change', next => {
       authService.onAppStateChange?.(next);
     });
     return () => sub?.remove?.();
@@ -78,7 +85,7 @@ export function AuthProvider({ children }) {
     return r;
   }, []);
 
-  const authenticateWithPIN = useCallback(async (pin) => {
+  const authenticateWithPIN = useCallback(async pin => {
     const r = await authService.authenticateWithPIN(pin);
     if (r?.success) {
       await authService.onSuccessfulAuth();
@@ -93,20 +100,23 @@ export function AuthProvider({ children }) {
 
   // Intentionally only depend on state values (isLocked, initializing) to prevent infinite re-renders.
   // The callbacks (authenticate, lock, unlock, refresh) are stable with empty deps and don't need to trigger re-memoization.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const value = useMemo(
-    () => ({ isLocked, initializing, authenticate, authenticateWithPIN, lock, unlock, refresh }),
+    () => ({
+      isLocked,
+      initializing,
+      authenticate,
+      authenticateWithPIN,
+      lock,
+      unlock,
+      refresh,
+    }),
     [isLocked, initializing]
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   return useContext(AuthContext);
 }
-

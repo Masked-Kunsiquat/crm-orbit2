@@ -5,10 +5,24 @@ import { useTranslation } from 'react-i18next';
 import { useContacts } from '../hooks/queries/useContactQueries';
 import { useInteractions } from '../hooks/queries/useInteractionQueries';
 import { useEvents } from '../hooks/queries/useEventQueries';
-import { useInteractionStats, useTopContacts } from '../hooks/queries/useAnalyticsQueries';
+import {
+  useInteractionStats,
+  useTopContacts,
+} from '../hooks/queries/useAnalyticsQueries';
 import { logger } from '../errors/utils/errorLogger';
-import { filterByDateRange, isFuture, isPast, isToday } from '../utils/dateUtils';
-import { ScreenContainer, StatsCard, StatsRow, SectionCard, EmptyState } from '../components/layout';
+import {
+  filterByDateRange,
+  isFuture,
+  isPast,
+  isToday,
+} from '../utils/dateUtils';
+import {
+  ScreenContainer,
+  StatsCard,
+  StatsRow,
+  SectionCard,
+  EmptyState,
+} from '../components/layout';
 
 export default function AnalyticsScreen({ navigation }) {
   const { t } = useTranslation();
@@ -39,11 +53,31 @@ export default function AnalyticsScreen({ navigation }) {
   const dateFilter = getDateRangeFilter();
 
   // Fetch data
-  const { data: contacts = [], isLoading: loadingContacts, refetch: refetchContacts } = useContacts();
-  const { data: interactions = [], isLoading: loadingInteractions, refetch: refetchInteractions } = useInteractions();
-  const { data: events = [], isLoading: loadingEvents, refetch: refetchEvents } = useEvents();
-  const { data: stats, isLoading: loadingStats, refetch: refetchStats } = useInteractionStats(dateFilter);
-  const { data: topContacts = [], isLoading: loadingTopContacts, refetch: refetchTopContacts } = useTopContacts({ limit: 5, ...dateFilter });
+  const {
+    data: contacts = [],
+    isLoading: loadingContacts,
+    refetch: refetchContacts,
+  } = useContacts();
+  const {
+    data: interactions = [],
+    isLoading: loadingInteractions,
+    refetch: refetchInteractions,
+  } = useInteractions();
+  const {
+    data: events = [],
+    isLoading: loadingEvents,
+    refetch: refetchEvents,
+  } = useEvents();
+  const {
+    data: stats,
+    isLoading: loadingStats,
+    refetch: refetchStats,
+  } = useInteractionStats(dateFilter);
+  const {
+    data: topContacts = [],
+    isLoading: loadingTopContacts,
+    refetch: refetchTopContacts,
+  } = useTopContacts({ limit: 5, ...dateFilter });
 
   const handleRefresh = async () => {
     try {
@@ -62,16 +96,23 @@ export default function AnalyticsScreen({ navigation }) {
     }
   };
 
-  const isLoading = loadingContacts || loadingInteractions || loadingEvents || loadingStats || loadingTopContacts;
+  const isLoading =
+    loadingContacts ||
+    loadingInteractions ||
+    loadingEvents ||
+    loadingStats ||
+    loadingTopContacts;
 
   // Apply date filter locally to interactions and events
-  const filteredInteractions = dateRange === 'all'
-    ? interactions
-    : filterByDateRange(interactions, 'interaction_datetime', dateFilter);
+  const filteredInteractions =
+    dateRange === 'all'
+      ? interactions
+      : filterByDateRange(interactions, 'interaction_datetime', dateFilter);
 
-  const filteredEvents = dateRange === 'all'
-    ? events
-    : filterByDateRange(events, 'event_date', dateFilter);
+  const filteredEvents =
+    dateRange === 'all'
+      ? events
+      : filterByDateRange(events, 'event_date', dateFilter);
 
   // Calculate analytics
   const totalContacts = contacts.length;
@@ -80,12 +121,15 @@ export default function AnalyticsScreen({ navigation }) {
 
   // Events breakdown - use date utilities to properly categorize by calendar date
   // Events today or in the future are "upcoming", events before today are "past"
-  const upcomingEvents = filteredEvents.filter(e => isFuture(e.event_date) || isToday(e.event_date)).length;
+  const upcomingEvents = filteredEvents.filter(
+    e => isFuture(e.event_date) || isToday(e.event_date)
+  ).length;
   const pastEvents = filteredEvents.filter(e => isPast(e.event_date)).length;
 
   // Interaction types breakdown
   const interactionTypes = filteredInteractions.reduce((acc, interaction) => {
-    const type = interaction.custom_type || interaction.interaction_type || 'other';
+    const type =
+      interaction.custom_type || interaction.interaction_type || 'other';
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {});
@@ -165,7 +209,13 @@ export default function AnalyticsScreen({ navigation }) {
                 <Text variant="bodyLarge" style={styles.breakdownType}>
                   {t(`interactions.filters.${type}`, type)}
                 </Text>
-                <Text variant="bodyLarge" style={[styles.breakdownCount, { color: theme.colors.primary }]}>
+                <Text
+                  variant="bodyLarge"
+                  style={[
+                    styles.breakdownCount,
+                    { color: theme.colors.primary },
+                  ]}
+                >
                   {count}
                 </Text>
               </View>
@@ -173,7 +223,9 @@ export default function AnalyticsScreen({ navigation }) {
             {stats && stats.totalInteractions > 0 && (
               <View style={styles.statsDetail}>
                 <Text variant="bodySmall" style={styles.mutedText}>
-                  {t('analytics.interactions.uniqueContacts', { count: stats.uniqueContacts || 0 })}
+                  {t('analytics.interactions.uniqueContacts', {
+                    count: stats.uniqueContacts || 0,
+                  })}
                 </Text>
               </View>
             )}
@@ -185,13 +237,19 @@ export default function AnalyticsScreen({ navigation }) {
       <SectionCard title={t('analytics.events.title')}>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
-            <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.tertiary }]}>
+            <Text
+              variant="headlineMedium"
+              style={[styles.statNumber, { color: theme.colors.tertiary }]}
+            >
               {upcomingEvents}
             </Text>
             <Text variant="bodyMedium">{t('analytics.events.upcoming')}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text variant="headlineMedium" style={[styles.statNumber, { color: theme.colors.outline }]}>
+            <Text
+              variant="headlineMedium"
+              style={[styles.statNumber, { color: theme.colors.outline }]}
+            >
               {pastEvents}
             </Text>
             <Text variant="bodyMedium">{t('analytics.events.past')}</Text>
@@ -209,17 +267,25 @@ export default function AnalyticsScreen({ navigation }) {
           topContacts.map((contact, index) => (
             <View key={contact.id} style={styles.topContactItem}>
               <View style={styles.topContactRank}>
-                <Text variant="labelLarge" style={{ color: theme.colors.primary }}>
+                <Text
+                  variant="labelLarge"
+                  style={{ color: theme.colors.primary }}
+                >
                   #{index + 1}
                 </Text>
               </View>
               <View style={styles.topContactInfo}>
                 <Text variant="bodyLarge">{contact.display_name}</Text>
                 <Text variant="bodySmall" style={styles.mutedText}>
-                  {t('analytics.topContacts.interactionCount', { count: contact.interaction_count })}
+                  {t('analytics.topContacts.interactionCount', {
+                    count: contact.interaction_count,
+                  })}
                 </Text>
               </View>
-              <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
+              <Text
+                variant="titleMedium"
+                style={{ color: theme.colors.primary }}
+              >
                 {contact.interaction_count}
               </Text>
             </View>

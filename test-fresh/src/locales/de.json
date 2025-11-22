@@ -37,7 +37,8 @@
             "features": "Funktionen",
             "swipe": "Wisch-Aktionen",
             "theme": "Design",
-            "language": "Sprache"
+            "language": "Sprache",
+            "database": ""
         },
         "language": {
             "device": "Gerätestandard",
@@ -63,6 +64,24 @@
                 "enabled": "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen.",
                 "disabled": "Unternehmensverwaltung deaktiviert."
             }
+        },
+        "database": {
+            "runMigrations": "",
+            "migrationsDescription": "",
+            "run": "",
+            "migrationsSuccess": "",
+            "migrationsComplete": "",
+            "migrationsError": "",
+            "migrationsFailed": "",
+            "resetDatabase": "",
+            "resetDescription": "",
+            "reset": "",
+            "resetTitle": "",
+            "resetWarning": "",
+            "resetSuccess": "",
+            "resetComplete": "",
+            "resetError": "",
+            "resetFailed": ""
         },
         "errors": {
             "biometricToggle": {
@@ -110,7 +129,9 @@
         "save": "Speichern"
     },
     "common": {
-        "all": "Alle"
+        "all": "Alle",
+        "cancel": "",
+        "save": ""
     },
     "industries": {
         "technology": "Technologie",
@@ -456,5 +477,64 @@
             "empty": "Keine Interaktionsdaten verfügbar",
             "interactionCount": "{{count}} Interaktionen"
         }
+    },
+    "globalSearch": {
+        "title": "Suchen",
+        "searchPlaceholder": "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen...",
+        "searching": "Suchen...",
+        "sections": {
+            "contacts": "Kontakte",
+            "companies": "Unternehmen",
+            "interactions": "Interaktionen",
+            "events": "Ereignisse",
+            "notes": "Notizen"
+        },
+        "emptyState": {
+            "prompt": "Beginnen Sie mit der Eingabe, um zu suchen",
+            "hint": "Durchsuchen Sie alle Ihre Kontakte, Unternehmen, Interaktionen, Ereignisse und Notizen",
+            "noResults": "Keine Ergebnisse gefunden",
+            "tryDifferent": "Versuchen Sie einen anderen Suchbegriff"
+        },
+        "error": {
+            "title": "",
+            "message": ""
+        },
+        "noContact": "Keine Kontaktinformationen",
+        "noIndustry": "Keine Branche",
+        "untitled": "Ohne Titel",
+        "note": "Notiz"
+    },
+    "filters": {
+        "title": "",
+        "categories": "",
+        "categoryLogic": "",
+        "or": "",
+        "and": "",
+        "company": "",
+        "dateAdded": "",
+        "startDate": "",
+        "endDate": "",
+        "to": "",
+        "clearDateRange": "",
+        "interactionActivity": "",
+        "last7Days": "",
+        "last30Days": "",
+        "last90Days": "",
+        "hasUpcomingEvents": "",
+        "clear": "",
+        "apply": ""
+    },
+    "savedSearches": {
+        "title": "",
+        "save": "",
+        "saveSearchTitle": "",
+        "searchName": "",
+        "nameRequired": "",
+        "saveSuccess": "",
+        "searchSaved": "",
+        "saveError": "",
+        "noSavedSearches": "",
+        "deleteTitle": "",
+        "deleteMessage": ""
     }
 }

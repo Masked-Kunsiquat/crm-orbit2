@@ -20,7 +20,11 @@ const isDevelopment = () => {
   }
 
   // Fall back to Node.js process.env check
-  if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+  if (
+    typeof process !== 'undefined' &&
+    process.env &&
+    process.env.NODE_ENV === 'development'
+  ) {
     return true;
   }
 
@@ -37,7 +41,7 @@ const getTimestamp = () => {
 /**
  * Format error for logging
  */
-const formatError = (error) => {
+const formatError = error => {
   if (!error) return 'Unknown error';
 
   if (error instanceof Error) {
@@ -125,7 +129,10 @@ export const logger = {
   success(component, operation, context = {}) {
     if (isDevelopment()) {
       const timestamp = getTimestamp();
-      console.log(`[${timestamp}] [${component}] ${operation} succeeded`, context);
+      console.log(
+        `[${timestamp}] [${component}] ${operation} succeeded`,
+        context
+      );
     }
   },
 };
@@ -149,11 +156,7 @@ export const logger = {
  * @returns {Function} Wrapped function with error handling
  */
 export function withErrorHandling(fn, component, operation, options = {}) {
-  const {
-    rethrow = true,
-    fallback = null,
-    onError = null,
-  } = options;
+  const { rethrow = true, fallback = null, onError = null } = options;
 
   return async (...args) => {
     try {
@@ -198,11 +201,7 @@ export function logErrors(component, operation) {
   return function decorator(target, propertyKey, descriptor) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = withErrorHandling(
-      originalMethod,
-      component,
-      operation
-    );
+    descriptor.value = withErrorHandling(originalMethod, component, operation);
 
     return descriptor;
   };

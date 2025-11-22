@@ -35,7 +35,9 @@ async function getAppliedVersions({ execute }) {
       res?.rows?._array ||
       (Array.isArray(res?.rows) ? res.rows : []);
     const versions = rows.map(r => r.version);
-    logger.success('MigrationRunner', 'getAppliedVersions', { count: versions.length });
+    logger.success('MigrationRunner', 'getAppliedVersions', {
+      count: versions.length,
+    });
     return versions;
   } catch (err) {
     logger.error('MigrationRunner', 'getAppliedVersions', err);
@@ -83,9 +85,13 @@ async function recordApplied({ execute }, migration) {
       migration.version,
       migration.name || `migration_${migration.version}`,
     ]);
-    logger.success('MigrationRunner', 'recordApplied', { version: migration.version });
+    logger.success('MigrationRunner', 'recordApplied', {
+      version: migration.version,
+    });
   } catch (err) {
-    logger.error('MigrationRunner', 'recordApplied', err, { version: migration.version });
+    logger.error('MigrationRunner', 'recordApplied', err, {
+      version: migration.version,
+    });
     throw new DatabaseError(
       'Failed to record applied migration',
       'MIGRATION_RECORD_FAILED',
@@ -188,7 +194,9 @@ export async function runMigrations(ctx) {
                 migration.name || `migration_${migration.version}`,
               ]
             );
-            logger.success('MigrationRunner', 'recordMigration', { version: migration.version });
+            logger.success('MigrationRunner', 'recordMigration', {
+              version: migration.version,
+            });
           } catch (recordError) {
             // Handle UNIQUE constraint violations gracefully - migration may have been recorded previously
             if (
@@ -225,9 +233,15 @@ export async function runMigrations(ctx) {
         await recordApplied(ctx, migration);
       }
       log(`[migrations] Applied v${migration.version} (${name}).`);
-      logger.success('MigrationRunner', 'applyMigration', { version: migration.version, name });
+      logger.success('MigrationRunner', 'applyMigration', {
+        version: migration.version,
+        name,
+      });
     } catch (err) {
-      logger.error('MigrationRunner', 'applyMigration', err, { version: migration.version, name });
+      logger.error('MigrationRunner', 'applyMigration', err, {
+        version: migration.version,
+        name,
+      });
       throw new DatabaseError(
         `Migration v${migration.version} (${name}) failed`,
         'MIGRATION_FAILED',

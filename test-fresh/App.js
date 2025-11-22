@@ -6,7 +6,6 @@ import { PaperProvider, MD3LightTheme, MD3DarkTheme, Text, Card, BottomNavigatio
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database';
-import { createBasicTables } from './src/database/simpleSetup';
 import DashboardScreen from './src/screens/DashboardScreen';
 import ContactsList from './src/screens/ContactsList';
 import ContactDetailScreen from './src/screens/ContactDetailScreen';
@@ -15,6 +14,7 @@ import InteractionsScreen from './src/screens/InteractionsScreen';
 import EventsList from './src/screens/EventsList';
 import SettingsScreen from './src/screens/SettingsScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
+import GlobalSearchScreen from './src/screens/GlobalSearchScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AuthLockScreen from './src/screens/AuthLockScreen';
@@ -39,16 +39,12 @@ export default function App() {
       try {
         console.log('Initializing database with modern expo-sqlite API...');
 
-        // Initialize database connection
+        // Initialize database connection with migrations enabled
         await initDatabase({
-          runMigrationsOnInit: false, // Skip complex migrations, use simple setup
+          runMigrationsOnInit: true, // Run migrations to ensure schema is up to date
           onLog: console.log,
         });
-        console.log('Database connection initialized');
-
-        // Create basic tables
-        await createBasicTables();
-        console.log('Basic tables created successfully');
+        console.log('Database initialized with migrations');
 
         setIsDbReady(true);
       } catch (error) {
@@ -186,6 +182,9 @@ export default function App() {
                         <Stack.Screen name="MainTabs" component={MainTabs} />
                         <Stack.Screen name="ContactDetail" component={ContactDetailScreen} />
                         <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+                        <Stack.Screen name="GlobalSearch" component={GlobalSearchScreen} />
+                        <Stack.Screen name="EventsList" component={EventsList} />
+                        <Stack.Screen name="CompanyList" component={CompanyListScreen} />
                         <Stack.Screen name="PinSetup" component={PinSetupScreen} />
                       </Stack.Navigator>
                     </NavigationContainer>

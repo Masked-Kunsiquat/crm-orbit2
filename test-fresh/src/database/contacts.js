@@ -6,6 +6,7 @@ import { filterNonEmptyStrings } from '../utils/stringHelpers';
 import { pick, placeholders, buildUpdateSet, buildInsert } from './sqlHelpers';
 import { is } from '../utils/validators';
 import { unique } from '../utils/arrayHelpers';
+import { formatDateToString } from '../utils/dateUtils';
 
 const CONTACT_FIELDS = [
   'first_name',
@@ -168,11 +169,21 @@ export function createContactsDB(ctx) {
       // (do not rely on PRAGMA foreign_keys state across environments)
       if (is.function(transaction)) {
         return await transaction(async tx => {
-          await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [id]);
-          await tx.execute('DELETE FROM contact_categories WHERE contact_id = ?;', [id]);
-          await tx.execute('DELETE FROM interactions WHERE contact_id = ?;', [id]);
+          await tx.execute('DELETE FROM contact_info WHERE contact_id = ?;', [
+            id,
+          ]);
+          await tx.execute(
+            'DELETE FROM contact_categories WHERE contact_id = ?;',
+            [id]
+          );
+          await tx.execute('DELETE FROM interactions WHERE contact_id = ?;', [
+            id,
+          ]);
           // Delete the contact last
-          const delRes = await tx.execute('DELETE FROM contacts WHERE id = ?;', [id]);
+          const delRes = await tx.execute(
+            'DELETE FROM contacts WHERE id = ?;',
+            [id]
+          );
           return delRes.rowsAffected || 0;
         });
       }
@@ -180,7 +191,10 @@ export function createContactsDB(ctx) {
       // Fallback to batch (runs inside a transaction in our DB layer)
       const results = await batch([
         { sql: 'DELETE FROM contact_info WHERE contact_id = ?;', params: [id] },
-        { sql: 'DELETE FROM contact_categories WHERE contact_id = ?;', params: [id] },
+        {
+          sql: 'DELETE FROM contact_categories WHERE contact_id = ?;',
+          params: [id],
+        },
         { sql: 'DELETE FROM interactions WHERE contact_id = ?;', params: [id] },
         { sql: 'DELETE FROM contacts WHERE id = ?;', params: [id] },
       ]);
@@ -268,16 +282,127 @@ export function createContactsDB(ctx) {
     async toggleFavorite(id) {
       await batch([
         {
-          sql: 'UPDATE contacts SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END WHERE id = ?;',
-          params: [id],
-        },
-        {
-          sql: 'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          sql: `UPDATE contacts
+                SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END,
+                    last_interaction_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;`,
           params: [id],
         },
       ]);
       const updated = await this.getById(id);
       return updated;
+    },
+
+    /**
+     * Get filtered contacts with advanced filtering options
+     * @param {Object} filters - Filter options
+     * @param {number[]} filters.categoryIds - Category IDs to filter by
+     * @param {string} filters.categoryLogic - 'AND' or 'OR' for category filtering
+     * @param {number} filters.companyId - Company ID to filter by
+     * @param {Object} filters.dateAddedRange - {start, end} date range (YYYY-MM-DD)
+     * @param {number} filters.interactionDays - Last N days with interactions
+     * @param {boolean} filters.hasUpcomingEvents - Filter contacts with upcoming events
+     * @param {number} filters.limit - Result limit
+     * @param {number} filters.offset - Result offset
+     * @returns {Promise<Object[]>} Filtered contacts
+     */
+    async getFiltered(filters = {}) {
+      const {
+        categoryIds = null,
+        categoryLogic = 'OR',
+        companyId = null,
+        dateAddedRange = null,
+        interactionDays = null,
+        hasUpcomingEvents = null,
+        limit = 100,
+        offset = 0,
+      } = filters;
+
+      const where = [];
+      const params = [];
+
+      // Category filter with AND/OR logic - handle AND logic first to insert params at beginning
+      let fromClause = 'FROM contacts c';
+      if (categoryIds && categoryIds.length > 0 && categoryLogic === 'AND') {
+        // Contact must have ALL selected categories
+        const categoryJoins = categoryIds
+          .map(
+            (_, index) =>
+              `INNER JOIN contact_categories cc${index} ON cc${index}.contact_id = c.id AND cc${index}.category_id = ?`
+          )
+          .join(' ');
+        fromClause = `FROM contacts c ${categoryJoins}`;
+        // Add categoryIds at the beginning since JOIN placeholders come first in SQL
+        params.push(...categoryIds);
+      }
+
+      // Company filter
+      if (companyId != null) {
+        where.push('c.company_id = ?');
+        params.push(companyId);
+      }
+
+      // Date added range filter
+      if (dateAddedRange?.start) {
+        where.push('DATE(c.created_at) >= ?');
+        params.push(dateAddedRange.start);
+      }
+      if (dateAddedRange?.end) {
+        where.push('DATE(c.created_at) <= ?');
+        params.push(dateAddedRange.end);
+      }
+
+      // Interaction activity filter (last N days)
+      if (interactionDays != null) {
+        const days = Number.isFinite(Number(interactionDays))
+          ? Math.max(1, Math.floor(Number(interactionDays)))
+          : null;
+        if (days != null) {
+          where.push(`EXISTS (
+            SELECT 1 FROM interactions i
+            WHERE i.contact_id = c.id
+            AND DATE(i.interaction_datetime) >= DATE('now', ?)
+          )`);
+          params.push(`-${days} days`);
+        }
+      }
+
+      // Has upcoming events filter
+      if (hasUpcomingEvents === true) {
+        const today = formatDateToString(new Date());
+        where.push(`EXISTS (
+          SELECT 1 FROM events e
+          WHERE e.contact_id = c.id
+          AND DATE(e.event_date) >= ?
+        )`);
+        params.push(today);
+      }
+
+      // Category filter with OR logic (handled separately since params come after WHERE)
+      if (categoryIds && categoryIds.length > 0 && categoryLogic === 'OR') {
+        // Contact must have ANY of the selected categories
+        where.push(`EXISTS (
+          SELECT 1 FROM contact_categories cc
+          WHERE cc.contact_id = c.id
+          AND cc.category_id IN (${categoryIds.map(() => '?').join(',')})
+        )`);
+        params.push(...categoryIds);
+      }
+
+      const whereClause =
+        where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+      const sql = `
+        SELECT DISTINCT c.*
+        ${fromClause}
+        ${whereClause}
+        ORDER BY c.last_name ASC, c.first_name ASC
+        LIMIT ? OFFSET ?
+      `;
+
+      params.push(limit, offset);
+      const res = await execute(sql, params);
+      return res.rows.map(convertNullableFields);
     },
   };
 }

@@ -9,7 +9,13 @@ import { logger } from '../errors/utils/errorLogger';
 import AddContactModal from '../components/AddContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import AddEventModal from '../components/AddEventModal';
-import { ScreenContainer, StatsCard, StatsRow, SectionCard, EmptyState } from '../components/layout';
+import {
+  ScreenContainer,
+  StatsCard,
+  StatsRow,
+  SectionCard,
+  EmptyState,
+} from '../components/layout';
 
 export default function DashboardScreen({ navigation }) {
   const { t } = useTranslation();
@@ -18,9 +24,21 @@ export default function DashboardScreen({ navigation }) {
   const [showAddEventModal, setShowAddEventModal] = useState(false);
 
   // Fetch data using TanStack Query
-  const { data: contacts = [], isLoading: loadingContacts, refetch: refetchContacts } = useContactsWithInfo();
-  const { data: events = [], isLoading: loadingEvents, refetch: refetchEvents } = useUpcomingEvents();
-  const { data: interactions = [], isLoading: loadingInteractions, refetch: refetchInteractions } = useInteractions();
+  const {
+    data: contacts = [],
+    isLoading: loadingContacts,
+    refetch: refetchContacts,
+  } = useContactsWithInfo();
+  const {
+    data: events = [],
+    isLoading: loadingEvents,
+    refetch: refetchEvents,
+  } = useUpcomingEvents();
+  const {
+    data: interactions = [],
+    isLoading: loadingInteractions,
+    refetch: refetchInteractions,
+  } = useInteractions();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -52,6 +70,11 @@ export default function DashboardScreen({ navigation }) {
       navigation={navigation}
       headerActions={[
         {
+          icon: 'magnify',
+          onPress: () => navigation.navigate('GlobalSearch'),
+          accessibilityLabel: t('globalSearch.title'),
+        },
+        {
           icon: 'chart-bar',
           onPress: () => navigation.navigate('Analytics'),
         },
@@ -82,7 +105,7 @@ export default function DashboardScreen({ navigation }) {
       <SectionCard
         title={t('dashboard.upcomingEvents.title')}
         subtitle={t('dashboard.upcomingEvents.subtitle')}
-        actions={(props) => (
+        actions={props => (
           <IconButton
             {...props}
             icon="calendar-plus"
@@ -100,12 +123,11 @@ export default function DashboardScreen({ navigation }) {
               <View style={styles.listItemContent}>
                 <Text variant="bodyLarge">{event.title}</Text>
                 <Text variant="bodySmall" style={styles.listItemSubtext}>
-                  {event.event_date} {event.event_time ? `• ${event.event_time}` : ''}
+                  {event.event_date}{' '}
+                  {event.event_time ? `• ${event.event_time}` : ''}
                 </Text>
               </View>
-              {event.recurring && (
-                <IconButton icon="repeat" size={16} />
-              )}
+              {event.recurring && <IconButton icon="repeat" size={16} />}
             </View>
           ))
         )}

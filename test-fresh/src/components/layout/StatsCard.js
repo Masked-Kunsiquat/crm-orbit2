@@ -10,7 +10,7 @@ export default function StatsCard({
   value,
   label,
   variant = 'primary', // 'primary' | 'secondary' | 'tertiary'
-  style
+  style,
 }) {
   const theme = useTheme();
 

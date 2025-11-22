@@ -37,7 +37,9 @@ export function getFileExtension(filename) {
  */
 export function isImageFile(filename) {
   const ext = getFileExtension(filename);
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif'].includes(ext);
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif'].includes(
+    ext
+  );
 }
 
 /**
@@ -73,5 +75,9 @@ export function formatFileSize(bytes, decimals = 2) {
   // Clamp index to valid range to handle extremely large values
   const clampedIndex = Math.min(i, sizes.length - 1);
 
-  return parseFloat((bytes / Math.pow(k, clampedIndex)).toFixed(dm)) + ' ' + sizes[clampedIndex];
+  return (
+    parseFloat((bytes / Math.pow(k, clampedIndex)).toFixed(dm)) +
+    ' ' +
+    sizes[clampedIndex]
+  );
 }

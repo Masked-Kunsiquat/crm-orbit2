@@ -5,24 +5,24 @@
  * Type checking utilities
  */
 export const is = {
-  string: (val) => typeof val === 'string',
-  number: (val) => typeof val === 'number' && !isNaN(val),
-  integer: (val) => Number.isInteger(val),
-  boolean: (val) => typeof val === 'boolean',
-  array: (val) => Array.isArray(val),
-  object: (val) => val !== null && typeof val === 'object' && !Array.isArray(val),
-  date: (val) => val instanceof Date && !isNaN(val.getTime()),
-  function: (val) => typeof val === 'function',
-  null: (val) => val === null,
-  undefined: (val) => val === undefined,
-  nullish: (val) => val == null,
-  empty: (val) => {
+  string: val => typeof val === 'string',
+  number: val => typeof val === 'number' && !isNaN(val),
+  integer: val => Number.isInteger(val),
+  boolean: val => typeof val === 'boolean',
+  array: val => Array.isArray(val),
+  object: val => val !== null && typeof val === 'object' && !Array.isArray(val),
+  date: val => val instanceof Date && !isNaN(val.getTime()),
+  function: val => typeof val === 'function',
+  null: val => val === null,
+  undefined: val => val === undefined,
+  nullish: val => val == null,
+  empty: val => {
     if (val == null) return true;
     if (typeof val === 'string') return val.trim().length === 0;
     if (Array.isArray(val)) return val.length === 0;
     if (typeof val === 'object') return Object.keys(val).length === 0;
     return false;
-  }
+  },
 };
 
 /**
@@ -61,7 +61,9 @@ export function isValidEmail(email) {
 export function isValidPhone(phone) {
   if (!phone) return false;
   const cleaned = String(phone).replace(/\D/g, '');
-  return cleaned.length === 10 || (cleaned.length === 11 && cleaned.startsWith('1'));
+  return (
+    cleaned.length === 10 || (cleaned.length === 11 && cleaned.startsWith('1'))
+  );
 }
 
 /**
@@ -103,14 +105,17 @@ export function validateRequired(data, rules) {
     const value = data[field];
 
     // Check if value is empty (handles strings, null, undefined)
-    if (value == null || (typeof value === 'string' && value.trim().length === 0)) {
+    if (
+      value == null ||
+      (typeof value === 'string' && value.trim().length === 0)
+    ) {
       errors[field] = `${label} is required`;
     }
   }
 
   return {
     valid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
 }
 

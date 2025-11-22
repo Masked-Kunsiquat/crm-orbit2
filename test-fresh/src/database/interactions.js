@@ -84,7 +84,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
 
         // Recompute last_interaction_at from interactions to avoid bumping on backfilled records
         const updateContactPromise = tx.execute(
-          'UPDATE contacts SET last_interaction_at = (SELECT MAX(interaction_datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = (SELECT MAX(interaction_datetime) FROM interactions WHERE contact_id = ?), updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [data.contact_id, data.contact_id]
         );
 
@@ -172,7 +172,7 @@ export function createInteractionsDB({ execute, batch, transaction }) {
         for (const contactId of contactIds) {
           recalcPromises.push(
             tx.execute(
-              'UPDATE contacts SET last_interaction_at = (SELECT MAX(interaction_datetime) FROM interactions WHERE contact_id = ?) WHERE id = ?;',
+              'UPDATE contacts SET last_interaction_at = (SELECT MAX(interaction_datetime) FROM interactions WHERE contact_id = ?), updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
               [contactId, contactId]
             )
           );
@@ -200,10 +200,11 @@ export function createInteractionsDB({ execute, batch, transaction }) {
       const rowsAffected = await transaction(tx => {
         const updateSql = `UPDATE contacts
                              SET last_interaction_at = (
-                               SELECT MAX(interaction_datetime) FROM interactions
-                               WHERE contact_id = (SELECT contact_id FROM interactions WHERE id = ?)
-                                 AND id != ?
-                             )
+                                   SELECT MAX(interaction_datetime) FROM interactions
+                                   WHERE contact_id = (SELECT contact_id FROM interactions WHERE id = ?)
+                                     AND id != ?
+                                 ),
+                                 updated_at = CURRENT_TIMESTAMP
                            WHERE id = (SELECT contact_id FROM interactions WHERE id = ?);`;
 
         const updatePromise = tx.execute(updateSql, [id, id, id]);
@@ -292,10 +293,11 @@ export function createInteractionsDB({ execute, batch, transaction }) {
           const placeholdersList = ids.map(() => '?').join(', ');
           const bulkUpdateSql = `UPDATE contacts
                                    SET last_interaction_at = (
-                                     SELECT MAX(i.interaction_datetime)
-                                     FROM interactions i
-                                     WHERE i.contact_id = contacts.id
-                                   )
+                                         SELECT MAX(i.interaction_datetime)
+                                         FROM interactions i
+                                         WHERE i.contact_id = contacts.id
+                                       ),
+                                       updated_at = CURRENT_TIMESTAMP
                                  WHERE id IN (${placeholdersList});`;
           const bulkUpdatePromise = tx.execute(bulkUpdateSql, ids);
           executePromises.push(bulkUpdatePromise);

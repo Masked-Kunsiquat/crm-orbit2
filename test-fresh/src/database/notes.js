@@ -67,7 +67,9 @@ export function createNotesDB(ctx) {
           errorMessage &&
           errorMessage.includes('FOREIGN KEY constraint failed')
         ) {
-          logger.error('NotesDB', 'create', error, { constraint: 'FOREIGN_KEY' });
+          logger.error('NotesDB', 'create', error, {
+            constraint: 'FOREIGN_KEY',
+          });
           throw new DatabaseError('Contact not found', 'NOT_FOUND', error);
         }
         // Re-throw other errors as-is

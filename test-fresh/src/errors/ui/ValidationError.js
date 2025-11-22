@@ -11,7 +11,12 @@ export class ValidationError extends AppError {
    * @param {string} [code] - Specific validation error code
    * @param {object} [context] - Additional context (value, rule, etc.)
    */
-  constructor(field, message, code = UI_ERROR_CODES.VALIDATION_FAILED, context = {}) {
+  constructor(
+    field,
+    message,
+    code = UI_ERROR_CODES.VALIDATION_FAILED,
+    context = {}
+  ) {
     super(message, code, null, { field, ...context });
     this.name = 'ValidationError';
     this.field = field;

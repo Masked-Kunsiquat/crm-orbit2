@@ -9,8 +9,8 @@ jest.mock('../../errors/utils/errorLogger', () => ({
     error: jest.fn(),
     warn: jest.fn(),
     info: jest.fn(),
-    debug: jest.fn()
-  }
+    debug: jest.fn(),
+  },
 }));
 
 describe('useAsyncOperation', () => {
@@ -96,7 +96,9 @@ describe('useAsyncOperation', () => {
   // ============================================================================
   describe('useAsyncOperation - loading state', () => {
     it('should set loading to true during execution', async () => {
-      const mockFn = jest.fn(() => new Promise(resolve => setTimeout(() => resolve('result'), 100)));
+      const mockFn = jest.fn(
+        () => new Promise(resolve => setTimeout(() => resolve('result'), 100))
+      );
       const { result } = renderHook(() => useAsyncOperation(mockFn));
 
       expect(result.current.loading).toBe(false);
@@ -136,7 +138,8 @@ describe('useAsyncOperation', () => {
     });
 
     it('should handle multiple sequential executions', async () => {
-      const mockFn = jest.fn()
+      const mockFn = jest
+        .fn()
         .mockResolvedValueOnce('result1')
         .mockResolvedValueOnce('result2');
       const { result } = renderHook(() => useAsyncOperation(mockFn));
@@ -183,7 +186,8 @@ describe('useAsyncOperation', () => {
     });
 
     it('should clear previous error on new execution', async () => {
-      const mockFn = jest.fn()
+      const mockFn = jest
+        .fn()
         .mockRejectedValueOnce(new Error('First error'))
         .mockResolvedValueOnce('success');
       const { result } = renderHook(() => useAsyncOperation(mockFn));
@@ -258,7 +262,7 @@ describe('useAsyncOperation', () => {
       const { result } = renderHook(() =>
         useAsyncOperation(mockFn, {
           component: 'TestComponent',
-          operation: 'testOperation'
+          operation: 'testOperation',
         })
       );
 
@@ -279,7 +283,7 @@ describe('useAsyncOperation', () => {
       const { result } = renderHook(() =>
         useAsyncOperation(mockFn, {
           component: 'TestComponent',
-          operation: 'testOperation'
+          operation: 'testOperation',
         })
       );
 
@@ -313,7 +317,7 @@ describe('useAsyncOperation', () => {
       const { result } = renderHook(() =>
         useAsyncOperation(mockFn, {
           component: 'TestComponent',
-          operation: 'testOperation'
+          operation: 'testOperation',
         })
       );
 
@@ -369,7 +373,7 @@ describe('useAsyncOperation', () => {
         useAsyncOperation(mockFn, {
           component: 'TestComponent',
           operation: 'testOperation',
-          onSuccess
+          onSuccess,
         })
       );
 
@@ -463,7 +467,7 @@ describe('useAsyncOperation', () => {
       const complexResult = {
         data: [1, 2, 3],
         meta: { count: 3, page: 1 },
-        nested: { deep: { value: 'test' } }
+        nested: { deep: { value: 'test' } },
       };
       const mockFn = jest.fn().mockResolvedValue(complexResult);
       const { result } = renderHook(() => useAsyncOperation(mockFn));
@@ -499,7 +503,7 @@ describe('useAsyncOperation', () => {
         useAsyncOperation(submitForm, {
           component: 'FormComponent',
           operation: 'submitForm',
-          onSuccess
+          onSuccess,
         })
       );
 
@@ -521,7 +525,7 @@ describe('useAsyncOperation', () => {
         useAsyncOperation(authenticate, {
           component: 'AuthScreen',
           operation: 'authenticate',
-          onSuccess
+          onSuccess,
         })
       );
 
@@ -538,7 +542,7 @@ describe('useAsyncOperation', () => {
       const { result } = renderHook(() =>
         useAsyncOperation(fetchData, {
           component: 'DataScreen',
-          operation: 'fetchData'
+          operation: 'fetchData',
         })
       );
 
@@ -608,7 +612,9 @@ describe('useAsyncOperation', () => {
 
   describe('useAsyncLoading - loading state', () => {
     it('should set loading to true during execution', async () => {
-      const mockFn = jest.fn(() => new Promise(resolve => setTimeout(() => resolve('result'), 50)));
+      const mockFn = jest.fn(
+        () => new Promise(resolve => setTimeout(() => resolve('result'), 50))
+      );
       const { result } = renderHook(() => useAsyncLoading(mockFn));
 
       expect(result.current.loading).toBe(false);
@@ -639,9 +645,11 @@ describe('useAsyncOperation', () => {
       const mockFn = jest.fn().mockRejectedValue(new Error('Failed'));
       const { result } = renderHook(() => useAsyncLoading(mockFn));
 
-      await expect(act(async () => {
-        await result.current.execute();
-      })).rejects.toThrow('Failed');
+      await expect(
+        act(async () => {
+          await result.current.execute();
+        })
+      ).rejects.toThrow('Failed');
 
       expect(result.current.loading).toBe(false);
     });
@@ -653,9 +661,11 @@ describe('useAsyncOperation', () => {
       const mockFn = jest.fn().mockRejectedValue(error);
       const { result } = renderHook(() => useAsyncLoading(mockFn));
 
-      await expect(act(async () => {
-        await result.current.execute();
-      })).rejects.toThrow('Operation failed');
+      await expect(
+        act(async () => {
+          await result.current.execute();
+        })
+      ).rejects.toThrow('Operation failed');
     });
 
     it('should not have error state', async () => {
@@ -716,7 +726,8 @@ describe('useAsyncOperation', () => {
     });
 
     it('should handle multiple sequential executions', async () => {
-      const mockFn = jest.fn()
+      const mockFn = jest
+        .fn()
         .mockResolvedValueOnce('result1')
         .mockResolvedValueOnce('result2');
       const { result } = renderHook(() => useAsyncLoading(mockFn));
@@ -734,7 +745,7 @@ describe('useAsyncOperation', () => {
     });
 
     it('should work with synchronous-looking async functions', async () => {
-      const mockFn = jest.fn(async (x) => x * 2);
+      const mockFn = jest.fn(async x => x * 2);
       const { result } = renderHook(() => useAsyncLoading(mockFn));
 
       let returnValue;

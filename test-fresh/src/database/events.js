@@ -68,7 +68,7 @@ export function createEventsDB({ execute, batch, transaction }) {
 
         // Update contact's last_interaction_at
         await execute(
-          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+          'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
           [data.contact_id]
         );
 
@@ -142,7 +142,7 @@ export function createEventsDB({ execute, batch, transaction }) {
 
       // Update contact's last_interaction_at
       await execute(
-        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = ?;',
+        'UPDATE contacts SET last_interaction_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?;',
         [existing.contact_id]
       );
 
@@ -180,7 +180,9 @@ export function createEventsDB({ execute, batch, transaction }) {
     async getUpcoming(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
       const today = formatDateToString(new Date());
-      const futureDate = addDays(new Date(), days) || new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      const futureDate =
+        addDays(new Date(), days) ||
+        new Date(Date.now() + days * 24 * 60 * 60 * 1000);
       const future = formatDateToString(futureDate);
 
       const sql = `SELECT * FROM events WHERE event_date >= ? AND event_date <= ?
@@ -192,7 +194,9 @@ export function createEventsDB({ execute, batch, transaction }) {
     async getPast(options = {}) {
       const { limit = 50, offset = 0, days = 30 } = options;
       const today = formatDateToString(new Date());
-      const pastDate = addDays(new Date(), -days) || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const pastDate =
+        addDays(new Date(), -days) ||
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const past = formatDateToString(pastDate);
 
       const sql = `SELECT * FROM events WHERE event_date < ? AND event_date >= ?

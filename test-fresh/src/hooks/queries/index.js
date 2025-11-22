@@ -6,8 +6,10 @@
 // Contact queries
 export {
   contactKeys,
+  enrichContactsWithInfo,
   useContacts,
   useContactsWithInfo,
+  useFilteredContactsWithInfo,
   useContact,
   useFavoriteContacts,
   useContactSearch,
@@ -72,3 +74,10 @@ export {
   useUpdateCompanyLogo,
   useMergeCompanies,
 } from './useCompanyQueries';
+
+// Global search queries
+export {
+  globalSearchKeys,
+  useGlobalSearch,
+  useSearchHistory,
+} from './useGlobalSearch';

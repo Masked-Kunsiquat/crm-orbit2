@@ -34,15 +34,24 @@ import { createInteractionsSearchDB } from './interactionsSearch';
 import { createNotesDB } from './notes';
 import { createAttachmentsDB } from './attachments';
 import { createSettingsDB } from './settings';
+import { createGlobalSearchDB } from './globalSearch';
+import { createSavedSearchesDB } from './savedSearches';
 import { DatabaseError, logger } from '../errors';
 // Use modern expo-sqlite async API
-const openDatabaseAsync = SQLite.openDatabaseAsync || (() => {
-  const availableMethods = Object.keys(SQLite);
-  logger.error('Database', 'checkAPI', new Error('Modern expo-sqlite API not available'), {
-    availableMethods
+const openDatabaseAsync =
+  SQLite.openDatabaseAsync ||
+  (() => {
+    const availableMethods = Object.keys(SQLite);
+    logger.error(
+      'Database',
+      'checkAPI',
+      new Error('Modern expo-sqlite API not available'),
+      {
+        availableMethods,
+      }
+    );
+    throw new Error('SQLite.openDatabaseAsync method not available');
   });
-  throw new Error('SQLite.openDatabaseAsync method not available');
-});
 
 // Re-export for consumers that import from this module
 export { DatabaseError } from '../errors';
@@ -52,7 +61,6 @@ let _initialized = false;
 let _initInflight = null;
 
 const DEFAULT_DB_NAME = 'crm_orbit.db';
-
 
 /**
  * Get the open database instance.
@@ -101,7 +109,13 @@ export async function execute(sql, params = []) {
   try {
     let result;
     const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
-    const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+    const returnsRows = [
+      'SELECT',
+      'PRAGMA',
+      'WITH',
+      'EXPLAIN',
+      'VALUES',
+    ].includes(firstToken);
 
     if (returnsRows) {
       // Use getAllAsync for SELECT queries
@@ -151,7 +165,13 @@ export async function batch(statements) {
         try {
           let result;
           const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
-          const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+          const returnsRows = [
+            'SELECT',
+            'PRAGMA',
+            'WITH',
+            'EXPLAIN',
+            'VALUES',
+          ].includes(firstToken);
 
           if (returnsRows) {
             const rows = await db.getAllAsync(sql, params);
@@ -171,16 +191,11 @@ export async function batch(statements) {
           results[i] = result;
         } catch (error) {
           logger.error('Database', 'batch-step', error, { index: i, sql });
-          throw new DatabaseError(
-            'SQL batch step failed',
-            'SQL_ERROR',
-            error,
-            {
-              index: i,
-              sql,
-              params,
-            }
-          );
+          throw new DatabaseError('SQL batch step failed', 'SQL_ERROR', error, {
+            index: i,
+            sql,
+            params,
+          });
         }
       }
     });
@@ -191,11 +206,7 @@ export async function batch(statements) {
       throw err;
     }
     logger.error('Database', 'batch', err);
-    throw new DatabaseError(
-      'Batch transaction failed',
-      'TX_ERROR',
-      err
-    );
+    throw new DatabaseError('Batch transaction failed', 'TX_ERROR', err);
   }
 }
 
@@ -217,7 +228,13 @@ export async function transaction(work) {
           try {
             let result;
             const firstToken = safeTrim(sql).split(/\s+/)[0]?.toUpperCase();
-            const returnsRows = ['SELECT', 'PRAGMA', 'WITH', 'EXPLAIN', 'VALUES'].includes(firstToken);
+            const returnsRows = [
+              'SELECT',
+              'PRAGMA',
+              'WITH',
+              'EXPLAIN',
+              'VALUES',
+            ].includes(firstToken);
 
             if (returnsRows) {
               const rows = await db.getAllAsync(sql, params);
@@ -256,11 +273,7 @@ export async function transaction(work) {
       throw err;
     }
     logger.error('Database', 'transaction', err);
-    throw new DatabaseError(
-      'Transaction failed',
-      'TX_ERROR',
-      err
-    );
+    throw new DatabaseError('Transaction failed', 'TX_ERROR', err);
   }
 }
 
@@ -353,6 +366,41 @@ export function isInitialized() {
   return _initialized && !!_db;
 }
 
+/**
+ * Run pending database migrations manually.
+ * Useful for development or when migrations need to be run without full reinitialization.
+ * @returns {Promise<void>}
+ */
+export async function runPendingMigrations() {
+  if (!_db) {
+    throw new DatabaseError(
+      'Database has not been initialized. Call initDatabase() first.',
+      'DB_NOT_INITIALIZED'
+    );
+  }
+
+  try {
+    logger.info(
+      'Database',
+      'runPendingMigrations',
+      'Starting manual migration run...'
+    );
+    await runMigrations({ db: _db, execute, batch, transaction });
+    logger.success(
+      'Database',
+      'runPendingMigrations',
+      'Migrations completed successfully'
+    );
+  } catch (err) {
+    logger.error('Database', 'runPendingMigrations', err);
+    throw new DatabaseError(
+      'Failed to run pending migrations',
+      'MIGRATION_FAILED',
+      err
+    );
+  }
+}
+
 // Unified API surface (module placeholders until implemented)
 /**
  * Create a placeholder proxy for not-yet-implemented database modules.
@@ -407,6 +455,7 @@ export const interactionsDB = createInteractionsDB({
 });
 export const interactionsStatsDB = createInteractionsStatsDB({ execute });
 export const interactionsSearchDB = createInteractionsSearchDB({ execute });
+export const globalSearchDB = createGlobalSearchDB({ execute });
 export const notesDB = createNotesDB({ execute, batch, transaction });
 export const attachmentsDB = createAttachmentsDB({
   execute,
@@ -414,6 +463,7 @@ export const attachmentsDB = createAttachmentsDB({
   transaction,
 });
 export const settingsDB = createSettingsDB({ execute, batch, transaction });
+export const savedSearchesDB = createSavedSearchesDB({ execute, batch });
 
 /**
  * Unified database API surface available to the rest of the app.
@@ -423,6 +473,7 @@ const database = {
   init: initDatabase,
   isInitialized,
   getDB,
+  runPendingMigrations,
 
   // low-level helpers
   execute,
@@ -441,9 +492,11 @@ const database = {
   interactions: interactionsDB,
   interactionsStats: interactionsStatsDB,
   interactionsSearch: interactionsSearchDB,
+  globalSearch: globalSearchDB,
   notes: notesDB,
   attachments: attachmentsDB,
   settings: settingsDB,
+  savedSearches: savedSearchesDB,
 };
 
 export default database;

@@ -296,7 +296,11 @@ export function createMigrationContext(db, options = {}) {
             'TRANSACTION_ROLLBACK_ERROR',
             rollbackError
           );
-          logger.error('ExpoSqliteAdapter', 'transaction-rollback', rollbackError);
+          logger.error(
+            'ExpoSqliteAdapter',
+            'transaction-rollback',
+            rollbackError
+          );
           onLog(
             `[ERROR] Transaction ROLLBACK error: ${wrappedRollbackError.message}`,
             {

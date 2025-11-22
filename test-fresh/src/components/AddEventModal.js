@@ -68,7 +68,9 @@ function AddEventModal({
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [eventType, setEventType] = useState('birthday');
-  const [selectedContactId, setSelectedContactId] = useState(preselectedContactId || null);
+  const [selectedContactId, setSelectedContactId] = useState(
+    preselectedContactId || null
+  );
   const [contactMenuVisible, setContactMenuVisible] = useState(false);
   const [eventDate, setEventDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -80,10 +82,9 @@ function AddEventModal({
 
   // Use TanStack Query hooks
   const { data: contacts = [] } = useContacts();
-  const { data: fetchedReminders = [] } = useEventReminders(
-    editingEvent?.id,
-    { enabled: !!editingEvent?.id && visible }
-  );
+  const { data: fetchedReminders = [] } = useEventReminders(editingEvent?.id, {
+    enabled: !!editingEvent?.id && visible,
+  });
   const createEventMutation = useCreateEvent();
   const createEventWithRemindersMutation = useCreateEventWithReminders();
   const updateEventMutation = useUpdateEvent();
@@ -131,7 +132,12 @@ function AddEventModal({
   // Separate effect to load reminders when they arrive from the query
   // This handles the case where fetchedReminders loads after the modal opens
   useEffect(() => {
-    if (visible && editingEvent && !remindersInitializedRef.current && fetchedReminders.length > 0) {
+    if (
+      visible &&
+      editingEvent &&
+      !remindersInitializedRef.current &&
+      fetchedReminders.length > 0
+    ) {
       const loadedReminders = fetchedReminders.map(dbReminder => ({
         minutes: 0,
         datetime: new Date(dbReminder.reminder_datetime),
@@ -182,7 +188,7 @@ function AddEventModal({
     );
   };
 
-  const formatRemindersForDB = (reminders) =>
+  const formatRemindersForDB = reminders =>
     reminders.map(reminder => ({
       reminder_datetime: reminder.datetime,
       reminder_type: 'notification',
@@ -208,7 +214,10 @@ function AddEventModal({
         event_type: eventType,
         event_date: formatDateToString(eventDate), // YYYY-MM-DD format using local date
         recurring: isRecurring ? 1 : 0,
-        recurrence_pattern: isRecurring && ['birthday', 'anniversary'].includes(eventType) ? 'yearly' : null,
+        recurrence_pattern:
+          isRecurring && ['birthday', 'anniversary'].includes(eventType)
+            ? 'yearly'
+            : null,
         notes: safeTrim(notes) || null,
       };
 
@@ -270,7 +279,9 @@ function AddEventModal({
     if (!contact) return;
 
     const contactName = getContactDisplayName(contact, 'Unknown');
-    const quickTitle = t(`addEvent.quickTitles.${eventType}`, { name: contactName });
+    const quickTitle = t(`addEvent.quickTitles.${eventType}`, {
+      name: contactName,
+    });
     setTitle(quickTitle);
   };
 
@@ -281,7 +292,7 @@ function AddEventModal({
     }
   };
 
-  const addReminder = (minutesBefore) => {
+  const addReminder = minutesBefore => {
     const reminderTime = new Date(eventDate);
 
     // Treat all events as all-day events: set reminder at 9 AM and shift by whole days
@@ -298,7 +309,7 @@ function AddEventModal({
     setReminders([...reminders, newReminder]);
   };
 
-  const removeReminder = (index) => {
+  const removeReminder = index => {
     setReminders(reminders.filter((_, i) => i !== index));
   };
 
@@ -343,7 +354,7 @@ function AddEventModal({
                 }
               >
                 <ScrollView style={styles.contactMenu}>
-                  {contacts.map((contact) => (
+                  {contacts.map(contact => (
                     <Menu.Item
                       key={contact.id}
                       onPress={() => {
@@ -363,7 +374,7 @@ function AddEventModal({
                 {t('addEvent.sections.type')}
               </Text>
               <View style={styles.typeChips}>
-                {EVENT_TYPES.map((type) => (
+                {EVENT_TYPES.map(type => (
                   <Chip
                     key={type.value}
                     selected={eventType === type.value}
@@ -397,7 +408,8 @@ function AddEventModal({
                 icon="calendar"
                 style={styles.dateButton}
               >
-                {formatDateSmart(eventDate, t, locale) || eventDate.toLocaleDateString()}
+                {formatDateSmart(eventDate, t, locale) ||
+                  eventDate.toLocaleDateString()}
               </Button>
               {showDatePicker && (
                 <DateTimePicker
@@ -414,7 +426,9 @@ function AddEventModal({
               <View style={styles.section}>
                 <View style={styles.switchRow}>
                   <View>
-                    <Text variant="labelLarge">{t('addEvent.labels.recurring')}</Text>
+                    <Text variant="labelLarge">
+                      {t('addEvent.labels.recurring')}
+                    </Text>
                     <Text variant="bodySmall" style={styles.helperText}>
                       {t('addEvent.labels.recurringHelper')}
                     </Text>
@@ -469,7 +483,10 @@ function AddEventModal({
               {reminders.length > 0 && (
                 <View style={styles.remindersList}>
                   {reminders.map((reminder, index) => {
-                    const { date, time } = formatDateAndTime(reminder.datetime, locale);
+                    const { date, time } = formatDateAndTime(
+                      reminder.datetime,
+                      locale
+                    );
                     return (
                       <View key={index} style={styles.reminderItem}>
                         <Text variant="bodyMedium">
@@ -504,7 +521,12 @@ function AddEventModal({
           </ScrollView>
 
           {/* Footer Actions */}
-          <View style={[styles.footer, { borderTopColor: theme.colors.outlineVariant }]}>
+          <View
+            style={[
+              styles.footer,
+              { borderTopColor: theme.colors.outlineVariant },
+            ]}
+          >
             {isEditMode && (
               <Button
                 mode="text"
@@ -516,7 +538,11 @@ function AddEventModal({
               </Button>
             )}
             <View style={styles.footerButtons}>
-              <Button mode="outlined" onPress={handleCancel} style={styles.cancelButton}>
+              <Button
+                mode="outlined"
+                onPress={handleCancel}
+                style={styles.cancelButton}
+              >
                 {t('addEvent.labels.cancel')}
               </Button>
               <Button
@@ -530,7 +556,9 @@ function AddEventModal({
                   updateEventRemindersMutation.isPending
                 }
               >
-                {isEditMode ? t('addEvent.labels.update') : t('addEvent.labels.save')}
+                {isEditMode
+                  ? t('addEvent.labels.update')
+                  : t('addEvent.labels.save')}
               </Button>
             </View>
           </View>

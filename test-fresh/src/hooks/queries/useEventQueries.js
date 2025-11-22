@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import { eventsDB, eventsRemindersDB } from '../../database';
 import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 
@@ -8,9 +13,9 @@ import { invalidateQueries, createMutationHandlers } from './queryHelpers';
 export const eventKeys = {
   all: ['events'],
   lists: () => [...eventKeys.all, 'list'],
-  detail: (id) => [...eventKeys.all, 'detail', id],
+  detail: id => [...eventKeys.all, 'detail', id],
   upcoming: () => [...eventKeys.all, 'upcoming'],
-  byContact: (contactId) => [...eventKeys.all, 'contact', contactId],
+  byContact: contactId => [...eventKeys.all, 'contact', contactId],
 };
 
 /**
@@ -120,12 +125,10 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (eventData) => eventsDB.create(eventData),
-    ...createMutationHandlers(
-      queryClient,
-      eventKeys.all,
-      { context: 'useCreateEvent' }
-    ),
+    mutationFn: eventData => eventsDB.create(eventData),
+    ...createMutationHandlers(queryClient, eventKeys.all, {
+      context: 'useCreateEvent',
+    }),
   });
 }
 
@@ -138,11 +141,9 @@ export function useCreateEventWithReminders() {
   return useMutation({
     mutationFn: ({ eventData, reminders }) =>
       eventsRemindersDB.createEventWithReminders(eventData, reminders),
-    ...createMutationHandlers(
-      queryClient,
-      eventKeys.all,
-      { context: 'useCreateEventWithReminders' }
-    ),
+    ...createMutationHandlers(queryClient, eventKeys.all, {
+      context: 'useCreateEventWithReminders',
+    }),
   });
 }
 
@@ -162,7 +163,7 @@ export function useUpdateEvent() {
         onSuccess: (_, { id }) => {
           // Additional invalidation for specific event detail
           invalidateQueries(queryClient, eventKeys.detail(id));
-        }
+        },
       }
     ),
   });
@@ -185,7 +186,7 @@ export function useUpdateEventReminders() {
         onSuccess: (_, { eventId }) => {
           // Additional invalidation for specific event detail
           invalidateQueries(queryClient, eventKeys.detail(eventId));
-        }
+        },
       }
     ),
   });
@@ -198,11 +199,9 @@ export function useDeleteEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => eventsDB.delete(id),
-    ...createMutationHandlers(
-      queryClient,
-      eventKeys.all,
-      { context: 'useDeleteEvent' }
-    ),
+    mutationFn: id => eventsDB.delete(id),
+    ...createMutationHandlers(queryClient, eventKeys.all, {
+      context: 'useDeleteEvent',
+    }),
   });
 }

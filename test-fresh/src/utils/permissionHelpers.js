@@ -26,17 +26,23 @@ import { logger } from '../errors';
  * );
  * if (!granted) return;
  */
-export async function requestPermission(requestFn, permissionName, customMessage) {
+export async function requestPermission(
+  requestFn,
+  permissionName,
+  customMessage
+) {
   try {
     const { status } = await requestFn();
 
     if (status !== 'granted') {
-      const message = customMessage || `${permissionName} permission is required to use this feature.`;
+      const message =
+        customMessage ||
+        `${permissionName} permission is required to use this feature.`;
       showAlert.error('Permission required', message);
       logger.warn('PermissionHelpers', 'requestPermission', {
         permissionName,
         status,
-        granted: false
+        granted: false,
       });
       return false;
     }
@@ -44,11 +50,13 @@ export async function requestPermission(requestFn, permissionName, customMessage
     logger.success('PermissionHelpers', 'requestPermission', {
       permissionName,
       status,
-      granted: true
+      granted: true,
     });
     return true;
   } catch (error) {
-    logger.error('PermissionHelpers', 'requestPermission', error, { permissionName });
+    logger.error('PermissionHelpers', 'requestPermission', error, {
+      permissionName,
+    });
     showAlert.error('Error', `Failed to request ${permissionName} permission.`);
     return false;
   }
@@ -74,12 +82,14 @@ export async function checkPermission(checkFn, permissionName) {
     logger.success('PermissionHelpers', 'checkPermission', {
       permissionName,
       status,
-      granted
+      granted,
     });
 
     return granted;
   } catch (error) {
-    logger.error('PermissionHelpers', 'checkPermission', error, { permissionName });
+    logger.error('PermissionHelpers', 'checkPermission', error, {
+      permissionName,
+    });
     return false;
   }
 }

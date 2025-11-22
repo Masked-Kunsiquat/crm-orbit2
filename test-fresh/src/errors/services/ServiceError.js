@@ -42,10 +42,14 @@ export class ServiceError extends AppError {
   getUserMessage() {
     // Provide user-friendly messages for common error codes
     const friendlyMessages = {
-      [SERVICE_ERROR_CODES.PERMISSION_DENIED]: 'Permission denied. Please check your device settings.',
-      [SERVICE_ERROR_CODES.FILE_NOT_FOUND]: 'The requested file could not be found.',
-      [SERVICE_ERROR_CODES.AUTH_FAILED]: 'Authentication failed. Please try again.',
-      [SERVICE_ERROR_CODES.SYNC_FAILED]: 'Failed to sync data. Please try again later.',
+      [SERVICE_ERROR_CODES.PERMISSION_DENIED]:
+        'Permission denied. Please check your device settings.',
+      [SERVICE_ERROR_CODES.FILE_NOT_FOUND]:
+        'The requested file could not be found.',
+      [SERVICE_ERROR_CODES.AUTH_FAILED]:
+        'Authentication failed. Please try again.',
+      [SERVICE_ERROR_CODES.SYNC_FAILED]:
+        'Failed to sync data. Please try again later.',
     };
 
     return friendlyMessages[this.code] || this.message;

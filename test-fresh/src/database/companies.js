@@ -193,7 +193,7 @@ export function createCompaniesDB(ctx) {
 
         // Update all contacts to point to the company we're keeping
         const updateContactsRes = await tx.execute(
-          'UPDATE contacts SET company_id = ? WHERE company_id = ?;',
+          'UPDATE contacts SET company_id = ?, updated_at = CURRENT_TIMESTAMP WHERE company_id = ?;',
           [keepId, mergeId]
         );
 
@@ -216,10 +216,10 @@ export function createCompaniesDB(ctx) {
         // Update the company we're keeping with merged data
         if (Object.keys(mergedData).length > 0) {
           const { setClause, values } = buildUpdateSet(mergedData);
-          await tx.execute(
-            `UPDATE companies SET ${setClause} WHERE id = ?;`,
-            [...values, keepId]
-          );
+          await tx.execute(`UPDATE companies SET ${setClause} WHERE id = ?;`, [
+            ...values,
+            keepId,
+          ]);
         }
 
         // Delete the company being merged

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, View, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  FlatList,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { Appbar, FAB, Chip, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '../components/layout';
@@ -15,7 +21,11 @@ const EVENT_TYPES = [
   { value: 'all', i18n: 'events.filters.all', icon: 'calendar' },
   { value: 'birthday', i18n: 'events.filters.birthday', icon: 'cake-variant' },
   { value: 'anniversary', i18n: 'events.filters.anniversary', icon: 'heart' },
-  { value: 'meeting', i18n: 'events.filters.meeting', icon: 'calendar-account' },
+  {
+    value: 'meeting',
+    i18n: 'events.filters.meeting',
+    icon: 'calendar-account',
+  },
   { value: 'deadline', i18n: 'events.filters.deadline', icon: 'clock-alert' },
   { value: 'other', i18n: 'events.filters.other', icon: 'calendar-star' },
 ];
@@ -30,7 +40,12 @@ export default function EventsList({ navigation }) {
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' = soonest first, 'desc' = latest first
 
   // Use TanStack Query for events data
-  const { data: events = [], isLoading: loading, refetch, isFetching: refreshing } = useEvents({
+  const {
+    data: events = [],
+    isLoading: loading,
+    refetch,
+    isFetching: refreshing,
+  } = useEvents({
     limit: 500,
     orderBy: 'event_date',
     orderDir: 'ASC',
@@ -80,7 +95,7 @@ export default function EventsList({ navigation }) {
     await refetch();
   };
 
-  const handleEventPress = (event) => {
+  const handleEventPress = event => {
     setEditingEvent(event);
     setShowAddModal(true);
   };
@@ -91,7 +106,7 @@ export default function EventsList({ navigation }) {
   };
 
   const toggleSortOrder = () => {
-    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
   const renderEvent = ({ item }) => {
@@ -106,23 +121,41 @@ export default function EventsList({ navigation }) {
       >
         <View style={styles.eventHeader}>
           <View style={styles.eventInfo}>
-            <Text variant="titleMedium" style={[styles.eventTitle, { color: theme.colors.onSurface }]}>
+            <Text
+              variant="titleMedium"
+              style={[styles.eventTitle, { color: theme.colors.onSurface }]}
+            >
               {item.title}
             </Text>
             {contact && (
-              <Text variant="bodySmall" style={[styles.contactName, { color: theme.colors.onSurfaceVariant }]}>
+              <Text
+                variant="bodySmall"
+                style={[
+                  styles.contactName,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
                 {getContactDisplayName(contact)}
               </Text>
             )}
           </View>
           <View style={styles.eventMeta}>
-            <Text variant="bodySmall" style={[styles.eventDate, { color: theme.colors.onSurfaceVariant }]}>
+            <Text
+              variant="bodySmall"
+              style={[
+                styles.eventDate,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
               {eventDate}
             </Text>
             <Chip
               compact
               mode="outlined"
-              icon={EVENT_TYPES.find(t => t.value === item.event_type)?.icon || 'calendar'}
+              icon={
+                EVENT_TYPES.find(t => t.value === item.event_type)?.icon ||
+                'calendar'
+              }
               style={styles.typeChip}
             >
               {t(`events.types.${item.event_type}`)}
@@ -130,7 +163,14 @@ export default function EventsList({ navigation }) {
           </View>
         </View>
         {item.notes && (
-          <Text variant="bodySmall" style={[styles.eventNotes, { color: theme.colors.onSurfaceVariant }]} numberOfLines={2}>
+          <Text
+            variant="bodySmall"
+            style={[
+              styles.eventNotes,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+            numberOfLines={2}
+          >
             {item.notes}
           </Text>
         )}
@@ -145,11 +185,17 @@ export default function EventsList({ navigation }) {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header elevated>
         <Appbar.Content title={t('events.title')} />
         <Appbar.Action
-          icon={sortOrder === 'asc' ? 'sort-calendar-ascending' : 'sort-calendar-descending'}
+          icon={
+            sortOrder === 'asc'
+              ? 'sort-calendar-ascending'
+              : 'sort-calendar-descending'
+          }
           onPress={toggleSortOrder}
         />
       </Appbar.Header>
@@ -161,7 +207,7 @@ export default function EventsList({ navigation }) {
         style={styles.filterScroll}
         contentContainerStyle={styles.filterContent}
       >
-        {EVENT_TYPES.map((type) => (
+        {EVENT_TYPES.map(type => (
           <Chip
             key={type.value}
             selected={selectedType === type.value}
@@ -180,22 +226,20 @@ export default function EventsList({ navigation }) {
       <FlatList
         data={filteredEvents}
         renderItem={renderEvent}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         style={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListEmptyComponent={!loading ? renderEmptyState : null}
         contentContainerStyle={
-          filteredEvents.length === 0 ? styles.emptyContainer : styles.listContent
+          filteredEvents.length === 0
+            ? styles.emptyContainer
+            : styles.listContent
         }
       />
 
       {/* FAB for adding new event */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={handleAddEvent}
-      />
+      <FAB icon="plus" style={styles.fab} onPress={handleAddEvent} />
 
       {/* Add/Edit Event Modal */}
       <AddEventModal
@@ -259,8 +303,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  contactName: {
-  },
+  contactName: {},
   eventMeta: {
     alignItems: 'flex-end',
     gap: 4,

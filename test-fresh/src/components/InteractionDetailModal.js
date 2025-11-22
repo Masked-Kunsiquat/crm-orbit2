@@ -14,7 +14,7 @@ import ContactAvatar from './ContactAvatar';
 import { getContactDisplayName } from '../utils/contactHelpers';
 
 // Helper to format interaction datetime
-const formatDateTime = (dateTimeStr) => {
+const formatDateTime = dateTimeStr => {
   if (!dateTimeStr) return 'No date';
   const date = new Date(dateTimeStr);
 
@@ -24,12 +24,12 @@ const formatDateTime = (dateTimeStr) => {
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 };
 
 // Helper to format duration (in seconds)
-const formatDuration = (seconds) => {
+const formatDuration = seconds => {
   if (!seconds || seconds <= 0) return null;
 
   const hours = Math.floor(seconds / 3600);
@@ -46,7 +46,7 @@ const formatDuration = (seconds) => {
 };
 
 // Get icon and color for interaction type
-const getTypeIcon = (type) => {
+const getTypeIcon = type => {
   switch (type) {
     case 'call':
       return { name: 'phone', color: '#4CAF50', label: 'Call' };
@@ -62,12 +62,20 @@ const getTypeIcon = (type) => {
   }
 };
 
-function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEdit }) {
+function InteractionDetailModal({
+  visible,
+  onDismiss,
+  interaction,
+  contact,
+  onEdit,
+}) {
   const theme = useTheme();
 
   if (!interaction) return null;
 
-  const typeInfo = getTypeIcon(interaction.interaction_type || interaction.custom_type);
+  const typeInfo = getTypeIcon(
+    interaction.interaction_type || interaction.custom_type
+  );
   const durationStr = formatDuration(interaction.duration);
 
   return (
@@ -100,11 +108,19 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
 
           <Divider />
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Type & Duration */}
             <View style={styles.section}>
               <View style={styles.typeRow}>
-                <View style={[styles.typeIconContainer, { backgroundColor: typeInfo.color + '20' }]}>
+                <View
+                  style={[
+                    styles.typeIconContainer,
+                    { backgroundColor: typeInfo.color + '20' },
+                  ]}
+                >
                   <IconButton
                     icon={typeInfo.name}
                     size={24}
@@ -113,12 +129,29 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
                   />
                 </View>
                 <View style={styles.typeInfo}>
-                  <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Type</Text>
-                  <Text variant="titleMedium" style={[styles.value, { color: typeInfo.color }]}>
+                  <Text
+                    variant="labelSmall"
+                    style={[
+                      styles.label,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Type
+                  </Text>
+                  <Text
+                    variant="titleMedium"
+                    style={[styles.value, { color: typeInfo.color }]}
+                  >
                     {typeInfo.label}
                   </Text>
                   {durationStr && (
-                    <Text variant="bodySmall" style={[styles.duration, { color: theme.colors.onSurfaceVariant }]}>
+                    <Text
+                      variant="bodySmall"
+                      style={[
+                        styles.duration,
+                        { color: theme.colors.onSurfaceVariant },
+                      ]}
+                    >
                       Duration: {durationStr}
                     </Text>
                   )}
@@ -132,10 +165,24 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
             {contact && (
               <>
                 <View style={styles.section}>
-                  <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Contact</Text>
+                  <Text
+                    variant="labelSmall"
+                    style={[
+                      styles.label,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Contact
+                  </Text>
                   <View style={styles.contactRow}>
                     <ContactAvatar contact={contact} size={32} />
-                    <Text variant="bodyLarge" style={[styles.contactName, { color: theme.colors.onSurface }]}>
+                    <Text
+                      variant="bodyLarge"
+                      style={[
+                        styles.contactName,
+                        { color: theme.colors.onSurface },
+                      ]}
+                    >
                       {getContactDisplayName(contact)}
                     </Text>
                   </View>
@@ -146,8 +193,16 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
 
             {/* Title */}
             <View style={styles.section}>
-              <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Title</Text>
-              <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
+              <Text
+                variant="labelSmall"
+                style={[styles.label, { color: theme.colors.onSurfaceVariant }]}
+              >
+                Title
+              </Text>
+              <Text
+                variant="bodyLarge"
+                style={{ color: theme.colors.onSurface }}
+              >
                 {interaction.title}
               </Text>
             </View>
@@ -156,8 +211,16 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
 
             {/* Date & Time */}
             <View style={styles.section}>
-              <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Date & Time</Text>
-              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+              <Text
+                variant="labelSmall"
+                style={[styles.label, { color: theme.colors.onSurfaceVariant }]}
+              >
+                Date & Time
+              </Text>
+              <Text
+                variant="bodyMedium"
+                style={{ color: theme.colors.onSurface }}
+              >
                 {formatDateTime(interaction.interaction_datetime)}
               </Text>
             </View>
@@ -168,8 +231,19 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
             {interaction.note && (
               <>
                 <View style={styles.section}>
-                  <Text variant="labelSmall" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Notes</Text>
-                  <Text variant="bodyMedium" style={[styles.note, { color: theme.colors.onSurface }]}>
+                  <Text
+                    variant="labelSmall"
+                    style={[
+                      styles.label,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Notes
+                  </Text>
+                  <Text
+                    variant="bodyMedium"
+                    style={[styles.note, { color: theme.colors.onSurface }]}
+                  >
                     {interaction.note}
                   </Text>
                 </View>
@@ -179,26 +253,41 @@ function InteractionDetailModal({ visible, onDismiss, interaction, contact, onEd
 
             {/* Metadata */}
             <View style={styles.section}>
-              <Text variant="labelSmall" style={[styles.metadata, { color: theme.colors.onSurfaceVariant }]}>
-                Created: {new Date(interaction.created_at).toLocaleString('en-US', {
+              <Text
+                variant="labelSmall"
+                style={[
+                  styles.metadata,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                Created:{' '}
+                {new Date(interaction.created_at).toLocaleString('en-US', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
                   hour: 'numeric',
-                  minute: '2-digit'
+                  minute: '2-digit',
                 })}
               </Text>
-              {interaction.updated_at && interaction.updated_at !== interaction.created_at && (
-                <Text variant="labelSmall" style={[styles.metadata, { color: theme.colors.onSurfaceVariant }]}>
-                  Updated: {new Date(interaction.updated_at).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit'
-                  })}
-                </Text>
-              )}
+              {interaction.updated_at &&
+                interaction.updated_at !== interaction.created_at && (
+                  <Text
+                    variant="labelSmall"
+                    style={[
+                      styles.metadata,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Updated:{' '}
+                    {new Date(interaction.updated_at).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </Text>
+                )}
             </View>
 
             <View style={styles.spacer} />

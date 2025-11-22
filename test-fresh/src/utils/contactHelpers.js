@@ -31,7 +31,7 @@ export function getContactDisplayName(contact, fallback = 'Unknown Contact') {
   const nameParts = filterNonEmptyStrings([
     contact.first_name,
     contact.middle_name,
-    contact.last_name
+    contact.last_name,
   ]);
 
   return nameParts.length > 0 ? nameParts.join(' ') : fallback;

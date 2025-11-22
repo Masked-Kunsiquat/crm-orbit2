@@ -9,11 +9,11 @@ import { logger } from '../../errors';
 export const companyKeys = {
   all: ['companies'],
   lists: () => [...companyKeys.all, 'list'],
-  list: (filters) => [...companyKeys.lists(), filters],
+  list: filters => [...companyKeys.lists(), filters],
   details: () => [...companyKeys.all, 'detail'],
-  detail: (id) => [...companyKeys.details(), id],
-  withContacts: (id) => [...companyKeys.all, 'with-contacts', id],
-  search: (query) => [...companyKeys.all, 'search', query],
+  detail: id => [...companyKeys.details(), id],
+  withContacts: id => [...companyKeys.all, 'with-contacts', id],
+  search: query => [...companyKeys.all, 'search', query],
 };
 
 /**
@@ -85,11 +85,11 @@ export function useCreateCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => companiesDB.create(data),
+    mutationFn: data => companiesDB.create(data),
     ...createMutationHandlers(queryClient, companyKeys.all, {
       context: 'useCreateCompany',
-      successMessage: 'Company created successfully'
-    })
+      successMessage: 'Company created successfully',
+    }),
   });
 }
 
@@ -103,8 +103,8 @@ export function useUpdateCompany() {
     mutationFn: ({ id, data }) => companiesDB.update(id, data),
     ...createMutationHandlers(queryClient, companyKeys.all, {
       context: 'useUpdateCompany',
-      successMessage: 'Company updated successfully'
-    })
+      successMessage: 'Company updated successfully',
+    }),
   });
 }
 
@@ -115,11 +115,11 @@ export function useDeleteCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => companiesDB.delete(id),
+    mutationFn: id => companiesDB.delete(id),
     ...createMutationHandlers(queryClient, companyKeys.all, {
       context: 'useDeleteCompany',
-      successMessage: 'Company deleted successfully'
-    })
+      successMessage: 'Company deleted successfully',
+    }),
   });
 }
 
@@ -130,11 +130,12 @@ export function useUpdateCompanyLogo() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, attachmentId }) => companiesDB.updateLogo(id, attachmentId),
+    mutationFn: ({ id, attachmentId }) =>
+      companiesDB.updateLogo(id, attachmentId),
     ...createMutationHandlers(queryClient, companyKeys.all, {
       context: 'useUpdateCompanyLogo',
-      successMessage: 'Company logo updated successfully'
-    })
+      successMessage: 'Company logo updated successfully',
+    }),
   });
 }
 
@@ -145,7 +146,8 @@ export function useMergeCompanies() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ keepId, mergeId }) => companiesDB.mergeCompanies(keepId, mergeId),
+    mutationFn: ({ keepId, mergeId }) =>
+      companiesDB.mergeCompanies(keepId, mergeId),
     onSuccess: () => {
       // Invalidate both company and contact queries since contacts may be reassigned
       invalidateQueries(
@@ -154,8 +156,8 @@ export function useMergeCompanies() {
         ['contacts'] // Contact keys
       );
     },
-    onError: (error) => {
+    onError: error => {
       logger.error('useMergeCompanies', 'mutation failed', error);
-    }
+    },
   });
 }

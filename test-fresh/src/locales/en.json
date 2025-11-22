@@ -68,7 +68,8 @@
             "features": "Features",
             "swipe": "Swipe Actions",
             "theme": "Theme",
-            "language": "Language"
+            "language": "Language",
+            "database": "Database"
         },
         "language": {
             "device": "Device default",
@@ -94,6 +95,24 @@
                 "enabled": "Company management enabled. Restart the app to see the Companies tab.",
                 "disabled": "Company management disabled."
             }
+        },
+        "database": {
+            "runMigrations": "Run Database Migrations",
+            "migrationsDescription": "Apply any pending database schema updates. This is safe and won't delete your data.",
+            "run": "Run",
+            "migrationsSuccess": "Success",
+            "migrationsComplete": "Database migrations completed successfully",
+            "migrationsError": "Migration Error",
+            "migrationsFailed": "Failed to run database migrations",
+            "resetDatabase": "Reset Database",
+            "resetDescription": "Delete all data and restart with a fresh database. This cannot be undone!",
+            "reset": "Reset",
+            "resetTitle": "Reset Database?",
+            "resetWarning": "This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?",
+            "resetSuccess": "Database Deleted",
+            "resetComplete": "Database file deleted. IMPORTANT: Swipe up to fully close this app, then reopen it to recreate the database with migrations.",
+            "resetError": "Reset Error",
+            "resetFailed": "Failed to reset database"
         },
         "errors": {
             "biometricToggle": {
@@ -141,7 +160,9 @@
         "save": "Save"
     },
     "common": {
-        "all": "All"
+        "all": "All",
+        "cancel": "",
+        "save": ""
     },
     "industries": {
         "technology": "Technology",
@@ -456,5 +477,64 @@
             "save": "Save Changes",
             "cancel": "Cancel"
         }
+    },
+    "globalSearch": {
+        "title": "Search",
+        "searchPlaceholder": "Search contacts, companies, interactions, events...",
+        "searching": "Searching...",
+        "sections": {
+            "contacts": "Contacts",
+            "companies": "Companies",
+            "interactions": "Interactions",
+            "events": "Events",
+            "notes": "Notes"
+        },
+        "emptyState": {
+            "prompt": "Start typing to search",
+            "hint": "Search across all your contacts, companies, interactions, events, and notes",
+            "noResults": "No results found",
+            "tryDifferent": "Try a different search term"
+        },
+        "error": {
+            "title": "Search Error",
+            "message": "Unable to perform search. Please try again."
+        },
+        "noContact": "No contact info",
+        "noIndustry": "No industry",
+        "untitled": "Untitled",
+        "note": "Note"
+    },
+    "filters": {
+        "title": "",
+        "categories": "",
+        "categoryLogic": "",
+        "or": "",
+        "and": "",
+        "company": "",
+        "dateAdded": "",
+        "startDate": "",
+        "endDate": "",
+        "to": "",
+        "clearDateRange": "",
+        "interactionActivity": "",
+        "last7Days": "",
+        "last30Days": "",
+        "last90Days": "",
+        "hasUpcomingEvents": "",
+        "clear": "",
+        "apply": ""
+    },
+    "savedSearches": {
+        "title": "",
+        "save": "",
+        "saveSearchTitle": "",
+        "searchName": "",
+        "nameRequired": "",
+        "saveSuccess": "",
+        "searchSaved": "",
+        "saveError": "",
+        "noSavedSearches": "",
+        "deleteTitle": "",
+        "deleteMessage": ""
     }
 }

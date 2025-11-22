@@ -23,11 +23,15 @@ import { is } from './validators';
 export function getPrimaryLocale() {
   try {
     const locales = getLocales?.();
-    return (locales && locales[0] && (locales[0].languageTag || locales[0].locale)) || 'en-US';
+    return (
+      (locales &&
+        locales[0] &&
+        (locales[0].languageTag || locales[0].locale)) ||
+      'en-US'
+    );
   } catch (_) {
     // Fallback for older expo-localization API
     try {
-      // eslint-disable-next-line global-require
       const Localization = require('expo-localization');
       return Localization.locale || 'en-US';
     } catch (_) {
@@ -60,7 +64,11 @@ export function parseLocalDate(dateString) {
 
   const [, year, month, day] = match;
   // Month is 0-indexed in Date constructor
-  return new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+  return new Date(
+    parseInt(year, 10),
+    parseInt(month, 10) - 1,
+    parseInt(day, 10)
+  );
 }
 
 /**
@@ -317,7 +325,9 @@ export function parseSQLiteDateTime(sqliteDateTime) {
   }
 
   // Match YYYY-MM-DD HH:MM:SS format
-  const dateTimeMatch = sqliteDateTime.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  const dateTimeMatch = sqliteDateTime.match(
+    /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
+  );
   if (dateTimeMatch) {
     const [, year, month, day, hours, minutes, seconds] = dateTimeMatch;
     return new Date(

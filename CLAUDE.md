@@ -272,19 +272,37 @@ simpleSetup.js           # Table creation
 resetDb.js               # Database reset utility
 ```
 
-**Migration System** (9 files, 64 KB):
+**Migration System** (4 active files + 8 archived):
 ```
 migrations/
-├── 001_initial_schema.js           # Core 13 tables (11 KB)
-├── 002_seed_data.js                # Initial categories (5 KB)
-├── 003_performance_indexes.js      # Database indexes (3 KB)
-├── 004_add_display_name_column.js  # Display name support (6 KB)
-├── 005_add_avatar_attachment_id.js # Avatar support (2 KB)
-├── 006_add_event_reminders_updated_at.js  # Timestamps (2 KB)
+├── 001_initial_schema.js           # Consolidated initial schema (522 lines, 15 KB)
+│                                     # Includes: all tables, indexes, triggers, FTS, seed data
 ├── _helpers.js                     # Migration utilities (3 KB)
 ├── migrationRunner.js              # Orchestration (8 KB)
-└── registry.js                     # Migration registry (1.5 KB)
+├── registry.js                     # Migration registry (1.5 KB)
+└── _archive/                       # Historical migrations (archived for reference)
+    ├── 001_initial_schema.js       # Original schema
+    ├── 002_seed_data.js            # Initial categories
+    ├── 003_performance_indexes.js  # Database indexes
+    ├── 004_add_display_name_column.js
+    ├── 005_add_avatar_attachment_id.js
+    ├── 006_add_event_reminders_updated_at.js
+    ├── 007_add_events_interactions_updated_at.js
+    └── 008_add_saved_searches_table.js
 ```
+
+**Migration Strategy**:
+- **Consolidated baseline**: Single 001_initial_schema.js for fresh installs
+- **Version tracking**: Automatic via `migrations` table (tracks version, name, applied_at)
+- **Future migrations**: Start from version 002, build incrementally
+- **Rollback support**: down() method for each migration
+- **Complex schema changes**: Use `recreateTable()` helper from _helpers.js
+- **Migration helpers** (_helpers.js):
+  - `getExec()` - Normalize execution context
+  - `runAll()` - Execute statements with batch support
+  - `runAllSequential()` - Execute statements strictly in order
+  - `recreateTable()` - Implements SQLite's 12-step procedure for arbitrary table alterations
+  - `getTableSchema()` - Extract indexes/triggers/views for table recreation
 
 **Adapter** (1):
 ```
@@ -295,32 +313,39 @@ adapters/expoSqliteAdapter.js  # SQLite API compatibility layer
 
 ```sql
 -- Core entities
-contacts              # first/last/middle name, display_name, avatar_attachment_id, company_id
-companies             # name, industry, logo_attachment_id
+contacts              # first/last/middle name, display_name, avatar_attachment_id, company_id, is_favorite
+companies             # name, industry, website, address, notes, logo_attachment_id
 contact_info          # contact_id, type (phone/email/address), value, label, is_primary
 
 -- Activity tracking
-interactions          # contact_id, type, subject, body, interaction_date, location
-events                # contact_id, title, description, event_date, event_time, location, all_day
-notes                 # entity_type, entity_id, content, is_pinned
+interactions          # contact_id, interaction_datetime, title, note, interaction_type, custom_type, duration, updated_at
+events                # contact_id, title, description, event_date, event_time, location, all_day, recurring, recurrence_pattern, updated_at
+notes                 # contact_id, title, content, is_pinned
 
 -- File management
 attachments           # file_name, mime_type, file_size, data (base64), thumbnail_data
 
 -- Organization
 categories            # name, color, icon, is_system
-category_relations    # contact_id, category_id (many-to-many)
+contact_categories    # contact_id, category_id (many-to-many junction table)
 
 -- Event features
 event_reminders       # event_id, reminder_time, is_sent, updated_at
-events_recurring      # event_id, frequency, interval, days_of_week, end_date
 
--- Search
-interactions_search   # FTS5 virtual table for full-text search
+-- Search & Filters
+interactions_search   # FTS5 virtual table for full-text search (interaction_id, title, note)
+saved_searches        # name, entity_type, filters (JSON), created_at, updated_at
 
 -- Configuration
-settings              # key, value (JSON), type
+user_preferences      # key, value, created_at, updated_at
 ```
+
+**Key Schema Notes**:
+- **TEXT for dates**: All datetime fields use TEXT type (YYYY-MM-DD HH:MM:SS format) to avoid UTC timezone issues
+- **INTEGER for booleans**: All boolean flags stored as 0/1 integers
+- **Recurring events**: Inline in events table (recurring, recurrence_pattern) not separate table
+- **Updated timestamps**: Auto-updated via triggers on events and interactions tables
+- **Display name**: Auto-computed via triggers on INSERT/UPDATE of name fields
 
 ### Database Module Pattern
 
@@ -451,6 +476,197 @@ const database = {
   settings
 };
 ```
+
+### SQLite Schema Alteration Best Practices
+
+**IMPORTANT**: SQLite has limited ALTER TABLE support. You cannot drop columns, change column types, add constraints, or reorder columns using simple ALTER TABLE statements. For complex schema changes, use the following 12-step procedure from the SQLite documentation:
+
+**12-Step Procedure for Making Arbitrary Table Schema Changes**:
+
+1. If foreign key constraints are enabled, disable them using `PRAGMA foreign_keys=OFF`.
+
+2. Start a transaction with `BEGIN TRANSACTION`.
+
+3. Remember the format of all indexes, triggers, and views associated with table X. This information will be needed in step 8 below. One way to do this is to run a query like the following: `SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'`.
+
+4. Use `CREATE TABLE` to create a new table "new_X" that is in the desired revised format of table X. Make sure that the name "new_X" does not collide with any existing table name, of course.
+
+5. Transfer content from X into new_X using a statement like: `INSERT INTO new_X SELECT ... FROM X`.
+
+6. Drop the old table X: `DROP TABLE X`.
+
+7. Change the name of new_X to X using: `ALTER TABLE new_X RENAME TO X`.
+
+8. Use `CREATE INDEX`, `CREATE TRIGGER`, and `CREATE VIEW` to recreate indexes, triggers, and views associated with table X. Perhaps use the old format of the triggers, indexes, and views saved from step 3 above as a guide, making changes as appropriate for the alteration.
+
+9. If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
+
+10. If foreign key constraints were originally enabled then run `PRAGMA foreign_key_check` to verify that the schema change did not break any foreign key constraints.
+
+11. Commit the transaction started in step 2 with `COMMIT`.
+
+12. If foreign keys constraints were originally enabled, reenable them now with `PRAGMA foreign_keys=ON`.
+
+**Notes**:
+- The procedure above is completely general and will work even if the schema change causes the information stored in the table to change. However, if the only changes to the table are to add columns (not NULL columns with default values or nullable columns), drop columns, or change column names, then a quicker procedure can be used.
+- SQLite only supports a limited subset of ALTER TABLE: `RENAME TABLE`, `RENAME COLUMN`, and `ADD COLUMN` (with restrictions).
+- For production migrations, always test the 12-step procedure thoroughly before deploying.
+- Consider using the migration system's transaction support to ensure atomic schema changes.
+
+**Example Use Case**: Changing a column's type from TEXT to INTEGER, adding a NOT NULL constraint, or reordering columns all require the 12-step procedure.
+
+### Using the `recreateTable()` Helper
+
+The migration system includes a `recreateTable()` helper in `migrations/_helpers.js` that implements the 12-step procedure automatically. This is the **recommended approach** for all complex schema changes.
+
+**Example 1: Drop a Column**
+```javascript
+// migration 002_remove_legacy_field.js
+import { recreateTable, getTableSchema } from './_helpers.js';
+
+export default {
+  version: 2,
+  name: 'remove_legacy_field',
+
+  async up(ctx) {
+    // Get existing indexes to preserve them
+    const indexes = await getTableSchema(ctx, 'contacts', 'index');
+    const indexSQL = indexes.map(idx => idx.sql);
+
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          last_name TEXT,
+          email TEXT
+          -- Removed 'legacy_field' column
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, last_name, email)
+        SELECT id, first_name, last_name, email FROM contacts
+      `,
+      recreateIndexes: indexSQL
+    });
+  },
+
+  async down(ctx) {
+    // Cannot restore dropped column data
+    throw new Error('Cannot rollback column removal - data loss would occur');
+  }
+};
+```
+
+**Example 2: Change Column Type**
+```javascript
+// migration 003_change_age_type.js
+import { recreateTable } from './_helpers.js';
+
+export default {
+  version: 3,
+  name: 'change_age_type_to_integer',
+
+  async up(ctx) {
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          age INTEGER  -- Changed from TEXT to INTEGER
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, age)
+        SELECT id, first_name, CAST(age AS INTEGER) FROM contacts
+        WHERE age IS NOT NULL AND age != ''
+      `
+    });
+  },
+
+  async down(ctx) {
+    // Reverse: INTEGER back to TEXT
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          age TEXT
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, age)
+        SELECT id, first_name, CAST(age AS TEXT) FROM contacts
+      `
+    });
+  }
+};
+```
+
+**Example 3: Add NOT NULL Constraint with Default**
+```javascript
+// migration 004_add_status_field.js
+import { recreateTable, getTableSchema } from './_helpers.js';
+
+export default {
+  version: 4,
+  name: 'add_status_not_null',
+
+  async up(ctx) {
+    const triggers = await getTableSchema(ctx, 'contacts', 'trigger');
+    const triggerSQL = triggers.map(t => t.sql);
+
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active'  -- New NOT NULL column
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, status)
+        SELECT id, first_name, COALESCE(status, 'active') FROM contacts
+      `,
+      recreateTriggers: triggerSQL
+    });
+  },
+
+  async down(ctx) {
+    const triggers = await getTableSchema(ctx, 'contacts', 'trigger');
+
+    await recreateTable(ctx, {
+      tableName: 'contacts',
+      newTableSQL: `
+        CREATE TABLE contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          status TEXT  -- Remove NOT NULL constraint
+        )
+      `,
+      dataMigrationSQL: `
+        INSERT INTO contacts (id, first_name, status)
+        SELECT id, first_name, status FROM contacts
+      `,
+      recreateTriggers: triggers.map(t => t.sql)
+    });
+  }
+};
+```
+
+**When to Use `recreateTable()`**:
+- ✅ Dropping columns
+- ✅ Changing column data types
+- ✅ Adding NOT NULL constraints to existing columns
+- ✅ Reordering columns
+- ✅ Adding CHECK constraints
+- ✅ Modifying PRIMARY KEY or UNIQUE constraints
+- ❌ NOT needed for simple `ADD COLUMN` (use ALTER TABLE directly)
+- ❌ NOT needed for `RENAME COLUMN` (use ALTER TABLE directly)
 
 ---
 

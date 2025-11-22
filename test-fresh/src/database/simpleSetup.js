@@ -27,13 +27,20 @@ export async function createBasicTables() {
     // Add description column if it doesn't exist (for existing databases)
     try {
       const tableInfo = await execute('PRAGMA table_info(attachments);');
-      const hasDescriptionColumn = tableInfo.rows.some(col => col.name === 'description');
+      const hasDescriptionColumn = tableInfo.rows.some(
+        col => col.name === 'description'
+      );
       if (!hasDescriptionColumn) {
-        logger.info('simpleSetup', 'Adding description column to attachments table');
+        logger.info(
+          'simpleSetup',
+          'Adding description column to attachments table'
+        );
         await execute('ALTER TABLE attachments ADD COLUMN description TEXT;');
       }
     } catch (error) {
-      logger.warn('simpleSetup', 'Error checking/adding description column', { error: error.message });
+      logger.warn('simpleSetup', 'Error checking/adding description column', {
+        error: error.message,
+      });
     }
 
     // Create companies table (referenced by contacts)
@@ -73,14 +80,25 @@ export async function createBasicTables() {
     // Add avatar_attachment_id column if it doesn't exist (for existing databases)
     try {
       const contactsTableInfo = await execute('PRAGMA table_info(contacts);');
-      const hasAvatarAttachmentId = contactsTableInfo.rows.some(col => col.name === 'avatar_attachment_id');
+      const hasAvatarAttachmentId = contactsTableInfo.rows.some(
+        col => col.name === 'avatar_attachment_id'
+      );
       if (!hasAvatarAttachmentId) {
-        logger.info('simpleSetup', 'Adding avatar_attachment_id column to contacts table');
-        await execute('ALTER TABLE contacts ADD COLUMN avatar_attachment_id INTEGER REFERENCES attachments(id) ON DELETE SET NULL;');
+        logger.info(
+          'simpleSetup',
+          'Adding avatar_attachment_id column to contacts table'
+        );
+        await execute(
+          'ALTER TABLE contacts ADD COLUMN avatar_attachment_id INTEGER REFERENCES attachments(id) ON DELETE SET NULL;'
+        );
         logger.success('simpleSetup', 'avatar_attachment_id column added');
       }
     } catch (error) {
-      logger.warn('simpleSetup', 'Error checking/adding avatar_attachment_id column', { error: error.message });
+      logger.warn(
+        'simpleSetup',
+        'Error checking/adding avatar_attachment_id column',
+        { error: error.message }
+      );
     }
 
     // Create contact_info table for phone, email, etc.
@@ -247,10 +265,20 @@ async function seedDefaultCategories() {
 
     // Define default categories
     const defaultCategories = [
-      { name: 'Friends', color: '#4CAF50', icon: 'account-group', sort_order: 1 },
+      {
+        name: 'Friends',
+        color: '#4CAF50',
+        icon: 'account-group',
+        sort_order: 1,
+      },
       { name: 'Family', color: '#E91E63', icon: 'home-heart', sort_order: 2 },
       { name: 'Work', color: '#2196F3', icon: 'briefcase', sort_order: 3 },
-      { name: 'Acquaintances', color: '#FF9800', icon: 'account-multiple', sort_order: 4 },
+      {
+        name: 'Acquaintances',
+        color: '#FF9800',
+        icon: 'account-multiple',
+        sort_order: 4,
+      },
       { name: 'Clients', color: '#9C27B0', icon: 'account-tie', sort_order: 5 },
     ];
 

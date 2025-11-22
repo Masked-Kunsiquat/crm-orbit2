@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { StyleSheet, FlatList, View } from 'react-native';
 import { showAlert } from '../errors';
-import { Appbar, FAB, Searchbar, Text, Chip, useTheme, Card, IconButton } from 'react-native-paper';
+import {
+  Appbar,
+  FAB,
+  Searchbar,
+  Text,
+  Chip,
+  useTheme,
+  Card,
+  IconButton,
+} from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import AddCompanyModal from '../components/AddCompanyModal';
 import EditCompanyModal from '../components/EditCompanyModal';
@@ -21,7 +30,7 @@ export default function CompanyListScreen({ navigation }) {
     data: companies = [],
     isLoading: loading,
     refetch,
-    isFetching: refreshing
+    isFetching: refreshing,
   } = useCompanies();
 
   const deleteCompany = useDeleteCompany();
@@ -30,7 +39,7 @@ export default function CompanyListScreen({ navigation }) {
     await refetch();
   };
 
-  const handleCompanyPress = (company) => {
+  const handleCompanyPress = company => {
     // Navigate to company detail screen (to be implemented)
     // For now, open edit modal
     setEditingCompany(company);
@@ -40,16 +49,22 @@ export default function CompanyListScreen({ navigation }) {
     setShowAddModal(true);
   };
 
-  const handleDeleteCompany = (company) => {
+  const handleDeleteCompany = company => {
     showAlert.confirmDelete(
       t('companies.list.delete.title'),
       t('companies.list.delete.message', { name: company.name }),
       async () => {
         try {
           await deleteCompany.mutateAsync(company.id);
-          showAlert.success(t('labels.success'), t('companies.list.delete.success'));
+          showAlert.success(
+            t('labels.success'),
+            t('companies.list.delete.success')
+          );
         } catch (error) {
-          showAlert.error(t('companies.list.delete.error.title'), t('companies.list.delete.error.message'));
+          showAlert.error(
+            t('companies.list.delete.error.title'),
+            t('companies.list.delete.error.message')
+          );
         }
       }
     );
@@ -70,26 +85,42 @@ export default function CompanyListScreen({ navigation }) {
       const industry = (company.industry || '').toLowerCase();
       const address = (company.address || '').toLowerCase();
 
-      return name.includes(query) ||
-             industry.includes(query) ||
-             address.includes(query);
+      return (
+        name.includes(query) ||
+        industry.includes(query) ||
+        address.includes(query)
+      );
     });
   }, [industryFilteredCompanies, searchQuery]);
 
   const renderCompany = ({ item }) => (
-    <Card
-      style={styles.card}
-      onPress={() => handleCompanyPress(item)}
-    >
+    <Card style={styles.card} onPress={() => handleCompanyPress(item)}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.companyInfo}>
           {item.logo_attachment_id ? (
-            <View style={[styles.logoContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-              <IconButton icon="office-building" size={24} iconColor={theme.colors.primary} />
+            <View
+              style={[
+                styles.logoContainer,
+                { backgroundColor: theme.colors.primaryContainer },
+              ]}
+            >
+              <IconButton
+                icon="office-building"
+                size={24}
+                iconColor={theme.colors.primary}
+              />
             </View>
           ) : (
-            <View style={[styles.logoPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
-              <Text variant="titleMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+            <View
+              style={[
+                styles.logoPlaceholder,
+                { backgroundColor: theme.colors.surfaceVariant },
+              ]}
+            >
+              <Text
+                variant="titleMedium"
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
                 {item.name?.charAt(0)?.toUpperCase() || '?'}
               </Text>
             </View>
@@ -105,7 +136,11 @@ export default function CompanyListScreen({ navigation }) {
               </Text>
             )}
             {item.address && (
-              <Text variant="bodySmall" style={styles.address} numberOfLines={1}>
+              <Text
+                variant="bodySmall"
+                style={styles.address}
+                numberOfLines={1}
+              >
                 {item.address}
               </Text>
             )}
@@ -152,7 +187,9 @@ export default function CompanyListScreen({ navigation }) {
   }, [companies]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors?.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors?.background }]}
+    >
       <Appbar.Header>
         <Appbar.Content title={t('companies.list.title')} />
       </Appbar.Header>
@@ -176,7 +213,7 @@ export default function CompanyListScreen({ navigation }) {
           >
             {t('common.all')}
           </Chip>
-          {availableIndustries.map((industry) => (
+          {availableIndustries.map(industry => (
             <Chip
               key={industry}
               selected={selectedIndustry === industry}
@@ -194,19 +231,17 @@ export default function CompanyListScreen({ navigation }) {
       <FlatList
         data={filteredCompanies}
         renderItem={renderCompany}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         style={styles.list}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListEmptyComponent={!loading ? renderEmptyState : null}
-        contentContainerStyle={filteredCompanies.length === 0 ? styles.emptyContainer : null}
+        contentContainerStyle={
+          filteredCompanies.length === 0 ? styles.emptyContainer : null
+        }
       />
 
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={handleAddCompany}
-      />
+      <FAB icon="plus" style={styles.fab} onPress={handleAddCompany} />
 
       <AddCompanyModal
         visible={showAddModal}

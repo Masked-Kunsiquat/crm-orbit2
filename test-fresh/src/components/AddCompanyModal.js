@@ -71,7 +71,10 @@ export default function AddCompanyModal({ visible, onDismiss }) {
       onDismiss();
       showAlert.success(t('labels.success'), t('companies.add.success'));
     } catch (error) {
-      showAlert.error(t('companies.add.error.title'), t('companies.add.error.message'));
+      showAlert.error(
+        t('companies.add.error.title'),
+        t('companies.add.error.message')
+      );
     }
   };
 
@@ -114,7 +117,7 @@ export default function AddCompanyModal({ visible, onDismiss }) {
                 />
               }
             >
-              {INDUSTRIES.map((ind) => (
+              {INDUSTRIES.map(ind => (
                 <Menu.Item
                   key={ind}
                   onPress={() => {

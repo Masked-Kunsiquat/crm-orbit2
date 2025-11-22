@@ -6,9 +6,9 @@ import database from '../../database';
  */
 export const analyticsKeys = {
   all: ['analytics'],
-  stats: (filters) => [...analyticsKeys.all, 'stats', filters],
-  topContacts: (options) => [...analyticsKeys.all, 'topContacts', options],
-  trends: (options) => [...analyticsKeys.all, 'trends', options],
+  stats: filters => [...analyticsKeys.all, 'stats', filters],
+  topContacts: options => [...analyticsKeys.all, 'topContacts', options],
+  trends: options => [...analyticsKeys.all, 'trends', options],
 };
 
 /**
@@ -18,8 +18,8 @@ export function useInteractionStats(filters = {}, options = {}) {
   return useQuery({
     queryKey: analyticsKeys.stats(filters),
     queryFn: () => database.interactionsStats.getStatistics(filters),
-    staleTime: 2 * 60 * 1000,  // 2 minutes (analytics can be slightly stale)
-    gcTime: 5 * 60 * 1000,      // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes (analytics can be slightly stale)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }
@@ -31,8 +31,8 @@ export function useTopContacts(options = {}, queryOptions = {}) {
   return useQuery({
     queryKey: analyticsKeys.topContacts(options),
     queryFn: () => database.interactionsStats.getTopContacts(options),
-    staleTime: 2 * 60 * 1000,  // 2 minutes
-    gcTime: 5 * 60 * 1000,      // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...queryOptions,
   });
 }
@@ -44,8 +44,8 @@ export function useInteractionTrends(options = {}, queryOptions = {}) {
   return useQuery({
     queryKey: analyticsKeys.trends(options),
     queryFn: () => database.interactionsStats.getInteractionTrends(options),
-    staleTime: 2 * 60 * 1000,  // 2 minutes
-    gcTime: 5 * 60 * 1000,      // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...queryOptions,
   });
 }
@@ -56,10 +56,11 @@ export function useInteractionTrends(options = {}, queryOptions = {}) {
 export function useContactInteractionSummary(contactId, options = {}) {
   return useQuery({
     queryKey: [...analyticsKeys.all, 'contactSummary', contactId],
-    queryFn: () => database.interactionsStats.getContactInteractionSummary(contactId),
+    queryFn: () =>
+      database.interactionsStats.getContactInteractionSummary(contactId),
     enabled: !!contactId,
-    staleTime: 2 * 60 * 1000,  // 2 minutes
-    gcTime: 5 * 60 * 1000,      // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 }

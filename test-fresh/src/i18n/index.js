@@ -34,10 +34,9 @@ if (!i18n.isInitialized) {
       supportedLngs: ['en', 'es', 'de', 'fr', 'zh'],
       returnNull: false,
     })
-    .catch((error) => {
+    .catch(error => {
       logger.error('i18n', 'init', error, { deviceLang });
     });
 }
 
 export default i18n;
-

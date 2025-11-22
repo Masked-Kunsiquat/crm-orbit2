@@ -13,7 +13,7 @@ import {
   isPositiveInteger,
   isNonNegativeInteger,
   validateRequired,
-  hasValue
+  hasValue,
 } from '../validators';
 
 describe('validators', () => {
@@ -183,9 +183,9 @@ describe('validators', () => {
   describe('is.function', () => {
     it('should return true for function values', () => {
       expect(is.function(() => {})).toBe(true);
-      expect(is.function(function() {})).toBe(true);
-      expect(is.function(async function() {})).toBe(true);
-      expect(is.function(function*() {})).toBe(true);
+      expect(is.function(function () {})).toBe(true);
+      expect(is.function(async function () {})).toBe(true);
+      expect(is.function(function* () {})).toBe(true);
       expect(is.function(Array.isArray)).toBe(true);
     });
 
@@ -524,7 +524,7 @@ describe('validators', () => {
       expect(result.valid).toBe(false);
       expect(result.errors).toEqual({
         name: 'name is required',
-        email: 'email is required'
+        email: 'email is required',
       });
     });
 
@@ -532,14 +532,14 @@ describe('validators', () => {
       const data = { first_name: '', email: '' };
       const rules = [
         { field: 'first_name', label: 'First name' },
-        { field: 'email', label: 'Email address' }
+        { field: 'email', label: 'Email address' },
       ];
       const result = validateRequired(data, rules);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toEqual({
         first_name: 'First name is required',
-        email: 'Email address is required'
+        email: 'Email address is required',
       });
     });
 
@@ -548,14 +548,14 @@ describe('validators', () => {
       const rules = [
         'name',
         { field: 'age', label: 'Age' },
-        { field: 'email', label: 'Email address' }
+        { field: 'email', label: 'Email address' },
       ];
       const result = validateRequired(data, rules);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toEqual({
         name: 'name is required',
-        email: 'Email address is required'
+        email: 'Email address is required',
       });
     });
 
@@ -656,7 +656,7 @@ describe('validators', () => {
 
     it('should return true for functions', () => {
       expect(hasValue(() => {})).toBe(true);
-      expect(hasValue(function() {})).toBe(true);
+      expect(hasValue(function () {})).toBe(true);
     });
 
     it('should handle edge cases', () => {

@@ -37,7 +37,8 @@
             "features": "Características",
             "swipe": "Acciones de deslizamiento",
             "theme": "Tema",
-            "language": "Idioma"
+            "language": "Idioma",
+            "database": ""
         },
         "language": {
             "device": "Predeterminado del dispositivo",
@@ -64,6 +65,24 @@
                 "enabled": "Gestión de empresas habilitada. Reinicia la aplicación para ver la pestaña Empresas.",
                 "disabled": "Gestión de empresas deshabilitada."
             }
+        },
+        "database": {
+            "runMigrations": "",
+            "migrationsDescription": "",
+            "run": "",
+            "migrationsSuccess": "",
+            "migrationsComplete": "",
+            "migrationsError": "",
+            "migrationsFailed": "",
+            "resetDatabase": "",
+            "resetDescription": "",
+            "reset": "",
+            "resetTitle": "",
+            "resetWarning": "",
+            "resetSuccess": "",
+            "resetComplete": "",
+            "resetError": "",
+            "resetFailed": ""
         },
         "errors": {
             "biometricToggle": {
@@ -111,7 +130,9 @@
         "save": "Guardar"
     },
     "common": {
-        "all": "Todas"
+        "all": "Todas",
+        "cancel": "",
+        "save": ""
     },
     "industries": {
         "technology": "Tecnología",
@@ -457,5 +478,64 @@
             "empty": "No hay datos de interacción disponibles",
             "interactionCount": "{{count}} interacciones"
         }
+    },
+    "globalSearch": {
+        "title": "Buscar",
+        "searchPlaceholder": "Buscar contactos, empresas, interacciones, eventos...",
+        "searching": "Buscando...",
+        "sections": {
+            "contacts": "Contactos",
+            "companies": "Empresas",
+            "interactions": "Interacciones",
+            "events": "Eventos",
+            "notes": "Notas"
+        },
+        "emptyState": {
+            "prompt": "Comience a escribir para buscar",
+            "hint": "Busque en todos sus contactos, empresas, interacciones, eventos y notas",
+            "noResults": "No se encontraron resultados",
+            "tryDifferent": "Intente con un término de búsqueda diferente"
+        },
+        "error": {
+            "title": "",
+            "message": ""
+        },
+        "noContact": "Sin información de contacto",
+        "noIndustry": "Sin industria",
+        "untitled": "Sin título",
+        "note": "Nota"
+    },
+    "filters": {
+        "title": "",
+        "categories": "",
+        "categoryLogic": "",
+        "or": "",
+        "and": "",
+        "company": "",
+        "dateAdded": "",
+        "startDate": "",
+        "endDate": "",
+        "to": "",
+        "clearDateRange": "",
+        "interactionActivity": "",
+        "last7Days": "",
+        "last30Days": "",
+        "last90Days": "",
+        "hasUpcomingEvents": "",
+        "clear": "",
+        "apply": ""
+    },
+    "savedSearches": {
+        "title": "",
+        "save": "",
+        "saveSearchTitle": "",
+        "searchName": "",
+        "nameRequired": "",
+        "saveSuccess": "",
+        "searchSaved": "",
+        "saveError": "",
+        "noSavedSearches": "",
+        "deleteTitle": "",
+        "deleteMessage": ""
     }
 }

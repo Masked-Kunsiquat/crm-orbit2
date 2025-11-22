@@ -46,7 +46,9 @@ export default {
       await exec.batch(statements);
     } catch (error) {
       // Handle duplicate column errors gracefully
-      if (error?.message?.includes('duplicate column name: avatar_attachment_id')) {
+      if (
+        error?.message?.includes('duplicate column name: avatar_attachment_id')
+      ) {
         console.warn(
           'Migration 005: avatar_attachment_id column already exists, continuing with index creation...'
         );

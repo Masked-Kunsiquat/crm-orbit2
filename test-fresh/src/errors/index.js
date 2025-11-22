@@ -27,11 +27,7 @@ export { ValidationError } from './ui/ValidationError.js';
 export { UIError } from './ui/UIError.js';
 
 // Utilities
-export {
-  logger,
-  withErrorHandling,
-  logErrors,
-} from './utils/errorLogger.js';
+export { logger, withErrorHandling, logErrors } from './utils/errorLogger.js';
 
 export {
   handleError,

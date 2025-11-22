@@ -46,7 +46,8 @@ export function getUserFriendlyError(error) {
     if (error.isConstraintError()) {
       return {
         title: 'Invalid Operation',
-        message: 'This operation violates data constraints. Please check your input.',
+        message:
+          'This operation violates data constraints. Please check your input.',
       };
     }
 
@@ -75,7 +76,8 @@ export function getUserFriendlyError(error) {
   // Generic error
   return {
     title: 'Error',
-    message: error?.message || 'An unexpected error occurred. Please try again.',
+    message:
+      error?.message || 'An unexpected error occurred. Please try again.',
   };
 }
 

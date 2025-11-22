@@ -45,7 +45,10 @@ export function createSettingsDB({ execute, batch, transaction }) {
         if (result.rows.length === 0) {
           const defaultSetting = DEFAULT_SETTINGS[settingKey];
           if (defaultSetting) {
-            logger.success('SettingsDB', 'get', { settingKey, isDefault: true });
+            logger.success('SettingsDB', 'get', {
+              settingKey,
+              isDefault: true,
+            });
             return {
               key: settingKey,
               value: defaultSetting.value,
@@ -233,7 +236,10 @@ export function createSettingsDB({ execute, batch, transaction }) {
         const allSettings = [...settings, ...defaults].sort((a, b) =>
           a.key.localeCompare(b.key)
         );
-        logger.success('SettingsDB', 'getByCategory', { category, count: allSettings.length });
+        logger.success('SettingsDB', 'getByCategory', {
+          category,
+          count: allSettings.length,
+        });
         return allSettings;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
@@ -353,7 +359,9 @@ export function createSettingsDB({ execute, batch, transaction }) {
         return result;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        logger.error('SettingsDB', 'setMultiple', error, { count: settings.length });
+        logger.error('SettingsDB', 'setMultiple', error, {
+          count: settings.length,
+        });
         throw new DatabaseError(
           'Failed to set multiple settings',
           'SET_MULTIPLE_FAILED',
@@ -713,11 +721,17 @@ export function createSettingsDB({ execute, batch, transaction }) {
           values[key] = value;
         }
 
-        logger.success('SettingsDB', 'getValues', { category, count: normalizedKeys.length });
+        logger.success('SettingsDB', 'getValues', {
+          category,
+          count: normalizedKeys.length,
+        });
         return values;
       } catch (error) {
         if (error instanceof DatabaseError) throw error;
-        logger.error('SettingsDB', 'getValues', error, { category, keys: normalizedKeys });
+        logger.error('SettingsDB', 'getValues', error, {
+          category,
+          keys: normalizedKeys,
+        });
         throw new DatabaseError(
           'Failed to get multiple values',
           'GET_VALUES_FAILED',

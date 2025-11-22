@@ -5,11 +5,7 @@
  * Tests cover: getFileExtension, isImageFile, formatFileSize
  */
 
-import {
-  getFileExtension,
-  isImageFile,
-  formatFileSize
-} from '../fileHelpers';
+import { getFileExtension, isImageFile, formatFileSize } from '../fileHelpers';
 
 describe('fileHelpers', () => {
   // ============================================================================
@@ -85,7 +81,9 @@ describe('fileHelpers', () => {
     });
 
     it('should handle very long extensions', () => {
-      expect(getFileExtension('file.verylongextension')).toBe('verylongextension');
+      expect(getFileExtension('file.verylongextension')).toBe(
+        'verylongextension'
+      );
     });
 
     it('should handle Unicode characters in filename', () => {

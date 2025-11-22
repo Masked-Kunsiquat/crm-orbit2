@@ -13,7 +13,9 @@ import { is, isPositiveInteger } from '../utils/validators';
  */
 export function placeholders(count) {
   if (!is.number(count) || !isPositiveInteger(count)) {
-    throw new Error(`placeholders() requires a positive integer, got: ${count}`);
+    throw new Error(
+      `placeholders() requires a positive integer, got: ${count}`
+    );
   }
   return new Array(count).fill('?').join(', ');
 }

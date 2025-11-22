@@ -1,6 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Appbar, Button, Card, HelperText, TextInput } from 'react-native-paper';
+import {
+  Appbar,
+  Button,
+  Card,
+  HelperText,
+  TextInput,
+} from 'react-native-paper';
 import authService from '../services/authService';
 import { useAsyncLoading } from '../hooks/useAsyncOperation';
 
@@ -9,7 +15,10 @@ export default function PinSetupScreen({ navigation }) {
   const [pin2, setPin2] = useState('');
   const [error, setError] = useState('');
 
-  const canSave = useMemo(() => pin1 && pin2 && pin1 === pin2 && pin1.length >= 4, [pin1, pin2]);
+  const canSave = useMemo(
+    () => pin1 && pin2 && pin1 === pin2 && pin1.length >= 4,
+    [pin1, pin2]
+  );
 
   const { execute: save, loading: busy } = useAsyncLoading(async () => {
     setError('');
@@ -64,4 +73,3 @@ const styles = StyleSheet.create({
   inner: { flex: 1, padding: 16 },
   input: { marginBottom: 12 },
 });
-

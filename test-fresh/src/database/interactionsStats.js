@@ -141,7 +141,9 @@ export function createInteractionsStatsDB({ execute }) {
 
     async getInteractionTrends(options = {}) {
       const { contactId, period = 'daily', days = 30 } = options;
-      const cutoffDate = addDays(new Date(), -days) || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const cutoffDate =
+        addDays(new Date(), -days) ||
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const cutoff = cutoffDate.toISOString();
 
       const conditions = ['interaction_datetime >= ?'];

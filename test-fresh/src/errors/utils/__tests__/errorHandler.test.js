@@ -201,7 +201,9 @@ describe('errorHandler', () => {
         operation: 'testOperation',
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Test error', [{ text: 'OK' }]);
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Test error', [
+        { text: 'OK' },
+      ]);
     });
 
     it('should not show alert when showAlert is false', () => {
@@ -259,7 +261,9 @@ describe('errorHandler', () => {
         },
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith('Custom Title', 'Test error', [{ text: 'OK' }]);
+      expect(Alert.alert).toHaveBeenCalledWith('Custom Title', 'Test error', [
+        { text: 'OK' },
+      ]);
     });
 
     it('should use customMessage if provided in context', () => {
@@ -273,7 +277,11 @@ describe('errorHandler', () => {
         },
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Custom message for user', [{ text: 'OK' }]);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Custom message for user',
+        [{ text: 'OK' }]
+      );
     });
 
     it('should use both customTitle and customMessage', () => {
@@ -288,7 +296,11 @@ describe('errorHandler', () => {
         },
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith('Custom Title', 'Custom Message', [{ text: 'OK' }]);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Custom Title',
+        'Custom Message',
+        [{ text: 'OK' }]
+      );
     });
 
     it('should show user-friendly message for DatabaseError', () => {
@@ -314,7 +326,11 @@ describe('errorHandler', () => {
         operation: 'testOperation',
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith('Validation Error', 'Email is invalid', [{ text: 'OK' }]);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Validation Error',
+        'Email is invalid',
+        [{ text: 'OK' }]
+      );
     });
   });
 
@@ -324,7 +340,7 @@ describe('errorHandler', () => {
 
   describe('withUIErrorHandling', () => {
     it('should wrap async function and return result on success', async () => {
-      const mockFn = jest.fn(async (x) => x * 2);
+      const mockFn = jest.fn(async x => x * 2);
       const wrapped = withUIErrorHandling(mockFn, 'TestComponent', 'testOp');
 
       const result = await wrapped(5);
@@ -344,7 +360,9 @@ describe('errorHandler', () => {
       await wrapped();
 
       expect(logger.error).toHaveBeenCalled();
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Test error', [{ text: 'OK' }]);
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Test error', [
+        { text: 'OK' },
+      ]);
     });
 
     it('should pass additional options to handleError', async () => {
@@ -419,7 +437,10 @@ describe('errorHandler', () => {
     it('should show error alert with custom title', () => {
       showAlert.error('Something went wrong', 'Custom Error');
 
-      expect(Alert.alert).toHaveBeenCalledWith('Custom Error', 'Something went wrong');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Custom Error',
+        'Something went wrong'
+      );
     });
 
     it('should handle empty message', () => {
@@ -437,7 +458,10 @@ describe('errorHandler', () => {
     it('should show success alert with default title', () => {
       showAlert.success('Operation completed');
 
-      expect(Alert.alert).toHaveBeenCalledWith('Success', 'Operation completed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Success',
+        'Operation completed'
+      );
     });
 
     it('should show success alert with custom title', () => {
@@ -455,13 +479,19 @@ describe('errorHandler', () => {
     it('should show info alert with default title', () => {
       showAlert.info('Here is some information');
 
-      expect(Alert.alert).toHaveBeenCalledWith('Info', 'Here is some information');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Info',
+        'Here is some information'
+      );
     });
 
     it('should show info alert with custom title', () => {
       showAlert.info('Here is some information', 'Notice');
 
-      expect(Alert.alert).toHaveBeenCalledWith('Notice', 'Here is some information');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Notice',
+        'Here is some information'
+      );
     });
   });
 
@@ -476,10 +506,14 @@ describe('errorHandler', () => {
 
       showAlert.confirm('Confirm Action', 'Are you sure?', onConfirm, onCancel);
 
-      expect(Alert.alert).toHaveBeenCalledWith('Confirm Action', 'Are you sure?', [
-        { text: 'Cancel', style: 'cancel', onPress: onCancel },
-        { text: 'OK', onPress: onConfirm },
-      ]);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Confirm Action',
+        'Are you sure?',
+        [
+          { text: 'Cancel', style: 'cancel', onPress: onCancel },
+          { text: 'OK', onPress: onConfirm },
+        ]
+      );
     });
 
     it('should handle confirm without cancel callback', () => {
@@ -487,10 +521,14 @@ describe('errorHandler', () => {
 
       showAlert.confirm('Confirm Action', 'Are you sure?', onConfirm);
 
-      expect(Alert.alert).toHaveBeenCalledWith('Confirm Action', 'Are you sure?', [
-        { text: 'Cancel', style: 'cancel', onPress: null },
-        { text: 'OK', onPress: onConfirm },
-      ]);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Confirm Action',
+        'Are you sure?',
+        [
+          { text: 'Cancel', style: 'cancel', onPress: null },
+          { text: 'OK', onPress: onConfirm },
+        ]
+      );
     });
 
     it('should call onConfirm when OK is pressed', () => {
@@ -500,7 +538,7 @@ describe('errorHandler', () => {
 
       // Get the buttons array from the mock call
       const buttons = Alert.alert.mock.calls[0][2];
-      const okButton = buttons.find((btn) => btn.text === 'OK');
+      const okButton = buttons.find(btn => btn.text === 'OK');
 
       // Simulate pressing OK
       okButton.onPress();
@@ -516,7 +554,7 @@ describe('errorHandler', () => {
 
       // Get the buttons array from the mock call
       const buttons = Alert.alert.mock.calls[0][2];
-      const cancelButton = buttons.find((btn) => btn.text === 'Cancel');
+      const cancelButton = buttons.find(btn => btn.text === 'Cancel');
 
       // Simulate pressing Cancel
       cancelButton.onPress();
@@ -534,12 +572,20 @@ describe('errorHandler', () => {
     it('should show confirm delete dialog with destructive style', () => {
       const onConfirm = jest.fn();
 
-      showAlert.confirmDelete('Delete Item', 'This cannot be undone', onConfirm);
+      showAlert.confirmDelete(
+        'Delete Item',
+        'This cannot be undone',
+        onConfirm
+      );
 
-      expect(Alert.alert).toHaveBeenCalledWith('Delete Item', 'This cannot be undone', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: onConfirm },
-      ]);
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Delete Item',
+        'This cannot be undone',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: onConfirm },
+        ]
+      );
     });
 
     it('should call onConfirm when Delete is pressed', () => {
@@ -549,7 +595,7 @@ describe('errorHandler', () => {
 
       // Get the buttons array from the mock call
       const buttons = Alert.alert.mock.calls[0][2];
-      const deleteButton = buttons.find((btn) => btn.text === 'Delete');
+      const deleteButton = buttons.find(btn => btn.text === 'Delete');
 
       // Simulate pressing Delete
       deleteButton.onPress();
@@ -564,7 +610,7 @@ describe('errorHandler', () => {
 
       // Cancel button has no onPress, should not throw
       const buttons = Alert.alert.mock.calls[0][2];
-      const cancelButton = buttons.find((btn) => btn.text === 'Cancel');
+      const cancelButton = buttons.find(btn => btn.text === 'Cancel');
 
       expect(cancelButton.onPress).toBeUndefined();
       expect(onConfirm).not.toHaveBeenCalled();
@@ -576,7 +622,7 @@ describe('errorHandler', () => {
       showAlert.confirmDelete('Delete', 'Confirm', onConfirm);
 
       const buttons = Alert.alert.mock.calls[0][2];
-      const deleteButton = buttons.find((btn) => btn.text === 'Delete');
+      const deleteButton = buttons.find(btn => btn.text === 'Delete');
 
       expect(deleteButton.style).toBe('destructive');
     });
@@ -587,7 +633,7 @@ describe('errorHandler', () => {
       showAlert.confirmDelete('Delete', 'Confirm', onConfirm);
 
       const buttons = Alert.alert.mock.calls[0][2];
-      const cancelButton = buttons.find((btn) => btn.text === 'Cancel');
+      const cancelButton = buttons.find(btn => btn.text === 'Cancel');
 
       expect(cancelButton.style).toBe('cancel');
     });
