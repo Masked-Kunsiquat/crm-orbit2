@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
 import {
-  Modal,
-  Portal,
-  Surface,
-  Text,
   TextInput,
-  Button,
   IconButton,
   Menu,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import BaseModal from './BaseModal';
+import ModalSection from './ModalSection';
 import { useCreateCompany } from '../hooks/queries';
 import { showAlert } from '../errors';
 import { hasContent } from '../utils/stringHelpers';
@@ -25,7 +22,6 @@ export default function AddCompanyModal({ visible, onDismiss }) {
   const [notes, setNotes] = useState('');
   const [showIndustryMenu, setShowIndustryMenu] = useState(false);
 
-  // Use TanStack Query mutation
   const createCompanyMutation = useCreateCompany();
 
   const resetForm = () => {
@@ -79,145 +75,112 @@ export default function AddCompanyModal({ visible, onDismiss }) {
   };
 
   return (
-    <Portal>
-      <Modal
-        visible={visible}
-        onDismiss={handleCancel}
-        contentContainerStyle={styles.modalContainer}
-      >
-        <Surface style={styles.surface} elevation={4}>
-          <View style={styles.header}>
-            <Text variant="headlineSmall">{t('companies.add.title')}</Text>
-            <IconButton icon="close" onPress={handleCancel} />
-          </View>
+    <BaseModal
+      visible={visible}
+      onDismiss={handleCancel}
+      title={t('companies.add.title')}
+      headerRight={
+        <IconButton
+          icon="close"
+          size={22}
+          onPress={handleCancel}
+          style={styles.iconButton}
+        />
+      }
+      actions={[
+        {
+          label: t('buttons.cancel'),
+          onPress: handleCancel,
+          mode: 'outlined',
+        },
+        {
+          label: t('buttons.save'),
+          onPress: handleSave,
+          mode: 'contained',
+          loading: createCompanyMutation.isPending,
+          disabled: createCompanyMutation.isPending,
+        },
+      ]}
+      maxHeight={0.85}
+    >
+      <ModalSection title={t('companies.add.labels.name')}>
+        <TextInput
+          label={t('companies.add.labels.name')}
+          value={name}
+          onChangeText={setName}
+          mode="outlined"
+          maxLength={200}
+          autoFocus
+        />
+      </ModalSection>
 
-          <ScrollView style={styles.scrollView}>
+      <ModalSection title={t('companies.add.labels.industry')}>
+        <Menu
+          visible={showIndustryMenu}
+          onDismiss={() => setShowIndustryMenu(false)}
+          anchor={
             <TextInput
-              label={t('companies.add.labels.name')}
-              value={name}
-              onChangeText={setName}
+              label={t('companies.add.labels.industry')}
+              value={getIndustryLabel(industry, t)}
               mode="outlined"
-              style={styles.input}
-              maxLength={200}
-              autoFocus
+              right={<TextInput.Icon icon="chevron-down" />}
+              onFocus={() => setShowIndustryMenu(true)}
+              showSoftInputOnFocus={false}
             />
-
-            <Menu
-              visible={showIndustryMenu}
-              onDismiss={() => setShowIndustryMenu(false)}
-              anchor={
-                <TextInput
-                  label={t('companies.add.labels.industry')}
-                  value={getIndustryLabel(industry, t)}
-                  mode="outlined"
-                  style={styles.input}
-                  right={<TextInput.Icon icon="chevron-down" />}
-                  onFocus={() => setShowIndustryMenu(true)}
-                  showSoftInputOnFocus={false}
-                />
-              }
-            >
-              {INDUSTRIES.map(ind => (
-                <Menu.Item
-                  key={ind}
-                  onPress={() => {
-                    setIndustry(ind);
-                    setShowIndustryMenu(false);
-                  }}
-                  title={getIndustryLabel(ind, t)}
-                />
-              ))}
-            </Menu>
-
-            <TextInput
-              label={t('companies.add.labels.website')}
-              value={website}
-              onChangeText={setWebsite}
-              mode="outlined"
-              style={styles.input}
-              keyboardType="url"
-              autoCapitalize="none"
-              placeholder={t('companies.add.placeholders.website')}
+          }
+        >
+          {INDUSTRIES.map(ind => (
+            <Menu.Item
+              key={ind}
+              onPress={() => {
+                setIndustry(ind);
+                setShowIndustryMenu(false);
+              }}
+              title={getIndustryLabel(ind, t)}
             />
+          ))}
+        </Menu>
+      </ModalSection>
 
-            <TextInput
-              label={t('companies.add.labels.address')}
-              value={address}
-              onChangeText={setAddress}
-              mode="outlined"
-              style={styles.input}
-              multiline
-              numberOfLines={2}
-            />
+      <ModalSection title={t('companies.add.labels.website')}>
+        <TextInput
+          label={t('companies.add.labels.website')}
+          value={website}
+          onChangeText={setWebsite}
+          mode="outlined"
+          keyboardType="url"
+          autoCapitalize="none"
+          placeholder={t('companies.add.placeholders.website')}
+        />
+      </ModalSection>
 
-            <TextInput
-              label={t('companies.add.labels.notes')}
-              value={notes}
-              onChangeText={setNotes}
-              mode="outlined"
-              style={styles.input}
-              multiline
-              numberOfLines={4}
-            />
-          </ScrollView>
+      <ModalSection title={t('companies.add.labels.address')}>
+        <TextInput
+          label={t('companies.add.labels.address')}
+          value={address}
+          onChangeText={setAddress}
+          mode="outlined"
+          multiline
+          numberOfLines={2}
+        />
+      </ModalSection>
 
-          <View style={styles.footer}>
-            <Button
-              mode="outlined"
-              onPress={handleCancel}
-              style={styles.button}
-            >
-              {t('buttons.cancel')}
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSave}
-              style={styles.button}
-              loading={createCompanyMutation.isPending}
-              disabled={createCompanyMutation.isPending}
-            >
-              {t('buttons.save')}
-            </Button>
-          </View>
-        </Surface>
-      </Modal>
-    </Portal>
+      <ModalSection title={t('companies.add.labels.notes')} last>
+        <TextInput
+          label={t('companies.add.labels.notes')}
+          value={notes}
+          onChangeText={setNotes}
+          mode="outlined"
+          multiline
+          numberOfLines={4}
+        />
+      </ModalSection>
+    </BaseModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    margin: 20,
-    maxHeight: '90%',
-  },
-  surface: {
-    borderRadius: 8,
-    maxHeight: '100%',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingLeft: 24,
-    paddingRight: 8,
-    paddingTop: 16,
-  },
-  scrollView: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  input: {
-    marginBottom: 16,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 16,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  button: {
-    minWidth: 100,
+  iconButton: {
+    margin: 0,
   },
 });
