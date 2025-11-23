@@ -7,6 +7,7 @@ import {
   IconButton,
   Chip,
   Menu,
+  useTheme,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,7 @@ function AddInteractionModal({
   editingInteraction,
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const isEditMode = !!editingInteraction;
 
   const [title, setTitle] = useState('');
