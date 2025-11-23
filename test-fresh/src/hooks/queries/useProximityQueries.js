@@ -36,8 +36,10 @@ export const proximityKeys = {
  * Fetch proximity configuration from settings
  *
  * Returns the current preset name and weights (resolved from preset or custom).
+ *
+ * @param {Object} options - Query options (whitelisted: staleTime, gcTime, enabled, retry)
  */
-export function useProximityConfig(options = {}) {
+export function useProximityConfig({ staleTime, gcTime, enabled, retry } = {}) {
   return useQuery({
     queryKey: proximityKeys.config(),
     queryFn: async () => {
@@ -87,9 +89,10 @@ export function useProximityConfig(options = {}) {
         };
       }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes (config changes infrequently)
-    gcTime: 30 * 60 * 1000, // 30 minutes
-    ...options,
+    staleTime: staleTime ?? 10 * 60 * 1000, // 10 minutes (config changes infrequently)
+    gcTime: gcTime ?? 30 * 60 * 1000, // 30 minutes
+    enabled,
+    retry,
   });
 }
 
