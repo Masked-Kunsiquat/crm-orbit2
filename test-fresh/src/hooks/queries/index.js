@@ -55,6 +55,7 @@ export {
   useInteraction,
   useContactInteractions,
   useInteractionsByType,
+  useAllInteractions,
   useRecentInteractions,
   useCreateInteraction,
   useUpdateInteraction,

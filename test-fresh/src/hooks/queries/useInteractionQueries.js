@@ -78,6 +78,28 @@ export function useInteractionsByType(type, options = {}) {
 }
 
 /**
+ * Fetch ALL interactions (for proximity calculations and analytics)
+ *
+ * WARNING: This fetches ALL interactions without pagination.
+ * Use with caution for large datasets (1000+ interactions).
+ * Consider adding a limit parameter if performance becomes an issue.
+ */
+export function useAllInteractions(options = {}) {
+  return useQuery({
+    queryKey: [...interactionKeys.all, 'complete'],
+    queryFn: () =>
+      interactionsDB.getAll({
+        limit: 10000, // High limit to fetch all interactions
+        orderBy: 'interaction_datetime',
+        orderDir: 'DESC',
+      }),
+    staleTime: 5 * 60 * 1000, // 5 minutes (longer cache for bulk data)
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    ...options,
+  });
+}
+
+/**
  * Fetch recent interactions
  */
 export function useRecentInteractions(limit = 10, options = {}) {
