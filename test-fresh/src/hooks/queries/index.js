@@ -82,3 +82,12 @@ export {
   useGlobalSearch,
   useSearchHistory,
 } from './useGlobalSearch';
+
+// Proximity queries
+export {
+  proximityKeys,
+  useProximityConfig,
+  useProximityScores,
+  useProximityData,
+  useProximityStats,
+} from './useProximityQueries';
