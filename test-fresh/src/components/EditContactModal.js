@@ -6,6 +6,7 @@ import {
   Chip,
   Menu,
 } from 'react-native-paper';
+import { useQueryClient } from '@tanstack/react-query';
 import BaseModal from './BaseModal';
 import ModalSection from './ModalSection';
 import database, {
@@ -33,6 +34,7 @@ const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
 function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   const { t } = useTranslation();
   const { companyManagementEnabled } = useSettings();
+  const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -265,6 +267,11 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
 
     try {
       await saveContact();
+
+      // Invalidate TanStack Query cache to refresh UI
+      await queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      await queryClient.invalidateQueries({ queryKey: ['contactsWithInfo'] });
+
       onContactUpdated && onContactUpdated();
       onDismiss();
       showAlert.success('Contact updated successfully!');
