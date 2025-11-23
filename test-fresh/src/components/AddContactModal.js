@@ -16,6 +16,7 @@ import { useSettings } from '../context/SettingsContext';
 import { handleError, showAlert } from '../errors';
 import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
 import { requestPermission } from '../utils/permissionHelpers';
+import { CONTACT_TYPES } from '../constants/contactTypes';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -44,6 +45,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const { companyManagementEnabled } = useSettings();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [contactType, setContactType] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
@@ -80,6 +82,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
   const resetForm = () => {
     setFirstName('');
     setLastName('');
+    setContactType(null);
     setSelectedCompany(null);
     setPhones([{ id: 1, value: '', label: 'Mobile' }]);
     setEmails([{ id: 1, value: '', label: 'Personal' }]);
@@ -210,6 +213,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
       await createContactMutation.mutateAsync({
         firstName,
         lastName,
+        contactType: contactType || null,
         companyId: selectedCompany?.id || null,
         phones: validPhones,
         emails: validEmails,
@@ -292,6 +296,22 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
           autoCapitalize="words"
           placeholder={t('addContact.labels.optional')}
         />
+      </ModalSection>
+
+      {/* Relationship Type Section */}
+      <ModalSection title={t('addContact.sections.relationshipType')}>
+        <View style={styles.categoryChips}>
+          {CONTACT_TYPES.map(type => (
+            <Chip
+              key={type}
+              selected={contactType === type}
+              onPress={() => setContactType(contactType === type ? null : type)}
+              style={styles.labelChip}
+            >
+              {t(`contact.contactTypes.${type}`)}
+            </Chip>
+          ))}
+        </View>
       </ModalSection>
 
       {/* Company Section */}

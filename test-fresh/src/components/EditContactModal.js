@@ -27,6 +27,7 @@ import {
   filterNonEmpty,
 } from '../utils/stringHelpers';
 import { useAsyncLoading } from '../hooks/useAsyncOperation';
+import { CONTACT_TYPES } from '../constants/contactTypes';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -37,6 +38,7 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [contactType, setContactType] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
@@ -85,6 +87,7 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
           {
             first_name: safeTrim(firstName),
             last_name: safeTrim(lastName),
+            contact_type: contactType || null,
             company_id: selectedCompany?.id || null,
           },
           tx
@@ -129,6 +132,7 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
     try {
       setFirstName(contact.first_name || '');
       setLastName(contact.last_name || '');
+      setContactType(contact.contact_type || null);
 
       // Load company if available
       if (contact.company_id && companies.length > 0) {
@@ -340,6 +344,22 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
           autoCapitalize="words"
           placeholder={t('addContact.labels.optional')}
         />
+      </ModalSection>
+
+      {/* Relationship Type Section */}
+      <ModalSection title={t('addContact.sections.relationshipType')}>
+        <View style={styles.categoryChips}>
+          {CONTACT_TYPES.map(type => (
+            <Chip
+              key={type}
+              selected={contactType === type}
+              onPress={() => setContactType(contactType === type ? null : type)}
+              style={styles.labelChip}
+            >
+              {t(`contact.contactTypes.${type}`)}
+            </Chip>
+          ))}
+        </View>
       </ModalSection>
 
       {/* Company Section */}

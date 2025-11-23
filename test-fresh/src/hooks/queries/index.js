@@ -55,6 +55,7 @@ export {
   useInteraction,
   useContactInteractions,
   useInteractionsByType,
+  useAllInteractions,
   useRecentInteractions,
   useCreateInteraction,
   useUpdateInteraction,
@@ -81,3 +82,12 @@ export {
   useGlobalSearch,
   useSearchHistory,
 } from './useGlobalSearch';
+
+// Proximity queries
+export {
+  proximityKeys,
+  useProximityConfig,
+  useProximityScores,
+  useProximityData,
+  useProximityStats,
+} from './useProximityQueries';

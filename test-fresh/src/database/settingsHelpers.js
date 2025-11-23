@@ -25,6 +25,10 @@ export const DEFAULT_SETTINGS = {
   'backup.backup_frequency_days': { value: 7, type: 'number' },
   'backup.include_attachments': { value: true, type: 'boolean' },
   'backup.max_backup_count': { value: 5, type: 'number' },
+
+  // Proximity (Relationship Visualization)
+  'proximity.preset': { value: 'personal', type: 'string' }, // personal, professional, family_focused, social_butterfly, custom
+  'proximity.customWeights': { value: null, type: 'json' },  // Custom weights when preset='custom'
 };
 
 export function validateSettingValue(key, value, dataType) {

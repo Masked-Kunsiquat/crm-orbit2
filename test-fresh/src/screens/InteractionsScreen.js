@@ -17,14 +17,12 @@ const INTERACTION_TYPES = [
     i18n: 'interactions.filters.all',
     icon: 'format-list-bulleted',
   },
+  { value: 'meeting', i18n: 'interactions.filters.meeting', icon: 'account-group' },
+  { value: 'video_call', i18n: 'interactions.filters.videoCall', icon: 'video' },
   { value: 'call', i18n: 'interactions.filters.call', icon: 'phone' },
   { value: 'text', i18n: 'interactions.filters.text', icon: 'message-text' },
   { value: 'email', i18n: 'interactions.filters.email', icon: 'email' },
-  {
-    value: 'meeting',
-    i18n: 'interactions.filters.meeting',
-    icon: 'calendar-account',
-  },
+  { value: 'social_media', i18n: 'interactions.filters.socialMedia', icon: 'share-variant' },
   { value: 'other', i18n: 'interactions.filters.other', icon: 'note-text' },
 ];
 
