@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, SectionList, View } from 'react-native';
 import {
   Appbar,
@@ -8,6 +8,9 @@ import {
   useTheme,
   ActivityIndicator,
   Icon,
+  Dialog,
+  Portal,
+  Button,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import ContactAvatar from '../components/ContactAvatar';
@@ -19,6 +22,7 @@ import { getTierDetails } from '../constants/proximityDefaults';
 export default function ProximityScreen({ navigation }) {
   const theme = useTheme();
   const { t } = useTranslation();
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
 
   // Fetch proximity-grouped data
   const { data: proximityGroups, isLoading, error, refetch } = useProximityData();
@@ -151,9 +155,7 @@ export default function ProximityScreen({ navigation }) {
         <Appbar.Content title={t('proximity.title')} />
         <Appbar.Action
           icon="information-outline"
-          onPress={() => {
-            // TODO: Show info about proximity scoring
-          }}
+          onPress={() => setShowInfoDialog(true)}
         />
       </Appbar.Header>
 
@@ -168,6 +170,25 @@ export default function ProximityScreen({ navigation }) {
         onRefresh={refetch}
         refreshing={isLoading}
       />
+
+      <Portal>
+        <Dialog visible={showInfoDialog} onDismiss={() => setShowInfoDialog(false)}>
+          <Dialog.Title>{t('proximity.infoTitle')}</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium" style={styles.dialogText}>
+              {t('proximity.infoMessage')}
+            </Text>
+            <Text variant="bodyMedium" style={styles.dialogText}>
+              {t('proximity.infoScoring')}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowInfoDialog(false)}>
+              {t('proximity.gotIt')}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -261,5 +282,9 @@ const styles = StyleSheet.create({
   scoreText: {
     color: '#fff',
     fontWeight: '700',
+  },
+  dialogText: {
+    marginBottom: 12,
+    lineHeight: 20,
   },
 });
