@@ -177,7 +177,8 @@
     "common": {
         "all": "All",
         "cancel": "",
-        "save": ""
+        "save": "",
+        "none": "None"
     },
     "industries": {
         "technology": "Technology",
@@ -455,6 +456,7 @@
         "successMsg": "Contact added successfully!",
         "sections": {
             "name": "Name",
+            "company": "Company",
             "phones": "Phone Numbers",
             "emails": "Email Addresses",
             "categories": "Categories"
@@ -462,6 +464,7 @@
         "labels": {
             "firstName": "First Name",
             "lastName": "Last Name",
+            "company": "Company",
             "optional": "Optional",
             "save": "Save Contact",
             "cancel": "Cancel",

@@ -132,7 +132,8 @@
     "common": {
         "all": "Todas",
         "cancel": "",
-        "save": ""
+        "save": "",
+        "none": "Ninguno"
     },
     "industries": {
         "technology": "Tecnología",
@@ -410,6 +411,7 @@
         "successMsg": "¡Contacto agregado exitosamente!",
         "sections": {
             "name": "Nombre",
+            "company": "Empresa",
             "phones": "Números de teléfono",
             "emails": "Direcciones de correo",
             "categories": "Categorías"
@@ -417,6 +419,7 @@
         "labels": {
             "firstName": "Nombre",
             "lastName": "Apellido",
+            "company": "Empresa",
             "optional": "Opcional",
             "save": "Guardar contacto",
             "cancel": "Cancelar",

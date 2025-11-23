@@ -283,7 +283,6 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
           onChangeText={setFirstName}
           mode="outlined"
           autoCapitalize="words"
-          placeholder={t('addContact.labels.optional')}
         />
         <TextInput
           label={t('addContact.labels.lastName')}
@@ -297,19 +296,19 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
 
       {/* Company Section */}
       {companyManagementEnabled && companies.length > 0 && (
-        <ModalSection title="Company">
+        <ModalSection title={t('addContact.sections.company')}>
           <Menu
             visible={showCompanyMenu}
             onDismiss={() => setShowCompanyMenu(false)}
             anchor={
               <TextInput
-                label="Company"
+                label={t('addContact.labels.company')}
                 value={selectedCompany?.name || ''}
                 mode="outlined"
                 right={<TextInput.Icon icon="chevron-down" />}
                 onFocus={() => setShowCompanyMenu(true)}
                 showSoftInputOnFocus={false}
-                placeholder="Optional"
+                placeholder={t('addContact.labels.optional')}
               />
             }
           >
@@ -318,7 +317,7 @@ function AddContactModal({ visible, onDismiss, onContactAdded }) {
                 setSelectedCompany(null);
                 setShowCompanyMenu(false);
               }}
-              title="None"
+              title={t('common.none')}
             />
             {companies.map(company => (
               <Menu.Item

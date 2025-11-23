@@ -130,7 +130,8 @@
     "common": {
         "all": "全部",
         "cancel": "",
-        "save": ""
+        "save": "",
+        "none": "无"
     },
     "industries": {
         "technology": "科技",
@@ -408,6 +409,7 @@
         "successMsg": "联系人添加成功！",
         "sections": {
             "name": "姓名",
+            "company": "公司",
             "phones": "电话号码",
             "emails": "电子邮箱地址",
             "categories": "类别"
@@ -415,6 +417,7 @@
         "labels": {
             "firstName": "名字",
             "lastName": "姓氏",
+            "company": "公司",
             "optional": "可选",
             "save": "保存联系人",
             "cancel": "取消",

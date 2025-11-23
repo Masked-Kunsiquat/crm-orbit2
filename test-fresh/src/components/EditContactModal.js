@@ -324,7 +324,6 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
           onChangeText={setFirstName}
           mode="outlined"
           autoCapitalize="words"
-          placeholder={t('addContact.labels.optional')}
         />
         <TextInput
           label={t('addContact.labels.lastName')}
@@ -359,7 +358,7 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
                 setSelectedCompany(null);
                 setShowCompanyMenu(false);
               }}
-              title="None"
+              title={t('common.none')}
             />
             {companies.map(company => (
               <Menu.Item
