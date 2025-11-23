@@ -17,6 +17,7 @@ const CONTACT_FIELDS = [
   'avatar_attachment_id',
   'company_id',
   'job_title',
+  'contact_type',
   'is_favorite',
   'last_interaction_at',
 ];
