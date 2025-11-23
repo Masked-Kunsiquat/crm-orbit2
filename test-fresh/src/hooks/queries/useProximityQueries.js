@@ -99,7 +99,7 @@ export function useProximityConfig(options = {}) {
  * Returns contacts enriched with proximityScore field (0-100).
  * Expensive computation - results are memoized and cached.
  */
-export function useProximityScores(options = {}) {
+export function useProximityScores() {
   const contacts = useContactsWithInfo();
   const allInteractions = useAllInteractions();
   const config = useProximityConfig();
@@ -165,8 +165,8 @@ export function useProximityScores(options = {}) {
  *
  * This is the primary hook for the Proximity Screen UI.
  */
-export function useProximityData(options = {}) {
-  const proximityScores = useProximityScores(options);
+export function useProximityData() {
+  const proximityScores = useProximityScores();
 
   // Memoize tier grouping
   const grouped = useMemo(() => {
@@ -199,8 +199,8 @@ export function useProximityData(options = {}) {
  *
  * Returns summary statistics about proximity distribution.
  */
-export function useProximityStats(options = {}) {
-  const proximityScores = useProximityScores(options);
+export function useProximityStats() {
+  const proximityScores = useProximityScores();
 
   const stats = useMemo(() => {
     if (!proximityScores.data || proximityScores.data.length === 0) {
