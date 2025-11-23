@@ -14,6 +14,7 @@ import { settingsDB } from '../../database';
 import {
   calculateProximityScores,
   groupByProximity,
+  getProximityTier,
 } from '../../utils/proximityCalculator';
 import {
   getPresetConfig,
@@ -212,13 +213,15 @@ export function useProximityStats(options = {}) {
     const max = Math.max(...scores);
     const min = Math.min(...scores);
 
-    // Count by tier
-    const tierCounts = {
-      inner: scores.filter(s => s >= 70).length,
-      middle: scores.filter(s => s >= 50 && s < 70).length,
-      outer: scores.filter(s => s >= 30 && s < 50).length,
-      distant: scores.filter(s => s < 30).length,
-    };
+    // Count by tier using getTierForScore helper (single source of truth)
+    const tierCounts = scores.reduce(
+      (counts, score) => {
+        const tierInfo = getProximityTier(score);
+        counts[tierInfo.tier]++;
+        return counts;
+      },
+      { inner: 0, middle: 0, outer: 0, distant: 0 }
+    );
 
     return {
       totalContacts: scores.length,
