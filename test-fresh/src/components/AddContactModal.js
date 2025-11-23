@@ -16,18 +16,10 @@ import { useSettings } from '../context/SettingsContext';
 import { handleError, showAlert } from '../errors';
 import { hasContent, filterNonEmpty } from '../utils/stringHelpers';
 import { requestPermission } from '../utils/permissionHelpers';
+import { CONTACT_TYPES } from '../constants/contactTypes';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
-const CONTACT_TYPES = [
-  'best_friend',
-  'family',
-  'close_friend',
-  'friend',
-  'colleague',
-  'acquaintance',
-  'other',
-];
 
 const mapPhoneLabel = nativeLabel => {
   if (!nativeLabel) return 'Mobile';

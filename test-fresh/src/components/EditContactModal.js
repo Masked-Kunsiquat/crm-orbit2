@@ -27,18 +27,10 @@ import {
   filterNonEmpty,
 } from '../utils/stringHelpers';
 import { useAsyncLoading } from '../hooks/useAsyncOperation';
+import { CONTACT_TYPES } from '../constants/contactTypes';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
-const CONTACT_TYPES = [
-  'best_friend',
-  'family',
-  'close_friend',
-  'friend',
-  'colleague',
-  'acquaintance',
-  'other',
-];
 
 function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   const { t } = useTranslation();
