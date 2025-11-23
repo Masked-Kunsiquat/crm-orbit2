@@ -63,7 +63,10 @@ export function useProximityConfig(options = {}) {
           });
 
           // Fallback to default preset
-          return getPresetConfig(DEFAULT_PRESET);
+          return {
+            preset: DEFAULT_PRESET,
+            ...getPresetConfig(DEFAULT_PRESET),
+          };
         }
 
         logger.success('ProximityQueries', 'useProximityConfig', {
@@ -78,7 +81,10 @@ export function useProximityConfig(options = {}) {
       } catch (error) {
         logger.error('ProximityQueries', 'useProximityConfig', error);
         // Fallback to default preset on error
-        return getPresetConfig(DEFAULT_PRESET);
+        return {
+          preset: DEFAULT_PRESET,
+          ...getPresetConfig(DEFAULT_PRESET),
+        };
       }
     },
     staleTime: 10 * 60 * 1000, // 10 minutes (config changes infrequently)
