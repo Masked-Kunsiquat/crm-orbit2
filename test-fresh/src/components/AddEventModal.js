@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import {
-  Modal,
-  Portal,
-  Surface,
   Text,
   TextInput,
   Button,
   IconButton,
   Chip,
   Menu,
-  Divider,
   Switch,
   useTheme,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import BaseModal from './BaseModal';
+import ModalSection from './ModalSection';
 import {
   useCreateEvent,
   useCreateEventWithReminders,
@@ -315,289 +313,257 @@ function AddEventModal({
 
   const selectedContact = contacts.find(c => c.id === selectedContactId);
 
+  const isSaving =
+    createEventMutation.isPending ||
+    createEventWithRemindersMutation.isPending ||
+    updateEventMutation.isPending ||
+    updateEventRemindersMutation.isPending;
+
   return (
-    <Portal>
-      <Modal
+    <>
+      <BaseModal
         visible={visible}
         onDismiss={handleCancel}
-        contentContainerStyle={styles.modal}
-      >
-        <Surface style={styles.surface}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text variant="headlineSmall">
-              {isEditMode ? t('addEvent.titleEdit') : t('addEvent.titleAdd')}
-            </Text>
-            <IconButton icon="close" onPress={handleCancel} />
+        title={isEditMode ? t('addEvent.titleEdit') : t('addEvent.titleAdd')}
+        headerRight={
+          <View style={styles.headerActions}>
+            {isEditMode && (
+              <IconButton
+                icon="delete"
+                size={22}
+                onPress={handleDelete}
+                iconColor="#d32f2f"
+                style={styles.iconButton}
+              />
+            )}
+            <IconButton
+              icon="close"
+              size={22}
+              onPress={handleCancel}
+              style={styles.iconButton}
+            />
           </View>
-
-          <ScrollView style={styles.scrollView}>
-            {/* Contact Selection */}
-            <View style={styles.section}>
-              <Text variant="labelLarge" style={styles.sectionLabel}>
-                {t('addEvent.sections.contact')}
-              </Text>
-              <Menu
-                visible={contactMenuVisible}
-                onDismiss={() => setContactMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setContactMenuVisible(true)}
-                    icon="account"
-                    style={styles.contactButton}
-                  >
-                    {selectedContact
-                      ? getContactDisplayName(selectedContact)
-                      : t('addEvent.labels.selectContact')}
-                  </Button>
-                }
-              >
-                <ScrollView style={styles.contactMenu}>
-                  {contacts.map(contact => (
-                    <Menu.Item
-                      key={contact.id}
-                      onPress={() => {
-                        setSelectedContactId(contact.id);
-                        setContactMenuVisible(false);
-                      }}
-                      title={getContactDisplayName(contact)}
-                    />
-                  ))}
-                </ScrollView>
-              </Menu>
-            </View>
-
-            {/* Event Type */}
-            <View style={styles.section}>
-              <Text variant="labelLarge" style={styles.sectionLabel}>
-                {t('addEvent.sections.type')}
-              </Text>
-              <View style={styles.typeChips}>
-                {EVENT_TYPES.map(type => (
-                  <Chip
-                    key={type.value}
-                    selected={eventType === type.value}
-                    onPress={() => {
-                      setEventType(type.value);
-                      // Auto-enable recurring for birthdays and anniversaries
-                      // Disable recurring for other types (meetings, deadlines, other)
-                      if (['birthday', 'anniversary'].includes(type.value)) {
-                        setIsRecurring(true);
-                      } else {
-                        setIsRecurring(false);
-                      }
-                    }}
-                    icon={type.icon}
-                    style={styles.typeChip}
-                  >
-                    {t(`addEvent.types.${type.value}`)}
-                  </Chip>
-                ))}
-              </View>
-            </View>
-
-            {/* Date Picker */}
-            <View style={styles.section}>
-              <Text variant="labelLarge" style={styles.sectionLabel}>
-                {t('addEvent.sections.date')}
-              </Text>
+        }
+        actions={[
+          {
+            label: t('addEvent.labels.cancel'),
+            onPress: handleCancel,
+            mode: 'outlined',
+            disabled: isSaving,
+          },
+          {
+            label: isEditMode
+              ? t('addEvent.labels.update')
+              : t('addEvent.labels.save'),
+            onPress: handleSave,
+            mode: 'contained',
+            loading: isSaving,
+          },
+        ]}
+        maxHeight={0.92}
+      >
+        {/* Contact Selection */}
+        <ModalSection title={t('addEvent.sections.contact')}>
+          <Menu
+            visible={contactMenuVisible}
+            onDismiss={() => setContactMenuVisible(false)}
+            anchor={
               <Button
                 mode="outlined"
-                onPress={() => setShowDatePicker(true)}
-                icon="calendar"
-                style={styles.dateButton}
+                onPress={() => setContactMenuVisible(true)}
+                icon="account"
+                style={styles.contactButton}
+                contentStyle={styles.contactButtonContent}
               >
-                {formatDateSmart(eventDate, t, locale) ||
-                  eventDate.toLocaleDateString()}
+                {selectedContact
+                  ? getContactDisplayName(selectedContact)
+                  : t('addEvent.labels.selectContact')}
               </Button>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={eventDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  themeVariant={theme.dark ? 'dark' : 'light'}
-                />
-              )}
-            </View>
-
-            {/* Recurring Toggle - only shown for birthdays and anniversaries */}
-            {['birthday', 'anniversary'].includes(eventType) && (
-              <View style={styles.section}>
-                <View style={styles.switchRow}>
-                  <View>
-                    <Text variant="labelLarge">
-                      {t('addEvent.labels.recurring')}
-                    </Text>
-                    <Text variant="bodySmall" style={styles.helperText}>
-                      {t('addEvent.labels.recurringHelper')}
-                    </Text>
-                  </View>
-                  <Switch value={isRecurring} onValueChange={setIsRecurring} />
-                </View>
-              </View>
-            )}
-
-            {/* Title */}
-            <View style={styles.section}>
-              <View style={styles.titleRow}>
-                <Text variant="labelLarge" style={styles.sectionLabel}>
-                  {t('addEvent.sections.title')}
-                </Text>
-                <Button
-                  mode="text"
-                  compact
-                  onPress={handleQuickFill}
-                  disabled={!selectedContactId}
-                >
-                  {t('addEvent.labels.quickFill')}
-                </Button>
-              </View>
-              <TextInput
-                mode="outlined"
-                value={title}
-                onChangeText={setTitle}
-                placeholder={t('addEvent.labels.titlePlaceholder')}
-                style={styles.input}
-              />
-            </View>
-
-            {/* Reminders */}
-            <View style={styles.section}>
-              <Text variant="labelLarge" style={styles.sectionLabel}>
-                {t('addEvent.sections.reminders')}
-              </Text>
-              <View style={styles.reminderTemplates}>
-                {REMINDER_TEMPLATES.map((template, index) => (
-                  <Chip
-                    key={index}
-                    icon="bell-plus"
-                    onPress={() => addReminder(template.minutes)}
-                    style={styles.reminderChip}
-                    compact
-                  >
-                    {t(`addEvent.reminderTemplates.${template.minutes}`)}
-                  </Chip>
-                ))}
-              </View>
-              {reminders.length > 0 && (
-                <View style={styles.remindersList}>
-                  {reminders.map((reminder, index) => {
-                    const { date, time } = formatDateAndTime(
-                      reminder.datetime,
-                      locale
-                    );
-                    return (
-                      <View key={index} style={styles.reminderItem}>
-                        <Text variant="bodyMedium">
-                          {date} {time}
-                        </Text>
-                        <IconButton
-                          icon="close"
-                          size={20}
-                          onPress={() => removeReminder(index)}
-                        />
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-
-            {/* Notes */}
-            <View style={styles.section}>
-              <Text variant="labelLarge" style={styles.sectionLabel}>
-                {t('addEvent.sections.notes')}
-              </Text>
-              <TextInput
-                mode="outlined"
-                value={notes}
-                onChangeText={setNotes}
-                placeholder={t('addEvent.labels.notesPlaceholder')}
-                multiline
-                numberOfLines={4}
-              />
-            </View>
-          </ScrollView>
-
-          {/* Footer Actions */}
-          <View
-            style={[
-              styles.footer,
-              { borderTopColor: theme.colors.outlineVariant },
-            ]}
+            }
+            contentStyle={styles.contactMenu}
           >
-            {isEditMode && (
+            {contacts.map(contact => (
+              <Menu.Item
+                key={contact.id}
+                onPress={() => {
+                  setSelectedContactId(contact.id);
+                  setContactMenuVisible(false);
+                }}
+                title={getContactDisplayName(contact)}
+              />
+            ))}
+          </Menu>
+        </ModalSection>
+
+        {/* Event Type */}
+        <ModalSection title={t('addEvent.sections.type')}>
+          <View style={styles.typeChips}>
+            {EVENT_TYPES.map(type => (
+              <Chip
+                key={type.value}
+                selected={eventType === type.value}
+                onPress={() => {
+                  setEventType(type.value);
+                  // Auto-enable recurring for birthdays and anniversaries
+                  // Disable recurring for other types (meetings, deadlines, other)
+                  if (['birthday', 'anniversary'].includes(type.value)) {
+                    setIsRecurring(true);
+                  } else {
+                    setIsRecurring(false);
+                  }
+                }}
+                icon={type.icon}
+                style={styles.typeChip}
+                mode="flat"
+              >
+                {t(`addEvent.types.${type.value}`)}
+              </Chip>
+            ))}
+          </View>
+        </ModalSection>
+
+        {/* Date Picker */}
+        <ModalSection title={t('addEvent.sections.date')}>
+          <Button
+            mode="outlined"
+            onPress={() => setShowDatePicker(true)}
+            icon="calendar"
+            style={styles.dateButton}
+            contentStyle={styles.dateButtonContent}
+          >
+            {formatDateSmart(eventDate, t, locale) ||
+              eventDate.toLocaleDateString()}
+          </Button>
+        </ModalSection>
+
+        {/* Recurring Toggle - only shown for birthdays and anniversaries */}
+        {['birthday', 'anniversary'].includes(eventType) && (
+          <ModalSection>
+            <View style={styles.switchRow}>
+              <View style={styles.switchLabel}>
+                <Text variant="labelLarge">
+                  {t('addEvent.labels.recurring')}
+                </Text>
+                <Text
+                  variant="bodySmall"
+                  style={[
+                    styles.helperText,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  {t('addEvent.labels.recurringHelper')}
+                </Text>
+              </View>
+              <Switch value={isRecurring} onValueChange={setIsRecurring} />
+            </View>
+          </ModalSection>
+        )}
+
+        {/* Title */}
+        <ModalSection
+          title={t('addEvent.sections.title')}
+          action={
+            selectedContactId && (
               <Button
                 mode="text"
-                onPress={handleDelete}
-                textColor="#d32f2f"
-                style={styles.deleteButton}
+                onPress={handleQuickFill}
+                compact
+                style={styles.quickButton}
               >
-                {t('addEvent.labels.delete')}
+                {t('addEvent.labels.quickFill')}
               </Button>
-            )}
-            <View style={styles.footerButtons}>
-              <Button
+            )
+          }
+        >
+          <TextInput
+            label={t('addEvent.labels.titlePlaceholder')}
+            mode="outlined"
+            value={title}
+            onChangeText={setTitle}
+            placeholder={t('addEvent.labels.titlePlaceholder')}
+          />
+        </ModalSection>
+
+        {/* Reminders */}
+        <ModalSection title={t('addEvent.sections.reminders')}>
+          <View style={styles.reminderTemplates}>
+            {REMINDER_TEMPLATES.map((template, index) => (
+              <Chip
+                key={index}
+                icon="bell-plus"
+                onPress={() => addReminder(template.minutes)}
+                style={styles.reminderChip}
                 mode="outlined"
-                onPress={handleCancel}
-                style={styles.cancelButton}
+                compact
               >
-                {t('addEvent.labels.cancel')}
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleSave}
-                style={styles.saveButton}
-                loading={
-                  createEventMutation.isPending ||
-                  createEventWithRemindersMutation.isPending ||
-                  updateEventMutation.isPending ||
-                  updateEventRemindersMutation.isPending
-                }
-              >
-                {isEditMode
-                  ? t('addEvent.labels.update')
-                  : t('addEvent.labels.save')}
-              </Button>
-            </View>
+                {t(`addEvent.reminderTemplates.${template.minutes}`)}
+              </Chip>
+            ))}
           </View>
-        </Surface>
-      </Modal>
-    </Portal>
+          {reminders.length > 0 && (
+            <View style={styles.remindersList}>
+              {reminders.map((reminder, index) => {
+                const { date, time } = formatDateAndTime(
+                  reminder.datetime,
+                  locale
+                );
+                return (
+                  <View key={index} style={styles.reminderItem}>
+                    <Text variant="bodyMedium">
+                      {date} {time}
+                    </Text>
+                    <IconButton
+                      icon="close"
+                      size={20}
+                      onPress={() => removeReminder(index)}
+                      style={styles.reminderDeleteButton}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </ModalSection>
+
+        {/* Notes */}
+        <ModalSection title={t('addEvent.sections.notes')} last>
+          <TextInput
+            mode="outlined"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder={t('addEvent.labels.notesPlaceholder')}
+            multiline
+            numberOfLines={4}
+          />
+        </ModalSection>
+      </BaseModal>
+
+      {/* Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={eventDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          themeVariant={theme.dark ? 'dark' : 'light'}
+        />
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    margin: 20,
-    maxHeight: '90%',
-  },
-  surface: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  header: {
+  headerActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingLeft: 24,
-    paddingRight: 8,
-    paddingTop: 16,
-    paddingBottom: 8,
+    gap: 4,
   },
-  scrollView: {
-    maxHeight: 500,
-  },
-  section: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  sectionLabel: {
-    marginBottom: 8,
+  iconButton: {
+    margin: 0,
   },
   contactButton: {
+    justifyContent: 'flex-start',
+  },
+  contactButtonContent: {
     justifyContent: 'flex-start',
   },
   contactMenu: {
@@ -614,19 +580,23 @@ const styles = StyleSheet.create({
   dateButton: {
     justifyContent: 'flex-start',
   },
+  dateButtonContent: {
+    justifyContent: 'flex-start',
+  },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 16,
+  },
+  switchLabel: {
+    flex: 1,
   },
   helperText: {
     marginTop: 4,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+  quickButton: {
+    marginTop: -8,
   },
   reminderTemplates: {
     flexDirection: 'row',
@@ -644,27 +614,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
   },
-  footer: {
-    padding: 16,
-    borderTopWidth: 1,
-  },
-  footerButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-  },
-  deleteButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  cancelButton: {
-    flex: 1,
-  },
-  saveButton: {
-    flex: 1,
+  reminderDeleteButton: {
+    margin: 0,
   },
 });
 
