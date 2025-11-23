@@ -239,7 +239,29 @@ export function calculateProximityScore(contact, interactions, config) {
       return 0;
     }
 
-    const { weights } = config;
+    // Normalize weights with defaults to prevent NaN
+    const rawWeights = config.weights;
+    const normalizedWeights = {
+      recency: is.number(rawWeights.recency) ? rawWeights.recency : 0,
+      frequency: is.number(rawWeights.frequency) ? rawWeights.frequency : 0,
+      quality: is.number(rawWeights.quality) ? rawWeights.quality : 0,
+      contactType: is.number(rawWeights.contactType) ? rawWeights.contactType : 0,
+    };
+
+    // Warn if any weights were missing or invalid
+    const missingWeights = [];
+    if (!is.number(rawWeights.recency)) missingWeights.push('recency');
+    if (!is.number(rawWeights.frequency)) missingWeights.push('frequency');
+    if (!is.number(rawWeights.quality)) missingWeights.push('quality');
+    if (!is.number(rawWeights.contactType)) missingWeights.push('contactType');
+
+    if (missingWeights.length > 0) {
+      logger.warn('ProximityCalculator', 'Missing or invalid weights, using defaults', {
+        contactId: contact.id,
+        missingWeights,
+        rawWeights,
+      });
+    }
 
     // Ensure interactions is an array
     const validInteractions = is.array(interactions) ? interactions : [];
@@ -250,12 +272,12 @@ export function calculateProximityScore(contact, interactions, config) {
     const qualityScore = calculateQualityScore(validInteractions);
     const contactTypeScore = calculateContactTypeScore(contact);
 
-    // Apply weighted average
+    // Apply weighted average with normalized weights
     const finalScore =
-      recencyScore * weights.recency +
-      frequencyScore * weights.frequency +
-      qualityScore * weights.quality +
-      contactTypeScore * weights.contactType;
+      recencyScore * normalizedWeights.recency +
+      frequencyScore * normalizedWeights.frequency +
+      qualityScore * normalizedWeights.quality +
+      contactTypeScore * normalizedWeights.contactType;
 
     // Ensure score is in valid range
     const clampedScore = Math.min(100, Math.max(0, finalScore));
@@ -268,7 +290,7 @@ export function calculateProximityScore(contact, interactions, config) {
       frequencyScore,
       qualityScore,
       contactTypeScore,
-      weights,
+      weights: normalizedWeights,
       finalScore: clampedScore,
     });
 
