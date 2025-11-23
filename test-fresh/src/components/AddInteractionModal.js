@@ -33,11 +33,13 @@ import {
 import { getContactDisplayName } from '../utils/contactHelpers';
 
 const INTERACTION_TYPES = [
-  { value: 'call', icon: 'phone' },
-  { value: 'text', icon: 'message-text' },
-  { value: 'email', icon: 'email' },
-  { value: 'meeting', icon: 'calendar-account' },
-  { value: 'other', icon: 'note-text' },
+  { value: 'meeting', icon: 'account-group' },       // In-person (highest engagement)
+  { value: 'video_call', icon: 'video' },            // Video calls (FaceTime, Teams, Zoom)
+  { value: 'call', icon: 'phone' },                  // Voice calls
+  { value: 'text', icon: 'message-text' },           // SMS, messaging apps
+  { value: 'email', icon: 'email' },                 // Email
+  { value: 'social_media', icon: 'share-variant' },  // Social media interactions
+  { value: 'other', icon: 'note-text' },             // Other/misc
 ];
 
 function AddInteractionModal({
