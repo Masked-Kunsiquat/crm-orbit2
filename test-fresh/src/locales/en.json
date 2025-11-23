@@ -306,6 +306,7 @@
         },
         "quickTitles": {
             "call": "Call with {{name}}",
+            "videoCall": "Video call with {{name}}",
             "text": "Texted {{name}}",
             "email": "Emailed {{name}}",
             "meeting": "Meeting with {{name}}",

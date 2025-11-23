@@ -57,7 +57,7 @@ function AddInteractionModal({
 
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
-  const [interactionType, setInteractionType] = useState('call');
+  const [interactionType, setInteractionType] = useState('video_call');
   const [duration, setDuration] = useState('');
   const [selectedContactId, setSelectedContactId] = useState(
     preselectedContactId || null
@@ -205,6 +205,8 @@ function AddInteractionModal({
     switch (interactionType) {
       case 'call':
         return t('addInteraction.quickTitles.call', { name: contactName });
+      case 'video_call':
+        return t('addInteraction.quickTitles.videoCall', { name: contactName });
       case 'text':
         return t('addInteraction.quickTitles.text', { name: contactName });
       case 'email':
@@ -390,8 +392,10 @@ function AddInteractionModal({
           />
         </ModalSection>
 
-        {/* Duration (for calls and meetings) */}
-        {(interactionType === 'call' || interactionType === 'meeting') && (
+        {/* Duration (for calls, video calls, and meetings) */}
+        {(interactionType === 'call' ||
+          interactionType === 'video_call' ||
+          interactionType === 'meeting') && (
           <ModalSection title={t('addInteraction.sections.duration')}>
             <TextInput
               label={t('addInteraction.labels.duration')}
