@@ -22,6 +22,7 @@ import {
   Dialog,
   Button,
   useTheme,
+  SegmentedButtons,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { fileService } from '../services/fileService';
@@ -43,6 +44,7 @@ import {
   formatDateSmart,
   isFuture,
   isToday,
+  isPast,
 } from '../utils/dateUtils';
 import {
   getContactDisplayName,
@@ -55,6 +57,7 @@ export default function ContactDetailScreen({ route, navigation }) {
   const { contactId } = route.params;
   const theme = useTheme();
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('info');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
@@ -73,18 +76,46 @@ export default function ContactDetailScreen({ route, navigation }) {
   const deleteContactMutation = useDeleteContact();
   const updateContactMutation = useUpdateContact();
 
-  // Get recent interactions (limit to 3)
-  const recentInteractions = React.useMemo(() => {
-    return allInteractions.slice(0, 3);
-  }, [allInteractions]);
+  // Create unified activity timeline (Events + Interactions combined)
+  const activityTimeline = React.useMemo(() => {
+    const timeline = [];
 
-  // Get upcoming events (limit to 3, sorted by date) using proper local date handling
-  const upcomingEvents = React.useMemo(() => {
-    return allEvents
-      .filter(event => isFuture(event.event_date) || isToday(event.event_date))
-      .sort((a, b) => compareDates(a.event_date, b.event_date))
-      .slice(0, 3);
-  }, [allEvents]);
+    // Add events with type marker
+    allEvents.forEach(event => {
+      timeline.push({
+        ...event,
+        _type: 'event',
+        _date: event.event_date,
+        _timestamp: new Date(event.event_date).getTime(),
+      });
+    });
+
+    // Add interactions with type marker
+    allInteractions.forEach(interaction => {
+      timeline.push({
+        ...interaction,
+        _type: 'interaction',
+        _date: interaction.interaction_datetime?.split('T')[0] || interaction.interaction_datetime,
+        _timestamp: new Date(interaction.interaction_datetime).getTime(),
+      });
+    });
+
+    // Sort by timestamp (most recent first)
+    return timeline.sort((a, b) => b._timestamp - a._timestamp);
+  }, [allEvents, allInteractions]);
+
+  // Separate upcoming and past activities
+  const upcomingActivities = React.useMemo(() => {
+    return activityTimeline
+      .filter(item => isFuture(item._date) || isToday(item._date))
+      .sort((a, b) => a._timestamp - b._timestamp); // Upcoming: oldest first
+  }, [activityTimeline]);
+
+  const pastActivities = React.useMemo(() => {
+    return activityTimeline
+      .filter(item => isPast(item._date))
+      .sort((a, b) => b._timestamp - a._timestamp); // Past: most recent first
+  }, [activityTimeline]);
 
   const normalizePhoneNumber = phoneNumber => {
     if (!phoneNumber) return '';
@@ -182,14 +213,6 @@ export default function ContactDetailScreen({ route, navigation }) {
     setShowAddInteractionModal(false);
   };
 
-  const handleViewAllInteractions = () => {
-    // Navigate to Interactions tab (would need to implement tab navigation focus)
-    showAlert.info(
-      'Navigate to Interactions tab to see all interactions for this contact',
-      'View All'
-    );
-  };
-
   const handleAddEventClick = () => {
     setEditingEvent(null);
     setShowAddEventModal(true);
@@ -249,8 +272,6 @@ export default function ContactDetailScreen({ route, navigation }) {
       deleteContact
     );
   };
-
-  // Use imported formatPhone from contactHelpers (supports 10 and 11 digit formats)
 
   const getEventIcon = eventType => {
     const icons = {
@@ -440,259 +461,314 @@ export default function ContactDetailScreen({ route, navigation }) {
           )}
         </View>
 
-        {/* Quick Actions - Material Design style */}
-        <View
-          style={[
-            styles.quickActions,
-            {
-              backgroundColor: theme.colors.surface,
-              borderBottomColor: outlineColor,
-            },
-          ]}
-        >
-          {phones.length > 0 && (
-            <View style={styles.actionButton}>
-              <IconButton
-                icon="message-text"
-                size={24}
-                mode="contained"
-                containerColor={theme.colors.primary}
-                iconColor="#fff"
-                onPress={() => handleMessage(phones[0].value)}
-              />
-              <Text
-                variant="labelSmall"
-                style={[styles.actionLabel, { color: theme.colors.primary }]}
-              >
-                {t('labels.text')}
-              </Text>
-            </View>
-          )}
-          {phones.length > 0 && (
-            <View style={styles.actionButton}>
-              <IconButton
-                icon="phone"
-                size={24}
-                mode="contained"
-                containerColor={theme.colors.primary}
-                iconColor="#fff"
-                onPress={() => handleCall(phones[0].value)}
-              />
-              <Text
-                variant="labelSmall"
-                style={[styles.actionLabel, { color: theme.colors.primary }]}
-              >
-                {t('labels.call')}
-              </Text>
-            </View>
-          )}
-          {emails.length > 0 && (
-            <View style={styles.actionButton}>
-              <IconButton
-                icon="email"
-                size={24}
-                mode="contained"
-                containerColor={theme.colors.primary}
-                iconColor="#fff"
-                onPress={() => handleEmail(emails[0].value)}
-              />
-              <Text
-                variant="labelSmall"
-                style={[styles.actionLabel, { color: theme.colors.primary }]}
-              >
-                email
-              </Text>
-            </View>
-          )}
+        {/* Segmented Tabs - Material Design 3 */}
+        <View style={styles.tabsContainer}>
+          <SegmentedButtons
+            value={activeTab}
+            onValueChange={setActiveTab}
+            buttons={[
+              {
+                value: 'info',
+                label: t('contactDetail.tabs.info'),
+                icon: 'account-details',
+              },
+              {
+                value: 'activity',
+                label: t('contactDetail.tabs.activity'),
+                icon: 'history',
+                badge: activityTimeline.length > 0 ? activityTimeline.length : undefined,
+              },
+            ]}
+            style={styles.segmentedButtons}
+          />
         </View>
 
-        {/* Phone Numbers Section - iOS grouped list style */}
-        {phones.length > 0 && (
-          <Surface
-            style={[styles.section, { backgroundColor: theme.colors.surface }]}
-            elevation={0}
-          >
-            {phones.map((phone, index) => (
-              <View key={phone.id}>
-                <List.Item
-                  title={formatPhone(phone.value)}
-                  description={phone.label}
-                  left={props => <List.Icon {...props} icon="phone" />}
-                  right={props => (
-                    <View style={styles.itemActions}>
-                      <IconButton
-                        icon="message"
-                        size={20}
-                        onPress={() => handleMessage(phone.value)}
-                      />
-                      <IconButton
-                        icon="phone"
-                        size={20}
-                        onPress={() => handleCall(phone.value)}
-                      />
-                    </View>
-                  )}
-                />
-                {index < phones.length - 1 && <Divider />}
-              </View>
-            ))}
-          </Surface>
-        )}
+        {/* INFO TAB */}
+        {activeTab === 'info' && (
+          <View>
+            {/* Quick Actions - Material Design style */}
+            <View
+              style={[
+                styles.quickActions,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderBottomColor: outlineColor,
+                },
+              ]}
+            >
+              {phones.length > 0 && (
+                <View style={styles.actionButton}>
+                  <IconButton
+                    icon="message-text"
+                    size={24}
+                    mode="contained"
+                    containerColor={theme.colors.primary}
+                    iconColor="#fff"
+                    onPress={() => handleMessage(phones[0].value)}
+                  />
+                  <Text
+                    variant="labelSmall"
+                    style={[styles.actionLabel, { color: theme.colors.primary }]}
+                  >
+                    {t('labels.text')}
+                  </Text>
+                </View>
+              )}
+              {phones.length > 0 && (
+                <View style={styles.actionButton}>
+                  <IconButton
+                    icon="phone"
+                    size={24}
+                    mode="contained"
+                    containerColor={theme.colors.primary}
+                    iconColor="#fff"
+                    onPress={() => handleCall(phones[0].value)}
+                  />
+                  <Text
+                    variant="labelSmall"
+                    style={[styles.actionLabel, { color: theme.colors.primary }]}
+                  >
+                    {t('labels.call')}
+                  </Text>
+                </View>
+              )}
+              {emails.length > 0 && (
+                <View style={styles.actionButton}>
+                  <IconButton
+                    icon="email"
+                    size={24}
+                    mode="contained"
+                    containerColor={theme.colors.primary}
+                    iconColor="#fff"
+                    onPress={() => handleEmail(emails[0].value)}
+                  />
+                  <Text
+                    variant="labelSmall"
+                    style={[styles.actionLabel, { color: theme.colors.primary }]}
+                  >
+                    email
+                  </Text>
+                </View>
+              )}
+            </View>
 
-        {/* Email Addresses Section */}
-        {emails.length > 0 && (
-          <Surface
-            style={[styles.section, { backgroundColor: theme.colors.surface }]}
-            elevation={0}
-          >
-            {emails.map((email, index) => (
-              <View key={email.id}>
-                <List.Item
-                  title={email.value}
-                  description={email.label}
-                  left={props => <List.Icon {...props} icon="email" />}
-                  right={props => (
-                    <IconButton
-                      icon="email"
-                      size={20}
-                      onPress={() => handleEmail(email.value)}
+            {/* Phone Numbers Section */}
+            {phones.length > 0 && (
+              <Surface
+                style={[styles.section, { backgroundColor: theme.colors.surface }]}
+                elevation={0}
+              >
+                {phones.map((phone, index) => (
+                  <View key={phone.id}>
+                    <List.Item
+                      title={formatPhone(phone.value)}
+                      description={phone.label}
+                      left={props => <List.Icon {...props} icon="phone" />}
+                      right={props => (
+                        <View style={styles.itemActions}>
+                          <IconButton
+                            icon="message"
+                            size={20}
+                            onPress={() => handleMessage(phone.value)}
+                          />
+                          <IconButton
+                            icon="phone"
+                            size={20}
+                            onPress={() => handleCall(phone.value)}
+                          />
+                        </View>
+                      )}
                     />
-                  )}
-                />
-                {index < emails.length - 1 && <Divider />}
-              </View>
-            ))}
-          </Surface>
-        )}
+                    {index < phones.length - 1 && <Divider />}
+                  </View>
+                ))}
+              </Surface>
+            )}
 
-        {/* Upcoming Events Section */}
-        <View style={styles.sectionHeader}>
-          <Text
-            variant="titleMedium"
-            style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
-          >
-            {t('contactDetail.events')}
-          </Text>
-          <View style={styles.eventHeaderButtons}>
-            <Button
-              mode="text"
-              onPress={handleQuickAddBirthday}
-              icon="cake-variant"
-              compact
+            {/* Email Addresses Section */}
+            {emails.length > 0 && (
+              <Surface
+                style={[styles.section, { backgroundColor: theme.colors.surface }]}
+                elevation={0}
+              >
+                {emails.map((email, index) => (
+                  <View key={email.id}>
+                    <List.Item
+                      title={email.value}
+                      description={email.label}
+                      left={props => <List.Icon {...props} icon="email" />}
+                      right={props => (
+                        <IconButton
+                          icon="email"
+                          size={20}
+                          onPress={() => handleEmail(email.value)}
+                        />
+                      )}
+                    />
+                    {index < emails.length - 1 && <Divider />}
+                  </View>
+                ))}
+              </Surface>
+            )}
+
+            {/* Delete Button */}
+            <Surface
+              style={[styles.section, { backgroundColor: theme.colors.surface }]}
+              elevation={0}
             >
-              {t('contactDetail.addBirthday')}
-            </Button>
-            <Button
-              mode="text"
-              onPress={handleAddEventClick}
-              icon="plus"
-              compact
-            >
-              {t('contactDetail.addEvent')}
-            </Button>
+              <List.Item
+                title={t('contactDetail.delete')}
+                titleStyle={[styles.deleteText, { color: theme.colors.error }]}
+                onPress={handleDelete}
+              />
+            </Surface>
           </View>
-        </View>
-
-        {upcomingEvents.length > 0 ? (
-          <Surface
-            style={[styles.section, { backgroundColor: theme.colors.surface }]}
-            elevation={0}
-          >
-            {upcomingEvents.map((event, index) => (
-              <View key={event.id}>
-                <List.Item
-                  title={event.title}
-                  description={`${formatDateSmart(event.event_date, t)}${event.recurring ? ` • ${t('contactDetail.recurring')}` : ''}`}
-                  left={props => (
-                    <List.Icon
-                      {...props}
-                      icon={getEventIcon(event.event_type)}
-                    />
-                  )}
-                  onPress={() => handleEventPress(event)}
-                />
-                {index < upcomingEvents.length - 1 && <Divider />}
-              </View>
-            ))}
-          </Surface>
-        ) : (
-          <Surface
-            style={[styles.section, { backgroundColor: theme.colors.surface }]}
-            elevation={0}
-          >
-            <List.Item
-              title={t('contactDetail.noEvents')}
-              description={t('contactDetail.noEventsDescription')}
-              left={props => <List.Icon {...props} icon="calendar-blank" />}
-              onPress={handleAddEventClick}
-            />
-          </Surface>
         )}
 
-        {/* Recent Interactions Section */}
-        <View style={styles.sectionHeader}>
-          <Text
-            variant="titleMedium"
-            style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
-          >
-            {t('contactDetail.recent')}
-          </Text>
-          <Button
-            mode="text"
-            onPress={handleAddInteractionClick}
-            icon="plus"
-            compact
-          >
-            {t('contactDetail.add')}
-          </Button>
-        </View>
-
-        {recentInteractions.length > 0 ? (
-          <View style={styles.interactionsContainer}>
-            {recentInteractions.map(interaction => (
-              <InteractionCard
-                key={interaction.id}
-                interaction={interaction}
-                contact={contact}
-                onPress={() => handleInteractionPress(interaction)}
-                onLongPress={() => handleInteractionLongPress(interaction)}
-              />
-            ))}
-            {recentInteractions.length >= 3 && (
+        {/* ACTIVITY TAB */}
+        {activeTab === 'activity' && (
+          <View>
+            {/* Action Buttons */}
+            <View style={styles.activityActions}>
+              <Button
+                mode="outlined"
+                onPress={handleAddInteractionClick}
+                icon="plus"
+                style={styles.activityButton}
+              >
+                {t('contactDetail.addInteraction')}
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={handleAddEventClick}
+                icon="calendar-plus"
+                style={styles.activityButton}
+              >
+                {t('contactDetail.addEvent')}
+              </Button>
               <Button
                 mode="text"
-                onPress={handleViewAllInteractions}
-                style={styles.viewAllButton}
+                onPress={handleQuickAddBirthday}
+                icon="cake-variant"
+                compact
               >
-                View All Interactions
+                {t('contactDetail.addBirthday')}
               </Button>
+            </View>
+
+            {/* Upcoming Activities */}
+            {upcomingActivities.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text
+                    variant="titleMedium"
+                    style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+                  >
+                    {t('contactDetail.upcoming')}
+                  </Text>
+                </View>
+                <Surface
+                  style={[styles.section, { backgroundColor: theme.colors.surface }]}
+                  elevation={0}
+                >
+                  {upcomingActivities.map((item, index) => (
+                    <View key={`${item._type}-${item.id}`}>
+                      {item._type === 'event' ? (
+                        <List.Item
+                          title={item.title}
+                          description={`${formatDateSmart(item.event_date, t)}${item.recurring ? ` • ${t('contactDetail.recurring')}` : ''}`}
+                          left={props => (
+                            <List.Icon
+                              {...props}
+                              icon={getEventIcon(item.event_type)}
+                            />
+                          )}
+                          onPress={() => handleEventPress(item)}
+                        />
+                      ) : (
+                        <InteractionCard
+                          interaction={item}
+                          contact={contact}
+                          onPress={() => handleInteractionPress(item)}
+                          onLongPress={() => handleInteractionLongPress(item)}
+                        />
+                      )}
+                      {index < upcomingActivities.length - 1 && <Divider />}
+                    </View>
+                  ))}
+                </Surface>
+              </>
+            )}
+
+            {/* Past Activities */}
+            {pastActivities.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text
+                    variant="titleMedium"
+                    style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+                  >
+                    {t('contactDetail.pastActivity')}
+                  </Text>
+                </View>
+                <Surface
+                  style={[styles.section, { backgroundColor: theme.colors.surface }]}
+                  elevation={0}
+                >
+                  {pastActivities.slice(0, 10).map((item, index) => (
+                    <View key={`${item._type}-${item.id}`}>
+                      {item._type === 'event' ? (
+                        <List.Item
+                          title={item.title}
+                          description={`${formatDateSmart(item.event_date, t)}${item.recurring ? ` • ${t('contactDetail.recurring')}` : ''}`}
+                          left={props => (
+                            <List.Icon
+                              {...props}
+                              icon={getEventIcon(item.event_type)}
+                            />
+                          )}
+                          onPress={() => handleEventPress(item)}
+                        />
+                      ) : (
+                        <InteractionCard
+                          interaction={item}
+                          contact={contact}
+                          onPress={() => handleInteractionPress(item)}
+                          onLongPress={() => handleInteractionLongPress(item)}
+                        />
+                      )}
+                      {index < pastActivities.slice(0, 10).length - 1 && <Divider />}
+                    </View>
+                  ))}
+                  {pastActivities.length > 10 && (
+                    <List.Item
+                      title={t('contactDetail.viewMore', { count: pastActivities.length - 10 })}
+                      left={props => <List.Icon {...props} icon="dots-horizontal" />}
+                      onPress={() => {
+                        // Future: Navigate to full activity view
+                        showAlert.info(t('contactDetail.viewMoreInfo'));
+                      }}
+                    />
+                  )}
+                </Surface>
+              </>
+            )}
+
+            {/* Empty State */}
+            {activityTimeline.length === 0 && (
+              <Surface
+                style={[styles.section, { backgroundColor: theme.colors.surface }]}
+                elevation={0}
+              >
+                <List.Item
+                  title={t('contactDetail.noActivity')}
+                  description={t('contactDetail.noActivityDescription')}
+                  left={props => <List.Icon {...props} icon="history" />}
+                />
+              </Surface>
             )}
           </View>
-        ) : (
-          <Surface
-            style={[styles.section, { backgroundColor: theme.colors.surface }]}
-            elevation={0}
-          >
-            <List.Item
-              title="No interactions yet"
-              description="Add your first interaction with this contact"
-              left={props => <List.Icon {...props} icon="history" />}
-              onPress={handleAddInteractionClick}
-            />
-          </Surface>
         )}
-
-        {/* Delete Button - iOS style at bottom */}
-        <Surface
-          style={[styles.section, { backgroundColor: theme.colors.surface }]}
-          elevation={0}
-        >
-          <List.Item
-            title={t('contactDetail.delete')}
-            titleStyle={[styles.deleteText, { color: theme.colors.error }]}
-            onPress={handleDelete}
-          />
-        </Surface>
 
         <View style={styles.spacer} />
       </ScrollView>
@@ -779,12 +855,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
+  tabsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  segmentedButtons: {
+    marginBottom: 8,
+  },
   quickActions: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 32,
     paddingVertical: 24,
     borderBottomWidth: 1,
+    marginTop: 8,
   },
   actionButton: {
     alignItems: 'center',
@@ -820,16 +904,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 18,
   },
-  eventHeaderButtons: {
+  activityActions: {
     flexDirection: 'row',
-    gap: 4,
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  interactionsContainer: {
-    marginTop: 8,
-  },
-  viewAllButton: {
-    marginTop: 8,
-    marginHorizontal: 16,
+  activityButton: {
+    flex: 1,
+    minWidth: 120,
   },
   spacer: {
     height: 40,

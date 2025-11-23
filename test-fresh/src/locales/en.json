@@ -417,12 +417,21 @@
         "errorLoad": "Failed to load contact details",
         "errorImageSet": "Failed to set contact photo",
         "errorImageRemove": "Failed to remove photo",
+        "tabs": {
+            "info": "Info",
+            "activity": "Activity"
+        },
         "recent": "Recent Interactions",
         "events": "Upcoming Events",
+        "upcoming": "Upcoming",
+        "pastActivity": "Past Activity",
         "addBirthday": "Birthday",
         "addEvent": "Event",
+        "addInteraction": "Add Interaction",
         "noEvents": "No upcoming events",
         "noEventsDescription": "Add an event for this contact",
+        "noActivity": "No activity yet",
+        "noActivityDescription": "Add an interaction or event to track history with this contact",
         "recurring": "Recurring",
         "delete": "Delete Contact",
         "deleteConfirm": "Are you sure you want to delete {{name}}?",
@@ -431,7 +440,9 @@
         "remove": "Remove",
         "addPhoto": "Add Photo",
         "cancel": "Cancel",
-        "add": "Add"
+        "add": "Add",
+        "viewMore": "View {{count}} more...",
+        "viewMoreInfo": "Full activity view coming soon"
     },
     "categories": {
         "Family": "Family",
