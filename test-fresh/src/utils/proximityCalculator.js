@@ -392,11 +392,15 @@ export function calculateProximityScores(contacts, interactionsByContactId, conf
       };
     });
 
+    // Calculate average score safely (avoid division by zero)
+    const totalScore = contactsWithScores.reduce((sum, c) => sum + c.proximityScore, 0);
+    const avgScore = contactsWithScores.length > 0
+      ? totalScore / contactsWithScores.length
+      : 0;
+
     logger.success('ProximityCalculator', 'calculateProximityScores', {
       contactCount: contacts.length,
-      avgScore:
-        contactsWithScores.reduce((sum, c) => sum + c.proximityScore, 0) /
-        contactsWithScores.length,
+      avgScore,
     });
 
     return contactsWithScores;
