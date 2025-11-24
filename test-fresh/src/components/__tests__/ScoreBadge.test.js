@@ -37,11 +37,15 @@ jest.mock('react-native-paper', () => ({
 describe('ScoreBadge', () => {
   // Suppress console.warn during tests (for invalid size warnings)
   const originalWarn = console.warn;
+  const originalDev = global.__DEV__;
+
   beforeAll(() => {
     console.warn = jest.fn();
   });
+
   afterAll(() => {
     console.warn = originalWarn;
+    global.__DEV__ = originalDev;
   });
 
   describe('Score Display', () => {
@@ -82,6 +86,11 @@ describe('ScoreBadge', () => {
   });
 
   describe('Size Prop', () => {
+    afterEach(() => {
+      // Restore __DEV__ after each test in this suite
+      global.__DEV__ = originalDev;
+    });
+
     it('renders with default medium size', () => {
       const { getByText } = render(<ScoreBadge score={50} />);
       expect(getByText('50')).toBeTruthy();
@@ -115,8 +124,6 @@ describe('ScoreBadge', () => {
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringContaining('ScoreBadge: Invalid size "invalid"')
       );
-
-      global.__DEV__ = false;
     });
   });
 
