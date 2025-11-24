@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import {
-  Modal,
-  Portal,
-  Surface,
   Text,
   TextInput,
   Button,
   IconButton,
   Chip,
   Menu,
-  Divider,
+  useTheme,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
-import { contactsDB } from '../database';
+import BaseModal from './BaseModal';
+import ModalSection from './ModalSection';
 import {
   useCreateInteraction,
   useUpdateInteraction,
@@ -31,16 +29,17 @@ import { handleError, showAlert } from '../errors';
 import {
   safeTrim,
   hasContent,
-  filterNonEmptyStrings,
 } from '../utils/stringHelpers';
 import { getContactDisplayName } from '../utils/contactHelpers';
 
 const INTERACTION_TYPES = [
-  { value: 'call', icon: 'phone' },
-  { value: 'text', icon: 'message-text' },
-  { value: 'email', icon: 'email' },
-  { value: 'meeting', icon: 'calendar-account' },
-  { value: 'other', icon: 'note-text' },
+  { value: 'meeting', icon: 'account-group' },       // In-person (highest engagement)
+  { value: 'video_call', icon: 'video' },            // Video calls (FaceTime, Teams, Zoom)
+  { value: 'call', icon: 'phone' },                  // Voice calls
+  { value: 'text', icon: 'message-text' },           // SMS, messaging apps
+  { value: 'email', icon: 'email' },                 // Email
+  { value: 'social_media', icon: 'share-variant' },  // Social media interactions
+  { value: 'other', icon: 'note-text' },             // Other/misc
 ];
 
 function AddInteractionModal({
@@ -50,14 +49,15 @@ function AddInteractionModal({
   onInteractionUpdated,
   onInteractionDeleted,
   preselectedContactId,
-  editingInteraction, // Pass existing interaction for edit mode
+  editingInteraction,
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const isEditMode = !!editingInteraction;
 
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
-  const [interactionType, setInteractionType] = useState('call');
+  const [interactionType, setInteractionType] = useState('video_call');
   const [duration, setDuration] = useState('');
   const [selectedContactId, setSelectedContactId] = useState(
     preselectedContactId || null
@@ -67,7 +67,6 @@ function AddInteractionModal({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  // Use TanStack Query hooks
   const { data: contacts = [] } = useContacts();
   const createInteractionMutation = useCreateInteraction();
   const updateInteractionMutation = useUpdateInteraction();
@@ -76,7 +75,6 @@ function AddInteractionModal({
   useEffect(() => {
     if (visible) {
       if (editingInteraction) {
-        // Populate form with existing interaction data
         setTitle(editingInteraction.title || '');
         setNote(editingInteraction.note || '');
         setInteractionType(editingInteraction.interaction_type || 'call');
@@ -90,7 +88,6 @@ function AddInteractionModal({
           new Date(editingInteraction.interaction_datetime || Date.now())
         );
       } else {
-        // New interaction
         if (preselectedContactId) {
           setSelectedContactId(preselectedContactId);
         }
@@ -124,7 +121,6 @@ function AddInteractionModal({
       async () => {
         try {
           await deleteInteractionMutation.mutateAsync(editingInteraction.id);
-
           resetForm();
           onInteractionDeleted && onInteractionDeleted();
           onDismiss();
@@ -152,7 +148,6 @@ function AddInteractionModal({
     }
 
     try {
-      // Parse duration (in minutes) to seconds
       let durationSeconds = null;
       if (hasContent(duration)) {
         const durationMinutes = parseInt(safeTrim(duration), 10);
@@ -171,7 +166,6 @@ function AddInteractionModal({
       };
 
       if (isEditMode) {
-        // Update existing interaction
         await updateInteractionMutation.mutateAsync({
           id: editingInteraction.id,
           data: interactionData,
@@ -181,7 +175,6 @@ function AddInteractionModal({
         onDismiss();
         showAlert.success(t('addInteraction.success.updated'), '');
       } else {
-        // Create new interaction
         await createInteractionMutation.mutateAsync(interactionData);
         resetForm();
         onInteractionAdded && onInteractionAdded();
@@ -204,7 +197,6 @@ function AddInteractionModal({
     deleteInteractionMutation.isPending;
   const canSave = hasContent(title) && selectedContactId && !isSaving;
 
-  // Generate quick title suggestions based on interaction type
   const getQuickTitleSuggestion = () => {
     const contactName = selectedContact
       ? getContactDisplayName(selectedContact, 'Contact')
@@ -213,6 +205,8 @@ function AddInteractionModal({
     switch (interactionType) {
       case 'call':
         return t('addInteraction.quickTitles.call', { name: contactName });
+      case 'video_call':
+        return t('addInteraction.quickTitles.videoCall', { name: contactName });
       case 'text':
         return t('addInteraction.quickTitles.text', { name: contactName });
       case 'email':
@@ -233,240 +227,200 @@ function AddInteractionModal({
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      // Use setDatePart to update date while preserving time (immutable)
       const newDateTime = setDatePart(interactionDateTime, selectedDate);
       if (newDateTime) {
         setInteractionDateTime(newDateTime);
       }
-      // If null, keep current datetime unchanged (defensive programming)
     }
   };
 
   const handleTimeChange = (event, selectedTime) => {
     setShowTimePicker(false);
     if (selectedTime) {
-      // Use setTimePart to update time while preserving date (immutable)
       const newDateTime = setTimePart(interactionDateTime, selectedTime);
       if (newDateTime) {
         setInteractionDateTime(newDateTime);
       }
-      // If null, keep current datetime unchanged (defensive programming)
     }
   };
 
   return (
-    <Portal>
-      <Modal
+    <>
+      <BaseModal
         visible={visible}
         onDismiss={handleCancel}
-        contentContainerStyle={styles.modal}
-      >
-        <Surface style={styles.surface} elevation={4}>
-          <View style={styles.header}>
-            <Text variant="headlineSmall" style={styles.title}>
-              {isEditMode
-                ? t('addInteraction.titleEdit')
-                : t('addInteraction.titleAdd')}
-            </Text>
-            <View style={styles.headerActions}>
-              {isEditMode && (
-                <IconButton
-                  icon="delete"
-                  size={24}
-                  onPress={handleDelete}
-                  iconColor="#d32f2f"
-                  style={styles.deleteButton}
-                />
-              )}
+        title={isEditMode
+          ? t('addInteraction.titleEdit')
+          : t('addInteraction.titleAdd')}
+        headerRight={
+          <View style={styles.headerActions}>
+            {isEditMode && (
               <IconButton
-                icon="close"
-                size={24}
-                onPress={handleCancel}
-                style={styles.closeButton}
+                icon="delete"
+                size={22}
+                onPress={handleDelete}
+                iconColor="#d32f2f"
+                style={styles.iconButton}
               />
-            </View>
-          </View>
-
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Contact Selection */}
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                {t('addInteraction.sections.contact')}
-              </Text>
-              <Menu
-                visible={contactMenuVisible}
-                onDismiss={() => setContactMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setContactMenuVisible(true)}
-                    icon="account"
-                    style={styles.contactButton}
-                    contentStyle={styles.contactButtonContent}
-                    disabled={isEditMode} // Can't change contact when editing
-                  >
-                    {selectedContact
-                      ? getContactDisplayName(selectedContact)
-                      : t('addInteraction.labels.selectContact')}
-                  </Button>
-                }
-                contentStyle={styles.menu}
-              >
-                <ScrollView style={styles.menuScroll}>
-                  {contacts.map(contact => (
-                    <Menu.Item
-                      key={contact.id}
-                      onPress={() => {
-                        setSelectedContactId(contact.id);
-                        setContactMenuVisible(false);
-                      }}
-                      title={getContactDisplayName(contact)}
-                      leadingIcon={
-                        selectedContactId === contact.id ? 'check' : undefined
-                      }
-                    />
-                  ))}
-                </ScrollView>
-              </Menu>
-            </View>
-
-            {/* Interaction Type */}
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                {t('addInteraction.sections.type')}
-              </Text>
-              <View style={styles.typeChips}>
-                {INTERACTION_TYPES.map(type => (
-                  <Chip
-                    key={type.value}
-                    selected={interactionType === type.value}
-                    onPress={() => setInteractionType(type.value)}
-                    style={styles.typeChip}
-                    icon={type.icon}
-                    mode="flat"
-                  >
-                    {t('addInteraction.types.' + type.value)}
-                  </Chip>
-                ))}
-              </View>
-            </View>
-
-            {/* Date & Time */}
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                {t('addInteraction.sections.dateTime')}
-              </Text>
-              <View style={styles.dateTimeRow}>
-                <Button
-                  mode="outlined"
-                  onPress={() => setShowDatePicker(true)}
-                  icon="calendar"
-                  style={styles.dateTimeButton}
-                >
-                  {formatShortDate(interactionDateTime)}
-                </Button>
-                <Button
-                  mode="outlined"
-                  onPress={() => setShowTimePicker(true)}
-                  icon="clock-outline"
-                  style={styles.dateTimeButton}
-                >
-                  {formatTime(interactionDateTime)}
-                </Button>
-              </View>
-            </View>
-
-            {/* Title */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>
-                  {t('addInteraction.sections.title')}
-                </Text>
-                {selectedContact && !isEditMode && (
-                  <Button
-                    mode="text"
-                    onPress={handleQuickTitle}
-                    compact
-                    style={styles.quickButton}
-                  >
-                    {t('addInteraction.labels.quickFill')}
-                  </Button>
-                )}
-              </View>
-              <TextInput
-                label={t('addInteraction.labels.interactionTitle')}
-                value={title}
-                onChangeText={setTitle}
-                mode="outlined"
-                style={styles.input}
-                placeholder={t('addInteraction.labels.titlePlaceholder')}
-              />
-            </View>
-
-            {/* Duration (for calls and meetings) */}
-            {(interactionType === 'call' || interactionType === 'meeting') && (
-              <View style={styles.section}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>
-                  {t('addInteraction.sections.duration')}
-                </Text>
-                <TextInput
-                  label={t('addInteraction.labels.duration')}
-                  value={duration}
-                  onChangeText={setDuration}
-                  mode="outlined"
-                  style={styles.input}
-                  keyboardType="number-pad"
-                  placeholder={t('addInteraction.labels.durationOptional')}
-                />
-              </View>
             )}
-
-            {/* Notes */}
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                {t('addInteraction.sections.notes')}
-              </Text>
-              <TextInput
-                label={t('addInteraction.labels.notes')}
-                value={note}
-                onChangeText={setNote}
+            <IconButton
+              icon="close"
+              size={22}
+              onPress={handleCancel}
+              style={styles.iconButton}
+            />
+          </View>
+        }
+        actions={[
+          {
+            label: t('addInteraction.labels.cancel'),
+            onPress: handleCancel,
+            mode: 'outlined',
+            disabled: isSaving,
+          },
+          {
+            label: isEditMode
+              ? t('addInteraction.labels.update')
+              : t('addInteraction.labels.save'),
+            onPress: handleSave,
+            mode: 'contained',
+            disabled: !canSave,
+            loading: isSaving,
+          },
+        ]}
+        maxHeight={0.92}
+      >
+        {/* Contact Selection */}
+        <ModalSection title={t('addInteraction.sections.contact')}>
+          <Menu
+            visible={contactMenuVisible}
+            onDismiss={() => setContactMenuVisible(false)}
+            anchor={
+              <Button
                 mode="outlined"
-                style={styles.input}
-                multiline
-                numberOfLines={4}
-                placeholder={t('addInteraction.labels.notesPlaceholder')}
+                onPress={() => setContactMenuVisible(true)}
+                icon="account"
+                style={styles.contactButton}
+                contentStyle={styles.contactButtonContent}
+                disabled={isEditMode}
+              >
+                {selectedContact
+                  ? getContactDisplayName(selectedContact)
+                  : t('addInteraction.labels.selectContact')}
+              </Button>
+            }
+            contentStyle={styles.menu}
+          >
+            {contacts.map(contact => (
+              <Menu.Item
+                key={contact.id}
+                onPress={() => {
+                  setSelectedContactId(contact.id);
+                  setContactMenuVisible(false);
+                }}
+                title={getContactDisplayName(contact)}
+                leadingIcon={
+                  selectedContactId === contact.id ? 'check' : undefined
+                }
               />
-            </View>
+            ))}
+          </Menu>
+        </ModalSection>
 
-            <View style={styles.spacer} />
-          </ScrollView>
+        {/* Interaction Type */}
+        <ModalSection title={t('addInteraction.sections.type')}>
+          <View style={styles.typeChips}>
+            {INTERACTION_TYPES.map(type => (
+              <Chip
+                key={type.value}
+                selected={interactionType === type.value}
+                onPress={() => setInteractionType(type.value)}
+                style={styles.typeChip}
+                icon={type.icon}
+                mode="flat"
+              >
+                {t('addInteraction.types.' + type.value)}
+              </Chip>
+            ))}
+          </View>
+        </ModalSection>
 
-          <View style={styles.actions}>
+        {/* Date & Time */}
+        <ModalSection title={t('addInteraction.sections.dateTime')}>
+          <View style={styles.dateTimeRow}>
             <Button
               mode="outlined"
-              onPress={handleCancel}
-              style={styles.button}
-              disabled={isSaving}
+              onPress={() => setShowDatePicker(true)}
+              icon="calendar"
+              style={styles.dateTimeButton}
             >
-              {t('addInteraction.labels.cancel')}
+              {formatShortDate(interactionDateTime)}
             </Button>
             <Button
-              mode="contained"
-              onPress={handleSave}
-              style={styles.button}
-              disabled={!canSave}
-              loading={isSaving}
+              mode="outlined"
+              onPress={() => setShowTimePicker(true)}
+              icon="clock-outline"
+              style={styles.dateTimeButton}
             >
-              {isEditMode
-                ? t('addInteraction.labels.update')
-                : t('addInteraction.labels.save')}
+              {formatTime(interactionDateTime)}
             </Button>
           </View>
-        </Surface>
-      </Modal>
+        </ModalSection>
+
+        {/* Title */}
+        <ModalSection
+          title={t('addInteraction.sections.title')}
+          action={
+            selectedContact && !isEditMode && (
+              <Button
+                mode="text"
+                onPress={handleQuickTitle}
+                compact
+                style={styles.quickButton}
+              >
+                {t('addInteraction.labels.quickFill')}
+              </Button>
+            )
+          }
+        >
+          <TextInput
+            label={t('addInteraction.labels.interactionTitle')}
+            value={title}
+            onChangeText={setTitle}
+            mode="outlined"
+            placeholder={t('addInteraction.labels.titlePlaceholder')}
+          />
+        </ModalSection>
+
+        {/* Duration (for calls, video calls, and meetings) */}
+        {(interactionType === 'call' ||
+          interactionType === 'video_call' ||
+          interactionType === 'meeting') && (
+          <ModalSection title={t('addInteraction.sections.duration')}>
+            <TextInput
+              label={t('addInteraction.labels.duration')}
+              value={duration}
+              onChangeText={setDuration}
+              mode="outlined"
+              keyboardType="number-pad"
+              placeholder={t('addInteraction.labels.durationOptional')}
+            />
+          </ModalSection>
+        )}
+
+        {/* Notes */}
+        <ModalSection title={t('addInteraction.sections.notes')} last>
+          <TextInput
+            label={t('addInteraction.labels.notes')}
+            value={note}
+            onChangeText={setNote}
+            mode="outlined"
+            multiline
+            numberOfLines={4}
+            placeholder={t('addInteraction.labels.notesPlaceholder')}
+          />
+        </ModalSection>
+      </BaseModal>
 
       {/* Date Picker */}
       {showDatePicker && (
@@ -475,7 +429,8 @@ function AddInteractionModal({
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleDateChange}
-          maximumDate={new Date()} // Can't select future dates
+          maximumDate={new Date()}
+          themeVariant={theme.dark ? 'dark' : 'light'}
         />
       )}
 
@@ -486,62 +441,20 @@ function AddInteractionModal({
           mode="time"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleTimeChange}
+          themeVariant={theme.dark ? 'dark' : 'light'}
         />
       )}
-    </Portal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 1,
-    justifyContent: 'center',
-    margin: 20,
-  },
-  surface: {
-    maxHeight: '90%',
-    borderRadius: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 12,
-  },
-  title: {
-    fontWeight: '600',
-    flex: 1,
-  },
   headerActions: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 4,
   },
-  deleteButton: {
+  iconButton: {
     margin: 0,
-  },
-  closeButton: {
-    margin: 0,
-  },
-  content: {
-    paddingHorizontal: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontWeight: '500',
-    color: '#1976d2',
-    marginBottom: 12,
-  },
-  quickButton: {
-    marginTop: -8,
   },
   contactButton: {
     marginTop: 0,
@@ -552,9 +465,6 @@ const styles = StyleSheet.create({
   menu: {
     maxHeight: 300,
   },
-  menuScroll: {
-    maxHeight: 250,
-  },
   typeChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -562,7 +472,6 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     marginRight: 0,
-    marginBottom: 4,
   },
   dateTimeRow: {
     flexDirection: 'row',
@@ -571,30 +480,11 @@ const styles = StyleSheet.create({
   dateTimeButton: {
     flex: 1,
   },
-  input: {
-    marginBottom: 0,
-  },
-  spacer: {
-    height: 20,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 12,
-    gap: 12,
-  },
-  button: {
-    flex: 1,
+  quickButton: {
+    marginTop: -8,
   },
 });
 
-// Memoize modal to prevent unnecessary re-renders
-// Modal only needs to re-render when visibility, editingInteraction, preselectedContactId, or callbacks change
-//
-// IMPORTANT: Relies on updated_at invariant - the database layer MUST bump updated_at
-// whenever any interaction fields change (see interactions.js:157).
-// If updated_at is not properly maintained, the modal may show stale data when editing.
 export default React.memo(AddInteractionModal, (prevProps, nextProps) => {
   return (
     prevProps.visible === nextProps.visible &&

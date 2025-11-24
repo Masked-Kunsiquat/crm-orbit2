@@ -1,17 +1,16 @@
 import React from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
-  Modal,
-  Portal,
-  Surface,
   Text,
   IconButton,
-  Divider,
   Chip,
   useTheme,
 } from 'react-native-paper';
+import BaseModal from './BaseModal';
+import ModalSection from './ModalSection';
 import ContactAvatar from './ContactAvatar';
 import { getContactDisplayName } from '../utils/contactHelpers';
+import { useTranslation } from 'react-i18next';
 
 // Helper to format interaction datetime
 const formatDateTime = dateTimeStr => {
@@ -39,14 +38,14 @@ const formatDuration = seconds => {
   if (hours > 0) {
     return `${hours}h ${minutes}m`;
   } else if (minutes > 0) {
-    return `${minutes}m ${secs}s`;
+    return `${minutes}m ${secs > 0 ? ` ${secs}s` : ''}`;
   } else {
     return `${secs}s`;
   }
 };
 
 // Get icon and color for interaction type
-const getTypeIcon = type => {
+const getTypeInfo = type => {
   switch (type) {
     case 'call':
       return { name: 'phone', color: '#4CAF50', label: 'Call' };
@@ -70,316 +69,214 @@ function InteractionDetailModal({
   onEdit,
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   if (!interaction) return null;
 
-  const typeInfo = getTypeIcon(
+  const typeInfo = getTypeInfo(
     interaction.interaction_type || interaction.custom_type
   );
   const durationStr = formatDuration(interaction.duration);
 
   return (
-    <Portal>
-      <Modal
-        visible={visible}
-        onDismiss={onDismiss}
-        contentContainerStyle={styles.modal}
-      >
-        <Surface style={styles.surface} elevation={4}>
-          <View style={styles.header}>
-            <Text variant="titleLarge" style={styles.title}>
-              Interaction Details
-            </Text>
-            <View style={styles.headerActions}>
-              <IconButton
-                icon="pencil"
-                size={20}
-                onPress={onEdit}
-                style={styles.editButton}
-              />
-              <IconButton
-                icon="close"
-                size={20}
-                onPress={onDismiss}
-                style={styles.closeButton}
-              />
-            </View>
-          </View>
-
-          <Divider />
-
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
+    <BaseModal
+      visible={visible}
+      onDismiss={onDismiss}
+      title="Interaction Details"
+      subtitle={interaction.title}
+      headerRight={
+        <View style={styles.headerActions}>
+          <IconButton
+            icon="pencil"
+            size={22}
+            onPress={onEdit}
+            style={styles.iconButton}
+            mode="contained-tonal"
+          />
+          <IconButton
+            icon="close"
+            size={22}
+            onPress={onDismiss}
+            style={styles.iconButton}
+          />
+        </View>
+      }
+      maxHeight={0.85}
+    >
+      {/* Type & Duration */}
+      <ModalSection
+        icon={
+          <View
+            style={[
+              styles.typeIconContainer,
+              { backgroundColor: typeInfo.color + '20' },
+            ]}
           >
-            {/* Type & Duration */}
-            <View style={styles.section}>
-              <View style={styles.typeRow}>
-                <View
-                  style={[
-                    styles.typeIconContainer,
-                    { backgroundColor: typeInfo.color + '20' },
-                  ]}
-                >
-                  <IconButton
-                    icon={typeInfo.name}
-                    size={24}
-                    iconColor={typeInfo.color}
-                    style={styles.typeIcon}
-                  />
-                </View>
-                <View style={styles.typeInfo}>
-                  <Text
-                    variant="labelSmall"
-                    style={[
-                      styles.label,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
-                    Type
-                  </Text>
-                  <Text
-                    variant="titleMedium"
-                    style={[styles.value, { color: typeInfo.color }]}
-                  >
-                    {typeInfo.label}
-                  </Text>
-                  {durationStr && (
-                    <Text
-                      variant="bodySmall"
-                      style={[
-                        styles.duration,
-                        { color: theme.colors.onSurfaceVariant },
-                      ]}
-                    >
-                      Duration: {durationStr}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
+            <IconButton
+              icon={typeInfo.name}
+              size={24}
+              iconColor={typeInfo.color}
+              style={styles.typeIcon}
+            />
+          </View>
+        }
+      >
+        <View style={styles.typeInfo}>
+          <Text
+            variant="labelSmall"
+            style={[
+              styles.label,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            Type
+          </Text>
+          <Chip
+            icon={typeInfo.name}
+            style={[styles.typeChip, { backgroundColor: typeInfo.color + '15' }]}
+            textStyle={{ color: typeInfo.color, fontWeight: '600' }}
+          >
+            {typeInfo.label}
+          </Chip>
+          {durationStr && (
+            <Text
+              variant="bodyMedium"
+              style={[
+                styles.duration,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
+              Duration: {durationStr}
+            </Text>
+          )}
+        </View>
+      </ModalSection>
 
-            <Divider />
+      {/* Contact */}
+      {contact && (
+        <ModalSection title="Contact">
+          <View style={styles.contactRow}>
+            <ContactAvatar contact={contact} size={40} />
+            <Text
+              variant="titleMedium"
+              style={[
+                styles.contactName,
+                { color: theme.colors.onSurface },
+              ]}
+            >
+              {getContactDisplayName(contact)}
+            </Text>
+          </View>
+        </ModalSection>
+      )}
 
-            {/* Contact */}
-            {contact && (
-              <>
-                <View style={styles.section}>
-                  <Text
-                    variant="labelSmall"
-                    style={[
-                      styles.label,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
-                    Contact
-                  </Text>
-                  <View style={styles.contactRow}>
-                    <ContactAvatar contact={contact} size={32} />
-                    <Text
-                      variant="bodyLarge"
-                      style={[
-                        styles.contactName,
-                        { color: theme.colors.onSurface },
-                      ]}
-                    >
-                      {getContactDisplayName(contact)}
-                    </Text>
-                  </View>
-                </View>
-                <Divider />
-              </>
-            )}
+      {/* Date & Time */}
+      <ModalSection title="Date & Time">
+        <Text
+          variant="bodyLarge"
+          style={{ color: theme.colors.onSurface }}
+        >
+          {formatDateTime(interaction.interaction_datetime)}
+        </Text>
+      </ModalSection>
 
-            {/* Title */}
-            <View style={styles.section}>
-              <Text
-                variant="labelSmall"
-                style={[styles.label, { color: theme.colors.onSurfaceVariant }]}
-              >
-                Title
-              </Text>
-              <Text
-                variant="bodyLarge"
-                style={{ color: theme.colors.onSurface }}
-              >
-                {interaction.title}
-              </Text>
-            </View>
+      {/* Notes */}
+      {interaction.note && (
+        <ModalSection title="Notes">
+          <Text
+            variant="bodyLarge"
+            style={[styles.note, { color: theme.colors.onSurface }]}
+          >
+            {interaction.note}
+          </Text>
+        </ModalSection>
+      )}
 
-            <Divider />
-
-            {/* Date & Time */}
-            <View style={styles.section}>
-              <Text
-                variant="labelSmall"
-                style={[styles.label, { color: theme.colors.onSurfaceVariant }]}
-              >
-                Date & Time
-              </Text>
-              <Text
-                variant="bodyMedium"
-                style={{ color: theme.colors.onSurface }}
-              >
-                {formatDateTime(interaction.interaction_datetime)}
-              </Text>
-            </View>
-
-            <Divider />
-
-            {/* Notes */}
-            {interaction.note && (
-              <>
-                <View style={styles.section}>
-                  <Text
-                    variant="labelSmall"
-                    style={[
-                      styles.label,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
-                    Notes
-                  </Text>
-                  <Text
-                    variant="bodyMedium"
-                    style={[styles.note, { color: theme.colors.onSurface }]}
-                  >
-                    {interaction.note}
-                  </Text>
-                </View>
-                <Divider />
-              </>
-            )}
-
-            {/* Metadata */}
-            <View style={styles.section}>
-              <Text
-                variant="labelSmall"
-                style={[
-                  styles.metadata,
-                  { color: theme.colors.onSurfaceVariant },
-                ]}
-              >
-                Created:{' '}
-                {new Date(interaction.created_at).toLocaleString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })}
-              </Text>
-              {interaction.updated_at &&
-                interaction.updated_at !== interaction.created_at && (
-                  <Text
-                    variant="labelSmall"
-                    style={[
-                      styles.metadata,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
-                    Updated:{' '}
-                    {new Date(interaction.updated_at).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </Text>
-                )}
-            </View>
-
-            <View style={styles.spacer} />
-          </ScrollView>
-        </Surface>
-      </Modal>
-    </Portal>
+      {/* Metadata */}
+      <ModalSection last>
+        <Text
+          variant="labelSmall"
+          style={[
+            styles.metadata,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
+        >
+          Created:{' '}
+          {new Date(interaction.created_at).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
+        </Text>
+        {interaction.updated_at &&
+          interaction.updated_at !== interaction.created_at && (
+            <Text
+              variant="labelSmall"
+              style={[
+                styles.metadata,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
+              Updated:{' '}
+              {new Date(interaction.updated_at).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
+            </Text>
+          )}
+      </ModalSection>
+    </BaseModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 1,
-    justifyContent: 'center',
-    margin: 20,
-  },
-  surface: {
-    maxHeight: '80%',
-    borderRadius: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingBottom: 12,
-  },
-  title: {
-    fontWeight: '600',
-    flex: 1,
-  },
   headerActions: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 4,
   },
-  editButton: {
+  iconButton: {
     margin: 0,
-  },
-  closeButton: {
-    margin: 0,
-  },
-  content: {
-    paddingHorizontal: 0,
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  typeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   typeIconContainer: {
     borderRadius: 12,
     padding: 2,
+    alignSelf: 'flex-start',
   },
   typeIcon: {
     margin: 0,
   },
   typeInfo: {
-    flex: 1,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 6,
-  },
-  contactName: {
-    fontWeight: '500',
+    gap: 8,
   },
   label: {
-    marginBottom: 4,
     textTransform: 'uppercase',
     fontSize: 12,
     letterSpacing: 0.5,
   },
-  value: {
-    // Color set via theme prop
+  typeChip: {
+    alignSelf: 'flex-start',
   },
   duration: {
     marginTop: 4,
   },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  contactName: {
+    fontWeight: '500',
+  },
   note: {
-    lineHeight: 22,
+    lineHeight: 24,
   },
   metadata: {
-    marginTop: 4,
-  },
-  spacer: {
-    height: 20,
+    lineHeight: 18,
   },
 });
 

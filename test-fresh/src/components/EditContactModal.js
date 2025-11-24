@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
-  Modal,
-  Portal,
-  Surface,
-  Text,
   TextInput,
-  Button,
   IconButton,
   Chip,
   Menu,
 } from 'react-native-paper';
+import { useQueryClient } from '@tanstack/react-query';
+import BaseModal from './BaseModal';
+import ModalSection from './ModalSection';
 import database, {
   contactsDB,
   contactsInfoDB,
@@ -29,6 +27,7 @@ import {
   filterNonEmpty,
 } from '../utils/stringHelpers';
 import { useAsyncLoading } from '../hooks/useAsyncOperation';
+import { CONTACT_TYPES } from '../constants/contactTypes';
 
 const PHONE_LABELS = ['Mobile', 'Home', 'Work', 'Other'];
 const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
@@ -36,8 +35,10 @@ const EMAIL_LABELS = ['Personal', 'Work', 'Other'];
 function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   const { t } = useTranslation();
   const { companyManagementEnabled } = useSettings();
+  const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [contactType, setContactType] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [phones, setPhones] = useState([{ id: 1, value: '', label: 'Mobile' }]);
@@ -86,6 +87,7 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
           {
             first_name: safeTrim(firstName),
             last_name: safeTrim(lastName),
+            contact_type: contactType || null,
             company_id: selectedCompany?.id || null,
           },
           tx
@@ -130,6 +132,7 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
     try {
       setFirstName(contact.first_name || '');
       setLastName(contact.last_name || '');
+      setContactType(contact.contact_type || null);
 
       // Load company if available
       if (contact.company_id && companies.length > 0) {
@@ -268,6 +271,11 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
 
     try {
       await saveContact();
+
+      // Invalidate TanStack Query cache to refresh UI
+      await queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      await queryClient.invalidateQueries({ queryKey: ['contactsWithInfo'] });
+
       onContactUpdated && onContactUpdated();
       onDismiss();
       showAlert.success('Contact updated successfully!');
@@ -290,309 +298,260 @@ function EditContactModal({ visible, onDismiss, contact, onContactUpdated }) {
   if (!contact) return null;
 
   return (
-    <Portal>
-      <Modal
-        visible={visible}
-        onDismiss={handleCancel}
-        contentContainerStyle={styles.modal}
-      >
-        <Surface style={styles.surface} elevation={4}>
-          <View style={styles.header}>
-            <Text variant="headlineSmall" style={styles.title}>
-              {t('editContact.title')}
-            </Text>
-            <IconButton
-              icon="close"
-              size={24}
-              onPress={handleCancel}
-              style={styles.closeButton}
-            />
-          </View>
+    <BaseModal
+      visible={visible}
+      onDismiss={handleCancel}
+      title={t('editContact.title')}
+      headerRight={
+        <IconButton
+          icon="close"
+          size={22}
+          onPress={handleCancel}
+          style={styles.iconButton}
+        />
+      }
+      actions={[
+        {
+          label: t('editContact.labels.cancel'),
+          onPress: handleCancel,
+          mode: 'outlined',
+          disabled: saving,
+        },
+        {
+          label: t('editContact.labels.save'),
+          onPress: handleSave,
+          mode: 'contained',
+          disabled: !canSave,
+          loading: saving,
+        },
+      ]}
+      maxHeight={0.92}
+    >
+      {/* Name Section */}
+      <ModalSection title={t('addContact.sections.name')}>
+        <TextInput
+          label={t('addContact.labels.firstName')}
+          value={firstName}
+          onChangeText={setFirstName}
+          mode="outlined"
+          autoCapitalize="words"
+        />
+        <TextInput
+          label={t('addContact.labels.lastName')}
+          value={lastName}
+          onChangeText={setLastName}
+          mode="outlined"
+          autoCapitalize="words"
+          placeholder={t('addContact.labels.optional')}
+        />
+      </ModalSection>
 
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
+      {/* Relationship Type Section */}
+      <ModalSection title={t('addContact.sections.relationshipType')}>
+        <View style={styles.categoryChips}>
+          {CONTACT_TYPES.map(type => (
+            <Chip
+              key={type}
+              selected={contactType === type}
+              onPress={() => setContactType(contactType === type ? null : type)}
+              style={styles.labelChip}
+            >
+              {t(`contact.contactTypes.${type}`)}
+            </Chip>
+          ))}
+        </View>
+      </ModalSection>
+
+      {/* Company Section */}
+      {companyManagementEnabled && companies.length > 0 && (
+        <ModalSection title={t('addContact.sections.company')}>
+          <Menu
+            visible={showCompanyMenu}
+            onDismiss={() => setShowCompanyMenu(false)}
+            anchor={
+              <TextInput
+                label={t('addContact.labels.company')}
+                value={selectedCompany?.name || ''}
+                mode="outlined"
+                right={<TextInput.Icon icon="chevron-down" />}
+                onFocus={() => setShowCompanyMenu(true)}
+                showSoftInputOnFocus={false}
+                placeholder={t('addContact.labels.optional')}
+              />
+            }
           >
-            {/* Name Section */}
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                {t('addContact.sections.name')}
-              </Text>
-              <TextInput
-                label={t('addContact.labels.firstName')}
-                value={firstName}
-                onChangeText={setFirstName}
-                mode="outlined"
-                style={styles.input}
-                autoCapitalize="words"
-                placeholder={t('addContact.labels.optional')}
+            <Menu.Item
+              onPress={() => {
+                setSelectedCompany(null);
+                setShowCompanyMenu(false);
+              }}
+              title={t('common.none')}
+            />
+            {companies.map(company => (
+              <Menu.Item
+                key={company.id}
+                onPress={() => {
+                  setSelectedCompany(company);
+                  setShowCompanyMenu(false);
+                }}
+                title={company.name}
               />
-              <TextInput
-                label={t('addContact.labels.lastName')}
-                value={lastName}
-                onChangeText={setLastName}
-                mode="outlined"
-                style={styles.input}
-                autoCapitalize="words"
-                placeholder={t('addContact.labels.optional')}
-              />
-            </View>
+            ))}
+          </Menu>
+        </ModalSection>
+      )}
 
-            {/* Company Section */}
-            {companyManagementEnabled && companies.length > 0 && (
-              <View style={styles.section}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>
-                  {t('addContact.sections.company')}
-                </Text>
-                <Menu
-                  visible={showCompanyMenu}
-                  onDismiss={() => setShowCompanyMenu(false)}
-                  anchor={
-                    <TextInput
-                      label={t('addContact.labels.company')}
-                      value={selectedCompany?.name || ''}
-                      mode="outlined"
-                      style={styles.input}
-                      right={<TextInput.Icon icon="chevron-down" />}
-                      onFocus={() => setShowCompanyMenu(true)}
-                      showSoftInputOnFocus={false}
-                      placeholder={t('addContact.labels.optional')}
-                    />
-                  }
+      {/* Phone Numbers Section */}
+      <ModalSection
+        title={t('addContact.sections.phones')}
+        action={
+          <IconButton
+            icon="plus-circle-outline"
+            size={22}
+            onPress={addPhoneEntry}
+            style={styles.addButton}
+          />
+        }
+      >
+        {phones.map(phone => (
+          <View key={phone.id} style={styles.entryContainer}>
+            <View style={styles.labelChips}>
+              {PHONE_LABELS.map(label => (
+                <Chip
+                  key={label}
+                  selected={phone.label === label}
+                  onPress={() => updatePhoneLabel(phone.id, label)}
+                  style={styles.labelChip}
+                  compact
                 >
-                  <Menu.Item
-                    onPress={() => {
-                      setSelectedCompany(null);
-                      setShowCompanyMenu(false);
-                    }}
-                    title="None"
-                  />
-                  {companies.map(company => (
-                    <Menu.Item
-                      key={company.id}
-                      onPress={() => {
-                        setSelectedCompany(company);
-                        setShowCompanyMenu(false);
-                      }}
-                      title={company.name}
-                    />
-                  ))}
-                </Menu>
-              </View>
-            )}
-
-            {/* Phone Numbers Section */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>
-                  {t('addContact.sections.phones')}
-                </Text>
-                <IconButton
-                  icon="plus-circle-outline"
-                  size={24}
-                  onPress={addPhoneEntry}
-                  style={styles.addButton}
-                />
-              </View>
-
-              {phones.map((phone, index) => (
-                <View key={phone.id} style={styles.entryContainer}>
-                  <View style={styles.labelChips}>
-                    {PHONE_LABELS.map(label => (
-                      <Chip
-                        key={label}
-                        selected={phone.label === label}
-                        onPress={() => updatePhoneLabel(phone.id, label)}
-                        style={styles.labelChip}
-                        compact
-                      >
-                        {t(`contact.phoneLabels.${label}`)}
-                      </Chip>
-                    ))}
-                  </View>
-                  <View style={styles.inputRow}>
-                    <TextInput
-                      label={`${t('contact.phoneLabels.' + phone.label)} ${t('addContact.labels.phone')}`}
-                      value={phone.value}
-                      onChangeText={value => updatePhoneValue(phone.id, value)}
-                      mode="outlined"
-                      style={styles.inputFlex}
-                      keyboardType="phone-pad"
-                      placeholder="Optional"
-                    />
-                    {phones.length > 1 && (
-                      <IconButton
-                        icon="minus-circle-outline"
-                        size={24}
-                        onPress={() => removePhoneEntry(phone.id)}
-                        style={styles.deleteButton}
-                      />
-                    )}
-                  </View>
-                </View>
+                  {t(`contact.phoneLabels.${label}`)}
+                </Chip>
               ))}
             </View>
-
-            {/* Email Addresses Section */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>
-                  {t('addContact.sections.emails')}
-                </Text>
+            <View style={styles.inputRow}>
+              <TextInput
+                label={`${t('contact.phoneLabels.' + phone.label)} ${t('addContact.labels.phone')}`}
+                value={phone.value}
+                onChangeText={value => updatePhoneValue(phone.id, value)}
+                mode="outlined"
+                style={styles.inputFlex}
+                keyboardType="phone-pad"
+                placeholder="Optional"
+              />
+              {phones.length > 1 && (
                 <IconButton
-                  icon="plus-circle-outline"
-                  size={24}
-                  onPress={addEmailEntry}
-                  style={styles.addButton}
+                  icon="minus-circle-outline"
+                  size={22}
+                  onPress={() => removePhoneEntry(phone.id)}
+                  style={styles.deleteButton}
                 />
-              </View>
-
-              {emails.map((email, index) => (
-                <View key={email.id} style={styles.entryContainer}>
-                  <View style={styles.labelChips}>
-                    {EMAIL_LABELS.map(label => (
-                      <Chip
-                        key={label}
-                        selected={email.label === label}
-                        onPress={() => updateEmailLabel(email.id, label)}
-                        style={styles.labelChip}
-                        compact
-                      >
-                        {t(`contact.emailLabels.${label}`)}
-                      </Chip>
-                    ))}
-                  </View>
-                  <View style={styles.inputRow}>
-                    <TextInput
-                      label={`${t('contact.emailLabels.' + email.label)} ${t('addContact.labels.email')}`}
-                      value={email.value}
-                      onChangeText={value => updateEmailValue(email.id, value)}
-                      mode="outlined"
-                      style={styles.inputFlex}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      placeholder="Optional"
-                    />
-                    {emails.length > 1 && (
-                      <IconButton
-                        icon="minus-circle-outline"
-                        size={24}
-                        onPress={() => removeEmailEntry(email.id)}
-                        style={styles.deleteButton}
-                      />
-                    )}
-                  </View>
-                </View>
-              ))}
+              )}
             </View>
-
-            {/* Categories Section */}
-            {categories.length > 0 && (
-              <View style={styles.section}>
-                <Text variant="titleMedium" style={styles.sectionTitle}>
-                  {t('addContact.sections.categories')}
-                </Text>
-                <View style={styles.categoryChips}>
-                  {categories.map(category => (
-                    <Chip
-                      key={category.id}
-                      selected={selectedCategories.includes(category.id)}
-                      onPress={() => toggleCategory(category.id)}
-                      style={[
-                        styles.categoryChip,
-                        selectedCategories.includes(category.id) && {
-                          backgroundColor: category.color,
-                        },
-                      ]}
-                      mode="flat"
-                      icon={category.icon}
-                    >
-                      {(() => {
-                        const key = `categories.${category.name}`;
-                        const translated = t(key);
-                        return translated === key ? category.name : translated;
-                      })()}
-                    </Chip>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            <View style={styles.spacer} />
-          </ScrollView>
-
-          <View style={styles.actions}>
-            <Button
-              mode="outlined"
-              onPress={handleCancel}
-              style={styles.button}
-              disabled={saving}
-            >
-              {t('editContact.labels.cancel')}
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSave}
-              style={styles.button}
-              disabled={!canSave}
-              loading={saving}
-            >
-              {t('editContact.labels.save')}
-            </Button>
           </View>
-        </Surface>
-      </Modal>
-    </Portal>
+        ))}
+      </ModalSection>
+
+      {/* Email Addresses Section */}
+      <ModalSection
+        title={t('addContact.sections.emails')}
+        action={
+          <IconButton
+            icon="plus-circle-outline"
+            size={22}
+            onPress={addEmailEntry}
+            style={styles.addButton}
+          />
+        }
+      >
+        {emails.map(email => (
+          <View key={email.id} style={styles.entryContainer}>
+            <View style={styles.labelChips}>
+              {EMAIL_LABELS.map(label => (
+                <Chip
+                  key={label}
+                  selected={email.label === label}
+                  onPress={() => updateEmailLabel(email.id, label)}
+                  style={styles.labelChip}
+                  compact
+                >
+                  {t(`contact.emailLabels.${label}`)}
+                </Chip>
+              ))}
+            </View>
+            <View style={styles.inputRow}>
+              <TextInput
+                label={`${t('contact.emailLabels.' + email.label)} ${t('addContact.labels.email')}`}
+                value={email.value}
+                onChangeText={value => updateEmailValue(email.id, value)}
+                mode="outlined"
+                style={styles.inputFlex}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholder="Optional"
+              />
+              {emails.length > 1 && (
+                <IconButton
+                  icon="minus-circle-outline"
+                  size={22}
+                  onPress={() => removeEmailEntry(email.id)}
+                  style={styles.deleteButton}
+                />
+              )}
+            </View>
+          </View>
+        ))}
+      </ModalSection>
+
+      {/* Categories Section */}
+      {categories.length > 0 && (
+        <ModalSection title={t('addContact.sections.categories')} last>
+          <View style={styles.categoryChips}>
+            {categories.map(category => (
+              <Chip
+                key={category.id}
+                selected={selectedCategories.includes(category.id)}
+                onPress={() => toggleCategory(category.id)}
+                style={[
+                  styles.categoryChip,
+                  selectedCategories.includes(category.id) && {
+                    backgroundColor: category.color,
+                  },
+                ]}
+                mode="flat"
+                icon={category.icon}
+              >
+                {(() => {
+                  const key = `categories.${category.name}`;
+                  const translated = t(key);
+                  return translated === key ? category.name : translated;
+                })()}
+              </Chip>
+            ))}
+          </View>
+        </ModalSection>
+      )}
+    </BaseModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    flex: 1,
-    justifyContent: 'center',
-    margin: 20,
-  },
-  surface: {
-    maxHeight: '90%',
-    borderRadius: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 12,
-  },
-  title: {
-    fontWeight: '600',
-  },
-  closeButton: {
+  iconButton: {
     margin: 0,
-  },
-  content: {
-    paddingHorizontal: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontWeight: '500',
-    color: '#1976d2',
   },
   addButton: {
     margin: 0,
+    marginTop: -8,
   },
   entryContainer: {
-    marginBottom: 16,
+    gap: 12,
   },
-  input: {
-    marginBottom: 12,
+  labelChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  labelChip: {
+    marginRight: 0,
   },
   inputRow: {
     flexDirection: 'row',
@@ -605,15 +564,6 @@ const styles = StyleSheet.create({
   deleteButton: {
     margin: 0,
   },
-  labelChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-    gap: 8,
-  },
-  labelChip: {
-    marginRight: 0,
-  },
   categoryChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -621,20 +571,6 @@ const styles = StyleSheet.create({
   },
   categoryChip: {
     marginRight: 0,
-    marginBottom: 4,
-  },
-  spacer: {
-    height: 20,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 12,
-    gap: 12,
-  },
-  button: {
-    flex: 1,
   },
 });
 

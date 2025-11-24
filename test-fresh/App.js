@@ -15,6 +15,8 @@ import EventsList from './src/screens/EventsList';
 import SettingsScreen from './src/screens/SettingsScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
 import GlobalSearchScreen from './src/screens/GlobalSearchScreen';
+import ProximityScreen from './src/screens/ProximityScreen';
+import ProximitySettingsScreen from './src/screens/ProximitySettingsScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AuthLockScreen from './src/screens/AuthLockScreen';
@@ -99,6 +101,7 @@ export default function App() {
       const routes = [
         { key: 'contacts', title: t('navigation.contacts'), focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
         { key: 'interactions', title: t('navigation.interactions'), focusedIcon: 'message-text', unfocusedIcon: 'message-text-outline' },
+        { key: 'proximity', title: t('navigation.proximity'), focusedIcon: 'target', unfocusedIcon: 'target' },
         { key: 'dashboard', title: t('navigation.dashboard'), focusedIcon: 'view-dashboard', unfocusedIcon: 'view-dashboard-outline' },
         { key: 'events', title: t('navigation.events'), focusedIcon: 'calendar', unfocusedIcon: 'calendar-outline' },
         { key: 'settings', title: t('navigation.settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' }
@@ -142,6 +145,8 @@ export default function App() {
           return <CompanyListScreen navigation={navigation} />;
         case 'interactions':
           return <InteractionsScreen />;
+        case 'proximity':
+          return <ProximityScreen navigation={navigation} />;
         case 'events':
           return <EventsList navigation={navigation} />;
         case 'settings':
@@ -186,6 +191,7 @@ export default function App() {
                         <Stack.Screen name="EventsList" component={EventsList} />
                         <Stack.Screen name="CompanyList" component={CompanyListScreen} />
                         <Stack.Screen name="PinSetup" component={PinSetupScreen} />
+                        <Stack.Screen name="ProximitySettings" component={ProximitySettingsScreen} />
                       </Stack.Navigator>
                     </NavigationContainer>
                   </ErrorBoundary>

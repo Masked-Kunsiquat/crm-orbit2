@@ -4,8 +4,9 @@
 
 import { DatabaseError } from '../errors.js';
 import m001 from './001_initial_schema.js';
+import m002 from './002_add_contact_type.js';
 
-const MIGRATIONS = [m001];
+const MIGRATIONS = [m001, m002];
 
 // Ensure unique, sorted by version
 const seen = new Set();
