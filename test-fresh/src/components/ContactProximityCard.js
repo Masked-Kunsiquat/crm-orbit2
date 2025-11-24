@@ -36,11 +36,18 @@ function ContactProximityCard({ contact, onPress }) {
 }
 
 // Memoize to prevent unnecessary re-renders
-// Only re-render if contact ID, proximityScore, or onPress changes
+// Re-render if contact data (name, avatar, score) or onPress changes
 export default React.memo(ContactProximityCard, (prevProps, nextProps) => {
+  const prev = prevProps.contact;
+  const next = nextProps.contact;
+
   return (
-    prevProps.contact.id === nextProps.contact.id &&
-    prevProps.contact.proximityScore === nextProps.contact.proximityScore &&
+    prev.id === next.id &&
+    prev.proximityScore === next.proximityScore &&
+    prev.first_name === next.first_name &&
+    prev.last_name === next.last_name &&
+    prev.display_name === next.display_name &&
+    prev.avatar_attachment_id === next.avatar_attachment_id &&
     prevProps.onPress === nextProps.onPress
   );
 });
