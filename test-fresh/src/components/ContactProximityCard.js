@@ -11,13 +11,13 @@ import { getContactDisplayName } from '../utils/contactHelpers';
  * Optimized with React.memo to prevent unnecessary re-renders in lists
  *
  * @param {object} contact - Contact object with proximityScore
- * @param {function} onPress - Callback when card is pressed
+ * @param {function} onPress - Callback when card is pressed, receives contact object
  */
 function ContactProximityCard({ contact, onPress }) {
   const score = contact.proximityScore || 0;
 
   return (
-    <Card style={styles.card} onPress={onPress}>
+    <Card style={styles.card} onPress={() => onPress(contact)}>
       <Card.Content style={styles.cardContent}>
         <ContactAvatar contact={contact} size={48} style={styles.avatar} />
 

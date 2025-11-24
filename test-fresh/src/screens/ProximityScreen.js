@@ -70,7 +70,7 @@ export default function ProximityScreen({ navigation }) {
   const renderContact = ({ item: contact }) => (
     <ContactProximityCard
       contact={contact}
-      onPress={() => handleContactPress(contact)}
+      onPress={handleContactPress}
     />
   );
 
