@@ -1,10 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { StyleSheet, SectionList, View } from 'react-native';
 import {
   Appbar,
   Text,
-  Card,
-  Chip,
   useTheme,
   ActivityIndicator,
   Dialog,
@@ -12,9 +10,9 @@ import {
   Button,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import ContactAvatar from '../components/ContactAvatar';
+import ContactProximityCard from '../components/ContactProximityCard';
+import TierHeader from '../components/TierHeader';
 import { EmptyState } from '../components/layout';
-import { getContactDisplayName } from '../utils/contactHelpers';
 import { useProximityData } from '../hooks/queries';
 import { getTierDetails } from '../constants/proximityDefaults';
 
@@ -50,64 +48,31 @@ export default function ProximityScreen({ navigation }) {
       .filter(section => section.data.length > 0); // Hide empty tiers
   }, [proximityGroups]);
 
-  const handleContactPress = contact => {
-    navigation.navigate('ContactDetail', { contactId: contact.id });
-  };
+  // Memoized callback for contact press to prevent unnecessary re-renders
+  const handleContactPress = useCallback(
+    contact => {
+      navigation.navigate('ContactDetail', { contactId: contact.id });
+    },
+    [navigation]
+  );
 
   const styles = getStyles(theme);
 
   const renderSectionHeader = ({ section }) => (
-    <View style={[styles.sectionHeader, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.sectionHeaderContent}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: section.color }]}>
-          {section.emoji} {section.title.toUpperCase()}
-        </Text>
-        <Chip
-          compact
-          mode="flat"
-          style={[styles.countChip, { backgroundColor: section.color + '20' }]}
-          textStyle={[styles.countText, { color: section.color }]}
-        >
-          {section.data.length}
-        </Chip>
-      </View>
-    </View>
+    <TierHeader
+      emoji={section.emoji}
+      title={section.title}
+      color={section.color}
+      count={section.data.length}
+    />
   );
 
-  const renderContact = ({ item: contact }) => {
-    const score = contact.proximityScore || 0;
-    const tierInfo = getTierDetails(score);
-
-    return (
-      <Card
-        style={styles.contactCard}
-        onPress={() => handleContactPress(contact)}
-      >
-        <Card.Content style={styles.cardContent}>
-          <ContactAvatar contact={contact} size={48} style={styles.avatar} />
-
-          <View style={styles.contactInfo}>
-            <Text variant="titleMedium" style={styles.contactName}>
-              {getContactDisplayName(contact)}
-            </Text>
-          </View>
-
-          <View style={styles.scoreContainer}>
-            <View
-              style={[
-                styles.scoreBadge,
-                { backgroundColor: tierInfo.color },
-              ]}
-            >
-              <Text variant="labelLarge" style={styles.scoreText}>
-                {Math.round(score)}
-              </Text>
-            </View>
-          </View>
-        </Card.Content>
-      </Card>
-    );
-  };
+  const renderContact = ({ item: contact }) => (
+    <ContactProximityCard
+      contact={contact}
+      onPress={handleContactPress}
+    />
+  );
 
   const renderEmpty = () => {
     if (isLoading) {
@@ -209,63 +174,6 @@ function getStyles(theme) {
     loadingText: {
       marginTop: 16,
       color: theme.colors.onSurfaceVariant,
-    },
-    sectionHeader: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.outlineVariant,
-    },
-    sectionHeaderContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    sectionTitle: {
-      fontWeight: '700',
-      letterSpacing: 0.5,
-    },
-    countChip: {
-      height: 24,
-    },
-    countText: {
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    contactCard: {
-      marginVertical: 4,
-      marginHorizontal: 16,
-      elevation: 2,
-    },
-    cardContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-    },
-    avatar: {
-      marginRight: 12,
-    },
-    contactInfo: {
-      flex: 1,
-    },
-    contactName: {
-      fontWeight: '600',
-      marginBottom: 2,
-    },
-    scoreContainer: {
-      marginLeft: 12,
-    },
-    scoreBadge: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      justifyContent: 'center',
-      alignItems: 'center',
-      elevation: 2,
-    },
-    scoreText: {
-      color: theme.colors.onPrimary,
-      fontWeight: '700',
     },
     dialogText: {
       marginBottom: 12,
