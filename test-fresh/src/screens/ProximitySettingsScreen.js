@@ -20,6 +20,7 @@ export default function ProximitySettingsScreen({ navigation }) {
   const { t } = useTranslation();
 
   const [selectedPreset, setSelectedPreset] = useState(DEFAULT_PRESET);
+  const [initialPreset, setInitialPreset] = useState(DEFAULT_PRESET);
   const [customWeights, setCustomWeights] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +43,7 @@ export default function ProximitySettingsScreen({ navigation }) {
       const weights = customWeightsSetting?.value || null;
 
       setSelectedPreset(preset);
+      setInitialPreset(preset);
       setCustomWeights(weights);
 
       logger.success('ProximitySettings', 'loadCurrentPreset', { preset, hasCustomWeights: !!weights });
@@ -61,6 +63,9 @@ export default function ProximitySettingsScreen({ navigation }) {
       setSaving(true);
 
       await database.settings.set('proximity.preset', selectedPreset);
+
+      // Update initial preset to reflect saved state
+      setInitialPreset(selectedPreset);
 
       logger.success('ProximitySettings', 'handleSave', {
         preset: selectedPreset,
@@ -85,9 +90,9 @@ export default function ProximitySettingsScreen({ navigation }) {
   };
 
   const hasChanges = useMemo(() => {
-    // Check if current selection differs from loaded setting
-    return selectedPreset !== (selectedPreset || DEFAULT_PRESET);
-  }, [selectedPreset]);
+    // Check if current selection differs from initially loaded preset
+    return selectedPreset !== initialPreset;
+  }, [selectedPreset, initialPreset]);
 
   if (loading) {
     return (
