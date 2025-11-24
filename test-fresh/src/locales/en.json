@@ -609,6 +609,7 @@
         "frequency": "Frequency",
         "quality": "Quality",
         "contactType": "Contact Type",
+        "customNotConfigured": "Custom weights not yet configured. Using default preset.",
         "save": "Save Settings",
         "saved": "Settings Saved",
         "savedMessage": "Your proximity algorithm preferences have been updated.",

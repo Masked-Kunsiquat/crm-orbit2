@@ -20,22 +20,31 @@ export default function ProximitySettingsScreen({ navigation }) {
   const { t } = useTranslation();
 
   const [selectedPreset, setSelectedPreset] = useState(DEFAULT_PRESET);
+  const [customWeights, setCustomWeights] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const styles = getStyles(theme);
 
-  // Load current setting
+  // Load current setting and custom weights
   useEffect(() => {
     loadCurrentPreset();
   }, []);
 
   const loadCurrentPreset = async () => {
     try {
-      const setting = await database.settings.get('proximity.preset');
-      const preset = setting?.value || DEFAULT_PRESET;
+      const [presetSetting, customWeightsSetting] = await Promise.all([
+        database.settings.get('proximity.preset'),
+        database.settings.get('proximity.customWeights'),
+      ]);
+
+      const preset = presetSetting?.value || DEFAULT_PRESET;
+      const weights = customWeightsSetting?.value || null;
+
       setSelectedPreset(preset);
-      logger.success('ProximitySettings', 'loadCurrentPreset', { preset });
+      setCustomWeights(weights);
+
+      logger.success('ProximitySettings', 'loadCurrentPreset', { preset, hasCustomWeights: !!weights });
     } catch (error) {
       logger.error('ProximitySettings', 'loadCurrentPreset', error);
       showAlert.error(
@@ -127,6 +136,10 @@ export default function ProximitySettingsScreen({ navigation }) {
                 const preset = PROXIMITY_PRESETS[presetKey];
                 const isSelected = selectedPreset === presetKey;
 
+                // For custom preset, use loaded weights or show placeholder
+                const weights = presetKey === 'custom' ? customWeights : preset.weights;
+                const hasWeights = weights !== null;
+
                 return (
                   <View key={presetKey}>
                     <RadioButton.Item
@@ -144,19 +157,26 @@ export default function ProximitySettingsScreen({ navigation }) {
                     >
                       {preset.description}
                     </Text>
-                    {isSelected && (
+                    {isSelected && hasWeights && (
                       <View style={styles.weightsContainer}>
                         <Text variant="labelSmall" style={styles.weightsTitle}>
                           {t('proximitySettings.weights')}:
                         </Text>
                         <Text variant="bodySmall" style={styles.weightsText}>
-                          {t('proximitySettings.recency')}: {Math.round(preset.weights.recency * 100)}%
+                          {t('proximitySettings.recency')}: {Math.round(weights.recency * 100)}%
                           {' • '}
-                          {t('proximitySettings.frequency')}: {Math.round(preset.weights.frequency * 100)}%
+                          {t('proximitySettings.frequency')}: {Math.round(weights.frequency * 100)}%
                           {' • '}
-                          {t('proximitySettings.quality')}: {Math.round(preset.weights.quality * 100)}%
+                          {t('proximitySettings.quality')}: {Math.round(weights.quality * 100)}%
                           {' • '}
-                          {t('proximitySettings.contactType')}: {Math.round(preset.weights.contactType * 100)}%
+                          {t('proximitySettings.contactType')}: {Math.round(weights.contactType * 100)}%
+                        </Text>
+                      </View>
+                    )}
+                    {isSelected && !hasWeights && presetKey === 'custom' && (
+                      <View style={styles.weightsContainer}>
+                        <Text variant="bodySmall" style={styles.weightsText}>
+                          {t('proximitySettings.customNotConfigured')}
                         </Text>
                       </View>
                     )}
