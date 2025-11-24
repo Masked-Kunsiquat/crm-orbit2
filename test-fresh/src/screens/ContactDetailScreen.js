@@ -81,6 +81,9 @@ export default function ContactDetailScreen({ route, navigation }) {
 
   // Get proximity score for this contact
   const proximityScore = React.useMemo(() => {
+    if (!proximityScores || !Array.isArray(proximityScores)) {
+      return 0;
+    }
     const contactScore = proximityScores.find(c => c.id === contactId);
     return contactScore?.proximityScore || 0;
   }, [proximityScores, contactId]);
