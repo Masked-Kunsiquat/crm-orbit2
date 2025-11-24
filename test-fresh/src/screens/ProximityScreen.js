@@ -55,6 +55,8 @@ export default function ProximityScreen({ navigation }) {
     navigation.navigate('ContactDetail', { contactId: contact.id });
   };
 
+  const styles = getStyles(theme);
+
   const renderSectionHeader = ({ section }) => (
     <View style={[styles.sectionHeader, { backgroundColor: theme.colors.background }]}>
       <View style={styles.sectionHeaderContent}>
@@ -201,90 +203,93 @@ function getInteractionSummary(contact) {
   return null;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  loadingText: {
-    marginTop: 16,
-    color: '#666',
-  },
-  sectionHeader: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  sectionHeaderContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  countChip: {
-    height: 24,
-  },
-  countText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  contactCard: {
-    marginVertical: 4,
-    marginHorizontal: 16,
-    elevation: 2,
-  },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  avatar: {
-    marginRight: 12,
-  },
-  contactInfo: {
-    flex: 1,
-  },
-  contactName: {
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  interactionSummary: {
-    color: '#666',
-  },
-  scoreContainer: {
-    marginLeft: 12,
-  },
-  scoreBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-  },
-  scoreText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  dialogText: {
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-});
+// Theme-aware styles
+function getStyles(theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    listContent: {
+      paddingBottom: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+    },
+    loadingText: {
+      marginTop: 16,
+      color: theme.colors.onSurfaceVariant,
+    },
+    sectionHeader: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outlineVariant,
+    },
+    sectionHeaderContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    sectionTitle: {
+      fontWeight: '700',
+      letterSpacing: 0.5,
+    },
+    countChip: {
+      height: 24,
+    },
+    countText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    contactCard: {
+      marginVertical: 4,
+      marginHorizontal: 16,
+      elevation: 2,
+    },
+    cardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    avatar: {
+      marginRight: 12,
+    },
+    contactInfo: {
+      flex: 1,
+    },
+    contactName: {
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    interactionSummary: {
+      color: theme.colors.onSurfaceVariant,
+    },
+    scoreContainer: {
+      marginLeft: 12,
+    },
+    scoreBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 2,
+    },
+    scoreText: {
+      color: theme.colors.onPrimary,
+      fontWeight: '700',
+    },
+    dialogText: {
+      marginBottom: 12,
+      lineHeight: 20,
+    },
+  });
+}
