@@ -9,7 +9,7 @@
     },
     "dashboard": {
         "title": "Dashboard",
-        "loading": "Loading...",
+        "loading": "Loading…",
         "stats": {
             "contacts": "Contacts",
             "interactions": "Interactions",
@@ -59,11 +59,11 @@
         }
     },
     "search": {
-        "contactsPlaceholder": "Search contacts..."
+        "contactsPlaceholder": "Search contacts…"
     },
     "settings": {
         "title": "Settings",
-        "searchPlaceholder": "Search for a setting...",
+        "searchPlaceholder": "Search for a setting…",
         "noResults": "No settings match your search",
         "sections": {
             "appearance": "Appearance",
@@ -176,8 +176,8 @@
     },
     "common": {
         "all": "All",
-        "cancel": "",
-        "save": ""
+        "cancel": "Cancel",
+        "save": "Save"
     },
     "industries": {
         "technology": "Technology",
@@ -239,7 +239,7 @@
         },
         "list": {
             "title": "Companies",
-            "searchPlaceholder": "Search companies...",
+            "searchPlaceholder": "Search companies…",
             "empty": {
                 "title": "No Companies Found",
                 "noResults": "No companies match your search.",
@@ -412,7 +412,7 @@
     },
     "contactDetail": {
         "title": "Contact",
-        "loading": "Loading...",
+        "loading": "Loading…",
         "errorLoad": "Failed to load contact details",
         "errorImageSet": "Failed to set contact photo",
         "errorImageRemove": "Failed to remove photo",
@@ -495,8 +495,8 @@
     },
     "globalSearch": {
         "title": "Search",
-        "searchPlaceholder": "Search contacts, companies, interactions, events...",
-        "searching": "Searching...",
+        "searchPlaceholder": "Search contacts, companies, interactions, events…",
+        "searching": "Searching…",
         "sections": {
             "contacts": "Contacts",
             "companies": "Companies",
@@ -520,21 +520,21 @@
         "note": "Note"
     },
     "filters": {
-        "title": "",
-        "categories": "",
+        "title": "Title",
+        "categories": "Categories",
         "categoryLogic": "",
         "or": "",
         "and": "",
-        "company": "",
-        "dateAdded": "",
-        "startDate": "",
-        "endDate": "",
+        "company": "Company",
+        "dateAdded": "Date Added",
+        "startDate": "Start Date",
+        "endDate": "End Date",
         "to": "",
-        "clearDateRange": "",
-        "interactionActivity": "",
-        "last7Days": "",
-        "last30Days": "",
-        "last90Days": "",
+        "clearDateRange": "Clear Date Range",
+        "interactionActivity": "Interaction Activity",
+        "last7Days": "Last 7 Days",
+        "last30Days": "Last 30 Days",
+        "last90Days": "Last 90 Days",
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
