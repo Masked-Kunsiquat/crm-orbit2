@@ -7,13 +7,21 @@
  * @module screens/ProximityRadarScreen
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Appbar, ActivityIndicator, useTheme, IconButton, Text } from 'react-native-paper';
+import {
+  Appbar,
+  ActivityIndicator,
+  useTheme,
+  IconButton,
+  Text,
+  Dialog,
+  Portal,
+  Button,
+} from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import RadarVisualization from '../components/RadarVisualization';
 import { useProximityData } from '../hooks/queries/useProximityQueries';
-import { showAlert } from '../errors/utils/errorHandler';
 import { logger } from '../errors/utils/errorLogger';
 
 /**
@@ -26,6 +34,7 @@ export default function ProximityRadarScreen({ navigation }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const styles = getStyles(theme);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
 
   // Fetch proximity data (reuses existing hook from list view)
   const {
@@ -69,11 +78,8 @@ export default function ProximityRadarScreen({ navigation }) {
 
   // Handle info button press
   const handleInfoPress = useCallback(() => {
-    showAlert.info(
-      t('proximity.radarInfo.title'),
-      t('proximity.radarInfo.message')
-    );
-  }, [t]);
+    setShowInfoDialog(true);
+  }, []);
 
   // Loading state
   if (isLoading) {
@@ -164,6 +170,22 @@ export default function ProximityRadarScreen({ navigation }) {
         enablePulse={true}
         padding={60}
       />
+
+      <Portal>
+        <Dialog visible={showInfoDialog} onDismiss={() => setShowInfoDialog(false)}>
+          <Dialog.Title>{t('proximity.radarInfo.title')}</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium" style={styles.dialogText}>
+              {t('proximity.radarInfo.message')}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowInfoDialog(false)}>
+              {t('proximity.gotIt')}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -210,6 +232,10 @@ function getStyles(theme) {
       color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
       maxWidth: 300,
+    },
+    dialogText: {
+      marginBottom: 12,
+      lineHeight: 20,
     },
   });
 }
