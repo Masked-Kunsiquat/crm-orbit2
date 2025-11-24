@@ -29,14 +29,15 @@ export default function ProximityRadarScreen({ navigation }) {
 
   // Fetch proximity data (reuses existing hook from list view)
   const {
-    data: proximityData,
+    data: proximityGroups,
     isLoading,
     isError,
     error,
     refetch,
   } = useProximityData();
 
-  const proximityGroups = proximityData?.proximityGroups || {
+  // Fallback to empty groups if data not loaded yet
+  const groups = proximityGroups || {
     inner: [],
     middle: [],
     outer: [],
@@ -44,7 +45,7 @@ export default function ProximityRadarScreen({ navigation }) {
   };
 
   // Calculate total contact count
-  const totalContacts = Object.values(proximityGroups).reduce(
+  const totalContacts = Object.values(groups).reduce(
     (sum, contacts) => sum + contacts.length,
     0
   );
@@ -157,7 +158,7 @@ export default function ProximityRadarScreen({ navigation }) {
       </Appbar.Header>
 
       <RadarVisualization
-        proximityGroups={proximityGroups}
+        proximityGroups={groups}
         onContactPress={handleContactPress}
         showScores={false}
         enablePulse={true}
