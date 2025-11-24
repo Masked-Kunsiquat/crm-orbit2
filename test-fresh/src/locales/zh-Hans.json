@@ -28,7 +28,7 @@
         }
     },
     "search": {
-        "contactsPlaceholder": "搜索联系人…"
+        "contactsPlaceholder": "搜索联系人 …"
     },
     "settings": {
         "title": "设置",
@@ -207,7 +207,7 @@
         },
         "list": {
             "title": "公司",
-            "searchPlaceholder": "搜索公司…",
+            "searchPlaceholder": "搜索公司 …",
             "empty": {
                 "title": "未找到公司",
                 "noResults": "没有与您的搜索匹配的公司。",
@@ -380,7 +380,7 @@
     },
     "contactDetail": {
         "title": "联系人",
-        "loading": "正在加载…",
+        "loading": "正在加载 …",
         "errorLoad": "加载联系人详情失败",
         "errorImageSet": "设置联系人照片失败",
         "errorImageRemove": "删除照片失败",
@@ -463,8 +463,8 @@
     },
     "globalSearch": {
         "title": "搜索",
-        "searchPlaceholder": "搜索联系人、公司、互动、事件…",
-        "searching": "搜索中…",
+        "searchPlaceholder": "搜索联系人、公司、互动、事件 …",
+        "searching": "搜索中 …",
         "sections": {
             "contacts": "联系人",
             "companies": "公司",
