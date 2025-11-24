@@ -27,6 +27,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { fileService } from '../services/fileService';
 import ContactAvatar from '../components/ContactAvatar';
+import ScoreBadge from '../components/ScoreBadge';
 import EditContactModal from '../components/EditContactModal';
 import AddInteractionModal from '../components/AddInteractionModal';
 import AddEventModal from '../components/AddEventModal';
@@ -39,6 +40,7 @@ import {
   useUpdateContact,
   useContactEvents,
 } from '../hooks/queries';
+import { useProximityScores } from '../hooks/queries/useProximityQueries';
 import {
   compareDates,
   formatDateSmart,
@@ -73,8 +75,15 @@ export default function ContactDetailScreen({ route, navigation }) {
   const { data: contact, isLoading: loading } = useContact(contactId);
   const { data: allInteractions = [] } = useContactInteractions(contactId);
   const { data: allEvents = [] } = useContactEvents(contactId);
+  const { data: proximityScores = [] } = useProximityScores();
   const deleteContactMutation = useDeleteContact();
   const updateContactMutation = useUpdateContact();
+
+  // Get proximity score for this contact
+  const proximityScore = React.useMemo(() => {
+    const contactScore = proximityScores.find(c => c.id === contactId);
+    return contactScore?.proximityScore || 0;
+  }, [proximityScores, contactId]);
 
   // Create unified activity timeline (Events + Interactions combined)
   const activityTimeline = React.useMemo(() => {
@@ -435,7 +444,12 @@ export default function ContactDetailScreen({ route, navigation }) {
           style={[styles.header, { backgroundColor: theme.colors.surface }]}
         >
           <Pressable onPress={() => setShowAvatarDialog(true)}>
-            <ContactAvatar contact={contact} size={100} style={styles.avatar} />
+            <View style={styles.avatarContainer}>
+              <ContactAvatar contact={contact} size={100} style={styles.avatar} />
+              {proximityScore > 0 && (
+                <ScoreBadge score={proximityScore} size="medium" style={styles.scoreBadge} />
+              )}
+            </View>
           </Pressable>
           <Text
             variant="headlineMedium"
@@ -848,8 +862,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 32,
   },
-  avatar: {
+  avatarContainer: {
+    position: 'relative',
     marginBottom: 16,
+  },
+  avatar: {
+    // Avatar styling handled by ContactAvatar component
+  },
+  scoreBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
   },
   name: {
     fontWeight: '600',
