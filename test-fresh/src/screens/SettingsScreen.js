@@ -34,6 +34,7 @@ const SECTION_SEARCH_TERMS = {
   language: ['language', 'english', 'spanish', 'french', 'german', 'chinese'],
   features: ['features', 'company', 'management'],
   swipe: ['swipe', 'actions', 'call', 'text', 'gesture'],
+  proximity: ['proximity', 'relationship', 'algorithm', 'scoring', 'insights'],
   data: ['data', 'database', 'migrations', 'reset', 'backup'],
 };
 
@@ -64,6 +65,7 @@ export default function SettingsScreen() {
     features: false,
     swipe: false,
     language: false,
+    proximity: false,
     data: false,
   });
 
@@ -554,6 +556,29 @@ export default function SettingsScreen() {
                     </View>
                   </View>
                 )}
+              />
+            </List.Accordion>
+          </List.Section>
+        )}
+
+        <Divider />
+
+        {/* Relationship Insights Section */}
+        {shouldShowSection('proximity') && (
+          <List.Section style={styles.section}>
+            <List.Accordion
+              title={t('settings.sections.proximity')}
+              description={t('settings.sections.proximityDescription')}
+              left={props => <List.Icon {...props} icon="target" />}
+              expanded={expandedSections.proximity}
+              onPress={() => toggleSection('proximity')}
+            >
+              <List.Item
+                title={t('settings.proximity.algorithm')}
+                description={t('settings.proximity.algorithmDescription')}
+                left={props => <List.Icon {...props} icon="chart-bell-curve" />}
+                onPress={() => navigation.navigate('ProximitySettings')}
+                right={props => <List.Icon {...props} icon="chevron-right" />}
               />
             </List.Accordion>
           </List.Section>
