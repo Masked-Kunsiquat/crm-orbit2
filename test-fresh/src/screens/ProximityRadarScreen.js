@@ -167,8 +167,8 @@ export default function ProximityRadarScreen({ navigation }) {
         proximityGroups={groups}
         onContactPress={handleContactPress}
         showScores={false}
-        enablePulse={true}
-        padding={60}
+        enablePulse={false}
+        padding={40}
       />
 
       <Portal>
