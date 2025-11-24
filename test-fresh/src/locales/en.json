@@ -77,9 +77,15 @@
             "theme": "Theme",
             "language": "Language",
             "languageDescription": "Choose your preferred language",
+            "proximity": "Relationship Insights",
+            "proximityDescription": "Configure relationship proximity scoring",
             "data": "Data Management",
             "dataDescription": "Database maintenance and reset options",
             "database": "Database"
+        },
+        "proximity": {
+            "algorithm": "Proximity Algorithm",
+            "algorithmDescription": "Choose how relationship strength is calculated"
         },
         "appearance": {
             "theme": "Theme"
@@ -592,5 +598,23 @@
         "infoMessage": "Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.",
         "infoScoring": "Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).",
         "gotIt": "Got It"
+    },
+    "proximitySettings": {
+        "title": "Proximity Algorithm",
+        "algorithmTitle": "How Proximity Works",
+        "algorithmDescription": "Proximity scores measure relationship strength based on how recently and frequently you interact, the quality of interactions, and relationship type. Choose a preset that matches your priorities.",
+        "presetTitle": "Choose Algorithm Preset",
+        "weights": "Weight Distribution",
+        "recency": "Recency",
+        "frequency": "Frequency",
+        "quality": "Quality",
+        "contactType": "Contact Type",
+        "save": "Save Settings",
+        "saved": "Settings Saved",
+        "savedMessage": "Your proximity algorithm preferences have been updated.",
+        "saveError": "Save Failed",
+        "saveErrorMessage": "Failed to save proximity settings. Please try again.",
+        "loadError": "Load Failed",
+        "loadErrorMessage": "Failed to load proximity settings."
     }
 }
