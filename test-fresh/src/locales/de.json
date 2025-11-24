@@ -9,7 +9,7 @@
     },
     "dashboard": {
         "title": "Dashboard",
-        "loading": "Wird geladen…",
+        "loading": "Wird geladen …",
         "stats": {
             "contacts": "Kontakte",
             "interactions": "Interaktionen",
@@ -28,7 +28,7 @@
         }
     },
     "search": {
-        "contactsPlaceholder": "Kontakte suchen…"
+        "contactsPlaceholder": "Kontakte suchen …"
     },
     "settings": {
         "title": "Einstellungen",
@@ -208,7 +208,7 @@
         },
         "list": {
             "title": "Unternehmen",
-            "searchPlaceholder": "Unternehmen suchen…",
+            "searchPlaceholder": "Unternehmen suchen …",
             "empty": {
                 "title": "Keine Unternehmen Gefunden",
                 "noResults": "Keine Unternehmen entsprechen Ihrer Suche.",
@@ -381,7 +381,7 @@
     },
     "contactDetail": {
         "title": "Kontakt",
-        "loading": "Wird geladen…",
+        "loading": "Wird geladen …",
         "errorLoad": "Laden der Kontaktdetails fehlgeschlagen",
         "errorImageSet": "Festlegen des Kontaktfotos fehlgeschlagen",
         "errorImageRemove": "Entfernen des Fotos fehlgeschlagen",
@@ -495,8 +495,8 @@
     },
     "globalSearch": {
         "title": "Suchen",
-        "searchPlaceholder": "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen…",
-        "searching": "Suchen…",
+        "searchPlaceholder": "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen …",
+        "searching": "Suchen …",
         "sections": {
             "contacts": "Kontakte",
             "companies": "Unternehmen",
