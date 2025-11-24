@@ -14,6 +14,17 @@ export default function ScoreBadge({ score = 0, size = 'medium', style }) {
   const theme = useTheme();
   const tierInfo = getTierDetails(score);
 
+  // Validate size and fallback to 'medium' if invalid
+  const VALID_SIZES = ['small', 'medium', 'large'];
+  const validatedSize = VALID_SIZES.includes(size) ? size : 'medium';
+
+  // Warn in development if an invalid size was provided
+  if (__DEV__ && !VALID_SIZES.includes(size)) {
+    console.warn(
+      `ScoreBadge: Invalid size "${size}". Must be one of: ${VALID_SIZES.join(', ')}. Falling back to "medium".`
+    );
+  }
+
   const sizeStyles = {
     small: { width: 32, height: 32, borderRadius: 16 },
     medium: { width: 44, height: 44, borderRadius: 22 },
@@ -32,12 +43,12 @@ export default function ScoreBadge({ score = 0, size = 'medium', style }) {
     <View
       style={[
         styles.badge,
-        sizeStyles[size],
+        sizeStyles[validatedSize],
         { backgroundColor: tierInfo.color },
         style,
       ]}
     >
-      <Text variant={textVariants[size]} style={styles.scoreText}>
+      <Text variant={textVariants[validatedSize]} style={styles.scoreText}>
         {Math.round(score)}
       </Text>
     </View>

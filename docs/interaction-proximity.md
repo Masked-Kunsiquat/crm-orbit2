@@ -3,7 +3,7 @@
 **Status**: 🟢 Phase 1 Complete | 🟢 Phase 2 Complete | 🟢 Phase 3 Complete | 🟢 Phase 4 Complete
 **Last Updated**: 2025-01-23
 **Branch**: `feat/interaction-proximity`
-**Commits**: 20 atomic commits (72f2a84...3c6b0d2)
+**Commits**: 22 atomic commits (72f2a84...3e39a52)
 
 ---
 
@@ -67,10 +67,12 @@ Create an interactive "Relationship Proximity" visualization screen that shows c
 - ✅ ScoreBadge reusable component (3 sizes: small/medium/large)
 - ✅ TierHeader reusable component for section headers
 - ✅ ContactProximityCard with React.memo optimization
-- ✅ ProximityScreen refactored to use new components
+- ✅ ProximityScreen refactored to use new components (276 → 184 lines, 33% reduction)
 - ✅ Performance optimizations (useCallback, memoization)
 - ✅ ScoreBadge integrated into ContactDetailScreen (avatar overlay)
 - ✅ Reduced duplicate code (300+ lines removed)
+- ✅ Bug fix: Null safety in ContactDetailScreen proximity score calculation
+- ✅ Bug fix: Enhanced memo comparison in ContactProximityCard (name/avatar updates now trigger re-render)
 
 **Files Created:**
 - `src/components/ScoreBadge.js` (52 lines)
@@ -78,8 +80,14 @@ Create an interactive "Relationship Proximity" visualization screen that shows c
 - `src/components/ContactProximityCard.js` (72 lines)
 
 **Files Modified:**
-- `src/screens/ProximityScreen.js` (refactored)
-- `src/screens/ContactDetailScreen.js` (badge integration)
+- `src/screens/ProximityScreen.js` (refactored from 276 to 184 lines)
+- `src/screens/ContactDetailScreen.js` (badge integration with null safety)
+
+**Commits:**
+- c0d9162: feat(proximity): add reusable components and performance optimizations
+- 3c6b0d2: feat(proximity): add score badge to contact detail screen
+- e3df914: fix(proximity): handle null proximityScores in ContactDetailScreen
+- 3e39a52: fix(proximity): improve ContactProximityCard memo comparison
 
 ---
 
