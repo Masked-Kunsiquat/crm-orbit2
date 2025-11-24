@@ -7,7 +7,6 @@ import {
   Chip,
   useTheme,
   ActivityIndicator,
-  Icon,
   Dialog,
   Portal,
   Button,
@@ -79,9 +78,6 @@ export default function ProximityScreen({ navigation }) {
     const score = contact.proximityScore || 0;
     const tierInfo = getTierDetails(score);
 
-    // Find most recent interaction for subtitle
-    const interactionSummary = getInteractionSummary(contact);
-
     return (
       <Card
         style={styles.contactCard}
@@ -94,11 +90,6 @@ export default function ProximityScreen({ navigation }) {
             <Text variant="titleMedium" style={styles.contactName}>
               {getContactDisplayName(contact)}
             </Text>
-            {interactionSummary && (
-              <Text variant="bodySmall" style={styles.interactionSummary}>
-                {interactionSummary}
-              </Text>
-            )}
           </View>
 
           <View style={styles.scoreContainer}>
@@ -195,14 +186,6 @@ export default function ProximityScreen({ navigation }) {
   );
 }
 
-// Helper to generate interaction summary
-function getInteractionSummary(contact) {
-  // This would ideally come from the contact data
-  // For now, return a placeholder
-  // TODO: Enhance to show actual recent interaction data
-  return null;
-}
-
 // Theme-aware styles
 function getStyles(theme) {
   return StyleSheet.create({
@@ -268,9 +251,6 @@ function getStyles(theme) {
     contactName: {
       fontWeight: '600',
       marginBottom: 2,
-    },
-    interactionSummary: {
-      color: theme.colors.onSurfaceVariant,
     },
     scoreContainer: {
       marginLeft: 12,
