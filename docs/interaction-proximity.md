@@ -1,9 +1,9 @@
 # Relationship Proximity Visualization - Implementation Game Plan
 
-**Status**: 🟢 Phase 1 Complete | 🟢 Phase 2 Complete | 🟢 Phase 3 Complete | 🟢 Phase 4 Complete | 🟢 Phase 5 Complete | 🟢 Phase 6 Complete
+**Status**: 🟢 Phase 1-6 Complete | 🆕 Phase 7 Ready to Start
 **Last Updated**: 2025-01-24
-**Branch**: `feat/interaction-proximity`
-**Commits**: 28 atomic commits (72f2a84...edee6b9)
+**Branch**: `feat/interaction-proximity` (Phases 1-6) | `feat/proximity-radar-view` (Phase 7, to be created)
+**Commits**: 29 atomic commits (72f2a84...bd97ef1)
 **Test Coverage**: 111 tests passing (49 utils + 26 component + 36 integration)
 
 ---
@@ -469,14 +469,348 @@ Add helpful messages when tiers are empty:
 
 ---
 
-## Future Enhancements (Not in Scope)
+## 🆕 Phase 7: Radar Visualization Mode (READY TO START)
 
-- Bubble chart visualization (react-native-svg)
-- Animated transitions between tiers
-- Export proximity report
-- Historical proximity tracking
-- Relationship trend graphs
-- Smart suggestions based on proximity
+**Status**: 🆕 Ready to Start
+**Depends on**: Phases 1-6 (Fully Implemented)
+**Branch**: `feat/proximity-radar-view` (to be created)
+**Backend Changes**: None required (uses existing scoring logic)
+
+### Mission
+
+Extend the existing Relationship Proximity feature with a second visualization mode that represents contacts as floating avatars on concentric rings, inspired by the AirDrop "radar" interface. This mode will be purely front-end, using the same backend scoring logic from Phase 1.
+
+**Final result**: Users can toggle between List View and Radar View without losing context.
+
+### Why Add Radar View?
+
+- **List View** (Phase 2): Practical, sortable, text-friendly breakdown
+- **Radar View** (Phase 7): Immediate, emotional, spatial sense of closeness
+- **Different mental models** → both are valuable
+- **Zero algorithm changes**: Proximity tiers already map cleanly to radar rings
+- **Zero schema changes**: Pure UI work
+
+### Files to Review First
+
+**Existing (No Changes)**:
+- `src/utils/proximityCalculator.js` - Score/tier source of truth
+- `src/hooks/queries/useProximityData.js` - Ready-made grouped data
+- `src/components/ContactAvatar.js` - Avatar component
+- `src/constants/proximityDefaults.js` - Colors + tier metadata
+- `src/screens/ProximityScreen.js` - List version (radar will live alongside)
+
+### Implementation Tasks
+
+#### Task 1: Create Radar Screen Entry Point
+
+**New File**: `src/screens/ProximityRadarScreen.js` (~200 lines)
+
+**Responsibilities**:
+- Fetch proximity data via `useProximityData()` (identical to List View)
+- Render radar visualization component
+- Provide navigation back to list view
+- Handle empty states gracefully (no contacts, loading, error)
+
+**UI Structure**:
+```jsx
+<ProximityRadarScreen>
+  <Appbar.Header>
+    <Appbar.Content title="Proximity Radar" />
+    <ViewToggle mode="radar" onToggle={...} />
+  </Appbar.Header>
+
+  <RadarVisualization data={proximityGroups} />
+
+  {/* Empty states */}
+  <EmptyState ... />
+</ProximityRadarScreen>
+```
+
+#### Task 2: Create Radar Visualization Component
+
+**New File**: `src/components/RadarVisualization.js` (~250 lines)
+
+**Responsibilities**:
+- Draw concentric rings (SVG via `react-native-svg`)
+- Apply AirDrop-style pulsing animation
+- Position contact avatars on rings
+- Handle tap interactions (navigate to ContactDetailScreen)
+
+**Component Breakdown**:
+```jsx
+<RadarVisualization>
+  <PulseRings />              {/* Animated, looping */}
+  <RadarRing tier="inner" />
+  <RadarRing tier="middle" />
+  <RadarRing tier="outer" />
+  <RadarRing tier="distant" />
+  <LocalDeviceNode />         {/* Optional center avatar/icon */}
+  <RadialNodes tierData={...} /> {/* Avatars for each tier */}
+</RadarVisualization>
+```
+
+**Dependencies**:
+- `react-native-svg` (already in project)
+- `react-native-reanimated` (for smooth animations)
+
+#### Task 3: Radar Geometry Utilities
+
+**New File**: `src/utils/radarMath.js` (~150 lines)
+
+**Functions**:
+
+1. **Concentric Radius Calculation**:
+   ```javascript
+   getRadiusForTier(tierIndex, screenSize) → radius
+   // Returns pixel radius for each tier (inner=60, middle=120, outer=180, distant=240)
+   ```
+
+2. **Angular Distribution**:
+   ```javascript
+   getAngleForIndex(index, total) → angle
+   // Distributes N contacts evenly around circle (0-360 degrees)
+   ```
+
+3. **Final Node Position**:
+   ```javascript
+   getXYFromPolar(angle, radius) → {x, y}
+   // Converts polar coordinates to Cartesian (screen pixels)
+   ```
+
+4. **Score-Based Radial Nudging**:
+   ```javascript
+   adjustRadiusWithinBand(baseRadius, score, tierMin, tierMax) → adjustedRadius
+   // Nudges position within tier band based on exact score
+   ```
+
+**Edge Cases**:
+- Single contact per tier (centered)
+- Overlapping contacts (minimum spacing enforcement)
+- Screen size adaptation (responsive radii)
+
+#### Task 4: Build PulseRings Component
+
+**New File**: `src/components/PulseRings.js` (~100 lines)
+
+**Requirements**:
+- 3-5 translucent rings
+- Expand → fade → reset loop (3-5s duration)
+- Soft blur/glow effect
+- Uses `react-native-reanimated` + `react-native-svg`
+- Appears behind all contacts (z-index layering)
+
+**Animation Pattern**:
+```javascript
+// Staggered pulse timing
+Ring 1: 0s start, 5s duration
+Ring 2: 1s start, 5s duration
+Ring 3: 2s start, 5s duration
+```
+
+#### Task 5: Build RadarRing Component
+
+**New File**: `src/components/RadarRing.js` (~80 lines)
+
+**Responsibilities**:
+- Static ring outlines
+- Tier-based color tint (from `proximityDefaults`)
+- Width ~1-2px, soft glow optional
+- Responsive to screen size
+
+**Props**:
+```javascript
+<RadarRing
+  tier="inner"          // 'inner' | 'middle' | 'outer' | 'distant'
+  radius={120}          // Pixel radius
+  color="#4CAF50"       // From tier metadata
+  opacity={0.3}         // Ring transparency
+/>
+```
+
+#### Task 6: Build RadialNode Component
+
+**New File**: `src/components/RadialNode.js` (~120 lines)
+
+**Responsibilities**:
+- Accept contact + XY position props
+- Render `<ContactAvatar />` inside circular wrapper
+- Add subtle float animation (1-2px drift)
+- Handle `onPress` → navigate to `ContactDetailScreen`
+- Display optional score badge (overlay)
+
+**Props**:
+```javascript
+{
+  contact: Contact,      // Full contact object
+  x: number,             // Screen X position
+  y: number,             // Screen Y position
+  score: number,         // Proximity score
+  tier: string,          // Tier key
+  onPress: Function      // Navigation callback
+}
+```
+
+**Optimizations**:
+- `React.memo` to prevent unnecessary re-renders
+- Memoized position calculations
+- Animated.View for smooth float effect
+
+#### Task 7: Add View Toggle to Existing ProximityScreen
+
+**File to Modify**: `src/screens/ProximityScreen.js`
+
+**Changes**:
+- Add header toggle: "List" / "Radar"
+- Navigation logic:
+  - List → existing ProximityScreen
+  - Radar → new ProximityRadarScreen
+- Toggle styles: Same style as filters in ContactsList
+- Preserve state when switching views
+
+**Implementation**:
+```javascript
+<Appbar.Header>
+  <Appbar.Content title={t('proximity.title')} />
+  <ViewToggle
+    mode={viewMode}
+    onToggle={(mode) => {
+      if (mode === 'radar') {
+        navigation.navigate('ProximityRadar');
+      }
+    }}
+  />
+  <Appbar.Action icon="information-outline" onPress={...} />
+</Appbar.Header>
+```
+
+#### Task 8: Performance Optimization
+
+**Requirements**:
+- Use `React.memo` on `RadialNode`
+- Use `useMemo` for position calculations
+- Limit number of `PulseRings` (3 recommended)
+- Cap float animation to 30-40 FPS (Reanimated handles this)
+- Virtualize off-screen nodes if >200 contacts
+
+**Performance Targets**:
+- 50 contacts: 60 FPS
+- 100 contacts: 45-60 FPS
+- 200 contacts: 30-45 FPS
+
+#### Task 9: Empty States & Error Handling
+
+**Scenarios to Handle**:
+1. **No contacts**: Show radar with center icon, message "Add contacts to see proximity"
+2. **No interactions**: Show contacts in Distant tier only
+3. **Loading**: Skeleton radar with pulsing rings
+4. **Error**: Error message with retry button
+5. **No SVG support** (rare): Fallback to list view with message
+
+#### Task 10: Testing Checklist
+
+**Functional Tests**:
+- ✅ Renders 0-200 contacts smoothly
+- ✅ No overlapping nodes within same tier
+- ✅ Correct tier assignment (score boundaries)
+- ✅ Navigation to ContactDetailScreen works
+- ✅ View toggle preserves data state
+- ✅ Respects dark/light mode
+- ✅ Handles orientation changes
+
+**Performance Tests**:
+- ✅ Smooth animations at 30+ FPS
+- ✅ No memory leaks on repeated toggles
+- ✅ Fast initial render (<500ms)
+
+**Edge Cases**:
+- ✅ Single contact per tier (centered)
+- ✅ All contacts in one tier (even distribution)
+- ✅ Screen resize/rotation
+- ✅ Rapid view switching
+
+#### Task 11: Navigation Integration
+
+**App.js Changes**:
+```javascript
+<Stack.Screen
+  name="ProximityRadar"
+  component={ProximityRadarScreen}
+  options={{ presentation: 'card' }}
+/>
+```
+
+**No changes needed to**:
+- Bottom navigation (uses existing Proximity tab)
+- Settings (radar is discovered via toggle)
+
+### Phase 7 Implementation Order
+
+1. ✅ Review existing proximity code (no changes needed)
+2. 🔜 Create `radarMath.js` utility (geometry calculations)
+3. 🔜 Build `RadarRing` component (static rings)
+4. 🔜 Build `PulseRings` component (animated rings)
+5. 🔜 Build `RadialNode` component (contact avatars)
+6. 🔜 Create `RadarVisualization` component (composition)
+7. 🔜 Create `ProximityRadarScreen` (screen wrapper)
+8. 🔜 Add view toggle to `ProximityScreen`
+9. 🔜 Update navigation routes
+10. 🔜 Test performance and polish
+11. 🔜 Add i18n translations for radar mode
+
+### Success Criteria
+
+**MVP**:
+- ✅ Radar view renders all contacts on rings
+- ✅ Navigation between list ↔ radar works seamlessly
+- ✅ Uses existing scoring algorithm (zero backend changes)
+- ✅ Animations are stable on Android + iOS
+- ✅ Tap contact → navigate to detail screen
+
+**Polish**:
+- ✅ Floating animation on nodes
+- ✅ Pulsing radar rings
+- ✅ Position nudging within tiers (score-based)
+- ✅ Tier-based color styling
+- ✅ Smooth view transitions
+- ✅ Responsive to screen sizes
+
+### Estimated Complexity
+
+**Files to Create**: 7 new files (~1,100 lines total)
+- `ProximityRadarScreen.js` (200 lines)
+- `RadarVisualization.js` (250 lines)
+- `radarMath.js` (150 lines)
+- `PulseRings.js` (100 lines)
+- `RadarRing.js` (80 lines)
+- `RadialNode.js` (120 lines)
+- `ViewToggle.js` (50 lines)
+
+**Files to Modify**: 2 existing files
+- `ProximityScreen.js` (add toggle)
+- `App.js` (add route)
+
+**Dependencies to Add**:
+- `react-native-reanimated` (if not already present)
+- `react-native-svg` (already present)
+
+**Estimated Timeline**: 3-5 days for MVP, +2 days for polish
+
+---
+
+## Future Enhancements (Phase 8+)
+
+**Not included in Phase 7**, but natural future upgrades:
+
+- Historical radar playback (timeline slider)
+- Real-time relationship drift animation
+- Integration with daily/weekly summaries
+- Export radar snapshot as image
+- Combine with CRM categories (color-coded nodes)
+- Relationship momentum indicators (arrows)
+- Tap-to-expand detail preview modal
+- Gradual animations when switching from list → radar
+- Hover scaling on press
+- Tier labels faintly on the rings
 
 ---
 
