@@ -9,7 +9,7 @@
     },
     "dashboard": {
         "title": "Panel de control",
-        "loading": "Cargando...",
+        "loading": "Cargando…",
         "stats": {
             "contacts": "Contactos",
             "interactions": "Interacciones",
@@ -28,7 +28,7 @@
         }
     },
     "search": {
-        "contactsPlaceholder": "Buscar contactos..."
+        "contactsPlaceholder": "Buscar contactos…"
     },
     "settings": {
         "title": "Ajustes",
@@ -38,7 +38,14 @@
             "swipe": "Acciones de deslizamiento",
             "theme": "Tema",
             "language": "Idioma",
-            "database": ""
+            "database": "Base de datos",
+            "appearance": "Apariencia",
+            "securityDescription": "Administrar PIN, autenticación biométrica y bloqueo automático",
+            "featuresDescription": "Personalizar las características y funcionalidades de la aplicación",
+            "swipeDescription": "Configurar gestos de deslizamiento de la lista de contactos",
+            "languageDescription": "Elige tu idioma preferido",
+            "data": "Gestión de datos",
+            "dataDescription": "Opciones de mantenimiento y restablecimiento de la base de datos"
         },
         "language": {
             "device": "Predeterminado del dispositivo",
@@ -53,9 +60,12 @@
             "useBiometric": "Usar biométrico",
             "autoLock": "Bloqueo automático ({{minutes}} min)",
             "autoLockTimeout": "Tiempo de bloqueo automático",
-            "minutes_one": "{{count}} min",
-            "minutes_many": "",
-            "minutes_other": "{{count}} min"
+            "minutes_one": "{{count}} minuto",
+            "minutes_many": "{{count}} minutos",
+            "minutes_other": "{{count}} minutos",
+            "pinDescription": "Crea o actualiza tu PIN de seguridad",
+            "biometricDescription": "Habilitar reconocimiento de huellas dactilares o rostro",
+            "autoLockDescription": "Bloquear la aplicación cuando esté inactiva"
         },
         "features": {
             "companyManagement": {
@@ -66,22 +76,22 @@
             }
         },
         "database": {
-            "runMigrations": "",
-            "migrationsDescription": "",
-            "run": "",
-            "migrationsSuccess": "",
-            "migrationsComplete": "",
-            "migrationsError": "",
-            "migrationsFailed": "",
-            "resetDatabase": "",
-            "resetDescription": "",
-            "reset": "",
-            "resetTitle": "",
-            "resetWarning": "",
-            "resetSuccess": "",
-            "resetComplete": "",
-            "resetError": "",
-            "resetFailed": ""
+            "runMigrations": "Ejecutar migraciones de bases de datos",
+            "migrationsDescription": "Aplique las actualizaciones pendientes del esquema de la base de datos. Esto es seguro y no eliminará sus datos.",
+            "run": "Ejecutar",
+            "migrationsSuccess": "Éxito",
+            "migrationsComplete": "Las migraciones de bases de datos se completaron con éxito",
+            "migrationsError": "Error de migración",
+            "migrationsFailed": "No se pudieron ejecutar las migraciones de bases de datos",
+            "resetDatabase": "Restablecer base de datos",
+            "resetDescription": "Borre todos los datos y reinicie con una base de datos nueva. ¡Esto es irreversible!",
+            "reset": "Reajustar",
+            "resetTitle": "¿Restablecer base de datos?",
+            "resetWarning": "Esto eliminará permanentemente TODOS tus datos (contactos, interacciones, eventos, notas). Esta acción no se puede deshacer. ¿Estás seguro?",
+            "resetSuccess": "Base de datos borrada",
+            "resetComplete": "Archivo de base de datos borrada. IMPORTANTE: Desliza hacia arriba para cerrar completamente esta aplicación y luego vuelve a abrirla para recrear la base de datos con las migraciones.",
+            "resetError": "Reiniciar error",
+            "resetFailed": "No se pudo restablecer la base de datos"
         },
         "errors": {
             "biometricToggle": {
@@ -112,6 +122,11 @@
                 "title": "Error",
                 "message": "Error al actualizar la configuración"
             }
+        },
+        "searchPlaceholder": "Buscar una configuración…",
+        "noResults": "No hay ninguna configuración que coincida con tu búsqueda",
+        "appearance": {
+            "theme": "Tema"
         }
     },
     "labels": {
@@ -122,7 +137,8 @@
         "system": "Sistema",
         "light": "Claro",
         "dark": "Oscuro",
-        "success": "Éxito"
+        "success": "Éxito",
+        "ok": "Bueno"
     },
     "buttons": {
         "cancel": "Cancelar",
@@ -130,8 +146,8 @@
     },
     "common": {
         "all": "Todas",
-        "cancel": "",
-        "save": ""
+        "cancel": "Cancelar",
+        "save": "Guardar"
     },
     "industries": {
         "technology": "Tecnología",
@@ -193,7 +209,7 @@
         },
         "list": {
             "title": "Empresas",
-            "searchPlaceholder": "Buscar empresas...",
+            "searchPlaceholder": "Buscar empresas…",
             "empty": {
                 "title": "No Se Encontraron Empresas",
                 "noResults": "No hay empresas que coincidan con tu búsqueda.",
@@ -271,7 +287,7 @@
         "delete": {
             "title": "Eliminar interacción",
             "message": "¿Seguro que quieres eliminar esta interacción?",
-            "confirm": "Eliminar",
+            "confirm": "Borrar",
             "cancel": "Cancelar"
         },
         "success": {
@@ -355,7 +371,7 @@
         "delete": {
             "title": "Eliminar evento",
             "message": "¿Seguro que quieres eliminar este evento?",
-            "confirm": "Eliminar",
+            "confirm": "Borrar",
             "cancel": "Cancelar"
         },
         "success": {
@@ -366,7 +382,7 @@
     },
     "contactDetail": {
         "title": "Contacto",
-        "loading": "Cargando...",
+        "loading": "Cargando…",
         "errorLoad": "No se pudieron cargar los detalles del contacto",
         "errorImageSet": "No se pudo establecer la foto",
         "errorImageRemove": "No se pudo eliminar la foto",
@@ -414,7 +430,7 @@
             "categories": "Categorías"
         },
         "labels": {
-            "firstName": "Nombre",
+            "firstName": "Primer Nombre",
             "lastName": "Apellido",
             "optional": "Opcional",
             "save": "Guardar contacto",
@@ -480,8 +496,8 @@
     },
     "globalSearch": {
         "title": "Buscar",
-        "searchPlaceholder": "Buscar contactos, empresas, interacciones, eventos...",
-        "searching": "Buscando...",
+        "searchPlaceholder": "Buscar contactos, empresas, interacciones, eventos…",
+        "searching": "Buscando…",
         "sections": {
             "contacts": "Contactos",
             "companies": "Empresas",
@@ -496,8 +512,8 @@
             "tryDifferent": "Intente con un término de búsqueda diferente"
         },
         "error": {
-            "title": "",
-            "message": ""
+            "title": "Error de búsqueda",
+            "message": "No se puede realizar la búsqueda. Inténtalo de nuevo."
         },
         "noContact": "Sin información de contacto",
         "noIndustry": "Sin industria",
@@ -505,21 +521,21 @@
         "note": "Nota"
     },
     "filters": {
-        "title": "",
-        "categories": "",
+        "title": "Título",
+        "categories": "Categorías",
         "categoryLogic": "",
         "or": "",
         "and": "",
-        "company": "",
-        "dateAdded": "",
-        "startDate": "",
-        "endDate": "",
+        "company": "Empresa",
+        "dateAdded": "Fecha añadida",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha final",
         "to": "",
-        "clearDateRange": "",
-        "interactionActivity": "",
-        "last7Days": "",
-        "last30Days": "",
-        "last90Days": "",
+        "clearDateRange": "Borrar rango de fechas",
+        "interactionActivity": "Actividad de interacción",
+        "last7Days": "Últimos 7 Días",
+        "last30Days": "Últimos 30 Días",
+        "last90Days": "Últimos 90 Días",
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
