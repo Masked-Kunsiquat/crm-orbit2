@@ -15,6 +15,16 @@ import { showAlert, logger } from '../errors';
 import database from '../database';
 import { PROXIMITY_PRESETS, DEFAULT_PRESET } from '../constants/proximityDefaults';
 
+/**
+ * ProximitySettingsScreen - Configure proximity algorithm preset
+ *
+ * TODO(#126): Custom weight editing is not yet implemented. The "custom" preset
+ * is visible but only shows a placeholder message. To complete this feature:
+ * - Add weight sliders for recency, frequency, quality, contactType
+ * - Validate weights sum to 1.0 (100%)
+ * - Save edited weights to 'proximity.customWeights' database setting
+ * - Add translation keys for weight editing UI
+ */
 export default function ProximitySettingsScreen({ navigation }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -63,6 +73,10 @@ export default function ProximitySettingsScreen({ navigation }) {
       setSaving(true);
 
       await database.settings.set('proximity.preset', selectedPreset);
+
+      // TODO(#126): Save custom weights when weight editor is implemented
+      // If selectedPreset === 'custom' and user has modified weights,
+      // also save: database.settings.set('proximity.customWeights', customWeights)
 
       // Update initial preset to reflect saved state
       setInitialPreset(selectedPreset);
@@ -137,60 +151,64 @@ export default function ProximitySettingsScreen({ navigation }) {
               onValueChange={value => setSelectedPreset(value)}
               value={selectedPreset}
             >
-              {Object.keys(PROXIMITY_PRESETS).map(presetKey => {
-                const preset = PROXIMITY_PRESETS[presetKey];
-                const isSelected = selectedPreset === presetKey;
+              {(() => {
+                const presetKeys = Object.keys(PROXIMITY_PRESETS);
+                const lastPresetKey = presetKeys[presetKeys.length - 1];
 
-                // For custom preset, use loaded weights or show placeholder
-                const weights = presetKey === 'custom' ? customWeights : preset.weights;
-                const hasWeights = weights !== null;
+                return presetKeys.map(presetKey => {
+                  const preset = PROXIMITY_PRESETS[presetKey];
+                  const isSelected = selectedPreset === presetKey;
+                  const isLastPreset = presetKey === lastPresetKey;
 
-                return (
-                  <View key={presetKey}>
-                    <RadioButton.Item
-                      label={preset.name}
-                      value={presetKey}
-                      status={isSelected ? 'checked' : 'unchecked'}
-                      labelStyle={styles.radioLabel}
-                    />
-                    <Text
-                      variant="bodySmall"
-                      style={[
-                        styles.presetDescription,
-                        isSelected && styles.presetDescriptionSelected,
-                      ]}
-                    >
-                      {preset.description}
-                    </Text>
-                    {isSelected && hasWeights && (
-                      <View style={styles.weightsContainer}>
-                        <Text variant="labelSmall" style={styles.weightsTitle}>
-                          {t('proximitySettings.weights')}:
-                        </Text>
-                        <Text variant="bodySmall" style={styles.weightsText}>
-                          {t('proximitySettings.recency')}: {Math.round(weights.recency * 100)}%
-                          {' • '}
-                          {t('proximitySettings.frequency')}: {Math.round(weights.frequency * 100)}%
-                          {' • '}
-                          {t('proximitySettings.quality')}: {Math.round(weights.quality * 100)}%
-                          {' • '}
-                          {t('proximitySettings.contactType')}: {Math.round(weights.contactType * 100)}%
-                        </Text>
-                      </View>
-                    )}
-                    {isSelected && !hasWeights && presetKey === 'custom' && (
-                      <View style={styles.weightsContainer}>
-                        <Text variant="bodySmall" style={styles.weightsText}>
-                          {t('proximitySettings.customNotConfigured')}
-                        </Text>
-                      </View>
-                    )}
-                    {presetKey !== Object.keys(PROXIMITY_PRESETS)[Object.keys(PROXIMITY_PRESETS).length - 1] && (
-                      <Divider style={styles.divider} />
-                    )}
-                  </View>
-                );
-              })}
+                  // For custom preset, use loaded weights or show placeholder
+                  const weights = presetKey === 'custom' ? customWeights : preset.weights;
+                  const hasWeights = weights !== null;
+
+                  return (
+                    <View key={presetKey}>
+                      <RadioButton.Item
+                        label={preset.name}
+                        value={presetKey}
+                        status={isSelected ? 'checked' : 'unchecked'}
+                        labelStyle={styles.radioLabel}
+                      />
+                      <Text
+                        variant="bodySmall"
+                        style={[
+                          styles.presetDescription,
+                          isSelected && styles.presetDescriptionSelected,
+                        ]}
+                      >
+                        {preset.description}
+                      </Text>
+                      {isSelected && hasWeights && (
+                        <View style={styles.weightsContainer}>
+                          <Text variant="labelSmall" style={styles.weightsTitle}>
+                            {t('proximitySettings.weights')}:
+                          </Text>
+                          <Text variant="bodySmall" style={styles.weightsText}>
+                            {t('proximitySettings.recency')}: {Math.round(weights.recency * 100)}%
+                            {' • '}
+                            {t('proximitySettings.frequency')}: {Math.round(weights.frequency * 100)}%
+                            {' • '}
+                            {t('proximitySettings.quality')}: {Math.round(weights.quality * 100)}%
+                            {' • '}
+                            {t('proximitySettings.contactType')}: {Math.round(weights.contactType * 100)}%
+                          </Text>
+                        </View>
+                      )}
+                      {isSelected && !hasWeights && presetKey === 'custom' && (
+                        <View style={styles.weightsContainer}>
+                          <Text variant="bodySmall" style={styles.weightsText}>
+                            {t('proximitySettings.customNotConfigured')}
+                          </Text>
+                        </View>
+                      )}
+                      {!isLastPreset && <Divider style={styles.divider} />}
+                    </View>
+                  );
+                });
+              })()}
             </RadioButton.Group>
           </Card.Content>
         </Card>
