@@ -99,8 +99,8 @@
             "autoLock": "Auto-Lock ({{minutes}} min)",
             "autoLockDescription": "Lock app when inactive",
             "autoLockTimeout": "Auto-Lock Timeout",
-            "minutes_one": "{{count}} min",
-            "minutes_other": "{{count}} min"
+            "minutes_one": "{{count}} minute",
+            "minutes_other": "{{count}} minutes"
         },
         "features": {
             "companyManagement": {
