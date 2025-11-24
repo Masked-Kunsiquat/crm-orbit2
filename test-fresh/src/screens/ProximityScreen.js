@@ -56,6 +56,11 @@ export default function ProximityScreen({ navigation }) {
     [navigation]
   );
 
+  // Handle toggle to radar view
+  const handleToggleRadarView = useCallback(() => {
+    navigation.navigate('ProximityRadar');
+  }, [navigation]);
+
   const styles = getStyles(theme);
 
   const renderSectionHeader = ({ section }) => (
@@ -111,6 +116,10 @@ export default function ProximityScreen({ navigation }) {
     <View style={styles.container}>
       <Appbar.Header elevated>
         <Appbar.Content title={t('proximity.title')} />
+        <Appbar.Action
+          icon="radar"
+          onPress={handleToggleRadarView}
+        />
         <Appbar.Action
           icon="information-outline"
           onPress={() => setShowInfoDialog(true)}

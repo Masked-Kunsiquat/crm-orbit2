@@ -588,15 +588,23 @@
     },
     "proximity": {
         "title": "Relationship Proximity",
+        "radarTitle": "Proximity Radar",
         "calculating": "Calculating proximity scores...",
+        "loading": "Loading radar...",
         "errorTitle": "Unable to Load Proximity Data",
         "errorMessage": "There was an error calculating relationship proximity. Please try again.",
         "retry": "Retry",
         "emptyTitle": "No Contacts Yet",
         "emptyMessage": "Add contacts and log interactions to see relationship proximity analysis.",
+        "noContacts": "No Contacts on Radar",
+        "noContactsMessage": "Add contacts and start logging interactions to see them appear on your proximity radar.",
         "infoTitle": "About Relationship Proximity",
         "infoMessage": "Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.",
         "infoScoring": "Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).",
+        "radarInfo": {
+            "title": "About Radar View",
+            "message": "The radar view displays your contacts as floating avatars on concentric rings. Contacts closer to the center represent stronger relationships. Tap any contact to view their details."
+        },
         "gotIt": "Got It"
     },
     "proximitySettings": {
