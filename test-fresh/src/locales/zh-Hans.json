@@ -1,34 +1,34 @@
 {
     "navigation": {
-        "dashboard": "",
+        "dashboard": "控制面板",
         "contacts": "联系人",
-        "companies": "",
+        "companies": "公司",
         "interactions": "互动",
         "events": "事件",
         "settings": "设置"
     },
     "dashboard": {
-        "title": "",
-        "loading": "",
+        "title": "控制面板",
+        "loading": "正在加载…",
         "stats": {
-            "contacts": "",
-            "interactions": "",
-            "events": ""
+            "contacts": "联系人",
+            "interactions": "互动",
+            "events": "事件"
         },
         "upcomingEvents": {
-            "title": "",
-            "subtitle": "",
-            "empty": ""
+            "title": "即将到来的事件",
+            "subtitle": "接下来的5个事件",
+            "empty": "暂无活动"
         },
         "quickActions": {
-            "title": "",
-            "addContact": "",
-            "addInteraction": "",
-            "addEvent": ""
+            "title": "快速操作",
+            "addContact": "添加联系人",
+            "addInteraction": "添加互动",
+            "addEvent": "添加事件"
         }
     },
     "search": {
-        "contactsPlaceholder": "搜索联系人..."
+        "contactsPlaceholder": "搜索联系人…"
     },
     "settings": {
         "title": "设置",
@@ -38,7 +38,14 @@
             "swipe": "滑动操作",
             "theme": "主题",
             "language": "语言",
-            "database": ""
+            "database": "数据库",
+            "appearance": "外观",
+            "securityDescription": "管理 PIN 码、生物识别认证和自动锁定",
+            "featuresDescription": "自定义应用程序功能",
+            "swipeDescription": "配置联系人列表滑动操作",
+            "languageDescription": "选择您偏好的语言",
+            "data": "数据管理",
+            "dataDescription": "数据库维护和重置选项"
         },
         "language": {
             "device": "设备默认",
@@ -48,13 +55,15 @@
             "french": "法文",
             "chinese": "简体中文"
         },
-        "appearance": "外观",
         "security": {
             "pinSetup": "设置/更改密码 (PIN)",
             "useBiometric": "使用生物识别",
             "autoLock": "自动锁定 ({{minutes}} 分钟)",
             "autoLockTimeout": "自动锁定超时",
-            "minutes_other": "{{count}} 分钟"
+            "minutes_other": "{{count}} 分钟",
+            "pinDescription": "创建或更新您的安全密码",
+            "biometricDescription": "启用指纹或面部识别",
+            "autoLockDescription": "不活动时锁定应用"
         },
         "features": {
             "companyManagement": {
@@ -65,22 +74,22 @@
             }
         },
         "database": {
-            "runMigrations": "",
-            "migrationsDescription": "",
-            "run": "",
-            "migrationsSuccess": "",
-            "migrationsComplete": "",
-            "migrationsError": "",
-            "migrationsFailed": "",
-            "resetDatabase": "",
-            "resetDescription": "",
-            "reset": "",
-            "resetTitle": "",
-            "resetWarning": "",
-            "resetSuccess": "",
-            "resetComplete": "",
-            "resetError": "",
-            "resetFailed": ""
+            "runMigrations": "运行数据库迁移",
+            "migrationsDescription": "请应用所有待处理的数据库架构更新。此操作安全可靠，不会删除您的数据。",
+            "run": "执行",
+            "migrationsSuccess": "成功",
+            "migrationsComplete": "数据库迁移已成功完成",
+            "migrationsError": "迁移错误",
+            "migrationsFailed": "数据库迁移运行失败",
+            "resetDatabase": "重置数据库",
+            "resetDescription": "删除所有数据并使用全新的数据库重新开始。此操作无法撤销！",
+            "reset": "重置",
+            "resetTitle": "重置数据库？",
+            "resetWarning": "这将永久删除您的所有数据（联系人、互动记录、事件、笔记）。此操作无法撤销。您确定吗？",
+            "resetSuccess": "数据库已删除",
+            "resetComplete": "数据库文件已删除。重要提示：向上滑动以完全关闭此应用，然后重新打开以使用迁移重新创建数据库。",
+            "resetError": "重置错误",
+            "resetFailed": "重置数据库失败"
         },
         "errors": {
             "biometricToggle": {
@@ -111,6 +120,11 @@
                 "title": "错误",
                 "message": "更新设置失败"
             }
+        },
+        "searchPlaceholder": "寻找合适的设置…",
+        "noResults": "没有找到符合您搜索条件的设置",
+        "appearance": {
+            "theme": "主题"
         }
     },
     "labels": {
@@ -121,7 +135,8 @@
         "system": "系统",
         "light": "浅色",
         "dark": "深色",
-        "success": "成功"
+        "success": "成功",
+        "ok": "好的"
     },
     "buttons": {
         "cancel": "取消",
@@ -129,9 +144,8 @@
     },
     "common": {
         "all": "全部",
-        "cancel": "",
-        "save": "",
-        "none": "无"
+        "cancel": "撤消",
+        "save": "保存"
     },
     "industries": {
         "technology": "科技",
@@ -193,7 +207,7 @@
         },
         "list": {
             "title": "公司",
-            "searchPlaceholder": "搜索公司...",
+            "searchPlaceholder": "搜索公司…",
             "empty": {
                 "title": "未找到公司",
                 "noResults": "没有与您的搜索匹配的公司。",
@@ -366,7 +380,7 @@
     },
     "contactDetail": {
         "title": "联系人",
-        "loading": "正在加载...",
+        "loading": "正在加载…",
         "errorLoad": "加载联系人详情失败",
         "errorImageSet": "设置联系人照片失败",
         "errorImageRemove": "删除照片失败",
@@ -409,7 +423,6 @@
         "successMsg": "联系人添加成功！",
         "sections": {
             "name": "姓名",
-            "company": "公司",
             "phones": "电话号码",
             "emails": "电子邮箱地址",
             "categories": "类别"
@@ -417,7 +430,6 @@
         "labels": {
             "firstName": "名字",
             "lastName": "姓氏",
-            "company": "公司",
             "optional": "可选",
             "save": "保存联系人",
             "cancel": "取消",
@@ -451,8 +463,8 @@
     },
     "globalSearch": {
         "title": "搜索",
-        "searchPlaceholder": "搜索联系人、公司、互动、事件...",
-        "searching": "搜索中...",
+        "searchPlaceholder": "搜索联系人、公司、互动、事件…",
+        "searching": "搜索中…",
         "sections": {
             "contacts": "联系人",
             "companies": "公司",
@@ -467,8 +479,8 @@
             "tryDifferent": "尝试不同的搜索词"
         },
         "error": {
-            "title": "",
-            "message": ""
+            "title": "搜索错误",
+            "message": "搜索失败，请重试。"
         },
         "noContact": "无联系信息",
         "noIndustry": "无行业",
@@ -476,21 +488,21 @@
         "note": "笔记"
     },
     "filters": {
-        "title": "",
-        "categories": "",
+        "title": "标题",
+        "categories": "类别",
         "categoryLogic": "",
         "or": "",
         "and": "",
-        "company": "",
-        "dateAdded": "",
-        "startDate": "",
-        "endDate": "",
+        "company": "公司",
+        "dateAdded": "添加日期",
+        "startDate": "开始日期",
+        "endDate": "结束日期",
         "to": "",
-        "clearDateRange": "",
-        "interactionActivity": "",
-        "last7Days": "",
-        "last30Days": "",
-        "last90Days": "",
+        "clearDateRange": "清除日期范围",
+        "interactionActivity": "互动活动",
+        "last7Days": "过去7天",
+        "last30Days": "过去30天",
+        "last90Days": "过去90天",
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
@@ -507,5 +519,36 @@
         "noSavedSearches": "",
         "deleteTitle": "",
         "deleteMessage": ""
+    },
+    "analytics": {
+        "title": "分析",
+        "dateRange": {
+            "title": "日期范围",
+            "all": "所有时间",
+            "7days": "过去7天",
+            "30days": "过去30天",
+            "90days": "过去90天"
+        },
+        "overview": {
+            "title": "概述",
+            "totalContacts": "总联系人数",
+            "totalInteractions": "总互动次数",
+            "totalEvents": "总事件"
+        },
+        "interactions": {
+            "title": "互动明细",
+            "empty": "暂无互动",
+            "uniqueContacts": "{{count}}独特接触"
+        },
+        "events": {
+            "title": "活动中断",
+            "upcoming": "即将推出",
+            "past": "过去"
+        },
+        "topContacts": {
+            "title": "最活跃联系人",
+            "empty": "暂无交互数据",
+            "interactionCount": "{{count}} 互动"
+        }
     }
 }
