@@ -2,24 +2,33 @@
  * RadialNode Component
  *
  * Contact avatar node positioned on radar rings.
- * Includes subtle float animation and score badge overlay.
+ * Includes random orbital movement animation and score badge overlay.
  *
  * @module components/RadialNode
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
-  withSequence,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
 import ContactAvatar from './ContactAvatar';
 import ScoreBadge from './ScoreBadge';
 import { is } from '../utils/validators';
+
+/**
+ * Simple pseudo-random number generator for deterministic "random" values
+ * @param {number} seed - Seed value (e.g., contact.id)
+ * @returns {number} - Value between 0 and 1
+ */
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
 
 /**
  * RadialNode - Floating contact avatar on radar
@@ -49,26 +58,54 @@ function RadialNode({ contact, x, y, score = 0, tier, onPress, showScore = false
     return null;
   }
 
-  // Floating animation values
-  const floatY = useSharedValue(0);
+  // Generate deterministic "random" values based on contact.id
+  const animationParams = useMemo(() => {
+    const seed = contact?.id || 0;
+
+    // Orbital radius: 3-8px from base position
+    const orbitRadius = 3 + seededRandom(seed) * 5;
+
+    // Duration: 3-6 seconds per orbit
+    const duration = 3000 + seededRandom(seed + 1) * 3000;
+
+    // Direction: clockwise (1) or counterclockwise (-1)
+    const direction = seededRandom(seed + 2) > 0.5 ? 1 : -1;
+
+    // Starting angle: 0-360 degrees
+    const startAngle = seededRandom(seed + 3) * 360;
+
+    return { orbitRadius, duration, direction, startAngle };
+  }, [contact?.id]);
+
+  // Orbital animation: angle progresses from 0 to 360 degrees
+  const angle = useSharedValue(animationParams.startAngle);
 
   useEffect(() => {
-    // Subtle up-down float animation (±2px)
-    floatY.value = withRepeat(
-      withSequence(
-        withTiming(-2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(2, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+    // Animate angle from startAngle to startAngle + 360 (or -360 for counterclockwise)
+    angle.value = withRepeat(
+      withTiming(
+        animationParams.startAngle + (360 * animationParams.direction),
+        { duration: animationParams.duration, easing: Easing.linear }
       ),
       -1, // Infinite repeat
-      true // Reverse direction
+      false // Don't reverse, continue in same direction
     );
-  }, [floatY]);
+  }, [angle, animationParams]);
 
   const animatedStyle = useAnimatedStyle(() => {
+    'worklet';
+
+    // Convert angle to radians
+    const radians = (angle.value * Math.PI) / 180;
+
+    // Calculate orbital offset (circular movement around base position)
+    const offsetX = animationParams.orbitRadius * Math.cos(radians);
+    const offsetY = animationParams.orbitRadius * Math.sin(radians);
+
     return {
       transform: [
-        { translateX: x },
-        { translateY: y + floatY.value },
+        { translateX: x + offsetX },
+        { translateY: y + offsetY },
       ],
     };
   });
