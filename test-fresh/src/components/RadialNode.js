@@ -160,11 +160,20 @@ function RadialNode({ contact, x = 0, y = 0, score = 0, tier, onPress, showScore
   };
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <Animated.View
+      style={[
+        styles.container,
+        animatedStyle,
+        {
+          marginLeft: -size / 2,
+          marginTop: -size / 2,
+        },
+      ]}
+    >
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.7}
-        style={styles.touchable}
+        style={[styles.touchable, { borderRadius: size / 2 }]}
       >
         <View style={styles.avatarContainer}>
           <ContactAvatar contact={contact} size={size} />
@@ -183,12 +192,8 @@ function RadialNode({ contact, x = 0, y = 0, score = 0, tier, onPress, showScore
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    // Center the node on its coordinates
-    marginLeft: -24, // Half of default avatar size (48 / 2)
-    marginTop: -24,
   },
   touchable: {
-    borderRadius: 24,
     overflow: 'visible',
   },
   avatarContainer: {
