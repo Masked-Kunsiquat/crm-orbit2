@@ -40,7 +40,6 @@ export default function ProximityRadarScreen({ navigation }) {
   const {
     data: proximityGroups,
     isLoading,
-    isError,
     error,
     refetch,
   } = useProximityData();
@@ -101,7 +100,7 @@ export default function ProximityRadarScreen({ navigation }) {
   }
 
   // Error state
-  if (isError) {
+  if (error) {
     return (
       <View style={styles.container}>
         <Appbar.Header>
