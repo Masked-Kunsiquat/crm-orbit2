@@ -1,0 +1,654 @@
+{
+  "common": {
+    "actions": {
+      "save": "Save",
+      "saveChanges": "Save Changes",
+      "saveContact": "Save Contact",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "remove": "Remove",
+      "close": "Close",
+      "confirm": "Confirm",
+      "retry": "Retry",
+      "apply": "Apply",
+      "clear": "Clear",
+      "reset": "Reset",
+      "update": "Update",
+      "run": "Run"
+    },
+    "states": {
+      "loading": "Loading...",
+      "searching": "Searching...",
+      "error": "Error",
+      "success": "Success",
+      "warning": "Warning",
+      "info": "Info",
+      "ok": "OK"
+    },
+    "counts": {
+      "contact_one": "{{count}} contact",
+      "contact_other": "{{count}} contacts",
+      "interaction_one": "{{count}} interaction",
+      "interaction_other": "{{count}} interactions",
+      "event_one": "{{count}} event",
+      "event_other": "{{count}} events",
+      "company_one": "{{count}} company",
+      "company_other": "{{count}} companies",
+      "category_one": "{{count}} category",
+      "category_other": "{{count}} categories",
+      "note_one": "{{count}} note",
+      "note_other": "{{count}} notes",
+      "result_one": "{{count}} result",
+      "result_other": "{{count}} results",
+      "item_one": "{{count}} item",
+      "item_other": "{{count}} items",
+      "uniqueContact_one": "{{count}} unique contact",
+      "uniqueContact_other": "{{count}} unique contacts"
+    },
+    "entities": {
+      "contact": "Contact",
+      "contacts": "Contacts",
+      "interaction": "Interaction",
+      "interactions": "Interactions",
+      "event": "Event",
+      "events": "Events",
+      "company": "Company",
+      "companies": "Companies",
+      "note": "Note",
+      "notes": "Notes",
+      "category": "Category",
+      "categories": "Categories"
+    },
+    "time": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "yesterday": "Yesterday",
+      "minute_one": "{{count}} minute",
+      "minute_other": "{{count}} minutes",
+      "hour_one": "{{count}} hour",
+      "hour_other": "{{count}} hours",
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days",
+      "week_one": "{{count}} week",
+      "week_other": "{{count}} weeks",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago",
+      "minutesAgo_one": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo_one": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago"
+    },
+    "dateRanges": {
+      "allTime": "All Time",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days"
+    },
+    "filters": {
+      "all": "All",
+      "none": "None"
+    },
+    "errors": {
+      "generic": "An error occurred",
+      "network": "Network error",
+      "notFound": "Not found",
+      "unauthorized": "Unauthorized",
+      "saveFailed": "Failed to save. Please try again.",
+      "deleteFailed": "Failed to delete. Please try again.",
+      "loadFailed": "Failed to load"
+    },
+    "labels": {
+      "optional": "Optional",
+      "required": "Required",
+      "left": "Left",
+      "right": "Right"
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "contacts": "Contacts",
+    "companies": "Companies",
+    "interactions": "Interactions",
+    "proximity": "Proximity",
+    "events": "Events",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "loading": "$t(common.states.loading)",
+    "stats": {
+      "contacts": "$t(common.entities.contacts)",
+      "interactions": "$t(common.entities.interactions)",
+      "events": "$t(common.entities.events)"
+    },
+    "upcomingEvents": {
+      "title": "Upcoming Events",
+      "subtitle": "Next 5 events",
+      "empty": "No upcoming events"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "addContact": "Add Contact",
+      "addInteraction": "Add Interaction",
+      "addEvent": "Add Event"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "dateRange": {
+      "title": "Date Range",
+      "all": "$t(common.dateRanges.allTime)",
+      "7days": "$t(common.dateRanges.last7Days)",
+      "30days": "$t(common.dateRanges.last30Days)",
+      "90days": "$t(common.dateRanges.last90Days)"
+    },
+    "overview": {
+      "title": "Overview",
+      "totalContacts": "Total Contacts",
+      "totalInteractions": "Total Interactions",
+      "totalEvents": "Total Events"
+    },
+    "interactions": {
+      "title": "Interactions Breakdown",
+      "empty": "No interactions yet",
+      "uniqueContacts": "$t(common.counts.uniqueContact, {\"count\": {{count}}})"
+    },
+    "events": {
+      "title": "Events Breakdown",
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "topContacts": {
+      "title": "Most Active Contacts",
+      "empty": "No interaction data available",
+      "interactionCount": "$t(common.counts.interaction, {\"count\": {{count}}})"
+    }
+  },
+  "search": {
+    "contactsPlaceholder": "Search contacts..."
+  },
+  "settings": {
+    "title": "Settings",
+    "searchPlaceholder": "Search for a setting...",
+    "noResults": "No settings match your search",
+    "sections": {
+      "appearance": "Appearance",
+      "security": "Security",
+      "securityDescription": "Manage PIN, biometric authentication, and auto-lock",
+      "features": "Features",
+      "featuresDescription": "Customize app features and functionality",
+      "swipe": "Swipe Actions",
+      "swipeDescription": "Configure contact list swipe gestures",
+      "theme": "Theme",
+      "language": "Language",
+      "languageDescription": "Choose your preferred language",
+      "proximity": "Relationship Insights",
+      "proximityDescription": "Configure relationship proximity scoring",
+      "data": "Data Management",
+      "dataDescription": "Database maintenance and reset options",
+      "database": "Database"
+    },
+    "proximity": {
+      "algorithm": "Proximity Algorithm",
+      "algorithmDescription": "Choose how relationship strength is calculated"
+    },
+    "appearance": {
+      "theme": "Theme"
+    },
+    "language": {
+      "device": "Device default",
+      "english": "English",
+      "spanish": "Spanish",
+      "german": "German",
+      "french": "French",
+      "chinese": "Chinese (Simplified)"
+    },
+    "security": {
+      "pinSetup": "Set / Change PIN",
+      "pinDescription": "Create or update your security PIN",
+      "useBiometric": "Use Biometric",
+      "biometricDescription": "Enable fingerprint or face recognition",
+      "autoLock": "Auto-Lock ({{minutes}} min)",
+      "autoLockDescription": "Lock app when inactive",
+      "autoLockTimeout": "Auto-Lock Timeout",
+      "minutes_one": "$t(common.time.minute, {\"count\": {{count}}})",
+      "minutes_other": "$t(common.time.minute, {\"count\": {{count}}})"
+    },
+    "features": {
+      "companyManagement": {
+        "title": "Company Management",
+        "description": "Enable company features for professional use (companies tab, company selector in contacts)",
+        "enabled": "Company management enabled. Restart the app to see the Companies tab.",
+        "disabled": "Company management disabled."
+      }
+    },
+    "database": {
+      "runMigrations": "Run Database Migrations",
+      "migrationsDescription": "Apply any pending database schema updates. This is safe and won't delete your data.",
+      "run": "$t(common.actions.run)",
+      "migrationsSuccess": "$t(common.states.success)",
+      "migrationsComplete": "Database migrations completed successfully",
+      "migrationsError": "Migration Error",
+      "migrationsFailed": "Failed to run database migrations",
+      "resetDatabase": "Reset Database",
+      "resetDescription": "Delete all data and restart with a fresh database. This cannot be undone!",
+      "reset": "$t(common.actions.reset)",
+      "resetTitle": "Reset Database?",
+      "resetWarning": "This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?",
+      "resetSuccess": "Database Deleted",
+      "resetComplete": "Database file deleted. IMPORTANT: Swipe up to fully close this app, then reopen it to recreate the database with migrations.",
+      "resetError": "Reset Error",
+      "resetFailed": "Failed to reset database"
+    },
+    "errors": {
+      "biometric": "Unable to update biometric setting. Please try again.",
+      "autoLock": "Unable to update auto-lock setting. Please try again.",
+      "autoLockTimeout": "Unable to update auto-lock timeout. Please try again.",
+      "swipeAction": "Unable to update swipe action. Please try again.",
+      "theme": "Unable to update theme. Please try again.",
+      "language": "Unable to update language. Please try again.",
+      "featureToggle": "Failed to update setting"
+    }
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "industries": {
+    "technology": "Technology",
+    "finance": "Finance",
+    "healthcare": "Healthcare",
+    "retail": "Retail",
+    "manufacturing": "Manufacturing",
+    "education": "Education",
+    "consulting": "Consulting",
+    "realEstate": "Real Estate",
+    "other": "Other"
+  },
+  "companies": {
+    "add": {
+      "title": "Add Company",
+      "labels": {
+        "name": "Company Name *",
+        "industry": "Industry",
+        "website": "Website",
+        "address": "Address",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "requiredName": "Company name is required",
+        "nameTooLong": "Company name must be 200 characters or less"
+      },
+      "success": "Company created successfully",
+      "error": "Failed to create company"
+    },
+    "edit": {
+      "title": "Edit Company",
+      "labels": {
+        "name": "Company Name *",
+        "industry": "Industry",
+        "website": "Website",
+        "address": "Address",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "website": "https://example.com"
+      },
+      "validation": {
+        "requiredName": "Company name is required",
+        "nameTooLong": "Company name must be 200 characters or less"
+      },
+      "success": "Company updated successfully",
+      "error": "Failed to update company"
+    },
+    "list": {
+      "title": "$t(common.entities.companies)",
+      "searchPlaceholder": "Search companies...",
+      "empty": {
+        "title": "No Companies Found",
+        "noResults": "No companies match your search.",
+        "addFirst": "Add your first company to get started."
+      },
+      "delete": {
+        "title": "Delete Company",
+        "message": "Are you sure you want to delete \"{{name}}\"? This will not delete associated contacts.",
+        "success": "Company deleted successfully",
+        "error": "Failed to delete company"
+      }
+    }
+  },
+  "interactions": {
+    "title": "$t(common.entities.interactions)",
+    "filters": {
+      "all": "$t(common.filters.all)",
+      "meeting": "Meetings",
+      "videoCall": "Video Calls",
+      "call": "Calls",
+      "text": "Texts",
+      "email": "Email",
+      "socialMedia": "Social Media",
+      "other": "Other"
+    },
+    "emptyTitle": "No Interactions",
+    "emptyMessage": "Add your first interaction to get started.",
+    "errorLoad": "Failed to load interactions"
+  },
+  "interactionTypes": {
+    "call": "Call",
+    "text": "Text",
+    "email": "Email",
+    "meeting": "Meeting",
+    "videoCall": "Video Call",
+    "socialMedia": "Social Media",
+    "other": "Other"
+  },
+  "addInteraction": {
+    "titleAdd": "Add Interaction",
+    "titleEdit": "Edit Interaction",
+    "sections": {
+      "contact": "$t(common.entities.contact)",
+      "type": "Type",
+      "dateTime": "Date & Time",
+      "title": "Title",
+      "duration": "Duration (minutes)",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Select a contact",
+      "interactionTitle": "Interaction Title",
+      "titlePlaceholder": "e.g., Quick catch-up call",
+      "duration": "Duration",
+      "durationOptional": "$t(common.labels.optional)",
+      "notes": "Additional Notes",
+      "notesPlaceholder": "Optional notes about this interaction",
+      "quickFill": "Quick Fill",
+      "save": "$t(common.actions.save)",
+      "update": "$t(common.actions.update)",
+      "cancel": "$t(common.actions.cancel)"
+    },
+    "quickTitles": {
+      "call": "Call with {{name}}",
+      "videoCall": "Video call with {{name}}",
+      "text": "Text with {{name}}",
+      "email": "Email with {{name}}",
+      "meeting": "Meeting with {{name}}",
+      "other": "Interaction with {{name}}"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "contactRequired": "Please select a contact",
+      "saveFailed": "$t(common.errors.saveFailed)",
+      "deleteFailed": "$t(common.errors.deleteFailed)"
+    },
+    "delete": {
+      "title": "Delete Interaction",
+      "message": "Are you sure you want to delete this interaction?",
+      "confirm": "$t(common.actions.delete)",
+      "cancel": "$t(common.actions.cancel)"
+    },
+    "success": {
+      "added": "Interaction added successfully!",
+      "updated": "Interaction updated successfully!",
+      "deleted": "Interaction deleted successfully!"
+    }
+  },
+  "events": {
+    "title": "$t(common.entities.events)",
+    "today": "$t(common.time.today)",
+    "tomorrow": "$t(common.time.tomorrow)",
+    "filters": {
+      "all": "$t(common.filters.all)",
+      "birthday": "Birthdays",
+      "anniversary": "Anniversaries",
+      "meeting": "Meetings",
+      "deadline": "Deadlines",
+      "other": "Other"
+    },
+    "emptyTitle": "No Events",
+    "emptyMessage": "Add your first event to get started.",
+    "errorLoad": "Failed to load events"
+  },
+  "eventTypes": {
+    "birthday": "Birthday",
+    "anniversary": "Anniversary",
+    "meeting": "Meeting",
+    "deadline": "Deadline",
+    "other": "Other"
+  },
+  "addEvent": {
+    "titleAdd": "Add Event",
+    "titleEdit": "Edit Event",
+    "sections": {
+      "contact": "$t(common.entities.contact)",
+      "type": "Event Type",
+      "date": "Date",
+      "title": "Title",
+      "reminders": "Reminders",
+      "notes": "Notes"
+    },
+    "labels": {
+      "selectContact": "Select a contact",
+      "quickFill": "Quick Fill",
+      "titlePlaceholder": "e.g., John's Birthday",
+      "recurring": "Recurring Event",
+      "recurringHelper": "Repeats every year (for birthdays, anniversaries)",
+      "notesPlaceholder": "Optional notes about this event",
+      "save": "$t(common.actions.save)",
+      "update": "$t(common.actions.update)",
+      "cancel": "$t(common.actions.cancel)",
+      "delete": "Delete Event"
+    },
+    "quickTitles": {
+      "birthday": "{{name}}'s Birthday",
+      "anniversary": "Anniversary with {{name}}",
+      "meeting": "Meeting with {{name}}",
+      "deadline": "Deadline for {{name}}",
+      "other": "Event with {{name}}"
+    },
+    "reminderTemplates": {
+      "15": "15 min before",
+      "60": "1 hour before",
+      "1440": "1 day before",
+      "10080": "1 week before"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "contactRequired": "Please select a contact",
+      "saveFailed": "$t(common.errors.saveFailed)",
+      "deleteFailed": "$t(common.errors.deleteFailed)"
+    },
+    "delete": {
+      "title": "Delete Event",
+      "message": "Are you sure you want to delete this event?",
+      "confirm": "$t(common.actions.delete)",
+      "cancel": "$t(common.actions.cancel)"
+    },
+    "success": {
+      "added": "Event added successfully!",
+      "updated": "Event updated successfully!",
+      "deleted": "Event deleted successfully!"
+    }
+  },
+  "contactDetail": {
+    "title": "$t(common.entities.contact)",
+    "loading": "$t(common.states.loading)",
+    "errorLoad": "Failed to load contact details",
+    "errorImageSet": "Failed to set contact photo",
+    "errorImageRemove": "Failed to remove photo",
+    "tabs": {
+      "info": "Info",
+      "activity": "Activity"
+    },
+    "recent": "Recent Interactions",
+    "events": "Upcoming Events",
+    "upcoming": "Upcoming",
+    "pastActivity": "Past Activity",
+    "addBirthday": "Birthday",
+    "addEvent": "$t(common.entities.event)",
+    "addInteraction": "Add Interaction",
+    "noEvents": "No upcoming events",
+    "noEventsDescription": "Add an event for this contact",
+    "noActivity": "No activity yet",
+    "noActivityDescription": "Add an interaction or event to track history with this contact",
+    "recurring": "Recurring",
+    "delete": "Delete Contact",
+    "deleteConfirm": "Are you sure you want to delete {{name}}?",
+    "photoTitle": "Contact Photo",
+    "photoBody": "Add or remove a profile picture.",
+    "remove": "$t(common.actions.remove)",
+    "addPhoto": "Add Photo",
+    "cancel": "$t(common.actions.cancel)",
+    "add": "$t(common.actions.add)",
+    "viewMore_one": "View {{count}} more item",
+    "viewMore_other": "View {{count}} more items",
+    "viewMoreInfo": "Full activity view coming soon"
+  },
+  "categories": {
+    "family": "Family",
+    "friends": "Friends",
+    "work": "Work",
+    "vip": "VIP",
+    "coworkers": "Coworkers",
+    "clients": "Clients",
+    "leads": "Leads",
+    "vendors": "Vendors",
+    "business": "Business",
+    "personal": "Personal"
+  },
+  "addContact": {
+    "title": "Add Contact",
+    "importSuccessTitle": "Contact Imported",
+    "importSuccessMsg": "Contact information has been imported. Review and edit as needed before saving.",
+    "importFailTitle": "Import Failed",
+    "importFailMsg": "Failed to import contact. Please try again or enter details manually.",
+    "permissionTitle": "Permission Denied",
+    "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.",
+    "successMsg": "Contact added successfully!",
+    "sections": {
+      "name": "Name",
+      "relationshipType": "Relationship Type",
+      "company": "$t(common.entities.company)",
+      "phones": "Phone Numbers",
+      "emails": "Email Addresses",
+      "categories": "$t(common.entities.categories)"
+    },
+    "labels": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "company": "$t(common.entities.company)",
+      "optional": "$t(common.labels.optional)",
+      "save": "$t(common.actions.saveContact)",
+      "cancel": "$t(common.actions.cancel)",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "contactInfoRequired": "Please provide at least a phone number or email address"
+    }
+  },
+  "contact": {
+    "jobAtCompany": "{{job}} at {{company}}",
+    "jobOnly": "{{job}}",
+    "companyOnly": "{{company}}",
+    "phoneLabels": {
+      "mobile": "Mobile",
+      "home": "Home",
+      "work": "Work",
+      "other": "Other"
+    },
+    "emailLabels": {
+      "personal": "Personal",
+      "work": "Work",
+      "other": "Other"
+    },
+    "contactTypes": {
+      "bestFriend": "Best Friend",
+      "family": "Family",
+      "closeFriend": "Close Friend",
+      "friend": "Friend",
+      "colleague": "Colleague",
+      "acquaintance": "Acquaintance",
+      "other": "Other"
+    }
+  },
+  "editContact": {
+    "title": "Edit Contact",
+    "labels": {
+      "save": "$t(common.actions.saveChanges)",
+      "cancel": "$t(common.actions.cancel)"
+    }
+  },
+  "globalSearch": {
+    "title": "Search",
+    "searchPlaceholder": "Search contacts, companies, interactions, events...",
+    "searching": "$t(common.states.searching)",
+    "sections": {
+      "contacts": "$t(common.entities.contacts)",
+      "companies": "$t(common.entities.companies)",
+      "interactions": "$t(common.entities.interactions)",
+      "events": "$t(common.entities.events)",
+      "notes": "$t(common.entities.notes)"
+    },
+    "emptyState": {
+      "prompt": "Start typing to search",
+      "hint": "Search across all your contacts, companies, interactions, events, and notes",
+      "noResults": "No results found",
+      "tryDifferent": "Try a different search term"
+    },
+    "error": {
+      "title": "$t(common.states.error)",
+      "message": "Unable to perform search. Please try again."
+    },
+    "noContact": "No contact info",
+    "noIndustry": "No industry",
+    "untitled": "Untitled",
+    "note": "$t(common.entities.note)"
+  },
+  "proximity": {
+    "title": "Relationship Proximity",
+    "radarTitle": "Proximity Radar",
+    "calculating": "Calculating proximity scores...",
+    "loading": "$t(common.states.loading)",
+    "errorTitle": "Unable to Load Proximity Data",
+    "errorMessage": "There was an error calculating relationship proximity. Please try again.",
+    "retry": "$t(common.actions.retry)",
+    "emptyTitle": "No Contacts Yet",
+    "emptyMessage": "Add contacts and log interactions to see relationship proximity analysis.",
+    "noContacts": "No Contacts on Radar",
+    "noContactsMessage": "Add contacts and start logging interactions to see them appear on your proximity radar.",
+    "infoTitle": "About Relationship Proximity",
+    "infoMessage": "Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.",
+    "infoScoring": "Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).",
+    "radarInfo": {
+      "title": "About Radar View",
+      "message": "The radar view displays your contacts as floating avatars on concentric rings. Contacts closer to the center represent stronger relationships. Tap any contact to view their details."
+    },
+    "gotIt": "Got It"
+  },
+  "proximitySettings": {
+    "title": "Proximity Algorithm",
+    "algorithmTitle": "How Proximity Works",
+    "algorithmDescription": "Proximity scores measure relationship strength based on how recently and frequently you interact, the quality of interactions, and relationship type. Choose a preset that matches your priorities.",
+    "presetTitle": "Choose Algorithm Preset",
+    "weights": "Weight Distribution",
+    "recency": "Recency",
+    "frequency": "Frequency",
+    "quality": "Quality",
+    "contactType": "Contact Type",
+    "customNotConfigured": "Custom weights not yet configured. Using default preset.",
+    "save": "$t(common.actions.save)",
+    "saved": "Settings Saved",
+    "savedMessage": "Your proximity algorithm preferences have been updated.",
+    "saveError": "Save Failed",
+    "saveErrorMessage": "Failed to save proximity settings. Please try again.",
+    "loadError": "Load Failed",
+    "loadErrorMessage": "Failed to load proximity settings."
+  }
+}

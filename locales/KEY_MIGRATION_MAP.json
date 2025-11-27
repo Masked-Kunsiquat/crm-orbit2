@@ -1,0 +1,411 @@
+{
+  "metadata": {
+    "description": "Migration mapping from old translation keys to new structure",
+    "purpose": "Preserve existing translations when converting to new structure",
+    "version": "1.0.0",
+    "generated": "2025-11-27"
+  },
+  "migrations": {
+    "buttons.cancel": "common.actions.cancel",
+    "buttons.save": "common.actions.save",
+    "common.all": "common.filters.all",
+    "common.cancel": "common.actions.cancel",
+    "common.save": "common.actions.save",
+    "common.none": "common.filters.none",
+    "labels.call": "interactionTypes.call",
+    "labels.text": "interactionTypes.text",
+    "labels.left": "common.labels.left",
+    "labels.right": "common.labels.right",
+    "labels.system": "theme.system",
+    "labels.light": "theme.light",
+    "labels.dark": "theme.dark",
+    "labels.success": "common.states.success",
+    "labels.ok": "common.states.ok",
+    "dashboard.loading": "common.states.loading",
+    "dashboard.stats.contacts": "common.entities.contacts",
+    "dashboard.stats.interactions": "common.entities.interactions",
+    "dashboard.stats.events": "common.entities.events",
+    "analytics.dateRange.all": "common.dateRanges.allTime",
+    "analytics.dateRange.7days": "common.dateRanges.last7Days",
+    "analytics.dateRange.30days": "common.dateRanges.last30Days",
+    "analytics.dateRange.90days": "common.dateRanges.last90Days",
+    "settings.database.run": "common.actions.run",
+    "settings.database.migrationsSuccess": "common.states.success",
+    "settings.database.reset": "common.actions.reset",
+    "settings.errors.biometricToggle.title": "common.states.error",
+    "settings.errors.biometricToggle.message": "settings.errors.biometric",
+    "settings.errors.autoLockToggle.title": "common.states.error",
+    "settings.errors.autoLockToggle.message": "settings.errors.autoLock",
+    "settings.errors.autoLockTimeout.title": "common.states.error",
+    "settings.errors.autoLockTimeout.message": "settings.errors.autoLockTimeout",
+    "settings.errors.swipeAction.title": "common.states.error",
+    "settings.errors.swipeAction.message": "settings.errors.swipeAction",
+    "settings.errors.theme.title": "common.states.error",
+    "settings.errors.theme.message": "settings.errors.theme",
+    "settings.errors.language.title": "common.states.error",
+    "settings.errors.language.message": "settings.errors.language",
+    "settings.errors.featureToggle.title": "common.states.error",
+    "settings.errors.featureToggle.message": "settings.errors.featureToggle",
+    "industries.real estate": "industries.realEstate",
+    "companies.list.title": "common.entities.companies",
+    "companies.add.error.title": "common.states.error",
+    "companies.add.error.message": "companies.add.error",
+    "companies.edit.error.title": "common.states.error",
+    "companies.edit.error.message": "companies.edit.error",
+    "companies.list.delete.error.title": "common.states.error",
+    "companies.list.delete.error.message": "companies.list.delete.error",
+    "interactions.title": "common.entities.interactions",
+    "interactions.filters.all": "common.filters.all",
+    "addInteraction.types.call": "interactionTypes.call",
+    "addInteraction.types.text": "interactionTypes.text",
+    "addInteraction.types.email": "interactionTypes.email",
+    "addInteraction.types.meeting": "interactionTypes.meeting",
+    "addInteraction.types.other": "interactionTypes.other",
+    "addInteraction.sections.contact": "common.entities.contact",
+    "addInteraction.labels.durationOptional": "common.labels.optional",
+    "addInteraction.labels.save": "common.actions.save",
+    "addInteraction.labels.update": "common.actions.update",
+    "addInteraction.labels.cancel": "common.actions.cancel",
+    "addInteraction.errors.saveFailed": "common.errors.saveFailed",
+    "addInteraction.errors.deleteFailed": "common.errors.deleteFailed",
+    "addInteraction.delete.confirm": "common.actions.delete",
+    "addInteraction.delete.cancel": "common.actions.cancel",
+    "events.title": "common.entities.events",
+    "events.today": "common.time.today",
+    "events.tomorrow": "common.time.tomorrow",
+    "events.filters.all": "common.filters.all",
+    "addEvent.types.birthday": "eventTypes.birthday",
+    "addEvent.types.anniversary": "eventTypes.anniversary",
+    "addEvent.types.meeting": "eventTypes.meeting",
+    "addEvent.types.deadline": "eventTypes.deadline",
+    "addEvent.types.other": "eventTypes.other",
+    "addEvent.sections.contact": "common.entities.contact",
+    "addEvent.labels.save": "common.actions.save",
+    "addEvent.labels.update": "common.actions.update",
+    "addEvent.labels.cancel": "common.actions.cancel",
+    "addEvent.errors.saveFailed": "common.errors.saveFailed",
+    "addEvent.errors.deleteFailed": "common.errors.deleteFailed",
+    "addEvent.delete.confirm": "common.actions.delete",
+    "addEvent.delete.cancel": "common.actions.cancel",
+    "contactDetail.title": "common.entities.contact",
+    "contactDetail.loading": "common.states.loading",
+    "contactDetail.addEvent": "common.entities.event",
+    "contactDetail.remove": "common.actions.remove",
+    "contactDetail.cancel": "common.actions.cancel",
+    "contactDetail.add": "common.actions.add",
+    "categories.Family": "categories.family",
+    "categories.Friends": "categories.friends",
+    "categories.Work": "categories.work",
+    "categories.VIP": "categories.vip",
+    "categories.Coworkers": "categories.coworkers",
+    "categories.Clients": "categories.clients",
+    "categories.Leads": "categories.leads",
+    "categories.Vendors": "categories.vendors",
+    "categories.Business": "categories.business",
+    "categories.Personal": "categories.personal",
+    "addContact.sections.company": "common.entities.company",
+    "addContact.sections.categories": "common.entities.categories",
+    "addContact.labels.company": "common.entities.company",
+    "addContact.labels.optional": "common.labels.optional",
+    "addContact.labels.save": "common.actions.saveContact",
+    "addContact.labels.cancel": "common.actions.cancel",
+    "contact.phoneLabels.Mobile": "contact.phoneLabels.mobile",
+    "contact.phoneLabels.Home": "contact.phoneLabels.home",
+    "contact.phoneLabels.Work": "contact.phoneLabels.work",
+    "contact.phoneLabels.Other": "contact.phoneLabels.other",
+    "contact.emailLabels.Personal": "contact.emailLabels.personal",
+    "contact.emailLabels.Work": "contact.emailLabels.work",
+    "contact.emailLabels.Other": "contact.emailLabels.other",
+    "contact.contactTypes.best_friend": "contact.contactTypes.bestFriend",
+    "contact.contactTypes.close_friend": "contact.contactTypes.closeFriend",
+    "editContact.labels.save": "common.actions.saveChanges",
+    "editContact.labels.cancel": "common.actions.cancel",
+    "globalSearch.searching": "common.states.searching",
+    "globalSearch.sections.contacts": "common.entities.contacts",
+    "globalSearch.sections.companies": "common.entities.companies",
+    "globalSearch.sections.interactions": "common.entities.interactions",
+    "globalSearch.sections.events": "common.entities.events",
+    "globalSearch.sections.notes": "common.entities.notes",
+    "globalSearch.error.title": "common.states.error",
+    "globalSearch.note": "common.entities.note",
+    "proximity.loading": "common.states.loading",
+    "proximity.retry": "common.actions.retry",
+    "proximitySettings.save": "common.actions.save"
+  },
+  "newKeys": {
+    "description": "New keys added in the new structure that don't have old equivalents",
+    "keys": [
+      "common.actions.saveChanges",
+      "common.actions.saveContact",
+      "common.actions.edit",
+      "common.actions.add",
+      "common.actions.remove",
+      "common.actions.close",
+      "common.actions.confirm",
+      "common.actions.retry",
+      "common.actions.apply",
+      "common.actions.clear",
+      "common.actions.reset",
+      "common.actions.update",
+      "common.actions.run",
+      "common.states.loading",
+      "common.states.searching",
+      "common.states.error",
+      "common.states.success",
+      "common.states.warning",
+      "common.states.info",
+      "common.states.ok",
+      "common.counts.contact_one",
+      "common.counts.contact_other",
+      "common.counts.interaction_one",
+      "common.counts.interaction_other",
+      "common.counts.event_one",
+      "common.counts.event_other",
+      "common.counts.company_one",
+      "common.counts.company_other",
+      "common.counts.category_one",
+      "common.counts.category_other",
+      "common.counts.note_one",
+      "common.counts.note_other",
+      "common.counts.result_one",
+      "common.counts.result_other",
+      "common.counts.item_one",
+      "common.counts.item_other",
+      "common.counts.uniqueContact_one",
+      "common.counts.uniqueContact_other",
+      "common.entities.contact",
+      "common.entities.contacts",
+      "common.entities.interaction",
+      "common.entities.interactions",
+      "common.entities.event",
+      "common.entities.events",
+      "common.entities.company",
+      "common.entities.companies",
+      "common.entities.note",
+      "common.entities.notes",
+      "common.entities.category",
+      "common.entities.categories",
+      "common.time.today",
+      "common.time.tomorrow",
+      "common.time.yesterday",
+      "common.time.minute_one",
+      "common.time.minute_other",
+      "common.time.hour_one",
+      "common.time.hour_other",
+      "common.time.day_one",
+      "common.time.day_other",
+      "common.time.week_one",
+      "common.time.week_other",
+      "common.time.daysAgo_one",
+      "common.time.daysAgo_other",
+      "common.time.minutesAgo_one",
+      "common.time.minutesAgo_other",
+      "common.time.hoursAgo_one",
+      "common.time.hoursAgo_other",
+      "common.dateRanges.allTime",
+      "common.dateRanges.last7Days",
+      "common.dateRanges.last30Days",
+      "common.dateRanges.last90Days",
+      "common.filters.all",
+      "common.filters.none",
+      "common.errors.generic",
+      "common.errors.network",
+      "common.errors.notFound",
+      "common.errors.unauthorized",
+      "common.errors.saveFailed",
+      "common.errors.deleteFailed",
+      "common.errors.loadFailed",
+      "common.labels.optional",
+      "common.labels.required",
+      "common.labels.left",
+      "common.labels.right",
+      "theme.system",
+      "theme.light",
+      "theme.dark",
+      "interactionTypes.call",
+      "interactionTypes.text",
+      "interactionTypes.email",
+      "interactionTypes.meeting",
+      "interactionTypes.videoCall",
+      "interactionTypes.socialMedia",
+      "interactionTypes.other",
+      "eventTypes.birthday",
+      "eventTypes.anniversary",
+      "eventTypes.meeting",
+      "eventTypes.deadline",
+      "eventTypes.other",
+      "contact.jobAtCompany",
+      "contact.jobOnly",
+      "contact.companyOnly",
+      "contactDetail.viewMore_one",
+      "contactDetail.viewMore_other"
+    ]
+  },
+  "removedKeys": {
+    "description": "Keys removed from old structure (empty values or duplicates)",
+    "keys": [
+      "common.cancel",
+      "common.save",
+      "labels.call",
+      "labels.text",
+      "labels.left",
+      "labels.right",
+      "labels.system",
+      "labels.light",
+      "labels.dark",
+      "labels.success",
+      "labels.ok",
+      "buttons.cancel",
+      "buttons.save",
+      "filters.*",
+      "savedSearches.*"
+    ]
+  },
+  "pluralMigrations": {
+    "description": "Keys that need to be split into _one/_other forms",
+    "migrations": [
+      {
+        "oldKey": "analytics.interactions.uniqueContacts",
+        "newKeys": {
+          "_one": "common.counts.uniqueContact_one",
+          "_other": "common.counts.uniqueContact_other"
+        },
+        "transform": "Extract count from interpolation, use existing string for both forms initially"
+      },
+      {
+        "oldKey": "analytics.topContacts.interactionCount",
+        "newKeys": {
+          "_one": "common.counts.interaction_one",
+          "_other": "common.counts.interaction_other"
+        },
+        "transform": "Extract count from interpolation, use existing string for both forms initially"
+      },
+      {
+        "oldKey": "contactDetail.viewMore",
+        "newKeys": {
+          "_one": "contactDetail.viewMore_one",
+          "_other": "contactDetail.viewMore_other"
+        },
+        "transform": "Use existing string for _other, create singular form for _one"
+      },
+      {
+        "oldKey": "settings.security.minutes_one",
+        "newKey": "common.time.minute_one",
+        "note": "Already has plural form in old structure"
+      },
+      {
+        "oldKey": "settings.security.minutes_other",
+        "newKey": "common.time.minute_other",
+        "note": "Already has plural form in old structure"
+      }
+    ]
+  },
+  "caseChanges": {
+    "description": "Keys where only casing changed (PascalCase → camelCase)",
+    "changes": [
+      {
+        "old": "categories.Family",
+        "new": "categories.family"
+      },
+      {
+        "old": "categories.Friends",
+        "new": "categories.friends"
+      },
+      {
+        "old": "categories.Work",
+        "new": "categories.work"
+      },
+      {
+        "old": "categories.VIP",
+        "new": "categories.vip"
+      },
+      {
+        "old": "categories.Coworkers",
+        "new": "categories.coworkers"
+      },
+      {
+        "old": "categories.Clients",
+        "new": "categories.clients"
+      },
+      {
+        "old": "categories.Leads",
+        "new": "categories.leads"
+      },
+      {
+        "old": "categories.Vendors",
+        "new": "categories.vendors"
+      },
+      {
+        "old": "categories.Business",
+        "new": "categories.business"
+      },
+      {
+        "old": "categories.Personal",
+        "new": "categories.personal"
+      },
+      {
+        "old": "contact.phoneLabels.Mobile",
+        "new": "contact.phoneLabels.mobile"
+      },
+      {
+        "old": "contact.phoneLabels.Home",
+        "new": "contact.phoneLabels.home"
+      },
+      {
+        "old": "contact.phoneLabels.Work",
+        "new": "contact.phoneLabels.work"
+      },
+      {
+        "old": "contact.phoneLabels.Other",
+        "new": "contact.phoneLabels.other"
+      },
+      {
+        "old": "contact.emailLabels.Personal",
+        "new": "contact.emailLabels.personal"
+      },
+      {
+        "old": "contact.emailLabels.Work",
+        "new": "contact.emailLabels.work"
+      },
+      {
+        "old": "contact.emailLabels.Other",
+        "new": "contact.emailLabels.other"
+      },
+      {
+        "old": "contact.contactTypes.best_friend",
+        "new": "contact.contactTypes.bestFriend"
+      },
+      {
+        "old": "contact.contactTypes.close_friend",
+        "new": "contact.contactTypes.closeFriend"
+      },
+      {
+        "old": "industries.real estate",
+        "new": "industries.realEstate"
+      }
+    ]
+  },
+  "specialCases": {
+    "description": "Keys requiring special handling during migration",
+    "cases": [
+      {
+        "key": "settings.errors.*",
+        "oldStructure": "{ title: 'Error', message: '...' }",
+        "newStructure": "Just the message string (title is now common.states.error)",
+        "migration": "Extract message value only, discard title"
+      },
+      {
+        "key": "companies.*.error",
+        "oldStructure": "{ title: 'Error', message: '...' }",
+        "newStructure": "Just the message string",
+        "migration": "Extract message value only"
+      },
+      {
+        "key": "contact.jobAtCompany",
+        "oldStructure": "Hard-coded concatenation in JS: `${job} at ${companyName}`",
+        "newStructure": "Interpolation template: '{{job}} at {{company}}'",
+        "migration": "Create new key with template, will require code changes"
+      }
+    ]
+  }
+}
