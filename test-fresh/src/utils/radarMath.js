@@ -140,9 +140,9 @@ export function getXYFromPolar(angle, radius) {
  *
  * @example
  * // Inner tier: scores 70-100, base radius 60px
- * adjustRadiusWithinBand(60, 100, 70, 100, 20) // Returns 50 (highest score → closest)
- * adjustRadiusWithinBand(60, 85, 70, 100, 20)  // Returns 55 (mid score → middle)
- * adjustRadiusWithinBand(60, 70, 70, 100, 20)  // Returns 60 (lowest score → farthest)
+ * adjustRadiusWithinBand(60, 100, 70, 100, 20) // Returns 40 (highest score → closest to center)
+ * adjustRadiusWithinBand(60, 85, 70, 100, 20)  // Returns 50 (mid score → middle)
+ * adjustRadiusWithinBand(60, 70, 70, 100, 20)  // Returns 60 (lowest score → farthest from center)
  */
 export function adjustRadiusWithinBand(baseRadius, score, tierMinScore, tierMaxScore, bandWidth = 20) {
   if (!is.number(baseRadius) || baseRadius < 0) {
@@ -172,8 +172,8 @@ export function adjustRadiusWithinBand(baseRadius, score, tierMinScore, tierMaxS
   const scoreRatio = (clampedScore - tierMinScore) / (tierMaxScore - tierMinScore);
 
   // Higher score → smaller radius (closer to center)
-  // Subtract bandWidth * (1 - scoreRatio) to move inward for higher scores
-  const adjustedRadius = baseRadius - (bandWidth * (1 - scoreRatio));
+  // Subtract bandWidth * scoreRatio to move inward as score increases
+  const adjustedRadius = baseRadius - (bandWidth * scoreRatio);
 
   return Math.max(0, adjustedRadius); // Ensure non-negative
 }
