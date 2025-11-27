@@ -4,12 +4,13 @@
         "contacts": "Contacts",
         "companies": "Companies",
         "interactions": "Interactions",
+        "proximity": "Proximity",
         "events": "Events",
         "settings": "Settings"
     },
     "dashboard": {
         "title": "Dashboard",
-        "loading": "Loading…",
+        "loading": "Loading...",
         "stats": {
             "contacts": "Contacts",
             "interactions": "Interactions",
@@ -59,11 +60,11 @@
         }
     },
     "search": {
-        "contactsPlaceholder": "Search contacts…"
+        "contactsPlaceholder": "Search contacts..."
     },
     "settings": {
         "title": "Settings",
-        "searchPlaceholder": "Search for a setting…",
+        "searchPlaceholder": "Search for a setting...",
         "noResults": "No settings match your search",
         "sections": {
             "appearance": "Appearance",
@@ -76,9 +77,15 @@
             "theme": "Theme",
             "language": "Language",
             "languageDescription": "Choose your preferred language",
+            "proximity": "Relationship Insights",
+            "proximityDescription": "Configure relationship proximity scoring",
             "data": "Data Management",
             "dataDescription": "Database maintenance and reset options",
             "database": "Database"
+        },
+        "proximity": {
+            "algorithm": "Proximity Algorithm",
+            "algorithmDescription": "Choose how relationship strength is calculated"
         },
         "appearance": {
             "theme": "Theme"
@@ -99,8 +106,8 @@
             "autoLock": "Auto-Lock ({{minutes}} min)",
             "autoLockDescription": "Lock app when inactive",
             "autoLockTimeout": "Auto-Lock Timeout",
-            "minutes_one": "{{count}} minute",
-            "minutes_other": "{{count}} minutes"
+            "minutes_one": "{{count}} min",
+            "minutes_other": "{{count}} min"
         },
         "features": {
             "companyManagement": {
@@ -176,8 +183,9 @@
     },
     "common": {
         "all": "All",
-        "cancel": "Cancel",
-        "save": "Save"
+        "cancel": "",
+        "save": "",
+        "none": "None"
     },
     "industries": {
         "technology": "Technology",
@@ -239,7 +247,7 @@
         },
         "list": {
             "title": "Companies",
-            "searchPlaceholder": "Search companies…",
+            "searchPlaceholder": "Search companies...",
             "empty": {
                 "title": "No Companies Found",
                 "noResults": "No companies match your search.",
@@ -260,10 +268,12 @@
         "title": "Interactions",
         "filters": {
             "all": "All",
+            "meeting": "Meetings",
+            "videoCall": "Video Calls",
             "call": "Calls",
             "text": "Texts",
             "email": "Email",
-            "meeting": "Meetings",
+            "socialMedia": "Social Media",
             "other": "Other"
         },
         "emptyTitle": "No Interactions",
@@ -303,6 +313,7 @@
         },
         "quickTitles": {
             "call": "Call with {{name}}",
+            "videoCall": "Video call with {{name}}",
             "text": "Texted {{name}}",
             "email": "Emailed {{name}}",
             "meeting": "Meeting with {{name}}",
@@ -412,16 +423,25 @@
     },
     "contactDetail": {
         "title": "Contact",
-        "loading": "Loading…",
+        "loading": "Loading...",
         "errorLoad": "Failed to load contact details",
         "errorImageSet": "Failed to set contact photo",
         "errorImageRemove": "Failed to remove photo",
+        "tabs": {
+            "info": "Info",
+            "activity": "Activity"
+        },
         "recent": "Recent Interactions",
         "events": "Upcoming Events",
+        "upcoming": "Upcoming",
+        "pastActivity": "Past Activity",
         "addBirthday": "Birthday",
         "addEvent": "Event",
+        "addInteraction": "Add Interaction",
         "noEvents": "No upcoming events",
         "noEventsDescription": "Add an event for this contact",
+        "noActivity": "No activity yet",
+        "noActivityDescription": "Add an interaction or event to track history with this contact",
         "recurring": "Recurring",
         "delete": "Delete Contact",
         "deleteConfirm": "Are you sure you want to delete {{name}}?",
@@ -430,7 +450,9 @@
         "remove": "Remove",
         "addPhoto": "Add Photo",
         "cancel": "Cancel",
-        "add": "Add"
+        "add": "Add",
+        "viewMore": "View {{count}} more...",
+        "viewMoreInfo": "Full activity view coming soon"
     },
     "categories": {
         "Family": "Family",
@@ -455,6 +477,8 @@
         "successMsg": "Contact added successfully!",
         "sections": {
             "name": "Name",
+            "relationshipType": "Relationship Type",
+            "company": "Company",
             "phones": "Phone Numbers",
             "emails": "Email Addresses",
             "categories": "Categories"
@@ -462,6 +486,7 @@
         "labels": {
             "firstName": "First Name",
             "lastName": "Last Name",
+            "company": "Company",
             "optional": "Optional",
             "save": "Save Contact",
             "cancel": "Cancel",
@@ -484,6 +509,15 @@
             "Personal": "Personal",
             "Work": "Work",
             "Other": "Other"
+        },
+        "contactTypes": {
+            "best_friend": "Best Friend",
+            "family": "Family",
+            "close_friend": "Close Friend",
+            "friend": "Friend",
+            "colleague": "Colleague",
+            "acquaintance": "Acquaintance",
+            "other": "Other"
         }
     },
     "editContact": {
@@ -495,8 +529,8 @@
     },
     "globalSearch": {
         "title": "Search",
-        "searchPlaceholder": "Search contacts, companies, interactions, events…",
-        "searching": "Searching…",
+        "searchPlaceholder": "Search contacts, companies, interactions, events...",
+        "searching": "Searching...",
         "sections": {
             "contacts": "Contacts",
             "companies": "Companies",
@@ -520,21 +554,21 @@
         "note": "Note"
     },
     "filters": {
-        "title": "Title",
-        "categories": "Categories",
+        "title": "",
+        "categories": "",
         "categoryLogic": "",
         "or": "",
         "and": "",
-        "company": "Company",
-        "dateAdded": "Date Added",
-        "startDate": "Start Date",
-        "endDate": "End Date",
+        "company": "",
+        "dateAdded": "",
+        "startDate": "",
+        "endDate": "",
         "to": "",
-        "clearDateRange": "Clear Date Range",
-        "interactionActivity": "Interaction Activity",
-        "last7Days": "Last 7 Days",
-        "last30Days": "Last 30 Days",
-        "last90Days": "Last 90 Days",
+        "clearDateRange": "",
+        "interactionActivity": "",
+        "last7Days": "",
+        "last30Days": "",
+        "last90Days": "",
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
@@ -551,5 +585,45 @@
         "noSavedSearches": "",
         "deleteTitle": "",
         "deleteMessage": ""
+    },
+    "proximity": {
+        "title": "Relationship Proximity",
+        "radarTitle": "Proximity Radar",
+        "calculating": "Calculating proximity scores...",
+        "loading": "Loading radar...",
+        "errorTitle": "Unable to Load Proximity Data",
+        "errorMessage": "There was an error calculating relationship proximity. Please try again.",
+        "retry": "Retry",
+        "emptyTitle": "No Contacts Yet",
+        "emptyMessage": "Add contacts and log interactions to see relationship proximity analysis.",
+        "noContacts": "No Contacts on Radar",
+        "noContactsMessage": "Add contacts and start logging interactions to see them appear on your proximity radar.",
+        "infoTitle": "About Relationship Proximity",
+        "infoMessage": "Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.",
+        "infoScoring": "Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).",
+        "radarInfo": {
+            "title": "About Radar View",
+            "message": "The radar view displays your contacts as floating avatars on concentric rings. Contacts closer to the center represent stronger relationships. Tap any contact to view their details."
+        },
+        "gotIt": "Got It"
+    },
+    "proximitySettings": {
+        "title": "Proximity Algorithm",
+        "algorithmTitle": "How Proximity Works",
+        "algorithmDescription": "Proximity scores measure relationship strength based on how recently and frequently you interact, the quality of interactions, and relationship type. Choose a preset that matches your priorities.",
+        "presetTitle": "Choose Algorithm Preset",
+        "weights": "Weight Distribution",
+        "recency": "Recency",
+        "frequency": "Frequency",
+        "quality": "Quality",
+        "contactType": "Contact Type",
+        "customNotConfigured": "Custom weights not yet configured. Using default preset.",
+        "save": "Save Settings",
+        "saved": "Settings Saved",
+        "savedMessage": "Your proximity algorithm preferences have been updated.",
+        "saveError": "Save Failed",
+        "saveErrorMessage": "Failed to save proximity settings. Please try again.",
+        "loadError": "Load Failed",
+        "loadErrorMessage": "Failed to load proximity settings."
     }
 }

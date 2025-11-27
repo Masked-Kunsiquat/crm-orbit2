@@ -16,6 +16,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
 import GlobalSearchScreen from './src/screens/GlobalSearchScreen';
 import ProximityScreen from './src/screens/ProximityScreen';
+import ProximityRadarScreen from './src/screens/ProximityRadarScreen';
 import ProximitySettingsScreen from './src/screens/ProximitySettingsScreen';
 import { SettingsProvider } from './src/context/SettingsContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -192,6 +193,7 @@ export default function App() {
                         <Stack.Screen name="CompanyList" component={CompanyListScreen} />
                         <Stack.Screen name="PinSetup" component={PinSetupScreen} />
                         <Stack.Screen name="ProximitySettings" component={ProximitySettingsScreen} />
+                        <Stack.Screen name="ProximityRadar" component={ProximityRadarScreen} />
                       </Stack.Navigator>
                     </NavigationContainer>
                   </ErrorBoundary>
