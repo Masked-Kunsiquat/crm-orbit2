@@ -21,8 +21,48 @@ import ScoreBadge from './ScoreBadge';
 import { is } from '../utils/validators';
 
 /**
+ * Simple string hash function for converting any string to a numeric seed
+ * @param {string} str - String to hash
+ * @returns {number} - Numeric hash value
+ */
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * Convert any value to a safe numeric seed
+ * @param {any} value - Value to convert (number, string, etc.)
+ * @returns {number} - Numeric seed value
+ */
+function toNumericSeed(value) {
+  // If already a valid number, use it directly
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  // If string, try to parse as number first
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+    // If not numeric, hash the string
+    return hashString(value);
+  }
+
+  // Fallback to 0 for any other type
+  return 0;
+}
+
+/**
  * Simple pseudo-random number generator for deterministic "random" values
- * @param {number} seed - Seed value (e.g., contact.id)
+ * @param {number} seed - Seed value (must be a valid finite number)
  * @returns {number} - Value between 0 and 1
  */
 function seededRandom(seed) {
@@ -47,7 +87,8 @@ function RadialNode({ contact, x = 0, y = 0, score = 0, tier, onPress, showScore
 
   // Generate deterministic "random" values based on contact.id
   const animationParams = useMemo(() => {
-    const seed = contact?.id || 0;
+    // Convert contact.id to a safe numeric seed (handles strings, UUIDs, etc.)
+    const seed = toNumericSeed(contact?.id);
 
     // Orbital radius: 3-8px from base position
     const orbitRadius = 3 + seededRandom(seed) * 5;
@@ -176,6 +217,7 @@ export default React.memo(RadialNode, (prevProps, nextProps) => {
     prevProps.tier === nextProps.tier &&
     prevProps.showScore === nextProps.showScore &&
     prevProps.size === nextProps.size &&
+    prevProps.onPress === nextProps.onPress &&
     prevProps.contact?.first_name === nextProps.contact?.first_name &&
     prevProps.contact?.last_name === nextProps.contact?.last_name &&
     prevProps.contact?.avatar_attachment_id === nextProps.contact?.avatar_attachment_id
