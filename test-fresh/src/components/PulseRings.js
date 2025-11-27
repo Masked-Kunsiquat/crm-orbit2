@@ -97,8 +97,17 @@ export default function PulseRings({ maxRadius, numRings = 3, duration = 3000, c
     return null;
   }
 
-  const validNumRings = Math.max(1, Math.min(5, numRings)); // Clamp to 1-5
-  const validDuration = duration > 0 ? duration : 3000;
+  // Safely convert and validate numRings
+  const parsedNumRings = Number(numRings);
+  const validNumRings = Number.isFinite(parsedNumRings) && parsedNumRings > 0
+    ? Math.floor(Math.max(1, Math.min(5, parsedNumRings))) // Clamp to 1-5 and ensure integer
+    : 3; // Fallback to default
+
+  // Safely validate duration
+  const parsedDuration = Number(duration);
+  const validDuration = Number.isFinite(parsedDuration) && parsedDuration > 0
+    ? parsedDuration
+    : 3000; // Fallback to default
 
   // Calculate stagger delay (evenly distribute start times)
   const staggerDelay = validDuration / validNumRings;
