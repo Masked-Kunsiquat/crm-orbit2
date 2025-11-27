@@ -42,21 +42,8 @@ function seededRandom(seed) {
  * @param {boolean} showScore - Show score badge overlay (default: false)
  * @param {number} size - Avatar size in pixels (default: 48)
  */
-function RadialNode({ contact, x, y, score = 0, tier, onPress, showScore = false, size = 48 }) {
-  // Validate required props
-  if (!contact || !is.object(contact)) {
-    if (__DEV__) {
-      console.warn('RadialNode: contact prop is required');
-    }
-    return null;
-  }
-
-  if (!is.number(x) || !is.number(y)) {
-    if (__DEV__) {
-      console.warn('RadialNode: x and y props must be numbers');
-    }
-    return null;
-  }
+function RadialNode({ contact, x = 0, y = 0, score = 0, tier, onPress, showScore = false, size = 48 }) {
+  // All hooks must be called unconditionally at the top level
 
   // Generate deterministic "random" values based on contact.id
   const animationParams = useMemo(() => {
@@ -109,6 +96,21 @@ function RadialNode({ contact, x, y, score = 0, tier, onPress, showScore = false
       ],
     };
   });
+
+  // Validate required props after all hooks have been called
+  if (!contact || !is.object(contact)) {
+    if (__DEV__) {
+      console.warn('RadialNode: contact prop is required');
+    }
+    return null;
+  }
+
+  if (!is.number(x) || !is.number(y)) {
+    if (__DEV__) {
+      console.warn('RadialNode: x and y props must be numbers');
+    }
+    return null;
+  }
 
   const handlePress = () => {
     if (is.function(onPress)) {
