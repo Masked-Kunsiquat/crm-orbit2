@@ -9,7 +9,7 @@
     },
     "dashboard": {
         "title": "Tableau de bord",
-        "loading": "Chargement...",
+        "loading": "Chargement …",
         "stats": {
             "contacts": "Contacts",
             "interactions": "Interactions",
@@ -28,7 +28,7 @@
         }
     },
     "search": {
-        "contactsPlaceholder": "Rechercher des contacts..."
+        "contactsPlaceholder": "Rechercher des contacts …"
     },
     "settings": {
         "title": "Paramètres",
@@ -38,7 +38,14 @@
             "swipe": "Actions de balayage",
             "theme": "Thème",
             "language": "Langue",
-            "database": ""
+            "database": "Base de données",
+            "appearance": "Apparence",
+            "securityDescription": "Gestion du code PIN, de l'authentification biométrique et du verrouillage automatique",
+            "featuresDescription": "Personnalisez les fonctionnalités de l'application",
+            "swipeDescription": "Configurer les gestes de balayage de la liste de contacts",
+            "languageDescription": "Choisissez votre langue préférée",
+            "data": "Gestion des données",
+            "dataDescription": "Maintenance et réinitialisation des bases de données"
         },
         "language": {
             "device": "Par défaut de l'appareil",
@@ -48,15 +55,17 @@
             "french": "Français",
             "chinese": "Chinois simplifié"
         },
-        "appearance": "Apparence",
         "security": {
             "pinSetup": "Définir / Modifier le code PIN",
             "useBiometric": "Utiliser la biométrie",
             "autoLock": "Verrouillage automatique ({{minutes}} min)",
             "autoLockTimeout": "Délai de verrouillage automatique",
-            "minutes_one": "{{count}} min",
-            "minutes_many": "",
-            "minutes_other": "{{count}} min"
+            "minutes_one": "{{count}} minute",
+            "minutes_many": "{{count}} minutes",
+            "minutes_other": "{{count}} minutes",
+            "pinDescription": "Créez ou mettez à jour votre code PIN de sécurité",
+            "biometricDescription": "Activer la reconnaissance d'empreintes digitales ou faciale",
+            "autoLockDescription": "Verrouiller l'application en cas d'inactivité"
         },
         "features": {
             "companyManagement": {
@@ -67,22 +76,22 @@
             }
         },
         "database": {
-            "runMigrations": "",
-            "migrationsDescription": "",
-            "run": "",
-            "migrationsSuccess": "",
-            "migrationsComplete": "",
-            "migrationsError": "",
-            "migrationsFailed": "",
-            "resetDatabase": "",
-            "resetDescription": "",
-            "reset": "",
-            "resetTitle": "",
-            "resetWarning": "",
-            "resetSuccess": "",
-            "resetComplete": "",
-            "resetError": "",
-            "resetFailed": ""
+            "runMigrations": "Exécuter les migrations de base de données",
+            "migrationsDescription": "Appliquez les mises à jour en attente du schéma de base de données. Cette opération est sans risque et ne supprimera pas vos données.",
+            "run": "Exécuter",
+            "migrationsSuccess": "Succès",
+            "migrationsComplete": "Migrations de bases de données effectuées avec succès",
+            "migrationsError": "Erreur de migration",
+            "migrationsFailed": "Échec de l'exécution des migrations de base de données",
+            "resetDatabase": "Réinitialiser la base de données",
+            "resetDescription": "Supprimez toutes les données et recommencez avec une base de données vierge. Cette opération est irréversible !",
+            "reset": "Réinitialiser",
+            "resetTitle": "Réinitialiser la base de données ?",
+            "resetWarning": "Cette action supprimera définitivement TOUTES vos données (contacts, interactions, événements, notes). Cette action est irréversible. Êtes-vous sûr(e) ?",
+            "resetSuccess": "Base de données supprimée",
+            "resetComplete": "Fichier de base de données supprimé. IMPORTANT : Faites glisser votre doigt vers le haut pour fermer complètement cette application, puis rouvrez-la pour recréer la base de données avec les migrations.",
+            "resetError": "Réinitialiser l'erreur",
+            "resetFailed": "Échec de la réinitialisation de la base de données"
         },
         "errors": {
             "biometricToggle": {
@@ -113,6 +122,11 @@
                 "title": "Erreur",
                 "message": "Échec de la mise à jour du paramètre"
             }
+        },
+        "searchPlaceholder": "Rechercher un paramètre…",
+        "noResults": "Aucun paramètre ne correspond à votre recherche",
+        "appearance": {
+            "theme": "Thème"
         }
     },
     "labels": {
@@ -123,7 +137,8 @@
         "system": "Système",
         "light": "Clair",
         "dark": "Sombre",
-        "success": "Succès"
+        "success": "Succès",
+        "ok": "OK"
     },
     "buttons": {
         "cancel": "Annuler",
@@ -131,9 +146,8 @@
     },
     "common": {
         "all": "Tous",
-        "cancel": "",
-        "save": "",
-        "none": "Aucun"
+        "cancel": "Annuler",
+        "save": "Enregistrer"
     },
     "industries": {
         "technology": "Technologie",
@@ -195,7 +209,7 @@
         },
         "list": {
             "title": "Entreprises",
-            "searchPlaceholder": "Rechercher des entreprises...",
+            "searchPlaceholder": "Rechercher des entreprises …",
             "empty": {
                 "title": "Aucune Entreprise Trouvée",
                 "noResults": "Aucune entreprise ne correspond à votre recherche.",
@@ -368,7 +382,7 @@
     },
     "contactDetail": {
         "title": "Détails du contact",
-        "loading": "Chargement...",
+        "loading": "Chargement …",
         "errorLoad": "Échec du chargement des détails du contact",
         "errorImageSet": "Échec de la définition de la photo de contact",
         "errorImageRemove": "Échec de la suppression de la photo",
@@ -383,7 +397,7 @@
         "deleteConfirm": "Êtes-vous sûr de vouloir supprimer {{name}} ?",
         "photoTitle": "Photo du contact",
         "photoBody": "Ajouter ou supprimer une photo de profil.",
-        "remove": "Supprimer",
+        "remove": "Enlever",
         "addPhoto": "Ajouter une photo",
         "cancel": "Annuler",
         "add": "Ajouter"
@@ -411,7 +425,6 @@
         "successMsg": "Contact ajouté avec succès !",
         "sections": {
             "name": "Nom",
-            "company": "Société",
             "phones": "Numéros de téléphone",
             "emails": "Adresses e-mail",
             "categories": "Catégories"
@@ -419,7 +432,6 @@
         "labels": {
             "firstName": "Prénom",
             "lastName": "Nom de famille",
-            "company": "Société",
             "optional": "Facultatif",
             "save": "Enregistrer le contact",
             "cancel": "Annuler",
@@ -484,8 +496,8 @@
     },
     "globalSearch": {
         "title": "Rechercher",
-        "searchPlaceholder": "Rechercher contacts, entreprises, interactions, événements...",
-        "searching": "Recherche en cours...",
+        "searchPlaceholder": "Rechercher contacts, entreprises, interactions, événements …",
+        "searching": "Recherche en cours …",
         "sections": {
             "contacts": "Contacts",
             "companies": "Entreprises",
@@ -500,8 +512,8 @@
             "tryDifferent": "Essayez un terme de recherche différent"
         },
         "error": {
-            "title": "",
-            "message": ""
+            "title": "Erreur de recherche",
+            "message": "Recherche impossible. Veuillez réessayer."
         },
         "noContact": "Aucune information de contact",
         "noIndustry": "Aucune industrie",
@@ -509,21 +521,21 @@
         "note": "Note"
     },
     "filters": {
-        "title": "",
-        "categories": "",
+        "title": "Titre",
+        "categories": "Catégories",
         "categoryLogic": "",
         "or": "",
         "and": "",
-        "company": "",
-        "dateAdded": "",
-        "startDate": "",
-        "endDate": "",
+        "company": "Entreprise",
+        "dateAdded": "Date d'ajout",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
         "to": "",
-        "clearDateRange": "",
-        "interactionActivity": "",
-        "last7Days": "",
-        "last30Days": "",
-        "last90Days": "",
+        "clearDateRange": "Réinitialiser la plage de date",
+        "interactionActivity": "Activité d'interaction",
+        "last7Days": "7 derniers jours",
+        "last30Days": "30 derniers jours",
+        "last90Days": "90 derniers jours",
         "hasUpcomingEvents": "",
         "clear": "",
         "apply": ""
