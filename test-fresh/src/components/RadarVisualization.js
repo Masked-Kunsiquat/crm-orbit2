@@ -41,14 +41,9 @@ export default function RadarVisualization({
   enablePulse = true,
   padding = 60,
 }) {
+  // All hooks must be called unconditionally at the top level
   const theme = useTheme();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-
-  // Validate props
-  if (!proximityGroups || !is.object(proximityGroups)) {
-    logger.error('RadarVisualization', 'render', new Error('proximityGroups is required'));
-    return null;
-  }
 
   // Calculate dimensions
   const maxRadius = useMemo(() => {
@@ -60,6 +55,11 @@ export default function RadarVisualization({
 
   // Generate positions for all tiers
   const allPositions = useMemo(() => {
+    // Guard against invalid proximityGroups inside useMemo
+    if (!proximityGroups || !is.object(proximityGroups)) {
+      return [];
+    }
+
     const positions = [];
 
     // Process each tier
@@ -101,6 +101,12 @@ export default function RadarVisualization({
       { tier: 'distant', ...PROXIMITY_TIERS.distant },
     ];
   }, []);
+
+  // Validate props after all hooks have been called
+  if (!proximityGroups || !is.object(proximityGroups)) {
+    logger.error('RadarVisualization', 'render', new Error('proximityGroups is required'));
+    return null;
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
