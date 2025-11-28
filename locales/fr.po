@@ -183,7 +183,7 @@ msgstr[1] "{{count}} éléments"
 msgid "common.counts.uniqueContact"
 msgid_plural "common.counts.uniqueContact"
 msgstr[0] "{{count}} contact unique"
-msgstr[1] "{{count}} contact uniques"
+msgstr[1] "{{count}} contacts uniques"
 
 #. NOUN (singular): A person in your contact list
 #. NOT: The verb 'to contact someone'
@@ -278,17 +278,17 @@ msgstr[1] "{{count}} semaines"
 msgid "common.time.daysAgo"
 msgid_plural "common.time.daysAgo"
 msgstr[0] "il y a {{count}} jour"
-msgstr[1] "{{count}} jours"
+msgstr[1] "il y a {{count}} jours"
 
 msgid "common.time.minutesAgo"
 msgid_plural "common.time.minutesAgo"
 msgstr[0] "il y a {{count}} minute"
-msgstr[1] "{{count}} minutes"
+msgstr[1] "il y a {{count}} minutes"
 
 msgid "common.time.hoursAgo"
 msgid_plural "common.time.hoursAgo"
 msgstr[0] "il y a {{count}} heure"
-msgstr[1] "{{count}} heures"
+msgstr[1] "il y a {{count}} heures"
 
 msgid "common.dateRanges.allTime"
 msgstr "Tout le temps"
@@ -593,7 +593,7 @@ msgid "settings.database.resetComplete"
 msgstr "Fichier de base de données supprimé. IMPORTANT : Faites glisser votre doigt vers le haut pour fermer complètement cette application, puis rouvrez-la pour recréer la base de données avec les migrations."
 
 msgid "settings.database.resetError"
-msgstr "Réinitialiser l'erreur"
+msgstr "Erreur de réinitialisation"
 
 msgid "settings.database.resetFailed"
 msgstr "Échec de la réinitialisation de la base de données"
@@ -1110,7 +1110,7 @@ msgstr "Ajouter une photo"
 msgid "contactDetail.viewMore"
 msgid_plural "contactDetail.viewMore"
 msgstr[0] "Voir {{count}} de plus"
-msgstr[1] "{{count}} de pluss"
+msgstr[1] "Voir {{count}} de plus"
 
 msgid "contactDetail.viewMoreInfo"
 msgstr "Voir plus d'informations"
