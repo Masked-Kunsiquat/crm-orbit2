@@ -1,40 +1,40 @@
 {
   "common": {
     "counts": {
-      "contact_one": "common.counts.contact",
-      "contact_other": "common.counts.contact",
-      "interaction_one": "common.counts.interaction",
-      "interaction_other": "common.counts.interaction",
-      "event_one": "common.counts.event",
-      "event_other": "common.counts.event",
-      "company_one": "common.counts.company",
-      "company_other": "common.counts.company",
-      "category_one": "common.counts.category",
-      "category_other": "common.counts.category",
-      "note_one": "common.counts.note",
-      "note_other": "common.counts.note",
-      "result_one": "common.counts.result",
-      "result_other": "common.counts.result",
-      "item_one": "common.counts.item",
-      "item_other": "common.counts.item",
-      "uniqueContact_one": "common.counts.uniqueContact",
-      "uniqueContact_other": "common.counts.uniqueContact"
+      "contact_one": "{{count}} Kontakt",
+      "contact_other": "{{count}} Kontakte",
+      "interaction_one": "{{count}} Interaktion",
+      "interaction_other": "{{count}} Interaktionen",
+      "event_one": "{{count}} Ereignis",
+      "event_other": "{{count}} Ereignisse",
+      "company_one": "{{count}} Firma",
+      "company_other": "{{count}} Firmen",
+      "category_one": "{{count}} Kategorie",
+      "category_other": "{{count}} Kategorien",
+      "note_one": "{{count}} Notiz",
+      "note_other": "{{count}} Notizen",
+      "result_one": "{{count}} Ergebnis",
+      "result_other": "{{count}} Ergebnisse",
+      "item_one": "{{count}} Artikel",
+      "item_other": "{{count}} Artikel",
+      "uniqueContact_one": "{{count}} einzigartiger Kontakt",
+      "uniqueContact_other": "{{count}} einzigartige Kontakte"
     },
     "time": {
-      "minute_one": "common.time.minute",
-      "minute_other": "common.time.minute",
-      "hour_one": "common.time.hour",
-      "hour_other": "common.time.hour",
-      "day_one": "common.time.day",
-      "day_other": "common.time.day",
-      "week_one": "common.time.week",
-      "week_other": "common.time.week",
-      "daysAgo_one": "common.time.daysAgo",
-      "daysAgo_other": "common.time.daysAgo",
-      "minutesAgo_one": "common.time.minutesAgo",
-      "minutesAgo_other": "common.time.minutesAgo",
-      "hoursAgo_one": "common.time.hoursAgo",
-      "hoursAgo_other": "common.time.hoursAgo"
+      "minute_one": "{{count}} Minute",
+      "minute_other": "{{count}} Minuten",
+      "hour_one": "{{count}} Stunde",
+      "hour_other": "{{count}} Stunden",
+      "day_one": "{{count}} Tag",
+      "day_other": "{{count}} Tage",
+      "week_one": "{{count}} Woche",
+      "week_other": "{{count}} Wochen",
+      "daysAgo_one": "vor {{count}} Tag",
+      "daysAgo_other": "vor {{count}} Tagen",
+      "minutesAgo_one": "vor {{count}} Minute",
+      "minutesAgo_other": "vor {{count}} Minuten",
+      "hoursAgo_one": "vor {{count}} Stunde",
+      "hoursAgo_other": "vor {{count}} Stunden"
     }
   },
   "navigation": {
@@ -206,7 +206,7 @@
       },
       "delete": {
         "title": "Unternehmen Löschen",
-        "message": "Möchten Sie \\\\\\\"{{name}}\\\\\\\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht.",
+        "message": "Möchten Sie \"{{name}}\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht.",
         "success": "Unternehmen erfolgreich gelöscht"
       }
     }
@@ -336,8 +336,8 @@
     "photoTitle": "Kontaktfoto",
     "photoBody": "Ein Profilbild hinzufügen oder entfernen.",
     "addPhoto": "Foto hinzufügen",
-    "viewMore_one": "contactDetail.viewMore",
-    "viewMore_other": "contactDetail.viewMore"
+    "viewMore_one": "{{count}} weitere anzeigen",
+    "viewMore_other": "{{count}} weitere anzeigen"
   },
   "addContact": {
     "title": "Kontakt hinzufügen",

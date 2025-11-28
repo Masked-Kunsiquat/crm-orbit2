@@ -9,6 +9,17 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
+
+# Orbit CRM - ZH-HANS Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
+#: Modal save buttons
+#: Form submissions
 msgid "common.actions.save"
 msgstr ""
 
