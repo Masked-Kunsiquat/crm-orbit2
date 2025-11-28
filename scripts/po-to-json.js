@@ -27,53 +27,121 @@ const OUTPUT_DIR = path.join(PROJECT_ROOT, 'test-fresh', 'src', 'locales');
 const LANGUAGES = ['en', 'es', 'fr', 'de', 'zh-Hans'];
 
 /**
- * Parse PO file into entries
+ * Unescape PO format strings
+ */
+function unescapePO(str) {
+  if (!str) return '';
+  return str
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, '\\');
+}
+
+/**
+ * Parse PO file into entries (with multi-line string support)
  */
 function parsePOFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');
   const entries = [];
   let currentEntry = null;
+  let currentField = null; // Track which field we're accumulating (msgid, msgstr, etc.)
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     // Skip comments and metadata
     if (line.startsWith('#')) {
+      currentField = null; // End multi-line accumulation
       continue;
     }
 
     // msgid
     if (line.startsWith('msgid ')) {
-      if (currentEntry && currentEntry.msgid) {
+      if (currentEntry && currentEntry.msgid !== undefined) {
         // Save previous entry
         entries.push(currentEntry);
       }
       currentEntry = {};
-      currentEntry.msgid = line.substring(6).trim().replace(/^"|"$/g, '');
+
+      // Extract value from first line
+      const valueMatch = line.match(/^msgid\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgid = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgid = '';
+      }
+
+      currentField = 'msgid';
     }
     // msgid_plural
     else if (line.startsWith('msgid_plural ')) {
       if (currentEntry) {
-        currentEntry.msgid_plural = line.substring(13).trim().replace(/^"|"$/g, '');
+        const valueMatch = line.match(/^msgid_plural\s+"(.*)"\s*$/);
+        if (valueMatch) {
+          currentEntry.msgid_plural = unescapePO(valueMatch[1]);
+        } else {
+          currentEntry.msgid_plural = '';
+        }
+
         currentEntry.isPlural = true;
+        currentField = 'msgid_plural';
       }
     }
     // msgstr (non-plural)
     else if (line.startsWith('msgstr ') && currentEntry && !currentEntry.isPlural) {
-      currentEntry.msgstr = line.substring(7).trim().replace(/^"|"$/g, '');
+      const valueMatch = line.match(/^msgstr\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgstr = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgstr = '';
+      }
+
+      currentField = 'msgstr';
     }
     // msgstr[n] (plural)
     else if (line.match(/^msgstr\[\d+\]/)) {
       if (!currentEntry.msgstr_plural) currentEntry.msgstr_plural = [];
-      const index = parseInt(line.match(/\[(\d+)\]/)[1]);
-      const value = line.replace(/^msgstr\[\d+\]\s*/, '').trim().replace(/^"|"$/g, '');
-      currentEntry.msgstr_plural[index] = value;
+
+      const indexMatch = line.match(/^msgstr\[(\d+)\]/);
+      const index = parseInt(indexMatch[1]);
+
+      const valueMatch = line.match(/^msgstr\[\d+\]\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgstr_plural[index] = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgstr_plural[index] = '';
+      }
+
+      currentField = { type: 'msgstr_plural', index };
+    }
+    // Continuation line (bare quoted string)
+    else if (line.trim().match(/^".*"\s*$/) && currentField) {
+      const valueMatch = line.trim().match(/^"(.*)"\s*$/);
+      if (valueMatch) {
+        const continuationValue = unescapePO(valueMatch[1]);
+
+        if (currentField === 'msgid') {
+          currentEntry.msgid += continuationValue;
+        } else if (currentField === 'msgid_plural') {
+          currentEntry.msgid_plural += continuationValue;
+        } else if (currentField === 'msgstr') {
+          currentEntry.msgstr += continuationValue;
+        } else if (currentField?.type === 'msgstr_plural') {
+          const idx = currentField.index;
+          currentEntry.msgstr_plural[idx] += continuationValue;
+        }
+      }
+    }
+    // Blank line or unknown - end multi-line accumulation
+    else if (line.trim() === '') {
+      currentField = null;
     }
   }
 
   // Add last entry
-  if (currentEntry && currentEntry.msgid) {
+  if (currentEntry && currentEntry.msgid !== undefined) {
     entries.push(currentEntry);
   }
 
