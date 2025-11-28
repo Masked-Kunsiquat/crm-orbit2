@@ -35,55 +35,125 @@ const EXPECTED_PLURAL_COUNTS = {
 };
 
 /**
- * Parse PO file into entries
+ * Unescape PO format strings
+ */
+function unescapePO(str) {
+  if (!str) return '';
+  return str
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, '\\');
+}
+
+/**
+ * Parse PO file into entries (with multi-line string support)
  */
 function parsePOFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');
   const entries = [];
   let currentEntry = null;
+  let currentField = null; // Track which field we're accumulating
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Developer comment
+    // Skip comments (but track them for validation)
     if (line.startsWith('#.')) {
       if (!currentEntry) currentEntry = { comments: [], locations: [] };
       currentEntry.comments.push(line.substring(3).trim());
+      currentField = null; // End multi-line accumulation
     }
-    // Source location
     else if (line.startsWith('#:')) {
       if (!currentEntry) currentEntry = { comments: [], locations: [] };
       currentEntry.locations.push(line.substring(3).trim());
+      currentField = null;
+    }
+    else if (line.startsWith('#')) {
+      // Other comment types - skip but end accumulation
+      currentField = null;
     }
     // msgid
     else if (line.startsWith('msgid ')) {
       if (!currentEntry) currentEntry = { comments: [], locations: [] };
-      currentEntry.msgid = line.substring(6).trim().replace(/^"|"$/g, '');
+
+      // Extract value from first line
+      const valueMatch = line.match(/^msgid\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgid = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgid = '';
+      }
+
+      currentField = 'msgid';
     }
     // msgid_plural
     else if (line.startsWith('msgid_plural ')) {
-      currentEntry.msgid_plural = line.substring(13).trim().replace(/^"|"$/g, '');
+      const valueMatch = line.match(/^msgid_plural\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgid_plural = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgid_plural = '';
+      }
+
+      currentField = 'msgid_plural';
     }
-    // msgstr
-    else if (line.startsWith('msgstr ')) {
-      currentEntry.msgstr = line.substring(7).trim().replace(/^"|"$/g, '');
+    // msgstr (non-plural)
+    else if (line.startsWith('msgstr ') && currentEntry && !currentEntry.msgid_plural) {
+      const valueMatch = line.match(/^msgstr\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgstr = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgstr = '';
+      }
+
+      currentField = 'msgstr';
     }
-    // msgstr[n]
+    // msgstr[n] (plural)
     else if (line.match(/^msgstr\[\d+\]/)) {
       if (!currentEntry.msgstr_plural) currentEntry.msgstr_plural = [];
-      const value = line.replace(/^msgstr\[\d+\]\s*/, '').trim().replace(/^"|"$/g, '');
-      currentEntry.msgstr_plural.push(value);
+
+      const indexMatch = line.match(/^msgstr\[(\d+)\]/);
+      const index = parseInt(indexMatch[1]);
+
+      const valueMatch = line.match(/^msgstr\[\d+\]\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgstr_plural[index] = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgstr_plural[index] = '';
+      }
+
+      currentField = { type: 'msgstr_plural', index };
+    }
+    // Continuation line (bare quoted string)
+    else if (line.trim().match(/^".*"\s*$/) && currentField) {
+      const valueMatch = line.trim().match(/^"(.*)"\s*$/);
+      if (valueMatch) {
+        const continuationValue = unescapePO(valueMatch[1]);
+
+        if (currentField === 'msgid') {
+          currentEntry.msgid += continuationValue;
+        } else if (currentField === 'msgid_plural') {
+          currentEntry.msgid_plural += continuationValue;
+        } else if (currentField === 'msgstr') {
+          currentEntry.msgstr += continuationValue;
+        } else if (currentField?.type === 'msgstr_plural') {
+          const idx = currentField.index;
+          currentEntry.msgstr_plural[idx] += continuationValue;
+        }
+      }
     }
     // Blank line = end of entry
-    else if (line.trim() === '' && currentEntry && currentEntry.msgid) {
+    else if (line.trim() === '' && currentEntry && currentEntry.msgid !== undefined) {
       entries.push(currentEntry);
       currentEntry = null;
+      currentField = null;
     }
   }
 
   // Add last entry if exists
-  if (currentEntry && currentEntry.msgid) {
+  if (currentEntry && currentEntry.msgid !== undefined) {
     entries.push(currentEntry);
   }
 
@@ -139,10 +209,10 @@ function validatePOFile(language) {
 
   console.log(`  Found ${realEntries.length} entries`);
 
-  // Check for entries without comments (except nesting references)
+  // Check for entries without comments
+  // Note: Nesting references ($t() syntax) appear in msgstr values, not msgid keys
+  // The conversion scripts (json-to-po.js) skip entries with $t() in source values
   const entriesWithoutComments = realEntries.filter(e => {
-    // Skip nesting references (they don't need comments)
-    if (e.msgid.startsWith('$t(')) return false;
     return e.comments.length === 0;
   });
 
