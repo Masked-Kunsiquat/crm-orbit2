@@ -151,20 +151,37 @@ function parsePOFile(filePath) {
 
 /**
  * Set nested value in object using dot notation
+ * Protects against prototype pollution by blocking dangerous property names
  */
 function setNestedValue(obj, path, value) {
   const parts = path.split('.');
   let current = obj;
 
+  // Dangerous properties that could lead to prototype pollution
+  const dangerousProps = ['__proto__', 'constructor', 'prototype'];
+
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
+
+    // Skip dangerous property names to prevent prototype pollution
+    if (dangerousProps.includes(part)) {
+      return;
+    }
+
     if (!current[part]) {
       current[part] = {};
     }
     current = current[part];
   }
 
-  current[parts[parts.length - 1]] = value;
+  const lastPart = parts[parts.length - 1];
+
+  // Skip dangerous property names in final assignment
+  if (dangerousProps.includes(lastPart)) {
+    return;
+  }
+
+  current[lastPart] = value;
 }
 
 /**
