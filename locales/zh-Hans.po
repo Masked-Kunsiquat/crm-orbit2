@@ -9,17 +9,6 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
-
-# Orbit CRM - ZH-HANS Translations
-# Generated: 2025-11-28
-#
-#. Generic save action button
-#. Context: Used throughout app for saving changes
-#. Tone: Imperative (command form)
-#. Character limit: ~12 characters
-#. Note: Use when 'Save' alone is sufficient without additional context
-#: Modal save buttons
-#: Form submissions
 msgid "common.actions.save"
 msgstr ""
 
@@ -338,7 +327,7 @@ msgid "navigation.interactions"
 msgstr "互动"
 
 msgid "navigation.proximity"
-msgstr ""
+msgstr "关系亲密度"
 
 msgid "navigation.events"
 msgstr "事件"
@@ -452,10 +441,10 @@ msgid "settings.sections.languageDescription"
 msgstr "选择您偏好的语言"
 
 msgid "settings.sections.proximity"
-msgstr ""
+msgstr "关系洞察"
 
 msgid "settings.sections.proximityDescription"
-msgstr ""
+msgstr "配置关系亲密度评分"
 
 msgid "settings.sections.data"
 msgstr "数据管理"
@@ -467,10 +456,10 @@ msgid "settings.sections.database"
 msgstr "数据库"
 
 msgid "settings.proximity.algorithm"
-msgstr ""
+msgstr "亲密度算法"
 
 msgid "settings.proximity.algorithmDescription"
-msgstr ""
+msgstr "选择关系强度的计算方式"
 
 msgid "settings.appearance.theme"
 msgstr "主题"
@@ -604,13 +593,13 @@ msgid "settings.errors.featureToggle"
 msgstr ""
 
 msgid "theme.system"
-msgstr ""
+msgstr "系统"
 
 msgid "theme.light"
-msgstr ""
+msgstr "浅色"
 
 msgid "theme.dark"
-msgstr ""
+msgstr "深色"
 
 msgid "industries.technology"
 msgstr "科技"
@@ -634,7 +623,7 @@ msgid "industries.consulting"
 msgstr "咨询"
 
 msgid "industries.realEstate"
-msgstr ""
+msgstr "房地产"
 
 msgid "industries.other"
 msgstr "其他"
@@ -772,7 +761,7 @@ msgstr "加载互动记录失败"
 #: src/screens/InteractionsScreen.js (filter buttons)
 #: src/components/AddInteractionModal.js (type selector)
 msgid "interactionTypes.call"
-msgstr ""
+msgstr "通话"
 
 #. NOUN: Text message - an interaction type
 #. NOT: The verb 'to text someone' or generic 'text' (written content)
@@ -782,22 +771,22 @@ msgstr ""
 #: src/screens/InteractionsScreen.js
 #: src/components/AddInteractionModal.js
 msgid "interactionTypes.text"
-msgstr ""
+msgstr "短信"
 
 msgid "interactionTypes.email"
-msgstr ""
+msgstr "电子邮件"
 
 msgid "interactionTypes.meeting"
-msgstr ""
+msgstr "会议"
 
 msgid "interactionTypes.videoCall"
-msgstr ""
+msgstr "视频通话"
 
 msgid "interactionTypes.socialMedia"
-msgstr ""
+msgstr "社交媒体"
 
 msgid "interactionTypes.other"
-msgstr ""
+msgstr "其他"
 
 msgid "addInteraction.titleAdd"
 msgstr "添加互动"
@@ -913,19 +902,19 @@ msgid "events.errorLoad"
 msgstr "加载事件失败"
 
 msgid "eventTypes.birthday"
-msgstr ""
+msgstr "生日"
 
 msgid "eventTypes.anniversary"
-msgstr ""
+msgstr "纪念日"
 
 msgid "eventTypes.meeting"
-msgstr ""
+msgstr "会议"
 
 msgid "eventTypes.deadline"
-msgstr ""
+msgstr "截止日期"
 
 msgid "eventTypes.other"
-msgstr ""
+msgstr "其他"
 
 msgid "addEvent.titleAdd"
 msgstr "添加事件"
@@ -1038,10 +1027,10 @@ msgid "contactDetail.errorImageRemove"
 msgstr "删除照片失败"
 
 msgid "contactDetail.tabs.info"
-msgstr ""
+msgstr "信息"
 
 msgid "contactDetail.tabs.activity"
-msgstr ""
+msgstr "活动"
 
 msgid "contactDetail.recent"
 msgstr "近期互动"
@@ -1050,16 +1039,16 @@ msgid "contactDetail.events"
 msgstr "即将到来的事件"
 
 msgid "contactDetail.upcoming"
-msgstr ""
+msgstr "即将到来"
 
 msgid "contactDetail.pastActivity"
-msgstr ""
+msgstr "过去活动"
 
 msgid "contactDetail.addBirthday"
 msgstr "生日"
 
 msgid "contactDetail.addInteraction"
-msgstr ""
+msgstr "添加互动"
 
 msgid "contactDetail.noEvents"
 msgstr "暂无即将到来的事件"
@@ -1068,10 +1057,10 @@ msgid "contactDetail.noEventsDescription"
 msgstr "为此联系人添加事件"
 
 msgid "contactDetail.noActivity"
-msgstr ""
+msgstr "暂无活动"
 
 msgid "contactDetail.noActivityDescription"
-msgstr ""
+msgstr "为此联系人添加互动记录"
 
 msgid "contactDetail.recurring"
 msgstr "重复"
@@ -1093,10 +1082,10 @@ msgstr "添加照片"
 
 msgid "contactDetail.viewMore"
 msgid_plural "contactDetail.viewMore"
-msgstr[0] ""
+msgstr[0] "查看更多"
 
 msgid "contactDetail.viewMoreInfo"
-msgstr ""
+msgstr "查看更多信息"
 
 #. Category name: Family members
 #. Context: Contact categorization/tagging
@@ -1105,34 +1094,34 @@ msgstr ""
 #: Category selector in contact forms
 #: Filter options
 msgid "categories.family"
-msgstr ""
+msgstr "家人"
 
 msgid "categories.friends"
-msgstr ""
+msgstr "朋友"
 
 msgid "categories.work"
-msgstr ""
+msgstr "工作"
 
 msgid "categories.vip"
-msgstr ""
+msgstr "重要人物"
 
 msgid "categories.coworkers"
-msgstr ""
+msgstr "同事"
 
 msgid "categories.clients"
-msgstr ""
+msgstr "客户"
 
 msgid "categories.leads"
-msgstr ""
+msgstr "潜在客户"
 
 msgid "categories.vendors"
-msgstr ""
+msgstr "供应商"
 
 msgid "categories.business"
-msgstr ""
+msgstr "商务"
 
 msgid "categories.personal"
-msgstr ""
+msgstr "个人"
 
 msgid "addContact.title"
 msgstr "添加联系人"
@@ -1222,46 +1211,46 @@ msgid "contact.companyOnly"
 msgstr "{{company}}"
 
 msgid "contact.phoneLabels.mobile"
-msgstr ""
+msgstr "手机"
 
 msgid "contact.phoneLabels.home"
-msgstr ""
+msgstr "家庭"
 
 msgid "contact.phoneLabels.work"
-msgstr ""
+msgstr "工作"
 
 msgid "contact.phoneLabels.other"
-msgstr ""
+msgstr "其他"
 
 msgid "contact.emailLabels.personal"
-msgstr ""
+msgstr "个人"
 
 msgid "contact.emailLabels.work"
-msgstr ""
+msgstr "工作"
 
 msgid "contact.emailLabels.other"
-msgstr ""
+msgstr "其他"
 
 msgid "contact.contactTypes.bestFriend"
-msgstr ""
+msgstr "挚友"
 
 msgid "contact.contactTypes.family"
-msgstr ""
+msgstr "家人"
 
 msgid "contact.contactTypes.closeFriend"
-msgstr ""
+msgstr "密友"
 
 msgid "contact.contactTypes.friend"
-msgstr ""
+msgstr "朋友"
 
 msgid "contact.contactTypes.colleague"
-msgstr ""
+msgstr "同事"
 
 msgid "contact.contactTypes.acquaintance"
-msgstr ""
+msgstr "熟人"
 
 msgid "contact.contactTypes.other"
-msgstr ""
+msgstr "其他"
 
 msgid "editContact.title"
 msgstr "编辑联系人"
@@ -1310,34 +1299,34 @@ msgstr "无标题"
 #: Navigation tab
 #: Screen header
 msgid "proximity.title"
-msgstr ""
+msgstr "关系亲密度"
 
 msgid "proximity.radarTitle"
-msgstr ""
+msgstr "亲密度雷达"
 
 msgid "proximity.calculating"
-msgstr ""
+msgstr "正在计算亲密度分数..."
 
 msgid "proximity.errorTitle"
-msgstr ""
+msgstr "无法加载亲密度数据"
 
 msgid "proximity.errorMessage"
-msgstr ""
+msgstr "计算关系亲密度时出现错误，请重试。"
 
 msgid "proximity.emptyTitle"
-msgstr ""
+msgstr "暂无联系人"
 
 msgid "proximity.emptyMessage"
-msgstr ""
+msgstr "添加联系人并记录互动以查看关系亲密度分析。"
 
 msgid "proximity.noContacts"
-msgstr ""
+msgstr "雷达上无联系人"
 
 msgid "proximity.noContactsMessage"
-msgstr ""
+msgstr "添加联系人并开始记录互动，以便在亲密度雷达上看到他们。"
 
 msgid "proximity.infoTitle"
-msgstr ""
+msgstr "关于关系亲密度"
 
 #. Explanation of how proximity scoring works
 #. Context: Help dialog explaining the feature
@@ -1346,64 +1335,64 @@ msgstr ""
 #. Character limit: ~250 characters
 #: src/screens/ProximityScreen.js (info dialog)
 msgid "proximity.infoMessage"
-msgstr ""
+msgstr "亲密度分数根据您的互动频率、互动时间的最近程度、互动质量以及关系类型来衡量关系强度，范围从0到100。"
 
 msgid "proximity.infoScoring"
-msgstr ""
+msgstr "联系人被分为不同层级：核心圈（70-100）、中间圈（50-69）、外围圈（30-49）和远距离（0-29）。"
 
 msgid "proximity.radarInfo.title"
-msgstr ""
+msgstr "关于雷达视图"
 
 msgid "proximity.radarInfo.message"
-msgstr ""
+msgstr "雷达视图将您的联系人显示为同心圆环上的浮动头像。距离中心越近的联系人代表关系越强。点击任何联系人查看其详细信息。"
 
 msgid "proximity.gotIt"
-msgstr ""
+msgstr "知道了"
 
 msgid "proximitySettings.title"
-msgstr ""
+msgstr "亲密度算法"
 
 msgid "proximitySettings.algorithmTitle"
-msgstr ""
+msgstr "亲密度工作原理"
 
 msgid "proximitySettings.algorithmDescription"
-msgstr ""
+msgstr "亲密度分数根据您的互动频率、互动时间的最近程度、互动质量以及关系类型来衡量关系强度。选择与您的优先级相匹配的预设。"
 
 msgid "proximitySettings.presetTitle"
-msgstr ""
+msgstr "选择算法预设"
 
 msgid "proximitySettings.weights"
-msgstr ""
+msgstr "权重分配"
 
 msgid "proximitySettings.recency"
-msgstr ""
+msgstr "最近程度"
 
 msgid "proximitySettings.frequency"
-msgstr ""
+msgstr "频率"
 
 msgid "proximitySettings.quality"
-msgstr ""
+msgstr "质量"
 
 msgid "proximitySettings.contactType"
-msgstr ""
+msgstr "联系人类型"
 
 msgid "proximitySettings.customNotConfigured"
-msgstr ""
+msgstr "自定义权重尚未配置。正在使用默认预设。"
 
 msgid "proximitySettings.saved"
-msgstr ""
+msgstr "设置已保存"
 
 msgid "proximitySettings.savedMessage"
-msgstr ""
+msgstr "您的亲密度算法偏好已更新。"
 
 msgid "proximitySettings.saveError"
-msgstr ""
+msgstr "保存失败"
 
 msgid "proximitySettings.saveErrorMessage"
-msgstr ""
+msgstr "保存亲密度设置失败，请重试。"
 
 msgid "proximitySettings.loadError"
-msgstr ""
+msgstr "加载失败"
 
 msgid "proximitySettings.loadErrorMessage"
-msgstr ""
+msgstr "加载亲密度设置失败。"
