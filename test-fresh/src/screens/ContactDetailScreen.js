@@ -471,9 +471,17 @@ export default function ContactDetailScreen({ route, navigation }) {
                 },
               ]}
             >
-              {contact.job_title && companyName
-                ? `${contact.job_title} at ${companyName}`
-                : contact.job_title || companyName}
+              {(() => {
+                // Use i18n templates for proper word-order flexibility
+                if (contact.job_title && companyName) {
+                  return t('contact.jobAtCompany', { job: contact.job_title, company: companyName });
+                } else if (contact.job_title) {
+                  return t('contact.jobOnly', { job: contact.job_title });
+                } else if (companyName) {
+                  return t('contact.companyOnly', { company: companyName });
+                }
+                return null;
+              })()}
             </Text>
           )}
         </View>

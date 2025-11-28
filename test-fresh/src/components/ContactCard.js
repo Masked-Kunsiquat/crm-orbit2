@@ -23,10 +23,17 @@ function ContactCard({ contact, onPress }) {
                   contact.company?.name || contact.company_name;
                 const job = contact.job_title;
                 if (!companyName && !job) return null;
-                const line =
-                  job && companyName
-                    ? `${job} at ${companyName}`
-                    : job || companyName;
+
+                // Use i18n templates for proper word-order flexibility
+                let line;
+                if (job && companyName) {
+                  line = t('contact.jobAtCompany', { job, company: companyName });
+                } else if (job) {
+                  line = t('contact.jobOnly', { job });
+                } else {
+                  line = t('contact.companyOnly', { company: companyName });
+                }
+
                 return (
                   <Text variant="bodySmall" style={styles.company}>
                     {line}

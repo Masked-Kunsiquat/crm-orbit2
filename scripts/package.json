@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "name": "crm-orbit-i18n-scripts",
+  "version": "1.0.0",
+  "description": "i18n conversion scripts for CRM Orbit"
+}
