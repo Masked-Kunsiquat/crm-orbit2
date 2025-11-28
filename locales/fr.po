@@ -369,7 +369,7 @@ msgid "dashboard.upcomingEvents.title"
 msgstr "Événements à venir"
 
 msgid "dashboard.upcomingEvents.subtitle"
-msgstr "Prochain 5 événements"
+msgstr "Les 5 prochains événements"
 
 msgid "dashboard.upcomingEvents.empty"
 msgstr "Aucun événement à venir"
@@ -1327,19 +1327,19 @@ msgstr "Sans titre"
 #: Navigation tab
 #: Screen header
 msgid "proximity.title"
-msgstr "Contacts à proximité"
+msgstr "Proximité relationnelle"
 
 msgid "proximity.radarTitle"
-msgstr "Radar de proximité"
+msgstr "Radar de proximité relationnelle"
 
 msgid "proximity.calculating"
-msgstr "Calcul en cours..."
+msgstr "Calcul de la proximité relationnelle en cours..."
 
 msgid "proximity.errorTitle"
 msgstr "Erreur"
 
 msgid "proximity.errorMessage"
-msgstr "Impossible de calculer la proximité"
+msgstr "Impossible de calculer la proximité relationnelle"
 
 msgid "proximity.emptyTitle"
 msgstr "Aucun contact"
@@ -1348,10 +1348,10 @@ msgid "proximity.emptyMessage"
 msgstr "Aucun contact trouvé dans votre liste"
 
 msgid "proximity.noContacts"
-msgstr "Aucun contact à proximité"
+msgstr "Aucune relation suffisamment proche"
 
 msgid "proximity.noContactsMessage"
-msgstr "Aucun contact trouvé dans le rayon de recherche"
+msgstr "Aucun contact avec un score de proximité suffisant"
 
 msgid "proximity.infoTitle"
 msgstr "À propos de la proximité"
