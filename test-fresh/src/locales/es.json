@@ -206,7 +206,7 @@
       },
       "delete": {
         "title": "Eliminar Empresa",
-        "message": "¿Estás seguro de que deseas eliminar \\\\\\\"{{name}}\\\\\\\"? Esto no eliminará los contactos asociados.",
+        "message": "¿Estás seguro de que deseas eliminar \\\\\\\\\\\\\\\"{{name}}\\\\\\\\\\\\\\\"? Esto no eliminará los contactos asociados.",
         "success": "Empresa eliminada exitosamente"
       }
     }

@@ -229,7 +229,6 @@ function generatePOFile(language) {
 
   const lines = [generateHeader(language)];
   const allKeys = getAllKeys(newStructure);
-  const processedPlurals = new Set();
 
   let entryCount = 0;
   let pluralCount = 0;
@@ -242,22 +241,9 @@ function generatePOFile(language) {
       return;
     }
 
-    // Skip plural _other keys (handled with _one)
+    // Skip plural _other keys (only process _one keys which handle both forms)
     if (key.endsWith('_other')) {
-      const baseKey = getBasePluralKey(key);
-      if (processedPlurals.has(baseKey)) {
-        return;
-      }
-      processedPlurals.add(baseKey);
-    }
-
-    // Skip plural _one keys if already processed
-    if (key.endsWith('_one')) {
-      const baseKey = getBasePluralKey(key);
-      if (processedPlurals.has(baseKey)) {
-        return;
-      }
-      processedPlurals.add(baseKey);
+      return;
     }
 
     const entry = generatePOEntry(key, value, language);

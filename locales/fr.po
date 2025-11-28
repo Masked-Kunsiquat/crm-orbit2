@@ -731,7 +731,7 @@ msgid "companies.list.delete.title"
 msgstr "Supprimer l'Entreprise"
 
 msgid "companies.list.delete.message"
-msgstr "Êtes-vous sûr de vouloir supprimer \\\"{{name}}\\\" ? Cela ne supprimera pas les contacts associés."
+msgstr "Êtes-vous sûr de vouloir supprimer \\\\\\\"{{name}}\\\\\\\" ? Cela ne supprimera pas les contacts associés."
 
 msgid "companies.list.delete.success"
 msgstr "Entreprise supprimée avec succès"

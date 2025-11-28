@@ -299,7 +299,7 @@
       },
       "delete": {
         "title": "Supprimer l'Entreprise",
-        "message": "Êtes-vous sûr de vouloir supprimer \\\\\\\"{{name}}\\\\\\\" ? Cela ne supprimera pas les contacts associés.",
+        "message": "Êtes-vous sûr de vouloir supprimer \\\\\\\\\\\\\\\"{{name}}\\\\\\\\\\\\\\\" ? Cela ne supprimera pas les contacts associés.",
         "success": "Entreprise supprimée avec succès",
         "error": "Échec de la suppression de l'entreprise"
       }
