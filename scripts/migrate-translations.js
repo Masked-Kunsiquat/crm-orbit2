@@ -4,10 +4,19 @@
  * This script:
  * 1. Reads old translation JSON files (test-fresh/src/locales/*.json)
  * 2. Reads KEY_MIGRATION_MAP.json for key mappings
- * 3. Reads generated PO files
+ * 3. Reads generated PO files (preserving ALL PO features)
  * 4. Fills in msgstr values with existing translations
- * 5. Writes updated PO files
+ * 5. Writes updated PO files (preserving original formatting)
  * 6. Reports coverage statistics
+ *
+ * PO Features Preserved:
+ * - Translator comments (#)
+ * - Extracted comments (#.)
+ * - Reference comments (#:)
+ * - Flag comments (#,)
+ * - Multi-line msgid/msgstr strings
+ * - Plural forms (msgid_plural, msgstr[n])
+ * - Original line formatting and structure
  *
  * Usage: node scripts/migrate-translations.js
  */
@@ -47,7 +56,19 @@ function escapePO(str) {
 }
 
 /**
- * Parse PO file into entries
+ * Unescape PO format strings
+ */
+function unescapePO(str) {
+  if (!str) return '';
+  return str
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, '\\');
+}
+
+/**
+ * Parse PO file into entries, preserving all features
  */
 function parsePOFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -55,6 +76,7 @@ function parsePOFile(filePath) {
   const entries = [];
   let currentEntry = null;
   let inHeader = true;
+  let currentField = null; // Track which field we're accumulating multi-line strings for
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -69,59 +91,135 @@ function parsePOFile(filePath) {
       continue;
     }
 
-    // Developer comment
-    if (line.startsWith('#.')) {
-      if (!currentEntry) currentEntry = { comments: [], locations: [], originalLines: [] };
+    // Any comment line (translator #, extracted #., reference #:, flags #,, etc.)
+    if (line.startsWith('#')) {
+      if (!currentEntry) {
+        currentEntry = {
+          comments: [],
+          originalLines: [],
+          msgidLines: [],
+          msgid_pluralLines: [],
+          msgstrLines: [],
+          msgstr_pluralLines: []
+        };
+      }
       currentEntry.comments.push(line);
       currentEntry.originalLines.push(line);
+      currentField = null; // End multi-line accumulation
     }
-    // Source location
-    else if (line.startsWith('#:')) {
-      if (!currentEntry) currentEntry = { comments: [], locations: [], originalLines: [] };
-      currentEntry.locations.push(line);
-      currentEntry.originalLines.push(line);
-    }
-    // msgid
+    // msgid (start of new message)
     else if (line.startsWith('msgid ')) {
-      if (!currentEntry) currentEntry = { comments: [], locations: [], originalLines: [] };
-      currentEntry.msgid = line.substring(6).trim().replace(/^"|"$/g, '');
-      currentEntry.msgidLine = line;
+      if (!currentEntry) {
+        currentEntry = {
+          comments: [],
+          originalLines: [],
+          msgidLines: [],
+          msgid_pluralLines: [],
+          msgstrLines: [],
+          msgstr_pluralLines: []
+        };
+      }
+
+      // Extract value from first line
+      const valueMatch = line.match(/^msgid\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgid = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgid = '';
+      }
+
+      currentEntry.msgidLines.push(line);
       currentEntry.originalLines.push(line);
+      currentField = 'msgid';
     }
     // msgid_plural
     else if (line.startsWith('msgid_plural ')) {
-      currentEntry.msgid_plural = line.substring(13).trim().replace(/^"|"$/g, '');
-      currentEntry.msgid_pluralLine = line;
+      const valueMatch = line.match(/^msgid_plural\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgid_plural = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgid_plural = '';
+      }
+
+      currentEntry.msgid_pluralLines.push(line);
       currentEntry.originalLines.push(line);
       currentEntry.isPlural = true;
+      currentField = 'msgid_plural';
     }
     // msgstr (non-plural)
-    else if (line.startsWith('msgstr ') && !currentEntry.isPlural) {
-      currentEntry.msgstr = line.substring(7).trim().replace(/^"|"$/g, '');
-      currentEntry.msgstrLine = line;
+    else if (line.startsWith('msgstr ')) {
+      const valueMatch = line.match(/^msgstr\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgstr = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgstr = '';
+      }
+
+      currentEntry.msgstrLines.push(line);
       currentEntry.originalLines.push(line);
+      currentField = 'msgstr';
     }
     // msgstr[n] (plural)
     else if (line.match(/^msgstr\[\d+\]/)) {
       if (!currentEntry.msgstr_plural) currentEntry.msgstr_plural = [];
-      const index = parseInt(line.match(/\[(\d+)\]/)[1]);
-      const value = line.replace(/^msgstr\[\d+\]\s*/, '').trim().replace(/^"|"$/g, '');
-      currentEntry.msgstr_plural[index] = value;
-      currentEntry.msgstr_pluralLines = currentEntry.msgstr_pluralLines || [];
-      currentEntry.msgstr_pluralLines[index] = line;
+      if (!currentEntry.msgstr_pluralLines) currentEntry.msgstr_pluralLines = [];
+
+      const indexMatch = line.match(/^msgstr\[(\d+)\]/);
+      const index = parseInt(indexMatch[1]);
+
+      const valueMatch = line.match(/^msgstr\[\d+\]\s+"(.*)"\s*$/);
+      if (valueMatch) {
+        currentEntry.msgstr_plural[index] = unescapePO(valueMatch[1]);
+      } else {
+        currentEntry.msgstr_plural[index] = '';
+      }
+
+      if (!currentEntry.msgstr_pluralLines[index]) {
+        currentEntry.msgstr_pluralLines[index] = [];
+      }
+      currentEntry.msgstr_pluralLines[index].push(line);
+      currentEntry.originalLines.push(line);
+      currentField = { type: 'msgstr_plural', index };
+    }
+    // Continuation line (quoted string on its own line)
+    else if (line.trim().startsWith('"') && currentField) {
+      const valueMatch = line.match(/^\s*"(.*)"\s*$/);
+      if (valueMatch) {
+        const continuationValue = unescapePO(valueMatch[1]);
+
+        if (currentField === 'msgid') {
+          currentEntry.msgid += continuationValue;
+          currentEntry.msgidLines.push(line);
+        } else if (currentField === 'msgid_plural') {
+          currentEntry.msgid_plural += continuationValue;
+          currentEntry.msgid_pluralLines.push(line);
+        } else if (currentField === 'msgstr') {
+          currentEntry.msgstr += continuationValue;
+          currentEntry.msgstrLines.push(line);
+        } else if (currentField?.type === 'msgstr_plural') {
+          const idx = currentField.index;
+          currentEntry.msgstr_plural[idx] += continuationValue;
+          currentEntry.msgstr_pluralLines[idx].push(line);
+        }
+      }
+
       currentEntry.originalLines.push(line);
     }
     // Blank line = end of entry
-    else if (line.trim() === '' && currentEntry && currentEntry.msgid) {
+    else if (line.trim() === '' && currentEntry && currentEntry.msgid !== undefined) {
       entries.push(currentEntry);
       currentEntry = null;
-    } else if (currentEntry) {
+      currentField = null;
+    }
+    // Unknown line - preserve for future compatibility
+    else if (currentEntry) {
       currentEntry.originalLines.push(line);
+      currentField = null; // End multi-line accumulation
     }
   }
 
   // Add last entry if exists
-  if (currentEntry && currentEntry.msgid) {
+  if (currentEntry && currentEntry.msgid !== undefined) {
     entries.push(currentEntry);
   }
 
@@ -129,7 +227,31 @@ function parsePOFile(filePath) {
 }
 
 /**
- * Write updated PO file
+ * Format multi-line string for PO file (preserving original line breaks)
+ */
+function formatMultilinePO(value) {
+  if (!value) return ['""'];
+
+  // If value contains newlines, split and format as multi-line
+  if (value.includes('\n')) {
+    const lines = value.split('\n');
+    const formatted = ['""'];
+    lines.forEach((line, index) => {
+      if (index < lines.length - 1) {
+        formatted.push(`"${escapePO(line)}\\n"`);
+      } else {
+        formatted.push(`"${escapePO(line)}"`);
+      }
+    });
+    return formatted;
+  }
+
+  // Single line
+  return [`"${escapePO(value)}"`];
+}
+
+/**
+ * Write updated PO file, preserving original formatting
  */
 function writePOFile(filePath, entries) {
   // Read original header
@@ -141,27 +263,42 @@ function writePOFile(filePath, entries) {
   const entryLines = [];
 
   entries.forEach(entry => {
-    // Comments
+    // Preserve all comments (translator, extracted, reference, flags, etc.)
     entry.comments.forEach(comment => entryLines.push(comment));
-    entry.locations.forEach(location => entryLines.push(location));
 
-    // msgid
-    entryLines.push(entry.msgidLine);
-
-    if (entry.isPlural) {
-      // Plural form
-      entryLines.push(entry.msgid_pluralLine);
-
-      // msgstr[n]
-      entry.msgstr_plural.forEach((value, index) => {
-        entryLines.push(`msgstr[${index}] "${escapePO(value)}"`);
-      });
+    // msgid - preserve original multi-line format if present
+    if (entry.msgidLines && entry.msgidLines.length > 0) {
+      entry.msgidLines.forEach(line => entryLines.push(line));
     } else {
-      // Regular form
-      entryLines.push(`msgstr "${escapePO(entry.msgstr)}"`);
+      const msgidFormatted = formatMultilinePO(entry.msgid);
+      entryLines.push(`msgid ${msgidFormatted[0]}`);
+      msgidFormatted.slice(1).forEach(line => entryLines.push(line));
     }
 
-    entryLines.push(''); // Blank line
+    if (entry.isPlural) {
+      // msgid_plural - preserve original multi-line format if present
+      if (entry.msgid_pluralLines && entry.msgid_pluralLines.length > 0) {
+        entry.msgid_pluralLines.forEach(line => entryLines.push(line));
+      } else {
+        const pluralFormatted = formatMultilinePO(entry.msgid_plural);
+        entryLines.push(`msgid_plural ${pluralFormatted[0]}`);
+        pluralFormatted.slice(1).forEach(line => entryLines.push(line));
+      }
+
+      // msgstr[n] - reconstruct with updated values
+      entry.msgstr_plural.forEach((value, index) => {
+        const msgstrFormatted = formatMultilinePO(value);
+        entryLines.push(`msgstr[${index}] ${msgstrFormatted[0]}`);
+        msgstrFormatted.slice(1).forEach(line => entryLines.push(line));
+      });
+    } else {
+      // Regular msgstr - reconstruct with updated value
+      const msgstrFormatted = formatMultilinePO(entry.msgstr);
+      entryLines.push(`msgstr ${msgstrFormatted[0]}`);
+      msgstrFormatted.slice(1).forEach(line => entryLines.push(line));
+    }
+
+    entryLines.push(''); // Blank line between entries
   });
 
   const content = header + '\n' + entryLines.join('\n');
