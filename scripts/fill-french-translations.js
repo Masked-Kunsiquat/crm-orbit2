@@ -461,6 +461,7 @@ const TRANSLATIONS = {
 
 // Plural mappings for French (nplurals=2; plural=(n > 1))
 const PLURAL_MAPPINGS = {
+  // Single words
   'contact': 'contacts',
   'interaction': 'interactions',
   'événement': 'événements',
@@ -473,22 +474,45 @@ const PLURAL_MAPPINGS = {
   'heure': 'heures',
   'jour': 'jours',
   'semaine': 'semaines',
+
+  // Multi-word phrases (must be before single words for greedy matching)
+  'contact unique': 'contacts uniques',
+  'contact principal': 'contacts principaux',
+  'entreprise principale': 'entreprises principales',
+  'interaction récente': 'interactions récentes',
+  'événement à venir': 'événements à venir',
 };
 
 /**
  * Apply French plural rules to a translation
  */
 function applyFrenchPlural(singular) {
-  // Extract the pattern ({{count}} word)
-  const match = singular.match(/{{count}}\s+(.+)/);
+  // Extract the pattern (text {{count}} rest)
+  const match = singular.match(/^(.*){{count}}\s+(.+)$/);
   if (!match) return [singular, singular];
 
-  const word = match[1];
-  const plural = PLURAL_MAPPINGS[word] || word + 's';
+  const prefix = match[1]; // Text before {{count}} (e.g., "il y a ")
+  const noun = match[2]; // Text after {{count}} (e.g., "jour")
+
+  // Try to find a match in PLURAL_MAPPINGS (longest match first)
+  let plural = noun;
+  const sortedKeys = Object.keys(PLURAL_MAPPINGS).sort((a, b) => b.length - a.length);
+
+  for (const singularForm of sortedKeys) {
+    if (noun === singularForm) {
+      plural = PLURAL_MAPPINGS[singularForm];
+      break;
+    }
+  }
+
+  // If no mapping found, add 's' as default
+  if (plural === noun && !plural.endsWith('s')) {
+    plural = noun + 's';
+  }
 
   return [
     singular, // msgstr[0] for n=0,1
-    `{{count}} ${plural}` // msgstr[1] for n>1
+    `${prefix}{{count}} ${plural}` // msgstr[1] for n>1
   ];
 }
 
@@ -562,7 +586,8 @@ function fillFrenchTranslations() {
 // Run if executed directly
 if (import.meta.url.startsWith('file:')) {
   const modulePath = fileURLToPath(import.meta.url);
-  if (process.argv[1] === modulePath) {
+  const scriptPath = path.resolve(process.argv[1]);
+  if (scriptPath === modulePath) {
     const count = fillFrenchTranslations();
     console.log('\nNext steps:');
     console.log('1. Run: node scripts/validate-po.js');
