@@ -1,40 +1,109 @@
 {
   "common": {
+    "actions": {
+      "save": "Enregistrer",
+      "saveChanges": "Enregistrer les modifications",
+      "saveContact": "Enregistrer le contact",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "add": "Ajouter",
+      "remove": "Retirer",
+      "close": "Fermer",
+      "confirm": "Confirmer",
+      "retry": "Réessayer",
+      "apply": "Appliquer",
+      "clear": "Effacer",
+      "reset": "Réinitialiser",
+      "update": "Mettre à jour",
+      "run": "Exécuter"
+    },
+    "states": {
+      "loading": "Chargement...",
+      "searching": "Recherche...",
+      "error": "Erreur",
+      "success": "Succès",
+      "warning": "Avertissement",
+      "info": "Info",
+      "ok": "OK"
+    },
     "counts": {
-      "contact_one": "common.counts.contact",
-      "contact_other": "common.counts.contact",
-      "interaction_one": "common.counts.interaction",
-      "interaction_other": "common.counts.interaction",
-      "event_one": "common.counts.event",
-      "event_other": "common.counts.event",
-      "company_one": "common.counts.company",
-      "company_other": "common.counts.company",
-      "category_one": "common.counts.category",
-      "category_other": "common.counts.category",
-      "note_one": "common.counts.note",
-      "note_other": "common.counts.note",
-      "result_one": "common.counts.result",
-      "result_other": "common.counts.result",
-      "item_one": "common.counts.item",
-      "item_other": "common.counts.item",
-      "uniqueContact_one": "common.counts.uniqueContact",
-      "uniqueContact_other": "common.counts.uniqueContact"
+      "contact_one": "{{count}} contact",
+      "contact_other": "{{count}} contacts",
+      "interaction_one": "{{count}} interaction",
+      "interaction_other": "{{count}} interactions",
+      "event_one": "{{count}} événement",
+      "event_other": "{{count}} événements",
+      "company_one": "{{count}} entreprise",
+      "company_other": "{{count}} entreprises",
+      "category_one": "{{count}} catégorie",
+      "category_other": "{{count}} catégories",
+      "note_one": "{{count}} note",
+      "note_other": "{{count}} notes",
+      "result_one": "{{count}} résultat",
+      "result_other": "{{count}} résultats",
+      "item_one": "{{count}} élément",
+      "item_other": "{{count}} éléments",
+      "uniqueContact_one": "{{count}} contact unique",
+      "uniqueContact_other": "{{count}} contact uniques"
+    },
+    "entities": {
+      "contact": "Contact",
+      "contacts": "Contacts",
+      "interaction": "Interaction",
+      "interactions": "Interactions",
+      "event": "Événement",
+      "events": "Événements",
+      "company": "Entreprise",
+      "companies": "Entreprises",
+      "note": "Note",
+      "notes": "Notes",
+      "category": "Catégorie",
+      "categories": "Catégories"
     },
     "time": {
-      "minute_one": "common.time.minute",
-      "minute_other": "common.time.minute",
-      "hour_one": "common.time.hour",
-      "hour_other": "common.time.hour",
-      "day_one": "common.time.day",
-      "day_other": "common.time.day",
-      "week_one": "common.time.week",
-      "week_other": "common.time.week",
-      "daysAgo_one": "common.time.daysAgo",
-      "daysAgo_other": "common.time.daysAgo",
-      "minutesAgo_one": "common.time.minutesAgo",
-      "minutesAgo_other": "common.time.minutesAgo",
-      "hoursAgo_one": "common.time.hoursAgo",
-      "hoursAgo_other": "common.time.hoursAgo"
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "yesterday": "Hier",
+      "minute_one": "{{count}} minute",
+      "minute_other": "{{count}} minutes",
+      "hour_one": "{{count}} heure",
+      "hour_other": "{{count}} heures",
+      "day_one": "{{count}} jour",
+      "day_other": "{{count}} jours",
+      "week_one": "{{count}} semaine",
+      "week_other": "{{count}} semaines",
+      "daysAgo_one": "il y a {{count}} jour",
+      "daysAgo_other": "{{count}} jours",
+      "minutesAgo_one": "il y a {{count}} minute",
+      "minutesAgo_other": "{{count}} minutes",
+      "hoursAgo_one": "il y a {{count}} heure",
+      "hoursAgo_other": "{{count}} heures"
+    },
+    "dateRanges": {
+      "allTime": "Tout le temps",
+      "last7Days": "7 derniers jours",
+      "last30Days": "30 derniers jours",
+      "last90Days": "90 derniers jours"
+    },
+    "filters": {
+      "all": "Tous",
+      "none": "Aucun"
+    },
+    "errors": {
+      "generic": "Une erreur s'est produite",
+      "network": "Erreur réseau",
+      "notFound": "Non trouvé",
+      "unauthorized": "Non autorisé",
+      "saveFailed": "Échec de l'enregistrement. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression. Veuillez réessayer.",
+      "loadFailed": "Échec du chargement"
+    },
+    "labels": {
+      "optional": "Optionnel",
+      "required": "Obligatoire",
+      "left": "Gauche",
+      "right": "Droite"
     }
   },
   "navigation": {
@@ -42,6 +111,7 @@
     "contacts": "Contacts",
     "companies": "Entreprises",
     "interactions": "Interactions",
+    "proximity": "Proximité",
     "events": "Événements",
     "settings": "Paramètres"
   },
@@ -102,9 +172,15 @@
       "theme": "Thème",
       "language": "Langue",
       "languageDescription": "Choisissez votre langue préférée",
+      "proximity": "Proximité",
+      "proximityDescription": "Configurer la détection de proximité",
       "data": "Gestion des données",
       "dataDescription": "Maintenance et réinitialisation des bases de données",
       "database": "Base de données"
+    },
+    "proximity": {
+      "algorithm": "Algorithme",
+      "algorithmDescription": "Choisir l'algorithme de détection"
     },
     "appearance": {
       "theme": "Thème"
@@ -148,7 +224,21 @@
       "resetComplete": "Fichier de base de données supprimé. IMPORTANT : Faites glisser votre doigt vers le haut pour fermer complètement cette application, puis rouvrez-la pour recréer la base de données avec les migrations.",
       "resetError": "Réinitialiser l'erreur",
       "resetFailed": "Échec de la réinitialisation de la base de données"
+    },
+    "errors": {
+      "biometric": "Échec de l'activation de l'authentification biométrique",
+      "autoLock": "Échec de l'activation du verrouillage automatique",
+      "autoLockTimeout": "Échec de la mise à jour du délai de verrouillage",
+      "swipeAction": "Échec de la mise à jour des actions de glissement",
+      "theme": "Échec de la mise à jour du thème",
+      "language": "Échec de la mise à jour de la langue",
+      "featureToggle": "Échec de la mise à jour de la fonctionnalité"
     }
+  },
+  "theme": {
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre"
   },
   "industries": {
     "technology": "Technologie",
@@ -158,6 +248,7 @@
     "manufacturing": "Fabrication",
     "education": "Éducation",
     "consulting": "Conseil",
+    "realEstate": "Immobilier",
     "other": "Autre"
   },
   "companies": {
@@ -177,7 +268,8 @@
         "requiredName": "Le nom de l'entreprise est requis",
         "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
       },
-      "success": "Entreprise créée avec succès"
+      "success": "Entreprise créée avec succès",
+      "error": "Échec de l'ajout de l'entreprise"
     },
     "edit": {
       "title": "Modifier l'Entreprise",
@@ -195,7 +287,8 @@
         "requiredName": "Le nom de l'entreprise est requis",
         "nameTooLong": "Le nom de l'entreprise doit contenir 200 caractères ou moins"
       },
-      "success": "Entreprise mise à jour avec succès"
+      "success": "Entreprise mise à jour avec succès",
+      "error": "Échec de la modification de l'entreprise"
     },
     "list": {
       "searchPlaceholder": "Rechercher des entreprises …",
@@ -207,21 +300,33 @@
       "delete": {
         "title": "Supprimer l'Entreprise",
         "message": "Êtes-vous sûr de vouloir supprimer \\\\\\\"{{name}}\\\\\\\" ? Cela ne supprimera pas les contacts associés.",
-        "success": "Entreprise supprimée avec succès"
+        "success": "Entreprise supprimée avec succès",
+        "error": "Échec de la suppression de l'entreprise"
       }
     }
   },
   "interactions": {
     "filters": {
       "meeting": "Réunions",
+      "videoCall": "Appels vidéo",
       "call": "Appels",
       "text": "Textos",
       "email": "E-mail",
+      "socialMedia": "Réseaux sociaux",
       "other": "Autre"
     },
     "emptyTitle": "Aucune interaction",
     "emptyMessage": "Ajoutez votre première interaction pour commencer.",
     "errorLoad": "Échec du chargement des interactions"
+  },
+  "interactionTypes": {
+    "call": "Appel",
+    "text": "SMS",
+    "email": "E-mail",
+    "meeting": "Réunion",
+    "videoCall": "Appel vidéo",
+    "socialMedia": "Réseaux sociaux",
+    "other": "Autre"
   },
   "addInteraction": {
     "titleAdd": "Ajouter une interaction",
@@ -244,6 +349,7 @@
     },
     "quickTitles": {
       "call": "Appel avec {{name}}",
+      "videoCall": "Appel vidéo avec {{name}}",
       "text": "Texto envoyé à {{name}}",
       "email": "E-mail envoyé à {{name}}",
       "meeting": "Réunion avec {{name}}",
@@ -274,6 +380,13 @@
     "emptyTitle": "Aucun événement",
     "emptyMessage": "Ajoutez votre premier événement pour commencer.",
     "errorLoad": "Échec du chargement des événements"
+  },
+  "eventTypes": {
+    "birthday": "Anniversaire",
+    "anniversary": "Anniversaire de mariage",
+    "meeting": "Réunion",
+    "deadline": "Date limite",
+    "other": "Autre"
   },
   "addEvent": {
     "titleAdd": "Ajouter un événement",
@@ -325,19 +438,41 @@
     "errorLoad": "Échec du chargement des détails du contact",
     "errorImageSet": "Échec de la définition de la photo de contact",
     "errorImageRemove": "Échec de la suppression de la photo",
+    "tabs": {
+      "info": "Infos",
+      "activity": "Activité"
+    },
     "recent": "Interactions récentes",
     "events": "Événements à venir",
+    "upcoming": "À venir",
+    "pastActivity": "Activité passée",
     "addBirthday": "Anniversaire",
+    "addInteraction": "Ajouter une interaction",
     "noEvents": "Aucun événement à venir",
     "noEventsDescription": "Ajouter un événement pour ce contact",
+    "noActivity": "Aucune activité",
+    "noActivityDescription": "Aucune interaction ou événement enregistré",
     "recurring": "Récurrent",
     "delete": "Supprimer le contact",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer {{name}} ?",
     "photoTitle": "Photo du contact",
     "photoBody": "Ajouter ou supprimer une photo de profil.",
     "addPhoto": "Ajouter une photo",
-    "viewMore_one": "contactDetail.viewMore",
-    "viewMore_other": "contactDetail.viewMore"
+    "viewMore_one": "Voir {{count}} de plus",
+    "viewMore_other": "{{count}} de pluss",
+    "viewMoreInfo": "Voir plus d'informations"
+  },
+  "categories": {
+    "family": "Famille",
+    "friends": "Amis",
+    "work": "Travail",
+    "vip": "VIP",
+    "coworkers": "Collègues",
+    "clients": "Clients",
+    "leads": "Prospects",
+    "vendors": "Fournisseurs",
+    "business": "Affaires",
+    "personal": "Personnel"
   },
   "addContact": {
     "title": "Ajouter un contact",
@@ -350,6 +485,7 @@
     "successMsg": "Contact ajouté avec succès !",
     "sections": {
       "name": "Nom",
+      "relationshipType": "Type de relation",
       "phones": "Numéros de téléphone",
       "emails": "Adresses e-mail"
     },
@@ -362,6 +498,31 @@
     "validation": {
       "firstNameRequired": "Le prénom est obligatoire",
       "contactInfoRequired": "Veuillez fournir au moins un numéro de téléphone ou une adresse e-mail"
+    }
+  },
+  "contact": {
+    "jobAtCompany": "{{job}} chez {{company}}",
+    "jobOnly": "{{job}}",
+    "companyOnly": "{{company}}",
+    "phoneLabels": {
+      "mobile": "Mobile",
+      "home": "Domicile",
+      "work": "Travail",
+      "other": "Autre"
+    },
+    "emailLabels": {
+      "personal": "Personnel",
+      "work": "Travail",
+      "other": "Autre"
+    },
+    "contactTypes": {
+      "bestFriend": "Meilleur ami",
+      "family": "Famille",
+      "closeFriend": "Ami proche",
+      "friend": "Ami",
+      "colleague": "Collègue",
+      "acquaintance": "Connaissance",
+      "other": "Autre"
     }
   },
   "editContact": {
@@ -382,5 +543,42 @@
     "noContact": "Aucune information de contact",
     "noIndustry": "Aucune industrie",
     "untitled": "Sans titre"
+  },
+  "proximity": {
+    "title": "Contacts à proximité",
+    "radarTitle": "Radar de proximité",
+    "calculating": "Calcul en cours...",
+    "errorTitle": "Erreur",
+    "errorMessage": "Impossible de calculer la proximité",
+    "emptyTitle": "Aucun contact",
+    "emptyMessage": "Aucun contact trouvé dans votre liste",
+    "noContacts": "Aucun contact à proximité",
+    "noContactsMessage": "Aucun contact trouvé dans le rayon de recherche",
+    "infoTitle": "À propos de la proximité",
+    "infoMessage": "La proximité est calculée en fonction de la récence, de la fréquence et de la qualité des interactions",
+    "infoScoring": "Système de notation",
+    "radarInfo": {
+      "title": "Comment fonctionne le radar",
+      "message": "Les contacts sont positionnés en fonction de leur score de proximité. Plus un contact est proche du centre, plus votre relation est forte."
+    },
+    "gotIt": "Compris"
+  },
+  "proximitySettings": {
+    "title": "Paramètres de proximité",
+    "algorithmTitle": "Algorithme",
+    "algorithmDescription": "Choisir le mode de calcul de la proximité",
+    "presetTitle": "Préréglages",
+    "weights": "Poids",
+    "recency": "Récence",
+    "frequency": "Fréquence",
+    "quality": "Qualité",
+    "contactType": "Type de contact",
+    "customNotConfigured": "Personnalisé (non configuré)",
+    "saved": "Enregistré",
+    "savedMessage": "Les paramètres de proximité ont été enregistrés",
+    "saveError": "Erreur d'enregistrement",
+    "saveErrorMessage": "Impossible d'enregistrer les paramètres de proximité",
+    "loadError": "Erreur de chargement",
+    "loadErrorMessage": "Impossible de charger les paramètres de proximité"
   }
 }
