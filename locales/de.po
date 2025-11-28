@@ -9,6 +9,17 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
+
+# Orbit CRM - DE Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
+#: Modal save buttons
+#: Form submissions
 msgid "common.actions.save"
 msgstr ""
 
@@ -1207,7 +1218,7 @@ msgstr "Bitte geben Sie mindestens eine Telefonnummer oder E-Mail-Adresse an"
 #: src/components/ContactCard.js:28
 #: src/screens/ContactDetailScreen.js:475
 msgid "contact.jobAtCompany"
-msgstr ""
+msgstr "{{job}} bei {{company}}"
 
 #. Display only job title (when no company)
 #. Variables: {{job}} = job title
@@ -1216,7 +1227,7 @@ msgstr ""
 #: src/components/ContactCard.js
 #: src/screens/ContactDetailScreen.js
 msgid "contact.jobOnly"
-msgstr ""
+msgstr "{{job}}"
 
 #. Display only company name (when no job title)
 #. Variables: {{company}} = company name
@@ -1225,7 +1236,7 @@ msgstr ""
 #: src/components/ContactCard.js
 #: src/screens/ContactDetailScreen.js
 msgid "contact.companyOnly"
-msgstr ""
+msgstr "{{company}}"
 
 msgid "contact.phoneLabels.mobile"
 msgstr ""

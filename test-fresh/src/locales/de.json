@@ -364,6 +364,11 @@
       "contactInfoRequired": "Bitte geben Sie mindestens eine Telefonnummer oder E-Mail-Adresse an"
     }
   },
+  "contact": {
+    "jobAtCompany": "{{job}} bei {{company}}",
+    "jobOnly": "{{job}}",
+    "companyOnly": "{{company}}"
+  },
   "editContact": {
     "title": "Kontakt bearbeiten"
   },
