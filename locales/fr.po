@@ -1,16 +1,6 @@
 # Orbit CRM - FR Translations
 # Generated: 2025-11-28
 #
-msgid ""
-msgstr ""
-"Project-Id-Version: Orbit CRM\n"
-"Language: fr\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: json-to-po.js\n"
-
 
 #. Generic save action button
 #. Context: Used throughout app for saving changes
@@ -20,7 +10,7 @@ msgstr ""
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
-msgstr ""
+msgstr "Enregistrer"
 
 #. Save changes action - more specific than generic 'Save'
 #. Context: Edit forms where changes are being saved
@@ -29,7 +19,7 @@ msgstr ""
 #: src/screens/EditContactScreen.js
 #: Edit modals
 msgid "common.actions.saveChanges"
-msgstr ""
+msgstr "Enregistrer les modifications"
 
 #. Save contact action - contextual save for contact creation
 #. Context: Add contact modal/screen
@@ -37,7 +27,7 @@ msgstr ""
 #. Character limit: ~20 characters
 #: src/components/AddContactModal.js
 msgid "common.actions.saveContact"
-msgstr ""
+msgstr "Enregistrer le contact"
 
 #. Cancel action - discard changes and close
 #. Context: Modal dialogs, edit forms
@@ -46,7 +36,7 @@ msgstr ""
 #: All modals
 #: Edit screens
 msgid "common.actions.cancel"
-msgstr ""
+msgstr "Annuler"
 
 #. Delete action - permanently remove item
 #. Context: Destructive action, usually with confirmation
@@ -55,16 +45,16 @@ msgstr ""
 #: Delete confirmation dialogs
 #: Swipe actions
 msgid "common.actions.delete"
-msgstr ""
+msgstr "Supprimer"
 
 msgid "common.actions.edit"
 msgstr ""
 
 msgid "common.actions.add"
-msgstr ""
+msgstr "Ajouter"
 
 msgid "common.actions.remove"
-msgstr ""
+msgstr "Enlever"
 
 msgid "common.actions.close"
 msgstr ""
@@ -82,13 +72,13 @@ msgid "common.actions.clear"
 msgstr ""
 
 msgid "common.actions.reset"
-msgstr ""
+msgstr "Réinitialiser"
 
 msgid "common.actions.update"
-msgstr ""
+msgstr "Mettre à jour"
 
 msgid "common.actions.run"
-msgstr ""
+msgstr "Exécuter"
 
 #. Loading status indicator
 #. Context: Shown while data is being fetched from database
@@ -98,10 +88,10 @@ msgstr ""
 #: src/screens/Dashboard.js
 #: Screen initialization
 msgid "common.states.loading"
-msgstr ""
+msgstr "Chargement …"
 
 msgid "common.states.searching"
-msgstr ""
+msgstr "Recherche en cours …"
 
 #. Error alert title
 #. Context: Alert dialog title when an error occurs
@@ -109,10 +99,10 @@ msgstr ""
 #. Character limit: ~15 characters
 #: Error alert dialogs throughout app
 msgid "common.states.error"
-msgstr ""
+msgstr "Erreur"
 
 msgid "common.states.success"
-msgstr ""
+msgstr "Succès"
 
 msgid "common.states.warning"
 msgstr ""
@@ -121,7 +111,7 @@ msgid "common.states.info"
 msgstr ""
 
 msgid "common.states.ok"
-msgstr ""
+msgstr "OK"
 
 #. Count display for contacts (SINGULAR form)
 #. Variables: {{count}} = number of contacts (will be 1 in this form)
@@ -192,7 +182,7 @@ msgstr[1] ""
 #: Form labels
 #: Entity references
 msgid "common.entities.contact"
-msgstr ""
+msgstr "Contact"
 
 #. NOUN (plural): Multiple people in your contact list
 #. Context: Navigation tabs, list headers
@@ -200,37 +190,37 @@ msgstr ""
 #: src/navigation (tab label)
 #: List screen titles
 msgid "common.entities.contacts"
-msgstr ""
+msgstr "Contacts"
 
 msgid "common.entities.interaction"
 msgstr ""
 
 msgid "common.entities.interactions"
-msgstr ""
+msgstr "Interactions"
 
 msgid "common.entities.event"
-msgstr ""
+msgstr "Événement"
 
 msgid "common.entities.events"
-msgstr ""
+msgstr "Événements"
 
 msgid "common.entities.company"
 msgstr ""
 
 msgid "common.entities.companies"
-msgstr ""
+msgstr "Entreprises"
 
 msgid "common.entities.note"
-msgstr ""
+msgstr "Note"
 
 msgid "common.entities.notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "common.entities.category"
 msgstr ""
 
 msgid "common.entities.categories"
-msgstr ""
+msgstr "Catégories"
 
 #. Relative date: today
 #. Context: Event dates, interaction dates
@@ -239,10 +229,10 @@ msgstr ""
 #: src/screens/EventsList.js
 #: Date displays
 msgid "common.time.today"
-msgstr ""
+msgstr "Aujourd'hui"
 
 msgid "common.time.tomorrow"
-msgstr ""
+msgstr "Demain"
 
 msgid "common.time.yesterday"
 msgstr ""
@@ -290,19 +280,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "common.dateRanges.allTime"
-msgstr ""
+msgstr "Tout le temps"
 
 msgid "common.dateRanges.last7Days"
-msgstr ""
+msgstr "7 derniers jours"
 
 msgid "common.dateRanges.last30Days"
-msgstr ""
+msgstr "30 derniers jours"
 
 msgid "common.dateRanges.last90Days"
-msgstr ""
+msgstr "90 derniers jours"
 
 msgid "common.filters.all"
-msgstr ""
+msgstr "Tous"
 
 msgid "common.filters.none"
 msgstr ""
@@ -320,151 +310,151 @@ msgid "common.errors.unauthorized"
 msgstr ""
 
 msgid "common.errors.saveFailed"
-msgstr ""
+msgstr "Échec de l'enregistrement de l'interaction. Veuillez réessayer."
 
 msgid "common.errors.deleteFailed"
-msgstr ""
+msgstr "Échec de la suppression de l'interaction. Veuillez réessayer."
 
 msgid "common.errors.loadFailed"
 msgstr ""
 
 msgid "common.labels.optional"
-msgstr ""
+msgstr "Facultatif"
 
 msgid "common.labels.required"
 msgstr ""
 
 msgid "common.labels.left"
-msgstr ""
+msgstr "Gauche"
 
 msgid "common.labels.right"
-msgstr ""
+msgstr "Droite"
 
 msgid "navigation.dashboard"
-msgstr ""
+msgstr "Tableau de bord"
 
 msgid "navigation.contacts"
-msgstr ""
+msgstr "Contacts"
 
 msgid "navigation.companies"
-msgstr ""
+msgstr "Entreprises"
 
 msgid "navigation.interactions"
-msgstr ""
+msgstr "Interactions"
 
 msgid "navigation.proximity"
 msgstr ""
 
 msgid "navigation.events"
-msgstr ""
+msgstr "Événements"
 
 msgid "navigation.settings"
-msgstr ""
+msgstr "Paramètres"
 
 msgid "dashboard.title"
-msgstr ""
+msgstr "Tableau de bord"
 
 msgid "dashboard.upcomingEvents.title"
-msgstr ""
+msgstr "Événements à venir"
 
 msgid "dashboard.upcomingEvents.subtitle"
-msgstr ""
+msgstr "Prochain 5 événements"
 
 msgid "dashboard.upcomingEvents.empty"
-msgstr ""
+msgstr "Aucun événement à venir"
 
 msgid "dashboard.quickActions.title"
-msgstr ""
+msgstr "Actions rapides"
 
 msgid "dashboard.quickActions.addContact"
-msgstr ""
+msgstr "Ajouter un contact"
 
 msgid "dashboard.quickActions.addInteraction"
-msgstr ""
+msgstr "Ajouter une interaction"
 
 msgid "dashboard.quickActions.addEvent"
-msgstr ""
+msgstr "Ajouter un événement"
 
 msgid "analytics.title"
-msgstr ""
+msgstr "Analytique"
 
 msgid "analytics.dateRange.title"
-msgstr ""
+msgstr "Période couverte"
 
 msgid "analytics.overview.title"
-msgstr ""
+msgstr "Aperçu général"
 
 msgid "analytics.overview.totalContacts"
-msgstr ""
+msgstr "Contacts totaux"
 
 msgid "analytics.overview.totalInteractions"
-msgstr ""
+msgstr "Interactions totales"
 
 msgid "analytics.overview.totalEvents"
-msgstr ""
+msgstr "Événements totaux"
 
 msgid "analytics.interactions.title"
-msgstr ""
+msgstr "Décomposition des interactions"
 
 msgid "analytics.interactions.empty"
-msgstr ""
+msgstr "Aucune interaction pour le moment"
 
 msgid "analytics.events.title"
-msgstr ""
+msgstr "Déroulement des événements"
 
 msgid "analytics.events.upcoming"
-msgstr ""
+msgstr "À venir"
 
 msgid "analytics.events.past"
-msgstr ""
+msgstr "Passés"
 
 msgid "analytics.topContacts.title"
-msgstr ""
+msgstr "Contacts les plus actifs"
 
 msgid "analytics.topContacts.empty"
-msgstr ""
+msgstr "Aucune donnée d'interaction disponible"
 
 msgid "search.contactsPlaceholder"
-msgstr ""
+msgstr "Rechercher des contacts …"
 
 msgid "settings.title"
-msgstr ""
+msgstr "Paramètres"
 
 msgid "settings.searchPlaceholder"
-msgstr ""
+msgstr "Rechercher un paramètre…"
 
 msgid "settings.noResults"
-msgstr ""
+msgstr "Aucun paramètre ne correspond à votre recherche"
 
 msgid "settings.sections.appearance"
-msgstr ""
+msgstr "Apparence"
 
 msgid "settings.sections.security"
-msgstr ""
+msgstr "Sécurité"
 
 msgid "settings.sections.securityDescription"
-msgstr ""
+msgstr "Gestion du code PIN, de l'authentification biométrique et du verrouillage automatique"
 
 msgid "settings.sections.features"
-msgstr ""
+msgstr "Fonctionnalités"
 
 msgid "settings.sections.featuresDescription"
-msgstr ""
+msgstr "Personnalisez les fonctionnalités de l'application"
 
 msgid "settings.sections.swipe"
-msgstr ""
+msgstr "Actions de balayage"
 
 msgid "settings.sections.swipeDescription"
-msgstr ""
+msgstr "Configurer les gestes de balayage de la liste de contacts"
 
 msgid "settings.sections.theme"
-msgstr ""
+msgstr "Thème"
 
 msgid "settings.sections.language"
-msgstr ""
+msgstr "Langue"
 
 msgid "settings.sections.languageDescription"
-msgstr ""
+msgstr "Choisissez votre langue préférée"
 
 msgid "settings.sections.proximity"
 msgstr ""
@@ -473,13 +463,13 @@ msgid "settings.sections.proximityDescription"
 msgstr ""
 
 msgid "settings.sections.data"
-msgstr ""
+msgstr "Gestion des données"
 
 msgid "settings.sections.dataDescription"
-msgstr ""
+msgstr "Maintenance et réinitialisation des bases de données"
 
 msgid "settings.sections.database"
-msgstr ""
+msgstr "Base de données"
 
 msgid "settings.proximity.algorithm"
 msgstr ""
@@ -488,25 +478,25 @@ msgid "settings.proximity.algorithmDescription"
 msgstr ""
 
 msgid "settings.appearance.theme"
-msgstr ""
+msgstr "Thème"
 
 msgid "settings.language.device"
-msgstr ""
+msgstr "Par défaut de l'appareil"
 
 msgid "settings.language.english"
-msgstr ""
+msgstr "Anglais"
 
 msgid "settings.language.spanish"
-msgstr ""
+msgstr "Espagnol"
 
 msgid "settings.language.german"
-msgstr ""
+msgstr "Allemand"
 
 msgid "settings.language.french"
-msgstr ""
+msgstr "Français"
 
 msgid "settings.language.chinese"
-msgstr ""
+msgstr "Chinois simplifié"
 
 #. Setting label: Setup or change security PIN
 #. Context: Security settings screen
@@ -514,13 +504,13 @@ msgstr ""
 #. Character limit: ~30 characters
 #: src/screens/SettingsScreen.js
 msgid "settings.security.pinSetup"
-msgstr ""
+msgstr "Définir / Modifier le code PIN"
 
 msgid "settings.security.pinDescription"
-msgstr ""
+msgstr "Créez ou mettez à jour votre code PIN de sécurité"
 
 msgid "settings.security.useBiometric"
-msgstr ""
+msgstr "Utiliser la biométrie"
 
 #. Description: Explains biometric authentication feature
 #. Context: Helper text below 'Use Biometric' toggle
@@ -529,52 +519,52 @@ msgstr ""
 #. Character limit: ~80 characters
 #: src/screens/SettingsScreen.js
 msgid "settings.security.biometricDescription"
-msgstr ""
+msgstr "Activer la reconnaissance d'empreintes digitales ou faciale"
 
 msgid "settings.security.autoLock"
-msgstr ""
+msgstr "Verrouillage automatique ({{minutes}} min)"
 
 msgid "settings.security.autoLockDescription"
-msgstr ""
+msgstr "Verrouiller l'application en cas d'inactivité"
 
 msgid "settings.security.autoLockTimeout"
-msgstr ""
+msgstr "Délai de verrouillage automatique"
 
 msgid "settings.features.companyManagement.title"
-msgstr ""
+msgstr "Gestion des Entreprises"
 
 msgid "settings.features.companyManagement.description"
-msgstr ""
+msgstr "Activer les fonctionnalités d'entreprise pour un usage professionnel (onglet entreprises, sélecteur d'entreprise dans les contacts)"
 
 msgid "settings.features.companyManagement.enabled"
-msgstr ""
+msgstr "Gestion des entreprises activée. Redémarrez l'application pour voir l'onglet Entreprises."
 
 msgid "settings.features.companyManagement.disabled"
-msgstr ""
+msgstr "Gestion des entreprises désactivée."
 
 msgid "settings.database.runMigrations"
-msgstr ""
+msgstr "Exécuter les migrations de base de données"
 
 msgid "settings.database.migrationsDescription"
-msgstr ""
+msgstr "Appliquez les mises à jour en attente du schéma de base de données. Cette opération est sans risque et ne supprimera pas vos données."
 
 msgid "settings.database.migrationsComplete"
-msgstr ""
+msgstr "Migrations de bases de données effectuées avec succès"
 
 msgid "settings.database.migrationsError"
-msgstr ""
+msgstr "Erreur de migration"
 
 msgid "settings.database.migrationsFailed"
-msgstr ""
+msgstr "Échec de l'exécution des migrations de base de données"
 
 msgid "settings.database.resetDatabase"
-msgstr ""
+msgstr "Réinitialiser la base de données"
 
 msgid "settings.database.resetDescription"
-msgstr ""
+msgstr "Supprimez toutes les données et recommencez avec une base de données vierge. Cette opération est irréversible !"
 
 msgid "settings.database.resetTitle"
-msgstr ""
+msgstr "Réinitialiser la base de données ?"
 
 #. WARNING: Destructive action confirmation message
 #. Context: Shown before database reset (deletes ALL user data)
@@ -583,97 +573,97 @@ msgstr ""
 #. Character limit: ~200 characters
 #: src/screens/SettingsScreen.js (confirmation dialog)
 msgid "settings.database.resetWarning"
-msgstr ""
+msgstr "Cette action supprimera définitivement TOUTES vos données (contacts, interactions, événements, notes). Cette action est irréversible. Êtes-vous sûr(e) ?"
 
 msgid "settings.database.resetSuccess"
-msgstr ""
+msgstr "Base de données supprimée"
 
 msgid "settings.database.resetComplete"
-msgstr ""
+msgstr "Fichier de base de données supprimé. IMPORTANT : Faites glisser votre doigt vers le haut pour fermer complètement cette application, puis rouvrez-la pour recréer la base de données avec les migrations."
 
 msgid "settings.database.resetError"
-msgstr ""
+msgstr "Réinitialiser l'erreur"
 
 msgid "settings.database.resetFailed"
-msgstr ""
+msgstr "Échec de la réinitialisation de la base de données"
 
 msgid "settings.errors.biometric"
-msgstr ""
+msgstr "Impossible de mettre à jour le paramètre biométrique. Veuillez réessayer."
 
 msgid "settings.errors.autoLock"
-msgstr ""
+msgstr "Impossible de mettre à jour le paramètre de verrouillage automatique. Veuillez réessayer."
 
 msgid "settings.errors.autoLockTimeout"
-msgstr ""
+msgstr "Impossible de mettre à jour le délai de verrouillage automatique. Veuillez réessayer."
 
 msgid "settings.errors.swipeAction"
-msgstr ""
+msgstr "Impossible de mettre à jour l'action de balayage. Veuillez réessayer."
 
 msgid "settings.errors.theme"
-msgstr ""
+msgstr "Impossible de mettre à jour le thème. Veuillez réessayer."
 
 msgid "settings.errors.language"
-msgstr ""
+msgstr "Impossible de mettre à jour la langue. Veuillez réessayer."
 
 msgid "settings.errors.featureToggle"
-msgstr ""
+msgstr "Échec de la mise à jour du paramètre"
 
 msgid "theme.system"
-msgstr ""
+msgstr "Système"
 
 msgid "theme.light"
-msgstr ""
+msgstr "Clair"
 
 msgid "theme.dark"
-msgstr ""
+msgstr "Sombre"
 
 msgid "industries.technology"
-msgstr ""
+msgstr "Technologie"
 
 msgid "industries.finance"
-msgstr ""
+msgstr "Finance"
 
 msgid "industries.healthcare"
-msgstr ""
+msgstr "Santé"
 
 msgid "industries.retail"
-msgstr ""
+msgstr "Commerce de Détail"
 
 msgid "industries.manufacturing"
-msgstr ""
+msgstr "Fabrication"
 
 msgid "industries.education"
-msgstr ""
+msgstr "Éducation"
 
 msgid "industries.consulting"
-msgstr ""
+msgstr "Conseil"
 
 msgid "industries.realEstate"
-msgstr ""
+msgstr "Immobilier"
 
 msgid "industries.other"
-msgstr ""
+msgstr "Autre"
 
 msgid "companies.add.title"
-msgstr ""
+msgstr "Ajouter une Entreprise"
 
 msgid "companies.add.labels.name"
-msgstr ""
+msgstr "Nom de l'Entreprise *"
 
 msgid "companies.add.labels.industry"
-msgstr ""
+msgstr "Secteur"
 
 msgid "companies.add.labels.website"
-msgstr ""
+msgstr "Site Web"
 
 msgid "companies.add.labels.address"
-msgstr ""
+msgstr "Adresse"
 
 msgid "companies.add.labels.notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "companies.add.placeholders.website"
-msgstr ""
+msgstr "https://exemple.com"
 
 #. Validation error: Company name is required
 #. Context: Form validation message when user tries to save without entering company name
@@ -681,103 +671,103 @@ msgstr ""
 #. Character limit: ~60 characters
 #: src/components/AddCompanyModal.js
 msgid "companies.add.validation.requiredName"
-msgstr ""
+msgstr "Le nom de l'entreprise est requis"
 
 msgid "companies.add.validation.nameTooLong"
-msgstr ""
+msgstr "Le nom de l'entreprise doit contenir 200 caractères ou moins"
 
 msgid "companies.add.success"
-msgstr ""
+msgstr "Entreprise créée avec succès"
 
 msgid "companies.add.error"
-msgstr ""
+msgstr "Échec de la création de l'entreprise"
 
 msgid "companies.edit.title"
-msgstr ""
+msgstr "Modifier l'Entreprise"
 
 msgid "companies.edit.labels.name"
-msgstr ""
+msgstr "Nom de l'Entreprise *"
 
 msgid "companies.edit.labels.industry"
-msgstr ""
+msgstr "Secteur"
 
 msgid "companies.edit.labels.website"
-msgstr ""
+msgstr "Site Web"
 
 msgid "companies.edit.labels.address"
-msgstr ""
+msgstr "Adresse"
 
 msgid "companies.edit.labels.notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "companies.edit.placeholders.website"
-msgstr ""
+msgstr "https://exemple.com"
 
 msgid "companies.edit.validation.requiredName"
-msgstr ""
+msgstr "Le nom de l'entreprise est requis"
 
 msgid "companies.edit.validation.nameTooLong"
-msgstr ""
+msgstr "Le nom de l'entreprise doit contenir 200 caractères ou moins"
 
 msgid "companies.edit.success"
-msgstr ""
+msgstr "Entreprise mise à jour avec succès"
 
 msgid "companies.edit.error"
-msgstr ""
+msgstr "Échec de la mise à jour de l'entreprise"
 
 msgid "companies.list.searchPlaceholder"
-msgstr ""
+msgstr "Rechercher des entreprises …"
 
 msgid "companies.list.empty.title"
-msgstr ""
+msgstr "Aucune Entreprise Trouvée"
 
 msgid "companies.list.empty.noResults"
-msgstr ""
+msgstr "Aucune entreprise ne correspond à votre recherche."
 
 msgid "companies.list.empty.addFirst"
-msgstr ""
+msgstr "Ajoutez votre première entreprise pour commencer."
 
 msgid "companies.list.delete.title"
-msgstr ""
+msgstr "Supprimer l'Entreprise"
 
 msgid "companies.list.delete.message"
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les contacts associés."
 
 msgid "companies.list.delete.success"
-msgstr ""
+msgstr "Entreprise supprimée avec succès"
 
 msgid "companies.list.delete.error"
-msgstr ""
+msgstr "Échec de la suppression de l'entreprise"
 
 msgid "interactions.filters.meeting"
-msgstr ""
+msgstr "Réunions"
 
 msgid "interactions.filters.videoCall"
 msgstr ""
 
 msgid "interactions.filters.call"
-msgstr ""
+msgstr "Appels"
 
 msgid "interactions.filters.text"
-msgstr ""
+msgstr "Textos"
 
 msgid "interactions.filters.email"
-msgstr ""
+msgstr "E-mail"
 
 msgid "interactions.filters.socialMedia"
 msgstr ""
 
 msgid "interactions.filters.other"
-msgstr ""
+msgstr "Autre"
 
 msgid "interactions.emptyTitle"
-msgstr ""
+msgstr "Aucune interaction"
 
 msgid "interactions.emptyMessage"
-msgstr ""
+msgstr "Ajoutez votre première interaction pour commencer."
 
 msgid "interactions.errorLoad"
-msgstr ""
+msgstr "Échec du chargement des interactions"
 
 #. NOUN: Phone call - an interaction type
 #. NOT: The verb 'to call someone'
@@ -787,7 +777,7 @@ msgstr ""
 #: src/screens/InteractionsScreen.js (filter buttons)
 #: src/components/AddInteractionModal.js (type selector)
 msgid "interactionTypes.call"
-msgstr ""
+msgstr "Appel"
 
 #. NOUN: Text message - an interaction type
 #. NOT: The verb 'to text someone' or generic 'text' (written content)
@@ -797,13 +787,13 @@ msgstr ""
 #: src/screens/InteractionsScreen.js
 #: src/components/AddInteractionModal.js
 msgid "interactionTypes.text"
-msgstr ""
+msgstr "Texte"
 
 msgid "interactionTypes.email"
-msgstr ""
+msgstr "E-mail"
 
 msgid "interactionTypes.meeting"
-msgstr ""
+msgstr "Réunion"
 
 msgid "interactionTypes.videoCall"
 msgstr ""
@@ -812,49 +802,49 @@ msgid "interactionTypes.socialMedia"
 msgstr ""
 
 msgid "interactionTypes.other"
-msgstr ""
+msgstr "Autre"
 
 msgid "addInteraction.titleAdd"
-msgstr ""
+msgstr "Ajouter une interaction"
 
 msgid "addInteraction.titleEdit"
-msgstr ""
+msgstr "Modifier l'interaction"
 
 msgid "addInteraction.sections.type"
-msgstr ""
+msgstr "Type"
 
 msgid "addInteraction.sections.dateTime"
-msgstr ""
+msgstr "Date et heure"
 
 msgid "addInteraction.sections.title"
-msgstr ""
+msgstr "Titre"
 
 msgid "addInteraction.sections.duration"
-msgstr ""
+msgstr "Durée (minutes)"
 
 msgid "addInteraction.sections.notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "addInteraction.labels.selectContact"
-msgstr ""
+msgstr "Sélectionner un contact"
 
 msgid "addInteraction.labels.interactionTitle"
-msgstr ""
+msgstr "Titre de l'interaction"
 
 msgid "addInteraction.labels.titlePlaceholder"
-msgstr ""
+msgstr "Exemple : Appel de mise au point rapide"
 
 msgid "addInteraction.labels.duration"
-msgstr ""
+msgstr "Durée"
 
 msgid "addInteraction.labels.notes"
-msgstr ""
+msgstr "Notes supplémentaires"
 
 msgid "addInteraction.labels.notesPlaceholder"
-msgstr ""
+msgstr "Notes facultatives sur cette interaction"
 
 msgid "addInteraction.labels.quickFill"
-msgstr ""
+msgstr "Remplissage rapide"
 
 #. Quick-fill title template for phone call interactions
 #. Variables: {{name}} = contact's name
@@ -865,124 +855,124 @@ msgstr ""
 #. Character limit: ~50 characters (with typical name length)
 #: src/components/AddInteractionModal.js (quick-fill button)
 msgid "addInteraction.quickTitles.call"
-msgstr ""
+msgstr "Appel avec {{name}}"
 
 msgid "addInteraction.quickTitles.videoCall"
 msgstr ""
 
 msgid "addInteraction.quickTitles.text"
-msgstr ""
+msgstr "Texto envoyé à {{name}}"
 
 msgid "addInteraction.quickTitles.email"
-msgstr ""
+msgstr "E-mail envoyé à {{name}}"
 
 msgid "addInteraction.quickTitles.meeting"
-msgstr ""
+msgstr "Réunion avec {{name}}"
 
 msgid "addInteraction.quickTitles.other"
-msgstr ""
+msgstr "Interaction avec {{name}}"
 
 msgid "addInteraction.errors.titleRequired"
-msgstr ""
+msgstr "Le titre est requis"
 
 msgid "addInteraction.errors.contactRequired"
-msgstr ""
+msgstr "Veuillez sélectionner un contact"
 
 msgid "addInteraction.delete.title"
-msgstr ""
+msgstr "Supprimer l'interaction"
 
 msgid "addInteraction.delete.message"
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir supprimer cette interaction ?"
 
 msgid "addInteraction.success.added"
-msgstr ""
+msgstr "Interaction ajoutée avec succès !"
 
 msgid "addInteraction.success.updated"
-msgstr ""
+msgstr "Interaction mise à jour avec succès !"
 
 msgid "addInteraction.success.deleted"
-msgstr ""
+msgstr "Interaction supprimée avec succès !"
 
 msgid "events.filters.birthday"
-msgstr ""
+msgstr "Anniversaires"
 
 msgid "events.filters.anniversary"
-msgstr ""
+msgstr "Commémorations"
 
 msgid "events.filters.meeting"
-msgstr ""
+msgstr "Réunions"
 
 msgid "events.filters.deadline"
-msgstr ""
+msgstr "Échéances"
 
 msgid "events.filters.other"
-msgstr ""
+msgstr "Autres"
 
 msgid "events.emptyTitle"
-msgstr ""
+msgstr "Aucun événement"
 
 msgid "events.emptyMessage"
-msgstr ""
+msgstr "Ajoutez votre premier événement pour commencer."
 
 msgid "events.errorLoad"
-msgstr ""
+msgstr "Échec du chargement des événements"
 
 msgid "eventTypes.birthday"
-msgstr ""
+msgstr "Anniversaire"
 
 msgid "eventTypes.anniversary"
-msgstr ""
+msgstr "Commémoration"
 
 msgid "eventTypes.meeting"
-msgstr ""
+msgstr "Réunion"
 
 msgid "eventTypes.deadline"
-msgstr ""
+msgstr "Échéance"
 
 msgid "eventTypes.other"
-msgstr ""
+msgstr "Autre"
 
 msgid "addEvent.titleAdd"
-msgstr ""
+msgstr "Ajouter un événement"
 
 msgid "addEvent.titleEdit"
-msgstr ""
+msgstr "Modifier l'événement"
 
 msgid "addEvent.sections.type"
-msgstr ""
+msgstr "Type d'événement"
 
 msgid "addEvent.sections.date"
-msgstr ""
+msgstr "Date"
 
 msgid "addEvent.sections.title"
-msgstr ""
+msgstr "Titre"
 
 msgid "addEvent.sections.reminders"
-msgstr ""
+msgstr "Rappels"
 
 msgid "addEvent.sections.notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "addEvent.labels.selectContact"
-msgstr ""
+msgstr "Sélectionner un contact"
 
 msgid "addEvent.labels.quickFill"
-msgstr ""
+msgstr "Remplissage rapide"
 
 msgid "addEvent.labels.titlePlaceholder"
-msgstr ""
+msgstr "ex., Anniversaire de Jean"
 
 msgid "addEvent.labels.recurring"
-msgstr ""
+msgstr "Événement récurrent"
 
 msgid "addEvent.labels.recurringHelper"
-msgstr ""
+msgstr "Se répète chaque année (anniversaires, commémorations)"
 
 msgid "addEvent.labels.notesPlaceholder"
-msgstr ""
+msgstr "Notes optionnelles sur cet événement"
 
 msgid "addEvent.labels.delete"
-msgstr ""
+msgstr "Supprimer l'événement"
 
 #. Quick-fill title template for birthday events
 #. Variables: {{name}} = contact's name
@@ -996,61 +986,61 @@ msgstr ""
 #. Character limit: ~50 characters
 #: src/components/AddEventModal.js (quick-fill button)
 msgid "addEvent.quickTitles.birthday"
-msgstr ""
+msgstr "Anniversaire de {{name}}"
 
 msgid "addEvent.quickTitles.anniversary"
-msgstr ""
+msgstr "Commémoration avec {{name}}"
 
 msgid "addEvent.quickTitles.meeting"
-msgstr ""
+msgstr "Réunion avec {{name}}"
 
 msgid "addEvent.quickTitles.deadline"
-msgstr ""
+msgstr "Échéance pour {{name}}"
 
 msgid "addEvent.quickTitles.other"
-msgstr ""
+msgstr "Événement avec {{name}}"
 
 msgid "addEvent.reminderTemplates.15"
-msgstr ""
+msgstr "15 min avant"
 
 msgid "addEvent.reminderTemplates.60"
-msgstr ""
+msgstr "1 heure avant"
 
 msgid "addEvent.reminderTemplates.1440"
-msgstr ""
+msgstr "1 jour avant"
 
 msgid "addEvent.reminderTemplates.10080"
-msgstr ""
+msgstr "1 semaine avant"
 
 msgid "addEvent.errors.titleRequired"
-msgstr ""
+msgstr "Le titre est obligatoire"
 
 msgid "addEvent.errors.contactRequired"
-msgstr ""
+msgstr "Veuillez sélectionner un contact"
 
 msgid "addEvent.delete.title"
-msgstr ""
+msgstr "Supprimer l'événement"
 
 msgid "addEvent.delete.message"
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir supprimer cet événement ?"
 
 msgid "addEvent.success.added"
-msgstr ""
+msgstr "Événement ajouté avec succès !"
 
 msgid "addEvent.success.updated"
-msgstr ""
+msgstr "Événement mis à jour avec succès !"
 
 msgid "addEvent.success.deleted"
-msgstr ""
+msgstr "Événement supprimé avec succès !"
 
 msgid "contactDetail.errorLoad"
-msgstr ""
+msgstr "Échec du chargement des détails du contact"
 
 msgid "contactDetail.errorImageSet"
-msgstr ""
+msgstr "Échec de la définition de la photo de contact"
 
 msgid "contactDetail.errorImageRemove"
-msgstr ""
+msgstr "Échec de la suppression de la photo"
 
 msgid "contactDetail.tabs.info"
 msgstr ""
@@ -1059,10 +1049,10 @@ msgid "contactDetail.tabs.activity"
 msgstr ""
 
 msgid "contactDetail.recent"
-msgstr ""
+msgstr "Interactions récentes"
 
 msgid "contactDetail.events"
-msgstr ""
+msgstr "Événements à venir"
 
 msgid "contactDetail.upcoming"
 msgstr ""
@@ -1071,16 +1061,16 @@ msgid "contactDetail.pastActivity"
 msgstr ""
 
 msgid "contactDetail.addBirthday"
-msgstr ""
+msgstr "Anniversaire"
 
 msgid "contactDetail.addInteraction"
 msgstr ""
 
 msgid "contactDetail.noEvents"
-msgstr ""
+msgstr "Aucun événement à venir"
 
 msgid "contactDetail.noEventsDescription"
-msgstr ""
+msgstr "Ajouter un événement pour ce contact"
 
 msgid "contactDetail.noActivity"
 msgstr ""
@@ -1089,22 +1079,22 @@ msgid "contactDetail.noActivityDescription"
 msgstr ""
 
 msgid "contactDetail.recurring"
-msgstr ""
+msgstr "Récurrent"
 
 msgid "contactDetail.delete"
-msgstr ""
+msgstr "Supprimer le contact"
 
 msgid "contactDetail.deleteConfirm"
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir supprimer {{name}} ?"
 
 msgid "contactDetail.photoTitle"
-msgstr ""
+msgstr "Photo du contact"
 
 msgid "contactDetail.photoBody"
-msgstr ""
+msgstr "Ajouter ou supprimer une photo de profil."
 
 msgid "contactDetail.addPhoto"
-msgstr ""
+msgstr "Ajouter une photo"
 
 msgid "View {{count}} more item"
 msgid_plural "View {{count}} more items"
@@ -1121,88 +1111,88 @@ msgstr ""
 #: Category selector in contact forms
 #: Filter options
 msgid "categories.family"
-msgstr ""
+msgstr "Famille"
 
 msgid "categories.friends"
-msgstr ""
+msgstr "Amis"
 
 msgid "categories.work"
-msgstr ""
+msgstr "Travail"
 
 msgid "categories.vip"
-msgstr ""
+msgstr "VIP"
 
 msgid "categories.coworkers"
-msgstr ""
+msgstr "Collègues"
 
 msgid "categories.clients"
-msgstr ""
+msgstr "Clients"
 
 msgid "categories.leads"
-msgstr ""
+msgstr "Prospects"
 
 msgid "categories.vendors"
-msgstr ""
+msgstr "Fournisseurs"
 
 msgid "categories.business"
-msgstr ""
+msgstr "Affaires"
 
 msgid "categories.personal"
-msgstr ""
+msgstr "Personnel"
 
 msgid "addContact.title"
-msgstr ""
+msgstr "Ajouter un contact"
 
 msgid "addContact.importSuccessTitle"
-msgstr ""
+msgstr "Contact importé"
 
 msgid "addContact.importSuccessMsg"
-msgstr ""
+msgstr "Les informations du contact ont été importées. Veuillez les examiner et les modifier au besoin avant d'enregistrer."
 
 msgid "addContact.importFailTitle"
-msgstr ""
+msgstr "Échec de l'importation"
 
 msgid "addContact.importFailMsg"
-msgstr ""
+msgstr "Échec de l'importation du contact. Veuillez réessayer ou entrer les détails manuellement."
 
 msgid "addContact.permissionTitle"
-msgstr ""
+msgstr "Autorisation refusée"
 
 msgid "addContact.permissionMsg"
-msgstr ""
+msgstr "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil."
 
 msgid "addContact.successMsg"
-msgstr ""
+msgstr "Contact ajouté avec succès !"
 
 msgid "addContact.sections.name"
-msgstr ""
+msgstr "Nom"
 
 msgid "addContact.sections.relationshipType"
 msgstr ""
 
 msgid "addContact.sections.phones"
-msgstr ""
+msgstr "Numéros de téléphone"
 
 msgid "addContact.sections.emails"
-msgstr ""
+msgstr "Adresses e-mail"
 
 msgid "addContact.labels.firstName"
-msgstr ""
+msgstr "Prénom"
 
 msgid "addContact.labels.lastName"
-msgstr ""
+msgstr "Nom de famille"
 
 msgid "addContact.labels.phone"
-msgstr ""
+msgstr "Téléphone"
 
 msgid "addContact.labels.email"
-msgstr ""
+msgstr "E-mail"
 
 msgid "addContact.validation.firstNameRequired"
-msgstr ""
+msgstr "Le prénom est obligatoire"
 
 msgid "addContact.validation.contactInfoRequired"
-msgstr ""
+msgstr "Veuillez fournir au moins un numéro de téléphone ou une adresse e-mail"
 
 #. Display contact's job title and company name together
 #. Variables: {{job}} = job title (e.g., 'Software Engineer'), {{company}} = company name (e.g., 'Google')
@@ -1238,25 +1228,25 @@ msgid "contact.companyOnly"
 msgstr ""
 
 msgid "contact.phoneLabels.mobile"
-msgstr ""
+msgstr "Portable"
 
 msgid "contact.phoneLabels.home"
-msgstr ""
+msgstr "Maison"
 
 msgid "contact.phoneLabels.work"
-msgstr ""
+msgstr "Travail"
 
 msgid "contact.phoneLabels.other"
-msgstr ""
+msgstr "Autre"
 
 msgid "contact.emailLabels.personal"
-msgstr ""
+msgstr "Personnel"
 
 msgid "contact.emailLabels.work"
-msgstr ""
+msgstr "Travail"
 
 msgid "contact.emailLabels.other"
-msgstr ""
+msgstr "Autre"
 
 msgid "contact.contactTypes.bestFriend"
 msgstr ""
@@ -1280,16 +1270,16 @@ msgid "contact.contactTypes.other"
 msgstr ""
 
 msgid "editContact.title"
-msgstr ""
+msgstr "Modifier le contact"
 
 msgid "globalSearch.title"
-msgstr ""
+msgstr "Rechercher"
 
 msgid "globalSearch.searchPlaceholder"
-msgstr ""
+msgstr "Rechercher contacts, entreprises, interactions, événements …"
 
 msgid "globalSearch.emptyState.prompt"
-msgstr ""
+msgstr "Commencez à taper pour rechercher"
 
 #. Hint text for search feature
 #. Context: Shown in empty search box, explains what can be searched
@@ -1298,25 +1288,25 @@ msgstr ""
 #. Character limit: ~100 characters
 #: src/screens/GlobalSearchScreen.js
 msgid "globalSearch.emptyState.hint"
-msgstr ""
+msgstr "Recherchez dans tous vos contacts, entreprises, interactions, événements et notes"
 
 msgid "globalSearch.emptyState.noResults"
-msgstr ""
+msgstr "Aucun résultat trouvé"
 
 msgid "globalSearch.emptyState.tryDifferent"
-msgstr ""
+msgstr "Essayez un terme de recherche différent"
 
 msgid "globalSearch.error.message"
-msgstr ""
+msgstr "Recherche impossible. Veuillez réessayer."
 
 msgid "globalSearch.noContact"
-msgstr ""
+msgstr "Aucune information de contact"
 
 msgid "globalSearch.noIndustry"
-msgstr ""
+msgstr "Aucune industrie"
 
 msgid "globalSearch.untitled"
-msgstr ""
+msgstr "Sans titre"
 
 #. Feature name: Relationship Proximity
 #. Definition: A calculated score (0-100) measuring relationship strength
