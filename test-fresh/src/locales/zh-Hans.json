@@ -364,6 +364,11 @@
       "contactInfoRequired": "请至少提供一个电话号码或电子邮箱地址"
     }
   },
+  "contact": {
+    "jobAtCompany": "{{company}}的{{job}}",
+    "jobOnly": "{{job}}",
+    "companyOnly": "{{company}}"
+  },
   "editContact": {
     "title": "编辑联系人"
   },

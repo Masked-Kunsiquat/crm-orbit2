@@ -1190,7 +1190,7 @@ msgstr "请至少提供一个电话号码或电子邮箱地址"
 #: src/components/ContactCard.js:28
 #: src/screens/ContactDetailScreen.js:475
 msgid "contact.jobAtCompany"
-msgstr ""
+msgstr "{{company}}的{{job}}"
 
 #. Display only job title (when no company)
 #. Variables: {{job}} = job title
@@ -1199,7 +1199,7 @@ msgstr ""
 #: src/components/ContactCard.js
 #: src/screens/ContactDetailScreen.js
 msgid "contact.jobOnly"
-msgstr ""
+msgstr "{{job}}"
 
 #. Display only company name (when no job title)
 #. Variables: {{company}} = company name
@@ -1208,7 +1208,7 @@ msgstr ""
 #: src/components/ContactCard.js
 #: src/screens/ContactDetailScreen.js
 msgid "contact.companyOnly"
-msgstr ""
+msgstr "{{company}}"
 
 msgid "contact.phoneLabels.mobile"
 msgstr ""
