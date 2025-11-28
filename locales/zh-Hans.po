@@ -1,0 +1,1408 @@
+# Orbit CRM - ZH-HANS Translations
+# Generated: 2025-11-28
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Orbit CRM\n"
+"Language: zh-Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: json-to-po.js\n"
+
+
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
+#: Modal save buttons
+#: Form submissions
+msgid "common.actions.save"
+msgstr ""
+
+#. Save changes action - more specific than generic 'Save'
+#. Context: Edit forms where changes are being saved
+#. Tone: Imperative
+#. Character limit: ~20 characters
+#: src/screens/EditContactScreen.js
+#: Edit modals
+msgid "common.actions.saveChanges"
+msgstr ""
+
+#. Save contact action - contextual save for contact creation
+#. Context: Add contact modal/screen
+#. Tone: Imperative
+#. Character limit: ~20 characters
+#: src/components/AddContactModal.js
+msgid "common.actions.saveContact"
+msgstr ""
+
+#. Cancel action - discard changes and close
+#. Context: Modal dialogs, edit forms
+#. Tone: Imperative
+#. Character limit: ~12 characters
+#: All modals
+#: Edit screens
+msgid "common.actions.cancel"
+msgstr ""
+
+#. Delete action - permanently remove item
+#. Context: Destructive action, usually with confirmation
+#. Tone: Imperative, warning
+#. Character limit: ~12 characters
+#: Delete confirmation dialogs
+#: Swipe actions
+msgid "common.actions.delete"
+msgstr ""
+
+msgid "common.actions.edit"
+msgstr ""
+
+msgid "common.actions.add"
+msgstr ""
+
+msgid "common.actions.remove"
+msgstr ""
+
+msgid "common.actions.close"
+msgstr ""
+
+msgid "common.actions.confirm"
+msgstr ""
+
+msgid "common.actions.retry"
+msgstr ""
+
+msgid "common.actions.apply"
+msgstr ""
+
+msgid "common.actions.clear"
+msgstr ""
+
+msgid "common.actions.reset"
+msgstr ""
+
+msgid "common.actions.update"
+msgstr ""
+
+msgid "common.actions.run"
+msgstr ""
+
+#. Loading status indicator
+#. Context: Shown while data is being fetched from database
+#. Format: Includes ellipsis (...) to indicate ongoing action
+#. Character limit: ~20 characters
+#: src/screens/ContactDetailScreen.js
+#: src/screens/Dashboard.js
+#: Screen initialization
+msgid "common.states.loading"
+msgstr ""
+
+msgid "common.states.searching"
+msgstr ""
+
+#. Error alert title
+#. Context: Alert dialog title when an error occurs
+#. Tone: Neutral, informative
+#. Character limit: ~15 characters
+#: Error alert dialogs throughout app
+msgid "common.states.error"
+msgstr ""
+
+msgid "common.states.success"
+msgstr ""
+
+msgid "common.states.warning"
+msgstr ""
+
+msgid "common.states.info"
+msgstr ""
+
+msgid "common.states.ok"
+msgstr ""
+
+#. Count display for contacts (SINGULAR form)
+#. Variables: {{count}} = number of contacts (will be 1 in this form)
+#. Usage: Contact list headers, analytics, stats displays
+#. IMPORTANT: This is the SINGULAR form (1 contact)
+#. Example (English): '1 contact'
+#. NOTE FOR CHINESE: Add measure word 个 (gè): '1个联系人'
+#: Contact list header
+#: Analytics screens
+#: Search results count
+msgid "{{count}} contact"
+msgid_plural "{{count}} contacts"
+msgstr[0] ""
+
+#. Count display for interactions (SINGULAR form)
+#. Variables: {{count}} = 1
+#. Usage: Analytics, activity counts
+#. Example (English): '1 interaction'
+#. NOTE FOR CHINESE: Use measure word 次 (cì) for interaction events: '1次互动'
+#: src/screens/Analytics.js
+#: Contact detail activity count
+msgid "{{count}} interaction"
+msgid_plural "{{count}} interactions"
+msgstr[0] ""
+
+msgid "{{count}} event"
+msgid_plural "{{count}} events"
+msgstr[0] ""
+
+msgid "{{count}} company"
+msgid_plural "{{count}} companies"
+msgstr[0] ""
+
+msgid "{{count}} category"
+msgid_plural "{{count}} categories"
+msgstr[0] ""
+
+msgid "{{count}} note"
+msgid_plural "{{count}} notes"
+msgstr[0] ""
+
+msgid "{{count}} result"
+msgid_plural "{{count}} results"
+msgstr[0] ""
+
+msgid "{{count}} item"
+msgid_plural "{{count}} items"
+msgstr[0] ""
+
+msgid "{{count}} unique contact"
+msgid_plural "{{count}} unique contacts"
+msgstr[0] ""
+
+#. NOUN (singular): A person in your contact list
+#. NOT: The verb 'to contact someone'
+#. Context: Entity name used throughout app
+#. Character limit: ~15 characters
+#: Screen titles
+#: Form labels
+#: Entity references
+msgid "common.entities.contact"
+msgstr ""
+
+#. NOUN (plural): Multiple people in your contact list
+#. Context: Navigation tabs, list headers
+#. Character limit: ~15 characters
+#: src/navigation (tab label)
+#: List screen titles
+msgid "common.entities.contacts"
+msgstr ""
+
+msgid "common.entities.interaction"
+msgstr ""
+
+msgid "common.entities.interactions"
+msgstr ""
+
+msgid "common.entities.event"
+msgstr ""
+
+msgid "common.entities.events"
+msgstr ""
+
+msgid "common.entities.company"
+msgstr ""
+
+msgid "common.entities.companies"
+msgstr ""
+
+msgid "common.entities.note"
+msgstr ""
+
+msgid "common.entities.notes"
+msgstr ""
+
+msgid "common.entities.category"
+msgstr ""
+
+msgid "common.entities.categories"
+msgstr ""
+
+#. Relative date: today
+#. Context: Event dates, interaction dates
+#. Format: Single word preferred
+#. Character limit: ~15 characters
+#: src/screens/EventsList.js
+#: Date displays
+msgid "common.time.today"
+msgstr ""
+
+msgid "common.time.tomorrow"
+msgstr ""
+
+msgid "common.time.yesterday"
+msgstr ""
+
+msgid "{{count}} minute"
+msgid_plural "{{count}} minutes"
+msgstr[0] ""
+
+msgid "{{count}} hour"
+msgid_plural "{{count}} hours"
+msgstr[0] ""
+
+msgid "{{count}} day"
+msgid_plural "{{count}} days"
+msgstr[0] ""
+
+msgid "{{count}} week"
+msgid_plural "{{count}} weeks"
+msgstr[0] ""
+
+#. Relative time: X day ago (SINGULAR)
+#. Variables: {{count}} = 1
+#. Example (English): '1 day ago'
+#. Context: Shows how long ago something happened
+#. Used in: Interaction timestamps, activity feed
+#: src/utils/dateUtils.js
+#: Activity timeline
+msgid "{{count}} day ago"
+msgid_plural "{{count}} days ago"
+msgstr[0] ""
+
+msgid "{{count}} minute ago"
+msgid_plural "{{count}} minutes ago"
+msgstr[0] ""
+
+msgid "{{count}} hour ago"
+msgid_plural "{{count}} hours ago"
+msgstr[0] ""
+
+msgid "common.dateRanges.allTime"
+msgstr ""
+
+msgid "common.dateRanges.last7Days"
+msgstr ""
+
+msgid "common.dateRanges.last30Days"
+msgstr ""
+
+msgid "common.dateRanges.last90Days"
+msgstr ""
+
+msgid "common.filters.all"
+msgstr ""
+
+msgid "common.filters.none"
+msgstr ""
+
+msgid "common.errors.generic"
+msgstr ""
+
+msgid "common.errors.network"
+msgstr ""
+
+msgid "common.errors.notFound"
+msgstr ""
+
+msgid "common.errors.unauthorized"
+msgstr ""
+
+msgid "common.errors.saveFailed"
+msgstr ""
+
+msgid "common.errors.deleteFailed"
+msgstr ""
+
+msgid "common.errors.loadFailed"
+msgstr ""
+
+msgid "common.labels.optional"
+msgstr ""
+
+msgid "common.labels.required"
+msgstr ""
+
+msgid "common.labels.left"
+msgstr ""
+
+msgid "common.labels.right"
+msgstr ""
+
+msgid "navigation.dashboard"
+msgstr ""
+
+msgid "navigation.contacts"
+msgstr ""
+
+msgid "navigation.companies"
+msgstr ""
+
+msgid "navigation.interactions"
+msgstr ""
+
+msgid "navigation.proximity"
+msgstr ""
+
+msgid "navigation.events"
+msgstr ""
+
+msgid "navigation.settings"
+msgstr ""
+
+msgid "dashboard.title"
+msgstr ""
+
+msgid "dashboard.upcomingEvents.title"
+msgstr ""
+
+msgid "dashboard.upcomingEvents.subtitle"
+msgstr ""
+
+msgid "dashboard.upcomingEvents.empty"
+msgstr ""
+
+msgid "dashboard.quickActions.title"
+msgstr ""
+
+msgid "dashboard.quickActions.addContact"
+msgstr ""
+
+msgid "dashboard.quickActions.addInteraction"
+msgstr ""
+
+msgid "dashboard.quickActions.addEvent"
+msgstr ""
+
+msgid "analytics.title"
+msgstr ""
+
+msgid "analytics.dateRange.title"
+msgstr ""
+
+msgid "analytics.overview.title"
+msgstr ""
+
+msgid "analytics.overview.totalContacts"
+msgstr ""
+
+msgid "analytics.overview.totalInteractions"
+msgstr ""
+
+msgid "analytics.overview.totalEvents"
+msgstr ""
+
+msgid "analytics.interactions.title"
+msgstr ""
+
+msgid "analytics.interactions.empty"
+msgstr ""
+
+msgid "analytics.events.title"
+msgstr ""
+
+msgid "analytics.events.upcoming"
+msgstr ""
+
+msgid "analytics.events.past"
+msgstr ""
+
+msgid "analytics.topContacts.title"
+msgstr ""
+
+msgid "analytics.topContacts.empty"
+msgstr ""
+
+msgid "search.contactsPlaceholder"
+msgstr ""
+
+msgid "settings.title"
+msgstr ""
+
+msgid "settings.searchPlaceholder"
+msgstr ""
+
+msgid "settings.noResults"
+msgstr ""
+
+msgid "settings.sections.appearance"
+msgstr ""
+
+msgid "settings.sections.security"
+msgstr ""
+
+msgid "settings.sections.securityDescription"
+msgstr ""
+
+msgid "settings.sections.features"
+msgstr ""
+
+msgid "settings.sections.featuresDescription"
+msgstr ""
+
+msgid "settings.sections.swipe"
+msgstr ""
+
+msgid "settings.sections.swipeDescription"
+msgstr ""
+
+msgid "settings.sections.theme"
+msgstr ""
+
+msgid "settings.sections.language"
+msgstr ""
+
+msgid "settings.sections.languageDescription"
+msgstr ""
+
+msgid "settings.sections.proximity"
+msgstr ""
+
+msgid "settings.sections.proximityDescription"
+msgstr ""
+
+msgid "settings.sections.data"
+msgstr ""
+
+msgid "settings.sections.dataDescription"
+msgstr ""
+
+msgid "settings.sections.database"
+msgstr ""
+
+msgid "settings.proximity.algorithm"
+msgstr ""
+
+msgid "settings.proximity.algorithmDescription"
+msgstr ""
+
+msgid "settings.appearance.theme"
+msgstr ""
+
+msgid "settings.language.device"
+msgstr ""
+
+msgid "settings.language.english"
+msgstr ""
+
+msgid "settings.language.spanish"
+msgstr ""
+
+msgid "settings.language.german"
+msgstr ""
+
+msgid "settings.language.french"
+msgstr ""
+
+msgid "settings.language.chinese"
+msgstr ""
+
+#. Setting label: Setup or change security PIN
+#. Context: Security settings screen
+#. Note: PIN is an acronym (Personal Identification Number) - keep as 'PIN' in all languages
+#. Character limit: ~30 characters
+#: src/screens/SettingsScreen.js
+msgid "settings.security.pinSetup"
+msgstr ""
+
+msgid "settings.security.pinDescription"
+msgstr ""
+
+msgid "settings.security.useBiometric"
+msgstr ""
+
+#. Description: Explains biometric authentication feature
+#. Context: Helper text below 'Use Biometric' toggle
+#. Note: Biometric = fingerprint or face recognition
+#. Tone: Informative, concise
+#. Character limit: ~80 characters
+#: src/screens/SettingsScreen.js
+msgid "settings.security.biometricDescription"
+msgstr ""
+
+msgid "settings.security.autoLock"
+msgstr ""
+
+msgid "settings.security.autoLockDescription"
+msgstr ""
+
+msgid "settings.security.autoLockTimeout"
+msgstr ""
+
+msgid "settings.features.companyManagement.title"
+msgstr ""
+
+msgid "settings.features.companyManagement.description"
+msgstr ""
+
+msgid "settings.features.companyManagement.enabled"
+msgstr ""
+
+msgid "settings.features.companyManagement.disabled"
+msgstr ""
+
+msgid "settings.database.runMigrations"
+msgstr ""
+
+msgid "settings.database.migrationsDescription"
+msgstr ""
+
+msgid "settings.database.migrationsComplete"
+msgstr ""
+
+msgid "settings.database.migrationsError"
+msgstr ""
+
+msgid "settings.database.migrationsFailed"
+msgstr ""
+
+msgid "settings.database.resetDatabase"
+msgstr ""
+
+msgid "settings.database.resetDescription"
+msgstr ""
+
+msgid "settings.database.resetTitle"
+msgstr ""
+
+#. WARNING: Destructive action confirmation message
+#. Context: Shown before database reset (deletes ALL user data)
+#. Tone: Serious, clear warning
+#. IMPORTANT: Make it clear this is PERMANENT and CANNOT be undone
+#. Character limit: ~200 characters
+#: src/screens/SettingsScreen.js (confirmation dialog)
+msgid "settings.database.resetWarning"
+msgstr ""
+
+msgid "settings.database.resetSuccess"
+msgstr ""
+
+msgid "settings.database.resetComplete"
+msgstr ""
+
+msgid "settings.database.resetError"
+msgstr ""
+
+msgid "settings.database.resetFailed"
+msgstr ""
+
+msgid "settings.errors.biometric"
+msgstr ""
+
+msgid "settings.errors.autoLock"
+msgstr ""
+
+msgid "settings.errors.autoLockTimeout"
+msgstr ""
+
+msgid "settings.errors.swipeAction"
+msgstr ""
+
+msgid "settings.errors.theme"
+msgstr ""
+
+msgid "settings.errors.language"
+msgstr ""
+
+msgid "settings.errors.featureToggle"
+msgstr ""
+
+msgid "theme.system"
+msgstr ""
+
+msgid "theme.light"
+msgstr ""
+
+msgid "theme.dark"
+msgstr ""
+
+msgid "industries.technology"
+msgstr ""
+
+msgid "industries.finance"
+msgstr ""
+
+msgid "industries.healthcare"
+msgstr ""
+
+msgid "industries.retail"
+msgstr ""
+
+msgid "industries.manufacturing"
+msgstr ""
+
+msgid "industries.education"
+msgstr ""
+
+msgid "industries.consulting"
+msgstr ""
+
+msgid "industries.realEstate"
+msgstr ""
+
+msgid "industries.other"
+msgstr ""
+
+msgid "companies.add.title"
+msgstr ""
+
+msgid "companies.add.labels.name"
+msgstr ""
+
+msgid "companies.add.labels.industry"
+msgstr ""
+
+msgid "companies.add.labels.website"
+msgstr ""
+
+msgid "companies.add.labels.address"
+msgstr ""
+
+msgid "companies.add.labels.notes"
+msgstr ""
+
+msgid "companies.add.placeholders.website"
+msgstr ""
+
+#. Validation error: Company name is required
+#. Context: Form validation message when user tries to save without entering company name
+#. Tone: Polite but firm
+#. Character limit: ~60 characters
+#: src/components/AddCompanyModal.js
+msgid "companies.add.validation.requiredName"
+msgstr ""
+
+msgid "companies.add.validation.nameTooLong"
+msgstr ""
+
+msgid "companies.add.success"
+msgstr ""
+
+msgid "companies.add.error"
+msgstr ""
+
+msgid "companies.edit.title"
+msgstr ""
+
+msgid "companies.edit.labels.name"
+msgstr ""
+
+msgid "companies.edit.labels.industry"
+msgstr ""
+
+msgid "companies.edit.labels.website"
+msgstr ""
+
+msgid "companies.edit.labels.address"
+msgstr ""
+
+msgid "companies.edit.labels.notes"
+msgstr ""
+
+msgid "companies.edit.placeholders.website"
+msgstr ""
+
+msgid "companies.edit.validation.requiredName"
+msgstr ""
+
+msgid "companies.edit.validation.nameTooLong"
+msgstr ""
+
+msgid "companies.edit.success"
+msgstr ""
+
+msgid "companies.edit.error"
+msgstr ""
+
+msgid "companies.list.searchPlaceholder"
+msgstr ""
+
+msgid "companies.list.empty.title"
+msgstr ""
+
+msgid "companies.list.empty.noResults"
+msgstr ""
+
+msgid "companies.list.empty.addFirst"
+msgstr ""
+
+msgid "companies.list.delete.title"
+msgstr ""
+
+msgid "companies.list.delete.message"
+msgstr ""
+
+msgid "companies.list.delete.success"
+msgstr ""
+
+msgid "companies.list.delete.error"
+msgstr ""
+
+msgid "interactions.filters.meeting"
+msgstr ""
+
+msgid "interactions.filters.videoCall"
+msgstr ""
+
+msgid "interactions.filters.call"
+msgstr ""
+
+msgid "interactions.filters.text"
+msgstr ""
+
+msgid "interactions.filters.email"
+msgstr ""
+
+msgid "interactions.filters.socialMedia"
+msgstr ""
+
+msgid "interactions.filters.other"
+msgstr ""
+
+msgid "interactions.emptyTitle"
+msgstr ""
+
+msgid "interactions.emptyMessage"
+msgstr ""
+
+msgid "interactions.errorLoad"
+msgstr ""
+
+#. NOUN: Phone call - an interaction type
+#. NOT: The verb 'to call someone'
+#. Context: Interaction type selector, filter buttons, labels
+#. Example usage: 'Type: Call'
+#. Character limit: ~15 characters
+#: src/screens/InteractionsScreen.js (filter buttons)
+#: src/components/AddInteractionModal.js (type selector)
+msgid "interactionTypes.call"
+msgstr ""
+
+#. NOUN: Text message - an interaction type
+#. NOT: The verb 'to text someone' or generic 'text' (written content)
+#. Context: Interaction type selector, filter buttons
+#. Example usage: 'Type: Text'
+#. Character limit: ~15 characters
+#: src/screens/InteractionsScreen.js
+#: src/components/AddInteractionModal.js
+msgid "interactionTypes.text"
+msgstr ""
+
+msgid "interactionTypes.email"
+msgstr ""
+
+msgid "interactionTypes.meeting"
+msgstr ""
+
+msgid "interactionTypes.videoCall"
+msgstr ""
+
+msgid "interactionTypes.socialMedia"
+msgstr ""
+
+msgid "interactionTypes.other"
+msgstr ""
+
+msgid "addInteraction.titleAdd"
+msgstr ""
+
+msgid "addInteraction.titleEdit"
+msgstr ""
+
+msgid "addInteraction.sections.type"
+msgstr ""
+
+msgid "addInteraction.sections.dateTime"
+msgstr ""
+
+msgid "addInteraction.sections.title"
+msgstr ""
+
+msgid "addInteraction.sections.duration"
+msgstr ""
+
+msgid "addInteraction.sections.notes"
+msgstr ""
+
+msgid "addInteraction.labels.selectContact"
+msgstr ""
+
+msgid "addInteraction.labels.interactionTitle"
+msgstr ""
+
+msgid "addInteraction.labels.titlePlaceholder"
+msgstr ""
+
+msgid "addInteraction.labels.duration"
+msgstr ""
+
+msgid "addInteraction.labels.notes"
+msgstr ""
+
+msgid "addInteraction.labels.notesPlaceholder"
+msgstr ""
+
+msgid "addInteraction.labels.quickFill"
+msgstr ""
+
+#. Quick-fill title template for phone call interactions
+#. Variables: {{name}} = contact's name
+#. Example (English): 'Call with John Smith'
+#. Note: You may adjust structure to sound natural in your language
+#.   - Use noun form ('Call with') or verb form ('Called') as preferred
+#.   - Word order can be changed
+#. Character limit: ~50 characters (with typical name length)
+#: src/components/AddInteractionModal.js (quick-fill button)
+msgid "addInteraction.quickTitles.call"
+msgstr ""
+
+msgid "addInteraction.quickTitles.videoCall"
+msgstr ""
+
+msgid "addInteraction.quickTitles.text"
+msgstr ""
+
+msgid "addInteraction.quickTitles.email"
+msgstr ""
+
+msgid "addInteraction.quickTitles.meeting"
+msgstr ""
+
+msgid "addInteraction.quickTitles.other"
+msgstr ""
+
+msgid "addInteraction.errors.titleRequired"
+msgstr ""
+
+msgid "addInteraction.errors.contactRequired"
+msgstr ""
+
+msgid "addInteraction.delete.title"
+msgstr ""
+
+msgid "addInteraction.delete.message"
+msgstr ""
+
+msgid "addInteraction.success.added"
+msgstr ""
+
+msgid "addInteraction.success.updated"
+msgstr ""
+
+msgid "addInteraction.success.deleted"
+msgstr ""
+
+msgid "events.filters.birthday"
+msgstr ""
+
+msgid "events.filters.anniversary"
+msgstr ""
+
+msgid "events.filters.meeting"
+msgstr ""
+
+msgid "events.filters.deadline"
+msgstr ""
+
+msgid "events.filters.other"
+msgstr ""
+
+msgid "events.emptyTitle"
+msgstr ""
+
+msgid "events.emptyMessage"
+msgstr ""
+
+msgid "events.errorLoad"
+msgstr ""
+
+msgid "eventTypes.birthday"
+msgstr ""
+
+msgid "eventTypes.anniversary"
+msgstr ""
+
+msgid "eventTypes.meeting"
+msgstr ""
+
+msgid "eventTypes.deadline"
+msgstr ""
+
+msgid "eventTypes.other"
+msgstr ""
+
+msgid "addEvent.titleAdd"
+msgstr ""
+
+msgid "addEvent.titleEdit"
+msgstr ""
+
+msgid "addEvent.sections.type"
+msgstr ""
+
+msgid "addEvent.sections.date"
+msgstr ""
+
+msgid "addEvent.sections.title"
+msgstr ""
+
+msgid "addEvent.sections.reminders"
+msgstr ""
+
+msgid "addEvent.sections.notes"
+msgstr ""
+
+msgid "addEvent.labels.selectContact"
+msgstr ""
+
+msgid "addEvent.labels.quickFill"
+msgstr ""
+
+msgid "addEvent.labels.titlePlaceholder"
+msgstr ""
+
+msgid "addEvent.labels.recurring"
+msgstr ""
+
+msgid "addEvent.labels.recurringHelper"
+msgstr ""
+
+msgid "addEvent.labels.notesPlaceholder"
+msgstr ""
+
+msgid "addEvent.labels.delete"
+msgstr ""
+
+#. Quick-fill title template for birthday events
+#. Variables: {{name}} = contact's name
+#. Example (English): 'John's Birthday'
+#. IMPORTANT: Possessive structure varies by language
+#.   - English: {{name}}'s Birthday (apostrophe-s)
+#.   - Spanish: Cumpleaños de {{name}} (preposition 'de')
+#.   - German: {{name}}s Geburtstag (suffix 's' without apostrophe)
+#.   - French: Anniversaire de {{name}} (preposition 'de')
+#.   - Chinese: {{name}}的生日 (particle 的)
+#. Character limit: ~50 characters
+#: src/components/AddEventModal.js (quick-fill button)
+msgid "addEvent.quickTitles.birthday"
+msgstr ""
+
+msgid "addEvent.quickTitles.anniversary"
+msgstr ""
+
+msgid "addEvent.quickTitles.meeting"
+msgstr ""
+
+msgid "addEvent.quickTitles.deadline"
+msgstr ""
+
+msgid "addEvent.quickTitles.other"
+msgstr ""
+
+msgid "addEvent.reminderTemplates.15"
+msgstr ""
+
+msgid "addEvent.reminderTemplates.60"
+msgstr ""
+
+msgid "addEvent.reminderTemplates.1440"
+msgstr ""
+
+msgid "addEvent.reminderTemplates.10080"
+msgstr ""
+
+msgid "addEvent.errors.titleRequired"
+msgstr ""
+
+msgid "addEvent.errors.contactRequired"
+msgstr ""
+
+msgid "addEvent.delete.title"
+msgstr ""
+
+msgid "addEvent.delete.message"
+msgstr ""
+
+msgid "addEvent.success.added"
+msgstr ""
+
+msgid "addEvent.success.updated"
+msgstr ""
+
+msgid "addEvent.success.deleted"
+msgstr ""
+
+msgid "contactDetail.errorLoad"
+msgstr ""
+
+msgid "contactDetail.errorImageSet"
+msgstr ""
+
+msgid "contactDetail.errorImageRemove"
+msgstr ""
+
+msgid "contactDetail.tabs.info"
+msgstr ""
+
+msgid "contactDetail.tabs.activity"
+msgstr ""
+
+msgid "contactDetail.recent"
+msgstr ""
+
+msgid "contactDetail.events"
+msgstr ""
+
+msgid "contactDetail.upcoming"
+msgstr ""
+
+msgid "contactDetail.pastActivity"
+msgstr ""
+
+msgid "contactDetail.addBirthday"
+msgstr ""
+
+msgid "contactDetail.addInteraction"
+msgstr ""
+
+msgid "contactDetail.noEvents"
+msgstr ""
+
+msgid "contactDetail.noEventsDescription"
+msgstr ""
+
+msgid "contactDetail.noActivity"
+msgstr ""
+
+msgid "contactDetail.noActivityDescription"
+msgstr ""
+
+msgid "contactDetail.recurring"
+msgstr ""
+
+msgid "contactDetail.delete"
+msgstr ""
+
+msgid "contactDetail.deleteConfirm"
+msgstr ""
+
+msgid "contactDetail.photoTitle"
+msgstr ""
+
+msgid "contactDetail.photoBody"
+msgstr ""
+
+msgid "contactDetail.addPhoto"
+msgstr ""
+
+msgid "View {{count}} more item"
+msgid_plural "View {{count}} more items"
+msgstr[0] ""
+
+msgid "contactDetail.viewMoreInfo"
+msgstr ""
+
+#. Category name: Family members
+#. Context: Contact categorization/tagging
+#. Note: This is a system-provided category name
+#. Character limit: ~20 characters
+#: Category selector in contact forms
+#: Filter options
+msgid "categories.family"
+msgstr ""
+
+msgid "categories.friends"
+msgstr ""
+
+msgid "categories.work"
+msgstr ""
+
+msgid "categories.vip"
+msgstr ""
+
+msgid "categories.coworkers"
+msgstr ""
+
+msgid "categories.clients"
+msgstr ""
+
+msgid "categories.leads"
+msgstr ""
+
+msgid "categories.vendors"
+msgstr ""
+
+msgid "categories.business"
+msgstr ""
+
+msgid "categories.personal"
+msgstr ""
+
+msgid "addContact.title"
+msgstr ""
+
+msgid "addContact.importSuccessTitle"
+msgstr ""
+
+msgid "addContact.importSuccessMsg"
+msgstr ""
+
+msgid "addContact.importFailTitle"
+msgstr ""
+
+msgid "addContact.importFailMsg"
+msgstr ""
+
+msgid "addContact.permissionTitle"
+msgstr ""
+
+msgid "addContact.permissionMsg"
+msgstr ""
+
+msgid "addContact.successMsg"
+msgstr ""
+
+msgid "addContact.sections.name"
+msgstr ""
+
+msgid "addContact.sections.relationshipType"
+msgstr ""
+
+msgid "addContact.sections.phones"
+msgstr ""
+
+msgid "addContact.sections.emails"
+msgstr ""
+
+msgid "addContact.labels.firstName"
+msgstr ""
+
+msgid "addContact.labels.lastName"
+msgstr ""
+
+msgid "addContact.labels.phone"
+msgstr ""
+
+msgid "addContact.labels.email"
+msgstr ""
+
+msgid "addContact.validation.firstNameRequired"
+msgstr ""
+
+msgid "addContact.validation.contactInfoRequired"
+msgstr ""
+
+#. Display contact's job title and company name together
+#. Variables: {{job}} = job title (e.g., 'Software Engineer'), {{company}} = company name (e.g., 'Google')
+#. Example (English): 'Software Engineer at Google'
+#. IMPORTANT: Word order MUST be adjusted for your language!
+#.   - English: '{{job}} at {{company}}'
+#.   - Spanish: '{{job}} en {{company}}'
+#.   - German: '{{job}} bei {{company}}'
+#.   - French: '{{job}} chez {{company}}'
+#.   - Chinese: '{{company}}的{{job}}' (REVERSED! Company comes first)
+#. Context: Contact cards, contact detail screen
+#: src/components/ContactCard.js:28
+#: src/screens/ContactDetailScreen.js:475
+msgid "contact.jobAtCompany"
+msgstr ""
+
+#. Display only job title (when no company)
+#. Variables: {{job}} = job title
+#. Example: 'Software Engineer'
+#. Context: Contact cards when company is not set
+#: src/components/ContactCard.js
+#: src/screens/ContactDetailScreen.js
+msgid "contact.jobOnly"
+msgstr ""
+
+#. Display only company name (when no job title)
+#. Variables: {{company}} = company name
+#. Example: 'Google'
+#. Context: Contact cards when job title is not set
+#: src/components/ContactCard.js
+#: src/screens/ContactDetailScreen.js
+msgid "contact.companyOnly"
+msgstr ""
+
+msgid "contact.phoneLabels.mobile"
+msgstr ""
+
+msgid "contact.phoneLabels.home"
+msgstr ""
+
+msgid "contact.phoneLabels.work"
+msgstr ""
+
+msgid "contact.phoneLabels.other"
+msgstr ""
+
+msgid "contact.emailLabels.personal"
+msgstr ""
+
+msgid "contact.emailLabels.work"
+msgstr ""
+
+msgid "contact.emailLabels.other"
+msgstr ""
+
+msgid "contact.contactTypes.bestFriend"
+msgstr ""
+
+msgid "contact.contactTypes.family"
+msgstr ""
+
+msgid "contact.contactTypes.closeFriend"
+msgstr ""
+
+msgid "contact.contactTypes.friend"
+msgstr ""
+
+msgid "contact.contactTypes.colleague"
+msgstr ""
+
+msgid "contact.contactTypes.acquaintance"
+msgstr ""
+
+msgid "contact.contactTypes.other"
+msgstr ""
+
+msgid "editContact.title"
+msgstr ""
+
+msgid "globalSearch.title"
+msgstr ""
+
+msgid "globalSearch.searchPlaceholder"
+msgstr ""
+
+msgid "globalSearch.emptyState.prompt"
+msgstr ""
+
+#. Hint text for search feature
+#. Context: Shown in empty search box, explains what can be searched
+#. Tone: Helpful, informative
+#. Lists: contacts, companies, interactions, events, notes
+#. Character limit: ~100 characters
+#: src/screens/GlobalSearchScreen.js
+msgid "globalSearch.emptyState.hint"
+msgstr ""
+
+msgid "globalSearch.emptyState.noResults"
+msgstr ""
+
+msgid "globalSearch.emptyState.tryDifferent"
+msgstr ""
+
+msgid "globalSearch.error.message"
+msgstr ""
+
+msgid "globalSearch.noContact"
+msgstr ""
+
+msgid "globalSearch.noIndustry"
+msgstr ""
+
+msgid "globalSearch.untitled"
+msgstr ""
+
+#. Feature name: Relationship Proximity
+#. Definition: A calculated score (0-100) measuring relationship strength
+#. Note: 'Proximity' here means relationship closeness, NOT physical distance
+#. Context: Feature tab name, screen title
+#. Character limit: ~30 characters
+#: Navigation tab
+#: Screen header
+msgid "proximity.title"
+msgstr ""
+
+msgid "proximity.radarTitle"
+msgstr ""
+
+msgid "proximity.calculating"
+msgstr ""
+
+msgid "proximity.errorTitle"
+msgstr ""
+
+msgid "proximity.errorMessage"
+msgstr ""
+
+msgid "proximity.emptyTitle"
+msgstr ""
+
+msgid "proximity.emptyMessage"
+msgstr ""
+
+msgid "proximity.noContacts"
+msgstr ""
+
+msgid "proximity.noContactsMessage"
+msgstr ""
+
+msgid "proximity.infoTitle"
+msgstr ""
+
+#. Explanation of how proximity scoring works
+#. Context: Help dialog explaining the feature
+#. Tone: Educational, friendly
+#. Note: Explain that scores are based on interaction frequency/recency/quality
+#. Character limit: ~250 characters
+#: src/screens/ProximityScreen.js (info dialog)
+msgid "proximity.infoMessage"
+msgstr ""
+
+msgid "proximity.infoScoring"
+msgstr ""
+
+msgid "proximity.radarInfo.title"
+msgstr ""
+
+msgid "proximity.radarInfo.message"
+msgstr ""
+
+msgid "proximity.gotIt"
+msgstr ""
+
+msgid "proximitySettings.title"
+msgstr ""
+
+msgid "proximitySettings.algorithmTitle"
+msgstr ""
+
+msgid "proximitySettings.algorithmDescription"
+msgstr ""
+
+msgid "proximitySettings.presetTitle"
+msgstr ""
+
+msgid "proximitySettings.weights"
+msgstr ""
+
+msgid "proximitySettings.recency"
+msgstr ""
+
+msgid "proximitySettings.frequency"
+msgstr ""
+
+msgid "proximitySettings.quality"
+msgstr ""
+
+msgid "proximitySettings.contactType"
+msgstr ""
+
+msgid "proximitySettings.customNotConfigured"
+msgstr ""
+
+msgid "proximitySettings.saved"
+msgstr ""
+
+msgid "proximitySettings.savedMessage"
+msgstr ""
+
+msgid "proximitySettings.saveError"
+msgstr ""
+
+msgid "proximitySettings.saveErrorMessage"
+msgstr ""
+
+msgid "proximitySettings.loadError"
+msgstr ""
+
+msgid "proximitySettings.loadErrorMessage"
+msgstr ""
