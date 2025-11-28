@@ -189,8 +189,10 @@ function generatePOEntry(key, value, language) {
       return null;
     }
 
-    lines.push(`msgid ${formatMultiline(value)}`);
-    lines.push(`msgid_plural ${formatMultiline(otherValue || value)}`);
+    // Monolingual PO: msgid = key (without _one suffix), msgid_plural = key with _other
+    const baseKey = getBasePluralKey(key);
+    lines.push(`msgid "${baseKey}"`);
+    lines.push(`msgid_plural "${baseKey}"`);
 
     // Add msgstr entries based on plural count
     const pluralCount = PLURAL_FORMS[language]?.count || 2;
@@ -206,6 +208,7 @@ function generatePOEntry(key, value, language) {
     }
   } else {
     // Regular (non-plural) entry
+    // Monolingual PO: msgid = key
     lines.push(`msgid ${formatMultiline(key)}`);
 
     if (language === 'en') {

@@ -10,7 +10,7 @@
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
-msgstr "保存"
+msgstr ""
 
 #. Save changes action - more specific than generic 'Save'
 #. Context: Edit forms where changes are being saved
@@ -19,7 +19,7 @@ msgstr "保存"
 #: src/screens/EditContactScreen.js
 #: Edit modals
 msgid "common.actions.saveChanges"
-msgstr "保存更改"
+msgstr ""
 
 #. Save contact action - contextual save for contact creation
 #. Context: Add contact modal/screen
@@ -27,7 +27,7 @@ msgstr "保存更改"
 #. Character limit: ~20 characters
 #: src/components/AddContactModal.js
 msgid "common.actions.saveContact"
-msgstr "保存联系人"
+msgstr ""
 
 #. Cancel action - discard changes and close
 #. Context: Modal dialogs, edit forms
@@ -36,7 +36,7 @@ msgstr "保存联系人"
 #: All modals
 #: Edit screens
 msgid "common.actions.cancel"
-msgstr "取消"
+msgstr ""
 
 #. Delete action - permanently remove item
 #. Context: Destructive action, usually with confirmation
@@ -45,16 +45,16 @@ msgstr "取消"
 #: Delete confirmation dialogs
 #: Swipe actions
 msgid "common.actions.delete"
-msgstr "删除"
+msgstr ""
 
 msgid "common.actions.edit"
 msgstr ""
 
 msgid "common.actions.add"
-msgstr "添加"
+msgstr ""
 
 msgid "common.actions.remove"
-msgstr "移除"
+msgstr ""
 
 msgid "common.actions.close"
 msgstr ""
@@ -72,13 +72,13 @@ msgid "common.actions.clear"
 msgstr ""
 
 msgid "common.actions.reset"
-msgstr "重置"
+msgstr ""
 
 msgid "common.actions.update"
-msgstr "更新"
+msgstr ""
 
 msgid "common.actions.run"
-msgstr "执行"
+msgstr ""
 
 #. Loading status indicator
 #. Context: Shown while data is being fetched from database
@@ -88,10 +88,10 @@ msgstr "执行"
 #: src/screens/Dashboard.js
 #: Screen initialization
 msgid "common.states.loading"
-msgstr "正在加载…"
+msgstr ""
 
 msgid "common.states.searching"
-msgstr "搜索中 …"
+msgstr ""
 
 #. Error alert title
 #. Context: Alert dialog title when an error occurs
@@ -99,10 +99,10 @@ msgstr "搜索中 …"
 #. Character limit: ~15 characters
 #: Error alert dialogs throughout app
 msgid "common.states.error"
-msgstr "错误"
+msgstr ""
 
 msgid "common.states.success"
-msgstr "成功"
+msgstr ""
 
 msgid "common.states.warning"
 msgstr ""
@@ -111,7 +111,7 @@ msgid "common.states.info"
 msgstr ""
 
 msgid "common.states.ok"
-msgstr "好的"
+msgstr ""
 
 #. Count display for contacts (SINGULAR form)
 #. Variables: {{count}} = number of contacts (will be 1 in this form)
@@ -122,8 +122,8 @@ msgstr "好的"
 #: Contact list header
 #: Analytics screens
 #: Search results count
-msgid "{{count}} contact"
-msgid_plural "{{count}} contacts"
+msgid "common.counts.contact"
+msgid_plural "common.counts.contact"
 msgstr[0] ""
 
 #. Count display for interactions (SINGULAR form)
@@ -133,36 +133,36 @@ msgstr[0] ""
 #. NOTE FOR CHINESE: Use measure word 次 (cì) for interaction events: '1次互动'
 #: src/screens/Analytics.js
 #: Contact detail activity count
-msgid "{{count}} interaction"
-msgid_plural "{{count}} interactions"
+msgid "common.counts.interaction"
+msgid_plural "common.counts.interaction"
 msgstr[0] ""
 
-msgid "{{count}} event"
-msgid_plural "{{count}} events"
+msgid "common.counts.event"
+msgid_plural "common.counts.event"
 msgstr[0] ""
 
-msgid "{{count}} company"
-msgid_plural "{{count}} companies"
+msgid "common.counts.company"
+msgid_plural "common.counts.company"
 msgstr[0] ""
 
-msgid "{{count}} category"
-msgid_plural "{{count}} categories"
+msgid "common.counts.category"
+msgid_plural "common.counts.category"
 msgstr[0] ""
 
-msgid "{{count}} note"
-msgid_plural "{{count}} notes"
+msgid "common.counts.note"
+msgid_plural "common.counts.note"
 msgstr[0] ""
 
-msgid "{{count}} result"
-msgid_plural "{{count}} results"
+msgid "common.counts.result"
+msgid_plural "common.counts.result"
 msgstr[0] ""
 
-msgid "{{count}} item"
-msgid_plural "{{count}} items"
+msgid "common.counts.item"
+msgid_plural "common.counts.item"
 msgstr[0] ""
 
-msgid "{{count}} unique contact"
-msgid_plural "{{count}} unique contacts"
+msgid "common.counts.uniqueContact"
+msgid_plural "common.counts.uniqueContact"
 msgstr[0] ""
 
 #. NOUN (singular): A person in your contact list
@@ -173,7 +173,7 @@ msgstr[0] ""
 #: Form labels
 #: Entity references
 msgid "common.entities.contact"
-msgstr "联系人"
+msgstr ""
 
 #. NOUN (plural): Multiple people in your contact list
 #. Context: Navigation tabs, list headers
@@ -181,37 +181,37 @@ msgstr "联系人"
 #: src/navigation (tab label)
 #: List screen titles
 msgid "common.entities.contacts"
-msgstr "联系人"
+msgstr ""
 
 msgid "common.entities.interaction"
 msgstr ""
 
 msgid "common.entities.interactions"
-msgstr "互动"
+msgstr ""
 
 msgid "common.entities.event"
-msgstr "事件"
+msgstr ""
 
 msgid "common.entities.events"
-msgstr "事件"
+msgstr ""
 
 msgid "common.entities.company"
 msgstr ""
 
 msgid "common.entities.companies"
-msgstr "公司"
+msgstr ""
 
 msgid "common.entities.note"
-msgstr "笔记"
+msgstr ""
 
 msgid "common.entities.notes"
-msgstr "笔记"
+msgstr ""
 
 msgid "common.entities.category"
 msgstr ""
 
 msgid "common.entities.categories"
-msgstr "类别"
+msgstr ""
 
 #. Relative date: today
 #. Context: Event dates, interaction dates
@@ -220,28 +220,28 @@ msgstr "类别"
 #: src/screens/EventsList.js
 #: Date displays
 msgid "common.time.today"
-msgstr "今天"
+msgstr ""
 
 msgid "common.time.tomorrow"
-msgstr "明天"
+msgstr ""
 
 msgid "common.time.yesterday"
 msgstr ""
 
-msgid "{{count}} minute"
-msgid_plural "{{count}} minutes"
+msgid "common.time.minute"
+msgid_plural "common.time.minute"
 msgstr[0] ""
 
-msgid "{{count}} hour"
-msgid_plural "{{count}} hours"
+msgid "common.time.hour"
+msgid_plural "common.time.hour"
 msgstr[0] ""
 
-msgid "{{count}} day"
-msgid_plural "{{count}} days"
+msgid "common.time.day"
+msgid_plural "common.time.day"
 msgstr[0] ""
 
-msgid "{{count}} week"
-msgid_plural "{{count}} weeks"
+msgid "common.time.week"
+msgid_plural "common.time.week"
 msgstr[0] ""
 
 #. Relative time: X day ago (SINGULAR)
@@ -251,32 +251,32 @@ msgstr[0] ""
 #. Used in: Interaction timestamps, activity feed
 #: src/utils/dateUtils.js
 #: Activity timeline
-msgid "{{count}} day ago"
-msgid_plural "{{count}} days ago"
+msgid "common.time.daysAgo"
+msgid_plural "common.time.daysAgo"
 msgstr[0] ""
 
-msgid "{{count}} minute ago"
-msgid_plural "{{count}} minutes ago"
+msgid "common.time.minutesAgo"
+msgid_plural "common.time.minutesAgo"
 msgstr[0] ""
 
-msgid "{{count}} hour ago"
-msgid_plural "{{count}} hours ago"
+msgid "common.time.hoursAgo"
+msgid_plural "common.time.hoursAgo"
 msgstr[0] ""
 
 msgid "common.dateRanges.allTime"
-msgstr "所有时间"
+msgstr ""
 
 msgid "common.dateRanges.last7Days"
-msgstr "过去7天"
+msgstr ""
 
 msgid "common.dateRanges.last30Days"
-msgstr "过去30天"
+msgstr ""
 
 msgid "common.dateRanges.last90Days"
-msgstr "过去90天"
+msgstr ""
 
 msgid "common.filters.all"
-msgstr "全部"
+msgstr ""
 
 msgid "common.filters.none"
 msgstr ""
@@ -294,25 +294,25 @@ msgid "common.errors.unauthorized"
 msgstr ""
 
 msgid "common.errors.saveFailed"
-msgstr "保存互动失败。请重试。"
+msgstr ""
 
 msgid "common.errors.deleteFailed"
-msgstr "删除互动失败。请重试。"
+msgstr ""
 
 msgid "common.errors.loadFailed"
 msgstr ""
 
 msgid "common.labels.optional"
-msgstr "可选"
+msgstr ""
 
 msgid "common.labels.required"
 msgstr ""
 
 msgid "common.labels.left"
-msgstr "左"
+msgstr ""
 
 msgid "common.labels.right"
-msgstr "右"
+msgstr ""
 
 msgid "navigation.dashboard"
 msgstr "控制面板"
@@ -572,34 +572,34 @@ msgid "settings.database.resetFailed"
 msgstr "重置数据库失败"
 
 msgid "settings.errors.biometric"
-msgstr "无法更新生物识别设置。请重试。"
+msgstr ""
 
 msgid "settings.errors.autoLock"
-msgstr "无法更新自动锁定设置。请重试。"
+msgstr ""
 
 msgid "settings.errors.autoLockTimeout"
-msgstr "无法更新自动锁定超时。请重试。"
+msgstr ""
 
 msgid "settings.errors.swipeAction"
-msgstr "无法更新滑动操作。请重试。"
+msgstr ""
 
 msgid "settings.errors.theme"
-msgstr "无法更新主题。请重试。"
+msgstr ""
 
 msgid "settings.errors.language"
-msgstr "无法更新语言。请重试。"
+msgstr ""
 
 msgid "settings.errors.featureToggle"
-msgstr "更新设置失败"
+msgstr ""
 
 msgid "theme.system"
-msgstr "系统"
+msgstr ""
 
 msgid "theme.light"
-msgstr "浅色"
+msgstr ""
 
 msgid "theme.dark"
-msgstr "深色"
+msgstr ""
 
 msgid "industries.technology"
 msgstr "科技"
@@ -623,7 +623,7 @@ msgid "industries.consulting"
 msgstr "咨询"
 
 msgid "industries.realEstate"
-msgstr "房地产"
+msgstr ""
 
 msgid "industries.other"
 msgstr "其他"
@@ -664,7 +664,7 @@ msgid "companies.add.success"
 msgstr "公司创建成功"
 
 msgid "companies.add.error"
-msgstr "创建公司失败"
+msgstr ""
 
 msgid "companies.edit.title"
 msgstr "编辑公司"
@@ -697,7 +697,7 @@ msgid "companies.edit.success"
 msgstr "公司更新成功"
 
 msgid "companies.edit.error"
-msgstr "更新公司失败"
+msgstr ""
 
 msgid "companies.list.searchPlaceholder"
 msgstr "搜索公司 …"
@@ -715,13 +715,13 @@ msgid "companies.list.delete.title"
 msgstr "删除公司"
 
 msgid "companies.list.delete.message"
-msgstr "您确定要删除\"{{name}}\"吗？这不会删除关联的联系人。"
+msgstr "您确定要删除\\\"{{name}}\\\"吗？这不会删除关联的联系人。"
 
 msgid "companies.list.delete.success"
 msgstr "公司删除成功"
 
 msgid "companies.list.delete.error"
-msgstr "删除公司失败"
+msgstr ""
 
 msgid "interactions.filters.meeting"
 msgstr "会议"
@@ -761,7 +761,7 @@ msgstr "加载互动记录失败"
 #: src/screens/InteractionsScreen.js (filter buttons)
 #: src/components/AddInteractionModal.js (type selector)
 msgid "interactionTypes.call"
-msgstr "电话"
+msgstr ""
 
 #. NOUN: Text message - an interaction type
 #. NOT: The verb 'to text someone' or generic 'text' (written content)
@@ -771,13 +771,13 @@ msgstr "电话"
 #: src/screens/InteractionsScreen.js
 #: src/components/AddInteractionModal.js
 msgid "interactionTypes.text"
-msgstr "短信"
+msgstr ""
 
 msgid "interactionTypes.email"
-msgstr "电子邮件"
+msgstr ""
 
 msgid "interactionTypes.meeting"
-msgstr "会议"
+msgstr ""
 
 msgid "interactionTypes.videoCall"
 msgstr ""
@@ -786,7 +786,7 @@ msgid "interactionTypes.socialMedia"
 msgstr ""
 
 msgid "interactionTypes.other"
-msgstr "其他"
+msgstr ""
 
 msgid "addInteraction.titleAdd"
 msgstr "添加互动"
@@ -902,19 +902,19 @@ msgid "events.errorLoad"
 msgstr "加载事件失败"
 
 msgid "eventTypes.birthday"
-msgstr "生日"
+msgstr ""
 
 msgid "eventTypes.anniversary"
-msgstr "纪念日"
+msgstr ""
 
 msgid "eventTypes.meeting"
-msgstr "会议"
+msgstr ""
 
 msgid "eventTypes.deadline"
-msgstr "截止日期"
+msgstr ""
 
 msgid "eventTypes.other"
-msgstr "其他"
+msgstr ""
 
 msgid "addEvent.titleAdd"
 msgstr "添加事件"
@@ -1080,8 +1080,8 @@ msgstr "添加或移除个人资料图片。"
 msgid "contactDetail.addPhoto"
 msgstr "添加照片"
 
-msgid "View {{count}} more item"
-msgid_plural "View {{count}} more items"
+msgid "contactDetail.viewMore"
+msgid_plural "contactDetail.viewMore"
 msgstr[0] ""
 
 msgid "contactDetail.viewMoreInfo"
@@ -1094,34 +1094,34 @@ msgstr ""
 #: Category selector in contact forms
 #: Filter options
 msgid "categories.family"
-msgstr "家人"
+msgstr ""
 
 msgid "categories.friends"
-msgstr "朋友"
+msgstr ""
 
 msgid "categories.work"
-msgstr "工作"
+msgstr ""
 
 msgid "categories.vip"
-msgstr "重要人物"
+msgstr ""
 
 msgid "categories.coworkers"
-msgstr "同事"
+msgstr ""
 
 msgid "categories.clients"
-msgstr "客户"
+msgstr ""
 
 msgid "categories.leads"
-msgstr "潜在客户"
+msgstr ""
 
 msgid "categories.vendors"
-msgstr "供应商"
+msgstr ""
 
 msgid "categories.business"
-msgstr "商业"
+msgstr ""
 
 msgid "categories.personal"
-msgstr "个人"
+msgstr ""
 
 msgid "addContact.title"
 msgstr "添加联系人"
@@ -1211,25 +1211,25 @@ msgid "contact.companyOnly"
 msgstr ""
 
 msgid "contact.phoneLabels.mobile"
-msgstr "手机"
+msgstr ""
 
 msgid "contact.phoneLabels.home"
-msgstr "住宅"
+msgstr ""
 
 msgid "contact.phoneLabels.work"
-msgstr "工作"
+msgstr ""
 
 msgid "contact.phoneLabels.other"
-msgstr "其他"
+msgstr ""
 
 msgid "contact.emailLabels.personal"
-msgstr "个人"
+msgstr ""
 
 msgid "contact.emailLabels.work"
-msgstr "工作"
+msgstr ""
 
 msgid "contact.emailLabels.other"
-msgstr "其他"
+msgstr ""
 
 msgid "contact.contactTypes.bestFriend"
 msgstr ""

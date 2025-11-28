@@ -10,6 +10,7 @@
 
 import { getLocales } from 'expo-localization';
 import { is } from './validators';
+import i18next from 'i18next';
 
 // ============================================================================
 // LOCALE DETECTION
@@ -583,11 +584,24 @@ export function formatRelativeDateTime(input, opts = {}) {
     const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
     return rtf.format(value, unit);
   } catch (_) {
-    // Fallback to a simple English-ish string if Intl not available
+    // Fallback using i18next for proper pluralization
     const n = Math.abs(value);
-    const plural = n === 1 ? '' : 's';
-    const base = `${n} ${unit}${plural}`;
-    return value < 0 ? `${base} ago` : `in ${base}`;
+
+    // Map unit to i18next key
+    const unitKey = `common.time.${unit}`;
+
+    if (value < 0) {
+      // Past: "X ago"
+      const agoKey = `${unit}Ago`;
+      if (i18next.exists(`common.time.${agoKey}`)) {
+        return i18next.t(`common.time.${agoKey}`, { count: n });
+      }
+      // Fallback: "{count} {unit} ago"
+      return `${i18next.t(unitKey, { count: n })} ago`;
+    } else {
+      // Future: "in X"
+      return `in ${i18next.t(unitKey, { count: n })}`;
+    }
   }
 }
 

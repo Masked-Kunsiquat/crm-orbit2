@@ -10,7 +10,7 @@
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
-msgstr "Speichern"
+msgstr ""
 
 #. Save changes action - more specific than generic 'Save'
 #. Context: Edit forms where changes are being saved
@@ -19,7 +19,7 @@ msgstr "Speichern"
 #: src/screens/EditContactScreen.js
 #: Edit modals
 msgid "common.actions.saveChanges"
-msgstr "Änderungen speichern"
+msgstr ""
 
 #. Save contact action - contextual save for contact creation
 #. Context: Add contact modal/screen
@@ -27,7 +27,7 @@ msgstr "Änderungen speichern"
 #. Character limit: ~20 characters
 #: src/components/AddContactModal.js
 msgid "common.actions.saveContact"
-msgstr "Kontakt speichern"
+msgstr ""
 
 #. Cancel action - discard changes and close
 #. Context: Modal dialogs, edit forms
@@ -36,7 +36,7 @@ msgstr "Kontakt speichern"
 #: All modals
 #: Edit screens
 msgid "common.actions.cancel"
-msgstr "Abbrechen"
+msgstr ""
 
 #. Delete action - permanently remove item
 #. Context: Destructive action, usually with confirmation
@@ -45,16 +45,16 @@ msgstr "Abbrechen"
 #: Delete confirmation dialogs
 #: Swipe actions
 msgid "common.actions.delete"
-msgstr "Löschen"
+msgstr ""
 
 msgid "common.actions.edit"
 msgstr ""
 
 msgid "common.actions.add"
-msgstr "Hinzufügen"
+msgstr ""
 
 msgid "common.actions.remove"
-msgstr "Entfernen"
+msgstr ""
 
 msgid "common.actions.close"
 msgstr ""
@@ -72,13 +72,13 @@ msgid "common.actions.clear"
 msgstr ""
 
 msgid "common.actions.reset"
-msgstr "Zurück zur Übersicht"
+msgstr ""
 
 msgid "common.actions.update"
-msgstr "Aktualisieren"
+msgstr ""
 
 msgid "common.actions.run"
-msgstr "Ausführen"
+msgstr ""
 
 #. Loading status indicator
 #. Context: Shown while data is being fetched from database
@@ -88,10 +88,10 @@ msgstr "Ausführen"
 #: src/screens/Dashboard.js
 #: Screen initialization
 msgid "common.states.loading"
-msgstr "Wird geladen …"
+msgstr ""
 
 msgid "common.states.searching"
-msgstr "Suchen …"
+msgstr ""
 
 #. Error alert title
 #. Context: Alert dialog title when an error occurs
@@ -99,10 +99,10 @@ msgstr "Suchen …"
 #. Character limit: ~15 characters
 #: Error alert dialogs throughout app
 msgid "common.states.error"
-msgstr "Fehler"
+msgstr ""
 
 msgid "common.states.success"
-msgstr "Erfolg"
+msgstr ""
 
 msgid "common.states.warning"
 msgstr ""
@@ -111,7 +111,7 @@ msgid "common.states.info"
 msgstr ""
 
 msgid "common.states.ok"
-msgstr "OK"
+msgstr ""
 
 #. Count display for contacts (SINGULAR form)
 #. Variables: {{count}} = number of contacts (will be 1 in this form)
@@ -122,8 +122,8 @@ msgstr "OK"
 #: Contact list header
 #: Analytics screens
 #: Search results count
-msgid "{{count}} contact"
-msgid_plural "{{count}} contacts"
+msgid "common.counts.contact"
+msgid_plural "common.counts.contact"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -134,43 +134,43 @@ msgstr[1] ""
 #. NOTE FOR CHINESE: Use measure word 次 (cì) for interaction events: '1次互动'
 #: src/screens/Analytics.js
 #: Contact detail activity count
-msgid "{{count}} interaction"
-msgid_plural "{{count}} interactions"
+msgid "common.counts.interaction"
+msgid_plural "common.counts.interaction"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} event"
-msgid_plural "{{count}} events"
+msgid "common.counts.event"
+msgid_plural "common.counts.event"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} company"
-msgid_plural "{{count}} companies"
+msgid "common.counts.company"
+msgid_plural "common.counts.company"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} category"
-msgid_plural "{{count}} categories"
+msgid "common.counts.category"
+msgid_plural "common.counts.category"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} note"
-msgid_plural "{{count}} notes"
+msgid "common.counts.note"
+msgid_plural "common.counts.note"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} result"
-msgid_plural "{{count}} results"
+msgid "common.counts.result"
+msgid_plural "common.counts.result"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} item"
-msgid_plural "{{count}} items"
+msgid "common.counts.item"
+msgid_plural "common.counts.item"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} unique contact"
-msgid_plural "{{count}} unique contacts"
+msgid "common.counts.uniqueContact"
+msgid_plural "common.counts.uniqueContact"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -182,7 +182,7 @@ msgstr[1] ""
 #: Form labels
 #: Entity references
 msgid "common.entities.contact"
-msgstr "Kontakt"
+msgstr ""
 
 #. NOUN (plural): Multiple people in your contact list
 #. Context: Navigation tabs, list headers
@@ -190,37 +190,37 @@ msgstr "Kontakt"
 #: src/navigation (tab label)
 #: List screen titles
 msgid "common.entities.contacts"
-msgstr "Kontakte"
+msgstr ""
 
 msgid "common.entities.interaction"
 msgstr ""
 
 msgid "common.entities.interactions"
-msgstr "Interaktionen"
+msgstr ""
 
 msgid "common.entities.event"
-msgstr "Ereignis"
+msgstr ""
 
 msgid "common.entities.events"
-msgstr "Ereignisse"
+msgstr ""
 
 msgid "common.entities.company"
 msgstr ""
 
 msgid "common.entities.companies"
-msgstr "Unternehmen"
+msgstr ""
 
 msgid "common.entities.note"
-msgstr "Notiz"
+msgstr ""
 
 msgid "common.entities.notes"
-msgstr "Notizen"
+msgstr ""
 
 msgid "common.entities.category"
 msgstr ""
 
 msgid "common.entities.categories"
-msgstr "Kategorien"
+msgstr ""
 
 #. Relative date: today
 #. Context: Event dates, interaction dates
@@ -229,31 +229,31 @@ msgstr "Kategorien"
 #: src/screens/EventsList.js
 #: Date displays
 msgid "common.time.today"
-msgstr "Heute"
+msgstr ""
 
 msgid "common.time.tomorrow"
-msgstr "Morgen"
+msgstr ""
 
 msgid "common.time.yesterday"
 msgstr ""
 
-msgid "{{count}} minute"
-msgid_plural "{{count}} minutes"
+msgid "common.time.minute"
+msgid_plural "common.time.minute"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} hour"
-msgid_plural "{{count}} hours"
+msgid "common.time.hour"
+msgid_plural "common.time.hour"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} day"
-msgid_plural "{{count}} days"
+msgid "common.time.day"
+msgid_plural "common.time.day"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} week"
-msgid_plural "{{count}} weeks"
+msgid "common.time.week"
+msgid_plural "common.time.week"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -264,35 +264,35 @@ msgstr[1] ""
 #. Used in: Interaction timestamps, activity feed
 #: src/utils/dateUtils.js
 #: Activity timeline
-msgid "{{count}} day ago"
-msgid_plural "{{count}} days ago"
+msgid "common.time.daysAgo"
+msgid_plural "common.time.daysAgo"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} minute ago"
-msgid_plural "{{count}} minutes ago"
+msgid "common.time.minutesAgo"
+msgid_plural "common.time.minutesAgo"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "{{count}} hour ago"
-msgid_plural "{{count}} hours ago"
+msgid "common.time.hoursAgo"
+msgid_plural "common.time.hoursAgo"
 msgstr[0] ""
 msgstr[1] ""
 
 msgid "common.dateRanges.allTime"
-msgstr "Gesamtzeitraum"
+msgstr ""
 
 msgid "common.dateRanges.last7Days"
-msgstr "Letzte 7 Tage"
+msgstr ""
 
 msgid "common.dateRanges.last30Days"
-msgstr "Letzte 30 Tage"
+msgstr ""
 
 msgid "common.dateRanges.last90Days"
-msgstr "Letzte 90 Tage"
+msgstr ""
 
 msgid "common.filters.all"
-msgstr "Alle"
+msgstr ""
 
 msgid "common.filters.none"
 msgstr ""
@@ -310,25 +310,25 @@ msgid "common.errors.unauthorized"
 msgstr ""
 
 msgid "common.errors.saveFailed"
-msgstr "Speichern der Interaktion fehlgeschlagen. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "common.errors.deleteFailed"
-msgstr "Löschen der Interaktion fehlgeschlagen. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "common.errors.loadFailed"
 msgstr ""
 
 msgid "common.labels.optional"
-msgstr "Optional"
+msgstr ""
 
 msgid "common.labels.required"
 msgstr ""
 
 msgid "common.labels.left"
-msgstr "Links"
+msgstr ""
 
 msgid "common.labels.right"
-msgstr "Rechts"
+msgstr ""
 
 msgid "navigation.dashboard"
 msgstr "Dashboard"
@@ -588,34 +588,34 @@ msgid "settings.database.resetFailed"
 msgstr "Datenbank konnte nicht zurückgesetzt werden"
 
 msgid "settings.errors.biometric"
-msgstr "Biometrie-Einstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "settings.errors.autoLock"
-msgstr "Einstellung für automatische Sperre konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "settings.errors.autoLockTimeout"
-msgstr "Zeitlimit für automatische Sperre konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "settings.errors.swipeAction"
-msgstr "Wisch-Aktion konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "settings.errors.theme"
-msgstr "Design konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "settings.errors.language"
-msgstr "Sprache konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+msgstr ""
 
 msgid "settings.errors.featureToggle"
-msgstr "Einstellung konnte nicht aktualisiert werden"
+msgstr ""
 
 msgid "theme.system"
-msgstr "System"
+msgstr ""
 
 msgid "theme.light"
-msgstr "Hell"
+msgstr ""
 
 msgid "theme.dark"
-msgstr "Dunkel"
+msgstr ""
 
 msgid "industries.technology"
 msgstr "Technologie"
@@ -639,7 +639,7 @@ msgid "industries.consulting"
 msgstr "Beratung"
 
 msgid "industries.realEstate"
-msgstr "Immobilien"
+msgstr ""
 
 msgid "industries.other"
 msgstr "Sonstiges"
@@ -680,7 +680,7 @@ msgid "companies.add.success"
 msgstr "Unternehmen erfolgreich erstellt"
 
 msgid "companies.add.error"
-msgstr "Unternehmen konnte nicht erstellt werden"
+msgstr ""
 
 msgid "companies.edit.title"
 msgstr "Unternehmen Bearbeiten"
@@ -713,7 +713,7 @@ msgid "companies.edit.success"
 msgstr "Unternehmen erfolgreich aktualisiert"
 
 msgid "companies.edit.error"
-msgstr "Unternehmen konnte nicht aktualisiert werden"
+msgstr ""
 
 msgid "companies.list.searchPlaceholder"
 msgstr "Unternehmen suchen …"
@@ -731,13 +731,13 @@ msgid "companies.list.delete.title"
 msgstr "Unternehmen Löschen"
 
 msgid "companies.list.delete.message"
-msgstr "Möchten Sie \"{{name}}\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht."
+msgstr "Möchten Sie \\\"{{name}}\\\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht."
 
 msgid "companies.list.delete.success"
 msgstr "Unternehmen erfolgreich gelöscht"
 
 msgid "companies.list.delete.error"
-msgstr "Unternehmen konnte nicht gelöscht werden"
+msgstr ""
 
 msgid "interactions.filters.meeting"
 msgstr "Besprechungen"
@@ -777,7 +777,7 @@ msgstr "Laden der Interaktionen fehlgeschlagen"
 #: src/screens/InteractionsScreen.js (filter buttons)
 #: src/components/AddInteractionModal.js (type selector)
 msgid "interactionTypes.call"
-msgstr "Anruf"
+msgstr ""
 
 #. NOUN: Text message - an interaction type
 #. NOT: The verb 'to text someone' or generic 'text' (written content)
@@ -787,13 +787,13 @@ msgstr "Anruf"
 #: src/screens/InteractionsScreen.js
 #: src/components/AddInteractionModal.js
 msgid "interactionTypes.text"
-msgstr "Text"
+msgstr ""
 
 msgid "interactionTypes.email"
-msgstr "E-Mail"
+msgstr ""
 
 msgid "interactionTypes.meeting"
-msgstr "Besprechung"
+msgstr ""
 
 msgid "interactionTypes.videoCall"
 msgstr ""
@@ -802,7 +802,7 @@ msgid "interactionTypes.socialMedia"
 msgstr ""
 
 msgid "interactionTypes.other"
-msgstr "Sonstiges"
+msgstr ""
 
 msgid "addInteraction.titleAdd"
 msgstr "Interaktion hinzufügen"
@@ -918,19 +918,19 @@ msgid "events.errorLoad"
 msgstr "Ereignisse konnten nicht geladen werden"
 
 msgid "eventTypes.birthday"
-msgstr "Geburtstag"
+msgstr ""
 
 msgid "eventTypes.anniversary"
-msgstr "Jubiläum"
+msgstr ""
 
 msgid "eventTypes.meeting"
-msgstr "Besprechung"
+msgstr ""
 
 msgid "eventTypes.deadline"
-msgstr "Frist"
+msgstr ""
 
 msgid "eventTypes.other"
-msgstr "Andere"
+msgstr ""
 
 msgid "addEvent.titleAdd"
 msgstr "Ereignis hinzufügen"
@@ -1096,8 +1096,8 @@ msgstr "Ein Profilbild hinzufügen oder entfernen."
 msgid "contactDetail.addPhoto"
 msgstr "Foto hinzufügen"
 
-msgid "View {{count}} more item"
-msgid_plural "View {{count}} more items"
+msgid "contactDetail.viewMore"
+msgid_plural "contactDetail.viewMore"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1111,34 +1111,34 @@ msgstr ""
 #: Category selector in contact forms
 #: Filter options
 msgid "categories.family"
-msgstr "Familie"
+msgstr ""
 
 msgid "categories.friends"
-msgstr "Freunde"
+msgstr ""
 
 msgid "categories.work"
-msgstr "Arbeit"
+msgstr ""
 
 msgid "categories.vip"
-msgstr "VIP"
+msgstr ""
 
 msgid "categories.coworkers"
-msgstr "Kollegen"
+msgstr ""
 
 msgid "categories.clients"
-msgstr "Kunden"
+msgstr ""
 
 msgid "categories.leads"
-msgstr "Geschäftskontakte"
+msgstr ""
 
 msgid "categories.vendors"
-msgstr "Lieferanten"
+msgstr ""
 
 msgid "categories.business"
-msgstr "Geschäftlich"
+msgstr ""
 
 msgid "categories.personal"
-msgstr "Persönlich"
+msgstr ""
 
 msgid "addContact.title"
 msgstr "Kontakt hinzufügen"
@@ -1228,25 +1228,25 @@ msgid "contact.companyOnly"
 msgstr ""
 
 msgid "contact.phoneLabels.mobile"
-msgstr "Mobil"
+msgstr ""
 
 msgid "contact.phoneLabels.home"
-msgstr "Privat"
+msgstr ""
 
 msgid "contact.phoneLabels.work"
-msgstr "Arbeit"
+msgstr ""
 
 msgid "contact.phoneLabels.other"
-msgstr "Sonstige"
+msgstr ""
 
 msgid "contact.emailLabels.personal"
-msgstr "Persönlich"
+msgstr ""
 
 msgid "contact.emailLabels.work"
-msgstr "Arbeit"
+msgstr ""
 
 msgid "contact.emailLabels.other"
-msgstr "Sonstige"
+msgstr ""
 
 msgid "contact.contactTypes.bestFriend"
 msgstr ""
