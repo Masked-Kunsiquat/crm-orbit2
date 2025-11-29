@@ -1,7 +1,32 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-29 13:01+0200\n"
+"PO-Revision-Date: 2025-11-29 12:01+0000\n"
+"Last-Translator: Masked-Kunsiquat <130736043+Masked-"
+"Kunsiquat@users.noreply.github.com>\n"
+"Language-Team: German <https://hosted.weblate.org/projects/crm-orbit/"
+"mobile-app/de/>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
+
 # Orbit CRM - DE Translations
 # Generated: 2025-11-28
 #
-
+# Orbit CRM - DE Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
 #. Generic save action button
 #. Context: Used throughout app for saving changes
 #. Tone: Imperative (command form)
@@ -9,15 +34,6 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
-
-# Orbit CRM - DE Translations
-# Generated: 2025-11-28
-#
-#. Generic save action button
-#. Context: Used throughout app for saving changes
-#. Tone: Imperative (command form)
-#. Character limit: ~12 characters
-#. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
@@ -135,8 +151,8 @@ msgstr ""
 #: Search results count
 msgid "common.counts.contact"
 msgid_plural "common.counts.contact"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} kontakt"
+msgstr[1] "{{count}} kontakte"
 
 #. Count display for interactions (SINGULAR form)
 #. Variables: {{count}} = 1
@@ -147,43 +163,43 @@ msgstr[1] ""
 #: Contact detail activity count
 msgid "common.counts.interaction"
 msgid_plural "common.counts.interaction"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} interaktion"
+msgstr[1] "{{count}} interaktionen"
 
 msgid "common.counts.event"
 msgid_plural "common.counts.event"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} ereignis"
+msgstr[1] "{{count}} veranstaltungen"
 
 msgid "common.counts.company"
 msgid_plural "common.counts.company"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} Gesellschaft"
+msgstr[1] "{{count}} Gesellschaften"
 
 msgid "common.counts.category"
 msgid_plural "common.counts.category"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} Kategorie"
+msgstr[1] "{{count}} Kategorien"
 
 msgid "common.counts.note"
 msgid_plural "common.counts.note"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} Note"
+msgstr[1] "{{count}} Noten"
 
 msgid "common.counts.result"
 msgid_plural "common.counts.result"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} resultat"
+msgstr[1] "{{count}} resultate"
 
 msgid "common.counts.item"
 msgid_plural "common.counts.item"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} Stück"
+msgstr[1] "{{count}} Stücke"
 
 msgid "common.counts.uniqueContact"
 msgid_plural "common.counts.uniqueContact"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} einzigartiger kontakt"
+msgstr[1] "{{count}} einzigartige kontakte"
 
 #. NOUN (singular): A person in your contact list
 #. NOT: The verb 'to contact someone'
@@ -193,7 +209,7 @@ msgstr[1] ""
 #: Form labels
 #: Entity references
 msgid "common.entities.contact"
-msgstr ""
+msgstr "Kontakt"
 
 #. NOUN (plural): Multiple people in your contact list
 #. Context: Navigation tabs, list headers
@@ -201,37 +217,37 @@ msgstr ""
 #: src/navigation (tab label)
 #: List screen titles
 msgid "common.entities.contacts"
-msgstr ""
+msgstr "Kontakte"
 
 msgid "common.entities.interaction"
-msgstr ""
+msgstr "Interaktion"
 
 msgid "common.entities.interactions"
-msgstr ""
+msgstr "Interaktionen"
 
 msgid "common.entities.event"
-msgstr ""
+msgstr "Ereignis"
 
 msgid "common.entities.events"
-msgstr ""
+msgstr "Ereignisse"
 
 msgid "common.entities.company"
-msgstr ""
+msgstr "Gesellschaft"
 
 msgid "common.entities.companies"
-msgstr ""
+msgstr "Gesellschaften"
 
 msgid "common.entities.note"
-msgstr ""
+msgstr "Notiz"
 
 msgid "common.entities.notes"
-msgstr ""
+msgstr "Notizen"
 
 msgid "common.entities.category"
-msgstr ""
+msgstr "Kategorie"
 
 msgid "common.entities.categories"
-msgstr ""
+msgstr "Kategorien"
 
 #. Relative date: today
 #. Context: Event dates, interaction dates
@@ -240,33 +256,33 @@ msgstr ""
 #: src/screens/EventsList.js
 #: Date displays
 msgid "common.time.today"
-msgstr ""
+msgstr "Heute"
 
 msgid "common.time.tomorrow"
-msgstr ""
+msgstr "Morgen"
 
 msgid "common.time.yesterday"
-msgstr ""
+msgstr "Gestern"
 
 msgid "common.time.minute"
 msgid_plural "common.time.minute"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} minute"
+msgstr[1] "{{count}} minuten"
 
 msgid "common.time.hour"
 msgid_plural "common.time.hour"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} stunde"
+msgstr[1] "{{count}} stunden"
 
 msgid "common.time.day"
 msgid_plural "common.time.day"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} tag"
+msgstr[1] "{{count}} tage"
 
 msgid "common.time.week"
 msgid_plural "common.time.week"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} woche"
+msgstr[1] "{{count}} wochen"
 
 #. Relative time: X day ago (SINGULAR)
 #. Variables: {{count}} = 1
@@ -277,21 +293,21 @@ msgstr[1] ""
 #: Activity timeline
 msgid "common.time.daysAgo"
 msgid_plural "common.time.daysAgo"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "vor {{count}} tag"
+msgstr[1] "vor {{count}} tagen"
 
 msgid "common.time.minutesAgo"
 msgid_plural "common.time.minutesAgo"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "vor {{count}} minute"
+msgstr[1] "vor {{count}} minuten"
 
 msgid "common.time.hoursAgo"
 msgid_plural "common.time.hoursAgo"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "vor {{count}} stunde"
+msgstr[1] "vor {{count}} stunden"
 
 msgid "common.dateRanges.allTime"
-msgstr ""
+msgstr "Gesamtzeitraum"
 
 msgid "common.dateRanges.last7Days"
 msgstr ""
@@ -425,12 +441,14 @@ msgstr "Aktivste Kontakte"
 msgid "analytics.topContacts.empty"
 msgstr "Keine Interaktionsdaten verfügbar"
 
+#, fuzzy
 msgid "search.contactsPlaceholder"
 msgstr "Kontakte suchen …"
 
 msgid "settings.title"
 msgstr "Einstellungen"
 
+#, fuzzy
 msgid "settings.searchPlaceholder"
 msgstr "Suche nach einer Einstellung…"
 
@@ -545,7 +563,9 @@ msgid "settings.features.companyManagement.title"
 msgstr "Unternehmensverwaltung"
 
 msgid "settings.features.companyManagement.description"
-msgstr "Unternehmensfunktionen für professionelle Nutzung aktivieren (Unternehmens-Tab, Unternehmensauswahl in Kontakten)"
+msgstr ""
+"Unternehmensfunktionen für professionelle Nutzung aktivieren "
+"(Unternehmens-Tab, Unternehmensauswahl in Kontakten)"
 
 msgid "settings.features.companyManagement.enabled"
 msgstr "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen."
@@ -557,7 +577,9 @@ msgid "settings.database.runMigrations"
 msgstr "Datenbankmigrationen durchführen"
 
 msgid "settings.database.migrationsDescription"
-msgstr "Wenden Sie alle ausstehenden Datenbankschema-Aktualisierungen an. Dies ist sicher und Ihre Daten werden nicht gelöscht."
+msgstr ""
+"Wenden Sie alle ausstehenden Datenbankschema-Aktualisierungen an. Dies ist "
+"sicher und Ihre Daten werden nicht gelöscht."
 
 msgid "settings.database.migrationsComplete"
 msgstr "Datenbankmigrationen erfolgreich abgeschlossen"
@@ -584,13 +606,20 @@ msgstr "Datenbank zurücksetzen?"
 #. Character limit: ~200 characters
 #: src/screens/SettingsScreen.js (confirmation dialog)
 msgid "settings.database.resetWarning"
-msgstr "Dadurch werden ALLE Ihre Daten (Kontakte, Interaktionen, Ereignisse, Notizen) endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden. Sind Sie sicher?"
+msgstr ""
+"Dadurch werden ALLE Ihre Daten (Kontakte, Interaktionen, Ereignisse, Notizen)"
+" endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden. "
+"Sind Sie sicher?"
 
 msgid "settings.database.resetSuccess"
 msgstr "Datenbank gelöscht"
 
+#, fuzzy
 msgid "settings.database.resetComplete"
-msgstr "Die Datenbankdatei wurde gelöscht. WICHTIG: Wischen Sie nach oben, um die App vollständig zu schließen, und öffnen Sie sie anschließend erneut, um die Datenbank mit den Migrationen neu zu erstellen."
+msgstr ""
+"Die Datenbankdatei wurde gelöscht. WICHTIG: Wischen Sie nach oben, um die "
+"App vollständig zu schließen, und öffnen Sie sie anschließend erneut, um die "
+"Datenbank mit den Migrationen neu zu erstellen."
 
 msgid "settings.database.resetError"
 msgstr "Fehler beim Zurücksetzen"
@@ -726,6 +755,7 @@ msgstr "Unternehmen erfolgreich aktualisiert"
 msgid "companies.edit.error"
 msgstr ""
 
+#, fuzzy
 msgid "companies.list.searchPlaceholder"
 msgstr "Unternehmen suchen …"
 
@@ -742,7 +772,9 @@ msgid "companies.list.delete.title"
 msgstr "Unternehmen Löschen"
 
 msgid "companies.list.delete.message"
-msgstr "Möchten Sie \\\\\\\"{{name}}\\\\\\\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht."
+msgstr ""
+"Möchten Sie \\\"{{name}}\\\" wirklich löschen? Dadurch werden die "
+"zugehörigen Kontakte nicht gelöscht."
 
 msgid "companies.list.delete.success"
 msgstr "Unternehmen erfolgreich gelöscht"
@@ -1109,8 +1141,8 @@ msgstr "Foto hinzufügen"
 
 msgid "contactDetail.viewMore"
 msgid_plural "contactDetail.viewMore"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} weitere Artikel anzeigen"
+msgstr[1] "{{count}} weiteren Artikel anzeigen"
 
 msgid "contactDetail.viewMoreInfo"
 msgstr ""
@@ -1170,7 +1202,9 @@ msgid "addContact.permissionTitle"
 msgstr "Berechtigung verweigert"
 
 msgid "addContact.permissionMsg"
-msgstr "Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die Kontaktberechtigung in Ihren Geräteeinstellungen."
+msgstr ""
+"Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die "
+"Kontaktberechtigung in Ihren Geräteeinstellungen."
 
 msgid "addContact.successMsg"
 msgstr "Kontakt erfolgreich hinzugefügt!"
@@ -1286,6 +1320,7 @@ msgstr "Kontakt bearbeiten"
 msgid "globalSearch.title"
 msgstr "Suchen"
 
+#, fuzzy
 msgid "globalSearch.searchPlaceholder"
 msgstr "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen …"
 
@@ -1385,6 +1420,9 @@ msgstr ""
 
 msgid "proximitySettings.algorithmDescription"
 msgstr ""
+"Nähe-Scores messen die Beziehungsstärke anhand der Häufigkeit und Aktualität "
+"Ihrer Interaktionen, deren Qualität und der Art der Beziehung. Wählen Sie "
+"eine Voreinstellung, die Ihren Prioritäten entspricht."
 
 msgid "proximitySettings.presetTitle"
 msgstr ""

@@ -4,13 +4,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Orbit CRM\n"
+"PO-Revision-Date: 2025-11-29 12:01+0000\n"
+"Last-Translator: Masked-Kunsiquat <130736043+Masked-"
+"Kunsiquat@users.noreply.github.com>\n"
+"Language-Team: English <https://hosted.weblate.org/projects/crm-orbit/"
+"mobile-app/en/>\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: json-to-po.js\n"
-
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
 
 #. Generic save action button
 #. Context: Used throughout app for saving changes
@@ -98,10 +102,10 @@ msgstr "Run"
 #: src/screens/Dashboard.js
 #: Screen initialization
 msgid "common.states.loading"
-msgstr "Loading..."
+msgstr "Loading…"
 
 msgid "common.states.searching"
-msgstr "Searching..."
+msgstr "Searching…"
 
 #. Error alert title
 #. Context: Alert dialog title when an error occurs
@@ -425,13 +429,13 @@ msgid "analytics.topContacts.empty"
 msgstr "No interaction data available"
 
 msgid "search.contactsPlaceholder"
-msgstr "Search contacts..."
+msgstr "Search contacts…"
 
 msgid "settings.title"
 msgstr "Settings"
 
 msgid "settings.searchPlaceholder"
-msgstr "Search for a setting..."
+msgstr "Search for a setting…"
 
 msgid "settings.noResults"
 msgstr "No settings match your search"
@@ -545,7 +549,8 @@ msgstr "Company Management"
 
 msgid "settings.features.companyManagement.description"
 msgstr ""
-"Enable company features for professional use (companies tab, company selector in contacts)\n"
+"Enable company features for professional use "
+"(companies tab, company selector in contacts)"
 
 msgid "settings.features.companyManagement.enabled"
 msgstr "Company management enabled. Restart the app to see the Companies tab."
@@ -558,7 +563,8 @@ msgstr "Run Database Migrations"
 
 msgid "settings.database.migrationsDescription"
 msgstr ""
-"Apply any pending database schema updates. This is safe and won't delete your data.\n"
+"Apply any pending database schema updates. This is safe and won't delete "
+"your data."
 
 msgid "settings.database.migrationsComplete"
 msgstr "Database migrations completed successfully"
@@ -586,14 +592,17 @@ msgstr "Reset Database?"
 #: src/screens/SettingsScreen.js (confirmation dialog)
 msgid "settings.database.resetWarning"
 msgstr ""
-"This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?\n"
+"This will permanently delete ALL your data "
+"(contacts, interactions, events, notes). This action cannot be undone. Are "
+"you sure?"
 
 msgid "settings.database.resetSuccess"
 msgstr "Database Deleted"
 
 msgid "settings.database.resetComplete"
 msgstr ""
-"Database file deleted. IMPORTANT: Swipe up to fully close this app, then reopen it to recreate the database with migrations.\n"
+"Database file deleted. IMPORTANT: Swipe up to fully close this app, then "
+"reopen it to recreate the database with migrations."
 
 msgid "settings.database.resetError"
 msgstr "Reset Error"
@@ -730,7 +739,7 @@ msgid "companies.edit.error"
 msgstr "Failed to update company"
 
 msgid "companies.list.searchPlaceholder"
-msgstr "Search companies..."
+msgstr "Search companies…"
 
 msgid "companies.list.empty.title"
 msgstr "No Companies Found"
@@ -746,7 +755,8 @@ msgstr "Delete Company"
 
 msgid "companies.list.delete.message"
 msgstr ""
-"Are you sure you want to delete \"{{name}}\"? This will not delete associated contacts.\n"
+"Are you sure you want to delete \"{{name}}\"? This will not delete "
+"associated contacts."
 
 msgid "companies.list.delete.success"
 msgstr "Company deleted successfully"
@@ -1175,7 +1185,8 @@ msgstr "Permission Denied"
 
 msgid "addContact.permissionMsg"
 msgstr ""
-"Cannot access contacts. Please enable contacts permission in your device settings.\n"
+"Cannot access contacts. Please enable contacts permission in your device "
+"settings."
 
 msgid "addContact.successMsg"
 msgstr "Contact added successfully!"
@@ -1292,7 +1303,7 @@ msgid "globalSearch.title"
 msgstr "Search"
 
 msgid "globalSearch.searchPlaceholder"
-msgstr "Search contacts, companies, interactions, events..."
+msgstr "Search contacts, companies, interactions, events…"
 
 msgid "globalSearch.emptyState.prompt"
 msgstr "Start typing to search"
@@ -1338,7 +1349,7 @@ msgid "proximity.radarTitle"
 msgstr "Proximity Radar"
 
 msgid "proximity.calculating"
-msgstr "Calculating proximity scores..."
+msgstr "Calculating proximity scores…"
 
 msgid "proximity.errorTitle"
 msgstr "Unable to Load Proximity Data"
@@ -1357,7 +1368,8 @@ msgstr "No Contacts on Radar"
 
 msgid "proximity.noContactsMessage"
 msgstr ""
-"Add contacts and start logging interactions to see them appear on your proximity radar.\n"
+"Add contacts and start logging interactions to see them appear on your "
+"proximity radar."
 
 msgid "proximity.infoTitle"
 msgstr "About Relationship Proximity"
@@ -1370,18 +1382,23 @@ msgstr "About Relationship Proximity"
 #: src/screens/ProximityScreen.js (info dialog)
 msgid "proximity.infoMessage"
 msgstr ""
-"Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.\n"
+"Proximity scores measure relationship strength from 0-100 based on how "
+"recently and frequently you interact, the quality of interactions, and "
+"relationship type."
 
 msgid "proximity.infoScoring"
 msgstr ""
-"Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).\n"
+"Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), "
+"Outer Circle (30-49), and Distant (0-29)."
 
 msgid "proximity.radarInfo.title"
 msgstr "About Radar View"
 
 msgid "proximity.radarInfo.message"
 msgstr ""
-"The radar view displays your contacts as floating avatars on concentric rings. Contacts closer to the center represent stronger relationships. Tap any contact to view their details.\n"
+"The radar view displays your contacts as floating avatars on concentric "
+"rings. Contacts closer to the center represent stronger relationships. Tap "
+"any contact to view their details."
 
 msgid "proximity.gotIt"
 msgstr "Got It"
@@ -1394,7 +1411,9 @@ msgstr "How Proximity Works"
 
 msgid "proximitySettings.algorithmDescription"
 msgstr ""
-"Proximity scores measure relationship strength based on how recently and frequently you interact, the quality of interactions, and relationship type. Choose a preset that matches your priorities.\n"
+"Proximity scores measure relationship strength based on how recently and "
+"frequently you interact, the quality of interactions, and relationship type. "
+"Choose a preset that matches your priorities."
 
 msgid "proximitySettings.presetTitle"
 msgstr "Choose Algorithm Preset"
