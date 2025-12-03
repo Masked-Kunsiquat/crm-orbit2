@@ -1,7 +1,32 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-29 13:03+0200\n"
+"PO-Revision-Date: 2025-11-29 12:03+0000\n"
+"Last-Translator: Masked-Kunsiquat <130736043+Masked-"
+"Kunsiquat@users.noreply.github.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/crm-orbit/"
+"mobile-app/es/>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
+
 # Orbit CRM - ES Translations
 # Generated: 2025-11-28
 #
-
+# Orbit CRM - ES Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
 #. Generic save action button
 #. Context: Used throughout app for saving changes
 #. Tone: Imperative (command form)
@@ -9,19 +34,10 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
-
-# Orbit CRM - ES Translations
-# Generated: 2025-11-28
-#
-#. Generic save action button
-#. Context: Used throughout app for saving changes
-#. Tone: Imperative (command form)
-#. Character limit: ~12 characters
-#. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
-msgstr ""
+msgstr "Guardar"
 
 #. Save changes action - more specific than generic 'Save'
 #. Context: Edit forms where changes are being saved
@@ -30,7 +46,7 @@ msgstr ""
 #: src/screens/EditContactScreen.js
 #: Edit modals
 msgid "common.actions.saveChanges"
-msgstr ""
+msgstr "Guardar cambios"
 
 #. Save contact action - contextual save for contact creation
 #. Context: Add contact modal/screen
@@ -38,7 +54,7 @@ msgstr ""
 #. Character limit: ~20 characters
 #: src/components/AddContactModal.js
 msgid "common.actions.saveContact"
-msgstr ""
+msgstr "Guardar contacto"
 
 #. Cancel action - discard changes and close
 #. Context: Modal dialogs, edit forms
@@ -47,7 +63,7 @@ msgstr ""
 #: All modals
 #: Edit screens
 msgid "common.actions.cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #. Delete action - permanently remove item
 #. Context: Destructive action, usually with confirmation
@@ -56,40 +72,40 @@ msgstr ""
 #: Delete confirmation dialogs
 #: Swipe actions
 msgid "common.actions.delete"
-msgstr ""
+msgstr "Borrar"
 
 msgid "common.actions.edit"
-msgstr ""
+msgstr "Editar"
 
 msgid "common.actions.add"
-msgstr ""
+msgstr "Agregar"
 
 msgid "common.actions.remove"
-msgstr ""
+msgstr "Eliminar"
 
 msgid "common.actions.close"
-msgstr ""
+msgstr "Cerrar"
 
 msgid "common.actions.confirm"
-msgstr ""
+msgstr "Confirmar"
 
 msgid "common.actions.retry"
-msgstr ""
+msgstr "Rever"
 
 msgid "common.actions.apply"
-msgstr ""
+msgstr "Aplicar"
 
 msgid "common.actions.clear"
-msgstr ""
+msgstr "Limpiar"
 
 msgid "common.actions.reset"
-msgstr ""
+msgstr "Reajustar"
 
 msgid "common.actions.update"
-msgstr ""
+msgstr "Actualizar"
 
 msgid "common.actions.run"
-msgstr ""
+msgstr "Ejecutar"
 
 #. Loading status indicator
 #. Context: Shown while data is being fetched from database
@@ -110,19 +126,19 @@ msgstr ""
 #. Character limit: ~15 characters
 #: Error alert dialogs throughout app
 msgid "common.states.error"
-msgstr ""
+msgstr "Error"
 
 msgid "common.states.success"
-msgstr ""
+msgstr "Éxito"
 
 msgid "common.states.warning"
-msgstr ""
+msgstr "Advertencia"
 
 msgid "common.states.info"
-msgstr ""
+msgstr "Información"
 
 msgid "common.states.ok"
-msgstr ""
+msgstr "OK"
 
 #. Count display for contacts (SINGULAR form)
 #. Variables: {{count}} = number of contacts (will be 1 in this form)
@@ -135,8 +151,8 @@ msgstr ""
 #: Search results count
 msgid "common.counts.contact"
 msgid_plural "common.counts.contact"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} contacto"
+msgstr[1] "{{count}} contactos"
 
 #. Count display for interactions (SINGULAR form)
 #. Variables: {{count}} = 1
@@ -147,43 +163,43 @@ msgstr[1] ""
 #: Contact detail activity count
 msgid "common.counts.interaction"
 msgid_plural "common.counts.interaction"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} interacción"
+msgstr[1] "{{count}} interacciones"
 
 msgid "common.counts.event"
 msgid_plural "common.counts.event"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} evento"
+msgstr[1] "{{count}} eventos"
 
 msgid "common.counts.company"
 msgid_plural "common.counts.company"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} compañía"
+msgstr[1] "{{count}} empresas"
 
 msgid "common.counts.category"
 msgid_plural "common.counts.category"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} categoría"
+msgstr[1] "{{count}} categorías"
 
 msgid "common.counts.note"
 msgid_plural "common.counts.note"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} nota"
+msgstr[1] "{{count}} notas"
 
 msgid "common.counts.result"
 msgid_plural "common.counts.result"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} resultado"
+msgstr[1] "{{count}} resultados"
 
 msgid "common.counts.item"
 msgid_plural "common.counts.item"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} artículo"
+msgstr[1] "{{count}} artículos"
 
 msgid "common.counts.uniqueContact"
 msgid_plural "common.counts.uniqueContact"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} contacto único"
+msgstr[1] "{{count}} contactos únicos"
 
 #. NOUN (singular): A person in your contact list
 #. NOT: The verb 'to contact someone'
@@ -193,7 +209,7 @@ msgstr[1] ""
 #: Form labels
 #: Entity references
 msgid "common.entities.contact"
-msgstr ""
+msgstr "Contacto"
 
 #. NOUN (plural): Multiple people in your contact list
 #. Context: Navigation tabs, list headers
@@ -201,37 +217,37 @@ msgstr ""
 #: src/navigation (tab label)
 #: List screen titles
 msgid "common.entities.contacts"
-msgstr ""
+msgstr "Contactos"
 
 msgid "common.entities.interaction"
-msgstr ""
+msgstr "Interacción"
 
 msgid "common.entities.interactions"
-msgstr ""
+msgstr "Interacciones"
 
 msgid "common.entities.event"
-msgstr ""
+msgstr "Evento"
 
 msgid "common.entities.events"
-msgstr ""
+msgstr "Eventos"
 
 msgid "common.entities.company"
-msgstr ""
+msgstr "Empresa"
 
 msgid "common.entities.companies"
-msgstr ""
+msgstr "Empresas"
 
 msgid "common.entities.note"
-msgstr ""
+msgstr "Nota"
 
 msgid "common.entities.notes"
-msgstr ""
+msgstr "Notas"
 
 msgid "common.entities.category"
-msgstr ""
+msgstr "Categoría"
 
 msgid "common.entities.categories"
-msgstr ""
+msgstr "Categorías"
 
 #. Relative date: today
 #. Context: Event dates, interaction dates
@@ -250,23 +266,23 @@ msgstr ""
 
 msgid "common.time.minute"
 msgid_plural "common.time.minute"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} minuto"
+msgstr[1] "{{count}} minutos"
 
 msgid "common.time.hour"
 msgid_plural "common.time.hour"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} hora"
+msgstr[1] "{{count}} horas"
 
 msgid "common.time.day"
 msgid_plural "common.time.day"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} día"
+msgstr[1] "{{count}} días"
 
 msgid "common.time.week"
 msgid_plural "common.time.week"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{{count}} semana"
+msgstr[1] "{{count}} semanas"
 
 #. Relative time: X day ago (SINGULAR)
 #. Variables: {{count}} = 1
@@ -277,18 +293,18 @@ msgstr[1] ""
 #: Activity timeline
 msgid "common.time.daysAgo"
 msgid_plural "common.time.daysAgo"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "hace {{count}} día"
+msgstr[1] "hace {{count}} días"
 
 msgid "common.time.minutesAgo"
 msgid_plural "common.time.minutesAgo"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "hace {{count}} minuto"
+msgstr[1] "hace {{count}} minutos"
 
 msgid "common.time.hoursAgo"
 msgid_plural "common.time.hoursAgo"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "hace {{count}} hora"
+msgstr[1] "hace {{count}} horas"
 
 msgid "common.dateRanges.allTime"
 msgstr ""
@@ -425,12 +441,14 @@ msgstr "Contactos más activos"
 msgid "analytics.topContacts.empty"
 msgstr "No hay datos de interacción disponibles"
 
+#, fuzzy
 msgid "search.contactsPlaceholder"
 msgstr "Buscar contactos …"
 
 msgid "settings.title"
 msgstr "Ajustes"
 
+#, fuzzy
 msgid "settings.searchPlaceholder"
 msgstr "Buscar una configuración…"
 
@@ -545,7 +563,9 @@ msgid "settings.features.companyManagement.title"
 msgstr "Gestión de Empresas"
 
 msgid "settings.features.companyManagement.description"
-msgstr "Habilitar funciones de empresa para uso profesional (pestaña de empresas, selector de empresa en contactos)"
+msgstr ""
+"Habilitar funciones de empresa para uso profesional "
+"(pestaña de empresas, selector de empresa en contactos)"
 
 msgid "settings.features.companyManagement.enabled"
 msgstr "Gestión de empresas habilitada. Reinicia la aplicación para ver la pestaña Empresas."
@@ -557,7 +577,9 @@ msgid "settings.database.runMigrations"
 msgstr "Ejecutar migraciones de bases de datos"
 
 msgid "settings.database.migrationsDescription"
-msgstr "Aplique las actualizaciones pendientes del esquema de la base de datos. Esto es seguro y no eliminará sus datos."
+msgstr ""
+"Aplique las actualizaciones pendientes del esquema de la base de datos. Esto "
+"es seguro y no eliminará sus datos."
 
 msgid "settings.database.migrationsComplete"
 msgstr "Las migraciones de bases de datos se completaron con éxito"
@@ -584,13 +606,20 @@ msgstr "¿Restablecer base de datos?"
 #. Character limit: ~200 characters
 #: src/screens/SettingsScreen.js (confirmation dialog)
 msgid "settings.database.resetWarning"
-msgstr "Esto eliminará permanentemente TODOS tus datos (contactos, interacciones, eventos, notas). Esta acción no se puede deshacer. ¿Estás seguro?"
+msgstr ""
+"Esto eliminará permanentemente TODOS tus datos "
+"(contactos, interacciones, eventos, notas). Esta acción no se puede "
+"deshacer. ¿Estás seguro?"
 
 msgid "settings.database.resetSuccess"
 msgstr "Base de datos borrada"
 
+#, fuzzy
 msgid "settings.database.resetComplete"
-msgstr "Archivo de base de datos borrada. IMPORTANTE: Desliza hacia arriba para cerrar completamente esta aplicación y luego vuelve a abrirla para recrear la base de datos con las migraciones."
+msgstr ""
+"Archivo de base de datos borrada. IMPORTANTE: Desliza hacia arriba para "
+"cerrar completamente esta aplicación y luego vuelve a abrirla para recrear "
+"la base de datos con las migraciones."
 
 msgid "settings.database.resetError"
 msgstr "Reiniciar error"
@@ -726,6 +755,7 @@ msgstr "Empresa actualizada exitosamente"
 msgid "companies.edit.error"
 msgstr ""
 
+#, fuzzy
 msgid "companies.list.searchPlaceholder"
 msgstr "Buscar empresas …"
 
@@ -742,7 +772,9 @@ msgid "companies.list.delete.title"
 msgstr "Eliminar Empresa"
 
 msgid "companies.list.delete.message"
-msgstr "¿Estás seguro de que deseas eliminar \\\\\\\"{{name}}\\\\\\\"? Esto no eliminará los contactos asociados."
+msgstr ""
+"¿Estás seguro de que deseas eliminar \\\"{{name}}\\\"? Esto no eliminará los "
+"contactos asociados."
 
 msgid "companies.list.delete.success"
 msgstr "Empresa eliminada exitosamente"
@@ -1109,8 +1141,8 @@ msgstr "Agregar foto"
 
 msgid "contactDetail.viewMore"
 msgid_plural "contactDetail.viewMore"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ver {{count}} artículo más"
+msgstr[1] "Ver {{count}} artículos más"
 
 msgid "contactDetail.viewMoreInfo"
 msgstr ""
@@ -1170,7 +1202,9 @@ msgid "addContact.permissionTitle"
 msgstr "Permiso denegado"
 
 msgid "addContact.permissionMsg"
-msgstr "No se puede acceder a los contactos. Habilita el permiso en la configuración del dispositivo."
+msgstr ""
+"No se puede acceder a los contactos. Habilita el permiso en la configuración "
+"del dispositivo."
 
 msgid "addContact.successMsg"
 msgstr "¡Contacto agregado exitosamente!"
@@ -1286,6 +1320,7 @@ msgstr "Editar contacto"
 msgid "globalSearch.title"
 msgstr "Buscar"
 
+#, fuzzy
 msgid "globalSearch.searchPlaceholder"
 msgstr "Buscar contactos, empresas, interacciones, eventos …"
 
@@ -1385,6 +1420,10 @@ msgstr ""
 
 msgid "proximitySettings.algorithmDescription"
 msgstr ""
+"Los puntajes de proximidad miden la solidez de la relación según la "
+"frecuencia y la fecha de interacción, la calidad de las interacciones y el "
+"tipo de relación. Elija un valor predeterminado que se ajuste a sus "
+"prioridades."
 
 msgid "proximitySettings.presetTitle"
 msgstr ""

@@ -1,392 +1,392 @@
 {
-  "common": {
-    "counts": {
-      "contact_one": "{{count}} Kontakt",
-      "contact_other": "{{count}} Kontakte",
-      "interaction_one": "{{count}} Interaktion",
-      "interaction_other": "{{count}} Interaktionen",
-      "event_one": "{{count}} Ereignis",
-      "event_other": "{{count}} Ereignisse",
-      "company_one": "{{count}} Firma",
-      "company_other": "{{count}} Firmen",
-      "category_one": "{{count}} Kategorie",
-      "category_other": "{{count}} Kategorien",
-      "note_one": "{{count}} Notiz",
-      "note_other": "{{count}} Notizen",
-      "result_one": "{{count}} Ergebnis",
-      "result_other": "{{count}} Ergebnisse",
-      "item_one": "{{count}} Artikel",
-      "item_other": "{{count}} Artikel",
-      "uniqueContact_one": "{{count}} einzigartiger Kontakt",
-      "uniqueContact_other": "{{count}} einzigartige Kontakte"
+    "common": {
+        "counts": {
+            "contact_one": "{{count}} Kontakt",
+            "contact_other": "{{count}} Kontakte",
+            "interaction_one": "{{count}} Interaktion",
+            "interaction_other": "{{count}} Interaktionen",
+            "event_one": "{{count}} Ereignis",
+            "event_other": "{{count}} Ereignisse",
+            "company_one": "{{count}} Firma",
+            "company_other": "{{count}} Firmen",
+            "category_one": "{{count}} Kategorie",
+            "category_other": "{{count}} Kategorien",
+            "note_one": "{{count}} Notiz",
+            "note_other": "{{count}} Notizen",
+            "result_one": "{{count}} Ergebnis",
+            "result_other": "{{count}} Ergebnisse",
+            "item_one": "{{count}} Artikel",
+            "item_other": "{{count}} Artikel",
+            "uniqueContact_one": "{{count}} einzigartiger Kontakt",
+            "uniqueContact_other": "{{count}} einzigartige Kontakte"
+        },
+        "time": {
+            "minute_one": "{{count}} Minute",
+            "minute_other": "{{count}} Minuten",
+            "hour_one": "{{count}} Stunde",
+            "hour_other": "{{count}} Stunden",
+            "day_one": "{{count}} Tag",
+            "day_other": "{{count}} Tage",
+            "week_one": "{{count}} Woche",
+            "week_other": "{{count}} Wochen",
+            "daysAgo_one": "vor {{count}} Tag",
+            "daysAgo_other": "vor {{count}} Tagen",
+            "minutesAgo_one": "vor {{count}} Minute",
+            "minutesAgo_other": "vor {{count}} Minuten",
+            "hoursAgo_one": "vor {{count}} Stunde",
+            "hoursAgo_other": "vor {{count}} Stunden"
+        }
     },
-    "time": {
-      "minute_one": "{{count}} Minute",
-      "minute_other": "{{count}} Minuten",
-      "hour_one": "{{count}} Stunde",
-      "hour_other": "{{count}} Stunden",
-      "day_one": "{{count}} Tag",
-      "day_other": "{{count}} Tage",
-      "week_one": "{{count}} Woche",
-      "week_other": "{{count}} Wochen",
-      "daysAgo_one": "vor {{count}} Tag",
-      "daysAgo_other": "vor {{count}} Tagen",
-      "minutesAgo_one": "vor {{count}} Minute",
-      "minutesAgo_other": "vor {{count}} Minuten",
-      "hoursAgo_one": "vor {{count}} Stunde",
-      "hoursAgo_other": "vor {{count}} Stunden"
-    }
-  },
-  "navigation": {
-    "dashboard": "Dashboard",
-    "contacts": "Kontakte",
-    "companies": "Unternehmen",
-    "interactions": "Interaktionen",
-    "events": "Ereignisse",
-    "settings": "Einstellungen"
-  },
-  "dashboard": {
-    "title": "Dashboard",
-    "upcomingEvents": {
-      "title": "Bevorstehende Ereignisse",
-      "subtitle": "Nächste 5 Ereignisse",
-      "empty": "Keine bevorstehenden Ereignisse"
+    "navigation": {
+        "dashboard": "Dashboard",
+        "contacts": "Kontakte",
+        "companies": "Unternehmen",
+        "interactions": "Interaktionen",
+        "events": "Ereignisse",
+        "settings": "Einstellungen"
     },
-    "quickActions": {
-      "title": "Schnellaktionen",
-      "addContact": "Kontakt hinzufügen",
-      "addInteraction": "Interaktion hinzufügen",
-      "addEvent": "Ereignis hinzufügen"
-    }
-  },
-  "analytics": {
-    "title": "Analytik",
-    "dateRange": {
-      "title": "Datumsbereich"
+    "dashboard": {
+        "title": "Dashboard",
+        "upcomingEvents": {
+            "title": "Bevorstehende Ereignisse",
+            "subtitle": "Nächste 5 Ereignisse",
+            "empty": "Keine bevorstehenden Ereignisse"
+        },
+        "quickActions": {
+            "title": "Schnellaktionen",
+            "addContact": "Kontakt hinzufügen",
+            "addInteraction": "Interaktion hinzufügen",
+            "addEvent": "Ereignis hinzufügen"
+        }
     },
-    "overview": {
-      "title": "Überblick",
-      "totalContacts": "Gesamtzahl Kontakte",
-      "totalInteractions": "Gesamtzahl Interaktionen",
-      "totalEvents": "Gesamtzahl Ereignisse"
+    "analytics": {
+        "title": "Analytik",
+        "dateRange": {
+            "title": "Datumsbereich"
+        },
+        "overview": {
+            "title": "Überblick",
+            "totalContacts": "Gesamtzahl Kontakte",
+            "totalInteractions": "Gesamtzahl Interaktionen",
+            "totalEvents": "Gesamtzahl Ereignisse"
+        },
+        "interactions": {
+            "title": "Interaktions-Aufschlüsselung",
+            "empty": "Noch keine Interaktionen"
+        },
+        "events": {
+            "title": "Ereignisübersicht",
+            "upcoming": "Bevorstehend",
+            "past": "Vergangen"
+        },
+        "topContacts": {
+            "title": "Aktivste Kontakte",
+            "empty": "Keine Interaktionsdaten verfügbar"
+        }
+    },
+    "search": {
+        "contactsPlaceholder": "Kontakte suchen …"
+    },
+    "settings": {
+        "title": "Einstellungen",
+        "searchPlaceholder": "Suche nach einer Einstellung…",
+        "noResults": "Keine Einstellungen entsprechen Ihrer Suche",
+        "sections": {
+            "appearance": "Erscheinungsbild",
+            "security": "Sicherheit",
+            "securityDescription": "PIN, biometrische Authentifizierung und automatische Sperre verwalten",
+            "features": "Funktionen",
+            "featuresDescription": "App-Funktionen und -Funktionalität anpassen",
+            "swipe": "Wisch-Aktionen",
+            "swipeDescription": "Wischgesten für die Kontaktliste konfigurieren",
+            "theme": "Design",
+            "language": "Sprache",
+            "languageDescription": "Wählen Sie Ihre bevorzugte Sprache",
+            "data": "Datenverwaltung",
+            "dataDescription": "Datenbankwartungs- und Reset-Optionen",
+            "database": "Datenbank"
+        },
+        "appearance": {
+            "theme": "Thema"
+        },
+        "language": {
+            "device": "Gerätestandard",
+            "english": "Englisch",
+            "spanish": "Spanisch",
+            "german": "Deutsch",
+            "french": "Französisch",
+            "chinese": "Vereinfachtes Chinesisch"
+        },
+        "security": {
+            "pinSetup": "PIN festlegen / ändern",
+            "pinDescription": "Erstellen oder aktualisieren Sie Ihre Sicherheits-PIN",
+            "useBiometric": "Biometrie verwenden",
+            "biometricDescription": "Fingerabdruck- oder Gesichtserkennung aktivieren",
+            "autoLock": "Automatische Sperre ({{minutes}} Min.)",
+            "autoLockDescription": "App bei Inaktivität sperren",
+            "autoLockTimeout": "Zeitlimit für automatische Sperre"
+        },
+        "features": {
+            "companyManagement": {
+                "title": "Unternehmensverwaltung",
+                "description": "Unternehmensfunktionen für professionelle Nutzung aktivieren (Unternehmens-Tab, Unternehmensauswahl in Kontakten)",
+                "enabled": "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen.",
+                "disabled": "Unternehmensverwaltung deaktiviert."
+            }
+        },
+        "database": {
+            "runMigrations": "Datenbankmigrationen durchführen",
+            "migrationsDescription": "Wenden Sie alle ausstehenden Datenbankschema-Aktualisierungen an. Dies ist sicher und Ihre Daten werden nicht gelöscht.",
+            "migrationsComplete": "Datenbankmigrationen erfolgreich abgeschlossen",
+            "migrationsError": "Migrationsfehler",
+            "migrationsFailed": "Fehler beim Ausführen der Datenbankmigrationen",
+            "resetDatabase": "Datenbank zurücksetzen",
+            "resetDescription": "Löschen Sie alle Daten und beginnen Sie mit einer neuen Datenbank von vorn. Dieser Vorgang kann nicht rückgängig gemacht werden!",
+            "resetTitle": "Datenbank zurücksetzen?",
+            "resetWarning": "Dadurch werden ALLE Ihre Daten (Kontakte, Interaktionen, Ereignisse, Notizen) endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden. Sind Sie sicher?",
+            "resetSuccess": "Datenbank gelöscht",
+            "resetComplete": "Die Datenbankdatei wurde gelöscht. WICHTIG: Wischen Sie nach oben, um die App vollständig zu schließen, und öffnen Sie sie anschließend erneut, um die Datenbank mit den Migrationen neu zu erstellen.",
+            "resetError": "Fehler beim Zurücksetzen",
+            "resetFailed": "Datenbank konnte nicht zurückgesetzt werden"
+        }
+    },
+    "industries": {
+        "technology": "Technologie",
+        "finance": "Finanzen",
+        "healthcare": "Gesundheitswesen",
+        "retail": "Einzelhandel",
+        "manufacturing": "Fertigung",
+        "education": "Bildung",
+        "consulting": "Beratung",
+        "realEstate": "Immobilien",
+        "other": "Sonstiges"
+    },
+    "companies": {
+        "add": {
+            "title": "Unternehmen Hinzufügen",
+            "labels": {
+                "name": "Unternehmensname *",
+                "industry": "Branche",
+                "website": "Webseite",
+                "address": "Adresse",
+                "notes": "Notizen"
+            },
+            "placeholders": {
+                "website": "https://beispiel.de"
+            },
+            "validation": {
+                "requiredName": "Unternehmensname ist erforderlich",
+                "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
+            },
+            "success": "Unternehmen erfolgreich erstellt"
+        },
+        "edit": {
+            "title": "Unternehmen Bearbeiten",
+            "labels": {
+                "name": "Unternehmensname *",
+                "industry": "Branche",
+                "website": "Webseite",
+                "address": "Adresse",
+                "notes": "Notizen"
+            },
+            "placeholders": {
+                "website": "https://beispiel.de"
+            },
+            "validation": {
+                "requiredName": "Unternehmensname ist erforderlich",
+                "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
+            },
+            "success": "Unternehmen erfolgreich aktualisiert"
+        },
+        "list": {
+            "searchPlaceholder": "Unternehmen suchen …",
+            "empty": {
+                "title": "Keine Unternehmen Gefunden",
+                "noResults": "Keine Unternehmen entsprechen Ihrer Suche.",
+                "addFirst": "Fügen Sie Ihr erstes Unternehmen hinzu, um zu beginnen."
+            },
+            "delete": {
+                "title": "Unternehmen Löschen",
+                "message": "Möchten Sie \"{{name}}\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht.",
+                "success": "Unternehmen erfolgreich gelöscht"
+            }
+        }
     },
     "interactions": {
-      "title": "Interaktions-Aufschlüsselung",
-      "empty": "Noch keine Interaktionen"
+        "filters": {
+            "meeting": "Besprechungen",
+            "call": "Anrufe",
+            "text": "Textnachrichten",
+            "email": "E-Mail",
+            "other": "Sonstiges"
+        },
+        "emptyTitle": "Keine Interaktionen",
+        "emptyMessage": "Fügen Sie Ihre erste Interaktion hinzu, um zu beginnen.",
+        "errorLoad": "Laden der Interaktionen fehlgeschlagen"
+    },
+    "addInteraction": {
+        "titleAdd": "Interaktion hinzufügen",
+        "titleEdit": "Interaktion bearbeiten",
+        "sections": {
+            "type": "Typ",
+            "dateTime": "Datum & Uhrzeit",
+            "title": "Titel",
+            "duration": "Dauer (Minuten)",
+            "notes": "Notizen"
+        },
+        "labels": {
+            "selectContact": "Kontakt auswählen",
+            "interactionTitle": "Interaktionstitel",
+            "titlePlaceholder": "z.B. Kurzer Abstimmungsanruf",
+            "duration": "Dauer",
+            "notes": "Zusätzliche Notizen",
+            "notesPlaceholder": "Optionale Notizen zu dieser Interaktion",
+            "quickFill": "Schnellausfüllen"
+        },
+        "quickTitles": {
+            "call": "Anruf mit {{name}}",
+            "text": "Nachricht an {{name}}",
+            "email": "E-Mail an {{name}}",
+            "meeting": "Besprechung mit {{name}}",
+            "other": "Interaktion mit {{name}}"
+        },
+        "errors": {
+            "titleRequired": "Titel ist erforderlich",
+            "contactRequired": "Bitte wählen Sie einen Kontakt aus"
+        },
+        "delete": {
+            "title": "Interaktion löschen",
+            "message": "Sind Sie sicher, dass Sie diese Interaktion löschen möchten?"
+        },
+        "success": {
+            "added": "Interaktion erfolgreich hinzugefügt!",
+            "updated": "Interaktion erfolgreich aktualisiert!",
+            "deleted": "Interaktion erfolgreich gelöscht!"
+        }
     },
     "events": {
-      "title": "Ereignisübersicht",
-      "upcoming": "Bevorstehend",
-      "past": "Vergangen"
+        "filters": {
+            "birthday": "Geburtstage",
+            "anniversary": "Jubiläen",
+            "meeting": "Besprechungen",
+            "deadline": "Fristen",
+            "other": "Andere"
+        },
+        "emptyTitle": "Keine Ereignisse",
+        "emptyMessage": "Fügen Sie Ihr erstes Ereignis hinzu.",
+        "errorLoad": "Ereignisse konnten nicht geladen werden"
     },
-    "topContacts": {
-      "title": "Aktivste Kontakte",
-      "empty": "Keine Interaktionsdaten verfügbar"
+    "addEvent": {
+        "titleAdd": "Ereignis hinzufügen",
+        "titleEdit": "Ereignis bearbeiten",
+        "sections": {
+            "type": "Ereignistyp",
+            "date": "Datum",
+            "title": "Titel",
+            "reminders": "Erinnerungen",
+            "notes": "Notizen"
+        },
+        "labels": {
+            "selectContact": "Kontakt auswählen",
+            "quickFill": "Schnellausfüllen",
+            "titlePlaceholder": "z.B. Johns Geburtstag",
+            "recurring": "Wiederkehrendes Ereignis",
+            "recurringHelper": "Wiederholt sich jährlich (Geburtstage, Jubiläen)",
+            "notesPlaceholder": "Optionale Notizen zu diesem Ereignis",
+            "delete": "Ereignis löschen"
+        },
+        "quickTitles": {
+            "birthday": "{{name}}s Geburtstag",
+            "anniversary": "Jubiläum mit {{name}}",
+            "meeting": "Besprechung mit {{name}}",
+            "deadline": "Frist für {{name}}",
+            "other": "Ereignis mit {{name}}"
+        },
+        "reminderTemplates": {
+            "15": "15 Min. vorher",
+            "60": "1 Std. vorher",
+            "1440": "1 Tag vorher",
+            "10080": "1 Woche vorher"
+        },
+        "errors": {
+            "titleRequired": "Titel ist erforderlich",
+            "contactRequired": "Bitte wählen Sie einen Kontakt aus"
+        },
+        "delete": {
+            "title": "Ereignis löschen",
+            "message": "Möchten Sie dieses Ereignis wirklich löschen?"
+        },
+        "success": {
+            "added": "Ereignis erfolgreich hinzugefügt!",
+            "updated": "Ereignis erfolgreich aktualisiert!",
+            "deleted": "Ereignis erfolgreich gelöscht!"
+        }
+    },
+    "contactDetail": {
+        "errorLoad": "Laden der Kontaktdetails fehlgeschlagen",
+        "errorImageSet": "Festlegen des Kontaktfotos fehlgeschlagen",
+        "errorImageRemove": "Entfernen des Fotos fehlgeschlagen",
+        "recent": "Neueste Interaktionen",
+        "events": "Bevorstehende Ereignisse",
+        "addBirthday": "Geburtstag",
+        "noEvents": "Keine bevorstehenden Ereignisse",
+        "noEventsDescription": "Fügen Sie ein Ereignis für diesen Kontakt hinzu",
+        "recurring": "Wiederkehrend",
+        "delete": "Kontakt löschen",
+        "deleteConfirm": "Sind Sie sicher, dass Sie {{name}} löschen möchten?",
+        "photoTitle": "Kontaktfoto",
+        "photoBody": "Ein Profilbild hinzufügen oder entfernen.",
+        "addPhoto": "Foto hinzufügen",
+        "viewMore_one": "{{count}} weitere anzeigen",
+        "viewMore_other": "{{count}} weitere anzeigen"
+    },
+    "addContact": {
+        "title": "Kontakt hinzufügen",
+        "importSuccessTitle": "Kontakt importiert",
+        "importSuccessMsg": "Die Kontaktinformationen wurden importiert. Überprüfen und bearbeiten Sie diese vor dem Speichern bei Bedarf.",
+        "importFailTitle": "Import fehlgeschlagen",
+        "importFailMsg": "Import des Kontakts fehlgeschlagen. Bitte versuchen Sie es erneut oder geben Sie die Details manuell ein.",
+        "permissionTitle": "Berechtigung verweigert",
+        "permissionMsg": "Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die Kontaktberechtigung in Ihren Geräteeinstellungen.",
+        "successMsg": "Kontakt erfolgreich hinzugefügt!",
+        "sections": {
+            "name": "Name",
+            "phones": "Telefonnummern",
+            "emails": "E-Mail-Adressen"
+        },
+        "labels": {
+            "firstName": "Vorname",
+            "lastName": "Nachname",
+            "phone": "Telefon",
+            "email": "E-Mail"
+        },
+        "validation": {
+            "firstNameRequired": "Vorname ist erforderlich",
+            "contactInfoRequired": "Bitte geben Sie mindestens eine Telefonnummer oder E-Mail-Adresse an"
+        }
+    },
+    "contact": {
+        "jobAtCompany": "{{job}} bei {{company}}",
+        "jobOnly": "{{job}}",
+        "companyOnly": "{{company}}"
+    },
+    "editContact": {
+        "title": "Kontakt bearbeiten"
+    },
+    "globalSearch": {
+        "title": "Suchen",
+        "searchPlaceholder": "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen …",
+        "emptyState": {
+            "prompt": "Beginnen Sie mit der Eingabe, um zu suchen",
+            "hint": "Durchsuchen Sie alle Ihre Kontakte, Unternehmen, Interaktionen, Ereignisse und Notizen",
+            "noResults": "Keine Ergebnisse gefunden",
+            "tryDifferent": "Versuchen Sie einen anderen Suchbegriff"
+        },
+        "error": {
+            "message": "Suche konnte nicht durchgeführt werden. Bitte versuchen Sie es erneut."
+        },
+        "noContact": "Keine Kontaktinformationen",
+        "noIndustry": "Keine Branche",
+        "untitled": "Ohne Titel"
     }
-  },
-  "search": {
-    "contactsPlaceholder": "Kontakte suchen …"
-  },
-  "settings": {
-    "title": "Einstellungen",
-    "searchPlaceholder": "Suche nach einer Einstellung…",
-    "noResults": "Keine Einstellungen entsprechen Ihrer Suche",
-    "sections": {
-      "appearance": "Erscheinungsbild",
-      "security": "Sicherheit",
-      "securityDescription": "PIN, biometrische Authentifizierung und automatische Sperre verwalten",
-      "features": "Funktionen",
-      "featuresDescription": "App-Funktionen und -Funktionalität anpassen",
-      "swipe": "Wisch-Aktionen",
-      "swipeDescription": "Wischgesten für die Kontaktliste konfigurieren",
-      "theme": "Design",
-      "language": "Sprache",
-      "languageDescription": "Wählen Sie Ihre bevorzugte Sprache",
-      "data": "Datenverwaltung",
-      "dataDescription": "Datenbankwartungs- und Reset-Optionen",
-      "database": "Datenbank"
-    },
-    "appearance": {
-      "theme": "Thema"
-    },
-    "language": {
-      "device": "Gerätestandard",
-      "english": "Englisch",
-      "spanish": "Spanisch",
-      "german": "Deutsch",
-      "french": "Französisch",
-      "chinese": "Vereinfachtes Chinesisch"
-    },
-    "security": {
-      "pinSetup": "PIN festlegen / ändern",
-      "pinDescription": "Erstellen oder aktualisieren Sie Ihre Sicherheits-PIN",
-      "useBiometric": "Biometrie verwenden",
-      "biometricDescription": "Fingerabdruck- oder Gesichtserkennung aktivieren",
-      "autoLock": "Automatische Sperre ({{minutes}} Min.)",
-      "autoLockDescription": "App bei Inaktivität sperren",
-      "autoLockTimeout": "Zeitlimit für automatische Sperre"
-    },
-    "features": {
-      "companyManagement": {
-        "title": "Unternehmensverwaltung",
-        "description": "Unternehmensfunktionen für professionelle Nutzung aktivieren (Unternehmens-Tab, Unternehmensauswahl in Kontakten)",
-        "enabled": "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen.",
-        "disabled": "Unternehmensverwaltung deaktiviert."
-      }
-    },
-    "database": {
-      "runMigrations": "Datenbankmigrationen durchführen",
-      "migrationsDescription": "Wenden Sie alle ausstehenden Datenbankschema-Aktualisierungen an. Dies ist sicher und Ihre Daten werden nicht gelöscht.",
-      "migrationsComplete": "Datenbankmigrationen erfolgreich abgeschlossen",
-      "migrationsError": "Migrationsfehler",
-      "migrationsFailed": "Fehler beim Ausführen der Datenbankmigrationen",
-      "resetDatabase": "Datenbank zurücksetzen",
-      "resetDescription": "Löschen Sie alle Daten und beginnen Sie mit einer neuen Datenbank von vorn. Dieser Vorgang kann nicht rückgängig gemacht werden!",
-      "resetTitle": "Datenbank zurücksetzen?",
-      "resetWarning": "Dadurch werden ALLE Ihre Daten (Kontakte, Interaktionen, Ereignisse, Notizen) endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden. Sind Sie sicher?",
-      "resetSuccess": "Datenbank gelöscht",
-      "resetComplete": "Die Datenbankdatei wurde gelöscht. WICHTIG: Wischen Sie nach oben, um die App vollständig zu schließen, und öffnen Sie sie anschließend erneut, um die Datenbank mit den Migrationen neu zu erstellen.",
-      "resetError": "Fehler beim Zurücksetzen",
-      "resetFailed": "Datenbank konnte nicht zurückgesetzt werden"
-    }
-  },
-  "industries": {
-    "technology": "Technologie",
-    "finance": "Finanzen",
-    "healthcare": "Gesundheitswesen",
-    "retail": "Einzelhandel",
-    "manufacturing": "Fertigung",
-    "education": "Bildung",
-    "consulting": "Beratung",
-    "realEstate": "Immobilien",
-    "other": "Sonstiges"
-  },
-  "companies": {
-    "add": {
-      "title": "Unternehmen Hinzufügen",
-      "labels": {
-        "name": "Unternehmensname *",
-        "industry": "Branche",
-        "website": "Webseite",
-        "address": "Adresse",
-        "notes": "Notizen"
-      },
-      "placeholders": {
-        "website": "https://beispiel.de"
-      },
-      "validation": {
-        "requiredName": "Unternehmensname ist erforderlich",
-        "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
-      },
-      "success": "Unternehmen erfolgreich erstellt"
-    },
-    "edit": {
-      "title": "Unternehmen Bearbeiten",
-      "labels": {
-        "name": "Unternehmensname *",
-        "industry": "Branche",
-        "website": "Webseite",
-        "address": "Adresse",
-        "notes": "Notizen"
-      },
-      "placeholders": {
-        "website": "https://beispiel.de"
-      },
-      "validation": {
-        "requiredName": "Unternehmensname ist erforderlich",
-        "nameTooLong": "Unternehmensname darf maximal 200 Zeichen lang sein"
-      },
-      "success": "Unternehmen erfolgreich aktualisiert"
-    },
-    "list": {
-      "searchPlaceholder": "Unternehmen suchen …",
-      "empty": {
-        "title": "Keine Unternehmen Gefunden",
-        "noResults": "Keine Unternehmen entsprechen Ihrer Suche.",
-        "addFirst": "Fügen Sie Ihr erstes Unternehmen hinzu, um zu beginnen."
-      },
-      "delete": {
-        "title": "Unternehmen Löschen",
-        "message": "Möchten Sie \"{{name}}\" wirklich löschen? Dadurch werden die zugehörigen Kontakte nicht gelöscht.",
-        "success": "Unternehmen erfolgreich gelöscht"
-      }
-    }
-  },
-  "interactions": {
-    "filters": {
-      "meeting": "Besprechungen",
-      "call": "Anrufe",
-      "text": "Textnachrichten",
-      "email": "E-Mail",
-      "other": "Sonstiges"
-    },
-    "emptyTitle": "Keine Interaktionen",
-    "emptyMessage": "Fügen Sie Ihre erste Interaktion hinzu, um zu beginnen.",
-    "errorLoad": "Laden der Interaktionen fehlgeschlagen"
-  },
-  "addInteraction": {
-    "titleAdd": "Interaktion hinzufügen",
-    "titleEdit": "Interaktion bearbeiten",
-    "sections": {
-      "type": "Typ",
-      "dateTime": "Datum & Uhrzeit",
-      "title": "Titel",
-      "duration": "Dauer (Minuten)",
-      "notes": "Notizen"
-    },
-    "labels": {
-      "selectContact": "Kontakt auswählen",
-      "interactionTitle": "Interaktionstitel",
-      "titlePlaceholder": "z.B. Kurzer Abstimmungsanruf",
-      "duration": "Dauer",
-      "notes": "Zusätzliche Notizen",
-      "notesPlaceholder": "Optionale Notizen zu dieser Interaktion",
-      "quickFill": "Schnellausfüllen"
-    },
-    "quickTitles": {
-      "call": "Anruf mit {{name}}",
-      "text": "Nachricht an {{name}}",
-      "email": "E-Mail an {{name}}",
-      "meeting": "Besprechung mit {{name}}",
-      "other": "Interaktion mit {{name}}"
-    },
-    "errors": {
-      "titleRequired": "Titel ist erforderlich",
-      "contactRequired": "Bitte wählen Sie einen Kontakt aus"
-    },
-    "delete": {
-      "title": "Interaktion löschen",
-      "message": "Sind Sie sicher, dass Sie diese Interaktion löschen möchten?"
-    },
-    "success": {
-      "added": "Interaktion erfolgreich hinzugefügt!",
-      "updated": "Interaktion erfolgreich aktualisiert!",
-      "deleted": "Interaktion erfolgreich gelöscht!"
-    }
-  },
-  "events": {
-    "filters": {
-      "birthday": "Geburtstage",
-      "anniversary": "Jubiläen",
-      "meeting": "Besprechungen",
-      "deadline": "Fristen",
-      "other": "Andere"
-    },
-    "emptyTitle": "Keine Ereignisse",
-    "emptyMessage": "Fügen Sie Ihr erstes Ereignis hinzu.",
-    "errorLoad": "Ereignisse konnten nicht geladen werden"
-  },
-  "addEvent": {
-    "titleAdd": "Ereignis hinzufügen",
-    "titleEdit": "Ereignis bearbeiten",
-    "sections": {
-      "type": "Ereignistyp",
-      "date": "Datum",
-      "title": "Titel",
-      "reminders": "Erinnerungen",
-      "notes": "Notizen"
-    },
-    "labels": {
-      "selectContact": "Kontakt auswählen",
-      "quickFill": "Schnellausfüllen",
-      "titlePlaceholder": "z.B. Johns Geburtstag",
-      "recurring": "Wiederkehrendes Ereignis",
-      "recurringHelper": "Wiederholt sich jährlich (Geburtstage, Jubiläen)",
-      "notesPlaceholder": "Optionale Notizen zu diesem Ereignis",
-      "delete": "Ereignis löschen"
-    },
-    "quickTitles": {
-      "birthday": "{{name}}s Geburtstag",
-      "anniversary": "Jubiläum mit {{name}}",
-      "meeting": "Besprechung mit {{name}}",
-      "deadline": "Frist für {{name}}",
-      "other": "Ereignis mit {{name}}"
-    },
-    "reminderTemplates": {
-      "15": "15 Min. vorher",
-      "60": "1 Std. vorher",
-      "1440": "1 Tag vorher",
-      "10080": "1 Woche vorher"
-    },
-    "errors": {
-      "titleRequired": "Titel ist erforderlich",
-      "contactRequired": "Bitte wählen Sie einen Kontakt aus"
-    },
-    "delete": {
-      "title": "Ereignis löschen",
-      "message": "Möchten Sie dieses Ereignis wirklich löschen?"
-    },
-    "success": {
-      "added": "Ereignis erfolgreich hinzugefügt!",
-      "updated": "Ereignis erfolgreich aktualisiert!",
-      "deleted": "Ereignis erfolgreich gelöscht!"
-    }
-  },
-  "contactDetail": {
-    "errorLoad": "Laden der Kontaktdetails fehlgeschlagen",
-    "errorImageSet": "Festlegen des Kontaktfotos fehlgeschlagen",
-    "errorImageRemove": "Entfernen des Fotos fehlgeschlagen",
-    "recent": "Neueste Interaktionen",
-    "events": "Bevorstehende Ereignisse",
-    "addBirthday": "Geburtstag",
-    "noEvents": "Keine bevorstehenden Ereignisse",
-    "noEventsDescription": "Fügen Sie ein Ereignis für diesen Kontakt hinzu",
-    "recurring": "Wiederkehrend",
-    "delete": "Kontakt löschen",
-    "deleteConfirm": "Sind Sie sicher, dass Sie {{name}} löschen möchten?",
-    "photoTitle": "Kontaktfoto",
-    "photoBody": "Ein Profilbild hinzufügen oder entfernen.",
-    "addPhoto": "Foto hinzufügen",
-    "viewMore_one": "{{count}} weitere anzeigen",
-    "viewMore_other": "{{count}} weitere anzeigen"
-  },
-  "addContact": {
-    "title": "Kontakt hinzufügen",
-    "importSuccessTitle": "Kontakt importiert",
-    "importSuccessMsg": "Die Kontaktinformationen wurden importiert. Überprüfen und bearbeiten Sie diese vor dem Speichern bei Bedarf.",
-    "importFailTitle": "Import fehlgeschlagen",
-    "importFailMsg": "Import des Kontakts fehlgeschlagen. Bitte versuchen Sie es erneut oder geben Sie die Details manuell ein.",
-    "permissionTitle": "Berechtigung verweigert",
-    "permissionMsg": "Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die Kontaktberechtigung in Ihren Geräteeinstellungen.",
-    "successMsg": "Kontakt erfolgreich hinzugefügt!",
-    "sections": {
-      "name": "Name",
-      "phones": "Telefonnummern",
-      "emails": "E-Mail-Adressen"
-    },
-    "labels": {
-      "firstName": "Vorname",
-      "lastName": "Nachname",
-      "phone": "Telefon",
-      "email": "E-Mail"
-    },
-    "validation": {
-      "firstNameRequired": "Vorname ist erforderlich",
-      "contactInfoRequired": "Bitte geben Sie mindestens eine Telefonnummer oder E-Mail-Adresse an"
-    }
-  },
-  "contact": {
-    "jobAtCompany": "{{job}} bei {{company}}",
-    "jobOnly": "{{job}}",
-    "companyOnly": "{{company}}"
-  },
-  "editContact": {
-    "title": "Kontakt bearbeiten"
-  },
-  "globalSearch": {
-    "title": "Suchen",
-    "searchPlaceholder": "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen …",
-    "emptyState": {
-      "prompt": "Beginnen Sie mit der Eingabe, um zu suchen",
-      "hint": "Durchsuchen Sie alle Ihre Kontakte, Unternehmen, Interaktionen, Ereignisse und Notizen",
-      "noResults": "Keine Ergebnisse gefunden",
-      "tryDifferent": "Versuchen Sie einen anderen Suchbegriff"
-    },
-    "error": {
-      "message": "Suche konnte nicht durchgeführt werden. Bitte versuchen Sie es erneut."
-    },
-    "noContact": "Keine Kontaktinformationen",
-    "noIndustry": "Keine Branche",
-    "untitled": "Ohne Titel"
-  }
 }

@@ -1,7 +1,32 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-29 13:03+0200\n"
+"PO-Revision-Date: 2025-11-29 12:03+0000\n"
+"Last-Translator: Masked-Kunsiquat <130736043+Masked-"
+"Kunsiquat@users.noreply.github.com>\n"
+"Language-Team: French <https://hosted.weblate.org/projects/crm-orbit/"
+"mobile-app/fr/>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
+
 # Orbit CRM - FR Translations
 # Generated: 2025-11-28
 #
-
+# Orbit CRM - FR Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
 #. Generic save action button
 #. Context: Used throughout app for saving changes
 #. Tone: Imperative (command form)
@@ -9,15 +34,6 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
-
-# Orbit CRM - FR Translations
-# Generated: 2025-11-28
-#
-#. Generic save action button
-#. Context: Used throughout app for saving changes
-#. Tone: Imperative (command form)
-#. Character limit: ~12 characters
-#. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
@@ -99,10 +115,10 @@ msgstr "Exécuter"
 #: src/screens/Dashboard.js
 #: Screen initialization
 msgid "common.states.loading"
-msgstr "Chargement..."
+msgstr "Chargement…"
 
 msgid "common.states.searching"
-msgstr "Recherche..."
+msgstr "Recherche…"
 
 #. Error alert title
 #. Context: Alert dialog title when an error occurs
@@ -425,12 +441,14 @@ msgstr "Contacts les plus actifs"
 msgid "analytics.topContacts.empty"
 msgstr "Aucune donnée d'interaction disponible"
 
+#, fuzzy
 msgid "search.contactsPlaceholder"
 msgstr "Rechercher des contacts …"
 
 msgid "settings.title"
 msgstr "Paramètres"
 
+#, fuzzy
 msgid "settings.searchPlaceholder"
 msgstr "Rechercher un paramètre…"
 
@@ -545,7 +563,9 @@ msgid "settings.features.companyManagement.title"
 msgstr "Gestion des Entreprises"
 
 msgid "settings.features.companyManagement.description"
-msgstr "Activer les fonctionnalités d'entreprise pour un usage professionnel (onglet entreprises, sélecteur d'entreprise dans les contacts)"
+msgstr ""
+"Activer les fonctionnalités d'entreprise pour un usage professionnel "
+"(onglet entreprises, sélecteur d'entreprise dans les contacts)"
 
 msgid "settings.features.companyManagement.enabled"
 msgstr "Gestion des entreprises activée. Redémarrez l'application pour voir l'onglet Entreprises."
@@ -557,7 +577,9 @@ msgid "settings.database.runMigrations"
 msgstr "Exécuter les migrations de base de données"
 
 msgid "settings.database.migrationsDescription"
-msgstr "Appliquez les mises à jour en attente du schéma de base de données. Cette opération est sans risque et ne supprimera pas vos données."
+msgstr ""
+"Appliquez les mises à jour en attente du schéma de base de données. Cette "
+"opération est sans risque et ne supprimera pas vos données."
 
 msgid "settings.database.migrationsComplete"
 msgstr "Migrations de bases de données effectuées avec succès"
@@ -584,13 +606,19 @@ msgstr "Réinitialiser la base de données ?"
 #. Character limit: ~200 characters
 #: src/screens/SettingsScreen.js (confirmation dialog)
 msgid "settings.database.resetWarning"
-msgstr "Cette action supprimera définitivement TOUTES vos données (contacts, interactions, événements, notes). Cette action est irréversible. Êtes-vous sûr(e) ?"
+msgstr ""
+"Cette action supprimera définitivement TOUTES vos données "
+"(contacts, interactions, événements, notes). Cette action est irréversible. "
+"Êtes-vous sûr(e) ?"
 
 msgid "settings.database.resetSuccess"
 msgstr "Base de données supprimée"
 
 msgid "settings.database.resetComplete"
-msgstr "Fichier de base de données supprimé. IMPORTANT : Faites glisser votre doigt vers le haut pour fermer complètement cette application, puis rouvrez-la pour recréer la base de données avec les migrations."
+msgstr ""
+"Fichier de base de données supprimé. IMPORTANT : Faites glisser votre doigt "
+"vers le haut pour fermer complètement cette application, puis rouvrez-la "
+"pour recréer la base de données avec les migrations."
 
 msgid "settings.database.resetError"
 msgstr "Erreur de réinitialisation"
@@ -599,22 +627,22 @@ msgid "settings.database.resetFailed"
 msgstr "Échec de la réinitialisation de la base de données"
 
 msgid "settings.errors.biometric"
-msgstr "Échec de l'activation de l'authentification biométrique"
+msgstr "Échec de l'activation de l'authentification biométrique."
 
 msgid "settings.errors.autoLock"
-msgstr "Échec de l'activation du verrouillage automatique"
+msgstr "Échec de l'activation du verrouillage automatique."
 
 msgid "settings.errors.autoLockTimeout"
-msgstr "Échec de la mise à jour du délai de verrouillage"
+msgstr "Échec de la mise à jour du délai de verrouillage."
 
 msgid "settings.errors.swipeAction"
-msgstr "Échec de la mise à jour des actions de glissement"
+msgstr "Échec de la mise à jour des actions de glissement."
 
 msgid "settings.errors.theme"
-msgstr "Échec de la mise à jour du thème"
+msgstr "Échec de la mise à jour du thème."
 
 msgid "settings.errors.language"
-msgstr "Échec de la mise à jour de la langue"
+msgstr "Échec de la mise à jour de la langue."
 
 msgid "settings.errors.featureToggle"
 msgstr "Échec de la mise à jour de la fonctionnalité"
@@ -726,6 +754,7 @@ msgstr "Entreprise mise à jour avec succès"
 msgid "companies.edit.error"
 msgstr "Échec de la modification de l'entreprise"
 
+#, fuzzy
 msgid "companies.list.searchPlaceholder"
 msgstr "Rechercher des entreprises …"
 
@@ -742,7 +771,9 @@ msgid "companies.list.delete.title"
 msgstr "Supprimer l'Entreprise"
 
 msgid "companies.list.delete.message"
-msgstr "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les contacts associés."
+msgstr ""
+"Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cela ne supprimera pas les "
+"contacts associés."
 
 msgid "companies.list.delete.success"
 msgstr "Entreprise supprimée avec succès"
@@ -1109,8 +1140,8 @@ msgstr "Ajouter une photo"
 
 msgid "contactDetail.viewMore"
 msgid_plural "contactDetail.viewMore"
-msgstr[0] "Voir {{count}} de plus"
-msgstr[1] "Voir {{count}} de plus"
+msgstr[0] "Voir {{count}} autre article"
+msgstr[1] "Voir {{count}} autres articles"
 
 msgid "contactDetail.viewMoreInfo"
 msgstr "Voir plus d'informations"
@@ -1170,7 +1201,9 @@ msgid "addContact.permissionTitle"
 msgstr "Autorisation refusée"
 
 msgid "addContact.permissionMsg"
-msgstr "Impossible d'accéder aux contacts. Veuillez activer l'autorisation des contacts dans les paramètres de votre appareil."
+msgstr ""
+"Impossible d'accéder aux contacts. Veuillez activer l'autorisation des "
+"contacts dans les paramètres de votre appareil."
 
 msgid "addContact.successMsg"
 msgstr "Contact ajouté avec succès !"
@@ -1286,6 +1319,7 @@ msgstr "Modifier le contact"
 msgid "globalSearch.title"
 msgstr "Rechercher"
 
+#, fuzzy
 msgid "globalSearch.searchPlaceholder"
 msgstr "Rechercher contacts, entreprises, interactions, événements …"
 
@@ -1333,25 +1367,25 @@ msgid "proximity.radarTitle"
 msgstr "Radar de proximité relationnelle"
 
 msgid "proximity.calculating"
-msgstr "Calcul de la proximité relationnelle en cours..."
+msgstr "Calcul de la proximité relationnelle en cours…"
 
 msgid "proximity.errorTitle"
 msgstr "Erreur"
 
 msgid "proximity.errorMessage"
-msgstr "Impossible de calculer la proximité relationnelle"
+msgstr "Impossible de calculer la proximité relationnelle."
 
 msgid "proximity.emptyTitle"
 msgstr "Aucun contact"
 
 msgid "proximity.emptyMessage"
-msgstr "Aucun contact trouvé dans votre liste"
+msgstr "Aucun contact trouvé dans votre liste."
 
 msgid "proximity.noContacts"
 msgstr "Aucune relation suffisamment proche"
 
 msgid "proximity.noContactsMessage"
-msgstr "Aucun contact avec un score de proximité suffisant"
+msgstr "Aucun contact avec un score de proximité suffisant."
 
 msgid "proximity.infoTitle"
 msgstr "À propos de la proximité"
@@ -1363,16 +1397,23 @@ msgstr "À propos de la proximité"
 #. Character limit: ~250 characters
 #: src/screens/ProximityScreen.js (info dialog)
 msgid "proximity.infoMessage"
-msgstr "La proximité est calculée en fonction de la récence, de la fréquence et de la qualité des interactions"
+msgstr ""
+"La proximité est calculée en fonction de la récence, de la fréquence et de "
+"la qualité des interactions."
 
 msgid "proximity.infoScoring"
-msgstr "Système de notation"
+msgstr ""
+"Les contacts sont regroupés en niveaux : Cercle intérieur (70-100), Anneau "
+"moyen (50-69), Cercle extérieur (30-49) et Distant (0-29)."
 
 msgid "proximity.radarInfo.title"
 msgstr "Comment fonctionne le radar"
 
+#, fuzzy
 msgid "proximity.radarInfo.message"
-msgstr "Les contacts sont positionnés en fonction de leur score de proximité. Plus un contact est proche du centre, plus votre relation est forte."
+msgstr ""
+"Les contacts sont positionnés en fonction de leur score de proximité. Plus "
+"un contact est proche du centre, plus votre relation est forte."
 
 msgid "proximity.gotIt"
 msgstr "Compris"
@@ -1384,7 +1425,10 @@ msgid "proximitySettings.algorithmTitle"
 msgstr "Algorithme"
 
 msgid "proximitySettings.algorithmDescription"
-msgstr "Choisir le mode de calcul de la proximité"
+msgstr ""
+"Les scores de proximité mesurent la force de la relation en fonction de la "
+"fréquence et de la date de vos interactions, de leur qualité et du type de "
+"relation. Choisissez un préréglage qui correspond à vos priorités."
 
 msgid "proximitySettings.presetTitle"
 msgstr "Préréglages"
@@ -1405,22 +1449,26 @@ msgid "proximitySettings.contactType"
 msgstr "Type de contact"
 
 msgid "proximitySettings.customNotConfigured"
-msgstr "Personnalisé (non configuré)"
+msgstr ""
+"Poids personnalisés non encore configurés. Utilisation des paramètres par "
+"défaut."
 
 msgid "proximitySettings.saved"
 msgstr "Enregistré"
 
 msgid "proximitySettings.savedMessage"
-msgstr "Les paramètres de proximité ont été enregistrés"
+msgstr ""
+"Vos préférences en matière d'algorithme de proximité ont été mises à jour."
 
 msgid "proximitySettings.saveError"
 msgstr "Erreur d'enregistrement"
 
 msgid "proximitySettings.saveErrorMessage"
-msgstr "Impossible d'enregistrer les paramètres de proximité"
+msgstr ""
+"Impossible d'enregistrer les paramètres de proximité. Veuillez réessayer."
 
 msgid "proximitySettings.loadError"
 msgstr "Erreur de chargement"
 
 msgid "proximitySettings.loadErrorMessage"
-msgstr "Impossible de charger les paramètres de proximité"
+msgstr "Échec du chargement des paramètres de proximité."
