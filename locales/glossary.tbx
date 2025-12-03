@@ -1,736 +1,712 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE martif SYSTEM "TBXcoreStructV02.dtd">
 <martif type="TBX" xml:lang="en">
-  <martifHeader>
-    <fileDesc>
-      <titleStmt>
-        <title>Orbit CRM Glossary</title>
-      </titleStmt>
-      <sourceDesc>
-        <p>Terminology database for Orbit CRM internationalization</p>
-      </sourceDesc>
-    </fileDesc>
-    <encodingDesc>
-      <p type="XCSURI">http://www.lisa.org/fileadmin/standards/tbx/TBXXCSV02.XCS</p>
-    </encodingDesc>
-  </martifHeader>
-  <text>
-    <body>
-
-      <!-- Core Application Terms -->
+    <martifHeader>
+        <fileDesc>
+            <titleStmt>
+                <title>Orbit CRM Glossary</title>
+            </titleStmt>
+            <sourceDesc>
+                <p>Terminology database for Orbit CRM internationalization</p>
+            </sourceDesc>
+        </fileDesc>
+        <encodingDesc>
+            <p type="XCSURI">http://www.lisa.org/fileadmin/standards/tbx/TBXXCSV02.XCS</p>
+        </encodingDesc>
+    </martifHeader>
+    <text>
+        <body>
+            <!-- Core Application Terms -->
 
       <termEntry id="CRM">
-        <descrip type="definition">Customer Relationship Management - the type of software. Keep as acronym in all languages.</descrip>
-        <langSet xml:lang="en">
+                <langSet xml:lang="en">
           <tig>
             <term>CRM</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>CRM</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>CRM</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>CRM</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>CRM</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Dashboard">
-        <descrip type="definition">Main landing page or home screen. Shows overview of contacts and recent activity. Primary navigation hub.</descrip>
-        <langSet xml:lang="en">
+                <descrip>Customer Relationship Management - the type of software. Keep as acronym in all languages.</descrip>
+            </termEntry>
+            <termEntry id="Dashboard">
+                <langSet xml:lang="en">
           <tig>
             <term>Dashboard</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Panel de control</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Dashboard</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Tableau de bord</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>控制面板</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <!-- Entity/Data Model Terms -->
+                <descrip>Main landing page or home screen. Shows overview of contacts and recent activity. Primary navigation hub.</descrip>
+            </termEntry>
+            <!-- Entity/Data Model Terms -->
 
       <termEntry id="Contact-noun">
-        <descrip type="definition">A person in your contact list whom you track relationships with. This is a NOUN (the person), not a VERB (to contact someone).</descrip>
-        <descrip type="context">Used throughout the app as the primary entity name.</descrip>
-        <langSet xml:lang="en">
+                <descrip type="definition">A person in your contact list whom you track relationships with. This is a NOUN (the person), not a VERB (to contact someone).</descrip>
+                <descrip type="context">Used throughout the app as the primary entity name.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Contact</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Contacto</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Kontakt</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Contact</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>联系人</term>
             <termNote type="usage">Use measure word 个 (gè): 一个联系人</termNote>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Interaction">
-        <descrip type="definition">A logged activity or communication with a contact (call, email, meeting, text message).</descrip>
-        <descrip type="context">Used as entity name and in activity logs.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Interaction">
+                <descrip type="definition">A logged activity or communication with a contact (call, email, meeting, text message).</descrip>
+                <descrip type="context">Used as entity name and in activity logs.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Interaction</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Interacción</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Interaktion</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Interaction</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>互动</term>
             <termNote type="usage">Use measure word 次 (cì) for interaction events: 一次互动</termNote>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Event">
-        <descrip type="definition">A scheduled calendar item (birthday, anniversary, meeting, deadline).</descrip>
-        <descrip type="context">Used for calendar functionality and reminders.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Event">
+                <descrip type="definition">A scheduled calendar item (birthday, anniversary, meeting, deadline).</descrip>
+                <descrip type="context">Used for calendar functionality and reminders.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Event</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Evento</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Ereignis</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Événement</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>事件</term>
             <termNote type="usage">Use measure word 个 (gè): 一个事件</termNote>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Company">
-        <descrip type="definition">An organization or business that a contact is associated with.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Company">
+                <descrip type="definition">An organization or business that a contact is associated with.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Company</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Empresa</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Unternehmen</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Entreprise</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>公司</term>
             <termNote type="usage">Use measure word 家 (jiā): 一家公司</termNote>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Category">
-        <descrip type="definition">A label or tag for organizing contacts (Family, Friends, Work, VIP, etc.).</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Category">
+                <descrip type="definition">A label or tag for organizing contacts (Family, Friends, Work, VIP, etc.).</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Category</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Categoría</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Kategorie</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Catégorie</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>类别</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Note">
-        <descrip type="definition">A text note or memo attached to a contact.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Note">
+                <descrip type="definition">A text note or memo attached to a contact.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Note</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Nota</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Notiz</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Note</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>备注</term>
             <termNote type="usage">Use measure word 份 (fèn) for documents: 一份备注</termNote>
           </tig>
         </langSet>
-      </termEntry>
-
-      <!-- Feature-Specific Terms -->
+            </termEntry>
+            <!-- Feature-Specific Terms -->
 
       <termEntry id="Proximity">
-        <descrip type="definition">Feature that shows nearby contacts on a map or radar view based on location.</descrip>
-        <langSet xml:lang="en">
+                <descrip type="definition">Feature that shows nearby contacts on a map or radar view based on location.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Proximity</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Proximidad</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Nähe</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Proximité</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>附近</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Analytics">
-        <descrip type="definition">Statistics and data visualization showing interaction patterns and trends.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Analytics">
+                <descrip type="definition">Statistics and data visualization showing interaction patterns and trends.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Analytics</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Análisis</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Analysen</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Analyses</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>分析</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <!-- Technical Terms -->
+            </termEntry>
+            <!-- Technical Terms -->
 
       <termEntry id="PIN">
-        <descrip type="definition">Personal Identification Number - a numeric password (4-8 digits) for app security. Keep as acronym in all languages.</descrip>
-        <langSet xml:lang="en">
+                <descrip type="definition">Personal Identification Number - a numeric password (4-8 digits) for app security. Keep as acronym in all languages.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>PIN</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>PIN</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>PIN</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>PIN</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>PIN码</term>
             <termNote type="usage">Add 码 (mǎ) meaning 'code' after PIN</termNote>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Biometric">
-        <descrip type="definition">Fingerprint or face recognition authentication. Technical security term.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Biometric">
+                <descrip type="definition">Fingerprint or face recognition authentication. Technical security term.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Biometric</term>
             <termNote type="partOfSpeech">adjective</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Biométrico</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Biometrisch</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Biométrique</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>生物识别</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Backup">
-        <descrip type="definition">Export of database to file for safekeeping. NOUN form, not verb 'to back up'.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Backup">
+                <descrip type="definition">Export of database to file for safekeeping. NOUN form, not verb 'to back up'.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Backup</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Copia de seguridad</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Sicherung</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Sauvegarde</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>备份</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Sync">
-        <descrip type="definition">Synchronize or import contacts from device contacts app.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Sync">
+                <descrip type="definition">Synchronize or import contacts from device contacts app.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Sync</term>
             <termNote type="partOfSpeech">verb</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Sincronizar</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Synchronisieren</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Synchroniser</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>同步</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <!-- Ambiguous Terms -->
+            </termEntry>
+            <!-- Ambiguous Terms -->
 
       <termEntry id="Call-noun">
-        <descrip type="definition">A phone call (NOUN). Not the verb 'to call someone'. Used in interaction types and labels.</descrip>
-        <langSet xml:lang="en">
+                <descrip type="definition">A phone call (NOUN). Not the verb 'to call someone'. Used in interaction types and labels.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Call</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Llamada</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Anruf</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Appel</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>电话</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Text-noun">
-        <descrip type="definition">A text message or SMS (NOUN). Not the general word 'text'. Used for interaction type.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Text-noun">
+                <descrip type="definition">A text message or SMS (NOUN). Not the general word 'text'. Used for interaction type.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Text</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Mensaje de texto</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Textnachricht</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>SMS</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>短信</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Email">
-        <descrip type="definition">Electronic mail message. Can be noun (an email) or type of interaction.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Email">
+                <descrip type="definition">Electronic mail message. Can be noun (an email) or type of interaction.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Email</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Correo electrónico</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>E-Mail</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>E-mail</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>电子邮件</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Meeting">
-        <descrip type="definition">An in-person or virtual meeting. Used as interaction type and event type.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Meeting">
+                <descrip type="definition">An in-person or virtual meeting. Used as interaction type and event type.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Meeting</term>
             <termNote type="partOfSpeech">noun</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Reunión</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Besprechung</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Réunion</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>会议</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <!-- Brand/Product Terms -->
+            </termEntry>
+            <!-- Brand/Product Terms -->
 
       <termEntry id="OrbitCRM">
-        <descrip type="definition">The application name. Do not translate.</descrip>
-        <langSet xml:lang="en">
+                <descrip type="definition">The application name. Do not translate.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Orbit CRM</term>
             <termNote type="partOfSpeech">proper noun</termNote>
             <termNote type="usage">Brand name - do not translate</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Orbit CRM</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Orbit CRM</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Orbit CRM</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>Orbit CRM</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <!-- Action Terms -->
+            </termEntry>
+            <!-- Action Terms -->
 
       <termEntry id="Save">
-        <descrip type="definition">Save button/action to persist changes to database. Imperative verb form.</descrip>
-        <langSet xml:lang="en">
+                <descrip type="definition">Save button/action to persist changes to database. Imperative verb form.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Save</term>
             <termNote type="partOfSpeech">verb</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Guardar</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Speichern</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Enregistrer</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>保存</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Delete">
-        <descrip type="definition">Delete button/action to permanently remove an item. Imperative verb form. Destructive action.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Delete">
+                <langSet xml:lang="en">
           <tig>
             <term>Delete</term>
             <termNote type="partOfSpeech">verb</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Eliminar</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Löschen</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Supprimer</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>删除</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Edit">
-        <descrip type="definition">Edit button/action to modify an existing item. Imperative verb form.</descrip>
-        <langSet xml:lang="en">
+                <descrip>Delete button/action to permanently remove an item. Imperative verb form. Destructive action.</descrip>
+            </termEntry>
+            <termEntry id="Edit">
+                <descrip type="definition">Edit button/action to modify an existing item. Imperative verb form.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Edit</term>
             <termNote type="partOfSpeech">verb</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Editar</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Bearbeiten</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Modifier</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>编辑</term>
           </tig>
         </langSet>
-      </termEntry>
-
-      <termEntry id="Cancel">
-        <descrip type="definition">Cancel button/action to discard changes and close dialog. Imperative verb form.</descrip>
-        <langSet xml:lang="en">
+            </termEntry>
+            <termEntry id="Cancel">
+                <descrip type="definition">Cancel button/action to discard changes and close dialog. Imperative verb form.</descrip>
+                <langSet xml:lang="en">
           <tig>
             <term>Cancel</term>
             <termNote type="partOfSpeech">verb</termNote>
           </tig>
         </langSet>
-        <langSet xml:lang="es">
+                <langSet xml:lang="es">
           <tig>
             <term>Cancelar</term>
           </tig>
         </langSet>
-        <langSet xml:lang="de">
+                <langSet xml:lang="de">
           <tig>
             <term>Abbrechen</term>
           </tig>
         </langSet>
-        <langSet xml:lang="fr">
+                <langSet xml:lang="fr">
           <tig>
             <term>Annuler</term>
           </tig>
         </langSet>
-        <langSet xml:lang="zh-Hans">
+                <langSet xml:lang="zh-Hans">
           <tig>
             <term>取消</term>
           </tig>
         </langSet>
-      </termEntry>
-
-    </body>
-  </text>
+            </termEntry>
+        </body>
+    </text>
 </martif>
