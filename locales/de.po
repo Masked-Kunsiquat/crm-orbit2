@@ -1,7 +1,32 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-29 13:01+0200\n"
+"PO-Revision-Date: 2025-11-29 12:01+0000\n"
+"Last-Translator: Masked-Kunsiquat <130736043+Masked-"
+"Kunsiquat@users.noreply.github.com>\n"
+"Language-Team: German <https://hosted.weblate.org/projects/crm-orbit/"
+"mobile-app/de/>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
+
 # Orbit CRM - DE Translations
 # Generated: 2025-11-28
 #
-
+# Orbit CRM - DE Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
 #. Generic save action button
 #. Context: Used throughout app for saving changes
 #. Tone: Imperative (command form)
@@ -9,15 +34,6 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
-
-# Orbit CRM - DE Translations
-# Generated: 2025-11-28
-#
-#. Generic save action button
-#. Context: Used throughout app for saving changes
-#. Tone: Imperative (command form)
-#. Character limit: ~12 characters
-#. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
 msgid "common.actions.save"
@@ -425,12 +441,14 @@ msgstr "Aktivste Kontakte"
 msgid "analytics.topContacts.empty"
 msgstr "Keine Interaktionsdaten verfügbar"
 
+#, fuzzy
 msgid "search.contactsPlaceholder"
 msgstr "Kontakte suchen …"
 
 msgid "settings.title"
 msgstr "Einstellungen"
 
+#, fuzzy
 msgid "settings.searchPlaceholder"
 msgstr "Suche nach einer Einstellung…"
 
@@ -545,7 +563,9 @@ msgid "settings.features.companyManagement.title"
 msgstr "Unternehmensverwaltung"
 
 msgid "settings.features.companyManagement.description"
-msgstr "Unternehmensfunktionen für professionelle Nutzung aktivieren (Unternehmens-Tab, Unternehmensauswahl in Kontakten)"
+msgstr ""
+"Unternehmensfunktionen für professionelle Nutzung aktivieren "
+"(Unternehmens-Tab, Unternehmensauswahl in Kontakten)"
 
 msgid "settings.features.companyManagement.enabled"
 msgstr "Unternehmensverwaltung aktiviert. Starten Sie die App neu, um den Unternehmens-Tab zu sehen."
@@ -557,7 +577,9 @@ msgid "settings.database.runMigrations"
 msgstr "Datenbankmigrationen durchführen"
 
 msgid "settings.database.migrationsDescription"
-msgstr "Wenden Sie alle ausstehenden Datenbankschema-Aktualisierungen an. Dies ist sicher und Ihre Daten werden nicht gelöscht."
+msgstr ""
+"Wenden Sie alle ausstehenden Datenbankschema-Aktualisierungen an. Dies ist "
+"sicher und Ihre Daten werden nicht gelöscht."
 
 msgid "settings.database.migrationsComplete"
 msgstr "Datenbankmigrationen erfolgreich abgeschlossen"
@@ -584,13 +606,20 @@ msgstr "Datenbank zurücksetzen?"
 #. Character limit: ~200 characters
 #: src/screens/SettingsScreen.js (confirmation dialog)
 msgid "settings.database.resetWarning"
-msgstr "Dadurch werden ALLE Ihre Daten (Kontakte, Interaktionen, Ereignisse, Notizen) endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden. Sind Sie sicher?"
+msgstr ""
+"Dadurch werden ALLE Ihre Daten (Kontakte, Interaktionen, Ereignisse, Notizen)"
+" endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden. "
+"Sind Sie sicher?"
 
 msgid "settings.database.resetSuccess"
 msgstr "Datenbank gelöscht"
 
+#, fuzzy
 msgid "settings.database.resetComplete"
-msgstr "Die Datenbankdatei wurde gelöscht. WICHTIG: Wischen Sie nach oben, um die App vollständig zu schließen, und öffnen Sie sie anschließend erneut, um die Datenbank mit den Migrationen neu zu erstellen."
+msgstr ""
+"Die Datenbankdatei wurde gelöscht. WICHTIG: Wischen Sie nach oben, um die "
+"App vollständig zu schließen, und öffnen Sie sie anschließend erneut, um die "
+"Datenbank mit den Migrationen neu zu erstellen."
 
 msgid "settings.database.resetError"
 msgstr "Fehler beim Zurücksetzen"
@@ -726,6 +755,7 @@ msgstr "Unternehmen erfolgreich aktualisiert"
 msgid "companies.edit.error"
 msgstr "Unternehmen konnte nicht aktualisiert werden"
 
+#, fuzzy
 msgid "companies.list.searchPlaceholder"
 msgstr "Unternehmen suchen …"
 
@@ -1170,7 +1200,9 @@ msgid "addContact.permissionTitle"
 msgstr "Berechtigung verweigert"
 
 msgid "addContact.permissionMsg"
-msgstr "Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die Kontaktberechtigung in Ihren Geräteeinstellungen."
+msgstr ""
+"Zugriff auf Kontakte nicht möglich. Bitte aktivieren Sie die "
+"Kontaktberechtigung in Ihren Geräteeinstellungen."
 
 msgid "addContact.successMsg"
 msgstr "Kontakt erfolgreich hinzugefügt!"
@@ -1286,6 +1318,7 @@ msgstr "Kontakt bearbeiten"
 msgid "globalSearch.title"
 msgstr "Suchen"
 
+#, fuzzy
 msgid "globalSearch.searchPlaceholder"
 msgstr "Kontakte, Unternehmen, Interaktionen, Ereignisse suchen …"
 
