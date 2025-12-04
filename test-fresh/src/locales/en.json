@@ -19,8 +19,8 @@
       "run": "Run"
     },
     "states": {
-      "loading": "Loading...",
-      "searching": "Searching...",
+      "loading": "Loading…",
+      "searching": "Searching…",
       "error": "Error",
       "success": "Success",
       "warning": "Warning",
@@ -155,11 +155,11 @@
     }
   },
   "search": {
-    "contactsPlaceholder": "Search contacts..."
+    "contactsPlaceholder": "Search contacts…"
   },
   "settings": {
     "title": "Settings",
-    "searchPlaceholder": "Search for a setting...",
+    "searchPlaceholder": "Search for a setting…",
     "noResults": "No settings match your search",
     "sections": {
       "appearance": "Appearance",
@@ -205,23 +205,23 @@
     "features": {
       "companyManagement": {
         "title": "Company Management",
-        "description": "Enable company features for professional use (companies tab, company selector in contacts)\n",
+        "description": "Enable company features for professional use (companies tab, company selector in contacts)",
         "enabled": "Company management enabled. Restart the app to see the Companies tab.",
         "disabled": "Company management disabled."
       }
     },
     "database": {
       "runMigrations": "Run Database Migrations",
-      "migrationsDescription": "Apply any pending database schema updates. This is safe and won't delete your data.\n",
+      "migrationsDescription": "Apply any pending database schema updates. This is safe and won't delete your data.",
       "migrationsComplete": "Database migrations completed successfully",
       "migrationsError": "Migration Error",
       "migrationsFailed": "Failed to run database migrations",
       "resetDatabase": "Reset Database",
       "resetDescription": "Delete all data and restart with a fresh database. This cannot be undone!",
       "resetTitle": "Reset Database?",
-      "resetWarning": "This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?\n",
+      "resetWarning": "This will permanently delete ALL your data (contacts, interactions, events, notes). This action cannot be undone. Are you sure?",
       "resetSuccess": "Database Deleted",
-      "resetComplete": "Database file deleted. IMPORTANT: Swipe up to fully close this app, then reopen it to recreate the database with migrations.\n",
+      "resetComplete": "Database file deleted. IMPORTANT: Swipe up to fully close this app, then reopen it to recreate the database with migrations.",
       "resetError": "Reset Error",
       "resetFailed": "Failed to reset database"
     },
@@ -291,7 +291,7 @@
       "error": "Failed to update company"
     },
     "list": {
-      "searchPlaceholder": "Search companies...",
+      "searchPlaceholder": "Search companies…",
       "empty": {
         "title": "No Companies Found",
         "noResults": "No companies match your search.",
@@ -299,7 +299,7 @@
       },
       "delete": {
         "title": "Delete Company",
-        "message": "Are you sure you want to delete \"{{name}}\"? This will not delete associated contacts.\n",
+        "message": "Are you sure you want to delete \"{{name}}\"? This will not delete associated contacts.",
         "success": "Company deleted successfully",
         "error": "Failed to delete company"
       }
@@ -481,7 +481,7 @@
     "importFailTitle": "Import Failed",
     "importFailMsg": "Failed to import contact. Please try again or enter details manually.",
     "permissionTitle": "Permission Denied",
-    "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.\n",
+    "permissionMsg": "Cannot access contacts. Please enable contacts permission in your device settings.",
     "successMsg": "Contact added successfully!",
     "sections": {
       "name": "Name",
@@ -530,7 +530,7 @@
   },
   "globalSearch": {
     "title": "Search",
-    "searchPlaceholder": "Search contacts, companies, interactions, events...",
+    "searchPlaceholder": "Search contacts, companies, interactions, events…",
     "emptyState": {
       "prompt": "Start typing to search",
       "hint": "Search across all your contacts, companies, interactions, events, and notes",
@@ -547,26 +547,26 @@
   "proximity": {
     "title": "Relationship Proximity",
     "radarTitle": "Proximity Radar",
-    "calculating": "Calculating proximity scores...",
+    "calculating": "Calculating proximity scores…",
     "errorTitle": "Unable to Load Proximity Data",
     "errorMessage": "There was an error calculating relationship proximity. Please try again.",
     "emptyTitle": "No Contacts Yet",
     "emptyMessage": "Add contacts and log interactions to see relationship proximity analysis.",
     "noContacts": "No Contacts on Radar",
-    "noContactsMessage": "Add contacts and start logging interactions to see them appear on your proximity radar.\n",
+    "noContactsMessage": "Add contacts and start logging interactions to see them appear on your proximity radar.",
     "infoTitle": "About Relationship Proximity",
-    "infoMessage": "Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.\n",
-    "infoScoring": "Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).\n",
+    "infoMessage": "Proximity scores measure relationship strength from 0-100 based on how recently and frequently you interact, the quality of interactions, and relationship type.",
+    "infoScoring": "Contacts are grouped into tiers: Inner Circle (70-100), Middle Ring (50-69), Outer Circle (30-49), and Distant (0-29).",
     "radarInfo": {
       "title": "About Radar View",
-      "message": "The radar view displays your contacts as floating avatars on concentric rings. Contacts closer to the center represent stronger relationships. Tap any contact to view their details.\n"
+      "message": "The radar view displays your contacts as floating avatars on concentric rings. Contacts closer to the center represent stronger relationships. Tap any contact to view their details."
     },
     "gotIt": "Got It"
   },
   "proximitySettings": {
     "title": "Proximity Algorithm",
     "algorithmTitle": "How Proximity Works",
-    "algorithmDescription": "Proximity scores measure relationship strength based on how recently and frequently you interact, the quality of interactions, and relationship type. Choose a preset that matches your priorities.\n",
+    "algorithmDescription": "Proximity scores measure relationship strength based on how recently and frequently you interact, the quality of interactions, and relationship type. Choose a preset that matches your priorities.",
     "presetTitle": "Choose Algorithm Preset",
     "weights": "Weight Distribution",
     "recency": "Recency",
