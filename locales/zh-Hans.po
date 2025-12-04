@@ -9,8 +9,19 @@
 #. Note: Use when 'Save' alone is sufficient without additional context
 #: Modal save buttons
 #: Form submissions
+
+# Orbit CRM - ZH-HANS Translations
+# Generated: 2025-11-28
+#
+#. Generic save action button
+#. Context: Used throughout app for saving changes
+#. Tone: Imperative (command form)
+#. Character limit: ~12 characters
+#. Note: Use when 'Save' alone is sufficient without additional context
+#: Modal save buttons
+#: Form submissions
 msgid "common.actions.save"
-msgstr ""
+msgstr "保存"
 
 #. Save changes action - more specific than generic 'Save'
 #. Context: Edit forms where changes are being saved
@@ -19,7 +30,7 @@ msgstr ""
 #: src/screens/EditContactScreen.js
 #: Edit modals
 msgid "common.actions.saveChanges"
-msgstr ""
+msgstr "保存更改"
 
 #. Save contact action - contextual save for contact creation
 #. Context: Add contact modal/screen
@@ -27,7 +38,7 @@ msgstr ""
 #. Character limit: ~20 characters
 #: src/components/AddContactModal.js
 msgid "common.actions.saveContact"
-msgstr ""
+msgstr "保存联系人"
 
 #. Cancel action - discard changes and close
 #. Context: Modal dialogs, edit forms
@@ -36,7 +47,7 @@ msgstr ""
 #: All modals
 #: Edit screens
 msgid "common.actions.cancel"
-msgstr ""
+msgstr "取消"
 
 #. Delete action - permanently remove item
 #. Context: Destructive action, usually with confirmation
@@ -45,40 +56,40 @@ msgstr ""
 #: Delete confirmation dialogs
 #: Swipe actions
 msgid "common.actions.delete"
-msgstr ""
+msgstr "删除"
 
 msgid "common.actions.edit"
-msgstr ""
+msgstr "编辑"
 
 msgid "common.actions.add"
-msgstr ""
+msgstr "添加"
 
 msgid "common.actions.remove"
-msgstr ""
+msgstr "移除"
 
 msgid "common.actions.close"
-msgstr ""
+msgstr "关闭"
 
 msgid "common.actions.confirm"
-msgstr ""
+msgstr "确认"
 
 msgid "common.actions.retry"
-msgstr ""
+msgstr "重试"
 
 msgid "common.actions.apply"
-msgstr ""
+msgstr "应用"
 
 msgid "common.actions.clear"
-msgstr ""
+msgstr "清除"
 
 msgid "common.actions.reset"
-msgstr ""
+msgstr "重置"
 
 msgid "common.actions.update"
-msgstr ""
+msgstr "更新"
 
 msgid "common.actions.run"
-msgstr ""
+msgstr "运行"
 
 #. Loading status indicator
 #. Context: Shown while data is being fetched from database
@@ -88,10 +99,10 @@ msgstr ""
 #: src/screens/Dashboard.js
 #: Screen initialization
 msgid "common.states.loading"
-msgstr ""
+msgstr "加载中"
 
 msgid "common.states.searching"
-msgstr ""
+msgstr "搜索中"
 
 #. Error alert title
 #. Context: Alert dialog title when an error occurs
@@ -99,19 +110,19 @@ msgstr ""
 #. Character limit: ~15 characters
 #: Error alert dialogs throughout app
 msgid "common.states.error"
-msgstr ""
+msgstr "错误"
 
 msgid "common.states.success"
-msgstr ""
+msgstr "成功"
 
 msgid "common.states.warning"
-msgstr ""
+msgstr "警告"
 
 msgid "common.states.info"
-msgstr ""
+msgstr "信息"
 
 msgid "common.states.ok"
-msgstr ""
+msgstr "确定"
 
 #. Count display for contacts (SINGULAR form)
 #. Variables: {{count}} = number of contacts (will be 1 in this form)
@@ -173,7 +184,7 @@ msgstr[0] ""
 #: Form labels
 #: Entity references
 msgid "common.entities.contact"
-msgstr ""
+msgstr "联系人"
 
 #. NOUN (plural): Multiple people in your contact list
 #. Context: Navigation tabs, list headers
@@ -181,37 +192,37 @@ msgstr ""
 #: src/navigation (tab label)
 #: List screen titles
 msgid "common.entities.contacts"
-msgstr ""
+msgstr "联系人"
 
 msgid "common.entities.interaction"
-msgstr ""
+msgstr "互动"
 
 msgid "common.entities.interactions"
-msgstr ""
+msgstr "互动"
 
 msgid "common.entities.event"
-msgstr ""
+msgstr "事件"
 
 msgid "common.entities.events"
-msgstr ""
+msgstr "事件"
 
 msgid "common.entities.company"
-msgstr ""
+msgstr "公司"
 
 msgid "common.entities.companies"
-msgstr ""
+msgstr "公司"
 
 msgid "common.entities.note"
-msgstr ""
+msgstr "备注"
 
 msgid "common.entities.notes"
-msgstr ""
+msgstr "备注"
 
 msgid "common.entities.category"
-msgstr ""
+msgstr "类别"
 
 msgid "common.entities.categories"
-msgstr ""
+msgstr "类别"
 
 #. Relative date: today
 #. Context: Event dates, interaction dates
@@ -220,13 +231,13 @@ msgstr ""
 #: src/screens/EventsList.js
 #: Date displays
 msgid "common.time.today"
-msgstr ""
+msgstr "今天"
 
 msgid "common.time.tomorrow"
-msgstr ""
+msgstr "明天"
 
 msgid "common.time.yesterday"
-msgstr ""
+msgstr "昨天"
 
 msgid "common.time.minute"
 msgid_plural "common.time.minute"
@@ -264,55 +275,55 @@ msgid_plural "common.time.hoursAgo"
 msgstr[0] ""
 
 msgid "common.dateRanges.allTime"
-msgstr ""
+msgstr "全部时间"
 
 msgid "common.dateRanges.last7Days"
-msgstr ""
+msgstr "过去7天"
 
 msgid "common.dateRanges.last30Days"
-msgstr ""
+msgstr "过去30天"
 
 msgid "common.dateRanges.last90Days"
-msgstr ""
+msgstr "过去90天"
 
 msgid "common.filters.all"
-msgstr ""
+msgstr "全部"
 
 msgid "common.filters.none"
-msgstr ""
+msgstr "无"
 
 msgid "common.errors.generic"
-msgstr ""
+msgstr "出错了"
 
 msgid "common.errors.network"
-msgstr ""
+msgstr "网络错误"
 
 msgid "common.errors.notFound"
-msgstr ""
+msgstr "未找到"
 
 msgid "common.errors.unauthorized"
-msgstr ""
+msgstr "未授权"
 
 msgid "common.errors.saveFailed"
-msgstr ""
+msgstr "保存失败"
 
 msgid "common.errors.deleteFailed"
-msgstr ""
+msgstr "删除失败"
 
 msgid "common.errors.loadFailed"
-msgstr ""
+msgstr "加载失败"
 
 msgid "common.labels.optional"
-msgstr ""
+msgstr "可选"
 
 msgid "common.labels.required"
-msgstr ""
+msgstr "必填"
 
 msgid "common.labels.left"
-msgstr ""
+msgstr "左侧"
 
 msgid "common.labels.right"
-msgstr ""
+msgstr "右侧"
 
 msgid "navigation.dashboard"
 msgstr "控制面板"
@@ -572,25 +583,25 @@ msgid "settings.database.resetFailed"
 msgstr "重置数据库失败"
 
 msgid "settings.errors.biometric"
-msgstr ""
+msgstr "无法更新生物识别设置。请重试。"
 
 msgid "settings.errors.autoLock"
-msgstr ""
+msgstr "无法更新自动锁定设置。请重试。"
 
 msgid "settings.errors.autoLockTimeout"
-msgstr ""
+msgstr "无法更新自动锁定时间。请重试。"
 
 msgid "settings.errors.swipeAction"
-msgstr ""
+msgstr "无法更新滑动操作。请重试。"
 
 msgid "settings.errors.theme"
-msgstr ""
+msgstr "无法更新主题。请重试。"
 
 msgid "settings.errors.language"
-msgstr ""
+msgstr "无法更新语言。请重试。"
 
 msgid "settings.errors.featureToggle"
-msgstr ""
+msgstr "无法更新设置"
 
 msgid "theme.system"
 msgstr "系统"
@@ -664,7 +675,7 @@ msgid "companies.add.success"
 msgstr "公司创建成功"
 
 msgid "companies.add.error"
-msgstr ""
+msgstr "无法创建公司"
 
 msgid "companies.edit.title"
 msgstr "编辑公司"
@@ -697,7 +708,7 @@ msgid "companies.edit.success"
 msgstr "公司更新成功"
 
 msgid "companies.edit.error"
-msgstr ""
+msgstr "无法更新公司"
 
 msgid "companies.list.searchPlaceholder"
 msgstr "搜索公司 …"
@@ -721,13 +732,13 @@ msgid "companies.list.delete.success"
 msgstr "公司删除成功"
 
 msgid "companies.list.delete.error"
-msgstr ""
+msgstr "无法删除公司"
 
 msgid "interactions.filters.meeting"
 msgstr "会议"
 
 msgid "interactions.filters.videoCall"
-msgstr ""
+msgstr "视频通话"
 
 msgid "interactions.filters.call"
 msgstr "通话"
@@ -739,7 +750,7 @@ msgid "interactions.filters.email"
 msgstr "电子邮件"
 
 msgid "interactions.filters.socialMedia"
-msgstr ""
+msgstr "社交媒体"
 
 msgid "interactions.filters.other"
 msgstr "其他"
@@ -842,7 +853,7 @@ msgid "addInteraction.quickTitles.call"
 msgstr "与 {{name}} 通话"
 
 msgid "addInteraction.quickTitles.videoCall"
-msgstr ""
+msgstr "与{{name}}视频通话"
 
 msgid "addInteraction.quickTitles.text"
 msgstr "向 {{name}} 发送短信"
@@ -1151,7 +1162,7 @@ msgid "addContact.sections.name"
 msgstr "姓名"
 
 msgid "addContact.sections.relationshipType"
-msgstr ""
+msgstr "关系类型"
 
 msgid "addContact.sections.phones"
 msgstr "电话号码"
