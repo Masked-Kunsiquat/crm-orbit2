@@ -152,7 +152,7 @@ msgstr "确定"
 #: Search results count
 msgid "common.counts.contact"
 msgid_plural "common.counts.contact"
-msgstr[0] ""
+msgstr[0] "{{count}}个联系人"
 
 #. Count display for interactions (SINGULAR form)
 #. Variables: {{count}} = 1
@@ -163,35 +163,35 @@ msgstr[0] ""
 #: Contact detail activity count
 msgid "common.counts.interaction"
 msgid_plural "common.counts.interaction"
-msgstr[0] ""
+msgstr[0] "{{count}}次互动"
 
 msgid "common.counts.event"
 msgid_plural "common.counts.event"
-msgstr[0] ""
+msgstr[0] "{{count}}个事件"
 
 msgid "common.counts.company"
 msgid_plural "common.counts.company"
-msgstr[0] ""
+msgstr[0] "{{count}}家公司"
 
 msgid "common.counts.category"
 msgid_plural "common.counts.category"
-msgstr[0] ""
+msgstr[0] "{{count}}个类别"
 
 msgid "common.counts.note"
 msgid_plural "common.counts.note"
-msgstr[0] ""
+msgstr[0] "{{count}}条备注"
 
 msgid "common.counts.result"
 msgid_plural "common.counts.result"
-msgstr[0] ""
+msgstr[0] "{{count}}个结果"
 
 msgid "common.counts.item"
 msgid_plural "common.counts.item"
-msgstr[0] ""
+msgstr[0] "{{count}}项"
 
 msgid "common.counts.uniqueContact"
 msgid_plural "common.counts.uniqueContact"
-msgstr[0] ""
+msgstr[0] "{{count}}个独特联系人"
 
 #. NOUN (singular): A person in your contact list
 #. NOT: The verb 'to contact someone'
@@ -258,19 +258,19 @@ msgstr "昨天"
 
 msgid "common.time.minute"
 msgid_plural "common.time.minute"
-msgstr[0] ""
+msgstr[0] "{{count}}分钟"
 
 msgid "common.time.hour"
 msgid_plural "common.time.hour"
-msgstr[0] ""
+msgstr[0] "{{count}}小时"
 
 msgid "common.time.day"
 msgid_plural "common.time.day"
-msgstr[0] ""
+msgstr[0] "{{count}}天"
 
 msgid "common.time.week"
 msgid_plural "common.time.week"
-msgstr[0] ""
+msgstr[0] "{{count}}周"
 
 #. Relative time: X day ago (SINGULAR)
 #. Variables: {{count}} = 1
@@ -281,15 +281,15 @@ msgstr[0] ""
 #: Activity timeline
 msgid "common.time.daysAgo"
 msgid_plural "common.time.daysAgo"
-msgstr[0] ""
+msgstr[0] "{{count}}天前"
 
 msgid "common.time.minutesAgo"
 msgid_plural "common.time.minutesAgo"
-msgstr[0] ""
+msgstr[0] "{{count}}分钟前"
 
 msgid "common.time.hoursAgo"
 msgid_plural "common.time.hoursAgo"
-msgstr[0] ""
+msgstr[0] "{{count}}小时前"
 
 msgid "common.dateRanges.allTime"
 msgstr "全部时间"

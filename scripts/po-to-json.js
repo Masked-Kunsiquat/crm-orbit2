@@ -208,9 +208,14 @@ function entriesToJSON(entries) {
         const oneValue = entry.msgstr_plural && entry.msgstr_plural[0]
           ? entry.msgstr_plural[0]
           : entry.msgid;
+
+        // For nplurals=1 languages (like Chinese), use msgstr_plural[0] for both
+        // For other languages, use msgstr_plural[1] for _other form
         const otherValue = entry.msgstr_plural && entry.msgstr_plural[1]
           ? entry.msgstr_plural[1]
-          : entry.msgid_plural;
+          : (entry.msgstr_plural && entry.msgstr_plural[0]
+              ? entry.msgstr_plural[0]
+              : entry.msgid_plural);
 
         setNestedValue(json, `${baseKey}_one`, oneValue);
         setNestedValue(json, `${baseKey}_other`, otherValue);
