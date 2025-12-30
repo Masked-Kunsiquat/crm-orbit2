@@ -2,8 +2,8 @@ import { useCallback } from "react";
 
 import { buildEvent } from "../events/dispatcher";
 import type { ContactMethod } from "../domains/contact";
-import type { EntityId } from "../shared/types";
 import { nextId } from "../shared/idGenerator";
+import type { EntityId } from "../shared/types";
 import { useDispatch } from "./useDispatch";
 
 export const useContactActions = (deviceId: string) => {
@@ -42,15 +42,13 @@ export const useContactActions = (deviceId: string) => {
   const addContactMethod = useCallback(
     (
       contactId: EntityId,
-      methodType: "email" | "phone",
+      methodType: "emails" | "phones",
       method: ContactMethod,
     ) => {
-      const id = nextId("contactMethod");
       const event = buildEvent({
         type: "contact.method.added",
-        entityId: id,
+        entityId: contactId,
         payload: {
-          contactId,
           methodType,
           method,
         },
@@ -65,19 +63,17 @@ export const useContactActions = (deviceId: string) => {
   const updateContactMethod = useCallback(
     (
       contactId: EntityId,
-      methodType: "email" | "phone",
-      oldValue: string,
-      newMethod: ContactMethod,
+      methodType: "emails" | "phones",
+      index: number,
+      method: ContactMethod,
     ) => {
-      const id = nextId("updateMethod");
       const event = buildEvent({
         type: "contact.method.updated",
-        entityId: id,
+        entityId: contactId,
         payload: {
-          contactId,
           methodType,
-          oldValue,
-          newMethod,
+          index,
+          method,
         },
         deviceId,
       });
