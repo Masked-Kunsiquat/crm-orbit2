@@ -20,8 +20,11 @@ type Props = AccountsStackScreenProps<"AccountForm">;
 export const AccountFormScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params ?? {};
   const account = useAccount(accountId ?? "");
-  const organizations = useOrganizations();
+  const allOrganizations = useOrganizations();
   const { createAccount, updateAccount } = useAccountActions(DEVICE_ID);
+
+  // Sort organizations alphabetically by name
+  const organizations = [...allOrganizations].sort((a, b) => a.name.localeCompare(b.name));
 
   const [name, setName] = useState("");
   const [organizationId, setOrganizationId] = useState("");
@@ -112,36 +115,30 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={styles.label}>Organization *</Text>
-          {accountId ? (
-            <Text style={styles.value}>
-              {organizations.find((o) => o.id === organizationId)?.name ?? "Unknown"}
-            </Text>
-          ) : (
-            <View style={styles.organizationPicker}>
-              {organizations.map((org) => (
-                <TouchableOpacity
-                  key={org.id}
+          <View style={styles.organizationPicker}>
+            {organizations.map((org) => (
+              <TouchableOpacity
+                key={org.id}
+                style={[
+                  styles.organizationOption,
+                  organizationId === org.id && styles.organizationOptionSelected,
+                ]}
+                onPress={() => {
+                  setOrganizationId(org.id);
+                  setIsDirty(true);
+                }}
+              >
+                <Text
                   style={[
-                    styles.organizationOption,
-                    organizationId === org.id && styles.organizationOptionSelected,
+                    styles.organizationOptionText,
+                    organizationId === org.id && styles.organizationOptionTextSelected,
                   ]}
-                  onPress={() => {
-                    setOrganizationId(org.id);
-                    setIsDirty(true);
-                  }}
                 >
-                  <Text
-                    style={[
-                      styles.organizationOptionText,
-                      organizationId === org.id && styles.organizationOptionTextSelected,
-                    ]}
-                  >
-                    {org.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+                  {org.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
           {organizations.length === 0 && (
             <Text style={styles.hint}>No organizations available. Create one first.</Text>
           )}

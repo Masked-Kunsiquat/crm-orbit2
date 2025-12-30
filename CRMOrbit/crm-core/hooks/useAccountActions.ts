@@ -138,6 +138,22 @@ export const useAccountActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const deleteAccount = useCallback(
+    (accountId: EntityId): DispatchResult => {
+      const event = buildEvent({
+        type: "account.deleted",
+        entityId: accountId,
+        payload: {
+          id: accountId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   return {
     createAccount,
     updateAccountStatus,
@@ -145,5 +161,6 @@ export const useAccountActions = (deviceId: string) => {
     linkContact,
     setPrimaryContact,
     unsetPrimaryContact,
+    deleteAccount,
   };
 };

@@ -1,7 +1,9 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganization, useContacts } from "../../crm-core/views/store";
+import { useAccountActions } from "../../crm-core/hooks/useAccountActions";
+import { useDeviceId } from "../../crm-core/hooks/useDeviceId";
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
 
@@ -10,6 +12,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const account = useAccount(accountId);
   const organization = useOrganization(account?.organizationId ?? "");
   const contacts = useContacts(accountId);
+  const deviceId = useDeviceId();
+  const { deleteAccount } = useAccountActions(deviceId);
 
   if (!account) {
     return (
@@ -21,6 +25,31 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   const handleEdit = () => {
     navigation.navigate("AccountForm", { accountId: account.id });
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Delete Account",
+      `Are you sure you want to delete "${account.name}"? This action cannot be undone.`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            const result = deleteAccount(account.id);
+            if (result.success) {
+              navigation.goBack();
+            } else {
+              Alert.alert("Error", result.error ?? "Failed to delete account");
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -75,6 +104,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           {JSON.stringify(account.metadata ?? {}, null, 2)}
         </Text>
       </View>
+
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+        <Text style={styles.deleteButtonText}>Delete Account</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -179,5 +212,17 @@ const styles = StyleSheet.create({
     color: "#b00020",
     textAlign: "center",
     marginTop: 32,
+  },
+  deleteButton: {
+    backgroundColor: "#b00020",
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

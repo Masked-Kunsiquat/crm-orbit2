@@ -129,6 +129,24 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   };
 };
 
+const applyAccountDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as { id?: EntityId };
+  const id = resolveEntityId(event, payload);
+  const existing = doc.accounts[id] as Account | undefined;
+
+  if (!existing) {
+    throw new Error(`Account not found: ${id}`);
+  }
+
+  // Remove the account
+  const { [id]: removed, ...remainingAccounts } = doc.accounts;
+
+  return {
+    ...doc,
+    accounts: remainingAccounts,
+  };
+};
+
 export const accountReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   switch (event.type) {
     case "account.created":
@@ -137,6 +155,8 @@ export const accountReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc =>
       return applyAccountStatusUpdated(doc, event);
     case "account.updated":
       return applyAccountUpdated(doc, event);
+    case "account.deleted":
+      return applyAccountDeleted(doc, event);
     default:
       throw new Error(
         `account.reducer does not handle event type: ${event.type}`,
