@@ -13,11 +13,7 @@ import type { EntityId } from "../shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
 import { getNotesForEntity, getPrimaryContacts } from "./selectors";
 
-export type AutomergeSource = {
-  getDoc: () => AutomergeDoc;
-  subscribe: (listener: (doc: AutomergeDoc) => void) => () => void;
-};
-
+// Internal store state - not exported
 type CrmStoreState = {
   doc: AutomergeDoc;
   events: Event[];
@@ -25,7 +21,8 @@ type CrmStoreState = {
   setEvents: (events: Event[] | ((prev: Event[]) => Event[])) => void;
 };
 
-export const useCrmStore = create<CrmStoreState>((set) => ({
+// Internal store instance - only accessible within this module and trusted internal hooks
+const crmStore = create<CrmStoreState>((set) => ({
   doc: {
     organizations: {},
     accounts: {},
@@ -51,21 +48,26 @@ export const useCrmStore = create<CrmStoreState>((set) => ({
     })),
 }));
 
-export const bindAutomergeSource = (source: AutomergeSource): (() => void) => {
-  useCrmStore.getState().setDoc(source.getDoc());
-  return source.subscribe((doc) => {
-    useCrmStore.getState().setDoc(doc);
-  });
-};
+/**
+ * Internal API for trusted hooks (useDispatch, App initialization, etc.)
+ * This allows mutation through the proper event-sourcing flow only.
+ * DO NOT export this - it's intentionally kept internal.
+ */
+export const __internal_getCrmStore = () => crmStore;
+
+// ============================================================================
+// PUBLIC READ-ONLY SELECTOR HOOKS
+// These are the only way external components can access store state
+// ============================================================================
 
 export const useOrganizations = (): Organization[] => {
   const selector = (state: CrmStoreState) => Object.values(state.doc.organizations);
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
 };
 
 export const useAccounts = (): Account[] => {
   const selector = (state: CrmStoreState) => Object.values(state.doc.accounts);
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
 };
 
 export const useContacts = (accountId: EntityId): Contact[] => {
@@ -78,7 +80,7 @@ export const useContacts = (accountId: EntityId): Contact[] => {
       .map((contactId) => state.doc.contacts[contactId])
       .filter((contact): contact is Contact => Boolean(contact));
   };
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
 };
 
 export const usePrimaryContacts = (accountId: EntityId): Contact[] => {
@@ -88,7 +90,7 @@ export const usePrimaryContacts = (accountId: EntityId): Contact[] => {
       .map((contactId) => state.doc.contacts[contactId])
       .filter((contact): contact is Contact => Boolean(contact));
   };
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
 };
 
 export const useNotes = (
@@ -101,7 +103,7 @@ export const useNotes = (
       .map((noteId) => state.doc.notes[noteId])
       .filter((note): note is Note => Boolean(note));
   };
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
 };
 
 export const useTimeline = (
@@ -110,23 +112,23 @@ export const useTimeline = (
 ): TimelineItem[] => {
   const selector = (state: CrmStoreState) =>
     buildTimelineForEntity(state.doc, state.events, entityType, entityId);
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
 };
 
 export const useOrganization = (id: EntityId): Organization | undefined =>
-  useCrmStore((state) => state.doc.organizations[id]);
+  crmStore((state) => state.doc.organizations[id]);
 
 export const useAccount = (id: EntityId): Account | undefined =>
-  useCrmStore((state) => state.doc.accounts[id]);
+  crmStore((state) => state.doc.accounts[id]);
 
 export const useContact = (id: EntityId): Contact | undefined =>
-  useCrmStore((state) => state.doc.contacts[id]);
+  crmStore((state) => state.doc.contacts[id]);
 
 export const useNote = (id: EntityId): Note | undefined =>
-  useCrmStore((state) => state.doc.notes[id]);
+  crmStore((state) => state.doc.notes[id]);
 
 export const useInteraction = (id: EntityId): Interaction | undefined =>
-  useCrmStore((state) => state.doc.interactions[id]);
+  crmStore((state) => state.doc.interactions[id]);
 
 export const useAccountsByOrganization = (
   organizationId: EntityId,
@@ -135,5 +137,25 @@ export const useAccountsByOrganization = (
     Object.values(state.doc.accounts).filter(
       (account) => account.organizationId === organizationId,
     );
-  return useCrmStore(useShallow(selector));
+  return crmStore(useShallow(selector));
+};
+
+export const useAllNotes = (): Note[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.notes);
+  return crmStore(useShallow(selector));
+};
+
+export const useAllContacts = (): Contact[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.contacts);
+  return crmStore(useShallow(selector));
+};
+
+export const useAllInteractions = (): Interaction[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.interactions);
+  return crmStore(useShallow(selector));
+};
+
+export const useAccountContactRelations = () => {
+  const selector = (state: CrmStoreState) => state.doc.relations.accountContacts;
+  return crmStore(useShallow(selector));
 };

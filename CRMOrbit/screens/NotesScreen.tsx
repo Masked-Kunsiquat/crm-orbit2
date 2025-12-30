@@ -2,16 +2,14 @@ import { StyleSheet, Text } from "react-native";
 
 import { ActionButton, Section } from "../components";
 import { useNoteActions } from "../crm-core/hooks";
-import { useAccounts, useOrganizations } from "../crm-core/views/store";
-import { useCrmStore } from "../crm-core/views/store";
+import { useAccounts, useOrganizations, useAllNotes } from "../crm-core/views/store";
 
 const DEVICE_ID = "device-local";
 
 export const NotesScreen = () => {
   const organizations = useOrganizations();
   const accounts = useAccounts();
-  const doc = useCrmStore((state) => state.doc);
-  const notes = Object.values(doc.notes);
+  const notes = useAllNotes();
   const { createNote, linkNote } = useNoteActions(DEVICE_ID);
 
   const handleAddNote = () => {

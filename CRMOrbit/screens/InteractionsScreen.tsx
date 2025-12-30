@@ -2,13 +2,12 @@ import { StyleSheet, Text } from "react-native";
 
 import { ActionButton, Section } from "../components";
 import { useInteractionActions } from "../crm-core/hooks";
-import { useCrmStore } from "../crm-core/views/store";
+import { useAllInteractions } from "../crm-core/views/store";
 
 const DEVICE_ID = "device-local";
 
 export const InteractionsScreen = () => {
-  const doc = useCrmStore((state) => state.doc);
-  const interactions = Object.values(doc.interactions);
+  const interactions = useAllInteractions();
   const { logInteraction } = useInteractionActions(DEVICE_ID);
 
   const handleAddInteraction = () => {

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import { applyEvents, buildEvent } from "../events/dispatcher";
 import type { Event } from "../events/event";
-import { useCrmStore } from "../views/store";
+import { __internal_getCrmStore } from "../views/store";
 import { getDatabase, createPersistenceDb } from "../persistence/database";
 import { appendEvents } from "../persistence/store";
 
@@ -44,7 +44,7 @@ export const useDispatch = () => {
 
       try {
         // Use functional setters to handle rapid dispatches correctly
-        const store = useCrmStore.getState();
+        const store = __internal_getCrmStore().getState();
 
         // Apply events to the latest doc state
         store.setDoc((currentDoc) => applyEvents(currentDoc, newEvents));

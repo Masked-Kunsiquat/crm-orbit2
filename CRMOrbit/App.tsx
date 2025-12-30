@@ -6,7 +6,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { registerCoreReducers } from "./crm-core/events/dispatcher";
 import { initializeDatabase, createPersistenceDb } from "./crm-core/persistence/database";
 import { loadPersistedState } from "./crm-core/persistence/loader";
-import { useCrmStore } from "./crm-core/views/store";
+import { __internal_getCrmStore } from "./crm-core/views/store";
 import { RootTabs } from "./navigation";
 
 registerCoreReducers();
@@ -26,8 +26,9 @@ export default function App() {
         const { doc, events } = await loadPersistedState(persistenceDb);
 
         // Update store with loaded data
-        useCrmStore.getState().setDoc(doc);
-        useCrmStore.getState().setEvents(events);
+        const store = __internal_getCrmStore();
+        store.getState().setDoc(doc);
+        store.getState().setEvents(events);
 
         setIsLoading(false);
       } catch (err) {

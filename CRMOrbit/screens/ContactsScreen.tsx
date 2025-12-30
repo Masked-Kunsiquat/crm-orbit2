@@ -2,15 +2,18 @@ import { StyleSheet, Text } from "react-native";
 
 import { ActionButton, Section } from "../components";
 import { useAccountActions, useContactActions } from "../crm-core/hooks";
-import { useAccounts, useContacts } from "../crm-core/views/store";
-import { useCrmStore } from "../crm-core/views/store";
+import {
+  useAccounts,
+  useAllContacts,
+  useAccountContactRelations,
+} from "../crm-core/views/store";
 
 const DEVICE_ID = "device-local";
 
 export const ContactsScreen = () => {
   const accounts = useAccounts();
-  const doc = useCrmStore((state) => state.doc);
-  const allContacts = Object.values(doc.contacts);
+  const allContacts = useAllContacts();
+  const accountContactRelations = useAccountContactRelations();
   const { createContact } = useContactActions(DEVICE_ID);
   const { linkContact } = useAccountActions(DEVICE_ID);
 
@@ -37,7 +40,7 @@ export const ContactsScreen = () => {
       const account = accounts[0];
 
       // Check if account already has a primary contact
-      const existingPrimary = Object.values(doc.relations.accountContacts).some(
+      const existingPrimary = Object.values(accountContactRelations).some(
         (relation) =>
           relation.accountId === account.id &&
           relation.role === "account.contact.role.primary" &&
