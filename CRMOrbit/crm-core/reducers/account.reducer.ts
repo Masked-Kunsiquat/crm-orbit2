@@ -138,6 +138,13 @@ const applyAccountDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     throw new Error(`Account not found: ${id}`);
   }
 
+  const hasLinkedContacts = Object.values(doc.relations.accountContacts).some(
+    (relation) => relation.accountId === id,
+  );
+  if (hasLinkedContacts) {
+    throw new Error(`Cannot delete account ${id}: contacts still linked`);
+  }
+
   // Remove the account
   const { [id]: removed, ...remainingAccounts } = doc.accounts;
 
