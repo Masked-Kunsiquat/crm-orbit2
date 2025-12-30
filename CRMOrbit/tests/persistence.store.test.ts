@@ -58,7 +58,7 @@ const createMemoryDb = () => {
           }
 
           if (table === eventLog) {
-            return [...currentTables.events] as SnapshotRecord[];
+            return [...currentTables.events] as EventLogRecord[];
           }
 
           throw new Error("Unknown table.");
