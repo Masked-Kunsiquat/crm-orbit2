@@ -1,8 +1,10 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, FlatList } from "react-native";
 
 import type { ContactsStackScreenProps } from "../../navigation/types";
-import { useContact, useAccountContactRelations } from "../../crm-core/views/store";
+import { useContact, useAccountsByContact, useAccounts, useAccountContactRelations } from "../../crm-core/views/store";
 import { useContactActions } from "../../crm-core/hooks/useContactActions";
+import { useAccountActions } from "../../crm-core/hooks/useAccountActions";
 
 const DEVICE_ID = "device-local";
 
@@ -11,8 +13,13 @@ type Props = ContactsStackScreenProps<"ContactDetail">;
 export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params;
   const contact = useContact(contactId);
+  const linkedAccounts = useAccountsByContact(contactId);
+  const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
+  const { linkContact } = useAccountActions(DEVICE_ID);
+
+  const [showLinkModal, setShowLinkModal] = useState(false);
 
   if (!contact) {
     return (
@@ -26,12 +33,32 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     navigation.navigate("ContactForm", { contactId: contact.id });
   };
 
-  const handleDelete = () => {
-    // Check if contact is linked to any accounts
-    const linkedAccounts = Object.values(accountContactRelations).filter(
-      (relation) => relation.contactId === contactId,
+  const handleLinkAccount = (accountId: string) => {
+    // Check if already linked
+    const existingLink = Object.values(accountContactRelations).find(
+      (relation) => relation.accountId === accountId && relation.contactId === contactId,
     );
 
+    if (existingLink) {
+      Alert.alert("Already Linked", "This contact is already linked to this account");
+      return;
+    }
+
+    // Check if account already has a primary contact
+    const hasPrimary = Object.values(accountContactRelations).some(
+      (relation) => relation.accountId === accountId && relation.isPrimary,
+    );
+
+    const result = linkContact(accountId, contactId, "account.contact.role.primary", !hasPrimary);
+
+    if (result.success) {
+      setShowLinkModal(false);
+    } else {
+      Alert.alert("Error", result.error ?? "Failed to link contact");
+    }
+  };
+
+  const handleDelete = () => {
     if (linkedAccounts.length > 0) {
       Alert.alert(
         "Cannot Delete",
@@ -141,9 +168,80 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         )}
       </View>
 
+      <View style={styles.section}>
+        <View style={styles.fieldHeader}>
+          <Text style={styles.sectionTitle}>Linked Accounts ({linkedAccounts.length})</Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => setShowLinkModal(true)}
+          >
+            <Text style={styles.linkButtonText}>+ Link Account</Text>
+          </TouchableOpacity>
+        </View>
+        {linkedAccounts.length === 0 ? (
+          <Text style={styles.emptyText}>Not linked to any accounts</Text>
+        ) : (
+          linkedAccounts.map((account) => {
+            const relation = Object.values(accountContactRelations).find(
+              (r) => r.accountId === account.id && r.contactId === contactId,
+            );
+            return (
+              <View key={account.id} style={styles.accountItem}>
+                <View style={styles.accountInfo}>
+                  <Text style={styles.accountName}>{account.name}</Text>
+                  {relation?.isPrimary && (
+                    <View style={styles.primaryBadge}>
+                      <Text style={styles.primaryText}>Primary</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            );
+          })
+        )}
+      </View>
+
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.deleteButtonText}>Delete Contact</Text>
       </TouchableOpacity>
+
+      <Modal
+        visible={showLinkModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowLinkModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Link to Account</Text>
+            <FlatList
+              data={allAccounts}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const isLinked = linkedAccounts.some((a) => a.id === item.id);
+                return (
+                  <TouchableOpacity
+                    style={[styles.modalItem, isLinked && styles.modalItemDisabled]}
+                    onPress={() => handleLinkAccount(item.id)}
+                    disabled={isLinked}
+                  >
+                    <Text style={[styles.modalItemText, isLinked && styles.modalItemTextDisabled]}>
+                      {item.name}
+                      {isLinked && " (Already linked)"}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowLinkModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -237,5 +335,92 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  fieldHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  linkButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: "#1f5eff",
+  },
+  linkButtonText: {
+    fontSize: 14,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  accountItem: {
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  accountInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  accountName: {
+    fontSize: 15,
+    color: "#1b1b1b",
+  },
+  primaryBadge: {
+    backgroundColor: "#e8f5e9",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  primaryText: {
+    fontSize: 12,
+    color: "#4caf50",
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+    maxHeight: "80%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1b1b1b",
+    marginBottom: 16,
+  },
+  modalItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  modalItemDisabled: {
+    opacity: 0.5,
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: "#1b1b1b",
+  },
+  modalItemTextDisabled: {
+    color: "#999",
+  },
+  modalCancelButton: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
   },
 });
