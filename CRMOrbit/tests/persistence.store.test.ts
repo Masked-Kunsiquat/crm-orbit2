@@ -51,14 +51,14 @@ const createMemoryDb = () => {
       }),
     }),
     select: () => ({
-      from: (table) => ({
-        all: async () => {
+      from: <T,>(table: unknown) => ({
+        all: async (): Promise<T[]> => {
           if (table === automergeSnapshots) {
-            return [...currentTables.snapshots];
+            return [...currentTables.snapshots] as T[];
           }
 
           if (table === eventLog) {
-            return [...currentTables.events] as EventLogRecord[];
+            return [...currentTables.events] as T[];
           }
 
           throw new Error("Unknown table.");

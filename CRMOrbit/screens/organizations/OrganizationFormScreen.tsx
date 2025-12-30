@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -26,13 +26,39 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [status, setStatus] = useState<"organization.status.active" | "organization.status.inactive">(
     "organization.status.active",
   );
+  const [isDirty, setIsDirty] = useState(false);
+  const lastOrgIdRef = useRef<string | undefined>(undefined);
 
+  // Only populate form fields on initial mount or when switching to a different organization
   useEffect(() => {
-    if (organization) {
-      setName(organization.name);
-      setStatus(organization.status);
+    const currentOrgId = organizationId ?? undefined;
+    const isOrgChanged = currentOrgId !== lastOrgIdRef.current;
+
+    if (isOrgChanged) {
+      // Reset dirty flag when switching organizations
+      setIsDirty(false);
+      lastOrgIdRef.current = currentOrgId;
+
+      if (organization) {
+        setName(organization.name);
+        setStatus(organization.status);
+      } else {
+        // New organization - reset to defaults
+        setName("");
+        setStatus("organization.status.active");
+      }
     }
-  }, [organization]);
+  }, [organizationId, organization]);
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    setIsDirty(true);
+  };
+
+  const handleStatusChange = (value: "organization.status.active" | "organization.status.inactive") => {
+    setStatus(value);
+    setIsDirty(true);
+  };
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -69,7 +95,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           <TextInput
             style={styles.input}
             value={name}
-            onChangeText={setName}
+            onChangeText={handleNameChange}
             placeholder="Enter organization name"
             autoFocus
           />
@@ -83,7 +109,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
                 styles.statusButton,
                 status === "organization.status.active" && styles.statusButtonActive,
               ]}
-              onPress={() => setStatus("organization.status.active")}
+              onPress={() => handleStatusChange("organization.status.active")}
             >
               <Text
                 style={[
@@ -99,7 +125,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
                 styles.statusButton,
                 status === "organization.status.inactive" && styles.statusButtonActive,
               ]}
-              onPress={() => setStatus("organization.status.inactive")}
+              onPress={() => handleStatusChange("organization.status.inactive")}
             >
               <Text
                 style={[

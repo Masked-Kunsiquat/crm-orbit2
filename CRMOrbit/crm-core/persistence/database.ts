@@ -56,10 +56,10 @@ export const createPersistenceDb = (db: ReturnType<typeof drizzle>): Persistence
       }),
     }),
     select: () => ({
-      from: (table) => ({
-        all: async () => {
-          const results = await db.select().from(table as typeof automergeSnapshots);
-          return results as any;
+      from: <T,>(table: unknown) => ({
+        all: async (): Promise<T[]> => {
+          const results = await db.select().from(table as typeof eventLog | typeof automergeSnapshots);
+          return results as T[];
         },
       }),
     }),

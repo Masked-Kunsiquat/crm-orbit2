@@ -28,10 +28,7 @@ export const loadPersistedState = async (
   const snapshot = await loadLatestSnapshot(db);
 
   // Load all events
-  const eventRecords = (await db
-    .select()
-    .from(eventLog)
-    .all()) as unknown as EventLogRecord[];
+  const eventRecords = await db.select().from<EventLogRecord>(eventLog).all();
 
   // Parse events from records
   const events: Event[] = eventRecords.map((record) => ({

@@ -23,7 +23,9 @@ export type PersistenceDb = {
   insert: (table: unknown) => {
     values: (value: InsertValues) => { run: () => Promise<void> };
   };
-  select: () => { from: (table: unknown) => { all: () => Promise<SnapshotRecord[]> } };
+  select: () => {
+    from: <T = SnapshotRecord | EventLogRecord>(table: unknown) => { all: () => Promise<T[]> }
+  };
   transaction: <T>(fn: (tx: PersistenceDb) => Promise<T>) => Promise<T>;
 };
 
@@ -37,7 +39,7 @@ export const saveSnapshot = async (
 export const loadLatestSnapshot = async (
   db: PersistenceDb,
 ): Promise<SnapshotRecord | null> => {
-  const rows = await db.select().from(automergeSnapshots).all();
+  const rows = await db.select().from<SnapshotRecord>(automergeSnapshots).all();
 
   if (rows.length === 0) {
     return null;
