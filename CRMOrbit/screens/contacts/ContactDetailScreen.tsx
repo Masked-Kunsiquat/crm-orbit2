@@ -17,7 +17,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
-  const { linkContact } = useAccountActions(DEVICE_ID);
+  const { linkContact, unlinkContact } = useAccountActions(DEVICE_ID);
 
   const [showLinkModal, setShowLinkModal] = useState(false);
 
@@ -56,6 +56,29 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     } else {
       Alert.alert("Error", result.error ?? "Failed to link contact");
     }
+  };
+
+  const handleUnlinkAccount = (accountId: string, accountName: string) => {
+    Alert.alert(
+      "Unlink Contact",
+      `Unlink "${contact.name}" from "${accountName}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Unlink",
+          style: "destructive",
+          onPress: () => {
+            const result = unlinkContact(accountId, contactId);
+            if (!result.success) {
+              Alert.alert("Error", result.error ?? "Failed to unlink contact");
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleDelete = () => {
@@ -195,6 +218,12 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                     </View>
                   )}
                 </View>
+                <TouchableOpacity
+                  style={styles.unlinkButton}
+                  onPress={() => handleUnlinkAccount(account.id, account.name)}
+                >
+                  <Text style={styles.unlinkButtonText}>Unlink</Text>
+                </TouchableOpacity>
               </View>
             );
           })
@@ -354,6 +383,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   accountItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
@@ -366,6 +398,17 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 15,
     color: "#1b1b1b",
+  },
+  unlinkButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: "#ffebee",
+  },
+  unlinkButtonText: {
+    fontSize: 12,
+    color: "#b00020",
+    fontWeight: "600",
   },
   primaryBadge: {
     backgroundColor: "#e8f5e9",

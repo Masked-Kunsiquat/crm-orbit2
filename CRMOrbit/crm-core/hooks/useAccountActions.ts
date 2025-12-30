@@ -138,6 +138,24 @@ export const useAccountActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const unlinkContact = useCallback(
+    (accountId: EntityId, contactId: EntityId): DispatchResult => {
+      const id = nextId("unlinkContact");
+      const event = buildEvent({
+        type: "account.contact.unlinked",
+        entityId: id,
+        payload: {
+          accountId,
+          contactId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   const deleteAccount = useCallback(
     (accountId: EntityId): DispatchResult => {
       const event = buildEvent({
@@ -159,6 +177,7 @@ export const useAccountActions = (deviceId: string) => {
     updateAccountStatus,
     updateAccount,
     linkContact,
+    unlinkContact,
     setPrimaryContact,
     unsetPrimaryContact,
     deleteAccount,

@@ -23,6 +23,7 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "contact.updated": contactReducer,
   "contact.deleted": contactReducer,
   "account.contact.linked": accountContactReducer,
+  "account.contact.unlinked": accountContactReducer,
   "account.contact.setPrimary": accountContactReducer,
   "account.contact.unsetPrimary": accountContactReducer,
   "note.created": noteReducer,

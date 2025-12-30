@@ -18,6 +18,12 @@ type AccountContactPrimaryPayload = {
   role: AccountContactRole;
 };
 
+type AccountContactUnlinkedPayload = {
+  id?: EntityId;
+  accountId: EntityId;
+  contactId: EntityId;
+};
+
 const resolveRelationId = <T extends { id?: EntityId }>(
   event: Event,
   payload: T,
@@ -225,6 +231,42 @@ const applyAccountContactUnsetPrimary = (
   };
 };
 
+const applyAccountContactUnlinked = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  const payload = event.payload as AccountContactUnlinkedPayload;
+
+  // Find the relation(s) to remove
+  const relationIds = Object.keys(doc.relations.accountContacts).filter((id) => {
+    const relation = doc.relations.accountContacts[id];
+    return (
+      relation.accountId === payload.accountId &&
+      relation.contactId === payload.contactId
+    );
+  });
+
+  if (relationIds.length === 0) {
+    throw new Error(
+      `AccountContact relation not found for account=${payload.accountId} contact=${payload.contactId}`,
+    );
+  }
+
+  // Remove all relations between this account and contact
+  const nextAccountContacts = { ...doc.relations.accountContacts };
+  for (const id of relationIds) {
+    delete nextAccountContacts[id];
+  }
+
+  return {
+    ...doc,
+    relations: {
+      ...doc.relations,
+      accountContacts: nextAccountContacts,
+    },
+  };
+};
+
 export const accountContactReducer = (
   doc: AutomergeDoc,
   event: Event,
@@ -232,6 +274,8 @@ export const accountContactReducer = (
   switch (event.type) {
     case "account.contact.linked":
       return applyAccountContactLinked(doc, event);
+    case "account.contact.unlinked":
+      return applyAccountContactUnlinked(doc, event);
     case "account.contact.setPrimary":
       return applyAccountContactSetPrimary(doc, event);
     case "account.contact.unsetPrimary":
