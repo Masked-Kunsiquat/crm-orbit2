@@ -10,6 +10,8 @@ export const EVENT_TYPES = [
   "contact.created",
   "contact.method.added",
   "contact.method.updated",
+  "contact.updated",
+  "contact.deleted",
   "account.contact.linked",
   "account.contact.setPrimary",
   "account.contact.unsetPrimary",

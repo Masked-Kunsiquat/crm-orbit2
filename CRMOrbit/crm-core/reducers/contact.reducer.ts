@@ -23,6 +23,13 @@ type ContactMethodUpdatedPayload = {
   method: ContactMethod;
 };
 
+type ContactUpdatedPayload = {
+  id?: EntityId;
+  name?: string;
+  type?: Contact["type"];
+  methods?: ContactMethods;
+};
+
 const resolveEntityId = <T extends { id?: EntityId }>(
   event: Event,
   payload: T,
@@ -159,6 +166,53 @@ const applyContactMethodUpdated = (
   };
 };
 
+const applyContactUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as ContactUpdatedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.contacts[id] as Contact | undefined;
+
+  if (!existing) {
+    throw new Error(`Contact not found: ${id}`);
+  }
+
+  return {
+    ...doc,
+    contacts: {
+      ...doc.contacts,
+      [id]: {
+        ...existing,
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.type !== undefined && { type: payload.type }),
+        ...(payload.methods !== undefined && {
+          methods: {
+            emails: [...payload.methods.emails],
+            phones: [...payload.methods.phones],
+          },
+        }),
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
+const applyContactDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as { id?: EntityId };
+  const id = resolveEntityId(event, payload);
+  const existing = doc.contacts[id] as Contact | undefined;
+
+  if (!existing) {
+    throw new Error(`Contact not found: ${id}`);
+  }
+
+  // Remove the contact
+  const { [id]: removed, ...remainingContacts } = doc.contacts;
+
+  return {
+    ...doc,
+    contacts: remainingContacts,
+  };
+};
+
 export const contactReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   switch (event.type) {
     case "contact.created":
@@ -167,6 +221,10 @@ export const contactReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc =>
       return applyContactMethodAdded(doc, event);
     case "contact.method.updated":
       return applyContactMethodUpdated(doc, event);
+    case "contact.updated":
+      return applyContactUpdated(doc, event);
+    case "contact.deleted":
+      return applyContactDeleted(doc, event);
     default:
       throw new Error(`contact.reducer does not handle event type: ${event.type}`);
   }
