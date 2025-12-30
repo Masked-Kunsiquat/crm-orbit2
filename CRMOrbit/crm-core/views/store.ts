@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
@@ -57,14 +58,18 @@ export const bindAutomergeSource = (source: AutomergeSource): (() => void) => {
   });
 };
 
-export const useOrganizations = (): Organization[] =>
-  useCrmStore((state) => Object.values(state.doc.organizations));
+export const useOrganizations = (): Organization[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.organizations);
+  return useCrmStore(useShallow(selector));
+};
 
-export const useAccounts = (): Account[] =>
-  useCrmStore((state) => Object.values(state.doc.accounts));
+export const useAccounts = (): Account[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.accounts);
+  return useCrmStore(useShallow(selector));
+};
 
-export const useContacts = (accountId: EntityId): Contact[] =>
-  useCrmStore((state) => {
+export const useContacts = (accountId: EntityId): Contact[] => {
+  const selector = (state: CrmStoreState) => {
     const contactIds = Object.values(state.doc.relations.accountContacts)
       .filter((relation) => relation.accountId === accountId)
       .map((relation) => relation.contactId);
@@ -72,34 +77,41 @@ export const useContacts = (accountId: EntityId): Contact[] =>
     return contactIds
       .map((contactId) => state.doc.contacts[contactId])
       .filter((contact): contact is Contact => Boolean(contact));
-  });
+  };
+  return useCrmStore(useShallow(selector));
+};
 
-export const usePrimaryContacts = (accountId: EntityId): Contact[] =>
-  useCrmStore((state) => {
+export const usePrimaryContacts = (accountId: EntityId): Contact[] => {
+  const selector = (state: CrmStoreState) => {
     const contactIds = getPrimaryContacts(state.doc, accountId);
     return contactIds
       .map((contactId) => state.doc.contacts[contactId])
       .filter((contact): contact is Contact => Boolean(contact));
-  });
+  };
+  return useCrmStore(useShallow(selector));
+};
 
 export const useNotes = (
   entityType: NoteLinkEntityType,
   entityId: EntityId,
-): Note[] =>
-  useCrmStore((state) => {
+): Note[] => {
+  const selector = (state: CrmStoreState) => {
     const noteIds = getNotesForEntity(state.doc, entityType, entityId);
     return noteIds
       .map((noteId) => state.doc.notes[noteId])
       .filter((note): note is Note => Boolean(note));
-  });
+  };
+  return useCrmStore(useShallow(selector));
+};
 
 export const useTimeline = (
   entityType: NoteLinkEntityType,
   entityId: EntityId,
-): TimelineItem[] =>
-  useCrmStore((state) =>
-    buildTimelineForEntity(state.doc, state.events, entityType, entityId),
-  );
+): TimelineItem[] => {
+  const selector = (state: CrmStoreState) =>
+    buildTimelineForEntity(state.doc, state.events, entityType, entityId);
+  return useCrmStore(useShallow(selector));
+};
 
 export const useOrganization = (id: EntityId): Organization | undefined =>
   useCrmStore((state) => state.doc.organizations[id]);
@@ -118,9 +130,10 @@ export const useInteraction = (id: EntityId): Interaction | undefined =>
 
 export const useAccountsByOrganization = (
   organizationId: EntityId,
-): Account[] =>
-  useCrmStore((state) =>
+): Account[] => {
+  const selector = (state: CrmStoreState) =>
     Object.values(state.doc.accounts).filter(
       (account) => account.organizationId === organizationId,
-    ),
-  );
+    );
+  return useCrmStore(useShallow(selector));
+};
