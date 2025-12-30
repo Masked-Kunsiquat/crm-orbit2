@@ -2,16 +2,16 @@
 
 *.local.json
 # dependencies
-node_modules/
+CRMOrbit/node_modules/
 
 # Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+CRMOrbit/.expo/
+CRMOrbit/dist/
+CRMOrbit/web-build/
+CRMOrbit/expo-env.d.ts
 
 # Native
-.kotlin/
+CRMOrbit/.kotlin/
 *.orig.*
 *.jks
 *.p8
@@ -38,5 +38,5 @@ yarn-error.*
 *.tsbuildinfo
 
 # generated native folders
-/ios
-/android
+CRMOrbit/ios
+CRMOrbit/android
