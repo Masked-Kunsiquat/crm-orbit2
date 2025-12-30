@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
 
 import { automergeSnapshots, eventLog } from "../crm-core/persistence/schema";
 import {

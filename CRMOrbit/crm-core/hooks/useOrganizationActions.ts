@@ -66,9 +66,26 @@ export const useOrganizationActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const deleteOrganization = useCallback(
+    (organizationId: EntityId): DispatchResult => {
+      const event = buildEvent({
+        type: "organization.deleted",
+        entityId: organizationId,
+        payload: {
+          id: organizationId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   return {
     createOrganization,
     updateOrganizationStatus,
     updateOrganization,
+    deleteOrganization,
   };
 };

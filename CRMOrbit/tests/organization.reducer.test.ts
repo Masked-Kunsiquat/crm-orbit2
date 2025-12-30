@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
 
 import { initAutomergeDoc } from "../crm-core/automerge/init";
 import { organizationReducer } from "../crm-core/reducers/organization.reducer";
@@ -100,5 +99,78 @@ test("organization.status.updated rejects missing organizations", () => {
 
   assert.throws(() => organizationReducer(doc, updated), {
     message: "Organization not found: org-1",
+  });
+});
+
+test("organization.deleted removes organization when no dependent accounts exist", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const deleted: Event = {
+    id: "evt-2",
+    type: "organization.deleted",
+    payload: {
+      id: "org-1",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const deletedDoc = organizationReducer(createdDoc, deleted);
+
+  assert.equal(deletedDoc.organizations["org-1"], undefined);
+});
+
+test("organization.deleted rejects deletion when dependent accounts exist", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const deleted: Event = {
+    id: "evt-2",
+    type: "organization.deleted",
+    payload: {
+      id: "org-1",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const docWithAccount = {
+    ...createdDoc,
+    accounts: {
+      ...createdDoc.accounts,
+      "acct-1": {
+        id: "acct-1",
+        organizationId: "org-1",
+        name: "Acme Account",
+        status: "account.status.active",
+        createdAt: "2024-01-15T00:00:00.000Z",
+        updatedAt: "2024-01-15T00:00:00.000Z",
+      },
+    },
+  };
+
+  assert.throws(() => organizationReducer(docWithAccount, deleted), {
+    message: "Cannot delete organization org-1: accounts still reference it",
   });
 });

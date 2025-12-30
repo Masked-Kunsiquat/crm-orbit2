@@ -1,40 +1,47 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import type { OrganizationsStackScreenProps } from "../../navigation/types";
-import { useOrganizations } from "../../crm-core/views/store";
-import type { Organization } from "../../crm-core/domains/organization";
+import type { ContactsStackScreenProps } from "../../navigation/types";
+import { useAllContacts } from "../../crm-core/views/store";
+import type { Contact } from "../../crm-core/domains/contact";
 
-type Props = OrganizationsStackScreenProps<"OrganizationsList">;
+type Props = ContactsStackScreenProps<"ContactsList">;
 
-export const OrganizationsListScreen = ({ navigation }: Props) => {
-  const organizations = useOrganizations();
+export const ContactsListScreen = ({ navigation }: Props) => {
+  const contacts = useAllContacts();
 
-  const handlePress = (org: Organization) => {
-    navigation.navigate("OrganizationDetail", { organizationId: org.id });
+  const handlePress = (contact: Contact) => {
+    navigation.navigate("ContactDetail", { contactId: contact.id });
   };
 
   const handleAdd = () => {
-    navigation.navigate("OrganizationForm", {});
+    navigation.navigate("ContactForm", {});
   };
 
-  const renderItem = ({ item }: { item: Organization }) => (
+  const getContactTypeLabel = (type: string) => {
+    switch (type) {
+      case "contact.type.internal":
+        return "Internal";
+      case "contact.type.external":
+        return "External";
+      case "contact.type.vendor":
+        return "Vendor";
+      default:
+        return type;
+    }
+  };
+
+  const getPrimaryEmail = (contact: Contact) => {
+    return contact.methods.emails.find((e) => e.status === "contact.method.status.active")?.value;
+  };
+
+  const renderItem = ({ item }: { item: Contact }) => (
     <TouchableOpacity style={styles.item} onPress={() => handlePress(item)}>
       <View style={styles.itemContent}>
-        <View style={styles.itemHeader}>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <View
-            style={[
-              styles.statusBadge,
-              item.status === "organization.status.active"
-                ? styles.statusActive
-                : styles.statusInactive,
-            ]}
-          >
-            <Text style={styles.statusText}>
-              {item.status === "organization.status.active" ? "Active" : "Inactive"}
-            </Text>
-          </View>
-        </View>
+        <Text style={styles.itemName}>{item.name}</Text>
+        {getPrimaryEmail(item) && (
+          <Text style={styles.itemEmail}>{getPrimaryEmail(item)}</Text>
+        )}
+        <Text style={styles.itemType}>{getContactTypeLabel(item.type)}</Text>
       </View>
       <Text style={styles.itemChevron}>›</Text>
     </TouchableOpacity>
@@ -43,13 +50,13 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={organizations}
+        data={contacts}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No organizations yet</Text>
+            <Text style={styles.emptyText}>No contacts yet</Text>
             <Text style={styles.emptyHint}>Tap the + button to create one</Text>
           </View>
         }
@@ -86,31 +93,20 @@ const styles = StyleSheet.create({
   itemContent: {
     flex: 1,
   },
-  itemHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   itemName: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1b1b1b",
-    flex: 1,
+    marginBottom: 4,
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+  itemEmail: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 2,
   },
-  statusActive: {
-    backgroundColor: "#e8f5e9",
-  },
-  statusInactive: {
-    backgroundColor: "#ffebee",
-  },
-  statusText: {
+  itemType: {
     fontSize: 12,
-    fontWeight: "500",
+    color: "#999",
   },
   itemChevron: {
     fontSize: 24,

@@ -159,3 +159,16 @@ export const useAccountContactRelations = () => {
   const selector = (state: CrmStoreState) => state.doc.relations.accountContacts;
   return crmStore(useShallow(selector));
 };
+
+export const useAccountsByContact = (contactId: EntityId): Account[] => {
+  const selector = (state: CrmStoreState) => {
+    const accountIds = Object.values(state.doc.relations.accountContacts)
+      .filter((relation) => relation.contactId === contactId)
+      .map((relation) => relation.accountId);
+
+    return accountIds
+      .map((accountId) => state.doc.accounts[accountId])
+      .filter((account): account is Account => Boolean(account));
+  };
+  return crmStore(useShallow(selector));
+};

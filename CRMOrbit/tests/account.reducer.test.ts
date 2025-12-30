@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
 
 import { initAutomergeDoc } from "../crm-core/automerge/init";
 import { accountReducer } from "../crm-core/reducers/account.reducer";
@@ -145,5 +144,83 @@ test("account.status.updated rejects missing accounts", () => {
 
   assert.throws(() => accountReducer(doc, updated), {
     message: "Account not found: acct-1",
+  });
+});
+
+test("account.deleted removes the account when no contacts are linked", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const deleted: Event = {
+    id: "evt-2",
+    type: "account.deleted",
+    payload: {
+      id: "acct-1",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const deletedDoc = accountReducer(createdDoc, deleted);
+
+  assert.equal(deletedDoc.accounts["acct-1"], undefined);
+});
+
+test("account.deleted rejects deletion when contacts are linked", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const deleted: Event = {
+    id: "evt-2",
+    type: "account.deleted",
+    payload: {
+      id: "acct-1",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const docWithRelation = {
+    ...createdDoc,
+    relations: {
+      ...createdDoc.relations,
+      accountContacts: {
+        ...createdDoc.relations.accountContacts,
+        "rel-1": {
+          accountId: "acct-1",
+          contactId: "contact-1",
+          role: "account.contact.role.primary",
+          isPrimary: true,
+        },
+      },
+    },
+  };
+
+  assert.throws(() => accountReducer(docWithRelation, deleted), {
+    message: "Cannot delete account acct-1: contacts still linked",
   });
 });

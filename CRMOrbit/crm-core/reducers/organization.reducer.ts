@@ -102,6 +102,33 @@ const applyOrganizationUpdated = (
   };
 };
 
+const applyOrganizationDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as { id?: EntityId };
+  const id = resolveEntityId(event, payload);
+  const existing = doc.organizations[id] as Organization | undefined;
+
+  if (!existing) {
+    throw new Error(`Organization not found: ${id}`);
+  }
+
+  const hasDependentAccounts = Object.values(doc.accounts).some(
+    (account) => account.organizationId === id,
+  );
+  if (hasDependentAccounts) {
+    throw new Error(
+      `Cannot delete organization ${id}: accounts still reference it`,
+    );
+  }
+
+  // Remove the organization
+  const { [id]: removed, ...remainingOrganizations } = doc.organizations;
+
+  return {
+    ...doc,
+    organizations: remainingOrganizations,
+  };
+};
+
 export const organizationReducer = (
   doc: AutomergeDoc,
   event: Event,
@@ -113,6 +140,8 @@ export const organizationReducer = (
       return applyOrganizationStatusUpdated(doc, event);
     case "organization.updated":
       return applyOrganizationUpdated(doc, event);
+    case "organization.deleted":
+      return applyOrganizationDeleted(doc, event);
     default:
       throw new Error(
         `organization.reducer does not handle event type: ${event.type}`,

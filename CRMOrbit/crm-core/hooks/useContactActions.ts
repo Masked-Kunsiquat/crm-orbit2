@@ -85,9 +85,56 @@ export const useContactActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const updateContact = useCallback(
+    (
+      contactId: EntityId,
+      name: string,
+      type: string,
+      methods: {
+        emails?: ContactMethod[];
+        phones?: ContactMethod[];
+      } = {},
+    ): DispatchResult => {
+      const event = buildEvent({
+        type: "contact.updated",
+        entityId: contactId,
+        payload: {
+          name,
+          type,
+          methods: {
+            emails: methods.emails ?? [],
+            phones: methods.phones ?? [],
+          },
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
+  const deleteContact = useCallback(
+    (contactId: EntityId): DispatchResult => {
+      const event = buildEvent({
+        type: "contact.deleted",
+        entityId: contactId,
+        payload: {
+          id: contactId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   return {
     createContact,
     addContactMethod,
     updateContactMethod,
+    updateContact,
+    deleteContact,
   };
 };

@@ -2,9 +2,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import type { RootTabParamList } from "./types";
 import { OrganizationsStack } from "./OrganizationsStack";
+import { AccountsStack } from "./AccountsStack";
+import { ContactsStack } from "./ContactsStack";
 import {
-  AccountsScreen,
-  ContactsScreen,
   NotesScreen,
   InteractionsScreen,
 } from "../screens";
@@ -27,12 +27,12 @@ export const RootTabs = () => {
       />
       <Tab.Screen
         name="AccountsTab"
-        component={AccountsScreen}
+        component={AccountsStack}
         options={{ tabBarLabel: "Accounts" }}
       />
       <Tab.Screen
         name="ContactsTab"
-        component={ContactsScreen}
+        component={ContactsStack}
         options={{ tabBarLabel: "Contacts" }}
       />
       <Tab.Screen
