@@ -28,6 +28,15 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   };
 
   const handleDelete = () => {
+    if (contacts.length > 0) {
+      Alert.alert(
+        "Cannot Delete",
+        `Cannot delete "${account.name}" because it has ${contacts.length} linked contact(s). Please unlink them first.`,
+        [{ text: "OK" }],
+      );
+      return;
+    }
+
     Alert.alert(
       "Delete Account",
       `Are you sure you want to delete "${account.name}"? This action cannot be undone.`,
