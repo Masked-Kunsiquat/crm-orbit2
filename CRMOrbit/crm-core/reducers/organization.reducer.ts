@@ -111,6 +111,15 @@ const applyOrganizationDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc
     throw new Error(`Organization not found: ${id}`);
   }
 
+  const hasDependentAccounts = Object.values(doc.accounts).some(
+    (account) => account.organizationId === id,
+  );
+  if (hasDependentAccounts) {
+    throw new Error(
+      `Cannot delete organization ${id}: accounts still reference it`,
+    );
+  }
+
   // Remove the organization
   const { [id]: removed, ...remainingOrganizations } = doc.organizations;
 
