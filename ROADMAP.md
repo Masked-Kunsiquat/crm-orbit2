@@ -64,6 +64,7 @@ Event {
   timestamp
   deviceId
 }
+```
 
 No logic. Types only.
 
