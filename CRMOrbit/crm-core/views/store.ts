@@ -4,6 +4,7 @@ import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { Account } from "../domains/account";
 import type { Contact } from "../domains/contact";
+import type { Interaction } from "../domains/interaction";
 import type { Note } from "../domains/note";
 import type { Organization } from "../domains/organization";
 import type { NoteLinkEntityType } from "../relations/noteLink";
@@ -89,4 +90,28 @@ export const useTimeline = (
 ): TimelineItem[] =>
   useCrmStore((state) =>
     buildTimelineForEntity(state.doc, state.events, entityType, entityId),
+  );
+
+export const useOrganization = (id: EntityId): Organization | undefined =>
+  useCrmStore((state) => state.doc.organizations[id]);
+
+export const useAccount = (id: EntityId): Account | undefined =>
+  useCrmStore((state) => state.doc.accounts[id]);
+
+export const useContact = (id: EntityId): Contact | undefined =>
+  useCrmStore((state) => state.doc.contacts[id]);
+
+export const useNote = (id: EntityId): Note | undefined =>
+  useCrmStore((state) => state.doc.notes[id]);
+
+export const useInteraction = (id: EntityId): Interaction | undefined =>
+  useCrmStore((state) => state.doc.interactions[id]);
+
+export const useAccountsByOrganization = (
+  organizationId: EntityId,
+): Account[] =>
+  useCrmStore((state) =>
+    Object.values(state.doc.accounts).filter(
+      (account) => account.organizationId === organizationId,
+    ),
   );
