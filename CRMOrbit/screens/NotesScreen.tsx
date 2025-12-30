@@ -15,8 +15,11 @@ export const NotesScreen = () => {
   const { createNote, linkNote } = useNoteActions(DEVICE_ID);
 
   const handleAddNote = () => {
-    const noteTitle = `Note ${notes.length + 1}`;
-    const noteBody = "Quick update captured in the field.";
+    // Use timestamp-based identifier (locale-neutral)
+    // In production, this would prompt the user for title and body
+    const timestamp = Date.now();
+    const noteTitle = `note-${timestamp}`;
+    const noteBody = `note-body-${timestamp}`;
 
     const result = createNote(noteTitle, noteBody);
 

@@ -15,8 +15,11 @@ export const ContactsScreen = () => {
   const { linkContact } = useAccountActions(DEVICE_ID);
 
   const handleAddContact = () => {
-    const contactName = `Contact ${allContacts.length + 1}`;
-    const contactEmail = `contact${allContacts.length + 1}@example.com`;
+    // Use timestamp-based identifier (locale-neutral)
+    // In production, this would prompt the user for name and email
+    const timestamp = Date.now();
+    const contactName = `contact-${timestamp}`;
+    const contactEmail = `${timestamp}@example.local`;
 
     const result = createContact(contactName, "contact.type.internal", {
       emails: [

@@ -11,7 +11,9 @@ export const OrganizationsScreen = () => {
   const { createOrganization } = useOrganizationActions(DEVICE_ID);
 
   const handleAddOrganization = () => {
-    createOrganization(`Organization ${organizations.length + 1}`);
+    // Use entity ID as name (locale-neutral identifier)
+    // In production, this would prompt the user for a name
+    const result = createOrganization(`org-${Date.now()}`);
   };
 
   return (

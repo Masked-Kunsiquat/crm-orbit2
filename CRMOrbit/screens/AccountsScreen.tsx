@@ -17,11 +17,9 @@ export const AccountsScreen = () => {
       return;
     }
 
-    createAccount(
-      organization.id,
-      `Account ${accounts.length + 1}`,
-      "account.status.active",
-    );
+    // Use timestamp-based identifier (locale-neutral)
+    // In production, this would prompt the user for a name
+    createAccount(organization.id, `acct-${Date.now()}`, "account.status.active");
   };
 
   return (

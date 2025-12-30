@@ -12,7 +12,9 @@ export const InteractionsScreen = () => {
   const { logInteraction } = useInteractionActions(DEVICE_ID);
 
   const handleAddInteraction = () => {
-    logInteraction("interaction.type.call", "Quick check-in call.");
+    // Use timestamp-based identifier (locale-neutral)
+    // In production, this would prompt the user for summary
+    logInteraction("interaction.type.call", `interaction-${Date.now()}`);
   };
 
   return (
