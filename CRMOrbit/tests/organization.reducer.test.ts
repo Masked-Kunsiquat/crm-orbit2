@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
 
 import { initAutomergeDoc } from "../crm-core/automerge/init";
 import { organizationReducer } from "../crm-core/reducers/organization.reducer";
