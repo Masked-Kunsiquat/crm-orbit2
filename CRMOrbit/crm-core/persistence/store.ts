@@ -8,8 +8,21 @@ export type SnapshotRecord = {
   timestamp: Timestamp;
 };
 
+export type EventLogRecord = {
+  id: string;
+  type: string;
+  entityId: string | null;
+  payload: string;
+  timestamp: Timestamp;
+  deviceId: string;
+};
+
+export type InsertValues = unknown | unknown[];
+
 export type PersistenceDb = {
-  insert: (table: unknown) => { values: (value: unknown) => { run: () => Promise<void> } };
+  insert: (table: unknown) => {
+    values: (value: InsertValues) => { run: () => Promise<void> };
+  };
   select: () => { from: (table: unknown) => { all: () => Promise<SnapshotRecord[]> } };
 };
 
@@ -38,7 +51,7 @@ export const appendEvents = async (
   db: PersistenceDb,
   events: Event[],
 ): Promise<void> => {
-  const rows = events.map((event) => ({
+  const rows: EventLogRecord[] = events.map((event) => ({
     id: event.id,
     type: event.type,
     entityId: event.entityId ?? null,
@@ -48,4 +61,13 @@ export const appendEvents = async (
   }));
 
   await db.insert(eventLog).values(rows).run();
+};
+
+export const persistSnapshotAndEvents = async (
+  db: PersistenceDb,
+  snapshot: SnapshotRecord,
+  events: Event[],
+): Promise<void> => {
+  await appendEvents(db, events);
+  await saveSnapshot(db, snapshot);
 };
