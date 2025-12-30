@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { colors } from "../theme/colors";
+
 type SectionProps = {
   title: string;
   children: ReactNode;
@@ -15,7 +17,7 @@ export const Section = ({ title, children }: SectionProps) => (
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -29,6 +31,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 12,
-    color: "#1f1f1f",
+    color: colors.textPrimary,
   },
 });

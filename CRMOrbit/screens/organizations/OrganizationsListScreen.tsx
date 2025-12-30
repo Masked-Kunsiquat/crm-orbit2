@@ -1,8 +1,10 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import type { OrganizationsStackScreenProps } from "../../navigation/types";
 import { useOrganizations } from "../../crm-core/views/store";
 import type { Organization } from "../../crm-core/domains/organization";
+import { ListCard, ListCardChevron, ListScreenLayout, StatusBadge } from "../../components";
+import { colors } from "../../theme/colors";
 
 type Props = OrganizationsStackScreenProps<"OrganizationsList">;
 
@@ -18,70 +20,38 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
   };
 
   const renderItem = ({ item }: { item: Organization }) => (
-    <TouchableOpacity style={styles.item} onPress={() => handlePress(item)}>
+    <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
       <View style={styles.itemContent}>
         <View style={styles.itemHeader}>
           <Text style={styles.itemName}>{item.name}</Text>
-          <View
-            style={[
-              styles.statusBadge,
-              item.status === "organization.status.active"
-                ? styles.statusActive
-                : styles.statusInactive,
-            ]}
-          >
-            <Text style={styles.statusText}>
-              {item.status === "organization.status.active" ? "Active" : "Inactive"}
-            </Text>
-          </View>
+          <StatusBadge
+            isActive={item.status === "organization.status.active"}
+            activeLabel="Active"
+            inactiveLabel="Inactive"
+          />
         </View>
       </View>
-      <Text style={styles.itemChevron}>›</Text>
-    </TouchableOpacity>
+      <ListCardChevron />
+    </ListCard>
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={organizations}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No organizations yet</Text>
-            <Text style={styles.emptyHint}>Tap the + button to create one</Text>
-          </View>
-        }
-      />
-      <TouchableOpacity style={styles.fab} onPress={handleAdd}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
-    </View>
+    <ListScreenLayout
+      data={organizations}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id}
+      emptyTitle="No organizations yet"
+      emptyHint="Tap the + button to create one"
+      onAdd={handleAdd}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  list: {
-    padding: 16,
-  },
-  item: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
+  cardRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   itemContent: {
     flex: 1,
@@ -94,63 +64,7 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1b1b1b",
+    color: colors.textPrimary,
     flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  statusActive: {
-    backgroundColor: "#e8f5e9",
-  },
-  statusInactive: {
-    backgroundColor: "#ffebee",
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  itemChevron: {
-    fontSize: 24,
-    color: "#ccc",
-    marginLeft: 12,
-  },
-  empty: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#999",
-    marginBottom: 8,
-  },
-  emptyHint: {
-    fontSize: 14,
-    color: "#bbb",
-  },
-  fab: {
-    position: "absolute",
-    right: 16,
-    bottom: 16,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#1f5eff",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  fabText: {
-    fontSize: 32,
-    color: "#fff",
-    fontWeight: "300",
   },
 });

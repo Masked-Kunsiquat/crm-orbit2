@@ -4,18 +4,13 @@ import type { ContactsStackParamList } from "./types";
 import { ContactsListScreen } from "../screens/contacts/ContactsListScreen";
 import { ContactDetailScreen } from "../screens/contacts/ContactDetailScreen";
 import { ContactFormScreen } from "../screens/contacts/ContactFormScreen";
+import { stackScreenOptions } from "./stackOptions";
 
 const Stack = createNativeStackNavigator<ContactsStackParamList>();
 
 export const ContactsStack = () => {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: "#1f5eff" },
-        headerTintColor: "#fff",
-        headerTitleStyle: { fontWeight: "600" },
-      }}
-    >
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="ContactsList"
         component={ContactsListScreen}
