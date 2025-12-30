@@ -3,7 +3,8 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "rea
 import type { OrganizationsStackScreenProps } from "../../navigation/types";
 import { useOrganization, useAccountsByOrganization } from "../../crm-core/views/store";
 import { useOrganizationActions } from "../../crm-core/hooks/useOrganizationActions";
-import { useDeviceId } from "../../crm-core/hooks/useDeviceId";
+
+const DEVICE_ID = "device-local";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 
@@ -11,8 +12,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { organizationId } = route.params;
   const organization = useOrganization(organizationId);
   const accounts = useAccountsByOrganization(organizationId);
-  const deviceId = useDeviceId();
-  const { deleteOrganization } = useOrganizationActions(deviceId);
+  const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
 
   if (!organization) {
     return (
