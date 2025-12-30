@@ -1,13 +1,20 @@
+import type { Account } from "../domains/account";
+import type { Contact } from "../domains/contact";
+import type { Interaction } from "../domains/interaction";
+import type { Note } from "../domains/note";
+import type { Organization } from "../domains/organization";
+import type { AccountContact } from "../relations/accountContact";
+import type { NoteLink } from "../relations/noteLink";
 import type { EntityId } from "../shared/types";
 
 export interface AutomergeDoc {
-  organizations: Record<EntityId, unknown>;
-  accounts: Record<EntityId, unknown>;
-  contacts: Record<EntityId, unknown>;
-  notes: Record<EntityId, unknown>;
-  interactions: Record<EntityId, unknown>;
+  organizations: Record<EntityId, Organization>;
+  accounts: Record<EntityId, Account>;
+  contacts: Record<EntityId, Contact>;
+  notes: Record<EntityId, Note>;
+  interactions: Record<EntityId, Interaction>;
   relations: {
-    accountContacts: Record<EntityId, unknown>;
-    noteLinks: Record<EntityId, unknown>;
+    accountContacts: Record<EntityId, AccountContact>;
+    noteLinks: Record<EntityId, NoteLink>;
   };
 }
