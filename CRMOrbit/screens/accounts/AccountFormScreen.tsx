@@ -80,20 +80,16 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
     if (accountId) {
       const result = updateAccount(accountId, name.trim(), status, organizationId);
-      console.log("Update result:", result);
       if (result.success) {
         navigation.goBack();
       } else {
-        console.error("Update failed:", result.error);
         Alert.alert("Error", result.error || "Failed to update account");
       }
     } else {
       const result = createAccount(organizationId, name.trim(), status);
-      console.log("Create result:", result);
       if (result.success) {
         navigation.goBack();
       } else {
-        console.error("Create failed:", result.error);
         Alert.alert("Error", result.error || "Failed to create account");
       }
     }
