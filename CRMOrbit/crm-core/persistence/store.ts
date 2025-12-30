@@ -8,9 +8,25 @@ export type SnapshotRecord = {
   timestamp: Timestamp;
 };
 
+export type EventLogRecord = {
+  id: string;
+  type: string;
+  entityId: string | null;
+  payload: string;
+  timestamp: Timestamp;
+  deviceId: string;
+};
+
+export type InsertValues = unknown | unknown[];
+
 export type PersistenceDb = {
-  insert: (table: unknown) => { values: (value: unknown) => { run: () => Promise<void> } };
-  select: () => { from: (table: unknown) => { all: () => Promise<SnapshotRecord[]> } };
+  insert: (table: unknown) => {
+    values: (value: InsertValues) => { run: () => Promise<void> };
+  };
+  select: () => {
+    from: <T = SnapshotRecord | EventLogRecord>(table: unknown) => { all: () => Promise<T[]> }
+  };
+  transaction: <T>(fn: (tx: PersistenceDb) => Promise<T>) => Promise<T>;
 };
 
 export const saveSnapshot = async (
@@ -23,7 +39,7 @@ export const saveSnapshot = async (
 export const loadLatestSnapshot = async (
   db: PersistenceDb,
 ): Promise<SnapshotRecord | null> => {
-  const rows = await db.select().from(automergeSnapshots).all();
+  const rows = await db.select().from<SnapshotRecord>(automergeSnapshots).all();
 
   if (rows.length === 0) {
     return null;
@@ -38,7 +54,7 @@ export const appendEvents = async (
   db: PersistenceDb,
   events: Event[],
 ): Promise<void> => {
-  const rows = events.map((event) => ({
+  const rows: EventLogRecord[] = events.map((event) => ({
     id: event.id,
     type: event.type,
     entityId: event.entityId ?? null,
@@ -48,4 +64,15 @@ export const appendEvents = async (
   }));
 
   await db.insert(eventLog).values(rows).run();
+};
+
+export const persistSnapshotAndEvents = async (
+  db: PersistenceDb,
+  snapshot: SnapshotRecord,
+  events: Event[],
+): Promise<void> => {
+  await db.transaction(async (tx) => {
+    await appendEvents(tx, events);
+    await saveSnapshot(tx, snapshot);
+  });
 };
