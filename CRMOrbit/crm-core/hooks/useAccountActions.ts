@@ -36,7 +36,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const updateAccountStatus = useCallback(
@@ -52,7 +52,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const linkContact = useCallback(
@@ -78,7 +78,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const setPrimaryContact = useCallback(
@@ -97,7 +97,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const unsetPrimaryContact = useCallback(
@@ -116,7 +116,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   return {

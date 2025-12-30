@@ -31,7 +31,7 @@ export const useNoteActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const updateNote = useCallback(
@@ -48,7 +48,7 @@ export const useNoteActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const linkNote = useCallback(
@@ -68,7 +68,7 @@ export const useNoteActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const unlinkNote = useCallback(
@@ -82,7 +82,7 @@ export const useNoteActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   return {

@@ -20,8 +20,8 @@ export type AutomergeSource = {
 type CrmStoreState = {
   doc: AutomergeDoc;
   events: Event[];
-  setDoc: (doc: AutomergeDoc) => void;
-  setEvents: (events: Event[]) => void;
+  setDoc: (doc: AutomergeDoc | ((prev: AutomergeDoc) => AutomergeDoc)) => void;
+  setEvents: (events: Event[] | ((prev: Event[]) => Event[])) => void;
 };
 
 export const useCrmStore = create<CrmStoreState>((set) => ({
@@ -37,8 +37,17 @@ export const useCrmStore = create<CrmStoreState>((set) => ({
     },
   },
   events: [],
-  setDoc: (doc) => set({ doc }),
-  setEvents: (events) => set({ events }),
+  setDoc: (docOrUpdater) =>
+    set((state) => ({
+      doc: typeof docOrUpdater === "function" ? docOrUpdater(state.doc) : docOrUpdater,
+    })),
+  setEvents: (eventsOrUpdater) =>
+    set((state) => ({
+      events:
+        typeof eventsOrUpdater === "function"
+          ? eventsOrUpdater(state.events)
+          : eventsOrUpdater,
+    })),
 }));
 
 export const bindAutomergeSource = (source: AutomergeSource): (() => void) => {

@@ -34,7 +34,7 @@ export const useInteractionActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   return {

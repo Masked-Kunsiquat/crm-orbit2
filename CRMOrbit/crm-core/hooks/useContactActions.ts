@@ -42,7 +42,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const addContactMethod = useCallback(
@@ -65,7 +65,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const updateContactMethod = useCallback(
@@ -90,7 +90,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   return {

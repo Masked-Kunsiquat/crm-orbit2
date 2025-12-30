@@ -41,12 +41,12 @@ export const useDispatch = () => {
       });
 
       try {
-        // Get current state directly from store
-        const currentState = useCrmStore.getState();
-        const nextDoc = applyEvents(currentState.doc, newEvents);
+        // Use functional setters to handle rapid dispatches correctly
+        const store = useCrmStore.getState();
 
-        currentState.setDoc(nextDoc);
-        currentState.setEvents([...currentState.events, ...newEvents]);
+        // Apply events to the latest doc state
+        store.setDoc((currentDoc) => applyEvents(currentDoc, newEvents));
+        store.setEvents((prevEvents) => [...prevEvents, ...newEvents]);
 
         // Keep processing state visible briefly for user feedback
         setTimeout(() => {
@@ -103,7 +103,7 @@ export const useEventBuilder = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   return buildAndDispatch;

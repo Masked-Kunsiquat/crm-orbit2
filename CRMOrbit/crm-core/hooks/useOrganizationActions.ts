@@ -31,7 +31,7 @@ export const useOrganizationActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   const updateOrganizationStatus = useCallback(
@@ -47,7 +47,7 @@ export const useOrganizationActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId],
   );
 
   return {
