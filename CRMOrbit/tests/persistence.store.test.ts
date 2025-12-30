@@ -24,7 +24,9 @@ const createMemoryDb = () => {
     events: [],
   };
 
-  const db: PersistenceDb = {
+  const createDbInterface = (
+    currentTables: StoredTables,
+  ): PersistenceDb => ({
     insert: (table) => ({
       values: (value) => ({
         run: async () => {
@@ -32,7 +34,7 @@ const createMemoryDb = () => {
             const rows = Array.isArray(value)
               ? (value as SnapshotRecord[])
               : ([value] as SnapshotRecord[]);
-            tables.snapshots.push(...rows);
+            currentTables.snapshots.push(...rows);
             return;
           }
 
@@ -40,7 +42,7 @@ const createMemoryDb = () => {
             const rows = Array.isArray(value)
               ? (value as EventLogRecord[])
               : ([value] as EventLogRecord[]);
-            tables.events.push(...rows);
+            currentTables.events.push(...rows);
             return;
           }
 
@@ -52,18 +54,40 @@ const createMemoryDb = () => {
       from: (table) => ({
         all: async () => {
           if (table === automergeSnapshots) {
-            return [...tables.snapshots];
+            return [...currentTables.snapshots];
           }
 
           if (table === eventLog) {
-            return [...tables.events] as SnapshotRecord[];
+            return [...currentTables.events] as SnapshotRecord[];
           }
 
           throw new Error("Unknown table.");
         },
       }),
     }),
-  };
+    transaction: async <T>(fn: (tx: PersistenceDb) => Promise<T>): Promise<T> => {
+      // Simulate transaction with shadow tables for rollback
+      const shadowTables: StoredTables = {
+        snapshots: [...currentTables.snapshots],
+        events: [...currentTables.events],
+      };
+
+      const tx = createDbInterface(shadowTables);
+
+      try {
+        const result = await fn(tx);
+        // Commit: apply shadow tables to main tables
+        currentTables.snapshots = shadowTables.snapshots;
+        currentTables.events = shadowTables.events;
+        return result;
+      } catch (error) {
+        // Rollback: discard shadow tables, keep original tables
+        throw error;
+      }
+    },
+  });
+
+  const db = createDbInterface(tables);
 
   return { db, tables };
 };
@@ -116,7 +140,7 @@ test("appendEvents persists serialized payloads", async () => {
   assert.equal(tables.events[1]?.payload, JSON.stringify(events[1]?.payload));
 });
 
-test("persistSnapshotAndEvents writes events then snapshot", async () => {
+test("persistSnapshotAndEvents writes events then snapshot in transaction", async () => {
   const { db, tables } = createMemoryDb();
   const snapshot: SnapshotRecord = {
     id: "snap-1",
@@ -137,4 +161,39 @@ test("persistSnapshotAndEvents writes events then snapshot", async () => {
 
   assert.equal(tables.events.length, 1);
   assert.equal(tables.snapshots.length, 1);
+});
+
+test("transaction rolls back on error", async () => {
+  const { db, tables } = createMemoryDb();
+
+  const errorThrowingSnapshot: SnapshotRecord = {
+    id: "snap-bad",
+    doc: "{}",
+    timestamp: "2024-05-01T00:00:00.000Z",
+  };
+
+  // Add initial data
+  await saveSnapshot(db, {
+    id: "snap-good",
+    doc: "{}",
+    timestamp: "2024-05-01T00:00:00.000Z",
+  });
+
+  assert.equal(tables.snapshots.length, 1);
+
+  // Attempt transaction that will fail
+  try {
+    await db.transaction(async (tx) => {
+      await saveSnapshot(tx, errorThrowingSnapshot);
+      // Simulate an error during transaction
+      throw new Error("Transaction failed");
+    });
+    assert.fail("Should have thrown error");
+  } catch (error) {
+    assert.ok(error);
+  }
+
+  // Verify rollback: original data intact, no new data
+  assert.equal(tables.snapshots.length, 1);
+  assert.equal(tables.snapshots[0]?.id, "snap-good");
 });

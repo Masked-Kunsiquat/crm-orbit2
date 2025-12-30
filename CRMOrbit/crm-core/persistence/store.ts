@@ -24,6 +24,7 @@ export type PersistenceDb = {
     values: (value: InsertValues) => { run: () => Promise<void> };
   };
   select: () => { from: (table: unknown) => { all: () => Promise<SnapshotRecord[]> } };
+  transaction: <T>(fn: (tx: PersistenceDb) => Promise<T>) => Promise<T>;
 };
 
 export const saveSnapshot = async (
@@ -68,6 +69,8 @@ export const persistSnapshotAndEvents = async (
   snapshot: SnapshotRecord,
   events: Event[],
 ): Promise<void> => {
-  await appendEvents(db, events);
-  await saveSnapshot(db, snapshot);
+  await db.transaction(async (tx) => {
+    await appendEvents(tx, events);
+    await saveSnapshot(tx, snapshot);
+  });
 };
