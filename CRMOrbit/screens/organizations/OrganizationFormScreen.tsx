@@ -76,7 +76,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         Alert.alert("Error", result.error || "Failed to update organization");
       }
     } else {
-      const result = createOrganization(name.trim());
+      const result = createOrganization(name.trim(), status);
       console.log("Create result:", result);
       if (result.success) {
         navigation.goBack();
