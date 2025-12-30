@@ -28,11 +28,6 @@ export const useDispatch = () => {
     lastEventType: null,
   });
 
-  const doc = useCrmStore((s) => s.doc);
-  const events = useCrmStore((s) => s.events);
-  const setDoc = useCrmStore((s) => s.setDoc);
-  const setEvents = useCrmStore((s) => s.setEvents);
-
   const dispatch = useCallback(
     (newEvents: Event[]): DispatchResult => {
       if (newEvents.length === 0) {
@@ -46,9 +41,12 @@ export const useDispatch = () => {
       });
 
       try {
-        const nextDoc = applyEvents(doc, newEvents);
-        setDoc(nextDoc);
-        setEvents([...events, ...newEvents]);
+        // Get current state directly from store
+        const currentState = useCrmStore.getState();
+        const nextDoc = applyEvents(currentState.doc, newEvents);
+
+        currentState.setDoc(nextDoc);
+        currentState.setEvents([...currentState.events, ...newEvents]);
 
         // Keep processing state visible briefly for user feedback
         setTimeout(() => {
@@ -69,7 +67,7 @@ export const useDispatch = () => {
         return { success: false, error: errorMessage };
       }
     },
-    [doc, events, setDoc, setEvents],
+    [],
   );
 
   const clearError = useCallback(() => {
