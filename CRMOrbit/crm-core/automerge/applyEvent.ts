@@ -6,6 +6,19 @@ export type Reducer = (doc: AutomergeDoc, event: Event) => AutomergeDoc;
 
 const REDUCERS: Partial<Record<EventType, Reducer>> = {};
 
+export const registerReducers = (
+  reducers: Partial<Record<EventType, Reducer>>,
+): void => {
+  Object.assign(REDUCERS, reducers);
+};
+
+export const registerReducer = (
+  eventType: EventType,
+  reducer: Reducer,
+): void => {
+  REDUCERS[eventType] = reducer;
+};
+
 const EVENT_TYPE_SET = new Set<EventType>(EVENT_TYPES);
 
 const isEventType = (type: string): type is EventType => EVENT_TYPE_SET.has(type);
