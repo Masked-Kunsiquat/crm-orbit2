@@ -137,8 +137,9 @@ Organization {
   status   // i18n key
   metadata
 }
-
-Account
+```
+### Account
+```ts
 Account {
   id
   organizationId
@@ -146,8 +147,10 @@ Account {
   status   // i18n key
   metadata
 }
+```
 
-Contact
+### Contact
+```ts
 Contact {
   id
   type    // i18n key ("contact.type.internal", etc)
@@ -157,25 +160,30 @@ Contact {
     phones: [{ value, label, status }]
   }
 }
+```
 
-Note
+### Note
+```ts
 Note {
   id
   title        // user-entered or generated once
   body         // user-entered
   createdAt
 }
+```
 
-Interaction
+### Interaction
+```ts 
 Interaction {
   id
   type        // i18n key
   occurredAt
   summary     // user-entered
 }
+```
 
-
-Relationships (Explicit Only)
+### Relationships (Explicit Only)
+```ts
 Account ↔ Contact
 AccountContact {
   accountId
@@ -183,20 +191,23 @@ AccountContact {
   role        // i18n key
   isPrimary
 }
-
+```
+```ts
 Note Links (Generic)
 NoteLink {
   noteId
   entityType
   entityId
 }
+```
 
 No nesting.
 No implicit ownership.
 Everything is linked.
 
-Event System (Critical)
+### Event System (Critical)
 Event Shape
+```ts
 Event {
   id
   type        // semantic identifier, NOT text
@@ -205,6 +216,7 @@ Event {
   timestamp
   deviceId
 }
+```
 
 Rules
 
@@ -214,19 +226,21 @@ Never deleted
 Must be meaningful to humans after localization
 
 Examples
+```
 contact.created
 contact.method.added
 account.contact.setPrimary
 note.created
 note.linked
 interaction.logged
+```
 
 🚫 Do not emit:
-
+```
 field.updated
 state.changed
 localized messages
-
+```
 
 Reducer Rules (Strict)
 Reducers must:
