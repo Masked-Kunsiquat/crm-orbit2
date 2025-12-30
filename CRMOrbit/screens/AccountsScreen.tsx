@@ -1,0 +1,66 @@
+import { StyleSheet, Text } from "react-native";
+
+import { ActionButton, Section } from "../components";
+import { useAccountActions } from "../crm-core/hooks";
+import { useAccounts, useOrganizations } from "../crm-core/views/store";
+
+const DEVICE_ID = "device-local";
+
+export const AccountsScreen = () => {
+  const organizations = useOrganizations();
+  const accounts = useAccounts();
+  const { createAccount } = useAccountActions(DEVICE_ID);
+
+  const handleAddAccount = () => {
+    const organization = organizations[0];
+    if (!organization) {
+      return;
+    }
+
+    createAccount(
+      organization.id,
+      `Account ${accounts.length + 1}`,
+      "account.status.active",
+    );
+  };
+
+  return (
+    <Section title="Accounts">
+      <ActionButton
+        label="Add account"
+        onPress={handleAddAccount}
+        disabled={organizations.length === 0}
+      />
+      {organizations.length === 0 ? (
+        <Text style={styles.hint}>Add an organization first.</Text>
+      ) : null}
+      {accounts.length === 0 ? (
+        <Text style={styles.empty}>No accounts yet.</Text>
+      ) : (
+        accounts.map((account) => (
+          <Text key={account.id} style={styles.item}>
+            {account.name} (org {account.organizationId})
+          </Text>
+        ))
+      )}
+    </Section>
+  );
+};
+
+const styles = StyleSheet.create({
+  item: {
+    fontSize: 14,
+    marginBottom: 6,
+    color: "#2a2a2a",
+  },
+  empty: {
+    fontSize: 13,
+    color: "#7a7a7a",
+    fontStyle: "italic",
+  },
+  hint: {
+    fontSize: 12,
+    color: "#8a6f00",
+    marginBottom: 8,
+  },
+});
