@@ -3,6 +3,8 @@ import { useCallback, useState } from "react";
 import { applyEvents, buildEvent } from "../events/dispatcher";
 import type { Event } from "../events/event";
 import { useCrmStore } from "../views/store";
+import { getDatabase, createPersistenceDb } from "../persistence/database";
+import { appendEvents } from "../persistence/store";
 
 type DispatchState = {
   isProcessing: boolean;
@@ -47,6 +49,17 @@ export const useDispatch = () => {
         // Apply events to the latest doc state
         store.setDoc((currentDoc) => applyEvents(currentDoc, newEvents));
         store.setEvents((prevEvents) => [...prevEvents, ...newEvents]);
+
+        // Persist events to database (async, non-blocking)
+        (async () => {
+          try {
+            const db = getDatabase();
+            const persistenceDb = createPersistenceDb(db);
+            await appendEvents(persistenceDb, newEvents);
+          } catch (persistError) {
+            console.error("Failed to persist events:", persistError);
+          }
+        })();
 
         // Keep processing state visible briefly for user feedback
         setTimeout(() => {
