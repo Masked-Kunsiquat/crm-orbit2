@@ -16,6 +16,13 @@ type AccountStatusUpdatedPayload = {
   status: AccountStatus;
 };
 
+type AccountUpdatedPayload = {
+  id?: EntityId;
+  name?: string;
+  status?: AccountStatus;
+  organizationId?: EntityId;
+};
+
 const resolveEntityId = <T extends { id?: EntityId }>(
   event: Event,
   payload: T,
@@ -93,12 +100,43 @@ const applyAccountStatusUpdated = (
   };
 };
 
+const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as AccountUpdatedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.accounts[id] as Account | undefined;
+
+  if (!existing) {
+    throw new Error(`Account not found: ${id}`);
+  }
+
+  // Validate organization if being changed
+  if (payload.organizationId && !doc.organizations[payload.organizationId]) {
+    throw new Error(`Organization not found: ${payload.organizationId}`);
+  }
+
+  return {
+    ...doc,
+    accounts: {
+      ...doc.accounts,
+      [id]: {
+        ...existing,
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.status !== undefined && { status: payload.status }),
+        ...(payload.organizationId !== undefined && { organizationId: payload.organizationId }),
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
 export const accountReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   switch (event.type) {
     case "account.created":
       return applyAccountCreated(doc, event);
     case "account.status.updated":
       return applyAccountStatusUpdated(doc, event);
+    case "account.updated":
+      return applyAccountUpdated(doc, event);
     default:
       throw new Error(
         `account.reducer does not handle event type: ${event.type}`,

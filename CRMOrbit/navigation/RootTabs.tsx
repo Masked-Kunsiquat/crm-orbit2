@@ -2,8 +2,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import type { RootTabParamList } from "./types";
 import { OrganizationsStack } from "./OrganizationsStack";
+import { AccountsStack } from "./AccountsStack";
 import {
-  AccountsScreen,
   ContactsScreen,
   NotesScreen,
   InteractionsScreen,
@@ -27,7 +27,7 @@ export const RootTabs = () => {
       />
       <Tab.Screen
         name="AccountsTab"
-        component={AccountsScreen}
+        component={AccountsStack}
         options={{ tabBarLabel: "Accounts" }}
       />
       <Tab.Screen

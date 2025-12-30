@@ -14,6 +14,7 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "organization.updated": organizationReducer,
   "account.created": accountReducer,
   "account.status.updated": accountReducer,
+  "account.updated": accountReducer,
   "contact.created": contactReducer,
   "contact.method.added": contactReducer,
   "contact.method.updated": contactReducer,

@@ -51,6 +51,29 @@ export const useAccountActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const updateAccount = useCallback(
+    (
+      accountId: EntityId,
+      name: string,
+      status: string,
+      organizationId?: EntityId,
+    ): DispatchResult => {
+      const event = buildEvent({
+        type: "account.updated",
+        entityId: accountId,
+        payload: {
+          name,
+          status,
+          ...(organizationId && { organizationId }),
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   const linkContact = useCallback(
     (
       accountId: EntityId,
@@ -118,6 +141,7 @@ export const useAccountActions = (deviceId: string) => {
   return {
     createAccount,
     updateAccountStatus,
+    updateAccount,
     linkContact,
     setPrimaryContact,
     unsetPrimaryContact,
