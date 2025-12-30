@@ -1,7 +1,8 @@
-import type { Note } from "../domains/note";
 import type { AutomergeDoc } from "../automerge/schema";
+import type { Note } from "../domains/note";
 import type { Event } from "../events/event";
 import type { EntityId } from "../shared/types";
+import { resolveEntityId } from "./shared";
 
 type NoteCreatedPayload = {
   id: EntityId;
@@ -14,25 +15,6 @@ type NoteUpdatedPayload = {
   id?: EntityId;
   title?: string;
   body?: string;
-};
-
-const resolveEntityId = <T extends { id?: EntityId }>(
-  event: Event,
-  payload: T,
-): EntityId => {
-  if (payload.id && event.entityId && payload.id !== event.entityId) {
-    throw new Error(
-      `Event entityId mismatch: payload=${payload.id}, event=${event.entityId}`,
-    );
-  }
-
-  const entityId = payload.id ?? event.entityId;
-
-  if (!entityId) {
-    throw new Error("Event entityId is required.");
-  }
-
-  return entityId;
 };
 
 const applyNoteCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
