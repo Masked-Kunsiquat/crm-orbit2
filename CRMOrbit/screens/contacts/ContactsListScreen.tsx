@@ -1,15 +1,23 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { ContactsStackScreenProps } from "../../navigation/types";
 import { useAllContacts } from "../../crm-core/views/store";
 import type { Contact } from "../../crm-core/domains/contact";
-import { ListCard, ListCardChevron, ListScreenLayout } from "../../components";
+import { HeaderMenu, ListCard, ListCardChevron, ListScreenLayout } from "../../components";
 import { colors } from "../../theme/colors";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
 
 export const ContactsListScreen = ({ navigation }: Props) => {
   const contacts = useAllContacts();
+  const [menuVisible, setMenuVisible] = useState(false);
+  const menuAnchorRef = useRef<View>(null);
+  const sortedContacts = useMemo(() => {
+    return [...contacts].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
+  }, [contacts]);
 
   const handlePress = (contact: Contact) => {
     navigation.navigate("ContactDetail", { contactId: contact.id });
@@ -18,6 +26,23 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   const handleAdd = () => {
     navigation.navigate("ContactForm", {});
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Contact list options"
+            onPress={() => setMenuVisible((current) => !current)}
+            style={styles.headerButton}
+          >
+            <Text style={styles.headerButtonText}>⋮</Text>
+          </Pressable>
+        </View>
+      ),
+    });
+  }, [navigation]);
 
   const getContactTypeLabel = (type: string) => {
     switch (type) {
@@ -50,18 +75,45 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   );
 
   return (
-    <ListScreenLayout
-      data={contacts}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      emptyTitle="No contacts yet"
-      emptyHint="Tap the + button to create one"
-      onAdd={handleAdd}
-    />
+    <>
+      <ListScreenLayout
+        data={sortedContacts}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        emptyTitle="No contacts yet"
+        emptyHint="Tap the + button to create one"
+        onAdd={handleAdd}
+      />
+      <HeaderMenu
+        anchorRef={menuAnchorRef}
+        visible={menuVisible}
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setMenuVisible(false)}
+          style={styles.menuItem}
+        >
+          <Text style={styles.menuItemText}>More options soon</Text>
+        </Pressable>
+      </HeaderMenu>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  headerMenuWrapper: {
+    position: "relative",
+    alignItems: "flex-end",
+  },
+  headerButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  headerButtonText: {
+    fontSize: 18,
+    color: colors.headerTint,
+  },
   cardRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -84,5 +136,13 @@ const styles = StyleSheet.create({
   itemType: {
     fontSize: 12,
     color: colors.textMuted,
+  },
+  menuItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  menuItemText: {
+    color: colors.textPrimary,
+    fontSize: 14,
   },
 });
