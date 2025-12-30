@@ -1,14 +1,8 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../events/dispatcher";
+import { nextId } from "../shared/idGenerator";
 import { useDispatch } from "./useDispatch";
-
-let idCounter = 0;
-
-const nextId = (prefix: string): string => {
-  idCounter += 1;
-  return `${prefix}-${idCounter}`;
-};
 
 export const useInteractionActions = (deviceId: string) => {
   const { dispatch } = useDispatch();

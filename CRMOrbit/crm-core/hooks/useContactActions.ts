@@ -3,14 +3,8 @@ import { useCallback } from "react";
 import { buildEvent } from "../events/dispatcher";
 import type { ContactMethod } from "../domains/contact";
 import type { EntityId } from "../shared/types";
+import { nextId } from "../shared/idGenerator";
 import { useDispatch } from "./useDispatch";
-
-let idCounter = 0;
-
-const nextId = (prefix: string): string => {
-  idCounter += 1;
-  return `${prefix}-${idCounter}`;
-};
 
 export const useContactActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
