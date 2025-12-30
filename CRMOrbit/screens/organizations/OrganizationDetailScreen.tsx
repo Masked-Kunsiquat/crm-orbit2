@@ -31,7 +31,18 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
       <View style={styles.section}>
         <Text style={styles.label}>Status</Text>
-        <Text style={styles.value}>{organization.status}</Text>
+        <View
+          style={[
+            styles.statusBadge,
+            organization.status === "organization.status.active"
+              ? styles.statusActive
+              : styles.statusInactive,
+          ]}
+        >
+          <Text style={styles.statusText}>
+            {organization.status === "organization.status.active" ? "Active" : "Inactive"}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -82,6 +93,22 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     color: "#1b1b1b",
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+  },
+  statusActive: {
+    backgroundColor: "#e8f5e9",
+  },
+  statusInactive: {
+    backgroundColor: "#ffebee",
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   sectionTitle: {
     fontSize: 16,

@@ -20,8 +20,21 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
   const renderItem = ({ item }: { item: Organization }) => (
     <TouchableOpacity style={styles.item} onPress={() => handlePress(item)}>
       <View style={styles.itemContent}>
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemStatus}>{item.status}</Text>
+        <View style={styles.itemHeader}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              item.status === "organization.status.active"
+                ? styles.statusActive
+                : styles.statusInactive,
+            ]}
+          >
+            <Text style={styles.statusText}>
+              {item.status === "organization.status.active" ? "Active" : "Inactive"}
+            </Text>
+          </View>
+        </View>
       </View>
       <Text style={styles.itemChevron}>›</Text>
     </TouchableOpacity>
@@ -73,15 +86,31 @@ const styles = StyleSheet.create({
   itemContent: {
     flex: 1,
   },
+  itemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   itemName: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1b1b1b",
-    marginBottom: 4,
+    flex: 1,
   },
-  itemStatus: {
-    fontSize: 13,
-    color: "#666",
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  statusActive: {
+    backgroundColor: "#e8f5e9",
+  },
+  statusInactive: {
+    backgroundColor: "#ffebee",
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "500",
   },
   itemChevron: {
     fontSize: 24,
