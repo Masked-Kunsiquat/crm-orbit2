@@ -42,17 +42,21 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
     if (organizationId) {
       const result = updateOrganization(organizationId, name.trim(), status);
+      console.log("Update result:", result);
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", "Failed to update organization");
+        console.error("Update failed:", result.error);
+        Alert.alert("Error", result.error || "Failed to update organization");
       }
     } else {
       const result = createOrganization(name.trim());
+      console.log("Create result:", result);
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", "Failed to create organization");
+        console.error("Create failed:", result.error);
+        Alert.alert("Error", result.error || "Failed to create organization");
       }
     }
   };

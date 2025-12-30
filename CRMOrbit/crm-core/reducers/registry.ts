@@ -11,6 +11,7 @@ import { organizationReducer } from "./organization.reducer";
 export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "organization.created": organizationReducer,
   "organization.status.updated": organizationReducer,
+  "organization.updated": organizationReducer,
   "account.created": accountReducer,
   "account.status.updated": accountReducer,
   "contact.created": contactReducer,
