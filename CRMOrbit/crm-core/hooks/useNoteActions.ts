@@ -2,15 +2,16 @@ import { useCallback } from "react";
 
 import { buildEvent } from "../events/dispatcher";
 import type { NoteLinkEntityType } from "../relations/noteLink";
-import type { EntityId } from "../shared/types";
 import { nextId } from "../shared/idGenerator";
+import type { EntityId } from "../shared/types";
+import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
 export const useNoteActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
 
   const createNote = useCallback(
-    (title: string, body: string) => {
+    (title: string, body: string): DispatchResult & { id: string } => {
       const id = nextId("note");
       const event = buildEvent({
         type: "note.created",
@@ -23,7 +24,8 @@ export const useNoteActions = (deviceId: string) => {
         deviceId,
       });
 
-      return dispatch([event]);
+      const result = dispatch([event]);
+      return { ...result, id };
     },
     [deviceId],
   );
@@ -46,7 +48,11 @@ export const useNoteActions = (deviceId: string) => {
   );
 
   const linkNote = useCallback(
-    (noteId: EntityId, entityType: NoteLinkEntityType, entityId: EntityId) => {
+    (
+      noteId: EntityId,
+      entityType: NoteLinkEntityType,
+      entityId: EntityId,
+    ): DispatchResult & { id: string } => {
       const id = nextId("noteLink");
       const event = buildEvent({
         type: "note.linked",
@@ -60,7 +66,8 @@ export const useNoteActions = (deviceId: string) => {
         deviceId,
       });
 
-      return dispatch([event]);
+      const result = dispatch([event]);
+      return { ...result, id };
     },
     [deviceId],
   );

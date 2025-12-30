@@ -29,7 +29,7 @@ export const ContactsScreen = () => {
       phones: [],
     });
 
-    // Link to first account if available
+    // Link to first account if available using the returned ID
     if (result.success && accounts.length > 0) {
       const account = accounts[0];
 
@@ -41,19 +41,13 @@ export const ContactsScreen = () => {
           relation.isPrimary,
       );
 
-      // Wait a moment for the contact to be created, then link
-      setTimeout(() => {
-        const contacts = Object.values(useCrmStore.getState().doc.contacts);
-        const newContact = contacts[contacts.length - 1];
-        if (newContact) {
-          linkContact(
-            account.id,
-            newContact.id,
-            "account.contact.role.primary",
-            !existingPrimary,
-          );
-        }
-      }, 50);
+      // Use the returned contact ID immediately - no race condition
+      linkContact(
+        account.id,
+        result.id,
+        "account.contact.role.primary",
+        !existingPrimary,
+      );
     }
   };
 

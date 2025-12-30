@@ -20,21 +20,15 @@ export const NotesScreen = () => {
 
     const result = createNote(noteTitle, noteBody);
 
-    // Link to first available entity
+    // Link to first available entity using the returned ID
     if (result.success) {
       const linkTarget = accounts[0] ?? organizations[0];
       if (linkTarget) {
         const linkEntityType = accounts[0] ? "account" : "organization";
         const linkEntityId = linkTarget.id;
 
-        // Wait a moment for the note to be created, then link
-        setTimeout(() => {
-          const allNotes = Object.values(useCrmStore.getState().doc.notes);
-          const newNote = allNotes[allNotes.length - 1];
-          if (newNote) {
-            linkNote(newNote.id, linkEntityType, linkEntityId);
-          }
-        }, 50);
+        // Use the returned note ID immediately - no race condition
+        linkNote(result.id, linkEntityType, linkEntityId);
       }
     }
   };

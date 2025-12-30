@@ -10,7 +10,7 @@ type DispatchState = {
   lastEventType: string | null;
 };
 
-type DispatchResult = {
+export type DispatchResult = {
   success: boolean;
   error?: string;
 };

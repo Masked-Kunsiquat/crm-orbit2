@@ -4,6 +4,7 @@ import { buildEvent } from "../events/dispatcher";
 import type { ContactMethod } from "../domains/contact";
 import { nextId } from "../shared/idGenerator";
 import type { EntityId } from "../shared/types";
+import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
 export const useContactActions = (deviceId: string) => {
@@ -17,7 +18,7 @@ export const useContactActions = (deviceId: string) => {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
       } = {},
-    ) => {
+    ): DispatchResult & { id: string } => {
       const id = nextId("contact");
       const event = buildEvent({
         type: "contact.created",
@@ -34,7 +35,8 @@ export const useContactActions = (deviceId: string) => {
         deviceId,
       });
 
-      return dispatch([event]);
+      const result = dispatch([event]);
+      return { ...result, id };
     },
     [deviceId],
   );

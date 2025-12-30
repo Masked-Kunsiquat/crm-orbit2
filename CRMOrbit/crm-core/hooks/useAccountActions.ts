@@ -1,8 +1,9 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../events/dispatcher";
-import type { EntityId } from "../shared/types";
 import { nextId } from "../shared/idGenerator";
+import type { EntityId } from "../shared/types";
+import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
 export const useAccountActions = (deviceId: string) => {
@@ -13,7 +14,7 @@ export const useAccountActions = (deviceId: string) => {
       organizationId: EntityId,
       name: string,
       status = "account.status.active",
-    ) => {
+    ): DispatchResult & { id: string } => {
       const id = nextId("account");
       const event = buildEvent({
         type: "account.created",
@@ -28,7 +29,8 @@ export const useAccountActions = (deviceId: string) => {
         deviceId,
       });
 
-      return dispatch([event]);
+      const result = dispatch([event]);
+      return { ...result, id };
     },
     [deviceId],
   );

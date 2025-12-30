@@ -1,15 +1,19 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../events/dispatcher";
-import type { EntityId } from "../shared/types";
 import { nextId } from "../shared/idGenerator";
+import type { EntityId } from "../shared/types";
+import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
 export const useOrganizationActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
 
   const createOrganization = useCallback(
-    (name: string, status = "organization.status.active") => {
+    (
+      name: string,
+      status = "organization.status.active",
+    ): DispatchResult & { id: string } => {
       const id = nextId("org");
       const event = buildEvent({
         type: "organization.created",
@@ -23,7 +27,8 @@ export const useOrganizationActions = (deviceId: string) => {
         deviceId,
       });
 
-      return dispatch([event]);
+      const result = dispatch([event]);
+      return { ...result, id };
     },
     [deviceId],
   );
