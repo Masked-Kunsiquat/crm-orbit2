@@ -5,7 +5,12 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm test:*)",
+      "Bash(cat:*)",
+      "Bash(node --test:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

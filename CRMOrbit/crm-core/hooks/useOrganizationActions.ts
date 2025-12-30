@@ -49,8 +49,26 @@ export const useOrganizationActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const updateOrganization = useCallback(
+    (organizationId: EntityId, name: string, status: string): DispatchResult => {
+      const event = buildEvent({
+        type: "organization.updated",
+        entityId: organizationId,
+        payload: {
+          name,
+          status,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   return {
     createOrganization,
     updateOrganizationStatus,
+    updateOrganization,
   };
 };

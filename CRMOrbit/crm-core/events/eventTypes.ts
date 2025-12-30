@@ -1,6 +1,7 @@
 export const EVENT_TYPES = [
   "organization.created",
   "organization.status.updated",
+  "organization.updated",
   "account.created",
   "account.status.updated",
   "contact.created",

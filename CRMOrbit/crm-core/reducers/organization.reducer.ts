@@ -16,6 +16,12 @@ type OrganizationStatusUpdatedPayload = {
   status: OrganizationStatus;
 };
 
+type OrganizationUpdatedPayload = {
+  id: EntityId;
+  name?: string;
+  status?: OrganizationStatus;
+};
+
 const applyOrganizationCreated = (
   doc: AutomergeDoc,
   event: Event,
@@ -70,6 +76,32 @@ const applyOrganizationStatusUpdated = (
   };
 };
 
+const applyOrganizationUpdated = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  const payload = event.payload as OrganizationUpdatedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.organizations[id] as Organization | undefined;
+
+  if (!existing) {
+    throw new Error(`Organization not found: ${id}`);
+  }
+
+  return {
+    ...doc,
+    organizations: {
+      ...doc.organizations,
+      [id]: {
+        ...existing,
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.status !== undefined && { status: payload.status }),
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
 export const organizationReducer = (
   doc: AutomergeDoc,
   event: Event,
@@ -79,6 +111,8 @@ export const organizationReducer = (
       return applyOrganizationCreated(doc, event);
     case "organization.status.updated":
       return applyOrganizationStatusUpdated(doc, event);
+    case "organization.updated":
+      return applyOrganizationUpdated(doc, event);
     default:
       throw new Error(
         `organization.reducer does not handle event type: ${event.type}`,
