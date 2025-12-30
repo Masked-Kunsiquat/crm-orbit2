@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../crm-core/views/store";
 import type { Account } from "../../crm-core/domains/account";
+import { t } from "../../i18n";
 
 type Props = AccountsStackScreenProps<"AccountsList">;
 
@@ -50,8 +51,8 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No accounts yet.</Text>
-            <Text style={styles.emptyHint}>Create your first account to get started.</Text>
+            <Text style={styles.emptyText}>{t("accounts.emptyTitle")}</Text>
+            <Text style={styles.emptyHint}>{t("accounts.emptyHint")}</Text>
           </View>
         }
         contentContainerStyle={accounts.length === 0 ? styles.emptyList : styles.list}
