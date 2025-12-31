@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../automerge/init";
-import { contactReducer } from "../reducers/contact.reducer";
-import type { Event } from "../events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { contactReducer } from "@reducers/contact.reducer";
+import type { Event } from "@events/event";
 
 const baseContactEvent = (): Event => ({
   id: "evt-contact-1",

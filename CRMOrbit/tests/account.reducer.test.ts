@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../automerge/init";
-import { accountReducer } from "../reducers/account.reducer";
-import { organizationReducer } from "../reducers/organization.reducer";
-import type { Event } from "../events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { accountReducer } from "@reducers/account.reducer";
+import { organizationReducer } from "@reducers/organization.reducer";
+import type { Event } from "@events/event";
 
 const createOrganization = (docId = "org-1") => {
   const event: Event = {

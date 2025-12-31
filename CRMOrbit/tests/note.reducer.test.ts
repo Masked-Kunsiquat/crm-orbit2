@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../automerge/init";
-import { noteReducer } from "../reducers/note.reducer";
-import type { Event } from "../events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { noteReducer } from "@reducers/note.reducer";
+import type { Event } from "@events/event";
 
 test("note.created adds a new note", () => {
   const doc = initAutomergeDoc();

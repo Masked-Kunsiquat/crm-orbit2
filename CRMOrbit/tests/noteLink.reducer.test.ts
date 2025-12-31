@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../automerge/init";
-import { noteLinkReducer } from "../reducers/noteLink.reducer";
-import { noteReducer } from "../reducers/note.reducer";
-import { organizationReducer } from "../reducers/organization.reducer";
-import type { Event } from "../events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { noteLinkReducer } from "@reducers/noteLink.reducer";
+import { noteReducer } from "@reducers/note.reducer";
+import { organizationReducer } from "@reducers/organization.reducer";
+import type { Event } from "@events/event";
 
 const createOrganization = (): Event => ({
   id: "evt-org-1",

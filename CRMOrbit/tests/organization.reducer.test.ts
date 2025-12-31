@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../automerge/init";
-import { organizationReducer } from "../reducers/organization.reducer";
-import type { Event } from "../events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { organizationReducer } from "@reducers/organization.reducer";
+import type { Event } from "@events/event";
 
 test("organization.created adds a new organization", () => {
   const doc = initAutomergeDoc();
