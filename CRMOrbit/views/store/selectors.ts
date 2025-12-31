@@ -1,6 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { NoteLinkEntityType } from "@domains/relations/noteLink";
-import { EntityId } from "@domains/shared/types";
+import type { EntityId } from "@domains/shared/types";
 
 export const getPrimaryContacts = (
   doc: AutomergeDoc,
