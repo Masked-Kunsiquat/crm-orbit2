@@ -1,8 +1,25 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  Linking,
+  Pressable,
+} from "react-native";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
-import { useOrganization, useAccountsByOrganization } from "@views/store/store";
+import {
+  useOrganization,
+  useAccountsByOrganization,
+  useContactsByOrganization,
+} from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
+import { getContactDisplayName } from "@domains/contact.utils";
+import { Tooltip } from "@views/components";
 
 const DEVICE_ID = "device-local";
 
@@ -12,6 +29,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { organizationId } = route.params;
   const organization = useOrganization(organizationId);
   const accounts = useAccountsByOrganization(organizationId);
+  const contacts = useContactsByOrganization(organizationId);
   const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
 
   if (!organization) {
@@ -63,6 +81,11 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
+        {organization.logoUri && (
+          <View style={styles.logoContainer}>
+            <Image source={{ uri: organization.logoUri }} style={styles.logo} />
+          </View>
+        )}
         <Text style={styles.label}>Name</Text>
         <Text style={styles.value}>{organization.name}</Text>
       </View>
@@ -82,6 +105,104 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           </Text>
         </View>
       </View>
+
+      {organization.website && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Website</Text>
+          <TouchableOpacity onPress={() => Linking.openURL(organization.website!)}>
+            <Text style={styles.link}>{organization.website}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {organization.socialMedia && Object.values(organization.socialMedia).some((v) => v) && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Social Media</Text>
+          {organization.socialMedia.facebook && (
+            <Tooltip content={organization.socialMedia.facebook}>
+              <Pressable
+                onPress={() => Linking.openURL(organization.socialMedia!.facebook!)}
+                style={styles.socialLinkContainer}
+              >
+                <Text style={styles.socialLink}>Facebook</Text>
+                <FontAwesome6
+                  name="square-facebook"
+                  size={18}
+                  color="#1f5eff"
+                  style={styles.socialIcon}
+                />
+              </Pressable>
+            </Tooltip>
+          )}
+          {organization.socialMedia.instagram && (
+            <Tooltip
+              content={
+                organization.socialMedia.instagram.startsWith("http")
+                  ? organization.socialMedia.instagram
+                  : `https://instagram.com/${organization.socialMedia.instagram}`
+              }
+            >
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(
+                    organization.socialMedia!.instagram!.startsWith("http")
+                      ? organization.socialMedia!.instagram!
+                      : `https://instagram.com/${organization.socialMedia!.instagram}`,
+                  )
+                }
+                style={styles.socialLinkContainer}
+              >
+                <Text style={styles.socialLink}>Instagram</Text>
+                <FontAwesome6
+                  name="instagram"
+                  size={18}
+                  color="#1f5eff"
+                  style={styles.socialIcon}
+                />
+              </Pressable>
+            </Tooltip>
+          )}
+          {organization.socialMedia.linkedin && (
+            <Tooltip content={organization.socialMedia.linkedin}>
+              <Pressable
+                onPress={() => Linking.openURL(organization.socialMedia!.linkedin!)}
+                style={styles.socialLinkContainer}
+              >
+                <Text style={styles.socialLink}>LinkedIn</Text>
+                <FontAwesome6
+                  name="linkedin"
+                  size={18}
+                  color="#1f5eff"
+                  style={styles.socialIcon}
+                />
+              </Pressable>
+            </Tooltip>
+          )}
+          {organization.socialMedia.x && (
+            <Tooltip
+              content={
+                organization.socialMedia.x.startsWith("http")
+                  ? organization.socialMedia.x
+                  : `https://x.com/${organization.socialMedia.x}`
+              }
+            >
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(
+                    organization.socialMedia!.x!.startsWith("http")
+                      ? organization.socialMedia!.x!
+                      : `https://x.com/${organization.socialMedia!.x}`,
+                  )
+                }
+                style={styles.socialLinkContainer}
+              >
+                <Text style={styles.socialLink}>X</Text>
+                <FontAwesome6 name="square-x-twitter" size={18} color="#1f5eff" style={styles.socialIcon} />
+              </Pressable>
+            </Tooltip>
+          )}
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.label}>Created</Text>
@@ -105,6 +226,49 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               />
               <Text style={styles.relatedName}>{account.name}</Text>
             </View>
+          ))
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Contacts ({contacts.length})</Text>
+        {contacts.length === 0 ? (
+          <Text style={styles.emptyText}>No contacts linked to accounts in this organization</Text>
+        ) : (
+          contacts.map((contact) => (
+            <Pressable
+              key={contact.id}
+              style={styles.contactCard}
+              onPress={() => {
+                // Navigate to ContactsTab
+                (navigation.navigate as any)("ContactsTab", {
+                  screen: "ContactDetail",
+                  params: { contactId: contact.id },
+                });
+              }}
+            >
+              <View style={styles.contactCardContent}>
+                <Text style={styles.contactName}>{getContactDisplayName(contact)}</Text>
+                {contact.title && <Text style={styles.contactTitle}>{contact.title}</Text>}
+                <View
+                  style={[
+                    styles.contactTypeBadge,
+                    contact.type === "contact.type.internal" && styles.contactTypeInternal,
+                    contact.type === "contact.type.external" && styles.contactTypeExternal,
+                    contact.type === "contact.type.vendor" && styles.contactTypeVendor,
+                  ]}
+                >
+                  <Text style={styles.contactTypeText}>
+                    {contact.type === "contact.type.internal"
+                      ? "Internal"
+                      : contact.type === "contact.type.external"
+                        ? "External"
+                        : "Vendor"}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           ))
         )}
       </View>
@@ -142,6 +306,33 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     color: "#1b1b1b",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  link: {
+    fontSize: 16,
+    color: "#1f5eff",
+    textDecorationLine: "underline",
+  },
+  socialLinkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    gap: 8,
+  },
+  socialLink: {
+    fontSize: 16,
+    color: "#1f5eff",
+  },
+  socialIcon: {
+    marginLeft: 4,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -193,6 +384,60 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     fontStyle: "italic",
+  },
+  contactCard: {
+    padding: 12,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 6,
+    marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  contactCardContent: {
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1b1b1b",
+    marginBottom: 2,
+  },
+  contactTitle: {
+    fontSize: 12,
+    color: "#666666",
+    fontStyle: "italic",
+    marginBottom: 4,
+  },
+  contactType: {
+    fontSize: 12,
+    color: "#666",
+  },
+  contactTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+    marginTop: 4,
+  },
+  contactTypeInternal: {
+    backgroundColor: "#e3f2fd",
+  },
+  contactTypeExternal: {
+    backgroundColor: "#fff3e0",
+  },
+  contactTypeVendor: {
+    backgroundColor: "#f3e5f5",
+  },
+  contactTypeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#1b1b1b",
+  },
+  chevron: {
+    fontSize: 20,
+    color: "#cccccc",
+    marginLeft: 8,
   },
   editButton: {
     backgroundColor: "#1f5eff",

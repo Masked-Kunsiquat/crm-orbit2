@@ -6,3 +6,4 @@ export { ListEmptyState } from "./ListEmptyState";
 export { ListCard, ListCardChevron } from "./ListCard";
 export { ListScreenLayout } from "./ListScreenLayout";
 export { StatusBadge } from "./StatusBadge";
+export { Tooltip } from "./Tooltip";

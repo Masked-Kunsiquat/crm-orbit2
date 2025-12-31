@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
+import type { SocialMediaLinks } from "../../domains/organization";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
@@ -13,6 +14,9 @@ export const useOrganizationActions = (deviceId: string) => {
     (
       name: string,
       status = "organization.status.active",
+      logoUri?: string,
+      website?: string,
+      socialMedia?: SocialMediaLinks,
     ): DispatchResult & { id: string } => {
       const id = nextId("org");
       const event = buildEvent({
@@ -22,6 +26,9 @@ export const useOrganizationActions = (deviceId: string) => {
           id,
           name,
           status,
+          logoUri,
+          website,
+          socialMedia,
           metadata: {},
         },
         deviceId,
@@ -50,13 +57,23 @@ export const useOrganizationActions = (deviceId: string) => {
   );
 
   const updateOrganization = useCallback(
-    (organizationId: EntityId, name: string, status: string): DispatchResult => {
+    (
+      organizationId: EntityId,
+      name: string,
+      status: string,
+      logoUri?: string,
+      website?: string,
+      socialMedia?: SocialMediaLinks,
+    ): DispatchResult => {
       const event = buildEvent({
         type: "organization.updated",
         entityId: organizationId,
         payload: {
           name,
           status,
+          logoUri,
+          website,
+          socialMedia,
         },
         deviceId,
       });

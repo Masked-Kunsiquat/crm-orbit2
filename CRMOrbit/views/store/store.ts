@@ -140,6 +140,29 @@ export const useAccountsByOrganization = (
   return crmStore(useShallow(selector));
 };
 
+export const useContactsByOrganization = (
+  organizationId: EntityId,
+): Contact[] => {
+  const selector = (state: CrmStoreState) => {
+    // Get all accounts for this organization
+    const accountIds = Object.values(state.doc.accounts)
+      .filter((account) => account.organizationId === organizationId)
+      .map((account) => account.id);
+
+    // Get all contact IDs linked to these accounts
+    const contactIds = Object.values(state.doc.relations.accountContacts)
+      .filter((relation) => accountIds.includes(relation.accountId))
+      .map((relation) => relation.contactId);
+
+    // Remove duplicates and get contacts
+    const uniqueContactIds = Array.from(new Set(contactIds));
+    return uniqueContactIds
+      .map((contactId) => state.doc.contacts[contactId])
+      .filter((contact): contact is Contact => Boolean(contact));
+  };
+  return crmStore(useShallow(selector));
+};
+
 export const useAllNotes = (): Note[] => {
   const selector = (state: CrmStoreState) => Object.values(state.doc.notes);
   return crmStore(useShallow(selector));

@@ -27,6 +27,10 @@ export interface ContactMethods {
 
 export interface Contact extends Entity {
   type: ContactType;
-  name: string;
+  // Legacy name field for backwards compatibility
+  name?: string;
+  firstName: string;
+  lastName: string;
+  title?: string;
   methods: ContactMethods;
 }

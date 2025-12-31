@@ -6,7 +6,9 @@ import type { EntityId } from "../domains/shared/types";
 type ContactCreatedPayload = {
   id: EntityId;
   type: Contact["type"];
-  name: string;
+  firstName: string;
+  lastName: string;
+  title?: string;
   methods: ContactMethods;
 };
 
@@ -25,7 +27,9 @@ type ContactMethodUpdatedPayload = {
 
 type ContactUpdatedPayload = {
   id?: EntityId;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
   type?: Contact["type"];
   methods?: ContactMethods;
 };
@@ -74,7 +78,9 @@ const applyContactCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const contact: Contact = {
     id,
     type: payload.type,
-    name: payload.name,
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    title: payload.title,
     methods: {
       emails: [...payload.methods.emails],
       phones: [...payload.methods.phones],
@@ -181,7 +187,9 @@ const applyContactUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       ...doc.contacts,
       [id]: {
         ...existing,
-        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.firstName !== undefined && { firstName: payload.firstName }),
+        ...(payload.lastName !== undefined && { lastName: payload.lastName }),
+        ...(payload.title !== undefined && { title: payload.title }),
         ...(payload.type !== undefined && { type: payload.type }),
         ...(payload.methods !== undefined && {
           methods: {
