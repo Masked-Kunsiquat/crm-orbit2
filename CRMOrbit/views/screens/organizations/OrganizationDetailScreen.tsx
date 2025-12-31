@@ -9,6 +9,7 @@ import {
   Linking,
   Pressable,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import {
@@ -117,7 +118,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         <View style={styles.section}>
           <Text style={styles.label}>Social Media</Text>
           {organization.socialMedia.x && (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 Linking.openURL(
                   organization.socialMedia!.x!.startsWith("http")
@@ -125,22 +126,50 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                     : `https://x.com/${organization.socialMedia!.x}`,
                 )
               }
+              onLongPress={() => {
+                const url = organization.socialMedia!.x!.startsWith("http")
+                  ? organization.socialMedia!.x!
+                  : `https://x.com/${organization.socialMedia!.x}`;
+                Alert.alert("X Link", url);
+              }}
+              style={styles.socialLinkContainer}
             >
-              <Text style={styles.socialLink}>X: {organization.socialMedia.x}</Text>
-            </TouchableOpacity>
+              <Text style={styles.socialLink}>X</Text>
+              <Ionicons name="logo-twitter" size={18} color="#1f5eff" style={styles.socialIcon} />
+            </Pressable>
           )}
           {organization.socialMedia.linkedin && (
-            <TouchableOpacity onPress={() => Linking.openURL(organization.socialMedia!.linkedin!)}>
-              <Text style={styles.socialLink}>LinkedIn: {organization.socialMedia.linkedin}</Text>
-            </TouchableOpacity>
+            <Pressable
+              onPress={() => Linking.openURL(organization.socialMedia!.linkedin!)}
+              onLongPress={() => Alert.alert("LinkedIn Link", organization.socialMedia!.linkedin!)}
+              style={styles.socialLinkContainer}
+            >
+              <Text style={styles.socialLink}>LinkedIn</Text>
+              <Ionicons
+                name="logo-linkedin"
+                size={18}
+                color="#1f5eff"
+                style={styles.socialIcon}
+              />
+            </Pressable>
           )}
           {organization.socialMedia.facebook && (
-            <TouchableOpacity onPress={() => Linking.openURL(organization.socialMedia!.facebook!)}>
-              <Text style={styles.socialLink}>Facebook: {organization.socialMedia.facebook}</Text>
-            </TouchableOpacity>
+            <Pressable
+              onPress={() => Linking.openURL(organization.socialMedia!.facebook!)}
+              onLongPress={() => Alert.alert("Facebook Link", organization.socialMedia!.facebook!)}
+              style={styles.socialLinkContainer}
+            >
+              <Text style={styles.socialLink}>Facebook</Text>
+              <Ionicons
+                name="logo-facebook"
+                size={18}
+                color="#1f5eff"
+                style={styles.socialIcon}
+              />
+            </Pressable>
           )}
           {organization.socialMedia.instagram && (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 Linking.openURL(
                   organization.socialMedia!.instagram!.startsWith("http")
@@ -148,11 +177,22 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                     : `https://instagram.com/${organization.socialMedia!.instagram}`,
                 )
               }
+              onLongPress={() => {
+                const url = organization.socialMedia!.instagram!.startsWith("http")
+                  ? organization.socialMedia!.instagram!
+                  : `https://instagram.com/${organization.socialMedia!.instagram}`;
+                Alert.alert("Instagram Link", url);
+              }}
+              style={styles.socialLinkContainer}
             >
-              <Text style={styles.socialLink}>
-                Instagram: {organization.socialMedia.instagram}
-              </Text>
-            </TouchableOpacity>
+              <Text style={styles.socialLink}>Instagram</Text>
+              <Ionicons
+                name="logo-instagram"
+                size={18}
+                color="#1f5eff"
+                style={styles.socialIcon}
+              />
+            </Pressable>
           )}
         </View>
       )}
@@ -259,11 +299,18 @@ const styles = StyleSheet.create({
     color: "#1f5eff",
     textDecorationLine: "underline",
   },
+  socialLinkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    gap: 8,
+  },
   socialLink: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#1f5eff",
-    marginTop: 8,
-    textDecorationLine: "underline",
+  },
+  socialIcon: {
+    marginLeft: 4,
   },
   statusBadge: {
     paddingHorizontal: 12,
