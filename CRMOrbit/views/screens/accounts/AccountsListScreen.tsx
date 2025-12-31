@@ -29,7 +29,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
 
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
-    return org?.name ?? "Unknown";
+    return org?.name ?? t("common.unknown");
   };
 
   const handlePress = (account: Account) => {
@@ -46,7 +46,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Account list options"
+            accessibilityLabel={t("accounts.listOptions")}
             onPress={() => setMenuVisible((current) => !current)}
             style={styles.headerButton}
           >
