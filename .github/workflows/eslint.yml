@@ -51,7 +51,7 @@ jobs:
           npm run lint -- \
             --format stylish \
             --format @microsoft/eslint-formatter-sarif \
-            --output-file CRMOrbit/eslint-results.sarif
+            --output-file eslint-results.sarif
 
       - name: Upload analysis results to GitHub
         if: always()
