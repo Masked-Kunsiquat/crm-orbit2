@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Image, Linking } from "react-native";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization, useAccountsByOrganization } from "@views/store/store";
@@ -63,6 +63,11 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
+        {organization.logoUri && (
+          <View style={styles.logoContainer}>
+            <Image source={{ uri: organization.logoUri }} style={styles.logo} />
+          </View>
+        )}
         <Text style={styles.label}>Name</Text>
         <Text style={styles.value}>{organization.name}</Text>
       </View>
@@ -82,6 +87,59 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           </Text>
         </View>
       </View>
+
+      {organization.website && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Website</Text>
+          <TouchableOpacity onPress={() => Linking.openURL(organization.website!)}>
+            <Text style={styles.link}>{organization.website}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {organization.socialMedia && Object.values(organization.socialMedia).some((v) => v) && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Social Media</Text>
+          {organization.socialMedia.x && (
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL(
+                  organization.socialMedia!.x!.startsWith("http")
+                    ? organization.socialMedia!.x!
+                    : `https://x.com/${organization.socialMedia!.x}`,
+                )
+              }
+            >
+              <Text style={styles.socialLink}>X: {organization.socialMedia.x}</Text>
+            </TouchableOpacity>
+          )}
+          {organization.socialMedia.linkedin && (
+            <TouchableOpacity onPress={() => Linking.openURL(organization.socialMedia!.linkedin!)}>
+              <Text style={styles.socialLink}>LinkedIn: {organization.socialMedia.linkedin}</Text>
+            </TouchableOpacity>
+          )}
+          {organization.socialMedia.facebook && (
+            <TouchableOpacity onPress={() => Linking.openURL(organization.socialMedia!.facebook!)}>
+              <Text style={styles.socialLink}>Facebook: {organization.socialMedia.facebook}</Text>
+            </TouchableOpacity>
+          )}
+          {organization.socialMedia.instagram && (
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL(
+                  organization.socialMedia!.instagram!.startsWith("http")
+                    ? organization.socialMedia!.instagram!
+                    : `https://instagram.com/${organization.socialMedia!.instagram}`,
+                )
+              }
+            >
+              <Text style={styles.socialLink}>
+                Instagram: {organization.socialMedia.instagram}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.label}>Created</Text>
@@ -142,6 +200,26 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     color: "#1b1b1b",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  link: {
+    fontSize: 16,
+    color: "#1f5eff",
+    textDecorationLine: "underline",
+  },
+  socialLink: {
+    fontSize: 14,
+    color: "#1f5eff",
+    marginTop: 8,
+    textDecorationLine: "underline",
   },
   statusBadge: {
     paddingHorizontal: 12,
