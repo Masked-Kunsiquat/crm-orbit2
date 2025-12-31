@@ -316,7 +316,22 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               <View style={styles.contactCardContent}>
                 <Text style={styles.contactName}>{getContactDisplayName(contact)}</Text>
                 {contact.title && <Text style={styles.contactTitle}>{contact.title}</Text>}
-                <Text style={styles.contactType}>{contact.type}</Text>
+                <View
+                  style={[
+                    styles.contactTypeBadge,
+                    contact.type === "contact.type.internal" && styles.contactTypeInternal,
+                    contact.type === "contact.type.external" && styles.contactTypeExternal,
+                    contact.type === "contact.type.vendor" && styles.contactTypeVendor,
+                  ]}
+                >
+                  <Text style={styles.contactTypeText}>
+                    {contact.type === "contact.type.internal"
+                      ? "Internal"
+                      : contact.type === "contact.type.external"
+                        ? "External"
+                        : "Vendor"}
+                  </Text>
+                </View>
               </View>
               <Text style={styles.chevron}>›</Text>
             </Pressable>
@@ -459,6 +474,27 @@ const styles = StyleSheet.create({
   contactType: {
     fontSize: 12,
     color: "#666",
+  },
+  contactTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+    marginTop: 4,
+  },
+  contactTypeInternal: {
+    backgroundColor: "#e3f2fd",
+  },
+  contactTypeExternal: {
+    backgroundColor: "#fff3e0",
+  },
+  contactTypeVendor: {
+    backgroundColor: "#f3e5f5",
+  },
+  contactTypeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#1b1b1b",
   },
   emptyText: {
     fontSize: 14,
