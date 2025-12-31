@@ -20,7 +20,7 @@ export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => 
   const anchorRef = useRef<View>(null);
 
   const showTooltip = () => {
-    anchorRef.current?.measure((x, y, width, height, pageX, pageY) => {
+    anchorRef.current?.measureInWindow((pageX, pageY, width, height) => {
       setPosition({ x: pageX, y: pageY, width, height });
       setVisible(true);
     });
@@ -50,8 +50,8 @@ export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => 
               style={[
                 styles.tooltip,
                 {
-                  top: position.y + position.height + 5,
-                  left: Math.max(10, position.x - 50),
+                  top: position.y,
+                  left: position.x + position.width + 10,
                 },
               ]}
             >
