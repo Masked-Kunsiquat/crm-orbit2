@@ -29,7 +29,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const allContacts = useContacts(accountId);
   const { deleteAccount } = useAccountActions(DEVICE_ID);
 
-  const [contactFilter, setContactFilter] = useState<"all" | ContactType>("all");
+  const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
+    "all",
+  );
 
   const contacts = useMemo(() => {
     if (contactFilter === "all") {
@@ -110,7 +112,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             ]}
           >
             <Text style={styles.statusText}>
-              {account.status === "account.status.active" ? "Active" : "Inactive"}
+              {account.status === "account.status.active"
+                ? "Active"
+                : "Inactive"}
             </Text>
           </View>
         </View>
@@ -131,7 +135,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             <Text style={styles.label}>Parking Address</Text>
             <Text style={styles.value}>{account.addresses.parking.street}</Text>
             <Text style={styles.value}>
-              {account.addresses.parking.city}, {account.addresses.parking.state}{" "}
+              {account.addresses.parking.city},{" "}
+              {account.addresses.parking.state}{" "}
               {account.addresses.parking.zipCode}
             </Text>
           </View>
@@ -153,92 +158,104 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           </View>
         )}
 
-        {account.socialMedia && Object.values(account.socialMedia).some((v) => v) && (
-          <View style={styles.field}>
-            <Text style={styles.label}>Social Media</Text>
-            {account.socialMedia.facebook && (
-              <Tooltip content={account.socialMedia.facebook}>
-                <Pressable
-                  onPress={() => Linking.openURL(account.socialMedia!.facebook!)}
-                  style={styles.socialLinkContainer}
+        {account.socialMedia &&
+          Object.values(account.socialMedia).some((v) => v) && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Social Media</Text>
+              {account.socialMedia.facebook && (
+                <Tooltip content={account.socialMedia.facebook}>
+                  <Pressable
+                    onPress={() =>
+                      Linking.openURL(account.socialMedia!.facebook!)
+                    }
+                    style={styles.socialLinkContainer}
+                  >
+                    <Text style={styles.socialLink}>Facebook</Text>
+                    <FontAwesome6
+                      name="square-facebook"
+                      size={18}
+                      color="#1f5eff"
+                      style={styles.socialIcon}
+                    />
+                  </Pressable>
+                </Tooltip>
+              )}
+              {account.socialMedia.instagram && (
+                <Tooltip
+                  content={
+                    account.socialMedia.instagram.startsWith("http")
+                      ? account.socialMedia.instagram
+                      : `https://instagram.com/${account.socialMedia.instagram}`
+                  }
                 >
-                  <Text style={styles.socialLink}>Facebook</Text>
-                  <FontAwesome6
-                    name="square-facebook"
-                    size={18}
-                    color="#1f5eff"
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
-            {account.socialMedia.instagram && (
-              <Tooltip
-                content={
-                  account.socialMedia.instagram.startsWith("http")
-                    ? account.socialMedia.instagram
-                    : `https://instagram.com/${account.socialMedia.instagram}`
-                }
-              >
-                <Pressable
-                  onPress={() => {
-                    const url = account.socialMedia!.instagram!.startsWith("http")
-                      ? account.socialMedia!.instagram!
-                      : `https://instagram.com/${account.socialMedia!.instagram}`;
-                    Linking.openURL(url);
-                  }}
-                  style={styles.socialLinkContainer}
+                  <Pressable
+                    onPress={() => {
+                      const url = account.socialMedia!.instagram!.startsWith(
+                        "http",
+                      )
+                        ? account.socialMedia!.instagram!
+                        : `https://instagram.com/${account.socialMedia!.instagram}`;
+                      Linking.openURL(url);
+                    }}
+                    style={styles.socialLinkContainer}
+                  >
+                    <Text style={styles.socialLink}>Instagram</Text>
+                    <FontAwesome6
+                      name="instagram"
+                      size={18}
+                      color="#1f5eff"
+                      style={styles.socialIcon}
+                    />
+                  </Pressable>
+                </Tooltip>
+              )}
+              {account.socialMedia.linkedin && (
+                <Tooltip content={account.socialMedia.linkedin}>
+                  <Pressable
+                    onPress={() =>
+                      Linking.openURL(account.socialMedia!.linkedin!)
+                    }
+                    style={styles.socialLinkContainer}
+                  >
+                    <Text style={styles.socialLink}>LinkedIn</Text>
+                    <FontAwesome6
+                      name="linkedin"
+                      size={18}
+                      color="#1f5eff"
+                      style={styles.socialIcon}
+                    />
+                  </Pressable>
+                </Tooltip>
+              )}
+              {account.socialMedia.x && (
+                <Tooltip
+                  content={
+                    account.socialMedia.x.startsWith("http")
+                      ? account.socialMedia.x
+                      : `https://x.com/${account.socialMedia.x}`
+                  }
                 >
-                  <Text style={styles.socialLink}>Instagram</Text>
-                  <FontAwesome6
-                    name="instagram"
-                    size={18}
-                    color="#1f5eff"
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
-            {account.socialMedia.linkedin && (
-              <Tooltip content={account.socialMedia.linkedin}>
-                <Pressable
-                  onPress={() => Linking.openURL(account.socialMedia!.linkedin!)}
-                  style={styles.socialLinkContainer}
-                >
-                  <Text style={styles.socialLink}>LinkedIn</Text>
-                  <FontAwesome6 name="linkedin" size={18} color="#1f5eff" style={styles.socialIcon} />
-                </Pressable>
-              </Tooltip>
-            )}
-            {account.socialMedia.x && (
-              <Tooltip
-                content={
-                  account.socialMedia.x.startsWith("http")
-                    ? account.socialMedia.x
-                    : `https://x.com/${account.socialMedia.x}`
-                }
-              >
-                <Pressable
-                  onPress={() => {
-                    const url = account.socialMedia!.x!.startsWith("http")
-                      ? account.socialMedia!.x!
-                      : `https://x.com/${account.socialMedia!.x}`;
-                    Linking.openURL(url);
-                  }}
-                  style={styles.socialLinkContainer}
-                >
-                  <Text style={styles.socialLink}>X</Text>
-                  <FontAwesome6
-                    name="square-x-twitter"
-                    size={18}
-                    color="#1f5eff"
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
-          </View>
-        )}
+                  <Pressable
+                    onPress={() => {
+                      const url = account.socialMedia!.x!.startsWith("http")
+                        ? account.socialMedia!.x!
+                        : `https://x.com/${account.socialMedia!.x}`;
+                      Linking.openURL(url);
+                    }}
+                    style={styles.socialLinkContainer}
+                  >
+                    <Text style={styles.socialLink}>X</Text>
+                    <FontAwesome6
+                      name="square-x-twitter"
+                      size={18}
+                      color="#1f5eff"
+                      style={styles.socialIcon}
+                    />
+                  </Pressable>
+                </Tooltip>
+              )}
+            </View>
+          )}
       </View>
 
       <View style={styles.section}>
@@ -246,7 +263,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.filterButtons}>
           <TouchableOpacity
-            style={[styles.filterButton, contactFilter === "all" && styles.filterButtonActive]}
+            style={[
+              styles.filterButton,
+              contactFilter === "all" && styles.filterButtonActive,
+            ]}
             onPress={() => setContactFilter("all")}
           >
             <Text
@@ -261,35 +281,47 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "contact.type.internal" && styles.filterButtonActive,
+              contactFilter === "contact.type.internal" &&
+                styles.filterButtonActive,
             ]}
             onPress={() => setContactFilter("contact.type.internal")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "contact.type.internal" && styles.filterButtonTextActive,
+                contactFilter === "contact.type.internal" &&
+                  styles.filterButtonTextActive,
               ]}
             >
               Internal (
-              {allContacts.filter((c) => c.type === "contact.type.internal").length})
+              {
+                allContacts.filter((c) => c.type === "contact.type.internal")
+                  .length
+              }
+              )
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "contact.type.external" && styles.filterButtonActive,
+              contactFilter === "contact.type.external" &&
+                styles.filterButtonActive,
             ]}
             onPress={() => setContactFilter("contact.type.external")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "contact.type.external" && styles.filterButtonTextActive,
+                contactFilter === "contact.type.external" &&
+                  styles.filterButtonTextActive,
               ]}
             >
               External (
-              {allContacts.filter((c) => c.type === "contact.type.external").length})
+              {
+                allContacts.filter((c) => c.type === "contact.type.external")
+                  .length
+              }
+              )
             </Text>
           </TouchableOpacity>
         </View>
@@ -314,14 +346,21 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               }}
             >
               <View style={styles.contactCardContent}>
-                <Text style={styles.contactName}>{getContactDisplayName(contact)}</Text>
-                {contact.title && <Text style={styles.contactTitle}>{contact.title}</Text>}
+                <Text style={styles.contactName}>
+                  {getContactDisplayName(contact)}
+                </Text>
+                {contact.title && (
+                  <Text style={styles.contactTitle}>{contact.title}</Text>
+                )}
                 <View
                   style={[
                     styles.contactTypeBadge,
-                    contact.type === "contact.type.internal" && styles.contactTypeInternal,
-                    contact.type === "contact.type.external" && styles.contactTypeExternal,
-                    contact.type === "contact.type.vendor" && styles.contactTypeVendor,
+                    contact.type === "contact.type.internal" &&
+                      styles.contactTypeInternal,
+                    contact.type === "contact.type.external" &&
+                      styles.contactTypeExternal,
+                    contact.type === "contact.type.vendor" &&
+                      styles.contactTypeVendor,
                   ]}
                 >
                   <Text style={styles.contactTypeText}>

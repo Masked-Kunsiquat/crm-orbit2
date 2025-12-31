@@ -120,7 +120,10 @@ const applyOrganizationUpdated = (
   };
 };
 
-const applyOrganizationDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+const applyOrganizationDeleted = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
   const payload = event.payload as { id?: EntityId };
   const id = resolveEntityId(event, payload);
   const existing = doc.organizations[id] as Organization | undefined;
@@ -139,7 +142,8 @@ const applyOrganizationDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc
   }
 
   // Remove the organization
-  const { [id]: removed, ...remainingOrganizations } = doc.organizations;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [id]: _removed, ...remainingOrganizations } = doc.organizations;
 
   return {
     ...doc,

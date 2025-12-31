@@ -45,7 +45,9 @@ export const loadPersistedState = async (
   if (snapshot) {
     doc = JSON.parse(snapshot.doc);
     // Filter events that came after the snapshot
-    const relevantEvents = events.filter((e) => e.timestamp > snapshot.timestamp);
+    const relevantEvents = events.filter(
+      (e) => e.timestamp > snapshot.timestamp,
+    );
     if (relevantEvents.length > 0) {
       doc = applyEvents(doc, relevantEvents);
     }

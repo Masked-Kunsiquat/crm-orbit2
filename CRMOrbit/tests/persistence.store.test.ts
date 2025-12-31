@@ -23,9 +23,7 @@ const createMemoryDb = () => {
     events: [],
   };
 
-  const createDbInterface = (
-    currentTables: StoredTables,
-  ): PersistenceDb => ({
+  const createDbInterface = (currentTables: StoredTables): PersistenceDb => ({
     insert: (table) => ({
       values: (value) => ({
         run: async () => {
@@ -50,7 +48,7 @@ const createMemoryDb = () => {
       }),
     }),
     select: () => ({
-      from: <T,>(table: unknown) => ({
+      from: <T>(table: unknown) => ({
         all: async (): Promise<T[]> => {
           if (table === automergeSnapshots) {
             return [...currentTables.snapshots] as T[];
@@ -64,7 +62,9 @@ const createMemoryDb = () => {
         },
       }),
     }),
-    transaction: async <T>(fn: (tx: PersistenceDb) => Promise<T>): Promise<T> => {
+    transaction: async <T>(
+      fn: (tx: PersistenceDb) => Promise<T>,
+    ): Promise<T> => {
       // Simulate transaction with shadow tables for rollback
       const shadowTables: StoredTables = {
         snapshots: [...currentTables.snapshots],
@@ -73,16 +73,12 @@ const createMemoryDb = () => {
 
       const tx = createDbInterface(shadowTables);
 
-      try {
-        const result = await fn(tx);
-        // Commit: apply shadow tables to main tables
-        currentTables.snapshots = shadowTables.snapshots;
-        currentTables.events = shadowTables.events;
-        return result;
-      } catch (error) {
-        // Rollback: discard shadow tables, keep original tables
-        throw error;
-      }
+      const result = await fn(tx);
+      // Commit: apply shadow tables to main tables
+      currentTables.snapshots = shadowTables.snapshots;
+      currentTables.events = shadowTables.events;
+      return result;
+      // Rollback on error: discard shadow tables, keep original tables (automatic)
     },
   });
 

@@ -32,7 +32,9 @@ export const ListScreenLayout = <ItemT,>({
       keyExtractor={keyExtractor}
       ListFooterComponent={listFooterComponent}
       contentContainerStyle={data.length === 0 ? styles.emptyList : styles.list}
-      ListEmptyComponent={<ListEmptyState title={emptyTitle} hint={emptyHint} />}
+      ListEmptyComponent={
+        <ListEmptyState title={emptyTitle} hint={emptyHint} />
+      }
     />
     <FloatingActionButton onPress={onAdd} />
   </View>

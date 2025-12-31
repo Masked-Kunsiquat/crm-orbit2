@@ -19,7 +19,11 @@ export const AccountsScreen = () => {
 
     // Use timestamp-based identifier (locale-neutral)
     // In production, this would prompt the user for a name
-    createAccount(organization.id, `acct-${Date.now()}`, "account.status.active");
+    createAccount(
+      organization.id,
+      `acct-${Date.now()}`,
+      "account.status.active",
+    );
   };
 
   return (

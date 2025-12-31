@@ -4,10 +4,7 @@ import type { RootTabParamList } from "./types";
 import { OrganizationsStack } from "./OrganizationsStack";
 import { AccountsStack } from "./AccountsStack";
 import { ContactsStack } from "./ContactsStack";
-import {
-  NotesScreen,
-  InteractionsScreen,
-} from "../screens";
+import { NotesScreen, InteractionsScreen } from "../screens";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 

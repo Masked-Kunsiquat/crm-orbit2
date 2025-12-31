@@ -1,0 +1,22 @@
+{
+  "accounts.emptyTitle": "暂无账户。",
+  "accounts.emptyHint": "创建您的第一个账户以开始使用。",
+  "accounts.includeInactiveHint": "点击 ⋮ 以包含已停用的账户",
+  "accounts.menuIncludeInactive": "包含已停用",
+  "accounts.menuHideInactive": "隐藏已停用",
+  "accounts.listOptions": "账户列表选项",
+  "organizations.emptyTitle": "暂无组织",
+  "organizations.emptyHint": "点击 + 按钮创建一个",
+  "organizations.includeInactiveHint": "点击 ⋮ 以包含已停用的组织",
+  "organizations.menuIncludeInactive": "包含已停用",
+  "organizations.menuHideInactive": "隐藏已停用",
+  "contacts.emptyTitle": "暂无联系人",
+  "contacts.emptyHint": "点击 + 按钮创建一个",
+  "contacts.moreOptionsSoon": "更多选项即将推出",
+  "contact.type.internal": "内部",
+  "contact.type.external": "外部",
+  "contact.type.vendor": "供应商",
+  "status.active": "活跃",
+  "status.inactive": "已停用",
+  "common.unknown": "未知"
+}

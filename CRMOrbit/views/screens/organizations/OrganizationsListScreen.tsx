@@ -24,7 +24,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
   const filteredOrganizations = useMemo(() => {
     const visible = showInactive
       ? organizations
-      : organizations.filter((org) => org.status === "organization.status.active");
+      : organizations.filter(
+          (org) => org.status === "organization.status.active",
+        );
 
     return [...visible].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
@@ -80,7 +82,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
         keyExtractor={(item) => item.id}
         emptyTitle={t("organizations.emptyTitle")}
         emptyHint={
-          showInactive ? t("organizations.emptyHint") : t("organizations.includeInactiveHint")
+          showInactive
+            ? t("organizations.emptyHint")
+            : t("organizations.includeInactiveHint")
         }
         onAdd={handleAdd}
       />
@@ -98,7 +102,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
           style={styles.menuItem}
         >
           <Text style={styles.menuItemText}>
-            {showInactive ? t("organizations.menuHideInactive") : t("organizations.menuIncludeInactive")}
+            {showInactive
+              ? t("organizations.menuHideInactive")
+              : t("organizations.menuIncludeInactive")}
           </Text>
         </Pressable>
       </HeaderMenu>

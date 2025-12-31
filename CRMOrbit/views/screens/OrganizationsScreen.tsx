@@ -13,7 +13,7 @@ export const OrganizationsScreen = () => {
   const handleAddOrganization = () => {
     // Use entity ID as name (locale-neutral identifier)
     // In production, this would prompt the user for a name
-    const result = createOrganization(`org-${Date.now()}`);
+    createOrganization(`org-${Date.now()}`);
   };
 
   return (

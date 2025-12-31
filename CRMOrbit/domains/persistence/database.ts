@@ -13,7 +13,9 @@ let dbInstance: ReturnType<typeof drizzle> | null = null;
  * Initialize and return the database instance.
  * Runs migrations on first initialization.
  */
-export const initializeDatabase = async (): Promise<ReturnType<typeof drizzle>> => {
+export const initializeDatabase = async (): Promise<
+  ReturnType<typeof drizzle>
+> => {
   if (dbInstance) {
     return dbInstance;
   }
@@ -37,7 +39,9 @@ export const initializeDatabase = async (): Promise<ReturnType<typeof drizzle>> 
  */
 export const getDatabase = (): ReturnType<typeof drizzle> => {
   if (!dbInstance) {
-    throw new Error("Database not initialized. Call initializeDatabase() first.");
+    throw new Error(
+      "Database not initialized. Call initializeDatabase() first.",
+    );
   }
   return dbInstance;
 };
@@ -46,24 +50,32 @@ export const getDatabase = (): ReturnType<typeof drizzle> => {
  * Create a PersistenceDb interface from the Drizzle database.
  * This adapts the Drizzle API to our persistence store interface.
  */
-export const createPersistenceDb = (db: ReturnType<typeof drizzle>): PersistenceDb => {
+export const createPersistenceDb = (
+  db: ReturnType<typeof drizzle>,
+): PersistenceDb => {
   return {
     insert: (table) => ({
       values: (value) => ({
         run: async () => {
-          await db.insert(table as typeof eventLog | typeof automergeSnapshots).values(value as any);
+          await db
+            .insert(table as typeof eventLog | typeof automergeSnapshots)
+            .values(value as any);
         },
       }),
     }),
     select: () => ({
-      from: <T,>(table: unknown) => ({
+      from: <T>(table: unknown) => ({
         all: async (): Promise<T[]> => {
-          const results = await db.select().from(table as typeof eventLog | typeof automergeSnapshots);
+          const results = await db
+            .select()
+            .from(table as typeof eventLog | typeof automergeSnapshots);
           return results as T[];
         },
       }),
     }),
-    transaction: async <T,>(fn: (tx: PersistenceDb) => Promise<T>): Promise<T> => {
+    transaction: async <T>(
+      fn: (tx: PersistenceDb) => Promise<T>,
+    ): Promise<T> => {
       return await db.transaction(async (tx) => {
         const txDb = createPersistenceDb(tx as any);
         return await fn(txDb);

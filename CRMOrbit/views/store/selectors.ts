@@ -7,7 +7,9 @@ export const getPrimaryContacts = (
   accountId: EntityId,
 ): EntityId[] => {
   return Object.values(doc.relations.accountContacts)
-    .filter((relation) => relation.accountId === accountId && relation.isPrimary)
+    .filter(
+      (relation) => relation.accountId === accountId && relation.isPrimary,
+    )
     .map((relation) => relation.contactId);
 };
 

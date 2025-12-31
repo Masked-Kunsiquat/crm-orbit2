@@ -5,7 +5,12 @@ import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
-import { HeaderMenu, ListCard, ListCardChevron, ListScreenLayout } from "@views/components";
+import {
+  HeaderMenu,
+  ListCard,
+  ListCardChevron,
+  ListScreenLayout,
+} from "@views/components";
 import { colors } from "@domains/shared/theme/colors";
 import { t } from "../../../i18n";
 
@@ -17,9 +22,13 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   const menuAnchorRef = useRef<View>(null);
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) =>
-      getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, {
-        sensitivity: "base",
-      }),
+      getContactDisplayName(a).localeCompare(
+        getContactDisplayName(b),
+        undefined,
+        {
+          sensitivity: "base",
+        },
+      ),
     );
   }, [contacts]);
 
@@ -82,7 +91,9 @@ export const ContactsListScreen = ({ navigation }: Props) => {
           onPress={() => setMenuVisible(false)}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>{t("contacts.moreOptionsSoon")}</Text>
+          <Text style={styles.menuItemText}>
+            {t("contacts.moreOptionsSoon")}
+          </Text>
         </Pressable>
       </HeaderMenu>
     </>

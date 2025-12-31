@@ -24,7 +24,9 @@ export type PersistenceDb = {
     values: (value: InsertValues) => { run: () => Promise<void> };
   };
   select: () => {
-    from: <T = SnapshotRecord | EventLogRecord>(table: unknown) => { all: () => Promise<T[]> }
+    from: <T = SnapshotRecord | EventLogRecord>(
+      table: unknown,
+    ) => { all: () => Promise<T[]> };
   };
   transaction: <T>(fn: (tx: PersistenceDb) => Promise<T>) => Promise<T>;
 };

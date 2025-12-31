@@ -4,7 +4,10 @@ import { applyEvents, buildEvent } from "@events/dispatcher";
 import type { Event } from "@events/event";
 import type { EventType } from "@events/eventTypes";
 import { __internal_getCrmStore } from "@views/store/store";
-import { getDatabase, createPersistenceDb } from "@domains/persistence/database";
+import {
+  getDatabase,
+  createPersistenceDb,
+} from "@domains/persistence/database";
 import { appendEvents } from "@domains/persistence/store";
 
 type DispatchState = {
@@ -31,58 +34,55 @@ export const useDispatch = () => {
     lastEventType: null,
   });
 
-  const dispatch = useCallback(
-    (newEvents: Event[]): DispatchResult => {
-      if (newEvents.length === 0) {
-        return { success: true };
-      }
+  const dispatch = useCallback((newEvents: Event[]): DispatchResult => {
+    if (newEvents.length === 0) {
+      return { success: true };
+    }
+
+    setState({
+      isProcessing: true,
+      lastError: null,
+      lastEventType: newEvents[newEvents.length - 1]?.type ?? null,
+    });
+
+    try {
+      // Use functional setters to handle rapid dispatches correctly
+      const store = __internal_getCrmStore().getState();
+
+      // Apply events to the latest doc state
+      store.setDoc((currentDoc) => applyEvents(currentDoc, newEvents));
+      store.setEvents((prevEvents) => [...prevEvents, ...newEvents]);
+
+      // Persist events to database (async, non-blocking)
+      (async () => {
+        try {
+          const db = getDatabase();
+          const persistenceDb = createPersistenceDb(db);
+          await appendEvents(persistenceDb, newEvents);
+        } catch (persistError) {
+          console.error("Failed to persist events:", persistError);
+        }
+      })();
+
+      // Keep processing state visible briefly for user feedback
+      setTimeout(() => {
+        setState((prev) => ({ ...prev, isProcessing: false }));
+      }, 250);
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
 
       setState({
-        isProcessing: true,
-        lastError: null,
+        isProcessing: false,
+        lastError: errorMessage,
         lastEventType: newEvents[newEvents.length - 1]?.type ?? null,
       });
 
-      try {
-        // Use functional setters to handle rapid dispatches correctly
-        const store = __internal_getCrmStore().getState();
-
-        // Apply events to the latest doc state
-        store.setDoc((currentDoc) => applyEvents(currentDoc, newEvents));
-        store.setEvents((prevEvents) => [...prevEvents, ...newEvents]);
-
-        // Persist events to database (async, non-blocking)
-        (async () => {
-          try {
-            const db = getDatabase();
-            const persistenceDb = createPersistenceDb(db);
-            await appendEvents(persistenceDb, newEvents);
-          } catch (persistError) {
-            console.error("Failed to persist events:", persistError);
-          }
-        })();
-
-        // Keep processing state visible briefly for user feedback
-        setTimeout(() => {
-          setState((prev) => ({ ...prev, isProcessing: false }));
-        }, 250);
-
-        return { success: true };
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
-
-        setState({
-          isProcessing: false,
-          lastError: errorMessage,
-          lastEventType: newEvents[newEvents.length - 1]?.type ?? null,
-        });
-
-        return { success: false, error: errorMessage };
-      }
-    },
-    [],
-  );
+      return { success: false, error: errorMessage };
+    }
+  }, []);
 
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, lastError: null }));

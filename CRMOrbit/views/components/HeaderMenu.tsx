@@ -53,9 +53,7 @@ export const HeaderMenu = ({
   return (
     <Modal transparent visible onRequestClose={onRequestClose}>
       <Pressable style={styles.overlay} onPress={onRequestClose}>
-        <View style={[styles.menu, { left, top }]}>
-          {children}
-        </View>
+        <View style={[styles.menu, { left, top }]}>{children}</View>
       </Pressable>
     </Modal>
   );
