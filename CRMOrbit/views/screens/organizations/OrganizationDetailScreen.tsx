@@ -9,7 +9,7 @@ import {
   Linking,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import {
@@ -135,7 +135,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               style={styles.socialLinkContainer}
             >
               <Text style={styles.socialLink}>X</Text>
-              <Ionicons name="logo-twitter" size={18} color="#1f5eff" style={styles.socialIcon} />
+              <FontAwesome6 name="square-x-twitter" size={18} color="#1f5eff" style={styles.socialIcon} />
             </Pressable>
           )}
           {organization.socialMedia.linkedin && (
@@ -145,8 +145,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               style={styles.socialLinkContainer}
             >
               <Text style={styles.socialLink}>LinkedIn</Text>
-              <Ionicons
-                name="logo-linkedin"
+              <FontAwesome6
+                name="linkedin"
                 size={18}
                 color="#1f5eff"
                 style={styles.socialIcon}
@@ -160,8 +160,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               style={styles.socialLinkContainer}
             >
               <Text style={styles.socialLink}>Facebook</Text>
-              <Ionicons
-                name="logo-facebook"
+              <FontAwesome6
+                name="square-facebook"
                 size={18}
                 color="#1f5eff"
                 style={styles.socialIcon}
@@ -186,8 +186,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               style={styles.socialLinkContainer}
             >
               <Text style={styles.socialLink}>Instagram</Text>
-              <Ionicons
-                name="logo-instagram"
+              <FontAwesome6
+                name="instagram"
                 size={18}
                 color="#1f5eff"
                 style={styles.socialIcon}
