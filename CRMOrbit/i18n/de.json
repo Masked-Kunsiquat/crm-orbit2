@@ -1,0 +1,22 @@
+{
+  "accounts.emptyTitle": "Noch keine Konten vorhanden.",
+  "accounts.emptyHint": "Erstellen Sie Ihr erstes Konto, um zu beginnen.",
+  "accounts.includeInactiveHint": "Tippen Sie auf ⋮, um inaktive einzubeziehen",
+  "accounts.menuIncludeInactive": "Inaktive einbeziehen",
+  "accounts.menuHideInactive": "Inaktive ausblenden",
+  "accounts.listOptions": "Kontenlistenoptionen",
+  "organizations.emptyTitle": "Noch keine Organisationen vorhanden",
+  "organizations.emptyHint": "Tippen Sie auf die + Schaltfläche, um eine zu erstellen",
+  "organizations.includeInactiveHint": "Tippen Sie auf ⋮, um inaktive einzubeziehen",
+  "organizations.menuIncludeInactive": "Inaktive einbeziehen",
+  "organizations.menuHideInactive": "Inaktive ausblenden",
+  "contacts.emptyTitle": "Noch keine Kontakte vorhanden",
+  "contacts.emptyHint": "Tippen Sie auf die + Schaltfläche, um einen zu erstellen",
+  "contacts.moreOptionsSoon": "Weitere Optionen demnächst",
+  "contact.type.internal": "Intern",
+  "contact.type.external": "Extern",
+  "contact.type.vendor": "Anbieter",
+  "status.active": "Aktiv",
+  "status.inactive": "Inaktiv",
+  "common.unknown": "Unbekannt"
+}
