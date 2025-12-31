@@ -1,8 +1,9 @@
-import type { DeviceId, EntityId, Timestamp } from "../domains/shared/types";
+import type { DeviceId, EntityId, Timestamp } from "@domains/shared/types";
+import type { EventType } from "./eventTypes";
 
 export interface Event {
   id: EntityId;
-  type: string;
+  type: EventType;
   entityId?: EntityId;
   payload: unknown;
   timestamp: Timestamp;

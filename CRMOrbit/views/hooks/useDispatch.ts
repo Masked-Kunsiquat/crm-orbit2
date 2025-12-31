@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
 
-import { applyEvents, buildEvent } from "../../events/dispatcher";
-import type { Event } from "../../events/event";
-import { __internal_getCrmStore } from "../store/store";
-import { getDatabase, createPersistenceDb } from "../../domains/persistence/database";
-import { appendEvents } from "../../domains/persistence/store";
+import { applyEvents, buildEvent } from "@events/dispatcher";
+import type { Event } from "@events/event";
+import type { EventType } from "@events/eventTypes";
+import { __internal_getCrmStore } from "@views/store/store";
+import { getDatabase, createPersistenceDb } from "@domains/persistence/database";
+import { appendEvents } from "@domains/persistence/store";
 
 type DispatchState = {
   isProcessing: boolean;
@@ -106,9 +107,9 @@ export const useEventBuilder = (deviceId: string) => {
   const { dispatch } = useDispatch();
 
   const buildAndDispatch = useCallback(
-    (type: string, entityId: string, payload: unknown): DispatchResult => {
+    (type: EventType, entityId: string, payload: unknown): DispatchResult => {
       const event = buildEvent({
-        type: type as any,
+        type,
         entityId,
         payload,
         deviceId,
