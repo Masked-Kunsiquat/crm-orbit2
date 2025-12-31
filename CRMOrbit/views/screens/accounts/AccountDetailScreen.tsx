@@ -1,4 +1,13 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Pressable } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Pressable,
+  Linking,
+} from "react-native";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganization, useContacts } from "../../store/store";
@@ -92,6 +101,84 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             </Text>
           </View>
         </View>
+
+        {account.addresses?.site && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Site Address</Text>
+            <Text style={styles.value}>{account.addresses.site.street}</Text>
+            <Text style={styles.value}>
+              {account.addresses.site.city}, {account.addresses.site.state}{" "}
+              {account.addresses.site.zipCode}
+            </Text>
+          </View>
+        )}
+
+        {account.addresses?.parking && !account.addresses.useSameForParking && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Parking Address</Text>
+            <Text style={styles.value}>{account.addresses.parking.street}</Text>
+            <Text style={styles.value}>
+              {account.addresses.parking.city}, {account.addresses.parking.state}{" "}
+              {account.addresses.parking.zipCode}
+            </Text>
+          </View>
+        )}
+
+        {account.addresses?.useSameForParking && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Parking Address</Text>
+            <Text style={styles.value}>Same as site address</Text>
+          </View>
+        )}
+
+        {account.website && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Website</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(account.website!)}>
+              <Text style={styles.link}>{account.website}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {account.socialMedia && Object.values(account.socialMedia).some((v) => v) && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Social Media</Text>
+            {account.socialMedia.x && (
+              <TouchableOpacity
+                onPress={() => {
+                  const url = account.socialMedia!.x!.startsWith("http")
+                    ? account.socialMedia!.x!
+                    : `https://x.com/${account.socialMedia!.x}`;
+                  Linking.openURL(url);
+                }}
+              >
+                <Text style={styles.socialLink}>X: {account.socialMedia.x}</Text>
+              </TouchableOpacity>
+            )}
+            {account.socialMedia.linkedin && (
+              <TouchableOpacity onPress={() => Linking.openURL(account.socialMedia!.linkedin!)}>
+                <Text style={styles.socialLink}>LinkedIn: {account.socialMedia.linkedin}</Text>
+              </TouchableOpacity>
+            )}
+            {account.socialMedia.facebook && (
+              <TouchableOpacity onPress={() => Linking.openURL(account.socialMedia!.facebook!)}>
+                <Text style={styles.socialLink}>Facebook: {account.socialMedia.facebook}</Text>
+              </TouchableOpacity>
+            )}
+            {account.socialMedia.instagram && (
+              <TouchableOpacity
+                onPress={() => {
+                  const url = account.socialMedia!.instagram!.startsWith("http")
+                    ? account.socialMedia!.instagram!
+                    : `https://instagram.com/${account.socialMedia!.instagram}`;
+                  Linking.openURL(url);
+                }}
+              >
+                <Text style={styles.socialLink}>Instagram: {account.socialMedia.instagram}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -240,6 +327,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "monospace",
     color: "#666",
+  },
+  link: {
+    fontSize: 16,
+    color: "#1f5eff",
+    textDecorationLine: "underline",
+  },
+  socialLink: {
+    fontSize: 14,
+    color: "#1f5eff",
+    textDecorationLine: "underline",
+    marginBottom: 4,
   },
   errorText: {
     fontSize: 16,

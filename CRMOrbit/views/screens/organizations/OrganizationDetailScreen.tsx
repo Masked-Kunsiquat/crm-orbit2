@@ -1,8 +1,23 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Image, Linking } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  Linking,
+  Pressable,
+} from "react-native";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
-import { useOrganization, useAccountsByOrganization } from "@views/store/store";
+import {
+  useOrganization,
+  useAccountsByOrganization,
+  useContactsByOrganization,
+} from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
+import { getContactDisplayName } from "@domains/contact.utils";
 
 const DEVICE_ID = "device-local";
 
@@ -12,6 +27,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { organizationId } = route.params;
   const organization = useOrganization(organizationId);
   const accounts = useAccountsByOrganization(organizationId);
+  const contacts = useContactsByOrganization(organizationId);
   const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
 
   if (!organization) {
@@ -167,6 +183,34 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         )}
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Contacts ({contacts.length})</Text>
+        {contacts.length === 0 ? (
+          <Text style={styles.emptyText}>No contacts linked to accounts in this organization</Text>
+        ) : (
+          contacts.map((contact) => (
+            <Pressable
+              key={contact.id}
+              style={styles.contactCard}
+              onPress={() => {
+                // Navigate to ContactsTab
+                (navigation.navigate as any)("ContactsTab", {
+                  screen: "ContactDetail",
+                  params: { contactId: contact.id },
+                });
+              }}
+            >
+              <View style={styles.contactCardContent}>
+                <Text style={styles.contactName}>{getContactDisplayName(contact)}</Text>
+                {contact.title && <Text style={styles.contactTitle}>{contact.title}</Text>}
+                <Text style={styles.contactType}>{contact.type}</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+          ))
+        )}
+      </View>
+
       <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
         <Text style={styles.editButtonText}>Edit Organization</Text>
       </TouchableOpacity>
@@ -271,6 +315,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     fontStyle: "italic",
+  },
+  contactCard: {
+    padding: 12,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 6,
+    marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  contactCardContent: {
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1b1b1b",
+    marginBottom: 2,
+  },
+  contactTitle: {
+    fontSize: 12,
+    color: "#666666",
+    fontStyle: "italic",
+    marginBottom: 4,
+  },
+  contactType: {
+    fontSize: 12,
+    color: "#666",
+  },
+  chevron: {
+    fontSize: 20,
+    color: "#cccccc",
+    marginLeft: 8,
   },
   editButton: {
     backgroundColor: "#1f5eff",

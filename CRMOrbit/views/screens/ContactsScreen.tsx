@@ -21,19 +21,26 @@ export const ContactsScreen = () => {
     // Use timestamp-based identifier (locale-neutral)
     // In production, this would prompt the user for name and email
     const timestamp = Date.now();
-    const contactName = `contact-${timestamp}`;
+    const firstName = `Contact`;
+    const lastName = `${timestamp}`;
     const contactEmail = `${timestamp}@example.local`;
 
-    const result = createContact(contactName, "contact.type.internal", {
-      emails: [
-        {
-          value: contactEmail,
-          label: "contact.method.label.work",
-          status: "contact.method.status.active",
-        },
-      ],
-      phones: [],
-    });
+    const result = createContact(
+      firstName,
+      lastName,
+      "contact.type.internal",
+      undefined,
+      {
+        emails: [
+          {
+            value: contactEmail,
+            label: "contact.method.label.work",
+            status: "contact.method.status.active",
+          },
+        ],
+        phones: [],
+      },
+    );
 
     // Link to first account if available using the returned ID
     if (result.success && accounts.length > 0) {

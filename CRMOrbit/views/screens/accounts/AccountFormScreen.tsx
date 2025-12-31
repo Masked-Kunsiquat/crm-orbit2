@@ -12,6 +12,7 @@ import {
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
 import { useAccountActions } from "../../hooks";
+import type { Address, AccountAddresses, SocialMediaLinks } from "@domains/account";
 
 const DEVICE_ID = "device-local";
 
@@ -31,6 +32,21 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [status, setStatus] = useState<"account.status.active" | "account.status.inactive">(
     "account.status.active",
   );
+  const [siteAddress, setSiteAddress] = useState<Address>({
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+  });
+  const [parkingAddress, setParkingAddress] = useState<Address>({
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+  });
+  const [useSameForParking, setUseSameForParking] = useState(false);
+  const [website, setWebsite] = useState("");
+  const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
   const [isDirty, setIsDirty] = useState(false);
   const lastAccountIdRef = useRef<string | undefined>(undefined);
 
@@ -48,11 +64,25 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setName(account.name);
         setOrganizationId(account.organizationId);
         setStatus(account.status);
+        setSiteAddress(
+          account.addresses?.site ?? { street: "", city: "", state: "", zipCode: "" },
+        );
+        setParkingAddress(
+          account.addresses?.parking ?? { street: "", city: "", state: "", zipCode: "" },
+        );
+        setUseSameForParking(account.addresses?.useSameForParking ?? false);
+        setWebsite(account.website || "");
+        setSocialMedia(account.socialMedia || {});
       } else {
         // New account - reset to defaults
         setName("");
         setOrganizationId(organizations[0]?.id ?? "");
         setStatus("account.status.active");
+        setSiteAddress({ street: "", city: "", state: "", zipCode: "" });
+        setParkingAddress({ street: "", city: "", state: "", zipCode: "" });
+        setUseSameForParking(false);
+        setWebsite("");
+        setSocialMedia({});
       }
     }
   }, [accountId, account, organizations]);
@@ -67,6 +97,35 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     setIsDirty(true);
   };
 
+  const handleSiteAddressChange = (field: keyof Address, value: string) => {
+    setSiteAddress((prev) => ({ ...prev, [field]: value }));
+    if (useSameForParking) {
+      setParkingAddress((prev) => ({ ...prev, [field]: value }));
+    }
+    setIsDirty(true);
+  };
+
+  const handleParkingAddressChange = (field: keyof Address, value: string) => {
+    setParkingAddress((prev) => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  };
+
+  const handleUseSameForParkingChange = (value: boolean) => {
+    setUseSameForParking(value);
+    if (value) {
+      setParkingAddress(siteAddress);
+    }
+    setIsDirty(true);
+  };
+
+  const handleSocialMediaChange = (platform: keyof SocialMediaLinks, value: string) => {
+    setSocialMedia((prev) => ({
+      ...prev,
+      [platform]: value.trim() || undefined,
+    }));
+    setIsDirty(true);
+  };
+
   const handleSave = () => {
     if (!name.trim()) {
       Alert.alert("Validation Error", "Account name is required");
@@ -78,15 +137,51 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
+    // Build addresses object
+    const hasSiteAddress = Object.values(siteAddress).some((v) => v.trim() !== "");
+    const hasParkingAddress = Object.values(parkingAddress).some((v) => v.trim() !== "");
+    const addresses: AccountAddresses | undefined =
+      hasSiteAddress || hasParkingAddress
+        ? {
+            site: hasSiteAddress ? siteAddress : undefined,
+            parking: hasParkingAddress ? parkingAddress : undefined,
+            useSameForParking,
+          }
+        : undefined;
+
+    // Build social media object
+    const socialMediaData: SocialMediaLinks = {
+      x: socialMedia.x?.trim() || undefined,
+      linkedin: socialMedia.linkedin?.trim() || undefined,
+      facebook: socialMedia.facebook?.trim() || undefined,
+      instagram: socialMedia.instagram?.trim() || undefined,
+    };
+    const hasSocialMedia = Object.values(socialMediaData).some((v) => v);
+
     if (accountId) {
-      const result = updateAccount(accountId, name.trim(), status, organizationId);
+      const result = updateAccount(
+        accountId,
+        name.trim(),
+        status,
+        organizationId,
+        addresses,
+        website.trim() || undefined,
+        hasSocialMedia ? socialMediaData : undefined,
+      );
       if (result.success) {
         navigation.goBack();
       } else {
         Alert.alert("Error", result.error || "Failed to update account");
       }
     } else {
-      const result = createAccount(organizationId, name.trim(), status);
+      const result = createAccount(
+        organizationId,
+        name.trim(),
+        status,
+        addresses,
+        website.trim() || undefined,
+        hasSocialMedia ? socialMediaData : undefined,
+      );
       if (result.success) {
         navigation.goBack();
       } else {
@@ -176,6 +271,127 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Site Address</Text>
+          <TextInput
+            style={styles.input}
+            value={siteAddress.street}
+            onChangeText={(value) => handleSiteAddressChange("street", value)}
+            placeholder="Street"
+          />
+          <TextInput
+            style={[styles.input, styles.addressInput]}
+            value={siteAddress.city}
+            onChangeText={(value) => handleSiteAddressChange("city", value)}
+            placeholder="City"
+          />
+          <View style={styles.addressRow}>
+            <TextInput
+              style={[styles.input, styles.addressInputSmall]}
+              value={siteAddress.state}
+              onChangeText={(value) => handleSiteAddressChange("state", value)}
+              placeholder="State"
+            />
+            <TextInput
+              style={[styles.input, styles.addressInputSmall]}
+              value={siteAddress.zipCode}
+              onChangeText={(value) => handleSiteAddressChange("zipCode", value)}
+              placeholder="ZIP"
+            />
+          </View>
+        </View>
+
+        <View style={styles.field}>
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => handleUseSameForParkingChange(!useSameForParking)}
+          >
+            <View style={[styles.checkbox, useSameForParking && styles.checkboxChecked]}>
+              {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxLabel}>Use same address for parking</Text>
+          </TouchableOpacity>
+        </View>
+
+        {!useSameForParking && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Parking Address</Text>
+            <TextInput
+              style={styles.input}
+              value={parkingAddress.street}
+              onChangeText={(value) => handleParkingAddressChange("street", value)}
+              placeholder="Street"
+            />
+            <TextInput
+              style={[styles.input, styles.addressInput]}
+              value={parkingAddress.city}
+              onChangeText={(value) => handleParkingAddressChange("city", value)}
+              placeholder="City"
+            />
+            <View style={styles.addressRow}>
+              <TextInput
+                style={[styles.input, styles.addressInputSmall]}
+                value={parkingAddress.state}
+                onChangeText={(value) => handleParkingAddressChange("state", value)}
+                placeholder="State"
+              />
+              <TextInput
+                style={[styles.input, styles.addressInputSmall]}
+                value={parkingAddress.zipCode}
+                onChangeText={(value) => handleParkingAddressChange("zipCode", value)}
+                placeholder="ZIP"
+              />
+            </View>
+          </View>
+        )}
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Website</Text>
+          <TextInput
+            style={styles.input}
+            value={website}
+            onChangeText={(value) => {
+              setWebsite(value);
+              setIsDirty(true);
+            }}
+            placeholder="https://example.com"
+            keyboardType="url"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Social Media</Text>
+          <TextInput
+            style={[styles.input, styles.socialInput]}
+            value={socialMedia.x || ""}
+            onChangeText={(value) => handleSocialMediaChange("x", value)}
+            placeholder="X (Twitter) username or URL"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[styles.input, styles.socialInput]}
+            value={socialMedia.linkedin || ""}
+            onChangeText={(value) => handleSocialMediaChange("linkedin", value)}
+            placeholder="LinkedIn URL"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[styles.input, styles.socialInput]}
+            value={socialMedia.facebook || ""}
+            onChangeText={(value) => handleSocialMediaChange("facebook", value)}
+            placeholder="Facebook URL"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[styles.input, styles.socialInput]}
+            value={socialMedia.instagram || ""}
+            onChangeText={(value) => handleSocialMediaChange("instagram", value)}
+            placeholder="Instagram username or URL"
+            autoCapitalize="none"
+          />
         </View>
 
         <TouchableOpacity
@@ -288,5 +504,47 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  addressInput: {
+    marginTop: 8,
+  },
+  addressRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
+  addressInputSmall: {
+    flex: 1,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxChecked: {
+    backgroundColor: "#1f5eff",
+    borderColor: "#1f5eff",
+  },
+  checkmark: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  checkboxLabel: {
+    fontSize: 15,
+    color: "#1b1b1b",
+  },
+  socialInput: {
+    marginTop: 8,
   },
 });
