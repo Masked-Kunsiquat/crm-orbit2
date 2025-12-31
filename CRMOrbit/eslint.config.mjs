@@ -3,9 +3,12 @@ import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 import react from "eslint-plugin-react";
 import reactNative from "eslint-plugin-react-native";
+import prettier from "eslint-plugin-prettier";
+import prettierConfig from "eslint-config-prettier";
 
 export default [
   js.configs.recommended,
+  prettierConfig,
   {
     files: ["**/*.{ts,tsx,js,jsx}"],
     languageOptions: {
@@ -38,6 +41,7 @@ export default [
       "@typescript-eslint": tseslint,
       react: react,
       "react-native": reactNative,
+      prettier: prettier,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -48,6 +52,7 @@ export default [
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "no-console": "off",
+      "prettier/prettier": "warn",
     },
     settings: {
       react: {
