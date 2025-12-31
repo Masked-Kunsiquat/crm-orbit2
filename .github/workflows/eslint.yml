@@ -1,0 +1,59 @@
+name: ESLint
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+  schedule:
+    - cron: "33 5 * * 5"
+
+jobs:
+  eslint:
+    name: Run ESLint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read # needed for SARIF upload in private repos
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify migrations
+        run: npm run verify-migrations
+
+#      - name: Run architecture tests
+#        run: npm run arch-test
+
+      - name: Install SARIF formatter (no lockfile changes)
+        run: npm install @microsoft/eslint-formatter-sarif@3.1.0 --no-save
+
+      - name: Run ESLint
+        env:
+          SARIF_ESLINT_IGNORE_SUPPRESSED: "true"
+        id: lint
+        continue-on-error: true
+        run: |
+          npm run lint -- \
+            --format stylish \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file eslint-results.sarif
+
+      - name: Upload analysis results to GitHub
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: eslint-results.sarif
+          wait-for-processing: true
+
+      - name: Fail if lint errors occurred
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
