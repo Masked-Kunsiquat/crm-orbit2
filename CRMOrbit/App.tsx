@@ -3,11 +3,11 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-import { registerCoreReducers } from "./crm-core/events/dispatcher";
-import { initializeDatabase, createPersistenceDb } from "./crm-core/persistence/database";
-import { loadPersistedState } from "./crm-core/persistence/loader";
-import { __internal_getCrmStore } from "./crm-core/views/store";
-import { RootTabs } from "./navigation";
+import { registerCoreReducers } from "./events/dispatcher";
+import { initializeDatabase, createPersistenceDb } from "./domains/persistence/database";
+import { loadPersistedState } from "./domains/persistence/loader";
+import { __internal_getCrmStore } from "./views/store/store";
+import { RootTabs } from "./views/navigation";
 
 registerCoreReducers();
 

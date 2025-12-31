@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../crm-core/automerge/init";
-import { accountContactReducer } from "../crm-core/reducers/accountContact.reducer";
-import { accountReducer } from "../crm-core/reducers/account.reducer";
-import { contactReducer } from "../crm-core/reducers/contact.reducer";
-import { organizationReducer } from "../crm-core/reducers/organization.reducer";
-import type { Event } from "../crm-core/events/event";
+import { initAutomergeDoc } from "../automerge/init";
+import { accountContactReducer } from "../reducers/accountContact.reducer";
+import { accountReducer } from "../reducers/account.reducer";
+import { contactReducer } from "../reducers/contact.reducer";
+import { organizationReducer } from "../reducers/organization.reducer";
+import type { Event } from "../events/event";
 
 const createOrganization = (): Event => ({
   id: "evt-org-1",
