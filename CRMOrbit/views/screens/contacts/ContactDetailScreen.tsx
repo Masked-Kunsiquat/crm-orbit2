@@ -8,6 +8,7 @@ import {
   View,
   Modal,
   FlatList,
+  Pressable,
 } from "react-native";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
@@ -16,6 +17,7 @@ import {
   useAccountsByContact,
   useAccounts,
   useAccountContactRelations,
+  useNotes,
 } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
@@ -29,6 +31,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params;
   const contact = useContact(contactId);
   const linkedAccounts = useAccountsByContact(contactId);
+  const notes = useNotes("contact", contactId);
   const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
@@ -271,6 +274,49 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         )}
       </View>
 
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Notes ({notes.length})</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() =>
+              navigation.navigate("NotesTab", {
+                screen: "NoteForm",
+                params: {
+                  entityToLink: { entityId: contactId, entityType: "contact" },
+                },
+              })
+            }
+          >
+            <Text style={styles.addButtonText}>Add Note</Text>
+          </TouchableOpacity>
+        </View>
+        {notes.length === 0 ? (
+          <Text style={styles.emptyText}>No notes for this contact.</Text>
+        ) : (
+          notes.map((note) => (
+            <Pressable
+              key={note.id}
+              style={styles.noteCard}
+              onPress={() => {
+                (navigation.navigate as any)("NotesTab", {
+                  screen: "NoteDetail",
+                  params: { noteId: note.id },
+                });
+              }}
+            >
+              <View style={styles.noteCardContent}>
+                <Text style={styles.noteTitle}>{note.title}</Text>
+                <Text style={styles.noteBody} numberOfLines={2}>
+                  {note.body}
+                </Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+          ))
+        )}
+      </View>
+
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.deleteButtonText}>Delete Contact</Text>
       </TouchableOpacity>
@@ -371,11 +417,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1b1b1b",
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1b1b1b",
-    marginBottom: 12,
+  },
+  addButton: {
+    backgroundColor: "#e3f2fd",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  addButtonText: {
+    color: "#1f5eff",
+    fontSize: 13,
+    fontWeight: "600",
   },
   methodItem: {
     paddingVertical: 8,
@@ -469,6 +531,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#4caf50",
     fontWeight: "600",
+  },
+  noteCard: {
+    padding: 12,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 6,
+    marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  noteCardContent: {
+    flex: 1,
+  },
+  noteTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1b1b1b",
+    marginBottom: 4,
+  },
+  noteBody: {
+    fontSize: 14,
+    color: "#666",
+  },
+  chevron: {
+    fontSize: 20,
+    color: "#cccccc",
+    marginLeft: 8,
   },
   modalOverlay: {
     flex: 1,

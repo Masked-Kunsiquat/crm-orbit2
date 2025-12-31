@@ -38,7 +38,13 @@ export type ContactsStackParamList = {
 export type NotesStackParamList = {
   NotesList: undefined;
   NoteDetail: { noteId: EntityId };
-  NoteForm: { noteId?: EntityId };
+  NoteForm: {
+    noteId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: NoteLinkEntityType;
+    };
+  };
 };
 
 // Interactions stack navigator

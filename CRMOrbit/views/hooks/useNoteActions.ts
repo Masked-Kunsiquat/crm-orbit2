@@ -47,6 +47,22 @@ export const useNoteActions = (deviceId: string) => {
     [deviceId],
   );
 
+  const deleteNote = useCallback(
+    (noteId: EntityId) => {
+      const event = buildEvent({
+        type: "note.deleted",
+        entityId: noteId,
+        payload: {
+          id: noteId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId],
+  );
+
   const linkNote = useCallback(
     (
       noteId: EntityId,
@@ -89,6 +105,7 @@ export const useNoteActions = (deviceId: string) => {
   return {
     createNote,
     updateNote,
+    deleteNote,
     linkNote,
     unlinkNote,
   };

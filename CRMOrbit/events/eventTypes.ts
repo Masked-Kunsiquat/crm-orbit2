@@ -18,6 +18,7 @@ export const EVENT_TYPES = [
   "account.contact.unsetPrimary",
   "note.created",
   "note.updated",
+  "note.deleted",
   "note.linked",
   "note.unlinked",
   "interaction.logged",

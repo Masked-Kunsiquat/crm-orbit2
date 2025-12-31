@@ -67,12 +67,46 @@ const applyNoteUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   };
 };
 
+const applyNoteDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as { id?: EntityId };
+  const id = resolveEntityId(event, payload);
+  const existing = doc.notes[id] as Note | undefined;
+
+  if (!existing) {
+    throw new Error(`Note not found: ${id}`);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [id]: _removed, ...remainingNotes } = doc.notes;
+
+  const remainingLinks = Object.entries(doc.relations.noteLinks).reduce(
+    (acc, [linkId, link]) => {
+      if (link.noteId !== id) {
+        acc[linkId] = link;
+      }
+      return acc;
+    },
+    {} as AutomergeDoc["relations"]["noteLinks"],
+  );
+
+  return {
+    ...doc,
+    notes: remainingNotes,
+    relations: {
+      ...doc.relations,
+      noteLinks: remainingLinks,
+    },
+  };
+};
+
 export const noteReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   switch (event.type) {
     case "note.created":
       return applyNoteCreated(doc, event);
     case "note.updated":
       return applyNoteUpdated(doc, event);
+    case "note.deleted":
+      return applyNoteDeleted(doc, event);
     default:
       throw new Error(`note.reducer does not handle event type: ${event.type}`);
   }

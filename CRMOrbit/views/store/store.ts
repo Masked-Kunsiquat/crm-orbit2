@@ -11,7 +11,12 @@ import type { Organization } from "@domains/organization";
 import { NoteLinkEntityType } from "@domains/relations/noteLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
-import { getNotesForEntity, getPrimaryContacts } from "./selectors";
+import {
+  getEntitiesForNote,
+  getNotesForEntity,
+  getPrimaryContacts,
+  LinkedEntityInfo,
+} from "./selectors";
 
 // Internal store state - not exported
 type CrmStoreState = {
@@ -107,6 +112,12 @@ export const useNotes = (
       .map((noteId) => state.doc.notes[noteId])
       .filter((note): note is Note => Boolean(note));
   };
+  return crmStore(useShallow(selector));
+};
+
+export const useEntitiesForNote = (noteId: EntityId): LinkedEntityInfo[] => {
+  const selector = (state: CrmStoreState) =>
+    getEntitiesForNote(state.doc, noteId);
   return crmStore(useShallow(selector));
 };
 
