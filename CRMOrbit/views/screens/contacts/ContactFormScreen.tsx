@@ -46,13 +46,13 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (contact) {
         // Handle legacy name field migration
         if (contact.firstName || contact.lastName) {
-          setFirstName(contact.firstName);
-          setLastName(contact.lastName);
+          setFirstName(contact.firstName || "");
+          setLastName(contact.lastName || "");
         } else if (contact.name) {
           // Migrate legacy name
           const { firstName: fName, lastName: lName } = splitLegacyName(contact.name);
-          setFirstName(fName);
-          setLastName(lName);
+          setFirstName(fName || "");
+          setLastName(lName || "");
         }
         setTitle(contact.title || "");
         setType(contact.type);
