@@ -12,6 +12,7 @@ import {
   StatusBadge,
 } from "@views/components";
 import { colors } from "@domains/shared/theme/colors";
+import { t } from "../../../i18n";
 type Props = OrganizationsStackScreenProps<"OrganizationsList">;
 
 export const OrganizationsListScreen = ({ navigation }: Props) => {
@@ -62,8 +63,8 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
           <Text style={styles.itemName}>{item.name}</Text>
           <StatusBadge
             isActive={item.status === "organization.status.active"}
-            activeLabel="Active"
-            inactiveLabel="Inactive"
+            activeLabelKey="status.active"
+            inactiveLabelKey="status.inactive"
           />
         </View>
       </View>
@@ -77,9 +78,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
         data={filteredOrganizations}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        emptyTitle="No organizations yet"
+        emptyTitle={t("organizations.emptyTitle")}
         emptyHint={
-          showInactive ? "Tap the + button to create one" : "Tap ⋮ to include inactive"
+          showInactive ? t("organizations.emptyHint") : t("organizations.includeInactiveHint")
         }
         onAdd={handleAdd}
       />
@@ -97,7 +98,7 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
           style={styles.menuItem}
         >
           <Text style={styles.menuItemText}>
-            {showInactive ? "Hide inactive" : "Include inactive"}
+            {showInactive ? t("organizations.menuHideInactive") : t("organizations.menuIncludeInactive")}
           </Text>
         </Pressable>
       </HeaderMenu>

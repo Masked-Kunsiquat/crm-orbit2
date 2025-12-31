@@ -68,15 +68,15 @@ export const AccountsListScreen = ({ navigation }: Props) => {
               <Text style={styles.name}>{item.name}</Text>
               <StatusBadge
                 isActive={item.status === "account.status.active"}
-                activeLabel="Active"
-                inactiveLabel="Inactive"
+                activeLabelKey="status.active"
+                inactiveLabelKey="status.inactive"
               />
             </View>
             <Text style={styles.organization}>{getOrganizationName(item.organizationId)}</Text>
           </ListCard>
         )}
         emptyTitle={t("accounts.emptyTitle")}
-        emptyHint={showInactive ? t("accounts.emptyHint") : "Tap ⋮ to include inactive"}
+        emptyHint={showInactive ? t("accounts.emptyHint") : t("accounts.includeInactiveHint")}
         onAdd={handleCreate}
       />
       <HeaderMenu
@@ -93,7 +93,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
           style={styles.menuItem}
         >
           <Text style={styles.menuItemText}>
-            {showInactive ? "Hide inactive" : "Include inactive"}
+            {showInactive ? t("accounts.menuHideInactive") : t("accounts.menuIncludeInactive")}
           </Text>
         </Pressable>
       </HeaderMenu>

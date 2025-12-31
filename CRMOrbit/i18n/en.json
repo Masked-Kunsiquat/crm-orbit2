@@ -1,4 +1,14 @@
 {
   "accounts.emptyTitle": "No accounts yet.",
-  "accounts.emptyHint": "Create your first account to get started."
+  "accounts.emptyHint": "Create your first account to get started.",
+  "accounts.includeInactiveHint": "Tap ⋮ to include inactive",
+  "accounts.menuIncludeInactive": "Include inactive",
+  "accounts.menuHideInactive": "Hide inactive",
+  "organizations.emptyTitle": "No organizations yet",
+  "organizations.emptyHint": "Tap the + button to create one",
+  "organizations.includeInactiveHint": "Tap ⋮ to include inactive",
+  "organizations.menuIncludeInactive": "Include inactive",
+  "organizations.menuHideInactive": "Hide inactive",
+  "status.active": "Active",
+  "status.inactive": "Inactive"
 }

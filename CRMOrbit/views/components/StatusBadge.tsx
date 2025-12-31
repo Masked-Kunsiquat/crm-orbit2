@@ -1,20 +1,21 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../domains/shared/theme/colors";
+import { t } from "../../i18n";
 
 type StatusBadgeProps = {
   isActive: boolean;
-  activeLabel: string;
-  inactiveLabel: string;
+  activeLabelKey: string;
+  inactiveLabelKey: string;
 };
 
 export const StatusBadge = ({
   isActive,
-  activeLabel,
-  inactiveLabel,
+  activeLabelKey,
+  inactiveLabelKey,
 }: StatusBadgeProps) => (
   <View style={[styles.badge, isActive ? styles.active : styles.inactive]}>
-    <Text style={styles.text}>{isActive ? activeLabel : inactiveLabel}</Text>
+    <Text style={styles.text}>{isActive ? t(activeLabelKey) : t(inactiveLabelKey)}</Text>
   </View>
 );
 
