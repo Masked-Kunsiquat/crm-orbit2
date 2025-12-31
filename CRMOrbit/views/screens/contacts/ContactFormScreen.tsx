@@ -207,7 +207,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     <ScrollView style={styles.container}>
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={styles.label}>First Name *</Text>
+          <Text style={styles.label}>First Name</Text>
           <TextInput
             style={styles.input}
             value={firstName}
@@ -218,13 +218,14 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Last Name *</Text>
+          <Text style={styles.label}>Last Name</Text>
           <TextInput
             style={styles.input}
             value={lastName}
             onChangeText={handleLastNameChange}
             placeholder="Enter last name"
           />
+          <Text style={styles.hint}>At least one of First or Last name is required</Text>
         </View>
 
         <View style={styles.field}>
@@ -338,6 +339,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#1b1b1b",
+  },
+  hint: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
   },
   input: {
     backgroundColor: "#fff",
