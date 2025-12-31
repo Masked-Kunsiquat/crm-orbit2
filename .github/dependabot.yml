@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # JavaScript/Expo app (npm) in `test-fresh/src/` folder
+  # JavaScript/Expo app (npm) in `CRMOrbit/` folder
   - package-ecosystem: "npm"
     directory: "CRMOrbit/"
     schedule:
