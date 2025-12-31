@@ -16,6 +16,7 @@ import { useAccount, useOrganization, useContacts } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
+import { Tooltip } from "../../components";
 
 const DEVICE_ID = "device-local";
 
@@ -155,80 +156,86 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         {account.socialMedia && Object.values(account.socialMedia).some((v) => v) && (
           <View style={styles.field}>
             <Text style={styles.label}>Social Media</Text>
-            {account.socialMedia.x && (
-              <Pressable
-                onPress={() => {
-                  const url = account.socialMedia!.x!.startsWith("http")
-                    ? account.socialMedia!.x!
-                    : `https://x.com/${account.socialMedia!.x}`;
-                  Linking.openURL(url);
-                }}
-                onLongPress={() => {
-                  const url = account.socialMedia!.x!.startsWith("http")
-                    ? account.socialMedia!.x!
-                    : `https://x.com/${account.socialMedia!.x}`;
-                  Alert.alert("X Link", url);
-                }}
-                style={styles.socialLinkContainer}
-              >
-                <Text style={styles.socialLink}>X</Text>
-                <FontAwesome6
-                  name="square-x-twitter"
-                  size={18}
-                  color="#1f5eff"
-                  style={styles.socialIcon}
-                />
-              </Pressable>
-            )}
-            {account.socialMedia.linkedin && (
-              <Pressable
-                onPress={() => Linking.openURL(account.socialMedia!.linkedin!)}
-                onLongPress={() => Alert.alert("LinkedIn Link", account.socialMedia!.linkedin!)}
-                style={styles.socialLinkContainer}
-              >
-                <Text style={styles.socialLink}>LinkedIn</Text>
-                <FontAwesome6 name="linkedin" size={18} color="#1f5eff" style={styles.socialIcon} />
-              </Pressable>
-            )}
             {account.socialMedia.facebook && (
-              <Pressable
-                onPress={() => Linking.openURL(account.socialMedia!.facebook!)}
-                onLongPress={() => Alert.alert("Facebook Link", account.socialMedia!.facebook!)}
-                style={styles.socialLinkContainer}
-              >
-                <Text style={styles.socialLink}>Facebook</Text>
-                <FontAwesome6
-                  name="square-facebook"
-                  size={18}
-                  color="#1f5eff"
-                  style={styles.socialIcon}
-                />
-              </Pressable>
+              <Tooltip content={account.socialMedia.facebook}>
+                <Pressable
+                  onPress={() => Linking.openURL(account.socialMedia!.facebook!)}
+                  style={styles.socialLinkContainer}
+                >
+                  <Text style={styles.socialLink}>Facebook</Text>
+                  <FontAwesome6
+                    name="square-facebook"
+                    size={18}
+                    color="#1f5eff"
+                    style={styles.socialIcon}
+                  />
+                </Pressable>
+              </Tooltip>
             )}
             {account.socialMedia.instagram && (
-              <Pressable
-                onPress={() => {
-                  const url = account.socialMedia!.instagram!.startsWith("http")
-                    ? account.socialMedia!.instagram!
-                    : `https://instagram.com/${account.socialMedia!.instagram}`;
-                  Linking.openURL(url);
-                }}
-                onLongPress={() => {
-                  const url = account.socialMedia!.instagram!.startsWith("http")
-                    ? account.socialMedia!.instagram!
-                    : `https://instagram.com/${account.socialMedia!.instagram}`;
-                  Alert.alert("Instagram Link", url);
-                }}
-                style={styles.socialLinkContainer}
+              <Tooltip
+                content={
+                  account.socialMedia.instagram.startsWith("http")
+                    ? account.socialMedia.instagram
+                    : `https://instagram.com/${account.socialMedia.instagram}`
+                }
               >
-                <Text style={styles.socialLink}>Instagram</Text>
-                <FontAwesome6
-                  name="instagram"
-                  size={18}
-                  color="#1f5eff"
-                  style={styles.socialIcon}
-                />
-              </Pressable>
+                <Pressable
+                  onPress={() => {
+                    const url = account.socialMedia!.instagram!.startsWith("http")
+                      ? account.socialMedia!.instagram!
+                      : `https://instagram.com/${account.socialMedia!.instagram}`;
+                    Linking.openURL(url);
+                  }}
+                  style={styles.socialLinkContainer}
+                >
+                  <Text style={styles.socialLink}>Instagram</Text>
+                  <FontAwesome6
+                    name="instagram"
+                    size={18}
+                    color="#1f5eff"
+                    style={styles.socialIcon}
+                  />
+                </Pressable>
+              </Tooltip>
+            )}
+            {account.socialMedia.linkedin && (
+              <Tooltip content={account.socialMedia.linkedin}>
+                <Pressable
+                  onPress={() => Linking.openURL(account.socialMedia!.linkedin!)}
+                  style={styles.socialLinkContainer}
+                >
+                  <Text style={styles.socialLink}>LinkedIn</Text>
+                  <FontAwesome6 name="linkedin" size={18} color="#1f5eff" style={styles.socialIcon} />
+                </Pressable>
+              </Tooltip>
+            )}
+            {account.socialMedia.x && (
+              <Tooltip
+                content={
+                  account.socialMedia.x.startsWith("http")
+                    ? account.socialMedia.x
+                    : `https://x.com/${account.socialMedia.x}`
+                }
+              >
+                <Pressable
+                  onPress={() => {
+                    const url = account.socialMedia!.x!.startsWith("http")
+                      ? account.socialMedia!.x!
+                      : `https://x.com/${account.socialMedia!.x}`;
+                    Linking.openURL(url);
+                  }}
+                  style={styles.socialLinkContainer}
+                >
+                  <Text style={styles.socialLink}>X</Text>
+                  <FontAwesome6
+                    name="square-x-twitter"
+                    size={18}
+                    color="#1f5eff"
+                    style={styles.socialIcon}
+                  />
+                </Pressable>
+              </Tooltip>
             )}
           </View>
         )}
