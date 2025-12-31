@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Modal,
   TouchableWithoutFeedback,
+  Dimensions,
   type ViewStyle,
 } from "react-native";
 
@@ -16,12 +17,27 @@ interface TooltipProps {
 
 export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => {
   const [visible, setVisible] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0, width: 0, height: 0, calculatedLeft: 0 });
   const anchorRef = useRef<View>(null);
 
   const showTooltip = () => {
     anchorRef.current?.measureInWindow((pageX, pageY, width, height) => {
-      setPosition({ x: pageX, y: pageY, width, height });
+      const screenWidth = Dimensions.get("window").width;
+      const tooltipWidth = 300; // maxWidth from styles
+
+      let left = pageX + width + 10; // Default: to the right
+
+      // If tooltip would overflow right edge, position to the left instead
+      if (left + tooltipWidth > screenWidth) {
+        left = pageX - tooltipWidth - 10;
+      }
+
+      // If still overflows (element too close to left edge), center it
+      if (left < 10) {
+        left = Math.max(10, (screenWidth - tooltipWidth) / 2);
+      }
+
+      setPosition({ x: pageX, y: pageY, width, height, calculatedLeft: left });
       setVisible(true);
     });
   };
@@ -51,7 +67,7 @@ export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => 
                 styles.tooltip,
                 {
                   top: position.y,
-                  left: position.x + position.width + 10,
+                  left: position.calculatedLeft,
                 },
               ]}
             >
