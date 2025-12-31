@@ -97,21 +97,18 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   ) => {
     switch (entityType) {
       case "organization":
-        navigation.navigate("OrganizationsTab", {
-          screen: "OrganizationDetail",
-          params: { organizationId: entityId },
+        navigation.navigate("OrganizationDetail", {
+          organizationId: entityId,
         });
         break;
       case "account":
-        navigation.navigate("AccountsTab", {
-          screen: "AccountDetail",
-          params: { accountId: entityId },
+        navigation.navigate("AccountDetail", {
+          accountId: entityId,
         });
         break;
       case "contact":
-        navigation.navigate("ContactsTab", {
-          screen: "ContactDetail",
-          params: { contactId: entityId },
+        navigation.navigate("ContactDetail", {
+          contactId: entityId,
         });
         break;
       // Cannot navigate to a note from itself or an interaction yet

@@ -2,7 +2,27 @@ import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import type { NoteLinkEntityType } from "@domains/relations/noteLink";
 import type { EntityId } from "../../domains/shared/types";
+
+// Root stack navigator
+export type RootStackParamList = {
+  RootTabs: undefined;
+  OrganizationDetail: { organizationId: EntityId };
+  OrganizationForm: { organizationId?: EntityId };
+  AccountDetail: { accountId: EntityId };
+  AccountForm: { accountId?: EntityId };
+  ContactDetail: { contactId: EntityId };
+  ContactForm: { contactId?: EntityId };
+  NoteDetail: { noteId: EntityId };
+  NoteForm: {
+    noteId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: NoteLinkEntityType;
+    };
+  };
+};
 
 // Root tab navigator
 export type RootTabParamList = {
@@ -59,38 +79,53 @@ export type OrganizationsStackScreenProps<
   T extends keyof OrganizationsStackParamList,
 > = CompositeScreenProps<
   NativeStackScreenProps<OrganizationsStackParamList, T>,
-  BottomTabScreenProps<RootTabParamList>
+  CompositeScreenProps<
+    BottomTabScreenProps<RootTabParamList>,
+    NativeStackScreenProps<RootStackParamList>
+  >
 >;
 
 export type AccountsStackScreenProps<T extends keyof AccountsStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<AccountsStackParamList, T>,
-    BottomTabScreenProps<RootTabParamList>
+    CompositeScreenProps<
+      BottomTabScreenProps<RootTabParamList>,
+      NativeStackScreenProps<RootStackParamList>
+    >
   >;
 
 export type ContactsStackScreenProps<T extends keyof ContactsStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<ContactsStackParamList, T>,
-    BottomTabScreenProps<RootTabParamList>
+    CompositeScreenProps<
+      BottomTabScreenProps<RootTabParamList>,
+      NativeStackScreenProps<RootStackParamList>
+    >
   >;
 
 export type NotesStackScreenProps<T extends keyof NotesStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<NotesStackParamList, T>,
-    BottomTabScreenProps<RootTabParamList>
+    CompositeScreenProps<
+      BottomTabScreenProps<RootTabParamList>,
+      NativeStackScreenProps<RootStackParamList>
+    >
   >;
 
 export type InteractionsStackScreenProps<
   T extends keyof InteractionsStackParamList,
 > = CompositeScreenProps<
   NativeStackScreenProps<InteractionsStackParamList, T>,
-  BottomTabScreenProps<RootTabParamList>
+  CompositeScreenProps<
+    BottomTabScreenProps<RootTabParamList>,
+    NativeStackScreenProps<RootStackParamList>
+  >
 >;
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface RootParamList extends RootTabParamList {}
+    interface RootParamList extends RootStackParamList {}
   }
 }

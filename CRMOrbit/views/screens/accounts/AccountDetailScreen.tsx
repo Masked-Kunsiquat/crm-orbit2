@@ -390,11 +390,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={styles.addButton}
             onPress={() =>
-              navigation.navigate("NotesTab", {
-                screen: "NoteForm",
-                params: {
-                  entityToLink: { entityId: accountId, entityType: "account" },
-                },
+              navigation.navigate("NoteForm", {
+                entityToLink: { entityId: accountId, entityType: "account" },
               })
             }
           >
@@ -409,10 +406,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               key={note.id}
               style={styles.noteCard}
               onPress={() => {
-                (navigation.navigate as any)("NotesTab", {
-                  screen: "NoteDetail",
-                  params: { noteId: note.id },
-                });
+                navigation.navigate("NoteDetail", { noteId: note.id });
               }}
             >
               <View style={styles.noteCardContent}>

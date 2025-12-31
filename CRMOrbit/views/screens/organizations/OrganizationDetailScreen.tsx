@@ -309,13 +309,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={styles.addButton}
             onPress={() =>
-              navigation.navigate("NotesTab", {
-                screen: "NoteForm",
-                params: {
-                  entityToLink: {
-                    entityId: organizationId,
-                    entityType: "organization",
-                  },
+              navigation.navigate("NoteForm", {
+                entityToLink: {
+                  entityId: organizationId,
+                  entityType: "organization",
                 },
               })
             }
@@ -333,10 +330,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               key={note.id}
               style={styles.noteCard}
               onPress={() => {
-                (navigation.navigate as any)("NotesTab", {
-                  screen: "NoteDetail",
-                  params: { noteId: note.id },
-                });
+                navigation.navigate("NoteDetail", { noteId: note.id });
               }}
             >
               <View style={styles.noteCardContent}>

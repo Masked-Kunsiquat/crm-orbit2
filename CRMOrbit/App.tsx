@@ -10,7 +10,7 @@ import {
 } from "./domains/persistence/database";
 import { loadPersistedState } from "./domains/persistence/loader";
 import { __internal_getCrmStore } from "./views/store/store";
-import { RootTabs } from "./views/navigation";
+import { RootStack } from "./views/navigation";
 
 registerCoreReducers();
 
@@ -66,7 +66,7 @@ export default function App() {
     <NavigationContainer>
       <View style={styles.container}>
         <StatusBar style="auto" />
-        <RootTabs />
+        <RootStack />
       </View>
     </NavigationContainer>
   );
