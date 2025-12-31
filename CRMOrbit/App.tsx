@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { registerCoreReducers } from "./events/dispatcher";
-import { initializeDatabase, createPersistenceDb } from "./domains/persistence/database";
+import {
+  initializeDatabase,
+  createPersistenceDb,
+} from "./domains/persistence/database";
 import { loadPersistedState } from "./domains/persistence/loader";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootTabs } from "./views/navigation";

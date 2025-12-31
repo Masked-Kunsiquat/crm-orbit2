@@ -23,12 +23,13 @@ type Props = OrganizationsStackScreenProps<"OrganizationForm">;
 export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const { organizationId } = route.params ?? {};
   const organization = useOrganization(organizationId ?? "");
-  const { createOrganization, updateOrganization } = useOrganizationActions(DEVICE_ID);
+  const { createOrganization, updateOrganization } =
+    useOrganizationActions(DEVICE_ID);
 
   const [name, setName] = useState("");
-  const [status, setStatus] = useState<"organization.status.active" | "organization.status.inactive">(
-    "organization.status.active",
-  );
+  const [status, setStatus] = useState<
+    "organization.status.active" | "organization.status.inactive"
+  >("organization.status.active");
   const [logoUri, setLogoUri] = useState<string | undefined>(undefined);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
@@ -67,16 +68,22 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     setIsDirty(true);
   };
 
-  const handleStatusChange = (value: "organization.status.active" | "organization.status.inactive") => {
+  const handleStatusChange = (
+    value: "organization.status.active" | "organization.status.inactive",
+  ) => {
     setStatus(value);
     setIsDirty(true);
   };
 
   const handlePickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert("Permission Required", "Please grant photo library access to select a logo");
+      Alert.alert(
+        "Permission Required",
+        "Please grant photo library access to select a logo",
+      );
       return;
     }
 
@@ -93,7 +100,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     }
   };
 
-  const handleSocialMediaChange = (platform: keyof SocialMediaLinks, value: string) => {
+  const handleSocialMediaChange = (
+    platform: keyof SocialMediaLinks,
+    value: string,
+  ) => {
     setSocialMedia((prev) => ({
       ...prev,
       [platform]: value.trim() || undefined,
@@ -166,7 +176,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={styles.label}>Logo</Text>
-          <TouchableOpacity style={styles.imagePickerButton} onPress={handlePickImage}>
+          <TouchableOpacity
+            style={styles.imagePickerButton}
+            onPress={handlePickImage}
+          >
             {logoUri ? (
               <Image source={{ uri: logoUri }} style={styles.logoPreview} />
             ) : (
@@ -216,7 +229,9 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           <TextInput
             style={[styles.input, styles.socialInput]}
             value={socialMedia.instagram || ""}
-            onChangeText={(value) => handleSocialMediaChange("instagram", value)}
+            onChangeText={(value) =>
+              handleSocialMediaChange("instagram", value)
+            }
             placeholder="Instagram username or URL"
             autoCapitalize="none"
           />
@@ -228,14 +243,16 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             <TouchableOpacity
               style={[
                 styles.statusButton,
-                status === "organization.status.active" && styles.statusButtonActive,
+                status === "organization.status.active" &&
+                  styles.statusButtonActive,
               ]}
               onPress={() => handleStatusChange("organization.status.active")}
             >
               <Text
                 style={[
                   styles.statusButtonText,
-                  status === "organization.status.active" && styles.statusButtonTextActive,
+                  status === "organization.status.active" &&
+                    styles.statusButtonTextActive,
                 ]}
               >
                 Active
@@ -244,14 +261,16 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             <TouchableOpacity
               style={[
                 styles.statusButton,
-                status === "organization.status.inactive" && styles.statusButtonActive,
+                status === "organization.status.inactive" &&
+                  styles.statusButtonActive,
               ]}
               onPress={() => handleStatusChange("organization.status.inactive")}
             >
               <Text
                 style={[
                   styles.statusButtonText,
-                  status === "organization.status.inactive" && styles.statusButtonTextActive,
+                  status === "organization.status.inactive" &&
+                    styles.statusButtonTextActive,
                 ]}
               >
                 Inactive

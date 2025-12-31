@@ -50,7 +50,9 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
           setLastName(contact.lastName || "");
         } else if (contact.name) {
           // Migrate legacy name
-          const { firstName: fName, lastName: lName } = splitLegacyName(contact.name);
+          const { firstName: fName, lastName: lName } = splitLegacyName(
+            contact.name,
+          );
           setFirstName(fName || "");
           setLastName(lName || "");
         }
@@ -225,7 +227,9 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
             onChangeText={handleLastNameChange}
             placeholder="Enter last name"
           />
-          <Text style={styles.hint}>At least one of First or Last name is required</Text>
+          <Text style={styles.hint}>
+            At least one of First or Last name is required
+          </Text>
         </View>
 
         <View style={styles.field}>
@@ -244,10 +248,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
             {types.map((t) => (
               <TouchableOpacity
                 key={t}
-                style={[styles.typeButton, type === t && styles.typeButtonActive]}
+                style={[
+                  styles.typeButton,
+                  type === t && styles.typeButtonActive,
+                ]}
                 onPress={() => handleTypeChange(t)}
               >
-                <Text style={[styles.typeButtonText, type === t && styles.typeButtonTextActive]}>
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    type === t && styles.typeButtonTextActive,
+                  ]}
+                >
                   {getTypeLabel(t)}
                 </Text>
               </TouchableOpacity>

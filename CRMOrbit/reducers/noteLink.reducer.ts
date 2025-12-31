@@ -1,4 +1,7 @@
-import type { NoteLink, NoteLinkEntityType } from "../domains/relations/noteLink";
+import type {
+  NoteLink,
+  NoteLinkEntityType,
+} from "../domains/relations/noteLink";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
@@ -133,7 +136,12 @@ const applyNoteUnlinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const id =
     payload.id ??
     event.entityId ??
-    findExistingLinkId(doc, payload.noteId, payload.entityType, payload.entityId);
+    findExistingLinkId(
+      doc,
+      payload.noteId,
+      payload.entityType,
+      payload.entityId,
+    );
 
   if (!id) {
     throw new Error("NoteLink id is required.");
@@ -155,7 +163,10 @@ const applyNoteUnlinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   };
 };
 
-export const noteLinkReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+export const noteLinkReducer = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
   switch (event.type) {
     case "note.linked":
       return applyNoteLinked(doc, event);

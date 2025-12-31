@@ -27,7 +27,10 @@ export type TimelineItem =
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-const getPayloadId = (payload: Record<string, unknown>, key: string): string | null =>
+const getPayloadId = (
+  payload: Record<string, unknown>,
+  key: string,
+): string | null =>
   typeof payload[key] === "string" ? (payload[key] as string) : null;
 
 const isEventRelatedToEntity = (

@@ -49,11 +49,12 @@ export type InteractionsStackParamList = {
 };
 
 // Screen props types
-export type OrganizationsStackScreenProps<T extends keyof OrganizationsStackParamList> =
-  CompositeScreenProps<
-    NativeStackScreenProps<OrganizationsStackParamList, T>,
-    BottomTabScreenProps<RootTabParamList>
-  >;
+export type OrganizationsStackScreenProps<
+  T extends keyof OrganizationsStackParamList,
+> = CompositeScreenProps<
+  NativeStackScreenProps<OrganizationsStackParamList, T>,
+  BottomTabScreenProps<RootTabParamList>
+>;
 
 export type AccountsStackScreenProps<T extends keyof AccountsStackParamList> =
   CompositeScreenProps<
@@ -67,16 +68,18 @@ export type ContactsStackScreenProps<T extends keyof ContactsStackParamList> =
     BottomTabScreenProps<RootTabParamList>
   >;
 
-export type NotesStackScreenProps<T extends keyof NotesStackParamList> = CompositeScreenProps<
-  NativeStackScreenProps<NotesStackParamList, T>,
-  BottomTabScreenProps<RootTabParamList>
->;
-
-export type InteractionsStackScreenProps<T extends keyof InteractionsStackParamList> =
+export type NotesStackScreenProps<T extends keyof NotesStackParamList> =
   CompositeScreenProps<
-    NativeStackScreenProps<InteractionsStackParamList, T>,
+    NativeStackScreenProps<NotesStackParamList, T>,
     BottomTabScreenProps<RootTabParamList>
   >;
+
+export type InteractionsStackScreenProps<
+  T extends keyof InteractionsStackParamList,
+> = CompositeScreenProps<
+  NativeStackScreenProps<InteractionsStackParamList, T>,
+  BottomTabScreenProps<RootTabParamList>
+>;
 
 declare global {
   namespace ReactNavigation {

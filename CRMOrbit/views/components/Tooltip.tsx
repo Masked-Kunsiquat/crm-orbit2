@@ -15,9 +15,19 @@ interface TooltipProps {
   containerStyle?: ViewStyle;
 }
 
-export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => {
+export const Tooltip = ({
+  content,
+  children,
+  containerStyle,
+}: TooltipProps) => {
   const [visible, setVisible] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0, width: 0, height: 0, calculatedLeft: 0 });
+  const [position, setPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    calculatedLeft: 0,
+  });
   const anchorRef = useRef<View>(null);
 
   const showTooltip = () => {
@@ -59,7 +69,12 @@ export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => 
         {childWithLongPress}
       </View>
 
-      <Modal visible={visible} transparent animationType="fade" onRequestClose={hideTooltip}>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={hideTooltip}
+      >
         <TouchableWithoutFeedback onPress={hideTooltip}>
           <View style={styles.overlay}>
             <View

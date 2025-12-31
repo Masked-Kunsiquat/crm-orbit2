@@ -25,7 +25,9 @@ export const OrganizationsStack = () => {
         name="OrganizationForm"
         component={OrganizationFormScreen}
         options={({ route }) => ({
-          title: route.params?.organizationId ? "Edit Organization" : "New Organization",
+          title: route.params?.organizationId
+            ? "Edit Organization"
+            : "New Organization",
         })}
       />
     </Stack.Navigator>

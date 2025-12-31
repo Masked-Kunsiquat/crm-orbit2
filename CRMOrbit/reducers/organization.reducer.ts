@@ -120,7 +120,10 @@ const applyOrganizationUpdated = (
   };
 };
 
-const applyOrganizationDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+const applyOrganizationDeleted = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
   const payload = event.payload as { id?: EntityId };
   const id = resolveEntityId(event, payload);
   const existing = doc.organizations[id] as Organization | undefined;

@@ -139,7 +139,9 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         ...(payload.organizationId !== undefined && {
           organizationId: payload.organizationId,
         }),
-        ...(payload.addresses !== undefined && { addresses: payload.addresses }),
+        ...(payload.addresses !== undefined && {
+          addresses: payload.addresses,
+        }),
         ...(payload.website !== undefined && { website: payload.website }),
         ...(payload.socialMedia !== undefined && {
           socialMedia: payload.socialMedia,
@@ -175,7 +177,10 @@ const applyAccountDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   };
 };
 
-export const accountReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+export const accountReducer = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
   switch (event.type) {
     case "account.created":
       return applyAccountCreated(doc, event);

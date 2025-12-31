@@ -1,4 +1,7 @@
-import type { AccountContact, AccountContactRole } from "../domains/relations/accountContact";
+import type {
+  AccountContact,
+  AccountContactRole,
+} from "../domains/relations/accountContact";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
@@ -67,7 +70,9 @@ const getPrimaryRelationIds = (
   return Object.keys(doc.relations.accountContacts).filter((id) => {
     const relation = doc.relations.accountContacts[id];
     return (
-      relation.accountId === accountId && relation.role === role && relation.isPrimary
+      relation.accountId === accountId &&
+      relation.role === role &&
+      relation.isPrimary
     );
   });
 };
@@ -107,7 +112,11 @@ const applyAccountContactLinked = (
   const isPrimary = Boolean(payload.isPrimary);
 
   if (isPrimary) {
-    const primaryIds = getPrimaryRelationIds(doc, payload.accountId, payload.role);
+    const primaryIds = getPrimaryRelationIds(
+      doc,
+      payload.accountId,
+      payload.role,
+    );
     if (primaryIds.length > 0) {
       throw new Error(
         `Primary contact already set for account=${payload.accountId} role=${payload.role}`,
@@ -162,7 +171,11 @@ const applyAccountContactSetPrimary = (
   }
 
   const nextAccountContacts = { ...doc.relations.accountContacts };
-  const primaryIds = getPrimaryRelationIds(doc, payload.accountId, payload.role);
+  const primaryIds = getPrimaryRelationIds(
+    doc,
+    payload.accountId,
+    payload.role,
+  );
 
   for (const primaryId of primaryIds) {
     if (primaryId === id) {
@@ -238,13 +251,15 @@ const applyAccountContactUnlinked = (
   const payload = event.payload as AccountContactUnlinkedPayload;
 
   // Find the relation(s) to remove
-  const relationIds = Object.keys(doc.relations.accountContacts).filter((id) => {
-    const relation = doc.relations.accountContacts[id];
-    return (
-      relation.accountId === payload.accountId &&
-      relation.contactId === payload.contactId
-    );
-  });
+  const relationIds = Object.keys(doc.relations.accountContacts).filter(
+    (id) => {
+      const relation = doc.relations.accountContacts[id];
+      return (
+        relation.accountId === payload.accountId &&
+        relation.contactId === payload.contactId
+      );
+    },
+  );
 
   if (relationIds.length === 0) {
     throw new Error(

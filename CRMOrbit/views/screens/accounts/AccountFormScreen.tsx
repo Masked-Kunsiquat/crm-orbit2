@@ -13,7 +13,11 @@ import { Picker } from "@react-native-picker/picker";
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
 import { useAccountActions } from "../../hooks";
-import type { Address, AccountAddresses, SocialMediaLinks } from "@domains/account";
+import type {
+  Address,
+  AccountAddresses,
+  SocialMediaLinks,
+} from "@domains/account";
 
 const DEVICE_ID = "device-local";
 
@@ -26,13 +30,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const { createAccount, updateAccount } = useAccountActions(DEVICE_ID);
 
   // Sort organizations alphabetically by name
-  const organizations = [...allOrganizations].sort((a, b) => a.name.localeCompare(b.name));
+  const organizations = [...allOrganizations].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
   const [name, setName] = useState("");
   const [organizationId, setOrganizationId] = useState("");
-  const [status, setStatus] = useState<"account.status.active" | "account.status.inactive">(
-    "account.status.active",
-  );
+  const [status, setStatus] = useState<
+    "account.status.active" | "account.status.inactive"
+  >("account.status.active");
   const [siteAddress, setSiteAddress] = useState<Address>({
     street: "",
     city: "",
@@ -66,10 +72,20 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setOrganizationId(account.organizationId);
         setStatus(account.status);
         setSiteAddress(
-          account.addresses?.site ?? { street: "", city: "", state: "", zipCode: "" },
+          account.addresses?.site ?? {
+            street: "",
+            city: "",
+            state: "",
+            zipCode: "",
+          },
         );
         setParkingAddress(
-          account.addresses?.parking ?? { street: "", city: "", state: "", zipCode: "" },
+          account.addresses?.parking ?? {
+            street: "",
+            city: "",
+            state: "",
+            zipCode: "",
+          },
         );
         setUseSameForParking(account.addresses?.useSameForParking ?? false);
         setWebsite(account.website || "");
@@ -93,7 +109,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     setIsDirty(true);
   };
 
-  const handleStatusChange = (value: "account.status.active" | "account.status.inactive") => {
+  const handleStatusChange = (
+    value: "account.status.active" | "account.status.inactive",
+  ) => {
     setStatus(value);
     setIsDirty(true);
   };
@@ -119,7 +137,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     setIsDirty(true);
   };
 
-  const handleSocialMediaChange = (platform: keyof SocialMediaLinks, value: string) => {
+  const handleSocialMediaChange = (
+    platform: keyof SocialMediaLinks,
+    value: string,
+  ) => {
     setSocialMedia((prev) => ({
       ...prev,
       [platform]: value.trim() || undefined,
@@ -139,8 +160,12 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     }
 
     // Build addresses object
-    const hasSiteAddress = Object.values(siteAddress).some((v) => v.trim() !== "");
-    const hasParkingAddress = Object.values(parkingAddress).some((v) => v.trim() !== "");
+    const hasSiteAddress = Object.values(siteAddress).some(
+      (v) => v.trim() !== "",
+    );
+    const hasParkingAddress = Object.values(parkingAddress).some(
+      (v) => v.trim() !== "",
+    );
     const addresses: AccountAddresses | undefined =
       hasSiteAddress || hasParkingAddress
         ? {
@@ -208,7 +233,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         <View style={styles.field}>
           <Text style={styles.label}>Organization *</Text>
           {organizations.length === 0 ? (
-            <Text style={styles.hint}>No organizations available. Create one first.</Text>
+            <Text style={styles.hint}>
+              No organizations available. Create one first.
+            </Text>
           ) : (
             <View style={styles.pickerContainer}>
               <Picker
@@ -240,7 +267,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               <Text
                 style={[
                   styles.statusButtonText,
-                  status === "account.status.active" && styles.statusButtonTextActive,
+                  status === "account.status.active" &&
+                    styles.statusButtonTextActive,
                 ]}
               >
                 Active
@@ -249,14 +277,16 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             <TouchableOpacity
               style={[
                 styles.statusButton,
-                status === "account.status.inactive" && styles.statusButtonActive,
+                status === "account.status.inactive" &&
+                  styles.statusButtonActive,
               ]}
               onPress={() => handleStatusChange("account.status.inactive")}
             >
               <Text
                 style={[
                   styles.statusButtonText,
-                  status === "account.status.inactive" && styles.statusButtonTextActive,
+                  status === "account.status.inactive" &&
+                    styles.statusButtonTextActive,
                 ]}
               >
                 Inactive
@@ -289,7 +319,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             <TextInput
               style={[styles.input, styles.addressInputSmall]}
               value={siteAddress.zipCode}
-              onChangeText={(value) => handleSiteAddressChange("zipCode", value)}
+              onChangeText={(value) =>
+                handleSiteAddressChange("zipCode", value)
+              }
               placeholder="ZIP"
             />
           </View>
@@ -300,10 +332,17 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             style={styles.checkboxRow}
             onPress={() => handleUseSameForParkingChange(!useSameForParking)}
           >
-            <View style={[styles.checkbox, useSameForParking && styles.checkboxChecked]}>
+            <View
+              style={[
+                styles.checkbox,
+                useSameForParking && styles.checkboxChecked,
+              ]}
+            >
               {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Use same address for parking</Text>
+            <Text style={styles.checkboxLabel}>
+              Use same address for parking
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -313,26 +352,34 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             <TextInput
               style={styles.input}
               value={parkingAddress.street}
-              onChangeText={(value) => handleParkingAddressChange("street", value)}
+              onChangeText={(value) =>
+                handleParkingAddressChange("street", value)
+              }
               placeholder="Street"
             />
             <TextInput
               style={[styles.input, styles.addressInput]}
               value={parkingAddress.city}
-              onChangeText={(value) => handleParkingAddressChange("city", value)}
+              onChangeText={(value) =>
+                handleParkingAddressChange("city", value)
+              }
               placeholder="City"
             />
             <View style={styles.addressRow}>
               <TextInput
                 style={[styles.input, styles.addressInputSmall]}
                 value={parkingAddress.state}
-                onChangeText={(value) => handleParkingAddressChange("state", value)}
+                onChangeText={(value) =>
+                  handleParkingAddressChange("state", value)
+                }
                 placeholder="State"
               />
               <TextInput
                 style={[styles.input, styles.addressInputSmall]}
                 value={parkingAddress.zipCode}
-                onChangeText={(value) => handleParkingAddressChange("zipCode", value)}
+                onChangeText={(value) =>
+                  handleParkingAddressChange("zipCode", value)
+                }
                 placeholder="ZIP"
               />
             </View>
@@ -380,14 +427,19 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           <TextInput
             style={[styles.input, styles.socialInput]}
             value={socialMedia.instagram || ""}
-            onChangeText={(value) => handleSocialMediaChange("instagram", value)}
+            onChangeText={(value) =>
+              handleSocialMediaChange("instagram", value)
+            }
             placeholder="Instagram username or URL"
             autoCapitalize="none"
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.saveButton, organizations.length === 0 && styles.saveButtonDisabled]}
+          style={[
+            styles.saveButton,
+            organizations.length === 0 && styles.saveButtonDisabled,
+          ]}
           onPress={handleSave}
           disabled={organizations.length === 0}
         >

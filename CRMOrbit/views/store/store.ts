@@ -37,7 +37,10 @@ const crmStore = create<CrmStoreState>((set) => ({
   events: [],
   setDoc: (docOrUpdater) =>
     set((state) => ({
-      doc: typeof docOrUpdater === "function" ? docOrUpdater(state.doc) : docOrUpdater,
+      doc:
+        typeof docOrUpdater === "function"
+          ? docOrUpdater(state.doc)
+          : docOrUpdater,
     })),
   setEvents: (eventsOrUpdater) =>
     set((state) => ({
@@ -61,7 +64,8 @@ export const __internal_getCrmStore = () => crmStore;
 // ============================================================================
 
 export const useOrganizations = (): Organization[] => {
-  const selector = (state: CrmStoreState) => Object.values(state.doc.organizations);
+  const selector = (state: CrmStoreState) =>
+    Object.values(state.doc.organizations);
   return crmStore(useShallow(selector));
 };
 
@@ -174,12 +178,14 @@ export const useAllContacts = (): Contact[] => {
 };
 
 export const useAllInteractions = (): Interaction[] => {
-  const selector = (state: CrmStoreState) => Object.values(state.doc.interactions);
+  const selector = (state: CrmStoreState) =>
+    Object.values(state.doc.interactions);
   return crmStore(useShallow(selector));
 };
 
 export const useAccountContactRelations = () => {
-  const selector = (state: CrmStoreState) => state.doc.relations.accountContacts;
+  const selector = (state: CrmStoreState) =>
+    state.doc.relations.accountContacts;
   return crmStore(useShallow(selector));
 };
 

@@ -148,7 +148,10 @@ test("account.contact.linked rejects duplicate relation", () => {
 
 test("account.contact.setPrimary sets a single primary for role", () => {
   const doc = baseDoc();
-  const withContactA = contactReducer(doc, createContact("contact-1", "Jordan"));
+  const withContactA = contactReducer(
+    doc,
+    createContact("contact-1", "Jordan"),
+  );
   const withContactB = contactReducer(
     withContactA,
     createContact("contact-2", "Taylor"),

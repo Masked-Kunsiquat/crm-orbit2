@@ -1,4 +1,8 @@
-import type { Contact, ContactMethod, ContactMethods } from "../domains/contact";
+import type {
+  Contact,
+  ContactMethod,
+  ContactMethods,
+} from "../domains/contact";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
@@ -148,9 +152,7 @@ const applyContactMethodUpdated = (
   const methods = existing.methods[payload.methodType];
 
   if (payload.index < 0 || payload.index >= methods.length) {
-    throw new Error(
-      `Contact method index out of bounds: ${payload.index}`,
-    );
+    throw new Error(`Contact method index out of bounds: ${payload.index}`);
   }
 
   const nextMethods = [...methods];
@@ -187,7 +189,9 @@ const applyContactUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       ...doc.contacts,
       [id]: {
         ...existing,
-        ...(payload.firstName !== undefined && { firstName: payload.firstName }),
+        ...(payload.firstName !== undefined && {
+          firstName: payload.firstName,
+        }),
         ...(payload.lastName !== undefined && { lastName: payload.lastName }),
         ...(payload.title !== undefined && { title: payload.title }),
         ...(payload.type !== undefined && { type: payload.type }),
@@ -221,7 +225,10 @@ const applyContactDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   };
 };
 
-export const contactReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+export const contactReducer = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
   switch (event.type) {
     case "contact.created":
       return applyContactCreated(doc, event);
@@ -234,6 +241,8 @@ export const contactReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc =>
     case "contact.deleted":
       return applyContactDeleted(doc, event);
     default:
-      throw new Error(`contact.reducer does not handle event type: ${event.type}`);
+      throw new Error(
+        `contact.reducer does not handle event type: ${event.type}`,
+      );
   }
 };

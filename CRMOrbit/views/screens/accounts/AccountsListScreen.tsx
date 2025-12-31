@@ -5,7 +5,12 @@ import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../store/store";
 import type { Account } from "../../../domains/account";
 import { t } from "../../../i18n";
-import { HeaderMenu, ListCard, ListScreenLayout, StatusBadge } from "../../components";
+import {
+  HeaderMenu,
+  ListCard,
+  ListScreenLayout,
+  StatusBadge,
+} from "../../components";
 import { colors } from "../../../domains/shared/theme/colors";
 
 type Props = AccountsStackScreenProps<"AccountsList">;
@@ -20,7 +25,9 @@ export const AccountsListScreen = ({ navigation }: Props) => {
   const filteredAccounts = useMemo(() => {
     const visible = showInactive
       ? accounts
-      : accounts.filter((account) => account.status === "account.status.active");
+      : accounts.filter(
+          (account) => account.status === "account.status.active",
+        );
 
     return [...visible].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
@@ -72,11 +79,17 @@ export const AccountsListScreen = ({ navigation }: Props) => {
                 inactiveLabelKey="status.inactive"
               />
             </View>
-            <Text style={styles.organization}>{getOrganizationName(item.organizationId)}</Text>
+            <Text style={styles.organization}>
+              {getOrganizationName(item.organizationId)}
+            </Text>
           </ListCard>
         )}
         emptyTitle={t("accounts.emptyTitle")}
-        emptyHint={showInactive ? t("accounts.emptyHint") : t("accounts.includeInactiveHint")}
+        emptyHint={
+          showInactive
+            ? t("accounts.emptyHint")
+            : t("accounts.includeInactiveHint")
+        }
         onAdd={handleCreate}
       />
       <HeaderMenu
@@ -93,7 +106,9 @@ export const AccountsListScreen = ({ navigation }: Props) => {
           style={styles.menuItem}
         >
           <Text style={styles.menuItemText}>
-            {showInactive ? t("accounts.menuHideInactive") : t("accounts.menuIncludeInactive")}
+            {showInactive
+              ? t("accounts.menuHideInactive")
+              : t("accounts.menuIncludeInactive")}
           </Text>
         </Pressable>
       </HeaderMenu>

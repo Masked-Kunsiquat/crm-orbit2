@@ -19,15 +19,17 @@ export const ListCard = ({
 }: ListCardProps) => (
   <Pressable
     onPress={onPress}
-    style={[styles.base, variant === "elevated" ? styles.elevated : styles.outlined, style]}
+    style={[
+      styles.base,
+      variant === "elevated" ? styles.elevated : styles.outlined,
+      style,
+    ]}
   >
     {children}
   </Pressable>
 );
 
-export const ListCardChevron = () => (
-  <Text style={styles.chevron}>›</Text>
-);
+export const ListCardChevron = () => <Text style={styles.chevron}>›</Text>;
 
 const styles = StyleSheet.create({
   base: {

@@ -1,8 +1,22 @@
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, FlatList } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Modal,
+  FlatList,
+} from "react-native";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
-import { useContact, useAccountsByContact, useAccounts, useAccountContactRelations } from "@views/store/store";
+import {
+  useContact,
+  useAccountsByContact,
+  useAccounts,
+  useAccountContactRelations,
+} from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
@@ -37,11 +51,15 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const handleLinkAccount = (accountId: string) => {
     // Check if already linked
     const existingLink = Object.values(accountContactRelations).find(
-      (relation) => relation.accountId === accountId && relation.contactId === contactId,
+      (relation) =>
+        relation.accountId === accountId && relation.contactId === contactId,
     );
 
     if (existingLink) {
-      Alert.alert("Already Linked", "This contact is already linked to this account");
+      Alert.alert(
+        "Already Linked",
+        "This contact is already linked to this account",
+      );
       return;
     }
 
@@ -50,7 +68,12 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       (relation) => relation.accountId === accountId && relation.isPrimary,
     );
 
-    const result = linkContact(accountId, contactId, "account.contact.role.primary", !hasPrimary);
+    const result = linkContact(
+      accountId,
+      contactId,
+      "account.contact.role.primary",
+      !hasPrimary,
+    );
 
     if (result.success) {
       setShowLinkModal(false);
@@ -166,7 +189,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Email Addresses ({contact.methods.emails.length})</Text>
+        <Text style={styles.sectionTitle}>
+          Email Addresses ({contact.methods.emails.length})
+        </Text>
         {contact.methods.emails.length === 0 ? (
           <Text style={styles.emptyText}>No email addresses</Text>
         ) : (
@@ -175,7 +200,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               <Text style={styles.methodValue}>{email.value}</Text>
               <Text style={styles.methodMeta}>
                 {getMethodLabel(email.label)} •{" "}
-                {email.status === "contact.method.status.active" ? "Active" : "Inactive"}
+                {email.status === "contact.method.status.active"
+                  ? "Active"
+                  : "Inactive"}
               </Text>
             </View>
           ))
@@ -183,7 +210,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Phone Numbers ({contact.methods.phones.length})</Text>
+        <Text style={styles.sectionTitle}>
+          Phone Numbers ({contact.methods.phones.length})
+        </Text>
         {contact.methods.phones.length === 0 ? (
           <Text style={styles.emptyText}>No phone numbers</Text>
         ) : (
@@ -192,7 +221,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               <Text style={styles.methodValue}>{phone.value}</Text>
               <Text style={styles.methodMeta}>
                 {getMethodLabel(phone.label)} •{" "}
-                {phone.status === "contact.method.status.active" ? "Active" : "Inactive"}
+                {phone.status === "contact.method.status.active"
+                  ? "Active"
+                  : "Inactive"}
               </Text>
             </View>
           ))
@@ -201,7 +232,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
       <View style={styles.section}>
         <View style={styles.fieldHeader}>
-          <Text style={styles.sectionTitle}>Linked Accounts ({linkedAccounts.length})</Text>
+          <Text style={styles.sectionTitle}>
+            Linked Accounts ({linkedAccounts.length})
+          </Text>
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => setShowLinkModal(true)}
@@ -258,11 +291,19 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                 const isLinked = linkedAccounts.some((a) => a.id === item.id);
                 return (
                   <TouchableOpacity
-                    style={[styles.modalItem, isLinked && styles.modalItemDisabled]}
+                    style={[
+                      styles.modalItem,
+                      isLinked && styles.modalItemDisabled,
+                    ]}
                     onPress={() => handleLinkAccount(item.id)}
                     disabled={isLinked}
                   >
-                    <Text style={[styles.modalItemText, isLinked && styles.modalItemTextDisabled]}>
+                    <Text
+                      style={[
+                        styles.modalItemText,
+                        isLinked && styles.modalItemTextDisabled,
+                      ]}
+                    >
                       {item.name}
                       {isLinked && " (Already linked)"}
                     </Text>

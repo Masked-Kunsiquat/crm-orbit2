@@ -15,7 +15,9 @@ export const StatusBadge = ({
   inactiveLabelKey,
 }: StatusBadgeProps) => (
   <View style={[styles.badge, isActive ? styles.active : styles.inactive]}>
-    <Text style={styles.text}>{isActive ? t(activeLabelKey) : t(inactiveLabelKey)}</Text>
+    <Text style={styles.text}>
+      {isActive ? t(activeLabelKey) : t(inactiveLabelKey)}
+    </Text>
   </View>
 );
 
