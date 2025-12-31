@@ -8,11 +8,13 @@ import {
   Pressable,
   Linking,
 } from "react-native";
+import { useState, useMemo } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganization, useContacts } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
+import type { ContactType } from "@domains/contact";
 
 const DEVICE_ID = "device-local";
 
@@ -22,8 +24,17 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params;
   const account = useAccount(accountId);
   const organization = useOrganization(account?.organizationId ?? "");
-  const contacts = useContacts(accountId);
+  const allContacts = useContacts(accountId);
   const { deleteAccount } = useAccountActions(DEVICE_ID);
+
+  const [contactFilter, setContactFilter] = useState<"all" | ContactType>("all");
+
+  const contacts = useMemo(() => {
+    if (contactFilter === "all") {
+      return allContacts;
+    }
+    return allContacts.filter((contact) => contact.type === contactFilter);
+  }, [allContacts, contactFilter]);
 
   if (!account) {
     return (
@@ -38,10 +49,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   };
 
   const handleDelete = () => {
-    if (contacts.length > 0) {
+    if (allContacts.length > 0) {
       Alert.alert(
         "Cannot Delete",
-        `Cannot delete "${account.name}" because it has ${contacts.length} linked contact(s). Please unlink them first.`,
+        `Cannot delete "${account.name}" because it has ${allContacts.length} linked contact(s). Please unlink them first.`,
         [{ text: "OK" }],
       );
       return;
@@ -182,9 +193,64 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contacts ({contacts.length})</Text>
+        <Text style={styles.sectionTitle}>Contacts ({allContacts.length})</Text>
+
+        <View style={styles.filterButtons}>
+          <TouchableOpacity
+            style={[styles.filterButton, contactFilter === "all" && styles.filterButtonActive]}
+            onPress={() => setContactFilter("all")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                contactFilter === "all" && styles.filterButtonTextActive,
+              ]}
+            >
+              All ({allContacts.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              contactFilter === "contact.type.internal" && styles.filterButtonActive,
+            ]}
+            onPress={() => setContactFilter("contact.type.internal")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                contactFilter === "contact.type.internal" && styles.filterButtonTextActive,
+              ]}
+            >
+              Internal (
+              {allContacts.filter((c) => c.type === "contact.type.internal").length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              contactFilter === "contact.type.external" && styles.filterButtonActive,
+            ]}
+            onPress={() => setContactFilter("contact.type.external")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                contactFilter === "contact.type.external" && styles.filterButtonTextActive,
+              ]}
+            >
+              External (
+              {allContacts.filter((c) => c.type === "contact.type.external").length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {contacts.length === 0 ? (
-          <Text style={styles.emptyText}>No contacts linked to this account.</Text>
+          <Text style={styles.emptyText}>
+            {contactFilter === "all"
+              ? "No contacts linked to this account."
+              : `No ${contactFilter.replace("contact.type.", "")} contacts.`}
+          </Text>
         ) : (
           contacts.map((contact) => (
             <Pressable
@@ -284,6 +350,33 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1b1b1b",
     marginBottom: 12,
+  },
+  filterButtons: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 12,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+    alignItems: "center",
+  },
+  filterButtonActive: {
+    backgroundColor: "#1f5eff",
+    borderColor: "#1f5eff",
+  },
+  filterButtonText: {
+    fontSize: 13,
+    color: "#666",
+    fontWeight: "500",
+  },
+  filterButtonTextActive: {
+    color: "#fff",
   },
   contactCard: {
     padding: 12,

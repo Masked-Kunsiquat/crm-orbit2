@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Platform,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
@@ -206,32 +208,23 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={styles.label}>Organization *</Text>
-          <View style={styles.organizationPicker}>
-            {organizations.map((org) => (
-              <TouchableOpacity
-                key={org.id}
-                style={[
-                  styles.organizationOption,
-                  organizationId === org.id && styles.organizationOptionSelected,
-                ]}
-                onPress={() => {
-                  setOrganizationId(org.id);
+          {organizations.length === 0 ? (
+            <Text style={styles.hint}>No organizations available. Create one first.</Text>
+          ) : (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={organizationId}
+                onValueChange={(value) => {
+                  setOrganizationId(value);
                   setIsDirty(true);
                 }}
+                style={styles.picker}
               >
-                <Text
-                  style={[
-                    styles.organizationOptionText,
-                    organizationId === org.id && styles.organizationOptionTextSelected,
-                  ]}
-                >
-                  {org.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {organizations.length === 0 && (
-            <Text style={styles.hint}>No organizations available. Create one first.</Text>
+                {organizations.map((org) => (
+                  <Picker.Item key={org.id} label={org.name} value={org.id} />
+                ))}
+              </Picker>
+            </View>
           )}
         </View>
 
@@ -443,27 +436,15 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 4,
   },
-  organizationPicker: {
-    gap: 8,
-  },
-  organizationOption: {
-    padding: 12,
+  pickerContainer: {
+    backgroundColor: "#fff",
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
-    backgroundColor: "#fff",
+    overflow: "hidden",
   },
-  organizationOptionSelected: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
-  },
-  organizationOptionText: {
-    fontSize: 15,
-    color: "#666",
-    fontWeight: "500",
-  },
-  organizationOptionTextSelected: {
-    color: "#fff",
+  picker: {
+    height: 50,
   },
   statusButtons: {
     flexDirection: "row",
