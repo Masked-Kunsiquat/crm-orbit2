@@ -1,6 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import { applyEvents } from "@events/dispatcher";
-import type { Event } from "@events/event"
+import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
