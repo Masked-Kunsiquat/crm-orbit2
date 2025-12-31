@@ -9,6 +9,12 @@
   "organizations.includeInactiveHint": "Tap ⋮ to include inactive",
   "organizations.menuIncludeInactive": "Include inactive",
   "organizations.menuHideInactive": "Hide inactive",
+  "contacts.emptyTitle": "No contacts yet",
+  "contacts.emptyHint": "Tap the + button to create one",
+  "contacts.moreOptionsSoon": "More options soon",
+  "contact.type.internal": "Internal",
+  "contact.type.external": "External",
+  "contact.type.vendor": "Vendor",
   "status.active": "Active",
   "status.inactive": "Inactive"
 }

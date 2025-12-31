@@ -6,6 +6,7 @@ import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
 import { HeaderMenu, ListCard, ListCardChevron, ListScreenLayout } from "@views/components";
 import { colors } from "@domains/shared/theme/colors";
+import { t } from "../../../i18n";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
 
@@ -44,19 +45,6 @@ export const ContactsListScreen = ({ navigation }: Props) => {
     });
   }, [navigation]);
 
-  const getContactTypeLabel = (type: string) => {
-    switch (type) {
-      case "contact.type.internal":
-        return "Internal";
-      case "contact.type.external":
-        return "External";
-      case "contact.type.vendor":
-        return "Vendor";
-      default:
-        return type;
-    }
-  };
-
   const getPrimaryEmail = (contact: Contact) => {
     return contact.methods.emails.find((e) => e.status === "contact.method.status.active")?.value;
   };
@@ -68,7 +56,7 @@ export const ContactsListScreen = ({ navigation }: Props) => {
         {getPrimaryEmail(item) ? (
           <Text style={styles.itemEmail}>{getPrimaryEmail(item)}</Text>
         ) : null}
-        <Text style={styles.itemType}>{getContactTypeLabel(item.type)}</Text>
+        <Text style={styles.itemType}>{t(item.type)}</Text>
       </View>
       <ListCardChevron />
     </ListCard>
@@ -80,8 +68,8 @@ export const ContactsListScreen = ({ navigation }: Props) => {
         data={sortedContacts}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        emptyTitle="No contacts yet"
-        emptyHint="Tap the + button to create one"
+        emptyTitle={t("contacts.emptyTitle")}
+        emptyHint={t("contacts.emptyHint")}
         onAdd={handleAdd}
       />
       <HeaderMenu
@@ -94,7 +82,7 @@ export const ContactsListScreen = ({ navigation }: Props) => {
           onPress={() => setMenuVisible(false)}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>More options soon</Text>
+          <Text style={styles.menuItemText}>{t("contacts.moreOptionsSoon")}</Text>
         </Pressable>
       </HeaderMenu>
     </>
