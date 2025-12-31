@@ -1,4 +1,22 @@
 {
   "accounts.emptyTitle": "No accounts yet.",
-  "accounts.emptyHint": "Create your first account to get started."
+  "accounts.emptyHint": "Create your first account to get started.",
+  "accounts.includeInactiveHint": "Tap ⋮ to include inactive",
+  "accounts.menuIncludeInactive": "Include inactive",
+  "accounts.menuHideInactive": "Hide inactive",
+  "accounts.listOptions": "Account list options",
+  "organizations.emptyTitle": "No organizations yet",
+  "organizations.emptyHint": "Tap the + button to create one",
+  "organizations.includeInactiveHint": "Tap ⋮ to include inactive",
+  "organizations.menuIncludeInactive": "Include inactive",
+  "organizations.menuHideInactive": "Hide inactive",
+  "contacts.emptyTitle": "No contacts yet",
+  "contacts.emptyHint": "Tap the + button to create one",
+  "contacts.moreOptionsSoon": "More options soon",
+  "contact.type.internal": "Internal",
+  "contact.type.external": "External",
+  "contact.type.vendor": "Vendor",
+  "status.active": "Active",
+  "status.inactive": "Inactive",
+  "common.unknown": "Unknown"
 }

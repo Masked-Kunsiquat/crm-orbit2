@@ -1,0 +1,26 @@
+import type { EventType } from "../events/eventTypes";
+
+export const EVENT_I18N_KEYS: Record<EventType, string> = {
+  "organization.created": "events.organization.created",
+  "organization.status.updated": "events.organization.status.updated",
+  "organization.updated": "events.organization.updated",
+  "organization.deleted": "events.organization.deleted",
+  "account.created": "events.account.created",
+  "account.status.updated": "events.account.status.updated",
+  "account.updated": "events.account.updated",
+  "account.deleted": "events.account.deleted",
+  "contact.created": "events.contact.created",
+  "contact.method.added": "events.contact.method.added",
+  "contact.method.updated": "events.contact.method.updated",
+  "contact.updated": "events.contact.updated",
+  "contact.deleted": "events.contact.deleted",
+  "account.contact.linked": "events.account.contact.linked",
+  "account.contact.unlinked": "events.account.contact.unlinked",
+  "account.contact.setPrimary": "events.account.contact.setPrimary",
+  "account.contact.unsetPrimary": "events.account.contact.unsetPrimary",
+  "note.created": "events.note.created",
+  "note.updated": "events.note.updated",
+  "note.linked": "events.note.linked",
+  "note.unlinked": "events.note.unlinked",
+  "interaction.logged": "events.interaction.logged",
+};

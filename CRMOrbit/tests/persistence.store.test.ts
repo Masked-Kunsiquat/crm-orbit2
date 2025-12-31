@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { automergeSnapshots, eventLog } from "../crm-core/persistence/schema";
+import { automergeSnapshots, eventLog } from "@domains/persistence/schema";
 import {
   appendEvents,
   loadLatestSnapshot,
@@ -9,8 +9,8 @@ import {
   type EventLogRecord,
   type PersistenceDb,
   type SnapshotRecord,
-} from "../crm-core/persistence/store";
-import type { Event } from "../crm-core/events/event";
+} from "@domains/persistence/store";
+import type { Event } from "@events/event";
 
 type StoredTables = {
   snapshots: SnapshotRecord[];

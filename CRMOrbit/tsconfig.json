@@ -1,6 +1,16 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@views/*": ["views/*"],
+      "@domains/*": ["domains/*"],
+      "@events/*": ["events/*"],
+      "@reducers/*": ["reducers/*"],
+      "@automerge/*": ["automerge/*"],
+      "@i18n/*": ["i18n/*"],
+      "@tests/*": ["tests/*"]
+    }
   }
 }

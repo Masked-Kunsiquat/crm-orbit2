@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../crm-core/automerge/init";
-import { accountReducer } from "../crm-core/reducers/account.reducer";
-import { organizationReducer } from "../crm-core/reducers/organization.reducer";
-import type { Event } from "../crm-core/events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { accountReducer } from "@reducers/account.reducer";
+import { organizationReducer } from "@reducers/organization.reducer";
+import type { Event } from "@events/event";
 
 const createOrganization = (docId = "org-1") => {
   const event: Event = {
@@ -211,16 +211,16 @@ test("account.deleted rejects deletion when contacts are linked", () => {
       accountContacts: {
         ...createdDoc.relations.accountContacts,
         "rel-1": {
-          accountId: "acct-1",
-          contactId: "contact-1",
-          role: "account.contact.role.primary",
+          accountId: "acct-1" as const,
+          contactId: "contact-1" as const,
+          role: "account.contact.role.primary" as const,
           isPrimary: true,
         },
       },
     },
   };
 
-  assert.throws(() => accountReducer(docWithRelation, deleted), {
+  assert.throws(() => accountReducer(docWithRelation as any, deleted), {
     message: "Cannot delete account acct-1: contacts still linked",
   });
 });

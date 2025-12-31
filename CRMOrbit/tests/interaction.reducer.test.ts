@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../crm-core/automerge/init";
-import { interactionReducer } from "../crm-core/reducers/interaction.reducer";
-import type { Event } from "../crm-core/events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { interactionReducer } from "@reducers/interaction.reducer";
+import type { Event } from "@events/event";
 
 test("interaction.logged adds a new interaction", () => {
   const doc = initAutomergeDoc();

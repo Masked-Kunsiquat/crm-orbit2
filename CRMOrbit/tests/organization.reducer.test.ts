@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-import { initAutomergeDoc } from "../crm-core/automerge/init";
-import { organizationReducer } from "../crm-core/reducers/organization.reducer";
-import type { Event } from "../crm-core/events/event";
+import { initAutomergeDoc } from "@automerge/init";
+import { organizationReducer } from "@reducers/organization.reducer";
+import type { Event } from "@events/event";
 
 test("organization.created adds a new organization", () => {
   const doc = initAutomergeDoc();
@@ -160,17 +160,17 @@ test("organization.deleted rejects deletion when dependent accounts exist", () =
     accounts: {
       ...createdDoc.accounts,
       "acct-1": {
-        id: "acct-1",
-        organizationId: "org-1",
+        id: "acct-1" as const,
+        organizationId: "org-1" as const,
         name: "Acme Account",
-        status: "account.status.active",
+        status: "account.status.active" as const,
         createdAt: "2024-01-15T00:00:00.000Z",
         updatedAt: "2024-01-15T00:00:00.000Z",
       },
     },
   };
 
-  assert.throws(() => organizationReducer(docWithAccount, deleted), {
+  assert.throws(() => organizationReducer(docWithAccount as any, deleted), {
     message: "Cannot delete organization org-1: accounts still reference it",
   });
 });
