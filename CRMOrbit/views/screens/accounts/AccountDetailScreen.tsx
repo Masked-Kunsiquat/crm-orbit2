@@ -1,8 +1,9 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, Pressable } from "react-native";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganization, useContacts } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
+import { getContactDisplayName } from "@domains/contact.utils";
 
 const DEVICE_ID = "device-local";
 
@@ -99,19 +100,26 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <Text style={styles.emptyText}>No contacts linked to this account.</Text>
         ) : (
           contacts.map((contact) => (
-            <View key={contact.id} style={styles.contactCard}>
-              <Text style={styles.contactName}>{contact.name}</Text>
-              <Text style={styles.contactType}>{contact.type}</Text>
-            </View>
+            <Pressable
+              key={contact.id}
+              style={styles.contactCard}
+              onPress={() => {
+                // Navigate to ContactsTab (cast to any to bypass TypeScript navigation typing)
+                (navigation.navigate as any)("ContactsTab", {
+                  screen: "ContactDetail",
+                  params: { contactId: contact.id },
+                });
+              }}
+            >
+              <View style={styles.contactCardContent}>
+                <Text style={styles.contactName}>{getContactDisplayName(contact)}</Text>
+                {contact.title && <Text style={styles.contactTitle}>{contact.title}</Text>}
+                <Text style={styles.contactType}>{contact.type}</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           ))
         )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Metadata</Text>
-        <Text style={styles.metadataText}>
-          {JSON.stringify(account.metadata ?? {}, null, 2)}
-        </Text>
       </View>
 
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
@@ -195,11 +203,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     borderRadius: 6,
     marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  contactCardContent: {
+    flex: 1,
+  },
+  chevron: {
+    fontSize: 20,
+    color: "#cccccc",
+    marginLeft: 8,
   },
   contactName: {
     fontSize: 14,
     fontWeight: "600",
     color: "#1b1b1b",
+    marginBottom: 2,
+  },
+  contactTitle: {
+    fontSize: 12,
+    color: "#666666",
+    fontStyle: "italic",
     marginBottom: 4,
   },
   contactType: {

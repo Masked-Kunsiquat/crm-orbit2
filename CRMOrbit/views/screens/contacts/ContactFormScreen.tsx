@@ -13,6 +13,7 @@ import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import type { ContactType, ContactMethod } from "@domains/contact";
+import { splitLegacyName } from "@domains/contact.utils";
 
 const DEVICE_ID = "device-local";
 
@@ -23,7 +24,9 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const contact = useContact(contactId ?? "");
   const { createContact, updateContact } = useContactActions(DEVICE_ID);
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [title, setTitle] = useState("");
   const [type, setType] = useState<ContactType>("contact.type.internal");
   const [emails, setEmails] = useState<ContactMethod[]>([]);
   const [phones, setPhones] = useState<ContactMethod[]>([]);
@@ -41,13 +44,25 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       lastContactIdRef.current = currentContactId;
 
       if (contact) {
-        setName(contact.name);
+        // Handle legacy name field migration
+        if (contact.firstName || contact.lastName) {
+          setFirstName(contact.firstName);
+          setLastName(contact.lastName);
+        } else if (contact.name) {
+          // Migrate legacy name
+          const { firstName: fName, lastName: lName } = splitLegacyName(contact.name);
+          setFirstName(fName);
+          setLastName(lName);
+        }
+        setTitle(contact.title || "");
         setType(contact.type);
         setEmails(contact.methods.emails);
         setPhones(contact.methods.phones);
       } else {
         // New contact - reset to defaults
-        setName("");
+        setFirstName("");
+        setLastName("");
+        setTitle("");
         setType("contact.type.internal");
         setEmails([]);
         setPhones([]);
@@ -55,8 +70,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     }
   }, [contactId, contact]);
 
-  const handleNameChange = (value: string) => {
-    setName(value);
+  const handleFirstNameChange = (value: string) => {
+    setFirstName(value);
+    setIsDirty(true);
+  };
+
+  const handleLastNameChange = (value: string) => {
+    setLastName(value);
+    setIsDirty(true);
+  };
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
     setIsDirty(true);
   };
 
@@ -114,8 +139,8 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   };
 
   const handleSave = () => {
-    if (!name.trim()) {
-      Alert.alert("Validation Error", "Contact name is required");
+    if (!firstName.trim() && !lastName.trim()) {
+      Alert.alert("Validation Error", "Contact first or last name is required");
       return;
     }
 
@@ -124,20 +149,33 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     const validPhones = phones.filter((p) => p.value.trim() !== "");
 
     if (contactId) {
-      const result = updateContact(contactId, name.trim(), type, {
-        emails: validEmails,
-        phones: validPhones,
-      });
+      const result = updateContact(
+        contactId,
+        firstName.trim(),
+        lastName.trim(),
+        type,
+        title.trim() || undefined,
+        {
+          emails: validEmails,
+          phones: validPhones,
+        },
+      );
       if (result.success) {
         navigation.goBack();
       } else {
         Alert.alert("Error", result.error || "Failed to update contact");
       }
     } else {
-      const result = createContact(name.trim(), type, {
-        emails: validEmails,
-        phones: validPhones,
-      });
+      const result = createContact(
+        firstName.trim(),
+        lastName.trim(),
+        type,
+        title.trim() || undefined,
+        {
+          emails: validEmails,
+          phones: validPhones,
+        },
+      );
       if (result.success) {
         navigation.goBack();
       } else {
@@ -169,13 +207,33 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     <ScrollView style={styles.container}>
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={styles.label}>Name *</Text>
+          <Text style={styles.label}>First Name *</Text>
           <TextInput
             style={styles.input}
-            value={name}
-            onChangeText={handleNameChange}
-            placeholder="Enter contact name"
+            value={firstName}
+            onChangeText={handleFirstNameChange}
+            placeholder="Enter first name"
             autoFocus
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Last Name *</Text>
+          <TextInput
+            style={styles.input}
+            value={lastName}
+            onChangeText={handleLastNameChange}
+            placeholder="Enter last name"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Title</Text>
+          <TextInput
+            style={styles.input}
+            value={title}
+            onChangeText={handleTitleChange}
+            placeholder="e.g. Property Manager, VP of Operations"
           />
         </View>
 

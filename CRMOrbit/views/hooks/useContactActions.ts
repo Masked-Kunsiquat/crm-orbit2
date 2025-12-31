@@ -12,8 +12,10 @@ export const useContactActions = (deviceId: string) => {
 
   const createContact = useCallback(
     (
-      name: string,
+      firstName: string,
+      lastName: string,
       type = "contact.type.internal",
+      title?: string,
       methods: {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
@@ -26,7 +28,9 @@ export const useContactActions = (deviceId: string) => {
         payload: {
           id,
           type,
-          name,
+          firstName,
+          lastName,
+          title,
           methods: {
             emails: methods.emails ?? [],
             phones: methods.phones ?? [],
@@ -88,8 +92,10 @@ export const useContactActions = (deviceId: string) => {
   const updateContact = useCallback(
     (
       contactId: EntityId,
-      name: string,
+      firstName: string,
+      lastName: string,
       type: string,
+      title?: string,
       methods: {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
@@ -99,7 +105,9 @@ export const useContactActions = (deviceId: string) => {
         type: "contact.updated",
         entityId: contactId,
         payload: {
-          name,
+          firstName,
+          lastName,
+          title,
           type,
           methods: {
             emails: methods.emails ?? [],

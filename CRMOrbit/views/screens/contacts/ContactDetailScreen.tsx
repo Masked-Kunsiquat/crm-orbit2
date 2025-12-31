@@ -5,6 +5,7 @@ import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact, useAccountsByContact, useAccounts, useAccountContactRelations } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
+import { getContactDisplayName } from "@domains/contact.utils";
 
 const DEVICE_ID = "device-local";
 
@@ -61,7 +62,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const handleUnlinkAccount = (accountId: string, accountName: string) => {
     Alert.alert(
       "Unlink Contact",
-      `Unlink "${contact.name}" from "${accountName}"?`,
+      `Unlink "${getContactDisplayName(contact)}" from "${accountName}"?`,
       [
         {
           text: "Cancel",
@@ -85,7 +86,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     if (linkedAccounts.length > 0) {
       Alert.alert(
         "Cannot Delete",
-        `Cannot delete "${contact.name}" because it is linked to ${linkedAccounts.length} account(s). Please unlink the contact first.`,
+        `Cannot delete "${getContactDisplayName(contact)}" because it is linked to ${linkedAccounts.length} account(s). Please unlink the contact first.`,
         [{ text: "OK" }],
       );
       return;
@@ -93,7 +94,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
     Alert.alert(
       "Delete Contact",
-      `Are you sure you want to delete "${contact.name}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${getContactDisplayName(contact)}"? This action cannot be undone.`,
       [
         {
           text: "Cancel",
@@ -145,11 +146,18 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     <ScrollView style={styles.container}>
       <View style={styles.section}>
         <View style={styles.header}>
-          <Text style={styles.title}>{contact.name}</Text>
+          <Text style={styles.title}>{getContactDisplayName(contact)}</Text>
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
             <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
         </View>
+
+        {contact.title && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Title</Text>
+            <Text style={styles.value}>{contact.title}</Text>
+          </View>
+        )}
 
         <View style={styles.field}>
           <Text style={styles.label}>Type</Text>

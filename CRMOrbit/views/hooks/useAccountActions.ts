@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
+import type { AccountAddresses, SocialMediaLinks } from "../../domains/account";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
@@ -14,6 +15,9 @@ export const useAccountActions = (deviceId: string) => {
       organizationId: EntityId,
       name: string,
       status = "account.status.active",
+      addresses?: AccountAddresses,
+      website?: string,
+      socialMedia?: SocialMediaLinks,
     ): DispatchResult & { id: string } => {
       const id = nextId("account");
       const event = buildEvent({
@@ -24,6 +28,9 @@ export const useAccountActions = (deviceId: string) => {
           organizationId,
           name,
           status,
+          addresses,
+          website,
+          socialMedia,
           metadata: {},
         },
         deviceId,
@@ -57,6 +64,9 @@ export const useAccountActions = (deviceId: string) => {
       name: string,
       status: string,
       organizationId?: EntityId,
+      addresses?: AccountAddresses,
+      website?: string,
+      socialMedia?: SocialMediaLinks,
     ): DispatchResult => {
       const event = buildEvent({
         type: "account.updated",
@@ -65,6 +75,9 @@ export const useAccountActions = (deviceId: string) => {
           name,
           status,
           ...(organizationId && { organizationId }),
+          addresses,
+          website,
+          socialMedia,
         },
         deviceId,
       });

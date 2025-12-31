@@ -1,5 +1,9 @@
 import type { AutomergeDoc } from "../automerge/schema";
-import type { Organization, OrganizationStatus } from "../domains/organization";
+import type {
+  Organization,
+  OrganizationStatus,
+  SocialMediaLinks,
+} from "../domains/organization";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
@@ -8,6 +12,9 @@ type OrganizationCreatedPayload = {
   id: EntityId;
   name: string;
   status: OrganizationStatus;
+  logoUri?: string;
+  website?: string;
+  socialMedia?: SocialMediaLinks;
   metadata?: Record<string, unknown>;
 };
 
@@ -20,6 +27,9 @@ type OrganizationUpdatedPayload = {
   id: EntityId;
   name?: string;
   status?: OrganizationStatus;
+  logoUri?: string;
+  website?: string;
+  socialMedia?: SocialMediaLinks;
 };
 
 const applyOrganizationCreated = (
@@ -37,6 +47,9 @@ const applyOrganizationCreated = (
     id,
     name: payload.name,
     status: payload.status,
+    logoUri: payload.logoUri,
+    website: payload.website,
+    socialMedia: payload.socialMedia,
     metadata: payload.metadata,
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
@@ -96,6 +109,11 @@ const applyOrganizationUpdated = (
         ...existing,
         ...(payload.name !== undefined && { name: payload.name }),
         ...(payload.status !== undefined && { status: payload.status }),
+        ...(payload.logoUri !== undefined && { logoUri: payload.logoUri }),
+        ...(payload.website !== undefined && { website: payload.website }),
+        ...(payload.socialMedia !== undefined && {
+          socialMedia: payload.socialMedia,
+        }),
         updatedAt: event.timestamp,
       },
     },

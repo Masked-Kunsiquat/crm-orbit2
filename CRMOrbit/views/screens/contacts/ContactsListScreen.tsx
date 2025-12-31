@@ -4,6 +4,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
+import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
 import { HeaderMenu, ListCard, ListCardChevron, ListScreenLayout } from "@views/components";
 import { colors } from "@domains/shared/theme/colors";
 import { t } from "../../../i18n";
@@ -16,7 +17,9 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   const menuAnchorRef = useRef<View>(null);
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, {
+        sensitivity: "base",
+      }),
     );
   }, [contacts]);
 
@@ -45,14 +48,11 @@ export const ContactsListScreen = ({ navigation }: Props) => {
     });
   }, [navigation]);
 
-  const getPrimaryEmail = (contact: Contact) => {
-    return contact.methods.emails.find((e) => e.status === "contact.method.status.active")?.value;
-  };
-
   const renderItem = ({ item }: { item: Contact }) => (
     <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
       <View style={styles.itemContent}>
-        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemName}>{getContactDisplayName(item)}</Text>
+        {item.title ? <Text style={styles.itemTitle}>{item.title}</Text> : null}
         {getPrimaryEmail(item) ? (
           <Text style={styles.itemEmail}>{getPrimaryEmail(item)}</Text>
         ) : null}
@@ -115,6 +115,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.textPrimary,
     marginBottom: 4,
+  },
+  itemTitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 2,
+    fontStyle: "italic",
   },
   itemEmail: {
     fontSize: 14,

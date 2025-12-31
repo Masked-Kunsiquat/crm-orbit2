@@ -1,4 +1,9 @@
-import type { Account, AccountStatus } from "../domains/account";
+import type {
+  Account,
+  AccountStatus,
+  AccountAddresses,
+  SocialMediaLinks,
+} from "../domains/account";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
@@ -8,6 +13,9 @@ type AccountCreatedPayload = {
   organizationId: EntityId;
   name: string;
   status: AccountStatus;
+  addresses?: AccountAddresses;
+  website?: string;
+  socialMedia?: SocialMediaLinks;
   metadata?: Record<string, unknown>;
 };
 
@@ -21,6 +29,9 @@ type AccountUpdatedPayload = {
   name?: string;
   status?: AccountStatus;
   organizationId?: EntityId;
+  addresses?: AccountAddresses;
+  website?: string;
+  socialMedia?: SocialMediaLinks;
 };
 
 const resolveEntityId = <T extends { id?: EntityId }>(
@@ -61,6 +72,9 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     organizationId: payload.organizationId,
     name: payload.name,
     status: payload.status,
+    addresses: payload.addresses,
+    website: payload.website,
+    socialMedia: payload.socialMedia,
     metadata: payload.metadata,
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
@@ -122,7 +136,14 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         ...existing,
         ...(payload.name !== undefined && { name: payload.name }),
         ...(payload.status !== undefined && { status: payload.status }),
-        ...(payload.organizationId !== undefined && { organizationId: payload.organizationId }),
+        ...(payload.organizationId !== undefined && {
+          organizationId: payload.organizationId,
+        }),
+        ...(payload.addresses !== undefined && { addresses: payload.addresses }),
+        ...(payload.website !== undefined && { website: payload.website }),
+        ...(payload.socialMedia !== undefined && {
+          socialMedia: payload.socialMedia,
+        }),
         updatedAt: event.timestamp,
       },
     },
