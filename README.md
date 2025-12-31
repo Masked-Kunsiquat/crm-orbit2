@@ -52,7 +52,7 @@ CRM Orbit brings together essential CRM functions in a single, self‑hosted a
 
 1. Clone the repository: `git clone https://github.com/Masked-Kunsiquat/crm-orbit2.git` and change into the project directory.
 
-2. Install dependencies: `run npm install` (or `yarn install`) to install the required packages.
+2. Install dependencies: `npm install` (or `yarn install`) to install the required packages.
 
 3. Run the development server: `npx expo start -c`
 
@@ -66,4 +66,4 @@ We encourage contributions of all kinds—whether it’s reporting issues, impro
 
 # License
 
-CRM Orbit is released under the MIT License. See the LICENSE file for more details.
+CRM Orbit is released under the MIT License. See the [[LICENSE]] file for more details.
