@@ -1,4 +1,4 @@
-import type { AccountContact, AccountContactRole } from "../relations/accountContact";
+import type { AccountContact, AccountContactRole } from "../domains/relations/accountContact";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
