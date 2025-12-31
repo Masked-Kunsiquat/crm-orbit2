@@ -1,18 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, cloneElement, isValidElement } from "react";
 import {
-  Pressable,
   View,
   Text,
   StyleSheet,
   Modal,
   TouchableWithoutFeedback,
   type ViewStyle,
-  type TextStyle,
 } from "react-native";
 
 interface TooltipProps {
   content: string;
-  children: React.ReactNode;
+  children: React.ReactElement;
   containerStyle?: ViewStyle;
 }
 
@@ -32,10 +30,17 @@ export const Tooltip = ({ content, children, containerStyle }: TooltipProps) => 
     setVisible(false);
   };
 
+  // Clone the child element and add onLongPress to it
+  const childWithLongPress = isValidElement(children)
+    ? cloneElement(children, {
+        onLongPress: showTooltip,
+      } as any)
+    : children;
+
   return (
     <>
       <View ref={anchorRef} collapsable={false} style={containerStyle}>
-        <Pressable onLongPress={showTooltip}>{children}</Pressable>
+        {childWithLongPress}
       </View>
 
       <Modal visible={visible} transparent animationType="fade" onRequestClose={hideTooltip}>
