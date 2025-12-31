@@ -160,17 +160,17 @@ test("organization.deleted rejects deletion when dependent accounts exist", () =
     accounts: {
       ...createdDoc.accounts,
       "acct-1": {
-        id: "acct-1",
-        organizationId: "org-1",
+        id: "acct-1" as const,
+        organizationId: "org-1" as const,
         name: "Acme Account",
-        status: "account.status.active",
+        status: "account.status.active" as const,
         createdAt: "2024-01-15T00:00:00.000Z",
         updatedAt: "2024-01-15T00:00:00.000Z",
       },
     },
   };
 
-  assert.throws(() => organizationReducer(docWithAccount, deleted), {
+  assert.throws(() => organizationReducer(docWithAccount as any, deleted), {
     message: "Cannot delete organization org-1: accounts still reference it",
   });
 });

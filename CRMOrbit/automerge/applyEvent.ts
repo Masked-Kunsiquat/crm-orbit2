@@ -21,7 +21,7 @@ export const registerReducer = (
 
 const EVENT_TYPE_SET = new Set<EventType>(EVENT_TYPES);
 
-const isEventType = (type: string): type is EventType => EVENT_TYPE_SET.has(type);
+const isEventType = (type: string): type is EventType => EVENT_TYPE_SET.has(type as EventType);
 
 export const applyEvent = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   if (!isEventType(event.type)) {

@@ -15,7 +15,7 @@ type AnchorLayout = {
 };
 
 type HeaderMenuProps = {
-  anchorRef: RefObject<View>;
+  anchorRef: RefObject<View | null>;
   visible: boolean;
   onRequestClose: () => void;
   children: ReactNode;

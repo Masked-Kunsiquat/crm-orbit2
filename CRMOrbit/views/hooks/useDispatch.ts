@@ -108,7 +108,7 @@ export const useEventBuilder = (deviceId: string) => {
   const buildAndDispatch = useCallback(
     (type: string, entityId: string, payload: unknown): DispatchResult => {
       const event = buildEvent({
-        type,
+        type: type as any,
         entityId,
         payload,
         deviceId,
@@ -116,7 +116,7 @@ export const useEventBuilder = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   return buildAndDispatch;
