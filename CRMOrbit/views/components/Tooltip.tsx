@@ -1,4 +1,4 @@
-import { useState, useRef, cloneElement, isValidElement } from "react";
+import React, { useState, useRef, cloneElement, isValidElement } from "react";
 import {
   View,
   Text,

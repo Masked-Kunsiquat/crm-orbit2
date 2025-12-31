@@ -35,6 +35,10 @@ export default [
         afterEach: "readonly",
         it: "readonly",
         jest: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
       },
     },
     plugins: {

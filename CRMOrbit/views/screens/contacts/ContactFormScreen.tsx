@@ -30,7 +30,8 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const [type, setType] = useState<ContactType>("contact.type.internal");
   const [emails, setEmails] = useState<ContactMethod[]>([]);
   const [phones, setPhones] = useState<ContactMethod[]>([]);
-  const [isDirty, setIsDirty] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_isDirty, setIsDirty] = useState(false);
   const lastContactIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different contact

@@ -54,7 +54,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [useSameForParking, setUseSameForParking] = useState(false);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
-  const [isDirty, setIsDirty] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_isDirty, setIsDirty] = useState(false);
   const lastAccountIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different account

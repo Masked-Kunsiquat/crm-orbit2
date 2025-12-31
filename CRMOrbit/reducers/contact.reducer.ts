@@ -217,7 +217,8 @@ const applyContactDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   }
 
   // Remove the contact
-  const { [id]: removed, ...remainingContacts } = doc.contacts;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [id]: _removed, ...remainingContacts } = doc.contacts;
 
   return {
     ...doc,

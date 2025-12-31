@@ -169,7 +169,8 @@ const applyAccountDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   }
 
   // Remove the account
-  const { [id]: removed, ...remainingAccounts } = doc.accounts;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [id]: _removed, ...remainingAccounts } = doc.accounts;
 
   return {
     ...doc,

@@ -142,7 +142,8 @@ const applyOrganizationDeleted = (
   }
 
   // Remove the organization
-  const { [id]: removed, ...remainingOrganizations } = doc.organizations;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [id]: _removed, ...remainingOrganizations } = doc.organizations;
 
   return {
     ...doc,

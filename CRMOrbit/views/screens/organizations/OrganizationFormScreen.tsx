@@ -33,7 +33,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [logoUri, setLogoUri] = useState<string | undefined>(undefined);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
-  const [isDirty, setIsDirty] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_isDirty, setIsDirty] = useState(false);
   const lastOrgIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different organization

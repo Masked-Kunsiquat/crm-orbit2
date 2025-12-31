@@ -73,16 +73,12 @@ const createMemoryDb = () => {
 
       const tx = createDbInterface(shadowTables);
 
-      try {
-        const result = await fn(tx);
-        // Commit: apply shadow tables to main tables
-        currentTables.snapshots = shadowTables.snapshots;
-        currentTables.events = shadowTables.events;
-        return result;
-      } catch (error) {
-        // Rollback: discard shadow tables, keep original tables
-        throw error;
-      }
+      const result = await fn(tx);
+      // Commit: apply shadow tables to main tables
+      currentTables.snapshots = shadowTables.snapshots;
+      currentTables.events = shadowTables.events;
+      return result;
+      // Rollback on error: discard shadow tables, keep original tables (automatic)
     },
   });
 
