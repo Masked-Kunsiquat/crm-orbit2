@@ -48,12 +48,12 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
 
   const handleUnlink = (linkId: string, name: string) => {
     Alert.alert(
-      "Unlink Note",
-      `Are you sure you want to unlink this note from "${name}"?`,
+      t("notes.unlinkTitle"),
+      t("notes.unlinkConfirmation").replace("{name}", name),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("notes.unlinkCancel"), style: "cancel" },
         {
-          text: "Unlink",
+          text: t("notes.unlinkAction"),
           style: "destructive",
           onPress: () => {
             unlinkNote(linkId);
@@ -130,25 +130,28 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
         {linkedEntities.length === 0 ? (
           <Text style={styles.emptyText}>Not linked to any entity.</Text>
         ) : (
-          linkedEntities.map((entity) => (
-            <View key={entity.linkId} style={styles.linkedItem}>
-              <Pressable
-                style={styles.linkedItemPressable}
-                onPress={() =>
-                  navigateToEntity(entity.entityType, entity.entityId)
-                }
-              >
-                <Text style={styles.linkedItemType}>{entity.entityType}</Text>
-                <Text style={styles.linkedItemName}>{entity.name}</Text>
-              </Pressable>
-              <TouchableOpacity
-                style={styles.unlinkButton}
-                onPress={() => handleUnlink(entity.linkId, entity.name)}
-              >
-                <Text style={styles.unlinkButtonText}>Unlink</Text>
-              </TouchableOpacity>
-            </View>
-          ))
+          linkedEntities.map((entity) => {
+            const displayName = entity.name ?? t("common.unknownEntity");
+            return (
+              <View key={entity.linkId} style={styles.linkedItem}>
+                <Pressable
+                  style={styles.linkedItemPressable}
+                  onPress={() =>
+                    navigateToEntity(entity.entityType, entity.entityId)
+                  }
+                >
+                  <Text style={styles.linkedItemType}>{entity.entityType}</Text>
+                  <Text style={styles.linkedItemName}>{displayName}</Text>
+                </Pressable>
+                <TouchableOpacity
+                  style={styles.unlinkButton}
+                  onPress={() => handleUnlink(entity.linkId, displayName)}
+                >
+                  <Text style={styles.unlinkButtonText}>Unlink</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })
         )}
       </View>
 

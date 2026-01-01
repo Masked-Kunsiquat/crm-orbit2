@@ -5,6 +5,7 @@ import { NotesListScreen } from "../screens/notes/NotesListScreen";
 import { NoteDetailScreen } from "../screens/notes/NoteDetailScreen";
 import { NoteFormScreen } from "../screens/notes/NoteFormScreen";
 import { stackScreenOptions } from "./stackOptions";
+import { t } from "../../i18n";
 
 const Stack = createNativeStackNavigator<NotesStackParamList>();
 
@@ -14,12 +15,12 @@ export const NotesStack = () => {
       <Stack.Screen
         name="NotesList"
         component={NotesListScreen}
-        options={{ title: "Notes" }}
+        options={{ title: t("notes.listTitle") }}
       />
       <Stack.Screen
         name="NoteDetail"
         component={NoteDetailScreen}
-        options={{ title: "Note Details" }}
+        options={{ title: t("notes.detailTitle") }}
       />
       <Stack.Screen
         name="NoteForm"

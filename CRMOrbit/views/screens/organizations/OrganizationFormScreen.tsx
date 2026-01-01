@@ -108,7 +108,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const handleSave = () => {
     if (!name.trim()) {
       Alert.alert(
-        "Validation Error",
+        t("common.validationError"),
         t("organizations.validation.nameRequired"),
       );
       return;

@@ -4,7 +4,7 @@ import type { NoteLinkEntityType } from "@domains/relations/noteLink";
 import type { EntityId } from "@domains/shared/types";
 
 export type LinkedEntityInfo = {
-  name: string;
+  name?: string;
   entityId: EntityId;
   entityType: NoteLinkEntityType;
   linkId: EntityId;
@@ -43,7 +43,7 @@ export const getEntitiesForNote = (
 
   return links
     .map(([linkId, link]): LinkedEntityInfo | null => {
-      let name = "Unknown Entity";
+      let name: string | undefined;
       let entity;
 
       switch (link.entityType) {
