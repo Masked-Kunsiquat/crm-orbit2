@@ -63,6 +63,7 @@ export default [
       "no-console": ["error", { allow: ["warn", "error"] }],
       "local/no-duplicate-helpers": "error",
       "local/enforce-i18n-validation": "error",
+      "local/enforce-form-screen-pattern": "error",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
       "prettier/prettier": "warn",

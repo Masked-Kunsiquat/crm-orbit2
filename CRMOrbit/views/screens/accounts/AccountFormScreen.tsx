@@ -55,8 +55,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [useSameForParking, setUseSameForParking] = useState(false);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_isDirty, setIsDirty] = useState(false);
   const lastAccountIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different account
@@ -65,8 +63,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     const isAccountChanged = currentAccountId !== lastAccountIdRef.current;
 
     if (isAccountChanged) {
-      // Reset dirty flag when switching accounts
-      setIsDirty(false);
       lastAccountIdRef.current = currentAccountId;
 
       if (account) {
@@ -108,14 +104,12 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
   const handleNameChange = (value: string) => {
     setName(value);
-    setIsDirty(true);
   };
 
   const handleStatusChange = (
     value: "account.status.active" | "account.status.inactive",
   ) => {
     setStatus(value);
-    setIsDirty(true);
   };
 
   const handleSiteAddressChange = (field: keyof Address, value: string) => {
@@ -123,12 +117,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     if (useSameForParking) {
       setParkingAddress((prev) => ({ ...prev, [field]: value }));
     }
-    setIsDirty(true);
   };
 
   const handleParkingAddressChange = (field: keyof Address, value: string) => {
     setParkingAddress((prev) => ({ ...prev, [field]: value }));
-    setIsDirty(true);
   };
 
   const handleUseSameForParkingChange = (value: boolean) => {
@@ -136,7 +128,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     if (value) {
       setParkingAddress(siteAddress);
     }
-    setIsDirty(true);
   };
 
   const handleSocialMediaChange = (
@@ -147,7 +138,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       ...prev,
       [platform]: value.trim() || undefined,
     }));
-    setIsDirty(true);
   };
 
   const handleSave = () => {
@@ -247,7 +237,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                 selectedValue={organizationId}
                 onValueChange={(value) => {
                   setOrganizationId(value);
-                  setIsDirty(true);
                 }}
                 style={styles.picker}
               >
@@ -398,7 +387,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             value={website}
             onChangeText={(value) => {
               setWebsite(value);
-              setIsDirty(true);
             }}
             placeholder="https://example.com"
             keyboardType="url"

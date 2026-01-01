@@ -34,8 +34,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [logoUri, setLogoUri] = useState<string | undefined>(undefined);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_isDirty, setIsDirty] = useState(false);
   const lastOrgIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different organization
@@ -44,8 +42,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     const isOrgChanged = currentOrgId !== lastOrgIdRef.current;
 
     if (isOrgChanged) {
-      // Reset dirty flag when switching organizations
-      setIsDirty(false);
       lastOrgIdRef.current = currentOrgId;
 
       if (organization) {
@@ -67,14 +63,12 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
   const handleNameChange = (value: string) => {
     setName(value);
-    setIsDirty(true);
   };
 
   const handleStatusChange = (
     value: "organization.status.active" | "organization.status.inactive",
   ) => {
     setStatus(value);
-    setIsDirty(true);
   };
 
   const handlePickImage = async () => {
@@ -98,7 +92,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
     if (!result.canceled && result.assets[0]) {
       setLogoUri(result.assets[0].uri);
-      setIsDirty(true);
     }
   };
 
@@ -110,7 +103,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       ...prev,
       [platform]: value.trim() || undefined,
     }));
-    setIsDirty(true);
   };
 
   const handleSave = () => {
@@ -198,7 +190,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             value={website}
             onChangeText={(value) => {
               setWebsite(value);
-              setIsDirty(true);
             }}
             placeholder="https://example.com"
             keyboardType="url"
