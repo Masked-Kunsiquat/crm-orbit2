@@ -5,6 +5,7 @@ import react from "eslint-plugin-react";
 import reactNative from "eslint-plugin-react-native";
 import prettier from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
+import localPlugin from "./eslint-rules/index.js";
 
 export default [
   js.configs.recommended,
@@ -46,6 +47,7 @@ export default [
       react: react,
       "react-native": reactNative,
       prettier: prettier,
+      local: localPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -56,6 +58,7 @@ export default [
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "error",
       "no-console": ["error", { allow: ["warn", "error"] }],
+      "local/no-duplicate-helpers": "error",
       "prettier/prettier": "warn",
     },
     settings: {
