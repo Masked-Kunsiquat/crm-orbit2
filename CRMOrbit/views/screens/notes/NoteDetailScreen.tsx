@@ -64,31 +64,27 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      t("notes.deleteTitle"),
-      t("notes.deleteConfirmation"),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
+    Alert.alert(t("notes.deleteTitle"), t("notes.deleteConfirmation"), [
+      {
+        text: t("common.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: () => {
+          const result = deleteNote(note.id);
+          if (result.success) {
+            navigation.goBack();
+          } else {
+            Alert.alert(
+              t("common.error"),
+              result.error ?? t("notes.deleteError"),
+            );
+          }
         },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            const result = deleteNote(note.id);
-            if (result.success) {
-              navigation.goBack();
-            } else {
-              Alert.alert(
-                t("common.error"),
-                result.error ?? t("notes.deleteError"),
-              );
-            }
-          },
-        },
-      ],
-    );
+      },
+    ]);
   };
 
   const navigateToEntity = (
@@ -138,7 +134,9 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
             <View key={entity.linkId} style={styles.linkedItem}>
               <Pressable
                 style={styles.linkedItemPressable}
-                onPress={() => navigateToEntity(entity.entityType, entity.entityId)}
+                onPress={() =>
+                  navigateToEntity(entity.entityType, entity.entityId)
+                }
               >
                 <Text style={styles.linkedItemType}>{entity.entityType}</Text>
                 <Text style={styles.linkedItemName}>{entity.name}</Text>

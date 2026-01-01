@@ -88,7 +88,9 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
 
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>
-            {noteId ? t("notes.form.updateButton") : t("notes.form.createButton")}
+            {noteId
+              ? t("notes.form.updateButton")
+              : t("notes.form.createButton")}
           </Text>
         </TouchableOpacity>
       </View>

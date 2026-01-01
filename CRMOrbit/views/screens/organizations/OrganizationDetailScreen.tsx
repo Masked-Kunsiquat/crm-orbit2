@@ -321,9 +321,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           </TouchableOpacity>
         </View>
         {notes.length === 0 ? (
-          <Text style={styles.emptyText}>
-            No notes for this organization.
-          </Text>
+          <Text style={styles.emptyText}>No notes for this organization.</Text>
         ) : (
           notes.map((note) => (
             <Pressable
