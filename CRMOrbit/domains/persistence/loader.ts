@@ -33,7 +33,7 @@ export const loadPersistedState = async (
   // Parse events from records
   const events: Event[] = eventRecords.map((record) => ({
     id: record.id,
-    type: record.type as any,
+    type: record.type as Event["type"],
     entityId: record.entityId ?? undefined,
     payload: JSON.parse(record.payload),
     timestamp: record.timestamp,

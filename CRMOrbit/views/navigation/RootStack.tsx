@@ -24,12 +24,12 @@ export const RootStack = () => {
       />
       <Stack.Screen
         name="OrganizationDetail"
-        component={OrganizationDetailScreen as any}
+        component={OrganizationDetailScreen}
         options={{ title: "Organization Details" }}
       />
       <Stack.Screen
         name="OrganizationForm"
-        component={OrganizationFormScreen as any}
+        component={OrganizationFormScreen}
         options={({ route }) => ({
           title: route.params?.organizationId
             ? "Edit Organization"
@@ -38,36 +38,36 @@ export const RootStack = () => {
       />
       <Stack.Screen
         name="AccountDetail"
-        component={AccountDetailScreen as any}
+        component={AccountDetailScreen}
         options={{ title: "Account Details" }}
       />
       <Stack.Screen
         name="AccountForm"
-        component={AccountFormScreen as any}
+        component={AccountFormScreen}
         options={({ route }) => ({
           title: route.params?.accountId ? "Edit Account" : "New Account",
         })}
       />
       <Stack.Screen
         name="ContactDetail"
-        component={ContactDetailScreen as any}
+        component={ContactDetailScreen}
         options={{ title: "Contact Details" }}
       />
       <Stack.Screen
         name="ContactForm"
-        component={ContactFormScreen as any}
+        component={ContactFormScreen}
         options={({ route }) => ({
           title: route.params?.contactId ? "Edit Contact" : "New Contact",
         })}
       />
       <Stack.Screen
         name="NoteDetail"
-        component={NoteDetailScreen as any}
+        component={NoteDetailScreen}
         options={{ title: "Note Details" }}
       />
       <Stack.Screen
         name="NoteForm"
-        component={NoteFormScreen as any}
+        component={NoteFormScreen}
         options={({ route }) => ({
           title: route.params?.noteId ? "Edit Note" : "New Note",
         })}

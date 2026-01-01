@@ -263,11 +263,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               key={contact.id}
               style={styles.contactCard}
               onPress={() => {
-                // Navigate to ContactsTab
-                (navigation.navigate as any)("ContactsTab", {
-                  screen: "ContactDetail",
-                  params: { contactId: contact.id },
-                });
+                // Navigate to contact detail using root navigator
+                navigation.navigate("ContactDetail", { contactId: contact.id });
               }}
             >
               <View style={styles.contactCardContent}>
