@@ -77,6 +77,57 @@ export default [
     },
   },
   {
+    files: ["domains/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/views/**", "**/reducers/**"],
+              message:
+                "Domain layer cannot import from views or reducers layers. Keep domain logic pure and framework-agnostic.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["views/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/reducers/**"],
+              message:
+                "Views should use hooks (e.g., useContactActions) instead of directly importing reducers. This maintains proper separation of concerns.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["reducers/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/views/**"],
+              message:
+                "Reducers cannot import from views layer. Reducers should be pure functions that only depend on domain models and events.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".expo/**",
