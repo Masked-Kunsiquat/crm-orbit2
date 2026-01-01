@@ -25,6 +25,7 @@ export default [
         console: "readonly",
         process: "readonly",
         __dirname: "readonly",
+        __DEV__: "readonly",
         module: "readonly",
         require: "readonly",
         exports: "readonly",
@@ -65,6 +66,13 @@ export default [
       react: {
         version: "detect",
       },
+    },
+  },
+  {
+    files: ["utils/logger.ts"],
+    rules: {
+      // Logger is allowed to use console methods
+      "no-console": "off",
     },
   },
   {
