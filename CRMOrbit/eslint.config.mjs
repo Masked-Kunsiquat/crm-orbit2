@@ -3,6 +3,7 @@ import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 import react from "eslint-plugin-react";
 import reactNative from "eslint-plugin-react-native";
+import reactHooks from "eslint-plugin-react-hooks";
 import prettier from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
 import localPlugin from "./eslint-rules/index.js";
@@ -47,6 +48,7 @@ export default [
       "@typescript-eslint": tseslint,
       react: react,
       "react-native": reactNative,
+      "react-hooks": reactHooks,
       prettier: prettier,
       local: localPlugin,
     },
@@ -61,6 +63,8 @@ export default [
       "no-console": ["error", { allow: ["warn", "error"] }],
       "local/no-duplicate-helpers": "error",
       "local/enforce-i18n-validation": "error",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
       "prettier/prettier": "warn",
     },
     settings: {
