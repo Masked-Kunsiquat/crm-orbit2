@@ -13,7 +13,6 @@ import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
 import { t } from "../../../i18n";
-import type { NoteLinkEntityType } from "../../../domains/relations/noteLink";
 
 const DEVICE_ID = "device-local";
 

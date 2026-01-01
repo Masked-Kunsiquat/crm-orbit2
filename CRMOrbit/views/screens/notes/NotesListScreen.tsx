@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useMemo } from "react";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
