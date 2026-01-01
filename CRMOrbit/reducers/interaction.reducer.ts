@@ -3,6 +3,9 @@ import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId, Timestamp } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("InteractionReducer");
 
 type InteractionLoggedPayload = {
   id: EntityId;
@@ -18,7 +21,10 @@ const applyInteractionLogged = (
   const payload = event.payload as InteractionLoggedPayload;
   const id = resolveEntityId(event, payload);
 
+  logger.debug("Logging interaction", { id, type: payload.type });
+
   if (doc.interactions[id]) {
+    logger.error("Interaction already exists", { id });
     throw new Error(`Interaction already exists: ${id}`);
   }
 
@@ -30,6 +36,12 @@ const applyInteractionLogged = (
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
+
+  logger.info("Interaction logged", {
+    id,
+    type: payload.type,
+    occurredAt: payload.occurredAt,
+  });
 
   return {
     ...doc,
@@ -44,10 +56,16 @@ export const interactionReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "interaction.logged":
       return applyInteractionLogged(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `interaction.reducer does not handle event type: ${event.type}`,
       );

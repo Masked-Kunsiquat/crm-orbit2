@@ -7,6 +7,9 @@ import type {
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("OrganizationReducer");
 
 type OrganizationCreatedPayload = {
   id: EntityId;
@@ -39,7 +42,10 @@ const applyOrganizationCreated = (
   const payload = event.payload as OrganizationCreatedPayload;
   const id = resolveEntityId(event, payload);
 
+  logger.debug("Creating organization", { id, name: payload.name });
+
   if (doc.organizations[id]) {
+    logger.error("Organization already exists", { id });
     throw new Error(`Organization already exists: ${id}`);
   }
 
@@ -54,6 +60,12 @@ const applyOrganizationCreated = (
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
+
+  logger.info("Organization created", {
+    id,
+    name: payload.name,
+    status: payload.status,
+  });
 
   return {
     ...doc,
@@ -98,8 +110,11 @@ const applyOrganizationUpdated = (
   const existing = doc.organizations[id] as Organization | undefined;
 
   if (!existing) {
+    logger.error("Organization not found for update", { id });
     throw new Error(`Organization not found: ${id}`);
   }
+
+  logger.debug("Updating organization", { id, updates: payload });
 
   return {
     ...doc,
@@ -129,6 +144,7 @@ const applyOrganizationDeleted = (
   const existing = doc.organizations[id] as Organization | undefined;
 
   if (!existing) {
+    logger.error("Organization not found for deletion", { id });
     throw new Error(`Organization not found: ${id}`);
   }
 
@@ -136,10 +152,13 @@ const applyOrganizationDeleted = (
     (account) => account.organizationId === id,
   );
   if (hasDependentAccounts) {
+    logger.warn("Cannot delete organization with dependent accounts", { id });
     throw new Error(
       `Cannot delete organization ${id}: accounts still reference it`,
     );
   }
+
+  logger.info("Organization deleted", { id });
 
   // Remove the organization
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -155,6 +174,11 @@ export const organizationReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "organization.created":
       return applyOrganizationCreated(doc, event);
@@ -165,6 +189,7 @@ export const organizationReducer = (
     case "organization.deleted":
       return applyOrganizationDeleted(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `organization.reducer does not handle event type: ${event.type}`,
       );

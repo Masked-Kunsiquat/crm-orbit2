@@ -7,6 +7,9 @@ import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("ContactReducer");
 
 type ContactCreatedPayload = {
   id: EntityId;
@@ -53,11 +56,15 @@ const applyContactCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as ContactCreatedPayload;
   const id = resolveEntityId(event, payload);
 
+  logger.debug("Creating contact", { id, type: payload.type });
+
   if (doc.contacts[id]) {
+    logger.error("Contact already exists", { id });
     throw new Error(`Contact already exists: ${id}`);
   }
 
   if (!payload.methods || !payload.methods.emails || !payload.methods.phones) {
+    logger.error("Invalid contact methods", { id, methods: payload.methods });
     throw new Error("Contact methods must include emails and phones arrays.");
   }
 
@@ -74,6 +81,11 @@ const applyContactCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
+
+  logger.info("Contact created", {
+    id,
+    name: `${payload.firstName} ${payload.lastName}`,
+  });
 
   return {
     ...doc,
@@ -162,8 +174,11 @@ const applyContactUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existing = doc.contacts[id] as Contact | undefined;
 
   if (!existing) {
+    logger.error("Contact not found for update", { id });
     throw new Error(`Contact not found: ${id}`);
   }
+
+  logger.debug("Updating contact", { id, updates: payload });
 
   return {
     ...doc,
@@ -195,8 +210,11 @@ const applyContactDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existing = doc.contacts[id] as Contact | undefined;
 
   if (!existing) {
+    logger.error("Contact not found for deletion", { id });
     throw new Error(`Contact not found: ${id}`);
   }
+
+  logger.info("Contact deleted", { id });
 
   // Remove the contact
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -212,6 +230,11 @@ export const contactReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "contact.created":
       return applyContactCreated(doc, event);
@@ -224,6 +247,7 @@ export const contactReducer = (
     case "contact.deleted":
       return applyContactDeleted(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `contact.reducer does not handle event type: ${event.type}`,
       );

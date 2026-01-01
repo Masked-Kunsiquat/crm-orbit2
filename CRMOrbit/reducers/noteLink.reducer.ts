@@ -6,6 +6,9 @@ import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("NoteLinkReducer");
 
 type NoteLinkedPayload = {
   id?: EntityId;
@@ -72,13 +75,22 @@ const applyNoteLinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as NoteLinkedPayload;
   const id = resolveEntityId(event, payload);
 
+  logger.debug("Linking note", {
+    id,
+    noteId: payload.noteId,
+    entityType: payload.entityType,
+    entityId: payload.entityId,
+  });
+
   if (!doc.notes[payload.noteId]) {
+    logger.error("Note not found for linking", { noteId: payload.noteId });
     throw new Error(`Note not found: ${payload.noteId}`);
   }
 
   ensureEntityExists(doc, payload.entityType, payload.entityId);
 
   if (doc.relations.noteLinks[id]) {
+    logger.error("NoteLink already exists", { id });
     throw new Error(`NoteLink already exists: ${id}`);
   }
 
@@ -90,6 +102,11 @@ const applyNoteLinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   );
 
   if (existingId) {
+    logger.error("Duplicate note link", {
+      noteId: payload.noteId,
+      entityType: payload.entityType,
+      entityId: payload.entityId,
+    });
     throw new Error(
       `NoteLink already exists for note=${payload.noteId} entityType=${payload.entityType} entityId=${payload.entityId}`,
     );
@@ -100,6 +117,13 @@ const applyNoteLinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     entityType: payload.entityType,
     entityId: payload.entityId,
   };
+
+  logger.info("Note linked", {
+    id,
+    noteId: payload.noteId,
+    entityType: payload.entityType,
+    entityId: payload.entityId,
+  });
 
   return {
     ...doc,
@@ -126,12 +150,21 @@ const applyNoteUnlinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     );
 
   if (!id) {
+    logger.error("NoteLink id is required for unlinking");
     throw new Error("NoteLink id is required.");
   }
 
   if (!doc.relations.noteLinks[id]) {
+    logger.error("NoteLink not found for unlinking", { id });
     throw new Error(`NoteLink not found: ${id}`);
   }
+
+  logger.info("Note unlinked", {
+    id,
+    noteId: payload.noteId,
+    entityType: payload.entityType,
+    entityId: payload.entityId,
+  });
 
   const nextLinks = { ...doc.relations.noteLinks };
   delete nextLinks[id];
@@ -149,12 +182,18 @@ export const noteLinkReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "note.linked":
       return applyNoteLinked(doc, event);
     case "note.unlinked":
       return applyNoteUnlinked(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `noteLink.reducer does not handle event type: ${event.type}`,
       );

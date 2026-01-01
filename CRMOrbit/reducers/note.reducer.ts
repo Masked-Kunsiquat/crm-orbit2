@@ -3,6 +3,9 @@ import type { Note } from "../domains/note";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("NoteReducer");
 
 type NoteCreatedPayload = {
   id: EntityId;
@@ -21,7 +24,10 @@ const applyNoteCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as NoteCreatedPayload;
   const id = resolveEntityId(event, payload);
 
+  logger.debug("Creating note", { id, title: payload.title });
+
   if (doc.notes[id]) {
+    logger.error("Note already exists", { id });
     throw new Error(`Note already exists: ${id}`);
   }
 
@@ -34,6 +40,8 @@ const applyNoteCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     createdAt,
     updatedAt: event.timestamp,
   };
+
+  logger.info("Note created", { id, title: payload.title });
 
   return {
     ...doc,
@@ -50,8 +58,11 @@ const applyNoteUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existing = doc.notes[id] as Note | undefined;
 
   if (!existing) {
+    logger.error("Note not found for update", { id });
     throw new Error(`Note not found: ${id}`);
   }
+
+  logger.debug("Updating note", { id, updates: payload });
 
   return {
     ...doc,
@@ -73,8 +84,11 @@ const applyNoteDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existing = doc.notes[id] as Note | undefined;
 
   if (!existing) {
+    logger.error("Note not found for deletion", { id });
     throw new Error(`Note not found: ${id}`);
   }
+
+  logger.info("Note deleted", { id });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { [id]: _removed, ...remainingNotes } = doc.notes;
@@ -89,6 +103,13 @@ const applyNoteDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     {} as AutomergeDoc["relations"]["noteLinks"],
   );
 
+  logger.debug("Removed note links", {
+    noteId: id,
+    linksRemoved:
+      Object.keys(doc.relations.noteLinks).length -
+      Object.keys(remainingLinks).length,
+  });
+
   return {
     ...doc,
     notes: remainingNotes,
@@ -100,6 +121,11 @@ const applyNoteDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
 };
 
 export const noteReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "note.created":
       return applyNoteCreated(doc, event);
@@ -108,6 +134,7 @@ export const noteReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     case "note.deleted":
       return applyNoteDeleted(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(`note.reducer does not handle event type: ${event.type}`);
   }
 };

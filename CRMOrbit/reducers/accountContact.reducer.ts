@@ -5,6 +5,9 @@ import type {
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("AccountContactReducer");
 
 type AccountContactLinkedPayload = {
   id?: EntityId;
@@ -84,15 +87,29 @@ const applyAccountContactLinked = (
   const payload = event.payload as AccountContactLinkedPayload;
   const id = resolveRelationId(event, payload);
 
+  logger.debug("Linking account contact", {
+    id,
+    accountId: payload.accountId,
+    contactId: payload.contactId,
+    role: payload.role,
+  });
+
   if (!doc.accounts[payload.accountId]) {
+    logger.error("Account not found for linking", {
+      accountId: payload.accountId,
+    });
     throw new Error(`Account not found: ${payload.accountId}`);
   }
 
   if (!doc.contacts[payload.contactId]) {
+    logger.error("Contact not found for linking", {
+      contactId: payload.contactId,
+    });
     throw new Error(`Contact not found: ${payload.contactId}`);
   }
 
   if (doc.relations.accountContacts[id]) {
+    logger.error("AccountContact relation already exists", { id });
     throw new Error(`AccountContact relation already exists: ${id}`);
   }
 
@@ -104,6 +121,11 @@ const applyAccountContactLinked = (
   );
 
   if (existingId) {
+    logger.error("Duplicate account contact relation", {
+      accountId: payload.accountId,
+      contactId: payload.contactId,
+      role: payload.role,
+    });
     throw new Error(
       `AccountContact relation already exists for account=${payload.accountId} contact=${payload.contactId} role=${payload.role}`,
     );
@@ -118,6 +140,10 @@ const applyAccountContactLinked = (
       payload.role,
     );
     if (primaryIds.length > 0) {
+      logger.warn("Primary contact already set", {
+        accountId: payload.accountId,
+        role: payload.role,
+      });
       throw new Error(
         `Primary contact already set for account=${payload.accountId} role=${payload.role}`,
       );
@@ -130,6 +156,14 @@ const applyAccountContactLinked = (
     role: payload.role,
     isPrimary,
   };
+
+  logger.info("Account contact linked", {
+    id,
+    accountId: payload.accountId,
+    contactId: payload.contactId,
+    role: payload.role,
+    isPrimary,
+  });
 
   return {
     ...doc,
@@ -262,10 +296,20 @@ const applyAccountContactUnlinked = (
   );
 
   if (relationIds.length === 0) {
+    logger.error("AccountContact relation not found for unlinking", {
+      accountId: payload.accountId,
+      contactId: payload.contactId,
+    });
     throw new Error(
       `AccountContact relation not found for account=${payload.accountId} contact=${payload.contactId}`,
     );
   }
+
+  logger.info("Account contact unlinked", {
+    accountId: payload.accountId,
+    contactId: payload.contactId,
+    relationsRemoved: relationIds.length,
+  });
 
   // Remove all relations between this account and contact
   const nextAccountContacts = { ...doc.relations.accountContacts };
@@ -286,6 +330,11 @@ export const accountContactReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "account.contact.linked":
       return applyAccountContactLinked(doc, event);
@@ -296,6 +345,7 @@ export const accountContactReducer = (
     case "account.contact.unsetPrimary":
       return applyAccountContactUnsetPrimary(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `accountContact.reducer does not handle event type: ${event.type}`,
       );
