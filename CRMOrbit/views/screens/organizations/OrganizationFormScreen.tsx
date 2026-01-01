@@ -136,7 +136,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
       );
-      console.log("Update result:", result);
       if (result.success) {
         navigation.goBack();
       } else {
@@ -151,7 +150,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
       );
-      console.log("Create result:", result);
       if (result.success) {
         navigation.goBack();
       } else {
