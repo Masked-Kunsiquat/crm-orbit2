@@ -145,9 +145,6 @@ export const createLogger = (moduleName: string): Logger => {
     switch (level) {
       case "debug":
       case "info":
-        // info is technically not allowed by ESLint, but we'll use console.log
-        // which is also not allowed. This file should be exempted from the rule.
-        // eslint-disable-next-line no-console
         console.log(fullMessage);
         break;
       case "warn":

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
+import { t } from "../../../i18n";
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
 import { useAccountActions } from "../../hooks";
@@ -151,12 +152,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert("Validation Error", "Account name is required");
+      Alert.alert("Validation Error", t("accounts.validation.nameRequired"));
       return;
     }
 
     if (!organizationId) {
-      Alert.alert("Validation Error", "Organization is required");
+      Alert.alert(
+        "Validation Error",
+        t("accounts.validation.organizationRequired"),
+      );
       return;
     }
 

@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 
+import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
@@ -143,7 +144,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!firstName.trim() && !lastName.trim()) {
-      Alert.alert("Validation Error", "Contact first or last name is required");
+      Alert.alert("Validation Error", t("contacts.validation.nameRequired"));
       return;
     }
 

@@ -60,6 +60,7 @@ export default [
       "@typescript-eslint/no-explicit-any": "error",
       "no-console": ["error", { allow: ["warn", "error"] }],
       "local/no-duplicate-helpers": "error",
+      "local/enforce-i18n-validation": "error",
       "prettier/prettier": "warn",
     },
     settings: {

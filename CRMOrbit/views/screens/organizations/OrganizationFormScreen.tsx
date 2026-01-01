@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
+import { t } from "@i18n/index";
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks";
@@ -114,7 +115,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert("Validation Error", "Organization name is required");
+      Alert.alert(
+        "Validation Error",
+        t("organizations.validation.nameRequired"),
+      );
       return;
     }
 
