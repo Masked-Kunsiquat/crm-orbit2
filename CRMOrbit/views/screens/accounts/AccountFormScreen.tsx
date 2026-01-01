@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
-import { t } from "../../../i18n";
+import { t } from "@i18n/index";
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
 import { useAccountActions } from "../../hooks";

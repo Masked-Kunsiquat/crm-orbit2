@@ -22,6 +22,7 @@ import { useAccountActions } from "../../hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
 import { Tooltip } from "../../components";
+import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
 
@@ -49,7 +50,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   if (!account) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Account not found</Text>
+        <Text style={styles.errorText}>{t("accounts.notFound")}</Text>
       </View>
     );
   }
@@ -61,30 +62,35 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const handleDelete = () => {
     if (allContacts.length > 0) {
       Alert.alert(
-        "Cannot Delete",
-        `Cannot delete "${account.name}" because it has ${allContacts.length} linked contact(s). Please unlink them first.`,
-        [{ text: "OK" }],
+        t("accounts.cannotDeleteTitle"),
+        t("accounts.cannotDeleteMessage")
+          .replace("{name}", account.name)
+          .replace("{count}", allContacts.length.toString()),
+        [{ text: t("common.ok") }],
       );
       return;
     }
 
     Alert.alert(
-      "Delete Account",
-      `Are you sure you want to delete "${account.name}"? This action cannot be undone.`,
+      t("accounts.deleteTitle"),
+      t("accounts.deleteConfirmation").replace("{name}", account.name),
       [
         {
-          text: "Cancel",
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
-          text: "Delete",
+          text: t("common.delete"),
           style: "destructive",
           onPress: () => {
             const result = deleteAccount(account.id);
             if (result.success) {
               navigation.goBack();
             } else {
-              Alert.alert("Error", result.error ?? "Failed to delete account");
+              Alert.alert(
+                t("common.error"),
+                result.error ?? t("accounts.deleteError"),
+              );
             }
           },
         },
@@ -98,17 +104,19 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         <View style={styles.header}>
           <Text style={styles.title}>{account.name}</Text>
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>Edit</Text>
+            <Text style={styles.editButtonText}>{t("common.edit")}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Organization</Text>
-          <Text style={styles.value}>{organization?.name ?? "Unknown"}</Text>
+          <Text style={styles.label}>{t("accounts.fields.organization")}</Text>
+          <Text style={styles.value}>
+            {organization?.name ?? t("common.unknown")}
+          </Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Status</Text>
+          <Text style={styles.label}>{t("accounts.fields.status")}</Text>
           <View
             style={[
               styles.statusBadge,
@@ -119,15 +127,15 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           >
             <Text style={styles.statusText}>
               {account.status === "account.status.active"
-                ? "Active"
-                : "Inactive"}
+                ? t("status.active")
+                : t("status.inactive")}
             </Text>
           </View>
         </View>
 
         {account.addresses?.site && (
           <View style={styles.field}>
-            <Text style={styles.label}>Site Address</Text>
+            <Text style={styles.label}>{t("accounts.fields.siteAddress")}</Text>
             <Text style={styles.value}>{account.addresses.site.street}</Text>
             <Text style={styles.value}>
               {account.addresses.site.city}, {account.addresses.site.state}{" "}
@@ -138,7 +146,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
         {account.addresses?.parking && !account.addresses.useSameForParking && (
           <View style={styles.field}>
-            <Text style={styles.label}>Parking Address</Text>
+            <Text style={styles.label}>
+              {t("accounts.fields.parkingAddress")}
+            </Text>
             <Text style={styles.value}>{account.addresses.parking.street}</Text>
             <Text style={styles.value}>
               {account.addresses.parking.city},{" "}
@@ -150,14 +160,16 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
         {account.addresses?.useSameForParking && (
           <View style={styles.field}>
-            <Text style={styles.label}>Parking Address</Text>
-            <Text style={styles.value}>Same as site address</Text>
+            <Text style={styles.label}>
+              {t("accounts.fields.parkingAddress")}
+            </Text>
+            <Text style={styles.value}>{t("accounts.sameAsSiteAddress")}</Text>
           </View>
         )}
 
         {account.website && (
           <View style={styles.field}>
-            <Text style={styles.label}>Website</Text>
+            <Text style={styles.label}>{t("accounts.fields.website")}</Text>
             <TouchableOpacity onPress={() => Linking.openURL(account.website!)}>
               <Text style={styles.link}>{account.website}</Text>
             </TouchableOpacity>
@@ -167,7 +179,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         {account.socialMedia &&
           Object.values(account.socialMedia).some((v) => v) && (
             <View style={styles.field}>
-              <Text style={styles.label}>Social Media</Text>
+              <Text style={styles.label}>{t("accounts.fields.socialMedia")}</Text>
               {account.socialMedia.facebook && (
                 <Tooltip content={account.socialMedia.facebook}>
                   <Pressable
@@ -176,7 +188,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>Facebook</Text>
+                    <Text style={styles.socialLink}>
+                      {t("accounts.socialMedia.facebook")}
+                    </Text>
                     <FontAwesome6
                       name="square-facebook"
                       size={18}
@@ -205,7 +219,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }}
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>Instagram</Text>
+                    <Text style={styles.socialLink}>
+                      {t("accounts.socialMedia.instagram")}
+                    </Text>
                     <FontAwesome6
                       name="instagram"
                       size={18}
@@ -223,7 +239,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>LinkedIn</Text>
+                    <Text style={styles.socialLink}>
+                      {t("accounts.socialMedia.linkedin")}
+                    </Text>
                     <FontAwesome6
                       name="linkedin"
                       size={18}
@@ -250,7 +268,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }}
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>X</Text>
+                    <Text style={styles.socialLink}>
+                      {t("accounts.socialMedia.x")}
+                    </Text>
                     <FontAwesome6
                       name="square-x-twitter"
                       size={18}
@@ -265,7 +285,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contacts ({allContacts.length})</Text>
+        <Text style={styles.sectionTitle}>
+          {t("accounts.sections.contacts")} ({allContacts.length})
+        </Text>
 
         <View style={styles.filterButtons}>
           <TouchableOpacity
@@ -281,7 +303,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 contactFilter === "all" && styles.filterButtonTextActive,
               ]}
             >
-              All ({allContacts.length})
+              {t("accounts.filters.all")} ({allContacts.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -299,7 +321,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                   styles.filterButtonTextActive,
               ]}
             >
-              Internal (
+              {t("contact.type.internal")} (
               {
                 allContacts.filter((c) => c.type === "contact.type.internal")
                   .length
@@ -322,7 +344,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                   styles.filterButtonTextActive,
               ]}
             >
-              External (
+              {t("contact.type.external")} (
               {
                 allContacts.filter((c) => c.type === "contact.type.external")
                   .length
@@ -335,8 +357,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         {contacts.length === 0 ? (
           <Text style={styles.emptyText}>
             {contactFilter === "all"
-              ? "No contacts linked to this account."
-              : `No ${contactFilter.replace("contact.type.", "")} contacts.`}
+              ? t("accounts.noContacts")
+              : t("accounts.noContactsFiltered").replace(
+                  "{type}",
+                  t(contactFilter as any),
+                )}
           </Text>
         ) : (
           contacts.map((contact) => (
@@ -368,10 +393,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 >
                   <Text style={styles.contactTypeText}>
                     {contact.type === "contact.type.internal"
-                      ? "Internal"
+                      ? t("contact.type.internal")
                       : contact.type === "contact.type.external"
-                        ? "External"
-                        : "Vendor"}
+                        ? t("contact.type.external")
+                        : t("contact.type.vendor")}
                   </Text>
                 </View>
               </View>
@@ -383,7 +408,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Notes ({notes.length})</Text>
+          <Text style={styles.sectionTitle}>{t("accounts.sections.notes")} ({notes.length})</Text>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() =>
@@ -392,11 +417,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               })
             }
           >
-            <Text style={styles.addButtonText}>Add Note</Text>
+            <Text style={styles.addButtonText}>{t("accounts.addNote")}</Text>
           </TouchableOpacity>
         </View>
         {notes.length === 0 ? (
-          <Text style={styles.emptyText}>No notes for this account.</Text>
+          <Text style={styles.emptyText}>{t("accounts.noNotes")}</Text>
         ) : (
           notes.map((note) => (
             <Pressable
@@ -419,7 +444,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>Delete Account</Text>
+        <Text style={styles.deleteButtonText}>{t("accounts.deleteButton")}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

@@ -12,7 +12,7 @@ import { useLayoutEffect } from "react";
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote, useEntitiesForNote } from "../../store/store";
 import { useNoteActions } from "../../hooks/useNoteActions";
-import { t } from "../../../i18n";
+import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
 
@@ -126,9 +126,9 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Linked To</Text>
+        <Text style={styles.sectionTitle}>{t("notes.linkedToSection")}</Text>
         {linkedEntities.length === 0 ? (
-          <Text style={styles.emptyText}>Not linked to any entity.</Text>
+          <Text style={styles.emptyText}>{t("notes.noLinkedEntities")}</Text>
         ) : (
           linkedEntities.map((entity) => {
             const displayName = entity.name ?? t("common.unknownEntity");
@@ -147,7 +147,9 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
                   style={styles.unlinkButton}
                   onPress={() => handleUnlink(entity.linkId, displayName)}
                 >
-                  <Text style={styles.unlinkButtonText}>Unlink</Text>
+                  <Text style={styles.unlinkButtonText}>
+                    {t("notes.unlinkButton")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             );

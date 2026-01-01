@@ -11,7 +11,7 @@ import { ContactDetailScreen } from "../screens/contacts/ContactDetailScreen";
 import { ContactFormScreen } from "../screens/contacts/ContactFormScreen";
 import { NoteDetailScreen } from "../screens/notes/NoteDetailScreen";
 import { NoteFormScreen } from "../screens/notes/NoteFormScreen";
-import { t } from "../../i18n";
+import { t } from "@i18n/index";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useAllNotes } from "../../store/store";
 import type { Note } from "../../../domains/note";
-import { t } from "../../../i18n";
+import { t } from "@i18n/index";
 import { ListCard, ListScreenLayout } from "../../components";
 import { colors } from "../../../domains/shared/theme/colors";
 

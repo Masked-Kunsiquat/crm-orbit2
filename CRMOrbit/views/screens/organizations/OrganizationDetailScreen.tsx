@@ -21,6 +21,7 @@ import {
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import { Tooltip } from "@views/components";
+import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
 
@@ -37,7 +38,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   if (!organization) {
     return (
       <View style={styles.container}>
-        <Text style={styles.error}>Organization not found</Text>
+        <Text style={styles.error}>{t("organizations.notFound")}</Text>
       </View>
     );
   }
@@ -49,23 +50,25 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const handleDelete = () => {
     if (accounts.length > 0) {
       Alert.alert(
-        "Cannot Delete",
-        `Cannot delete "${organization.name}" because it has ${accounts.length} associated account(s). Please delete or reassign the accounts first.`,
-        [{ text: "OK" }],
+        t("organizations.cannotDeleteTitle"),
+        t("organizations.cannotDeleteMessage")
+          .replace("{name}", organization.name)
+          .replace("{count}", accounts.length.toString()),
+        [{ text: t("common.ok") }],
       );
       return;
     }
 
     Alert.alert(
-      "Delete Organization",
-      `Are you sure you want to delete "${organization.name}"? This action cannot be undone.`,
+      t("organizations.deleteTitle"),
+      t("organizations.deleteConfirmation").replace("{name}", organization.name),
       [
         {
-          text: "Cancel",
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
-          text: "Delete",
+          text: t("common.delete"),
           style: "destructive",
           onPress: () => {
             const result = deleteOrganization(organization.id);
@@ -73,8 +76,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               navigation.goBack();
             } else {
               Alert.alert(
-                "Error",
-                result.error ?? "Failed to delete organization",
+                t("common.error"),
+                result.error ?? t("organizations.deleteError"),
               );
             }
           },
@@ -91,12 +94,12 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Image source={{ uri: organization.logoUri }} style={styles.logo} />
           </View>
         )}
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.label}>{t("organizations.fields.name")}</Text>
         <Text style={styles.value}>{organization.name}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Status</Text>
+        <Text style={styles.label}>{t("organizations.fields.status")}</Text>
         <View
           style={[
             styles.statusBadge,
@@ -107,15 +110,15 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         >
           <Text style={styles.statusText}>
             {organization.status === "organization.status.active"
-              ? "Active"
-              : "Inactive"}
+              ? t("status.active")
+              : t("status.inactive")}
           </Text>
         </View>
       </View>
 
       {organization.website && (
         <View style={styles.section}>
-          <Text style={styles.label}>Website</Text>
+          <Text style={styles.label}>{t("organizations.fields.website")}</Text>
           <TouchableOpacity
             onPress={() => Linking.openURL(organization.website!)}
           >
@@ -127,7 +130,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       {organization.socialMedia &&
         Object.values(organization.socialMedia).some((v) => v) && (
           <View style={styles.section}>
-            <Text style={styles.label}>Social Media</Text>
+            <Text style={styles.label}>{t("organizations.fields.socialMedia")}</Text>
             {organization.socialMedia.facebook && (
               <Tooltip content={organization.socialMedia.facebook}>
                 <Pressable
@@ -136,7 +139,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>Facebook</Text>
+                  <Text style={styles.socialLink}>{t("organizations.socialMedia.facebook")}</Text>
                   <FontAwesome6
                     name="square-facebook"
                     size={18}
@@ -164,7 +167,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>Instagram</Text>
+                  <Text style={styles.socialLink}>{t("organizations.socialMedia.instagram")}</Text>
                   <FontAwesome6
                     name="instagram"
                     size={18}
@@ -182,7 +185,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>LinkedIn</Text>
+                  <Text style={styles.socialLink}>{t("organizations.socialMedia.linkedin")}</Text>
                   <FontAwesome6
                     name="linkedin"
                     size={18}
@@ -210,7 +213,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>X</Text>
+                  <Text style={styles.socialLink}>{t("organizations.socialMedia.x")}</Text>
                   <FontAwesome6
                     name="square-x-twitter"
                     size={18}
@@ -224,16 +227,18 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         )}
 
       <View style={styles.section}>
-        <Text style={styles.label}>Created</Text>
+        <Text style={styles.label}>{t("organizations.fields.created")}</Text>
         <Text style={styles.value}>
           {new Date(organization.createdAt).toLocaleString()}
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Accounts ({accounts.length})</Text>
+        <Text style={styles.sectionTitle}>
+          {t("organizations.sections.accounts")} ({accounts.length})
+        </Text>
         {accounts.length === 0 ? (
-          <Text style={styles.emptyText}>No accounts yet</Text>
+          <Text style={styles.emptyText}>{t("organizations.noAccounts")}</Text>
         ) : (
           accounts.map((account) => (
             <View key={account.id} style={styles.relatedItem}>
@@ -252,10 +257,12 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contacts ({contacts.length})</Text>
+        <Text style={styles.sectionTitle}>
+          {t("organizations.sections.contacts")} ({contacts.length})
+        </Text>
         {contacts.length === 0 ? (
           <Text style={styles.emptyText}>
-            No contacts linked to accounts in this organization
+            {t("organizations.noContacts")}
           </Text>
         ) : (
           contacts.map((contact) => (
@@ -287,10 +294,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 >
                   <Text style={styles.contactTypeText}>
                     {contact.type === "contact.type.internal"
-                      ? "Internal"
+                      ? t("contact.type.internal")
                       : contact.type === "contact.type.external"
-                        ? "External"
-                        : "Vendor"}
+                        ? t("contact.type.external")
+                        : t("contact.type.vendor")}
                   </Text>
                 </View>
               </View>
@@ -302,7 +309,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Notes ({notes.length})</Text>
+          <Text style={styles.sectionTitle}>
+            {t("organizations.sections.notes")} ({notes.length})
+          </Text>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() =>
@@ -314,11 +323,11 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               })
             }
           >
-            <Text style={styles.addButtonText}>Add Note</Text>
+            <Text style={styles.addButtonText}>{t("organizations.addNote")}</Text>
           </TouchableOpacity>
         </View>
         {notes.length === 0 ? (
-          <Text style={styles.emptyText}>No notes for this organization.</Text>
+          <Text style={styles.emptyText}>{t("organizations.noNotes")}</Text>
         ) : (
           notes.map((note) => (
             <Pressable
@@ -341,11 +350,11 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       </View>
 
       <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-        <Text style={styles.editButtonText}>Edit Organization</Text>
+        <Text style={styles.editButtonText}>{t("organizations.editButton")}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>Delete Organization</Text>
+        <Text style={styles.deleteButtonText}>{t("organizations.deleteButton")}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

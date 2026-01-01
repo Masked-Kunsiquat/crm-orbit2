@@ -5,7 +5,7 @@ import { NotesListScreen } from "../screens/notes/NotesListScreen";
 import { NoteDetailScreen } from "../screens/notes/NoteDetailScreen";
 import { NoteFormScreen } from "../screens/notes/NoteFormScreen";
 import { stackScreenOptions } from "./stackOptions";
-import { t } from "../../i18n";
+import { t } from "@i18n/index";
 
 const Stack = createNativeStackNavigator<NotesStackParamList>();
 
@@ -26,7 +26,9 @@ export const NotesStack = () => {
         name="NoteForm"
         component={NoteFormScreen}
         options={({ route }) => ({
-          title: route.params?.noteId ? "Edit Note" : "New Note",
+          title: route.params?.noteId
+            ? t("screens.editNote")
+            : t("screens.newNote"),
         })}
       />
     </Stack.Navigator>

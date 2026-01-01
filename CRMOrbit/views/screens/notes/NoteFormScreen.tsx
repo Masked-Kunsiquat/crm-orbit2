@@ -12,7 +12,7 @@ import {
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
-import { t } from "../../../i18n";
+import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
 
@@ -21,7 +21,8 @@ type Props = NotesStackScreenProps<"NoteForm">;
 export const NoteFormScreen = ({ route, navigation }: Props) => {
   const { noteId, entityToLink } = route.params ?? {};
   const note = useNote(noteId ?? "");
-  const { createNote, updateNote, linkNote } = useNoteActions(DEVICE_ID);
+  const { createNote, updateNote, linkNote, deleteNote } =
+    useNoteActions(DEVICE_ID);
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -35,7 +36,7 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert(t("notes.validation.titleRequired"));
+      Alert.alert(t("common.error"), t("notes.validation.titleRequired"));
       return;
     }
 
@@ -50,7 +51,34 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
       const result = createNote(title.trim(), body.trim());
       if (result.success) {
         if (entityToLink) {
-          linkNote(result.id, entityToLink.entityType, entityToLink.entityId);
+          const linkResult = linkNote(
+            result.id,
+            entityToLink.entityType,
+            entityToLink.entityId,
+          );
+          if (!linkResult.success) {
+            Alert.alert(
+              t("notes.linkFailureTitle"),
+              t("notes.linkFailureMessage"),
+              [
+                {
+                  text: t("notes.linkFailureDelete"),
+                  style: "destructive",
+                  onPress: () => {
+                    deleteNote(result.id);
+                    navigation.goBack();
+                  },
+                },
+                {
+                  text: t("notes.linkFailureKeep"),
+                  onPress: () => {
+                    navigation.goBack();
+                  },
+                },
+              ],
+            );
+            return;
+          }
         }
         navigation.goBack();
       } else {

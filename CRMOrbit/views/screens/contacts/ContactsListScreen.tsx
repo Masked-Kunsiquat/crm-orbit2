@@ -12,7 +12,7 @@ import {
   ListScreenLayout,
 } from "@views/components";
 import { colors } from "@domains/shared/theme/colors";
-import { t } from "../../../i18n";
+import { t } from "@i18n/index";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
 
