@@ -21,7 +21,7 @@ import {
 import { useAccountActions } from "../../hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
-import { Tooltip } from "../../components";
+import { Tooltip, NotesSection } from "../../components";
 import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
@@ -406,42 +406,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         )}
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t("accounts.sections.notes")} ({notes.length})</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() =>
-              navigation.navigate("NoteForm", {
-                entityToLink: { entityId: accountId, entityType: "account" },
-              })
-            }
-          >
-            <Text style={styles.addButtonText}>{t("accounts.addNote")}</Text>
-          </TouchableOpacity>
-        </View>
-        {notes.length === 0 ? (
-          <Text style={styles.emptyText}>{t("accounts.noNotes")}</Text>
-        ) : (
-          notes.map((note) => (
-            <Pressable
-              key={note.id}
-              style={styles.noteCard}
-              onPress={() => {
-                navigation.navigate("NoteDetail", { noteId: note.id });
-              }}
-            >
-              <View style={styles.noteCardContent}>
-                <Text style={styles.noteTitle}>{note.title}</Text>
-                <Text style={styles.noteBody} numberOfLines={2}>
-                  {note.body}
-                </Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </Pressable>
-          ))
-        )}
-      </View>
+      <NotesSection
+        notes={notes}
+        entityId={accountId}
+        entityType="account"
+        navigation={navigation}
+      />
 
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.deleteButtonText}>{t("accounts.deleteButton")}</Text>
@@ -513,27 +483,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1b1b1b",
-  },
-  addButton: {
-    backgroundColor: "#e3f2fd",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    color: "#1f5eff",
-    fontSize: 13,
-    fontWeight: "600",
   },
   filterButtons: {
     flexDirection: "row",
@@ -573,28 +526,6 @@ const styles = StyleSheet.create({
   },
   contactCardContent: {
     flex: 1,
-  },
-  noteCard: {
-    padding: 12,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 6,
-    marginBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  noteCardContent: {
-    flex: 1,
-  },
-  noteTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1b1b1b",
-    marginBottom: 4,
-  },
-  noteBody: {
-    fontSize: 14,
-    color: "#666",
   },
   chevron: {
     fontSize: 20,
