@@ -8,7 +8,7 @@ type SegmentedOption<T extends string> = {
 };
 
 type SegmentedOptionGroupProps<T extends string> = {
-  options: Array<SegmentedOption<T>>;
+  options: ReadonlyArray<SegmentedOption<T>>;
   value: T;
   onChange: (value: T) => void;
 };
