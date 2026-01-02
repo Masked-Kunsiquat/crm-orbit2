@@ -59,7 +59,7 @@ export const createPersistenceDb = (
         run: async () => {
           await db
             .insert(table as typeof eventLog | typeof automergeSnapshots)
-            .values(value);
+            .values(value as any);
         },
       }),
     }),
@@ -77,7 +77,7 @@ export const createPersistenceDb = (
       fn: (tx: PersistenceDb) => Promise<T>,
     ): Promise<T> => {
       return await db.transaction(async (tx) => {
-        const txDb = createPersistenceDb(tx as ReturnType<typeof drizzle>);
+        const txDb = createPersistenceDb(tx as unknown as ReturnType<typeof drizzle>);
         return await fn(txDb);
       });
     },

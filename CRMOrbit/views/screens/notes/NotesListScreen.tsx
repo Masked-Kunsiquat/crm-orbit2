@@ -14,7 +14,7 @@ export const NotesListScreen = ({ navigation }: Props) => {
   const allNotes = useAllNotes();
 
   const sortedNotes = useMemo(() => {
-    return [...allNotes].sort((a, b) => b.createdAt - a.createdAt);
+    return [...allNotes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [allNotes]);
 
   const handlePress = (note: Note) => {
