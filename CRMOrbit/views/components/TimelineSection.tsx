@@ -11,12 +11,15 @@ interface TimelineSectionProps {
   timeline: TimelineItem[];
   doc: AutomergeDoc;
   initialItemsToShow?: number;
+  /** Sort order for timeline items. Defaults to 'desc' (newest first). */
+  sortOrder?: "asc" | "desc";
 }
 
 export const TimelineSection = ({
   timeline,
   doc,
-  initialItemsToShow = 10,
+  initialItemsToShow = 5,
+  sortOrder = "desc",
 }: TimelineSectionProps) => {
   const { colors } = useTheme();
   const [itemsToShow, setItemsToShow] = useState(initialItemsToShow);
@@ -319,8 +322,12 @@ export const TimelineSection = ({
     return null;
   };
 
-  const visibleTimeline = timeline.slice(0, itemsToShow);
-  const hasMore = timeline.length > itemsToShow;
+  // Sort timeline based on sortOrder prop
+  const sortedTimeline =
+    sortOrder === "desc" ? [...timeline].reverse() : timeline;
+
+  const visibleTimeline = sortedTimeline.slice(0, itemsToShow);
+  const hasMore = sortedTimeline.length > itemsToShow;
 
   const handleLoadMore = () => {
     setItemsToShow((prev) => prev + initialItemsToShow);
@@ -344,7 +351,7 @@ export const TimelineSection = ({
               onPress={handleLoadMore}
             >
               <Text style={[styles.loadMoreText, { color: colors.accent }]}>
-                {t("timeline.loadMore")} ({timeline.length - itemsToShow}{" "}
+                {t("timeline.loadMore")} ({sortedTimeline.length - itemsToShow}{" "}
                 {t("timeline.moreItems")})
               </Text>
             </TouchableOpacity>
