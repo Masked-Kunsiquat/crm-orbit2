@@ -73,15 +73,14 @@ export const useAccountActions = (deviceId: string) => {
       socialMedia?: SocialMediaLinks,
       previousAccount?: Account,
     ): DispatchResult => {
-      const changes =
-        previousAccount
-          ? detectAccountChanges(previousAccount, {
-              name,
-              status,
-              website,
-              addresses,
-            })
-          : undefined;
+      const changes = previousAccount
+        ? detectAccountChanges(previousAccount, {
+            name,
+            status,
+            website,
+            addresses,
+          })
+        : undefined;
 
       const event = buildEvent({
         type: "account.updated",

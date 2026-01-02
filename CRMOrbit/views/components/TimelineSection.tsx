@@ -11,10 +11,7 @@ interface TimelineSectionProps {
   doc: AutomergeDoc;
 }
 
-export const TimelineSection = ({
-  timeline,
-  doc,
-}: TimelineSectionProps) => {
+export const TimelineSection = ({ timeline, doc }: TimelineSectionProps) => {
   const { colors } = useTheme();
 
   const formatTimestamp = (timestamp: string): string => {
@@ -22,7 +19,7 @@ export const TimelineSection = ({
     return date.toLocaleString();
   };
 
-  const getContactName = (contact: typeof doc.contacts[string]): string => {
+  const getContactName = (contact: (typeof doc.contacts)[string]): string => {
     if (!contact) return t("common.unknown");
 
     // Use legacy name field if available
@@ -178,7 +175,7 @@ export const TimelineSection = ({
   const renderTimelineItem = (item: TimelineItem) => {
     if (item.kind === "event") {
       const i18nKey = EVENT_I18N_KEYS[item.event.type];
-      const eventLabel = i18nKey ? t(i18nKey) : item.event.type;
+      let eventLabel = i18nKey ? t(i18nKey) : item.event.type;
       const context = getEventContext(item);
       const payload = item.event.payload as Record<string, unknown>;
 
@@ -187,20 +184,38 @@ export const TimelineSection = ({
         | Array<{ field: string; oldValue: string; newValue: string }>
         | undefined;
 
+      // If this is an update event with changes, enhance the label with field names
+      if (
+        changes &&
+        changes.length > 0 &&
+        (item.event.type === "contact.updated" ||
+          item.event.type === "account.updated" ||
+          item.event.type === "organization.updated")
+      ) {
+        const capitalizeField = (field: string) => {
+          // Handle camelCase fields
+          return field
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())
+            .trim();
+        };
+        const fieldNames = changes.map((c) => capitalizeField(c.field)).join(", ");
+        eventLabel = `${eventLabel} - ${fieldNames}`;
+      }
+
       return (
         <View
           key={item.event.id}
-          style={[
-            styles.timelineItem,
-            { borderLeftColor: colors.border },
-          ]}
+          style={[styles.timelineItem, { borderLeftColor: colors.border }]}
         >
           <View style={styles.timelineContent}>
             <Text style={[styles.eventLabel, { color: colors.textPrimary }]}>
               {eventLabel}
             </Text>
             {context && (
-              <Text style={[styles.contextText, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.contextText, { color: colors.textSecondary }]}
+              >
                 {context}
               </Text>
             )}
@@ -223,7 +238,10 @@ export const TimelineSection = ({
                   return (
                     <Text
                       key={idx}
-                      style={[styles.changeText, { color: colors.textSecondary }]}
+                      style={[
+                        styles.changeText,
+                        { color: colors.textSecondary },
+                      ]}
                     >
                       {displayText}
                     </Text>
@@ -243,10 +261,7 @@ export const TimelineSection = ({
       return (
         <View
           key={item.note.id}
-          style={[
-            styles.timelineItem,
-            { borderLeftColor: colors.border },
-          ]}
+          style={[styles.timelineItem, { borderLeftColor: colors.border }]}
         >
           <View style={styles.timelineContent}>
             <Text style={[styles.eventLabel, { color: colors.textPrimary }]}>
@@ -272,10 +287,7 @@ export const TimelineSection = ({
       return (
         <View
           key={item.interaction.id}
-          style={[
-            styles.timelineItem,
-            { borderLeftColor: colors.border },
-          ]}
+          style={[styles.timelineItem, { borderLeftColor: colors.border }]}
         >
           <View style={styles.timelineContent}>
             <Text style={[styles.eventLabel, { color: colors.textPrimary }]}>

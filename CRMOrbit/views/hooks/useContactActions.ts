@@ -104,19 +104,18 @@ export const useContactActions = (deviceId: string) => {
       } = {},
       previousContact?: Contact,
     ): DispatchResult => {
-      const changes =
-        previousContact
-          ? detectContactChanges(previousContact, {
-              firstName,
-              lastName,
-              type,
-              title,
-              methods: {
-                emails: methods.emails ?? [],
-                phones: methods.phones ?? [],
-              },
-            })
-          : undefined;
+      const changes = previousContact
+        ? detectContactChanges(previousContact, {
+            firstName,
+            lastName,
+            type,
+            title,
+            methods: {
+              emails: methods.emails ?? [],
+              phones: methods.phones ?? [],
+            },
+          })
+        : undefined;
 
       const event = buildEvent({
         type: "contact.updated",

@@ -3,7 +3,10 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
-import type { Organization, SocialMediaLinks } from "../../domains/organization";
+import type {
+  Organization,
+  SocialMediaLinks,
+} from "../../domains/organization";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 import { detectOrganizationChanges } from "../../utils/historyChanges";
@@ -66,15 +69,14 @@ export const useOrganizationActions = (deviceId: string) => {
       socialMedia?: SocialMediaLinks,
       previousOrganization?: Organization,
     ): DispatchResult => {
-      const changes =
-        previousOrganization
-          ? detectOrganizationChanges(previousOrganization, {
-              name,
-              status,
-              website,
-              socialMedia,
-            })
-          : undefined;
+      const changes = previousOrganization
+        ? detectOrganizationChanges(previousOrganization, {
+            name,
+            status,
+            website,
+            socialMedia,
+          })
+        : undefined;
 
       const event = buildEvent({
         type: "organization.updated",
