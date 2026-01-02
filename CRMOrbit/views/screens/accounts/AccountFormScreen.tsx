@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
   Modal,
   Pressable,
 } from "react-native";
@@ -27,7 +26,9 @@ import {
   SegmentedOptionGroup,
   SocialMediaFields,
   TextField,
+  ConfirmDialog,
 } from "../../components";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -39,6 +40,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const allOrganizations = useOrganizations();
   const { createAccount, updateAccount } = useAccountActions(DEVICE_ID);
   const { colors } = useTheme();
+  const { dialogProps, showAlert } = useConfirmDialog();
 
   // Sort organizations alphabetically by name
   const organizations = [...allOrganizations].sort((a, b) =>
@@ -158,17 +160,19 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert(
+      showAlert(
         t("common.validationError"),
         t("accounts.validation.nameRequired"),
+        t("common.ok"),
       );
       return;
     }
 
     if (!organizationId) {
-      Alert.alert(
+      showAlert(
         t("common.validationError"),
         t("accounts.validation.organizationRequired"),
+        t("common.ok"),
       );
       return;
     }
@@ -211,9 +215,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert(
+        showAlert(
           t("common.error"),
           result.error || t("accounts.updateError"),
+          t("common.ok"),
         );
       }
     } else {
@@ -228,9 +233,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert(
+        showAlert(
           t("common.error"),
           result.error || t("accounts.createError"),
+          t("common.ok"),
         );
       }
     }
@@ -412,6 +418,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           </View>
         </View>
       </Modal>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity, Alert, Image } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 import { t } from "@i18n/index";
@@ -14,7 +14,9 @@ import {
   SegmentedOptionGroup,
   SocialMediaFields,
   TextField,
+  ConfirmDialog,
 } from "@views/components";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -26,6 +28,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const { createOrganization, updateOrganization } =
     useOrganizationActions(DEVICE_ID);
   const { colors } = useTheme();
+  const { dialogProps, showAlert } = useConfirmDialog();
 
   const [name, setName] = useState("");
   const [status, setStatus] = useState<
@@ -80,9 +83,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert(
+      showAlert(
         t("organizations.form.logoPermissionTitle"),
         t("organizations.form.logoPermissionMessage"),
+        t("common.ok"),
       );
       return;
     }
@@ -111,9 +115,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert(
+      showAlert(
         t("common.validationError"),
         t("organizations.validation.nameRequired"),
+        t("common.ok"),
       );
       return;
     }
@@ -140,9 +145,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         navigation.goBack();
       } else {
         console.error("Update failed:", result.error);
-        Alert.alert(
+        showAlert(
           t("common.error"),
           result.error || t("organizations.updateError"),
+          t("common.ok"),
         );
       }
     } else {
@@ -157,9 +163,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         navigation.goBack();
       } else {
         console.error("Create failed:", result.error);
-        Alert.alert(
+        showAlert(
           t("common.error"),
           result.error || t("organizations.createError"),
+          t("common.ok"),
         );
       }
     }
@@ -230,6 +237,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             : t("organizations.form.createButton")}
         </Text>
       </TouchableOpacity>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
   );
 };

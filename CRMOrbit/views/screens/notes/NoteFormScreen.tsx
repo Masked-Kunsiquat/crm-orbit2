@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
-import { FormField, FormScreenLayout, TextField } from "../../components";
+import {
+  FormField,
+  FormScreenLayout,
+  TextField,
+  ConfirmDialog,
+} from "../../components";
 import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
 import { nextId } from "@domains/shared/idGenerator";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -19,6 +25,7 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
   const note = useNote(noteId ?? "");
   const { createNote, updateNote, linkNote, deleteNote } =
     useNoteActions(DEVICE_ID);
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -32,7 +39,11 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert(t("common.error"), t("notes.validation.titleRequired"));
+      showAlert(
+        t("common.error"),
+        t("notes.validation.titleRequired"),
+        t("common.ok"),
+      );
       return;
     }
 
@@ -41,7 +52,11 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert(t("common.error"), result.error || t("notes.updateError"));
+        showAlert(
+          t("common.error"),
+          result.error || t("notes.updateError"),
+          t("common.ok"),
+        );
       }
     } else {
       // Pre-generate the note id so linking can reference it without relying on return values.
@@ -55,32 +70,30 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
             entityToLink.entityId,
           );
           if (!linkResult.success) {
-            Alert.alert(
-              t("notes.linkFailureTitle"),
-              t("notes.linkFailureMessage"),
-              [
-                {
-                  text: t("notes.linkFailureDelete"),
-                  style: "destructive",
-                  onPress: () => {
-                    deleteNote(newNoteId);
-                    navigation.goBack();
-                  },
-                },
-                {
-                  text: t("notes.linkFailureKeep"),
-                  onPress: () => {
-                    navigation.goBack();
-                  },
-                },
-              ],
-            );
+            showDialog({
+              title: t("notes.linkFailureTitle"),
+              message: t("notes.linkFailureMessage"),
+              confirmLabel: t("notes.linkFailureDelete"),
+              confirmVariant: "danger",
+              cancelLabel: t("notes.linkFailureKeep"),
+              onConfirm: () => {
+                deleteNote(newNoteId);
+                navigation.goBack();
+              },
+              onCancel: () => {
+                navigation.goBack();
+              },
+            });
             return;
           }
         }
         navigation.goBack();
       } else {
-        Alert.alert(t("common.error"), result.error || t("notes.createError"));
+        showAlert(
+          t("common.error"),
+          result.error || t("notes.createError"),
+          t("common.ok"),
+        );
       }
     }
   };
@@ -115,6 +128,8 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
           {noteId ? t("notes.form.updateButton") : t("notes.form.createButton")}
         </Text>
       </TouchableOpacity>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
   );
 };

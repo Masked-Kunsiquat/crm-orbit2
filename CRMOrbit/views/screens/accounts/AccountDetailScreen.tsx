@@ -1,5 +1,4 @@
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,9 +25,11 @@ import {
   ContactCardRow,
   PrimaryActionButton,
   DangerActionButton,
+  ConfirmDialog,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -42,6 +43,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const notes = useNotes("account", accountId);
   const { deleteAccount } = useAccountActions(DEVICE_ID);
   const { colors } = useTheme();
+
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
     "all",
@@ -70,41 +73,35 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   const handleDelete = () => {
     if (allContacts.length > 0) {
-      Alert.alert(
+      showAlert(
         t("accounts.cannotDeleteTitle"),
         t("accounts.cannotDeleteMessage")
           .replace("{name}", account.name)
           .replace("{count}", allContacts.length.toString()),
-        [{ text: t("common.ok") }],
+        t("common.ok"),
       );
       return;
     }
 
-    Alert.alert(
-      t("accounts.deleteTitle"),
-      t("accounts.deleteConfirmation").replace("{name}", account.name),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            const result = deleteAccount(account.id);
-            if (result.success) {
-              navigation.goBack();
-            } else {
-              Alert.alert(
-                t("common.error"),
-                result.error ?? t("accounts.deleteError"),
-              );
-            }
-          },
-        },
-      ],
-    );
+    showDialog({
+      title: t("accounts.deleteTitle"),
+      message: t("accounts.deleteConfirmation").replace("{name}", account.name),
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteAccount(account.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("accounts.deleteError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   return (
@@ -345,6 +342,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
@@ -15,7 +15,9 @@ import {
   MethodListEditor,
   SegmentedOptionGroup,
   TextField,
+  ConfirmDialog,
 } from "@views/components";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -26,6 +28,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const contact = useContact(contactId ?? "");
   const { createContact, updateContact } = useContactActions(DEVICE_ID);
   const { colors } = useTheme();
+  const { dialogProps, showAlert } = useConfirmDialog();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -196,9 +199,10 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!firstName.trim() && !lastName.trim()) {
-      Alert.alert(
+      showAlert(
         t("common.validationError"),
         t("contacts.validation.nameRequired"),
+        t("common.ok"),
       );
       return;
     }
@@ -222,9 +226,10 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert(
+        showAlert(
           t("common.error"),
           result.error || t("contacts.updateError"),
+          t("common.ok"),
         );
       }
     } else {
@@ -241,9 +246,10 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert(
+        showAlert(
           t("common.error"),
           result.error || t("contacts.createError"),
+          t("common.ok"),
         );
       }
     }
@@ -334,6 +340,8 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
             : t("contacts.form.createButton")}
         </Text>
       </TouchableOpacity>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
   );
 };

@@ -1,5 +1,4 @@
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,9 +15,11 @@ import {
   Section,
   PrimaryActionButton,
   DangerActionButton,
+  ConfirmDialog,
 } from "../../components";
 import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -30,6 +31,7 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   const note = useNote(noteId);
   const linkedEntities = useEntitiesForNote(noteId);
   const { deleteNote, unlinkNote } = useNoteActions(DEVICE_ID);
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const handleEdit = useCallback(() => {
     if (!note?.id) return;
@@ -60,44 +62,38 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   }
 
   const handleUnlink = (linkId: string, name: string) => {
-    Alert.alert(
-      t("notes.unlinkTitle"),
-      t("notes.unlinkConfirmation").replace("{name}", name),
-      [
-        { text: t("notes.unlinkCancel"), style: "cancel" },
-        {
-          text: t("notes.unlinkAction"),
-          style: "destructive",
-          onPress: () => {
-            unlinkNote(linkId);
-          },
-        },
-      ],
-    );
+    showDialog({
+      title: t("notes.unlinkTitle"),
+      message: t("notes.unlinkConfirmation").replace("{name}", name),
+      confirmLabel: t("notes.unlinkAction"),
+      confirmVariant: "danger",
+      cancelLabel: t("notes.unlinkCancel"),
+      onConfirm: () => {
+        unlinkNote(linkId);
+      },
+    });
   };
 
   const handleDelete = () => {
-    Alert.alert(t("notes.deleteTitle"), t("notes.deleteConfirmation"), [
-      {
-        text: t("common.cancel"),
-        style: "cancel",
+    showDialog({
+      title: t("notes.deleteTitle"),
+      message: t("notes.deleteConfirmation"),
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteNote(note.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("notes.deleteError"),
+            t("common.ok"),
+          );
+        }
       },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: () => {
-          const result = deleteNote(note.id);
-          if (result.success) {
-            navigation.goBack();
-          } else {
-            Alert.alert(
-              t("common.error"),
-              result.error ?? t("notes.deleteError"),
-            );
-          }
-        },
-      },
-    ]);
+    });
   };
 
   const navigateToEntity = (
@@ -208,6 +204,8 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
   );
 };

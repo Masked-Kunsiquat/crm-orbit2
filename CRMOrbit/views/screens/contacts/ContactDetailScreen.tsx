@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -30,10 +29,12 @@ import {
   DetailField,
   PrimaryActionButton,
   DangerActionButton,
+  ConfirmDialog,
 } from "@views/components";
 import { useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 import { t } from "@i18n/index";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -49,6 +50,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { deleteContact } = useContactActions(DEVICE_ID);
   const { linkContact, unlinkContact } = useAccountActions(DEVICE_ID);
   const { colors } = useTheme();
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [showLinkModal, setShowLinkModal] = useState(false);
 
@@ -74,9 +76,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     );
 
     if (existingLink) {
-      Alert.alert(
+      showAlert(
         t("contacts.linkedAccounts.alreadyLinkedTitle"),
         t("contacts.linkedAccounts.alreadyLinkedMessage"),
+        t("common.ok"),
       );
       return;
     }
@@ -96,78 +99,70 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     if (result.success) {
       setShowLinkModal(false);
     } else {
-      Alert.alert(t("common.error"), result.error ?? t("contacts.linkError"));
+      showAlert(
+        t("common.error"),
+        result.error ?? t("contacts.linkError"),
+        t("common.ok"),
+      );
     }
   };
 
   const handleUnlinkAccount = (accountId: string, accountName: string) => {
-    Alert.alert(
-      t("contacts.unlinkTitle"),
-      t("contacts.unlinkConfirmation")
+    showDialog({
+      title: t("contacts.unlinkTitle"),
+      message: t("contacts.unlinkConfirmation")
         .replace("{contactName}", getContactDisplayName(contact))
         .replace("{accountName}", accountName),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("contacts.unlinkAction"),
-          style: "destructive",
-          onPress: () => {
-            const result = unlinkContact(accountId, contactId);
-            if (!result.success) {
-              Alert.alert(
-                t("common.error"),
-                result.error ?? t("contacts.unlinkError"),
-              );
-            }
-          },
-        },
-      ],
-    );
+      confirmLabel: t("contacts.unlinkAction"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = unlinkContact(accountId, contactId);
+        if (!result.success) {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("contacts.unlinkError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   const handleDelete = () => {
     if (linkedAccounts.length > 0) {
-      Alert.alert(
+      showAlert(
         t("contacts.cannotDeleteTitle"),
         t("contacts.cannotDeleteMessage")
           .replace("{name}", getContactDisplayName(contact))
           .replace("{count}", linkedAccounts.length.toString()),
-        [{ text: t("common.ok") }],
+        t("common.ok"),
       );
       return;
     }
 
-    Alert.alert(
-      t("contacts.deleteTitle"),
-      t("contacts.deleteConfirmation").replace(
+    showDialog({
+      title: t("contacts.deleteTitle"),
+      message: t("contacts.deleteConfirmation").replace(
         "{name}",
         getContactDisplayName(contact),
       ),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            const result = deleteContact(contact.id);
-            if (result.success) {
-              navigation.goBack();
-            } else {
-              Alert.alert(
-                t("common.error"),
-                result.error ?? t("contacts.deleteError"),
-              );
-            }
-          },
-        },
-      ],
-    );
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteContact(contact.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("contacts.deleteError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   const getContactTypeLabel = (type: string) => {
@@ -354,6 +349,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
           </View>
         </View>
       </Modal>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
   );
 };

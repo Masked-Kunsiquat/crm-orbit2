@@ -1,5 +1,4 @@
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,8 +25,10 @@ import {
   ContactCardRow,
   PrimaryActionButton,
   DangerActionButton,
+  ConfirmDialog,
 } from "@views/components";
 import { t } from "@i18n/index";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -41,6 +42,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const contacts = useContactsByOrganization(organizationId);
   const notes = useNotes("organization", organizationId);
   const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   if (!organization) {
     return (
@@ -58,44 +60,38 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
   const handleDelete = () => {
     if (accounts.length > 0) {
-      Alert.alert(
+      showAlert(
         t("organizations.cannotDeleteTitle"),
         t("organizations.cannotDeleteMessage")
           .replace("{name}", organization.name)
           .replace("{count}", accounts.length.toString()),
-        [{ text: t("common.ok") }],
+        t("common.ok"),
       );
       return;
     }
 
-    Alert.alert(
-      t("organizations.deleteTitle"),
-      t("organizations.deleteConfirmation").replace(
+    showDialog({
+      title: t("organizations.deleteTitle"),
+      message: t("organizations.deleteConfirmation").replace(
         "{name}",
         organization.name,
       ),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            const result = deleteOrganization(organization.id);
-            if (result.success) {
-              navigation.goBack();
-            } else {
-              Alert.alert(
-                t("common.error"),
-                result.error ?? t("organizations.deleteError"),
-              );
-            }
-          },
-        },
-      ],
-    );
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteOrganization(organization.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("organizations.deleteError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   return (
@@ -236,6 +232,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         size="block"
         stacked
       />
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
   );
 };
