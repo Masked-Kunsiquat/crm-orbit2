@@ -178,6 +178,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     return t(label);
   };
 
+  const getMethodKey = (
+    method: { id?: string; label: string; status: string; value: string },
+    index: number,
+  ) => method.id || `${method.label}-${method.status}-${method.value}-${index}`;
+
   return (
     <DetailScreenLayout>
       <Section>
@@ -208,8 +213,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         {contact.methods.emails.length === 0 ? (
           <Text style={styles.emptyText}>{t("contacts.emptyEmails")}</Text>
         ) : (
-          contact.methods.emails.map((email) => (
-            <View key={email.id} style={styles.methodItem}>
+          contact.methods.emails.map((email, index) => (
+            <View key={getMethodKey(email, index)} style={styles.methodItem}>
               <Text style={styles.methodValue}>{email.value}</Text>
               <Text style={styles.methodMeta}>
                 {getMethodLabel(email.label)} • {t(email.status)}
@@ -226,8 +231,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         {contact.methods.phones.length === 0 ? (
           <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
         ) : (
-          contact.methods.phones.map((phone) => (
-            <View key={phone.id} style={styles.methodItem}>
+          contact.methods.phones.map((phone, index) => (
+            <View key={getMethodKey(phone, index)} style={styles.methodItem}>
               <Text style={styles.methodValue}>
                 {formatPhoneNumber(phone.value)}
               </Text>

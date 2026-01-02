@@ -49,6 +49,8 @@
     "accounts.deleteTitle": "Konto löschen",
     "accounts.deleteConfirmation": "Möchten Sie \"{name}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "accounts.deleteError": "Fehler beim Löschen des Kontos",
+    "accounts.cannotDeleteTitle": "",
+    "accounts.cannotDeleteMessage": "",
     "accounts.deleteButton": "Konto löschen",
     "accounts.editButton": "Konto bearbeiten",
     "accounts.fields.organization": "Organisation",

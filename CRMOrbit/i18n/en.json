@@ -54,6 +54,8 @@
   "accounts.deleteTitle": "Delete Account",
   "accounts.deleteConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
   "accounts.deleteError": "Failed to delete account",
+  "accounts.cannotDeleteTitle": "Cannot Delete",
+  "accounts.cannotDeleteMessage": "Cannot delete \"{name}\" because it has {count} linked contact(s). Please unlink the contacts first.",
   "accounts.deleteButton": "Delete Account",
   "accounts.editButton": "Edit Account",
   "accounts.updateError": "Failed to update account",

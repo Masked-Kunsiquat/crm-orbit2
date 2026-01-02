@@ -49,6 +49,8 @@
     "accounts.deleteTitle": "Eliminar cuenta",
     "accounts.deleteConfirmation": "¿Estás seguro de que quieres eliminar \"{name}\"? Esta acción no se puede deshacer.",
     "accounts.deleteError": "Error al eliminar la cuenta",
+    "accounts.cannotDeleteTitle": "",
+    "accounts.cannotDeleteMessage": "",
     "accounts.deleteButton": "Eliminar cuenta",
     "accounts.editButton": "Editar cuenta",
     "accounts.fields.organization": "Organización",

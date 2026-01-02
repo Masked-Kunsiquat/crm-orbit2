@@ -49,6 +49,8 @@
     "accounts.deleteTitle": "Supprimer le compte",
     "accounts.deleteConfirmation": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
     "accounts.deleteError": "Échec de la suppression du compte",
+    "accounts.cannotDeleteTitle": "",
+    "accounts.cannotDeleteMessage": "",
     "accounts.deleteButton": "Supprimer le compte",
     "accounts.editButton": "Modifier le compte",
     "accounts.fields.organization": "Organisation",

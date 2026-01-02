@@ -43,9 +43,9 @@ export const ActionButton = ({
       ? disabled
         ? colors.textMuted
         : variantLink
-      : variant === "primary"
-        ? colors.onAccent
-        : colors.surface;
+      : variant === "danger"
+        ? colors.onError
+        : colors.onAccent;
 
   return (
     <Pressable
