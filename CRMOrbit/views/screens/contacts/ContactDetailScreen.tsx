@@ -23,6 +23,7 @@ import { useAccountActions } from "@views/hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import { NotesSection } from "@views/components";
 import { useTheme } from "@views/hooks";
+import type { ColorScheme } from "@domains/shared/theme/colors";
 
 const DEVICE_ID = "device-local";
 
@@ -338,7 +339,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ColorScheme) =>
   StyleSheet.create({
     container: {
       flex: 1,

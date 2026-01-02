@@ -224,9 +224,18 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Account Name *</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Account Name *
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={name}
             onChangeText={handleNameChange}
             placeholder="Enter account name"
@@ -236,7 +245,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Organization *</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Organization *
+          </Text>
           {organizations.length === 0 ? (
             <Text style={[styles.hint, { color: colors.textMuted }]}>
               No organizations available. Create one first.
@@ -250,22 +261,34 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               onPress={() => setIsOrganizationPickerOpen(true)}
               accessibilityRole="button"
             >
-              <Text style={[styles.pickerButtonText, { color: colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.pickerButtonText,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 {selectedOrganization?.name ?? "Select organization"}
               </Text>
-              <Text style={[styles.pickerChevron, { color: colors.chevron }]}>▼</Text>
+              <Text style={[styles.pickerChevron, { color: colors.chevron }]}>
+                ▼
+              </Text>
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Status</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Status
+          </Text>
           <View style={styles.statusButtons}>
             <TouchableOpacity
               style={[
                 styles.statusButton,
                 { backgroundColor: colors.surface, borderColor: colors.border },
-                status === "account.status.active" && { backgroundColor: colors.accent, borderColor: colors.accent },
+                status === "account.status.active" && {
+                  backgroundColor: colors.accent,
+                  borderColor: colors.accent,
+                },
               ]}
               onPress={() => handleStatusChange("account.status.active")}
             >
@@ -273,8 +296,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                 style={[
                   styles.statusButtonText,
                   { color: colors.textSecondary },
-                  status === "account.status.active" &&
-                    { color: colors.surface },
+                  status === "account.status.active" && {
+                    color: colors.surface,
+                  },
                 ]}
               >
                 Active
@@ -284,8 +308,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               style={[
                 styles.statusButton,
                 { backgroundColor: colors.surface, borderColor: colors.border },
-                status === "account.status.inactive" &&
-                  { backgroundColor: colors.accent, borderColor: colors.accent },
+                status === "account.status.inactive" && {
+                  backgroundColor: colors.accent,
+                  borderColor: colors.accent,
+                },
               ]}
               onPress={() => handleStatusChange("account.status.inactive")}
             >
@@ -293,8 +319,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                 style={[
                   styles.statusButtonText,
                   { color: colors.textSecondary },
-                  status === "account.status.inactive" &&
-                    { color: colors.surface },
+                  status === "account.status.inactive" && {
+                    color: colors.surface,
+                  },
                 ]}
               >
                 Inactive
@@ -304,16 +331,33 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Site Address</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Site Address
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={siteAddress.street}
             onChangeText={(value) => handleSiteAddressChange("street", value)}
             placeholder="Street"
             placeholderTextColor={colors.textMuted}
           />
           <TextInput
-            style={[styles.input, styles.addressInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              styles.addressInput,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={siteAddress.city}
             onChangeText={(value) => handleSiteAddressChange("city", value)}
             placeholder="City"
@@ -321,14 +365,30 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           />
           <View style={styles.addressRow}>
             <TextInput
-              style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+              style={[
+                styles.input,
+                styles.addressInputSmall,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                },
+              ]}
               value={siteAddress.state}
               onChangeText={(value) => handleSiteAddressChange("state", value)}
               placeholder="State"
               placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+              style={[
+                styles.input,
+                styles.addressInputSmall,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                },
+              ]}
               value={siteAddress.zipCode}
               onChangeText={(value) =>
                 handleSiteAddressChange("zipCode", value)
@@ -348,7 +408,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               style={[
                 styles.checkbox,
                 { backgroundColor: colors.surface, borderColor: colors.border },
-                useSameForParking && { backgroundColor: colors.accent, borderColor: colors.accent },
+                useSameForParking && {
+                  backgroundColor: colors.accent,
+                  borderColor: colors.accent,
+                },
               ]}
             >
               {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
@@ -361,9 +424,18 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         {!useSameForParking && (
           <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.textPrimary }]}>Parking Address</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>
+              Parking Address
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                },
+              ]}
               value={parkingAddress.street}
               onChangeText={(value) =>
                 handleParkingAddressChange("street", value)
@@ -372,7 +444,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              style={[styles.input, styles.addressInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+              style={[
+                styles.input,
+                styles.addressInput,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                },
+              ]}
               value={parkingAddress.city}
               onChangeText={(value) =>
                 handleParkingAddressChange("city", value)
@@ -382,7 +462,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             />
             <View style={styles.addressRow}>
               <TextInput
-                style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+                style={[
+                  styles.input,
+                  styles.addressInputSmall,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    color: colors.textPrimary,
+                  },
+                ]}
                 value={parkingAddress.state}
                 onChangeText={(value) =>
                   handleParkingAddressChange("state", value)
@@ -391,7 +479,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
-                style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+                style={[
+                  styles.input,
+                  styles.addressInputSmall,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    color: colors.textPrimary,
+                  },
+                ]}
                 value={parkingAddress.zipCode}
                 onChangeText={(value) =>
                   handleParkingAddressChange("zipCode", value)
@@ -404,9 +500,18 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         )}
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Website</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Website
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={website}
             onChangeText={(value) => {
               setWebsite(value);
@@ -419,9 +524,19 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Social Media</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Social Media
+          </Text>
           <TextInput
-            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              styles.socialInput,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={socialMedia.x || ""}
             onChangeText={(value) => handleSocialMediaChange("x", value)}
             placeholder="X (Twitter) username or URL"
@@ -429,7 +544,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             autoCapitalize="none"
           />
           <TextInput
-            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              styles.socialInput,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={socialMedia.linkedin || ""}
             onChangeText={(value) => handleSocialMediaChange("linkedin", value)}
             placeholder="LinkedIn URL"
@@ -437,7 +560,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             autoCapitalize="none"
           />
           <TextInput
-            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              styles.socialInput,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={socialMedia.facebook || ""}
             onChangeText={(value) => handleSocialMediaChange("facebook", value)}
             placeholder="Facebook URL"
@@ -445,7 +576,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             autoCapitalize="none"
           />
           <TextInput
-            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              styles.socialInput,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={socialMedia.instagram || ""}
             onChangeText={(value) =>
               handleSocialMediaChange("instagram", value)

@@ -436,12 +436,17 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               }}
             >
               <View style={styles.contactCardContent}>
-                <Text style={[styles.contactName, { color: colors.textPrimary }]}>
+                <Text
+                  style={[styles.contactName, { color: colors.textPrimary }]}
+                >
                   {getContactDisplayName(contact)}
                 </Text>
                 {contact.title && (
                   <Text
-                    style={[styles.contactTitle, { color: colors.textSecondary }]}
+                    style={[
+                      styles.contactTitle,
+                      { color: colors.textSecondary },
+                    ]}
                   >
                     {contact.title}
                   </Text>

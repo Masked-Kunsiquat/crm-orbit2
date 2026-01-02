@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganizations } from "@views/store/store";
@@ -11,7 +11,7 @@ import {
   ListScreenLayout,
   StatusBadge,
 } from "@views/components";
-import { useTheme } from "@views/hooks";
+import { useHeaderMenu, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 type Props = OrganizationsStackScreenProps<"OrganizationsList">;
 
@@ -19,8 +19,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const organizations = useOrganizations();
   const [showInactive, setShowInactive] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const menuAnchorRef = useRef<View>(null);
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: "Organization list options",
+  });
 
   const filteredOrganizations = useMemo(() => {
     const visible = showInactive
@@ -44,22 +45,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Organization list options"
-            onPress={() => setMenuVisible((current) => !current)}
-            style={styles.headerButton}
-          >
-            <Text style={[styles.headerButtonText, { color: colors.headerTint }]}>
-              ⋮
-            </Text>
-          </Pressable>
-        </View>
-      ),
+      headerRight,
     });
-  }, [navigation]);
+  }, [navigation, headerRight]);
 
   const renderItem = ({ item }: { item: Organization }) => (
     <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
@@ -96,13 +84,13 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
+        onRequestClose={closeMenu}
       >
         <Pressable
           accessibilityRole="button"
           onPress={() => {
             setShowInactive((current) => !current);
-            setMenuVisible(false);
+            closeMenu();
           }}
           style={styles.menuItem}
         >
@@ -118,17 +106,6 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  headerMenuWrapper: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 18,
-  },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,

@@ -8,7 +8,7 @@ import type { ColorScheme } from "@domains/shared/theme/colors";
  * @returns Navigation options for native stack screens
  */
 export const getStackScreenOptions = (
-  colors: ColorScheme
+  colors: ColorScheme,
 ): NativeStackNavigationOptions => ({
   headerStyle: { backgroundColor: colors.headerBackground },
   headerTintColor: colors.headerTint,

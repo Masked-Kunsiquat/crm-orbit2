@@ -69,7 +69,10 @@ export const NotesSection = ({
         notes.map((note) => (
           <Pressable
             key={note.id}
-            style={[styles.noteCard, { backgroundColor: colors.surfaceElevated }]}
+            style={[
+              styles.noteCard,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
             onPress={() => {
               navigation.navigate("NoteDetail", { noteId: note.id });
             }}
@@ -78,7 +81,10 @@ export const NotesSection = ({
               <Text style={[styles.noteTitle, { color: colors.textPrimary }]}>
                 {note.title}
               </Text>
-              <Text style={[styles.noteBody, { color: colors.textSecondary }]} numberOfLines={2}>
+              <Text
+                style={[styles.noteBody, { color: colors.textSecondary }]}
+                numberOfLines={2}
+              >
                 {note.body}
               </Text>
             </View>

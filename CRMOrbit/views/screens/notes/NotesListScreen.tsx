@@ -33,9 +33,14 @@ export const NotesListScreen = ({ navigation }: Props) => {
       renderItem={({ item }) => (
         <ListCard onPress={() => handlePress(item)} variant="outlined">
           <View style={styles.cardHeader}>
-            <Text style={[styles.name, { color: colors.textPrimary }]}>{item.title}</Text>
+            <Text style={[styles.name, { color: colors.textPrimary }]}>
+              {item.title}
+            </Text>
           </View>
-          <Text style={[styles.body, { color: colors.textSecondary }]} numberOfLines={3}>
+          <Text
+            style={[styles.body, { color: colors.textSecondary }]}
+            numberOfLines={3}
+          >
             {item.body}
           </Text>
         </ListCard>

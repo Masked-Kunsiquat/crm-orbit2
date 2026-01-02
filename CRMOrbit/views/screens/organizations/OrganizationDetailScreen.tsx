@@ -40,7 +40,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   if (!organization) {
     return (
       <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-        <Text style={[styles.error, { color: colors.error }]}>{t("organizations.notFound")}</Text>
+        <Text style={[styles.error, { color: colors.error }]}>
+          {t("organizations.notFound")}
+        </Text>
       </View>
     );
   }
@@ -99,12 +101,18 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Image source={{ uri: organization.logoUri }} style={styles.logo} />
           </View>
         )}
-        <Text style={[styles.label, { color: colors.textSecondary }]}>{t("organizations.fields.name")}</Text>
-        <Text style={[styles.value, { color: colors.textPrimary }]}>{organization.name}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          {t("organizations.fields.name")}
+        </Text>
+        <Text style={[styles.value, { color: colors.textPrimary }]}>
+          {organization.name}
+        </Text>
       </View>
 
       <View style={[styles.section, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>{t("organizations.fields.status")}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          {t("organizations.fields.status")}
+        </Text>
         <View
           style={[
             styles.statusBadge,
@@ -123,11 +131,15 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
       {organization.website && (
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>{t("organizations.fields.website")}</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("organizations.fields.website")}
+          </Text>
           <TouchableOpacity
             onPress={() => Linking.openURL(organization.website!)}
           >
-            <Text style={[styles.link, { color: colors.link }]}>{organization.website}</Text>
+            <Text style={[styles.link, { color: colors.link }]}>
+              {organization.website}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -242,7 +254,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         )}
 
       <View style={[styles.section, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>{t("organizations.fields.created")}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          {t("organizations.fields.created")}
+        </Text>
         <Text style={[styles.value, { color: colors.textPrimary }]}>
           {new Date(organization.createdAt).toLocaleString()}
         </Text>
@@ -253,10 +267,18 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           {t("organizations.sections.accounts")} ({accounts.length})
         </Text>
         {accounts.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t("organizations.noAccounts")}</Text>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+            {t("organizations.noAccounts")}
+          </Text>
         ) : (
           accounts.map((account) => (
-            <View key={account.id} style={[styles.relatedItem, { borderTopColor: colors.borderLight }]}>
+            <View
+              key={account.id}
+              style={[
+                styles.relatedItem,
+                { borderTopColor: colors.borderLight },
+              ]}
+            >
               <View
                 style={[
                   styles.statusIndicator,
@@ -265,7 +287,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                     : { backgroundColor: colors.error },
                 ]}
               />
-              <Text style={[styles.relatedName, { color: colors.textPrimary }]}>{account.name}</Text>
+              <Text style={[styles.relatedName, { color: colors.textPrimary }]}>
+                {account.name}
+              </Text>
             </View>
           ))
         )}
@@ -276,36 +300,58 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           {t("organizations.sections.contacts")} ({contacts.length})
         </Text>
         {contacts.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t("organizations.noContacts")}</Text>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+            {t("organizations.noContacts")}
+          </Text>
         ) : (
           contacts.map((contact) => (
             <Pressable
               key={contact.id}
-              style={[styles.contactCard, { backgroundColor: colors.surfaceElevated }]}
+              style={[
+                styles.contactCard,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
               onPress={() => {
                 // Navigate to contact detail using root navigator
                 navigation.navigate("ContactDetail", { contactId: contact.id });
               }}
             >
               <View style={styles.contactCardContent}>
-                <Text style={[styles.contactName, { color: colors.textPrimary }]}>
+                <Text
+                  style={[styles.contactName, { color: colors.textPrimary }]}
+                >
                   {getContactDisplayName(contact)}
                 </Text>
                 {contact.title && (
-                  <Text style={[styles.contactTitle, { color: colors.textSecondary }]}>{contact.title}</Text>
+                  <Text
+                    style={[
+                      styles.contactTitle,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {contact.title}
+                  </Text>
                 )}
                 <View
                   style={[
                     styles.contactTypeBadge,
-                    contact.type === "contact.type.internal" &&
-                      { backgroundColor: colors.contactTypeInternalBg },
-                    contact.type === "contact.type.external" &&
-                      { backgroundColor: colors.contactTypeExternalBg },
-                    contact.type === "contact.type.vendor" &&
-                      { backgroundColor: colors.contactTypeVendorBg },
+                    contact.type === "contact.type.internal" && {
+                      backgroundColor: colors.contactTypeInternalBg,
+                    },
+                    contact.type === "contact.type.external" && {
+                      backgroundColor: colors.contactTypeExternalBg,
+                    },
+                    contact.type === "contact.type.vendor" && {
+                      backgroundColor: colors.contactTypeVendorBg,
+                    },
                   ]}
                 >
-                  <Text style={[styles.contactTypeText, { color: colors.textPrimary }]}>
+                  <Text
+                    style={[
+                      styles.contactTypeText,
+                      { color: colors.textPrimary },
+                    ]}
+                  >
                     {contact.type === "contact.type.internal"
                       ? t("contact.type.internal")
                       : contact.type === "contact.type.external"
@@ -328,13 +374,19 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         style={{ marginTop: 12, marginHorizontal: 16, borderRadius: 8 }}
       />
 
-      <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.link }]} onPress={handleEdit}>
+      <TouchableOpacity
+        style={[styles.editButton, { backgroundColor: colors.link }]}
+        onPress={handleEdit}
+      >
         <Text style={styles.editButtonText}>
           {t("organizations.editButton")}
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.deleteButton, { backgroundColor: colors.error }]} onPress={handleDelete}>
+      <TouchableOpacity
+        style={[styles.deleteButton, { backgroundColor: colors.error }]}
+        onPress={handleDelete}
+      >
         <Text style={styles.deleteButtonText}>
           {t("organizations.deleteButton")}
         </Text>

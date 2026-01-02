@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo } from "react";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
@@ -11,7 +11,7 @@ import {
   ListCardChevron,
   ListScreenLayout,
 } from "@views/components";
-import { useTheme } from "@views/hooks";
+import { useHeaderMenu, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
@@ -19,8 +19,9 @@ type Props = ContactsStackScreenProps<"ContactsList">;
 export const ContactsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const contacts = useAllContacts();
-  const [menuVisible, setMenuVisible] = useState(false);
-  const menuAnchorRef = useRef<View>(null);
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: "Contact list options",
+  });
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) =>
       getContactDisplayName(a).localeCompare(
@@ -43,30 +44,29 @@ export const ContactsListScreen = ({ navigation }: Props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Contact list options"
-            onPress={() => setMenuVisible((current) => !current)}
-            style={styles.headerButton}
-          >
-            <Text style={[styles.headerButtonText, { color: colors.headerTint }]}>⋮</Text>
-          </Pressable>
-        </View>
-      ),
+      headerRight,
     });
-  }, [navigation]);
+  }, [navigation, headerRight]);
 
   const renderItem = ({ item }: { item: Contact }) => (
     <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
       <View style={styles.itemContent}>
-        <Text style={[styles.itemName, { color: colors.textPrimary }]}>{getContactDisplayName(item)}</Text>
-        {item.title ? <Text style={[styles.itemTitle, { color: colors.textSecondary }]}>{item.title}</Text> : null}
-        {getPrimaryEmail(item) ? (
-          <Text style={[styles.itemEmail, { color: colors.textSecondary }]}>{getPrimaryEmail(item)}</Text>
+        <Text style={[styles.itemName, { color: colors.textPrimary }]}>
+          {getContactDisplayName(item)}
+        </Text>
+        {item.title ? (
+          <Text style={[styles.itemTitle, { color: colors.textSecondary }]}>
+            {item.title}
+          </Text>
         ) : null}
-        <Text style={[styles.itemType, { color: colors.textMuted }]}>{t(item.type)}</Text>
+        {getPrimaryEmail(item) ? (
+          <Text style={[styles.itemEmail, { color: colors.textSecondary }]}>
+            {getPrimaryEmail(item)}
+          </Text>
+        ) : null}
+        <Text style={[styles.itemType, { color: colors.textMuted }]}>
+          {t(item.type)}
+        </Text>
       </View>
       <ListCardChevron />
     </ListCard>
@@ -85,11 +85,11 @@ export const ContactsListScreen = ({ navigation }: Props) => {
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
+        onRequestClose={closeMenu}
       >
         <Pressable
           accessibilityRole="button"
-          onPress={() => setMenuVisible(false)}
+          onPress={closeMenu}
           style={styles.menuItem}
         >
           <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
@@ -102,17 +102,6 @@ export const ContactsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  headerMenuWrapper: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 18,
-  },
   cardRow: {
     flexDirection: "row",
     alignItems: "center",

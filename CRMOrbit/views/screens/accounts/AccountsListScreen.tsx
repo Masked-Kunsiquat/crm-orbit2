@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../store/store";
@@ -11,7 +11,7 @@ import {
   ListScreenLayout,
   StatusBadge,
 } from "../../components";
-import { useTheme } from "../../hooks";
+import { useHeaderMenu, useTheme } from "../../hooks";
 
 type Props = AccountsStackScreenProps<"AccountsList">;
 
@@ -19,9 +19,10 @@ export const AccountsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const accounts = useAccounts();
   const organizations = useOrganizations();
-  const [menuVisible, setMenuVisible] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
-  const menuAnchorRef = useRef<View>(null);
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: t("accounts.listOptions"),
+  });
 
   const filteredAccounts = useMemo(() => {
     const visible = showInactive
@@ -50,20 +51,9 @@ export const AccountsListScreen = ({ navigation }: Props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("accounts.listOptions")}
-            onPress={() => setMenuVisible((current) => !current)}
-            style={styles.headerButton}
-          >
-            <Text style={[styles.headerButtonText, { color: colors.headerTint }]}>⋮</Text>
-          </Pressable>
-        </View>
-      ),
+      headerRight,
     });
-  }, [navigation]);
+  }, [navigation, headerRight]);
 
   return (
     <>
@@ -73,14 +63,18 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         renderItem={({ item }) => (
           <ListCard onPress={() => handlePress(item)} variant="outlined">
             <View style={styles.cardHeader}>
-              <Text style={[styles.name, { color: colors.textPrimary }]}>{item.name}</Text>
+              <Text style={[styles.name, { color: colors.textPrimary }]}>
+                {item.name}
+              </Text>
               <StatusBadge
                 isActive={item.status === "account.status.active"}
                 activeLabelKey="status.active"
                 inactiveLabelKey="status.inactive"
               />
             </View>
-            <Text style={[styles.organization, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.organization, { color: colors.textSecondary }]}
+            >
               {getOrganizationName(item.organizationId)}
             </Text>
           </ListCard>
@@ -96,13 +90,13 @@ export const AccountsListScreen = ({ navigation }: Props) => {
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
+        onRequestClose={closeMenu}
       >
         <Pressable
           accessibilityRole="button"
           onPress={() => {
             setShowInactive((current) => !current);
-            setMenuVisible(false);
+            closeMenu();
           }}
           style={styles.menuItem}
         >
@@ -118,17 +112,6 @@ export const AccountsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  headerMenuWrapper: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 18,
-  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

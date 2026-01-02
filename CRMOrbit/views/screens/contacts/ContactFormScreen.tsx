@@ -199,9 +199,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>First Name</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            First Name
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={firstName}
             onChangeText={handleFirstNameChange}
             placeholder="Enter first name"
@@ -211,9 +220,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Last Name</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Last Name
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={lastName}
             onChangeText={handleLastNameChange}
             placeholder="Enter last name"
@@ -225,9 +243,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Title</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Title
+          </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.textPrimary,
+              },
+            ]}
             value={title}
             onChangeText={handleTitleChange}
             placeholder="e.g. Property Manager, VP of Operations"
@@ -236,15 +263,23 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>Type</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            Type
+          </Text>
           <View style={styles.typeButtons}>
             {types.map((t) => (
               <TouchableOpacity
                 key={t}
                 style={[
                   styles.typeButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                  type === t && { backgroundColor: colors.accent, borderColor: colors.accent },
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                  type === t && {
+                    backgroundColor: colors.accent,
+                    borderColor: colors.accent,
+                  },
                 ]}
                 onPress={() => handleTypeChange(t)}
               >
@@ -264,15 +299,30 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <View style={styles.fieldHeader}>
-            <Text style={[styles.label, { color: colors.textPrimary }]}>Email Addresses</Text>
-            <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.accent }]} onPress={handleAddEmail}>
-              <Text style={[styles.addButtonText, { color: colors.surface }]}>+ Add</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>
+              Email Addresses
+            </Text>
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: colors.accent }]}
+              onPress={handleAddEmail}
+            >
+              <Text style={[styles.addButtonText, { color: colors.surface }]}>
+                + Add
+              </Text>
             </TouchableOpacity>
           </View>
           {emails.map((email, index) => (
             <View key={index} style={styles.methodRow}>
               <TextInput
-                style={[styles.input, styles.methodInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+                style={[
+                  styles.input,
+                  styles.methodInput,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    color: colors.textPrimary,
+                  },
+                ]}
                 value={email.value}
                 onChangeText={(value) => handleEmailChange(index, value)}
                 placeholder="email@example.com"
@@ -281,10 +331,17 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
                 autoCapitalize="none"
               />
               <TouchableOpacity
-                style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
+                style={[
+                  styles.removeButton,
+                  { backgroundColor: colors.errorBg },
+                ]}
                 onPress={() => handleRemoveEmail(index)}
               >
-                <Text style={[styles.removeButtonText, { color: colors.error }]}>×</Text>
+                <Text
+                  style={[styles.removeButtonText, { color: colors.error }]}
+                >
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -292,15 +349,30 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <View style={styles.fieldHeader}>
-            <Text style={[styles.label, { color: colors.textPrimary }]}>Phone Numbers</Text>
-            <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.accent }]} onPress={handleAddPhone}>
-              <Text style={[styles.addButtonText, { color: colors.surface }]}>+ Add</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>
+              Phone Numbers
+            </Text>
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: colors.accent }]}
+              onPress={handleAddPhone}
+            >
+              <Text style={[styles.addButtonText, { color: colors.surface }]}>
+                + Add
+              </Text>
             </TouchableOpacity>
           </View>
           {phones.map((phone, index) => (
             <View key={index} style={styles.methodRow}>
               <TextInput
-                style={[styles.input, styles.methodInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+                style={[
+                  styles.input,
+                  styles.methodInput,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    color: colors.textPrimary,
+                  },
+                ]}
                 value={phone.value}
                 onChangeText={(value) => handlePhoneChange(index, value)}
                 placeholder="+1 (555) 123-4567"
@@ -308,16 +380,26 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
                 keyboardType="phone-pad"
               />
               <TouchableOpacity
-                style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
+                style={[
+                  styles.removeButton,
+                  { backgroundColor: colors.errorBg },
+                ]}
                 onPress={() => handleRemovePhone(index)}
               >
-                <Text style={[styles.removeButtonText, { color: colors.error }]}>×</Text>
+                <Text
+                  style={[styles.removeButtonText, { color: colors.error }]}
+                >
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.accent }]} onPress={handleSave}>
+        <TouchableOpacity
+          style={[styles.saveButton, { backgroundColor: colors.accent }]}
+          onPress={handleSave}
+        >
           <Text style={[styles.saveButtonText, { color: colors.surface }]}>
             {contactId ? "Update Contact" : "Create Contact"}
           </Text>
