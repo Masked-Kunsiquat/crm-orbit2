@@ -70,7 +70,7 @@
     "accounts.noNotes": "Aucune note pour ce compte.",
     "accounts.addNote": "Ajouter une note",
     "contacts.validation.nameRequired": "Contact premier ou nom de famille requis",
-    "organizations.validation.nameRequired": "Nom de l ' organisation requise",
+    "organizations.validation.nameRequired": "Nom de l'organisation requise",
     "organizations.notFound": "Organisation non trouvée",
     "organizations.cannotDeleteTitle": "Impossible de supprimer",
     "organizations.cannotDeleteMessage": "Impossible de supprimer \"{name}\" car elle possède {count} compte(s) associé(s). Veuillez d'abord supprimer ou réaffecter les comptes.",
