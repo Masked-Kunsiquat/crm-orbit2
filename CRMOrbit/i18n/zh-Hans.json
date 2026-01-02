@@ -69,7 +69,7 @@
     "accounts.filters.vendor": "供应商",
     "accounts.noNotes": "此账户暂无笔记。",
     "accounts.addNote": "添加笔记",
-    "contacts.validation.nameRequired": "第一种或最后一个名字需要联系",
+    "contacts.validation.nameRequired": "需要联系人的名或姓",
     "organizations.validation.nameRequired": "组织名称要求",
     "organizations.notFound": "未找到组织",
     "organizations.cannotDeleteTitle": "无法删除",
@@ -124,5 +124,5 @@
     "notes.addButton": "添加笔记",
     "notes.emptyAccountNotes": "此账户暂无笔记。",
     "notes.emptyOrganizationNotes": "此组织暂无笔记。",
-    "notes.emptyContactNotes": "没有联系通知书."
+    "notes.emptyContactNotes": "此联系人暂无笔记。"
 }
