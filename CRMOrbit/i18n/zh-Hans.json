@@ -190,5 +190,22 @@
     "contact.method.label.personal": "",
     "contact.method.label.other": "",
     "contact.method.status.active": "",
-    "contact.method.status.inactive": ""
+    "contact.method.status.inactive": "",
+    "contacts.updateError": "",
+    "contacts.createError": "",
+    "contacts.form.firstNameLabel": "",
+    "contacts.form.firstNamePlaceholder": "",
+    "contacts.form.lastNameLabel": "",
+    "contacts.form.lastNamePlaceholder": "",
+    "contacts.form.nameHint": "",
+    "contacts.form.titleLabel": "",
+    "contacts.form.titlePlaceholder": "",
+    "contacts.form.typeLabel": "",
+    "contacts.form.emailsLabel": "",
+    "contacts.form.phonesLabel": "",
+    "contacts.form.emailPlaceholder": "",
+    "contacts.form.phonePlaceholder": "",
+    "contacts.form.addAction": "",
+    "contacts.form.updateButton": "",
+    "contacts.form.createButton": ""
 }

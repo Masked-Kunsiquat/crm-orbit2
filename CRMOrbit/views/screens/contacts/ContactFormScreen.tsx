@@ -131,7 +131,10 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!firstName.trim() && !lastName.trim()) {
-      Alert.alert("Validation Error", t("contacts.validation.nameRequired"));
+      Alert.alert(
+        t("common.validationError"),
+        t("contacts.validation.nameRequired"),
+      );
       return;
     }
 
@@ -154,7 +157,10 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", result.error || "Failed to update contact");
+        Alert.alert(
+          t("common.error"),
+          result.error || t("contacts.updateError"),
+        );
       }
     } else {
       const result = createContact(
@@ -170,22 +176,16 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", result.error || "Failed to create contact");
+        Alert.alert(
+          t("common.error"),
+          result.error || t("contacts.createError"),
+        );
       }
     }
   };
 
-  const getTypeLabel = (t: ContactType) => {
-    switch (t) {
-      case "contact.type.internal":
-        return "Internal";
-      case "contact.type.external":
-        return "External";
-      case "contact.type.vendor":
-        return "Vendor";
-      default:
-        return t;
-    }
+  const getTypeLabel = (typeKey: ContactType) => {
+    return t(typeKey);
   };
 
   const types: ContactType[] = [
@@ -196,35 +196,35 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   return (
     <FormScreenLayout>
-      <FormField label="First Name">
+      <FormField label={t("contacts.form.firstNameLabel")}>
         <TextField
           value={firstName}
           onChangeText={handleFirstNameChange}
-          placeholder="Enter first name"
+          placeholder={t("contacts.form.firstNamePlaceholder")}
           autoFocus
         />
       </FormField>
 
       <FormField
-        label="Last Name"
-        hint="At least one of First or Last name is required"
+        label={t("contacts.form.lastNameLabel")}
+        hint={t("contacts.form.nameHint")}
       >
         <TextField
           value={lastName}
           onChangeText={handleLastNameChange}
-          placeholder="Enter last name"
+          placeholder={t("contacts.form.lastNamePlaceholder")}
         />
       </FormField>
 
-      <FormField label="Title">
+      <FormField label={t("contacts.form.titleLabel")}>
         <TextField
           value={title}
           onChangeText={handleTitleChange}
-          placeholder="e.g. Property Manager, VP of Operations"
+          placeholder={t("contacts.form.titlePlaceholder")}
         />
       </FormField>
 
-      <FormField label="Type">
+      <FormField label={t("contacts.form.typeLabel")}>
         <View style={styles.typeButtons}>
           {types.map((t) => (
             <TouchableOpacity
@@ -257,14 +257,14 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       </FormField>
 
       <FormField
-        label="Email Addresses"
+        label={t("contacts.form.emailsLabel")}
         accessory={
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.accent }]}
             onPress={handleAddEmail}
           >
             <Text style={[styles.addButtonText, { color: colors.surface }]}>
-              + Add
+              {t("contacts.form.addAction")}
             </Text>
           </TouchableOpacity>
         }
@@ -275,7 +275,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
               style={styles.methodInput}
               value={email.value}
               onChangeText={(value) => handleEmailChange(index, value)}
-              placeholder="email@example.com"
+              placeholder={t("contacts.form.emailPlaceholder")}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -292,14 +292,14 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       </FormField>
 
       <FormField
-        label="Phone Numbers"
+        label={t("contacts.form.phonesLabel")}
         accessory={
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.accent }]}
             onPress={handleAddPhone}
           >
             <Text style={[styles.addButtonText, { color: colors.surface }]}>
-              + Add
+              {t("contacts.form.addAction")}
             </Text>
           </TouchableOpacity>
         }
@@ -310,7 +310,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
               style={styles.methodInput}
               value={phone.value}
               onChangeText={(value) => handlePhoneChange(index, value)}
-              placeholder="+1 (555) 123-4567"
+              placeholder={t("contacts.form.phonePlaceholder")}
               keyboardType="phone-pad"
             />
             <TouchableOpacity
@@ -330,7 +330,9 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         onPress={handleSave}
       >
         <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-          {contactId ? "Update Contact" : "Create Contact"}
+          {contactId
+            ? t("contacts.form.updateButton")
+            : t("contacts.form.createButton")}
         </Text>
       </TouchableOpacity>
     </FormScreenLayout>
