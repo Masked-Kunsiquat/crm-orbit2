@@ -21,7 +21,7 @@ import type {
   SocialMediaLinks,
 } from "@domains/account";
 import { useTheme } from "../../hooks/useTheme";
-import { SocialMediaFields } from "../../components";
+import { AddressFields, SocialMediaFields } from "../../components";
 
 const DEVICE_ID = "device-local";
 
@@ -331,74 +331,11 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           </View>
         </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Site Address
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={siteAddress.street}
-            onChangeText={(value) => handleSiteAddressChange("street", value)}
-            placeholder="Street"
-            placeholderTextColor={colors.textMuted}
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.addressInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={siteAddress.city}
-            onChangeText={(value) => handleSiteAddressChange("city", value)}
-            placeholder="City"
-            placeholderTextColor={colors.textMuted}
-          />
-          <View style={styles.addressRow}>
-            <TextInput
-              style={[
-                styles.input,
-                styles.addressInputSmall,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                },
-              ]}
-              value={siteAddress.state}
-              onChangeText={(value) => handleSiteAddressChange("state", value)}
-              placeholder="State"
-              placeholderTextColor={colors.textMuted}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                styles.addressInputSmall,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                },
-              ]}
-              value={siteAddress.zipCode}
-              onChangeText={(value) =>
-                handleSiteAddressChange("zipCode", value)
-              }
-              placeholder="ZIP"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
-        </View>
+        <AddressFields
+          label="Site Address"
+          address={siteAddress}
+          onChange={handleSiteAddressChange}
+        />
 
         <View style={styles.field}>
           <TouchableOpacity
@@ -424,80 +361,11 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         {!useSameForParking && (
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.textPrimary }]}>
-              Parking Address
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                },
-              ]}
-              value={parkingAddress.street}
-              onChangeText={(value) =>
-                handleParkingAddressChange("street", value)
-              }
-              placeholder="Street"
-              placeholderTextColor={colors.textMuted}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                styles.addressInput,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                },
-              ]}
-              value={parkingAddress.city}
-              onChangeText={(value) =>
-                handleParkingAddressChange("city", value)
-              }
-              placeholder="City"
-              placeholderTextColor={colors.textMuted}
-            />
-            <View style={styles.addressRow}>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.addressInputSmall,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  },
-                ]}
-                value={parkingAddress.state}
-                onChangeText={(value) =>
-                  handleParkingAddressChange("state", value)
-                }
-                placeholder="State"
-                placeholderTextColor={colors.textMuted}
-              />
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.addressInputSmall,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  },
-                ]}
-                value={parkingAddress.zipCode}
-                onChangeText={(value) =>
-                  handleParkingAddressChange("zipCode", value)
-                }
-                placeholder="ZIP"
-                placeholderTextColor={colors.textMuted}
-              />
-            </View>
-          </View>
+          <AddressFields
+            label="Parking Address"
+            address={parkingAddress}
+            onChange={handleParkingAddressChange}
+          />
         )}
 
         <View style={styles.field}>
@@ -698,17 +566,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  addressInput: {
-    marginTop: 8,
-  },
-  addressRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 8,
-  },
-  addressInputSmall: {
-    flex: 1,
   },
   checkboxRow: {
     flexDirection: "row",

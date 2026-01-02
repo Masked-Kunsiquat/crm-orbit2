@@ -15,10 +15,7 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
 
   return (
     <Pressable
-      style={[
-        styles.contactCard,
-        { backgroundColor: colors.surfaceElevated },
-      ]}
+      style={[styles.contactCard, { backgroundColor: colors.surfaceElevated }]}
       onPress={onPress}
     >
       <View style={styles.contactCardContent}>
@@ -26,9 +23,7 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
           {getContactDisplayName(contact)}
         </Text>
         {contact.title && (
-          <Text
-            style={[styles.contactTitle, { color: colors.textSecondary }]}
-          >
+          <Text style={[styles.contactTitle, { color: colors.textSecondary }]}>
             {contact.title}
           </Text>
         )}
