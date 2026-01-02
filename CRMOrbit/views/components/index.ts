@@ -1,4 +1,5 @@
 export { Section } from "./Section";
+export { DetailField } from "./DetailField";
 export { ActionButton } from "./ActionButton";
 export { FloatingActionButton } from "./FloatingActionButton";
 export { HeaderMenu } from "./HeaderMenu";

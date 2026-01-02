@@ -11,7 +11,7 @@ type UseHeaderMenuOptions = {
 type UseHeaderMenuResult = {
   menuVisible: boolean;
   setMenuVisible: Dispatch<SetStateAction<boolean>>;
-  menuAnchorRef: React.RefObject<View>;
+  menuAnchorRef: React.RefObject<View | null>;
   closeMenu: () => void;
   toggleMenu: () => void;
   headerRight: () => ReactNode;

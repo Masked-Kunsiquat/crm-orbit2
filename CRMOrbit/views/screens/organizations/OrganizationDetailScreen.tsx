@@ -25,6 +25,7 @@ import {
   NotesSection,
   DetailScreenLayout,
   Section,
+  DetailField,
 } from "@views/components";
 import { t } from "@i18n/index";
 
@@ -105,46 +106,41 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Image source={{ uri: organization.logoUri }} style={styles.logo} />
           </View>
         )}
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          {t("organizations.fields.name")}
-        </Text>
-        <Text style={[styles.value, { color: colors.textPrimary }]}>
+        <DetailField label={t("organizations.fields.name")}>
           {organization.name}
-        </Text>
+        </DetailField>
       </Section>
 
       <Section>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          {t("organizations.fields.status")}
-        </Text>
-        <View
-          style={[
-            styles.statusBadge,
-            organization.status === "organization.status.active"
-              ? { backgroundColor: colors.successBg }
-              : { backgroundColor: colors.errorBg },
-          ]}
-        >
-          <Text style={[styles.statusText, { color: colors.textPrimary }]}>
-            {organization.status === "organization.status.active"
-              ? t("status.active")
-              : t("status.inactive")}
-          </Text>
-        </View>
+        <DetailField label={t("organizations.fields.status")}>
+          <View
+            style={[
+              styles.statusBadge,
+              organization.status === "organization.status.active"
+                ? { backgroundColor: colors.successBg }
+                : { backgroundColor: colors.errorBg },
+            ]}
+          >
+            <Text style={[styles.statusText, { color: colors.textPrimary }]}>
+              {organization.status === "organization.status.active"
+                ? t("status.active")
+                : t("status.inactive")}
+            </Text>
+          </View>
+        </DetailField>
       </Section>
 
       {organization.website && (
         <Section>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t("organizations.fields.website")}
-          </Text>
-          <TouchableOpacity
-            onPress={() => Linking.openURL(organization.website!)}
-          >
-            <Text style={[styles.link, { color: colors.link }]}>
-              {organization.website}
-            </Text>
-          </TouchableOpacity>
+          <DetailField label={t("organizations.fields.website")}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(organization.website!)}
+            >
+              <Text style={[styles.link, { color: colors.link }]}>
+                {organization.website}
+              </Text>
+            </TouchableOpacity>
+          </DetailField>
         </Section>
       )}
 
@@ -258,12 +254,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         )}
 
       <Section>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          {t("organizations.fields.created")}
-        </Text>
-        <Text style={[styles.value, { color: colors.textPrimary }]}>
+        <DetailField label={t("organizations.fields.created")}>
           {new Date(organization.createdAt).toLocaleString()}
-        </Text>
+        </DetailField>
       </Section>
 
       <Section>
@@ -404,9 +397,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textTransform: "uppercase",
     fontWeight: "600",
-  },
-  value: {
-    fontSize: 16,
   },
   logoContainer: {
     alignItems: "center",

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,7 +20,12 @@ import {
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
-import { NotesSection } from "@views/components";
+import {
+  NotesSection,
+  DetailScreenLayout,
+  Section,
+  DetailField,
+} from "@views/components";
 import { useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 
@@ -46,9 +50,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
   if (!contact) {
     return (
-      <View style={styles.container}>
+      <DetailScreenLayout>
         <Text style={styles.errorText}>Contact not found</Text>
-      </View>
+      </DetailScreenLayout>
     );
   }
 
@@ -174,8 +178,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
+    <DetailScreenLayout>
+      <Section>
         <View style={styles.header}>
           <Text style={styles.title}>{getContactDisplayName(contact)}</Text>
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
@@ -184,19 +188,15 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         </View>
 
         {contact.title && (
-          <View style={styles.field}>
-            <Text style={styles.label}>Title</Text>
-            <Text style={styles.value}>{contact.title}</Text>
-          </View>
+          <DetailField label="Title">{contact.title}</DetailField>
         )}
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Type</Text>
-          <Text style={styles.value}>{getContactTypeLabel(contact.type)}</Text>
-        </View>
-      </View>
+        <DetailField label="Type">
+          {getContactTypeLabel(contact.type)}
+        </DetailField>
+      </Section>
 
-      <View style={styles.section}>
+      <Section>
         <Text style={styles.sectionTitle}>
           Email Addresses ({contact.methods.emails.length})
         </Text>
@@ -215,9 +215,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             </View>
           ))
         )}
-      </View>
+      </Section>
 
-      <View style={styles.section}>
+      <Section>
         <Text style={styles.sectionTitle}>
           Phone Numbers ({contact.methods.phones.length})
         </Text>
@@ -236,9 +236,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             </View>
           ))
         )}
-      </View>
+      </Section>
 
-      <View style={styles.section}>
+      <Section>
         <View style={styles.fieldHeader}>
           <Text style={styles.sectionTitle}>
             Linked Accounts ({linkedAccounts.length})
@@ -277,7 +277,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             );
           })
         )}
-      </View>
+      </Section>
 
       <NotesSection
         notes={notes}
@@ -335,21 +335,12 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </DetailScreenLayout>
   );
 };
 
 const createStyles = (colors: ColorScheme) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.canvas,
-    },
-    section: {
-      backgroundColor: colors.surface,
-      padding: 16,
-      marginBottom: 12,
-    },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -372,20 +363,6 @@ const createStyles = (colors: ColorScheme) =>
       color: colors.surface,
       fontSize: 14,
       fontWeight: "600",
-    },
-    field: {
-      marginBottom: 16,
-    },
-    label: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.textSecondary,
-      marginBottom: 4,
-      textTransform: "uppercase",
-    },
-    value: {
-      fontSize: 16,
-      color: colors.textPrimary,
     },
     sectionTitle: {
       fontSize: 16,

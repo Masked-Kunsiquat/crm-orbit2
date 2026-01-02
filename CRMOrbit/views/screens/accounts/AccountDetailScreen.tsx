@@ -25,6 +25,7 @@ import {
   NotesSection,
   DetailScreenLayout,
   Section,
+  DetailField,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
@@ -123,19 +124,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t("accounts.fields.organization")}
-          </Text>
-          <Text style={[styles.value, { color: colors.textPrimary }]}>
-            {organization?.name ?? t("common.unknown")}
-          </Text>
-        </View>
+        <DetailField label={t("accounts.fields.organization")}>
+          {organization?.name ?? t("common.unknown")}
+        </DetailField>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t("accounts.fields.status")}
-          </Text>
+        <DetailField label={t("accounts.fields.status")}>
           <View
             style={[
               styles.statusBadge,
@@ -153,61 +146,51 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 : t("status.inactive")}
             </Text>
           </View>
-        </View>
+        </DetailField>
 
         {account.addresses?.site && (
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              {t("accounts.fields.siteAddress")}
-            </Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>
-              {account.addresses.site.street}
-            </Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>
-              {account.addresses.site.city}, {account.addresses.site.state}{" "}
-              {account.addresses.site.zipCode}
-            </Text>
-          </View>
+          <DetailField label={t("accounts.fields.siteAddress")}>
+            <View>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.site.street}
+              </Text>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.site.city}, {account.addresses.site.state}{" "}
+                {account.addresses.site.zipCode}
+              </Text>
+            </View>
+          </DetailField>
         )}
 
         {account.addresses?.parking && !account.addresses.useSameForParking && (
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              {t("accounts.fields.parkingAddress")}
-            </Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>
-              {account.addresses.parking.street}
-            </Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>
-              {account.addresses.parking.city},{" "}
-              {account.addresses.parking.state}{" "}
-              {account.addresses.parking.zipCode}
-            </Text>
-          </View>
+          <DetailField label={t("accounts.fields.parkingAddress")}>
+            <View>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.parking.street}
+              </Text>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.parking.city},{" "}
+                {account.addresses.parking.state}{" "}
+                {account.addresses.parking.zipCode}
+              </Text>
+            </View>
+          </DetailField>
         )}
 
         {account.addresses?.useSameForParking && (
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              {t("accounts.fields.parkingAddress")}
-            </Text>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>
-              {t("accounts.sameAsSiteAddress")}
-            </Text>
-          </View>
+          <DetailField label={t("accounts.fields.parkingAddress")}>
+            {t("accounts.sameAsSiteAddress")}
+          </DetailField>
         )}
 
         {account.website && (
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              {t("accounts.fields.website")}
-            </Text>
+          <DetailField label={t("accounts.fields.website")}>
             <TouchableOpacity onPress={() => Linking.openURL(account.website!)}>
               <Text style={[styles.link, { color: colors.link }]}>
                 {account.website}
               </Text>
             </TouchableOpacity>
-          </View>
+          </DetailField>
         )}
 
         {account.socialMedia &&
@@ -543,9 +526,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 4,
     textTransform: "uppercase",
-  },
-  value: {
-    fontSize: 16,
   },
   statusBadge: {
     paddingHorizontal: 12,
