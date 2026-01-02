@@ -99,6 +99,7 @@ export default {
           }
 
           const init = node.init;
+          let actionFunctionNode = null;
 
           // Check if it's a useCallback call
           if (
@@ -107,12 +108,39 @@ export default {
             init.callee.name === "useCallback"
           ) {
             actionFunctions.set(actionName, { hasUseCallback: true, node });
+            actionFunctionNode = init.arguments?.[0] ?? null;
           } else if (
             init?.type === "ArrowFunctionExpression" ||
             init?.type === "FunctionExpression"
           ) {
             // It's a function but NOT wrapped in useCallback
             actionFunctions.set(actionName, { hasUseCallback: false, node });
+            actionFunctionNode = init;
+          }
+
+          if (
+            actionFunctionNode?.type !== "ArrowFunctionExpression" &&
+            actionFunctionNode?.type !== "FunctionExpression"
+          ) {
+            return;
+          }
+
+          const returnType = actionFunctionNode.returnType;
+          const returnAnnotation = returnType?.typeAnnotation;
+          const hasDispatchResultReturn =
+            returnType?.type === "TSTypeAnnotation" &&
+            ((returnAnnotation?.type === "TSTypeReference" &&
+              returnAnnotation.typeName?.type === "Identifier" &&
+              returnAnnotation.typeName.name === "DispatchResult") ||
+              (returnAnnotation?.type === "Identifier" &&
+                returnAnnotation.name === "DispatchResult"));
+
+          if (!hasDispatchResultReturn) {
+            context.report({
+              node: node.id,
+              messageId: "missingDispatchResultReturn",
+              data: { actionName },
+            });
           }
         }
       },

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
@@ -31,6 +30,7 @@ export const useInteractionActions = (deviceId: string) => {
       const result = dispatch([event]);
       return { ...result, id };
     },
+    // dispatch is stable (useDispatch wraps it in useCallback with empty deps).
     [deviceId],
   );
 
