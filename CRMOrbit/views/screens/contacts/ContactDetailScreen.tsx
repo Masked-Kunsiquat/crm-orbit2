@@ -25,6 +25,8 @@ import {
   DetailScreenLayout,
   Section,
   DetailField,
+  PrimaryActionButton,
+  DangerActionButton,
 } from "@views/components";
 import { useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
@@ -182,9 +184,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       <Section>
         <View style={styles.header}>
           <Text style={styles.title}>{getContactDisplayName(contact)}</Text>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
+          <PrimaryActionButton label="Edit" onPress={handleEdit} size="compact" />
         </View>
 
         {contact.title && (
@@ -286,9 +286,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>Delete Contact</Text>
-      </TouchableOpacity>
+      <DangerActionButton
+        label="Delete Contact"
+        onPress={handleDelete}
+        size="block"
+      />
 
       <Modal
         visible={showLinkModal}
@@ -353,17 +355,6 @@ const createStyles = (colors: ColorScheme) =>
       color: colors.textPrimary,
       flex: 1,
     },
-    editButton: {
-      backgroundColor: colors.accent,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 6,
-    },
-    editButtonText: {
-      color: colors.surface,
-      fontSize: 14,
-      fontWeight: "600",
-    },
     sectionTitle: {
       fontSize: 16,
       fontWeight: "600",
@@ -393,18 +384,6 @@ const createStyles = (colors: ColorScheme) =>
       color: colors.error,
       textAlign: "center",
       marginTop: 32,
-    },
-    deleteButton: {
-      backgroundColor: colors.error,
-      margin: 16,
-      padding: 16,
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    deleteButtonText: {
-      color: colors.surface,
-      fontSize: 16,
-      fontWeight: "600",
     },
     fieldHeader: {
       flexDirection: "row",

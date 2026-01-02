@@ -24,6 +24,8 @@ import {
   DetailField,
   SocialLinksSection,
   ContactCardRow,
+  PrimaryActionButton,
+  DangerActionButton,
 } from "@views/components";
 import { t } from "@i18n/index";
 
@@ -222,23 +224,18 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TouchableOpacity
-        style={[styles.editButton, { backgroundColor: colors.link }]}
+      <PrimaryActionButton
+        label={t("organizations.editButton")}
         onPress={handleEdit}
-      >
-        <Text style={styles.editButtonText}>
-          {t("organizations.editButton")}
-        </Text>
-      </TouchableOpacity>
+        size="block"
+      />
 
-      <TouchableOpacity
-        style={[styles.deleteButton, { backgroundColor: colors.error }]}
+      <DangerActionButton
+        label={t("organizations.deleteButton")}
         onPress={handleDelete}
-      >
-        <Text style={styles.deleteButtonText}>
-          {t("organizations.deleteButton")}
-        </Text>
-      </TouchableOpacity>
+        size="block"
+        stacked
+      />
     </DetailScreenLayout>
   );
 };
@@ -297,32 +294,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: "italic",
   },
-  editButton: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  editButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
   error: {
     fontSize: 16,
     textAlign: "center",
     marginTop: 40,
-  },
-  deleteButton: {
-    margin: 16,
-    marginTop: 0,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

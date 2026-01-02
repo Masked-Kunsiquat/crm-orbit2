@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from "react-native";
 
-import { ActionButton, Section } from "@views/components";
+import { PrimaryActionButton, Section } from "@views/components";
 import { useContactActions } from "@views/hooks";
 import { useAccounts, useAllContacts } from "@views/store/store";
 
@@ -51,7 +51,7 @@ export const ContactsScreen = () => {
 
   return (
     <Section title="Contacts">
-      <ActionButton label="Add contact" onPress={handleAddContact} />
+      <PrimaryActionButton label="Add contact" onPress={handleAddContact} />
       {allContacts.length === 0 ? (
         <Text style={styles.empty}>No contacts yet.</Text>
       ) : (

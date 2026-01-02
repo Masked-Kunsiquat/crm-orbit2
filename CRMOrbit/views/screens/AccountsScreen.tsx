@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from "react-native";
 
-import { ActionButton, Section } from "@views/components";
+import { PrimaryActionButton, Section } from "@views/components";
 import { useAccountActions } from "@views/hooks";
 import { useAccounts, useOrganizations } from "@views/store/store";
 
@@ -28,7 +28,7 @@ export const AccountsScreen = () => {
 
   return (
     <Section title="Accounts">
-      <ActionButton
+      <PrimaryActionButton
         label="Add account"
         onPress={handleAddAccount}
         disabled={organizations.length === 0}

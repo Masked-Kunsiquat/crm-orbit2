@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from "react-native";
 
-import { ActionButton, Section } from "@views/components";
+import { PrimaryActionButton, Section } from "@views/components";
 import { useInteractionActions } from "@views/hooks";
 import { useAllInteractions } from "@views/store/store";
 
@@ -18,7 +18,10 @@ export const InteractionsScreen = () => {
 
   return (
     <Section title="Interactions">
-      <ActionButton label="Add interaction" onPress={handleAddInteraction} />
+      <PrimaryActionButton
+        label="Add interaction"
+        onPress={handleAddInteraction}
+      />
       {interactions.length === 0 ? (
         <Text style={styles.empty}>No interactions yet.</Text>
       ) : (

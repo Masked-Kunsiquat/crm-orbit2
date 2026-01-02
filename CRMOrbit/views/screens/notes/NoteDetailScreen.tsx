@@ -11,7 +11,12 @@ import { useLayoutEffect, useCallback } from "react";
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote, useEntitiesForNote } from "../../store/store";
 import { useNoteActions } from "../../hooks/useNoteActions";
-import { DetailScreenLayout, Section } from "../../components";
+import {
+  DetailScreenLayout,
+  Section,
+  PrimaryActionButton,
+  DangerActionButton,
+} from "../../components";
 import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
 
@@ -34,11 +39,12 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity style={styles.headerButton} onPress={handleEdit}>
-          <Text style={[styles.headerButtonText, { color: colors.link }]}>
-            {t("common.edit")}
-          </Text>
-        </TouchableOpacity>
+        <PrimaryActionButton
+          label={t("common.edit")}
+          onPress={handleEdit}
+          size="compact"
+          tone="link"
+        />
       ),
     });
   }, [navigation, handleEdit, colors]);
@@ -197,25 +203,16 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
         )}
       </Section>
 
-      <TouchableOpacity
-        style={[styles.deleteButton, { backgroundColor: colors.error }]}
+      <DangerActionButton
+        label={t("notes.deleteButton")}
         onPress={handleDelete}
-      >
-        <Text style={styles.deleteButtonText}>{t("notes.deleteButton")}</Text>
-      </TouchableOpacity>
+        size="block"
+      />
     </DetailScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
   title: {
     fontSize: 24,
     fontWeight: "700",
@@ -268,16 +265,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 32,
-  },
-  deleteButton: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

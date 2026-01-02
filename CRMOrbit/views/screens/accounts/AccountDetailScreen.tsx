@@ -24,6 +24,8 @@ import {
   DetailField,
   SocialLinksSection,
   ContactCardRow,
+  PrimaryActionButton,
+  DangerActionButton,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
@@ -112,14 +114,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             {account.name}
           </Text>
-          <TouchableOpacity
-            style={[styles.editButton, { backgroundColor: colors.accent }]}
+          <PrimaryActionButton
+            label={t("common.edit")}
             onPress={handleEdit}
-          >
-            <Text style={[styles.editButtonText, { color: colors.surface }]}>
-              {t("common.edit")}
-            </Text>
-          </TouchableOpacity>
+            size="compact"
+          />
         </View>
 
         <DetailField label={t("accounts.fields.organization")}>
@@ -331,14 +330,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TouchableOpacity
-        style={[styles.deleteButton, { backgroundColor: colors.error }]}
+      <DangerActionButton
+        label={t("accounts.deleteButton")}
         onPress={handleDelete}
-      >
-        <Text style={[styles.deleteButtonText, { color: colors.surface }]}>
-          {t("accounts.deleteButton")}
-        </Text>
-      </TouchableOpacity>
+        size="block"
+      />
     </DetailScreenLayout>
   );
 };
@@ -354,15 +350,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     flex: 1,
-  },
-  editButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
   },
   field: {
     marginBottom: 16,
@@ -416,15 +403,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 32,
-  },
-  deleteButton: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
