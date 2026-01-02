@@ -38,6 +38,23 @@ export const TimelineSection = ({
 
     const payload = item.event.payload as Record<string, unknown>;
 
+    // For contact method events (contact.method.added, contact.method.updated)
+    if (
+      item.event.type === "contact.method.added" ||
+      item.event.type === "contact.method.updated"
+    ) {
+      const method = payload?.method as Record<string, unknown> | undefined;
+      if (method && typeof method.value === "string") {
+        const value = method.value;
+        let label = "";
+        if (typeof method.label === "string") {
+          // Translate the label key (e.g., "contact.method.label.work" -> "Work")
+          label = t(method.label);
+        }
+        return label ? `${value} (${label})` : value;
+      }
+    }
+
     // For relationship events (account.contact.linked, etc.)
     if (
       item.event.type === "account.contact.linked" ||
@@ -61,7 +78,33 @@ export const TimelineSection = ({
       }
     }
 
-    // Extract name from payload if available (simple events)
+    // For contact events, look up the contact name
+    if (
+      item.event.type === "contact.created" ||
+      item.event.type === "contact.updated" ||
+      item.event.type === "contact.deleted"
+    ) {
+      const contactId = item.event.entityId;
+      if (contactId) {
+        const contact = doc.contacts[contactId];
+        if (contact) {
+          return getContactName(contact);
+        }
+      }
+      // Fallback to payload data for created events
+      if (
+        item.event.type === "contact.created" &&
+        (typeof payload?.firstName === "string" ||
+          typeof payload?.lastName === "string")
+      ) {
+        const parts = [payload.firstName, payload.lastName]
+          .filter((p): p is string => typeof p === "string")
+          .filter(Boolean);
+        return parts.join(" ") || t("common.unknown");
+      }
+    }
+
+    // Extract name from payload if available (simple events like account/org)
     if (typeof payload?.name === "string") {
       return payload.name;
     }

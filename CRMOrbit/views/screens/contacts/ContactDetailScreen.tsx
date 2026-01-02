@@ -15,6 +15,8 @@ import {
   useAccounts,
   useAccountContactRelations,
   useNotes,
+  useTimeline,
+  useDoc,
 } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
@@ -24,6 +26,7 @@ import {
 } from "@domains/contact.utils";
 import {
   NotesSection,
+  TimelineSection,
   DetailScreenLayout,
   Section,
   DetailField,
@@ -45,6 +48,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const contact = useContact(contactId);
   const linkedAccounts = useAccountsByContact(contactId);
   const notes = useNotes("contact", contactId);
+  const timeline = useTimeline("contact", contactId);
+  const doc = useDoc();
   const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
@@ -294,6 +299,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         entityType="contact"
         navigation={navigation}
       />
+
+      <TimelineSection timeline={timeline} doc={doc} />
 
       <DangerActionButton
         label={t("contacts.deleteButton")}
