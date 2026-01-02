@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useLayoutEffect } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../store/store";
@@ -11,7 +11,7 @@ import {
   ListScreenLayout,
   StatusBadge,
 } from "../../components";
-import { useHeaderMenu, useTheme } from "../../hooks";
+import { useHeaderMenu, useInactiveFilter, useTheme } from "../../hooks";
 
 type Props = AccountsStackScreenProps<"AccountsList">;
 
@@ -19,22 +19,29 @@ export const AccountsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const accounts = useAccounts();
   const organizations = useOrganizations();
-  const [showInactive, setShowInactive] = useState(false);
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
     accessibilityLabel: t("accounts.listOptions"),
   });
 
-  const filteredAccounts = useMemo(() => {
-    const visible = showInactive
-      ? accounts
-      : accounts.filter(
-          (account) => account.status === "account.status.active",
-        );
-
-    return [...visible].sort((a, b) =>
+  const {
+    filteredItems: filteredAccounts,
+    menuLabel,
+    emptyHint,
+    toggleShowInactive,
+  } = useInactiveFilter({
+    items: accounts,
+    isActive: (account) => account.status === "account.status.active",
+    sort: (a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    );
-  }, [accounts, showInactive]);
+    menuLabels: {
+      showInactive: t("accounts.menuIncludeInactive"),
+      hideInactive: t("accounts.menuHideInactive"),
+    },
+    emptyHint: {
+      whenShowingInactive: t("accounts.emptyHint"),
+      whenHidingInactive: t("accounts.includeInactiveHint"),
+    },
+  });
 
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
@@ -80,11 +87,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
           </ListCard>
         )}
         emptyTitle={t("accounts.emptyTitle")}
-        emptyHint={
-          showInactive
-            ? t("accounts.emptyHint")
-            : t("accounts.includeInactiveHint")
-        }
+        emptyHint={emptyHint}
         onAdd={handleCreate}
       />
       <HeaderMenu
@@ -95,15 +98,13 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            setShowInactive((current) => !current);
+            toggleShowInactive();
             closeMenu();
           }}
           style={styles.menuItem}
         >
           <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-            {showInactive
-              ? t("accounts.menuHideInactive")
-              : t("accounts.menuIncludeInactive")}
+            {menuLabel}
           </Text>
         </Pressable>
       </HeaderMenu>

@@ -5,4 +5,5 @@ export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
 export { useInteractionActions } from "./useInteractionActions";
 export { useHeaderMenu } from "./useHeaderMenu";
+export { useInactiveFilter } from "./useInactiveFilter";
 export { useTheme } from "./useTheme";
