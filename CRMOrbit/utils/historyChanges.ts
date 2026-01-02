@@ -1,4 +1,4 @@
-import type { Contact } from "../domains/contact";
+import type { Contact, ContactMethod } from "../domains/contact";
 import type { Account } from "../domains/account";
 import type { Organization } from "../domains/organization";
 
@@ -6,6 +6,60 @@ export type FieldChange = {
   field: string;
   oldValue: string;
   newValue: string;
+};
+
+/**
+ * Detects changes in contact method arrays
+ */
+const detectMethodChanges = (
+  oldMethods: ContactMethod[],
+  newMethods: ContactMethod[],
+  methodType: "email" | "phone",
+): FieldChange[] => {
+  const changes: FieldChange[] = [];
+
+  // Create maps for easier lookup by ID
+  const oldMap = new Map(oldMethods.map((m) => [m.id, m]));
+  const newMap = new Map(newMethods.map((m) => [m.id, m]));
+
+  // Check for updated or removed methods
+  oldMethods.forEach((oldMethod) => {
+    const newMethod = newMap.get(oldMethod.id);
+
+    if (!newMethod) {
+      // Method was removed
+      changes.push({
+        field: methodType,
+        oldValue: oldMethod.value,
+        newValue: "",
+      });
+    } else if (
+      oldMethod.value !== newMethod.value ||
+      oldMethod.label !== newMethod.label
+    ) {
+      // Method was updated
+      if (oldMethod.value !== newMethod.value) {
+        changes.push({
+          field: methodType,
+          oldValue: oldMethod.value,
+          newValue: newMethod.value,
+        });
+      }
+    }
+  });
+
+  // Check for added methods
+  newMethods.forEach((newMethod) => {
+    if (!oldMap.has(newMethod.id)) {
+      changes.push({
+        field: methodType,
+        oldValue: "",
+        newValue: newMethod.value,
+      });
+    }
+  });
+
+  return changes;
 };
 
 /**
@@ -18,6 +72,10 @@ export const detectContactChanges = (
     lastName: string;
     type: string;
     title?: string;
+    methods?: {
+      emails: ContactMethod[];
+      phones: ContactMethod[];
+    };
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -54,6 +112,21 @@ export const detectContactChanges = (
       oldValue: oldTitle,
       newValue: newTitle,
     });
+  }
+
+  // Detect method changes if provided
+  if (newData.methods) {
+    const emailChanges = detectMethodChanges(
+      oldContact.methods.emails,
+      newData.methods.emails,
+      "email",
+    );
+    const phoneChanges = detectMethodChanges(
+      oldContact.methods.phones,
+      newData.methods.phones,
+      "phone",
+    );
+    changes.push(...emailChanges, ...phoneChanges);
   }
 
   return changes;

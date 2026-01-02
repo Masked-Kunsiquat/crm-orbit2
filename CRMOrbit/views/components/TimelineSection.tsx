@@ -206,14 +206,29 @@ export const TimelineSection = ({
             )}
             {changes && changes.length > 0 && (
               <View style={styles.changesContainer}>
-                {changes.map((change, idx) => (
-                  <Text
-                    key={idx}
-                    style={[styles.changeText, { color: colors.textSecondary }]}
-                  >
-                    {change.oldValue} → {change.newValue}
-                  </Text>
-                ))}
+                {changes.map((change, idx) => {
+                  // Format the change display based on whether it's an add/remove/update
+                  let displayText = "";
+                  if (change.oldValue === "" && change.newValue !== "") {
+                    // Added
+                    displayText = `+ ${change.newValue}`;
+                  } else if (change.oldValue !== "" && change.newValue === "") {
+                    // Removed
+                    displayText = `- ${change.oldValue}`;
+                  } else {
+                    // Updated
+                    displayText = `${change.oldValue} → ${change.newValue}`;
+                  }
+
+                  return (
+                    <Text
+                      key={idx}
+                      style={[styles.changeText, { color: colors.textSecondary }]}
+                    >
+                      {displayText}
+                    </Text>
+                  );
+                })}
               </View>
             )}
             <Text style={[styles.timestamp, { color: colors.textMuted }]}>

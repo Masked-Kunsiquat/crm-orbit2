@@ -111,6 +111,10 @@ export const useContactActions = (deviceId: string) => {
               lastName,
               type,
               title,
+              methods: {
+                emails: methods.emails ?? [],
+                phones: methods.phones ?? [],
+              },
             })
           : undefined;
 
