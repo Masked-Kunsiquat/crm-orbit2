@@ -7,7 +7,7 @@ import {
   View,
   Pressable,
 } from "react-native";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useCallback } from "react";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote, useEntitiesForNote } from "../../store/store";
@@ -24,6 +24,11 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   const linkedEntities = useEntitiesForNote(noteId);
   const { deleteNote, unlinkNote } = useNoteActions(DEVICE_ID);
 
+  const handleEdit = useCallback(() => {
+    if (!note?.id) return;
+    navigation.navigate("NoteForm", { noteId: note.id });
+  }, [note?.id, navigation]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -32,7 +37,7 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, note]);
+  }, [navigation, handleEdit]);
 
   if (!note) {
     return (
@@ -41,10 +46,6 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
       </View>
     );
   }
-
-  const handleEdit = () => {
-    navigation.navigate("NoteForm", { noteId: note.id });
-  };
 
   const handleUnlink = (linkId: string, name: string) => {
     Alert.alert(
