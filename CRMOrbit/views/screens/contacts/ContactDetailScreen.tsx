@@ -30,6 +30,7 @@ import {
 } from "@views/components";
 import { useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
+import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
 
@@ -53,7 +54,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   if (!contact) {
     return (
       <DetailScreenLayout>
-        <Text style={styles.errorText}>Contact not found</Text>
+        <Text style={styles.errorText}>{t("contacts.notFound")}</Text>
       </DetailScreenLayout>
     );
   }
@@ -71,8 +72,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
     if (existingLink) {
       Alert.alert(
-        "Already Linked",
-        "This contact is already linked to this account",
+        t("contacts.linkedAccounts.alreadyLinkedTitle"),
+        t("contacts.linkedAccounts.alreadyLinkedMessage"),
       );
       return;
     }
@@ -92,26 +93,31 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     if (result.success) {
       setShowLinkModal(false);
     } else {
-      Alert.alert("Error", result.error ?? "Failed to link contact");
+      Alert.alert(t("common.error"), result.error ?? t("contacts.linkError"));
     }
   };
 
   const handleUnlinkAccount = (accountId: string, accountName: string) => {
     Alert.alert(
-      "Unlink Contact",
-      `Unlink "${getContactDisplayName(contact)}" from "${accountName}"?`,
+      t("contacts.unlinkTitle"),
+      t("contacts.unlinkConfirmation")
+        .replace("{contactName}", getContactDisplayName(contact))
+        .replace("{accountName}", accountName),
       [
         {
-          text: "Cancel",
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
-          text: "Unlink",
+          text: t("contacts.unlinkAction"),
           style: "destructive",
           onPress: () => {
             const result = unlinkContact(accountId, contactId);
             if (!result.success) {
-              Alert.alert("Error", result.error ?? "Failed to unlink contact");
+              Alert.alert(
+                t("common.error"),
+                result.error ?? t("contacts.unlinkError"),
+              );
             }
           },
         },
@@ -122,30 +128,38 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const handleDelete = () => {
     if (linkedAccounts.length > 0) {
       Alert.alert(
-        "Cannot Delete",
-        `Cannot delete "${getContactDisplayName(contact)}" because it is linked to ${linkedAccounts.length} account(s). Please unlink the contact first.`,
-        [{ text: "OK" }],
+        t("contacts.cannotDeleteTitle"),
+        t("contacts.cannotDeleteMessage")
+          .replace("{name}", getContactDisplayName(contact))
+          .replace("{count}", linkedAccounts.length.toString()),
+        [{ text: t("common.ok") }],
       );
       return;
     }
 
     Alert.alert(
-      "Delete Contact",
-      `Are you sure you want to delete "${getContactDisplayName(contact)}"? This action cannot be undone.`,
+      t("contacts.deleteTitle"),
+      t("contacts.deleteConfirmation").replace(
+        "{name}",
+        getContactDisplayName(contact),
+      ),
       [
         {
-          text: "Cancel",
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
-          text: "Delete",
+          text: t("common.delete"),
           style: "destructive",
           onPress: () => {
             const result = deleteContact(contact.id);
             if (result.success) {
               navigation.goBack();
             } else {
-              Alert.alert("Error", result.error ?? "Failed to delete contact");
+              Alert.alert(
+                t("common.error"),
+                result.error ?? t("contacts.deleteError"),
+              );
             }
           },
         },
@@ -154,29 +168,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   };
 
   const getContactTypeLabel = (type: string) => {
-    switch (type) {
-      case "contact.type.internal":
-        return "Internal";
-      case "contact.type.external":
-        return "External";
-      case "contact.type.vendor":
-        return "Vendor";
-      default:
-        return type;
-    }
+    return t(type);
   };
 
   const getMethodLabel = (label: string) => {
-    switch (label) {
-      case "contact.method.label.work":
-        return "Work";
-      case "contact.method.label.personal":
-        return "Personal";
-      case "contact.method.label.other":
-        return "Other";
-      default:
-        return label;
-    }
+    return t(label);
   };
 
   return (
@@ -184,33 +180,36 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       <Section>
         <View style={styles.header}>
           <Text style={styles.title}>{getContactDisplayName(contact)}</Text>
-          <PrimaryActionButton label="Edit" onPress={handleEdit} size="compact" />
+          <PrimaryActionButton
+            label={t("common.edit")}
+            onPress={handleEdit}
+            size="compact"
+          />
         </View>
 
         {contact.title && (
-          <DetailField label="Title">{contact.title}</DetailField>
+          <DetailField label={t("contacts.fields.title")}>
+            {contact.title}
+          </DetailField>
         )}
 
-        <DetailField label="Type">
+        <DetailField label={t("contacts.fields.type")}>
           {getContactTypeLabel(contact.type)}
         </DetailField>
       </Section>
 
       <Section>
         <Text style={styles.sectionTitle}>
-          Email Addresses ({contact.methods.emails.length})
+          {t("contacts.sections.emails")} ({contact.methods.emails.length})
         </Text>
         {contact.methods.emails.length === 0 ? (
-          <Text style={styles.emptyText}>No email addresses</Text>
+          <Text style={styles.emptyText}>{t("contacts.emptyEmails")}</Text>
         ) : (
           contact.methods.emails.map((email, index) => (
             <View key={index} style={styles.methodItem}>
               <Text style={styles.methodValue}>{email.value}</Text>
               <Text style={styles.methodMeta}>
-                {getMethodLabel(email.label)} •{" "}
-                {email.status === "contact.method.status.active"
-                  ? "Active"
-                  : "Inactive"}
+                {getMethodLabel(email.label)} • {t(email.status)}
               </Text>
             </View>
           ))
@@ -219,19 +218,16 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
       <Section>
         <Text style={styles.sectionTitle}>
-          Phone Numbers ({contact.methods.phones.length})
+          {t("contacts.sections.phones")} ({contact.methods.phones.length})
         </Text>
         {contact.methods.phones.length === 0 ? (
-          <Text style={styles.emptyText}>No phone numbers</Text>
+          <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
         ) : (
           contact.methods.phones.map((phone, index) => (
             <View key={index} style={styles.methodItem}>
               <Text style={styles.methodValue}>{phone.value}</Text>
               <Text style={styles.methodMeta}>
-                {getMethodLabel(phone.label)} •{" "}
-                {phone.status === "contact.method.status.active"
-                  ? "Active"
-                  : "Inactive"}
+                {getMethodLabel(phone.label)} • {t(phone.status)}
               </Text>
             </View>
           ))
@@ -241,17 +237,21 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       <Section>
         <View style={styles.fieldHeader}>
           <Text style={styles.sectionTitle}>
-            Linked Accounts ({linkedAccounts.length})
+            {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
           </Text>
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => setShowLinkModal(true)}
           >
-            <Text style={styles.linkButtonText}>+ Link Account</Text>
+            <Text style={styles.linkButtonText}>
+              {t("contacts.linkedAccounts.linkButton")}
+            </Text>
           </TouchableOpacity>
         </View>
         {linkedAccounts.length === 0 ? (
-          <Text style={styles.emptyText}>Not linked to any accounts</Text>
+          <Text style={styles.emptyText}>
+            {t("contacts.linkedAccounts.empty")}
+          </Text>
         ) : (
           linkedAccounts.map((account) => {
             const relation = Object.values(accountContactRelations).find(
@@ -263,7 +263,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   <Text style={styles.accountName}>{account.name}</Text>
                   {relation?.isPrimary && (
                     <View style={styles.primaryBadge}>
-                      <Text style={styles.primaryText}>Primary</Text>
+                      <Text style={styles.primaryText}>
+                        {t("contacts.linkedAccounts.primaryBadge")}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -271,7 +273,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   style={styles.unlinkButton}
                   onPress={() => handleUnlinkAccount(account.id, account.name)}
                 >
-                  <Text style={styles.unlinkButtonText}>Unlink</Text>
+                  <Text style={styles.unlinkButtonText}>
+                    {t("contacts.unlinkAction")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             );
@@ -287,7 +291,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       />
 
       <DangerActionButton
-        label="Delete Contact"
+        label={t("contacts.deleteButton")}
         onPress={handleDelete}
         size="block"
       />
@@ -300,7 +304,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Link to Account</Text>
+            <Text style={styles.modalTitle}>
+              {t("contacts.linkedAccounts.modalTitle")}
+            </Text>
             <FlatList
               data={allAccounts}
               keyExtractor={(item) => item.id}
@@ -322,7 +328,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       ]}
                     >
                       {item.name}
-                      {isLinked && " (Already linked)"}
+                      {isLinked &&
+                        t("contacts.linkedAccounts.alreadyLinkedSuffix")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -332,7 +339,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               style={styles.modalCancelButton}
               onPress={() => setShowLinkModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t("common.cancel")}</Text>
             </TouchableOpacity>
           </View>
         </View>

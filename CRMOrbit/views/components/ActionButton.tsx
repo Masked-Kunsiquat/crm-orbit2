@@ -27,15 +27,17 @@ export const ActionButton = ({
 }: ActionButtonProps) => {
   const { colors } = useTheme();
 
-  const variantBackground =
-    variant === "danger" ? colors.error : colors.accent;
-  const variantLink =
-    variant === "danger" ? colors.error : colors.link;
+  const variantBackground = variant === "danger" ? colors.error : colors.accent;
+  const variantLink = variant === "danger" ? colors.error : colors.link;
   const disabledBackground =
     variant === "danger" ? colors.errorBg : colors.accentMuted;
 
   const backgroundColor =
-    tone === "link" ? "transparent" : disabled ? disabledBackground : variantBackground;
+    tone === "link"
+      ? "transparent"
+      : disabled
+        ? disabledBackground
+        : variantBackground;
   const textColor =
     tone === "link"
       ? disabled
@@ -59,9 +61,7 @@ export const ActionButton = ({
       ]}
       disabled={disabled}
     >
-      <Text style={[styles.buttonLabel, { color: textColor }]}>
-        {label}
-      </Text>
+      <Text style={[styles.buttonLabel, { color: textColor }]}>{label}</Text>
     </Pressable>
   );
 };
