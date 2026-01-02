@@ -78,7 +78,7 @@
     "organizations.validation.nameRequired": "Se requiere el nombre de organización",
     "organizations.notFound": "Organización no encontrada",
     "organizations.cannotDeleteTitle": "No se puede eliminar",
-    "organizations.cannotDeleteMessage": "No se puede eliminar \"{name}\" porque tiene {count} cuenta(s) asociada(s). Por favor, elimine o reasigne las cuentas primero.",
+    "organizations.cannotDeleteMessage": "No puede borrar \"{name}\" porque tiene cuentas asociadas. Por favor, eliminarlos o reasignarlos primero.",
     "organizations.deleteTitle": "Eliminar organización",
     "organizations.deleteConfirmation": "¿Estás seguro de que quieres eliminar \"{name}\"? Esta acción no se puede deshacer.",
     "organizations.deleteError": "Error al eliminar la organización",

@@ -78,7 +78,7 @@
     "organizations.validation.nameRequired": "Nom de l'organisation requise",
     "organizations.notFound": "Organisation non trouvée",
     "organizations.cannotDeleteTitle": "Impossible de supprimer",
-    "organizations.cannotDeleteMessage": "Impossible de supprimer \"{name}\" car elle possède {count} compte(s) associé(s). Veuillez d'abord supprimer ou réaffecter les comptes.",
+    "organizations.cannotDeleteMessage": "Ne peut pas supprimer \"{name}\" parce qu'il a {count} comptes associés. Veuillez les supprimer ou les réaffecter en premier.",
     "organizations.deleteTitle": "Supprimer l'organisation",
     "organizations.deleteConfirmation": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
     "organizations.deleteError": "Échec de la suppression de l'organisation",
