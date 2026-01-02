@@ -14,6 +14,7 @@ import {
   useContactsByOrganization,
   useNotes,
   useTimeline,
+  useDoc,
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useTheme } from "@views/hooks";
@@ -44,6 +45,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const contacts = useContactsByOrganization(organizationId);
   const notes = useNotes("organization", organizationId);
   const timeline = useTimeline("organization", organizationId);
+  const doc = useDoc();
   const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
@@ -223,7 +225,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TimelineSection timeline={timeline} />
+      <TimelineSection timeline={timeline} doc={doc} />
 
       <PrimaryActionButton
         label={t("organizations.editButton")}

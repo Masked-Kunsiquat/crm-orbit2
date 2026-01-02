@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import type { TimelineItem } from "@views/store/timeline";
+import type { AutomergeDoc } from "@automerge/schema";
 import { EVENT_I18N_KEYS } from "@i18n/events";
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
@@ -7,9 +8,13 @@ import { Section } from "./Section";
 
 interface TimelineSectionProps {
   timeline: TimelineItem[];
+  doc: AutomergeDoc;
 }
 
-export const TimelineSection = ({ timeline }: TimelineSectionProps) => {
+export const TimelineSection = ({
+  timeline,
+  doc,
+}: TimelineSectionProps) => {
   const { colors } = useTheme();
 
   const formatTimestamp = (timestamp: string): string => {
@@ -22,7 +27,30 @@ export const TimelineSection = ({ timeline }: TimelineSectionProps) => {
 
     const payload = item.event.payload as Record<string, unknown>;
 
-    // Extract name from payload if available
+    // For relationship events (account.contact.linked, etc.)
+    if (
+      item.event.type === "account.contact.linked" ||
+      item.event.type === "account.contact.unlinked" ||
+      item.event.type === "account.contact.setPrimary" ||
+      item.event.type === "account.contact.unsetPrimary"
+    ) {
+      const contactId =
+        typeof payload?.contactId === "string" ? payload.contactId : null;
+      const accountId =
+        typeof payload?.accountId === "string" ? payload.accountId : null;
+
+      if (contactId && accountId) {
+        const contact = doc.contacts[contactId];
+        const account = doc.accounts[accountId];
+        if (contact && account) {
+          const contactName = contact.name || t("common.unknown");
+          const accountName = account.name || t("common.unknown");
+          return `${contactName} ↔ ${accountName}`;
+        }
+      }
+    }
+
+    // Extract name from payload if available (simple events)
     if (typeof payload?.name === "string") {
       return payload.name;
     }
@@ -47,12 +75,12 @@ export const TimelineSection = ({ timeline }: TimelineSectionProps) => {
           <View style={styles.timelineContent}>
             <Text style={[styles.eventLabel, { color: colors.textPrimary }]}>
               {eventLabel}
-              {context && (
-                <Text style={[styles.contextText, { color: colors.textSecondary }]}>
-                  : {context}
-                </Text>
-              )}
             </Text>
+            {context && (
+              <Text style={[styles.contextText, { color: colors.textSecondary }]}>
+                {context}
+              </Text>
+            )}
             <Text style={[styles.timestamp, { color: colors.textMuted }]}>
               {formatTimestamp(item.timestamp)}
             </Text>

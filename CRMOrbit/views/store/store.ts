@@ -266,6 +266,11 @@ export const useAllInteractions = (): Interaction[] => {
   return crmStore(useShallow(selector));
 };
 
+export const useDoc = (): AutomergeDoc => {
+  const selector = (state: CrmStoreState) => state.doc;
+  return crmStore(selector);
+};
+
 export const useAccountContactRelations = () => {
   const selector = (state: CrmStoreState) =>
     state.doc.relations.accountContacts;
