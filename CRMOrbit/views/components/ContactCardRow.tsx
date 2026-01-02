@@ -10,8 +10,37 @@ type ContactCardRowProps = {
   onPress: () => void;
 };
 
+const getContactTypeStyling = (
+  type: Contact["type"],
+  colors: ReturnType<typeof useTheme>["colors"],
+  translate: (key: string) => string,
+) => {
+  switch (type) {
+    case "contact.type.internal":
+      return {
+        backgroundColor: colors.contactTypeInternalBg,
+        textColor: colors.contactTypeInternalText,
+        label: translate("contact.type.internal"),
+      };
+    case "contact.type.external":
+      return {
+        backgroundColor: colors.contactTypeExternalBg,
+        textColor: colors.contactTypeExternalText,
+        label: translate("contact.type.external"),
+      };
+    case "contact.type.vendor":
+    default:
+      return {
+        backgroundColor: colors.contactTypeVendorBg,
+        textColor: colors.contactTypeVendorText,
+        label: translate("contact.type.vendor"),
+      };
+  }
+};
+
 export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
   const { colors } = useTheme();
+  const contactType = getContactTypeStyling(contact.type, colors, t);
 
   return (
     <Pressable
@@ -30,34 +59,16 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
         <View
           style={[
             styles.contactTypeBadge,
-            {
-              backgroundColor:
-                contact.type === "contact.type.internal"
-                  ? colors.contactTypeInternalBg
-                  : contact.type === "contact.type.external"
-                    ? colors.contactTypeExternalBg
-                    : colors.contactTypeVendorBg,
-            },
+            { backgroundColor: contactType.backgroundColor },
           ]}
         >
           <Text
             style={[
               styles.contactTypeText,
-              {
-                color:
-                  contact.type === "contact.type.internal"
-                    ? colors.contactTypeInternalText
-                    : contact.type === "contact.type.external"
-                      ? colors.contactTypeExternalText
-                      : colors.contactTypeVendorText,
-              },
+              { color: contactType.textColor },
             ]}
           >
-            {contact.type === "contact.type.internal"
-              ? t("contact.type.internal")
-              : contact.type === "contact.type.external"
-                ? t("contact.type.external")
-                : t("contact.type.vendor")}
+            {contactType.label}
           </Text>
         </View>
       </View>
