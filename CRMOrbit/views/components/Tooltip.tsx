@@ -60,7 +60,7 @@ export const Tooltip = ({
   const childWithLongPress = isValidElement(children)
     ? cloneElement(children, {
         onLongPress: showTooltip,
-      } as Partial<React.ComponentProps<typeof children>>)
+      } as { onLongPress: () => void })
     : children;
 
   return (
