@@ -22,6 +22,17 @@ export const TimelineSection = ({
     return date.toLocaleString();
   };
 
+  const getContactName = (contact: typeof doc.contacts[string]): string => {
+    if (!contact) return t("common.unknown");
+
+    // Use legacy name field if available
+    if (contact.name) return contact.name;
+
+    // Build name from firstName and lastName
+    const parts = [contact.firstName, contact.lastName].filter(Boolean);
+    return parts.length > 0 ? parts.join(" ") : t("common.unknown");
+  };
+
   const getEventContext = (item: TimelineItem): string | null => {
     if (item.kind !== "event") return null;
 
@@ -43,7 +54,7 @@ export const TimelineSection = ({
         const contact = doc.contacts[contactId];
         const account = doc.accounts[accountId];
         if (contact && account) {
-          const contactName = contact.name || t("common.unknown");
+          const contactName = getContactName(contact);
           const accountName = account.name || t("common.unknown");
           return `${contactName} ↔ ${accountName}`;
         }
