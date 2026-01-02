@@ -179,6 +179,32 @@ export const TimelineSection = ({
       }
     }
 
+    // For note link events
+    if (item.event.type === "note.linked" || item.event.type === "note.unlinked") {
+      const entityType = typeof payload?.entityType === "string" ? payload.entityType : null;
+      const entityId = typeof payload?.entityId === "string" ? payload.entityId : null;
+
+      if (entityType && entityId) {
+        let entityName = t("common.unknown");
+
+        // Look up the entity name based on type
+        if (entityType === "organization") {
+          const org = doc.organizations[entityId];
+          entityName = org?.name || t("common.unknown");
+        } else if (entityType === "account") {
+          const account = doc.accounts[entityId];
+          entityName = account?.name || t("common.unknown");
+        } else if (entityType === "contact") {
+          const contact = doc.contacts[entityId];
+          entityName = contact ? getContactName(contact) : t("common.unknown");
+        }
+
+        // Capitalize entity type for display (e.g., "organization" -> "Organization")
+        const displayType = entityType.charAt(0).toUpperCase() + entityType.slice(1);
+        return `${displayType}: ${entityName}`;
+      }
+    }
+
     // Extract name from payload if available (fallback)
     if (typeof payload?.name === "string") {
       return payload.name;
