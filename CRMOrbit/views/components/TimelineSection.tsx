@@ -17,10 +17,24 @@ export const TimelineSection = ({ timeline }: TimelineSectionProps) => {
     return date.toLocaleString();
   };
 
+  const getEventContext = (item: TimelineItem): string | null => {
+    if (item.kind !== "event") return null;
+
+    const payload = item.event.payload as Record<string, unknown>;
+
+    // Extract name from payload if available
+    if (typeof payload?.name === "string") {
+      return payload.name;
+    }
+
+    return null;
+  };
+
   const renderTimelineItem = (item: TimelineItem) => {
     if (item.kind === "event") {
       const i18nKey = EVENT_I18N_KEYS[item.event.type];
       const eventLabel = i18nKey ? t(i18nKey) : item.event.type;
+      const context = getEventContext(item);
 
       return (
         <View
@@ -33,6 +47,11 @@ export const TimelineSection = ({ timeline }: TimelineSectionProps) => {
           <View style={styles.timelineContent}>
             <Text style={[styles.eventLabel, { color: colors.textPrimary }]}>
               {eventLabel}
+              {context && (
+                <Text style={[styles.contextText, { color: colors.textSecondary }]}>
+                  : {context}
+                </Text>
+              )}
             </Text>
             <Text style={[styles.timestamp, { color: colors.textMuted }]}>
               {formatTimestamp(item.timestamp)}
@@ -146,6 +165,9 @@ const styles = StyleSheet.create({
   eventLabel: {
     fontSize: 14,
     fontWeight: "600",
+  },
+  contextText: {
+    fontWeight: "400",
   },
   noteBody: {
     fontSize: 13,
