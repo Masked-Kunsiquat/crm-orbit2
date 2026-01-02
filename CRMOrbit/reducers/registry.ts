@@ -28,6 +28,7 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "account.contact.unsetPrimary": accountContactReducer,
   "note.created": noteReducer,
   "note.updated": noteReducer,
+  "note.deleted": noteReducer,
   "note.linked": noteLinkReducer,
   "note.unlinked": noteLinkReducer,
   "interaction.logged": interactionReducer,

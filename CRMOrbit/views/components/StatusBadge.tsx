@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../domains/shared/theme/colors";
-import { t } from "../../i18n";
+import { t } from "@i18n/index";
 
 type StatusBadgeProps = {
   isActive: boolean;

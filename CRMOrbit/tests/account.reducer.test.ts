@@ -220,7 +220,7 @@ test("account.deleted rejects deletion when contacts are linked", () => {
     },
   };
 
-  assert.throws(() => accountReducer(docWithRelation as any, deleted), {
+  assert.throws(() => accountReducer(docWithRelation, deleted), {
     message: "Cannot delete account acct-1: contacts still linked",
   });
 });

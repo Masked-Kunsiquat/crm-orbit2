@@ -60,7 +60,7 @@ export const Tooltip = ({
   const childWithLongPress = isValidElement(children)
     ? cloneElement(children, {
         onLongPress: showTooltip,
-      } as any)
+      } as { onLongPress: () => void })
     : children;
 
   return (

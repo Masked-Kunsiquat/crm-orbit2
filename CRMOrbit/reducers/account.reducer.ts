@@ -7,6 +7,10 @@ import type {
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
+import { resolveEntityId } from "./shared";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("AccountReducer");
 
 type AccountCreatedPayload = {
   id: EntityId;
@@ -34,34 +38,24 @@ type AccountUpdatedPayload = {
   socialMedia?: SocialMediaLinks;
 };
 
-const resolveEntityId = <T extends { id?: EntityId }>(
-  event: Event,
-  payload: T,
-): EntityId => {
-  if (payload.id && event.entityId && payload.id !== event.entityId) {
-    throw new Error(
-      `Event entityId mismatch: payload=${payload.id}, event=${event.entityId}`,
-    );
-  }
-
-  const entityId = payload.id ?? event.entityId;
-
-  if (!entityId) {
-    throw new Error("Event entityId is required.");
-  }
-
-  return entityId;
-};
-
 const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as AccountCreatedPayload;
   const id = resolveEntityId(event, payload);
 
+  logger.debug("Creating account", {
+    id,
+    organizationId: payload.organizationId,
+  });
+
   if (doc.accounts[id]) {
+    logger.error("Account already exists", { id });
     throw new Error(`Account already exists: ${id}`);
   }
 
   if (!doc.organizations[payload.organizationId]) {
+    logger.error("Organization not found for account", {
+      organizationId: payload.organizationId,
+    });
     throw new Error(
       `Organization not found for account: ${payload.organizationId}`,
     );
@@ -79,6 +73,12 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
+
+  logger.info("Account created", {
+    id,
+    name: payload.name,
+    status: payload.status,
+  });
 
   return {
     ...doc,
@@ -120,13 +120,19 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existing = doc.accounts[id] as Account | undefined;
 
   if (!existing) {
+    logger.error("Account not found for update", { id });
     throw new Error(`Account not found: ${id}`);
   }
 
   // Validate organization if being changed
   if (payload.organizationId && !doc.organizations[payload.organizationId]) {
+    logger.error("Organization not found for account update", {
+      organizationId: payload.organizationId,
+    });
     throw new Error(`Organization not found: ${payload.organizationId}`);
   }
+
+  logger.debug("Updating account", { id, updates: payload });
 
   return {
     ...doc,
@@ -158,6 +164,7 @@ const applyAccountDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existing = doc.accounts[id] as Account | undefined;
 
   if (!existing) {
+    logger.error("Account not found for deletion", { id });
     throw new Error(`Account not found: ${id}`);
   }
 
@@ -165,8 +172,11 @@ const applyAccountDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     (relation) => relation.accountId === id,
   );
   if (hasLinkedContacts) {
+    logger.warn("Cannot delete account with linked contacts", { id });
     throw new Error(`Cannot delete account ${id}: contacts still linked`);
   }
+
+  logger.info("Account deleted", { id });
 
   // Remove the account
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -182,6 +192,11 @@ export const accountReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  logger.debug("Processing event", {
+    type: event.type,
+    entityId: event.entityId,
+  });
+
   switch (event.type) {
     case "account.created":
       return applyAccountCreated(doc, event);
@@ -192,6 +207,7 @@ export const accountReducer = (
     case "account.deleted":
       return applyAccountDeleted(doc, event);
     default:
+      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `account.reducer does not handle event type: ${event.type}`,
       );

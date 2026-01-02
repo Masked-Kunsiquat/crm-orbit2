@@ -20,6 +20,7 @@ export const EVENT_I18N_KEYS: Record<EventType, string> = {
   "account.contact.unsetPrimary": "events.account.contact.unsetPrimary",
   "note.created": "events.note.created",
   "note.updated": "events.note.updated",
+  "note.deleted": "events.note.deleted",
   "note.linked": "events.note.linked",
   "note.unlinked": "events.note.unlinked",
   "interaction.logged": "events.interaction.logged",

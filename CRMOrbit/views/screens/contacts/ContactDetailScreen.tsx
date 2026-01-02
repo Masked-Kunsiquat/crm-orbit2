@@ -16,10 +16,12 @@ import {
   useAccountsByContact,
   useAccounts,
   useAccountContactRelations,
+  useNotes,
 } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
+import { NotesSection } from "@views/components";
 
 const DEVICE_ID = "device-local";
 
@@ -29,6 +31,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params;
   const contact = useContact(contactId);
   const linkedAccounts = useAccountsByContact(contactId);
+  const notes = useNotes("contact", contactId);
   const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
@@ -271,6 +274,13 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         )}
       </View>
 
+      <NotesSection
+        notes={notes}
+        entityId={contactId}
+        entityType="contact"
+        navigation={navigation}
+      />
+
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.deleteButtonText}>Delete Contact</Text>
       </TouchableOpacity>
@@ -375,7 +385,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#1b1b1b",
-    marginBottom: 12,
   },
   methodItem: {
     paddingVertical: 8,

@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 
+import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
@@ -30,8 +31,6 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const [type, setType] = useState<ContactType>("contact.type.internal");
   const [emails, setEmails] = useState<ContactMethod[]>([]);
   const [phones, setPhones] = useState<ContactMethod[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_isDirty, setIsDirty] = useState(false);
   const lastContactIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different contact
@@ -40,8 +39,6 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     const isContactChanged = currentContactId !== lastContactIdRef.current;
 
     if (isContactChanged) {
-      // Reset dirty flag when switching contacts
-      setIsDirty(false);
       lastContactIdRef.current = currentContactId;
 
       if (contact) {
@@ -75,22 +72,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handleFirstNameChange = (value: string) => {
     setFirstName(value);
-    setIsDirty(true);
   };
 
   const handleLastNameChange = (value: string) => {
     setLastName(value);
-    setIsDirty(true);
   };
 
   const handleTitleChange = (value: string) => {
     setTitle(value);
-    setIsDirty(true);
   };
 
   const handleTypeChange = (value: ContactType) => {
     setType(value);
-    setIsDirty(true);
   };
 
   const handleAddEmail = () => {
@@ -102,19 +95,16 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         status: "contact.method.status.active",
       },
     ]);
-    setIsDirty(true);
   };
 
   const handleEmailChange = (index: number, value: string) => {
     const newEmails = [...emails];
     newEmails[index] = { ...newEmails[index], value };
     setEmails(newEmails);
-    setIsDirty(true);
   };
 
   const handleRemoveEmail = (index: number) => {
     setEmails(emails.filter((_, i) => i !== index));
-    setIsDirty(true);
   };
 
   const handleAddPhone = () => {
@@ -126,24 +116,21 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         status: "contact.method.status.active",
       },
     ]);
-    setIsDirty(true);
   };
 
   const handlePhoneChange = (index: number, value: string) => {
     const newPhones = [...phones];
     newPhones[index] = { ...newPhones[index], value };
     setPhones(newPhones);
-    setIsDirty(true);
   };
 
   const handleRemovePhone = (index: number) => {
     setPhones(phones.filter((_, i) => i !== index));
-    setIsDirty(true);
   };
 
   const handleSave = () => {
     if (!firstName.trim() && !lastName.trim()) {
-      Alert.alert("Validation Error", "Contact first or last name is required");
+      Alert.alert("Validation Error", t("contacts.validation.nameRequired"));
       return;
     }
 

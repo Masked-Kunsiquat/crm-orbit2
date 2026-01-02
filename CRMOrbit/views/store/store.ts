@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
@@ -11,7 +12,12 @@ import type { Organization } from "@domains/organization";
 import { NoteLinkEntityType } from "@domains/relations/noteLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
-import { getNotesForEntity, getPrimaryContacts } from "./selectors";
+import {
+  getEntitiesForNote,
+  getNotesForEntity,
+  getPrimaryContacts,
+  LinkedEntityInfo,
+} from "./selectors";
 
 // Internal store state - not exported
 type CrmStoreState = {
@@ -50,6 +56,27 @@ const crmStore = create<CrmStoreState>((set) => ({
           : eventsOrUpdater,
     })),
 }));
+
+const areLinkedEntitiesEqual = (
+  left: LinkedEntityInfo[],
+  right: LinkedEntityInfo[],
+): boolean => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    const leftItem = left[i];
+    const rightItem = right[i];
+    if (
+      leftItem.linkId !== rightItem.linkId ||
+      leftItem.entityId !== rightItem.entityId ||
+      leftItem.entityType !== rightItem.entityType ||
+      leftItem.name !== rightItem.name
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
 
 /**
  * Internal API for trusted hooks (useDispatch, App initialization, etc.)
@@ -110,6 +137,20 @@ export const useNotes = (
   return crmStore(useShallow(selector));
 };
 
+export const useEntitiesForNote = (noteId: EntityId): LinkedEntityInfo[] => {
+  const cacheRef = useRef<LinkedEntityInfo[] | null>(null);
+  const selector = (state: CrmStoreState) => {
+    const next = getEntitiesForNote(state.doc, noteId);
+    const cached = cacheRef.current;
+    if (cached && areLinkedEntitiesEqual(cached, next)) {
+      return cached;
+    }
+    cacheRef.current = next;
+    return next;
+  };
+  return crmStore(selector);
+};
+
 export const useTimeline = (
   entityType: NoteLinkEntityType,
   entityId: EntityId,
@@ -120,19 +161,19 @@ export const useTimeline = (
 };
 
 export const useOrganization = (id: EntityId): Organization | undefined =>
-  crmStore((state) => state.doc.organizations[id]);
+  crmStore(useShallow((state) => state.doc.organizations[id]));
 
 export const useAccount = (id: EntityId): Account | undefined =>
-  crmStore((state) => state.doc.accounts[id]);
+  crmStore(useShallow((state) => state.doc.accounts[id]));
 
 export const useContact = (id: EntityId): Contact | undefined =>
-  crmStore((state) => state.doc.contacts[id]);
+  crmStore(useShallow((state) => state.doc.contacts[id]));
 
 export const useNote = (id: EntityId): Note | undefined =>
-  crmStore((state) => state.doc.notes[id]);
+  crmStore(useShallow((state) => state.doc.notes[id]));
 
 export const useInteraction = (id: EntityId): Interaction | undefined =>
-  crmStore((state) => state.doc.interactions[id]);
+  crmStore(useShallow((state) => state.doc.interactions[id]));
 
 export const useAccountsByOrganization = (
   organizationId: EntityId,

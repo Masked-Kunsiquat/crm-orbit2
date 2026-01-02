@@ -29,13 +29,13 @@ jobs:
         working-directory: CRMOrbit
         run: npm ci
 
-#      - name: Verify migrations
-#        working-directory: CRMOrbit
-#        run: npm run verify-migrations
+      #      - name: Verify migrations
+      #        working-directory: CRMOrbit
+      #        run: npm run verify-migrations
 
-#      - name: Run architecture tests
-#        working-directory: CRMOrbit
-#        run: npm run arch-test
+      #      - name: Run architecture tests
+      #        working-directory: CRMOrbit
+      #        run: npm run arch-test
 
       - name: Install SARIF formatter (no lockfile changes)
         working-directory: CRMOrbit

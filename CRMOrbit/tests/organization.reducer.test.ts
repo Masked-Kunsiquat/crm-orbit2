@@ -170,7 +170,7 @@ test("organization.deleted rejects deletion when dependent accounts exist", () =
     },
   };
 
-  assert.throws(() => organizationReducer(docWithAccount as any, deleted), {
+  assert.throws(() => organizationReducer(docWithAccount, deleted), {
     message: "Cannot delete organization org-1: accounts still reference it",
   });
 });

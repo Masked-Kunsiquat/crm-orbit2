@@ -1,4 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { RootTabParamList } from "./types";
 import { OrganizationsStack } from "./OrganizationsStack";
@@ -8,14 +11,70 @@ import { NotesScreen, InteractionsScreen } from "../screens";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+const TAB_ICON_SIZES: Record<keyof RootTabParamList, number> = {
+  OrganizationsTab: 24,
+  AccountsTab: 24,
+  ContactsTab: 24,
+  NotesTab: 24,
+  InteractionsTab: 24,
+};
+
 export const RootTabs = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: "#1f5eff",
         tabBarInactiveTintColor: "#666",
-      }}
+        tabBarIcon: ({ color, size }) => {
+          const iconSize = TAB_ICON_SIZES[route.name] ?? size;
+          switch (route.name) {
+            case "OrganizationsTab":
+              return (
+                <Ionicons
+                  name="business-outline"
+                  size={iconSize}
+                  color={color}
+                />
+              );
+            case "AccountsTab":
+              return (
+                <MaterialCommunityIcons
+                  name="home-city-outline"
+                  size={iconSize}
+                  color={color}
+                />
+              );
+            case "ContactsTab":
+              return (
+                <FontAwesome5
+                  name="address-book"
+                  size={iconSize}
+                  color={color}
+                />
+              );
+            case "NotesTab":
+              return (
+                <MaterialCommunityIcons
+                  name="notebook-outline"
+                  size={iconSize}
+                  color={color}
+                />
+              );
+            case "InteractionsTab":
+              return (
+                <MaterialCommunityIcons
+                  name="lightning-bolt-outline"
+                  size={iconSize}
+                  color={color}
+                />
+              );
+            default:
+              return null;
+          }
+        },
+      })}
     >
       <Tab.Screen
         name="OrganizationsTab"
