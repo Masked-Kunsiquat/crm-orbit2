@@ -1,6 +1,7 @@
 import type { Contact, ContactMethod } from "../domains/contact";
 import type { Account, AccountAddresses } from "../domains/account";
 import type { Organization, SocialMediaLinks } from "../domains/organization";
+import type { Note } from "../domains/note";
 
 export type FieldChange = {
   field: string;
@@ -251,6 +252,37 @@ export const detectOrganizationChanges = (
           newValue,
         });
       }
+    });
+  }
+
+  return changes;
+};
+
+/**
+ * Detects changes between an old note and new note data
+ */
+export const detectNoteChanges = (
+  oldNote: Note,
+  newData: {
+    title: string;
+    body: string;
+  },
+): FieldChange[] => {
+  const changes: FieldChange[] = [];
+
+  if (oldNote.title !== newData.title) {
+    changes.push({
+      field: "title",
+      oldValue: oldNote.title,
+      newValue: newData.title,
+    });
+  }
+
+  if (oldNote.body !== newData.body) {
+    changes.push({
+      field: "body",
+      oldValue: oldNote.body,
+      newValue: newData.body,
     });
   }
 
