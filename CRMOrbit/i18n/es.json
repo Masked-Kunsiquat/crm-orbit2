@@ -43,7 +43,7 @@
     "notes.form.bodyPlaceholder": "Introduce el contenido de la nota",
     "notes.form.updateButton": "Actualizar nota",
     "notes.form.createButton": "Crear nota",
-    "accounts.validation.nameRequired": "Nombre de cuenta",
+    "accounts.validation.nameRequired": "Se requiere el nombre de cuenta",
     "accounts.validation.organizationRequired": "Es necesaria la organización",
     "accounts.notFound": "Cuenta no encontrada",
     "accounts.deleteTitle": "Eliminar cuenta",
