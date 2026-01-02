@@ -180,9 +180,14 @@ export const TimelineSection = ({
     }
 
     // For note link events
-    if (item.event.type === "note.linked" || item.event.type === "note.unlinked") {
-      const entityType = typeof payload?.entityType === "string" ? payload.entityType : null;
-      const entityId = typeof payload?.entityId === "string" ? payload.entityId : null;
+    if (
+      item.event.type === "note.linked" ||
+      item.event.type === "note.unlinked"
+    ) {
+      const entityType =
+        typeof payload?.entityType === "string" ? payload.entityType : null;
+      const entityId =
+        typeof payload?.entityId === "string" ? payload.entityId : null;
 
       if (entityType && entityId) {
         let entityName = t("common.unknown");
@@ -200,7 +205,8 @@ export const TimelineSection = ({
         }
 
         // Capitalize entity type for display (e.g., "organization" -> "Organization")
-        const displayType = entityType.charAt(0).toUpperCase() + entityType.slice(1);
+        const displayType =
+          entityType.charAt(0).toUpperCase() + entityType.slice(1);
         return `${displayType}: ${entityName}`;
       }
     }
@@ -240,7 +246,9 @@ export const TimelineSection = ({
             .replace(/^./, (str) => str.toUpperCase())
             .trim();
         };
-        const fieldNames = changes.map((c) => capitalizeField(c.field)).join(", ");
+        const fieldNames = changes
+          .map((c) => capitalizeField(c.field))
+          .join(", ");
         eventLabel = `${eventLabel} - ${fieldNames}`;
       }
 
