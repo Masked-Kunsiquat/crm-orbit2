@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../hooks";
 
 type SectionProps = {
-  title: string;
+  title?: string;
   children: ReactNode;
 };
 
@@ -13,9 +13,11 @@ export const Section = ({ title, children }: SectionProps) => {
 
   return (
     <View style={[styles.section, { backgroundColor: colors.surface }]}>
-      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-        {title}
-      </Text>
+      {title && (
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+          {title}
+        </Text>
+      )}
       {children}
     </View>
   );

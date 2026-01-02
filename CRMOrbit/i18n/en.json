@@ -72,6 +72,8 @@
   "accounts.filters.internal": "Internal",
   "accounts.filters.external": "External",
   "accounts.filters.vendor": "Vendor",
+  "accounts.noContacts": "No contacts for this account.",
+  "accounts.noContactsFiltered": "No {type} contacts for this account.",
   "accounts.noNotes": "No notes for this account.",
   "accounts.addNote": "Add Note",
   "contacts.validation.nameRequired": "Contact first or last name is required",

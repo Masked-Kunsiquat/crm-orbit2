@@ -1,6 +1,5 @@
 import {
   Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,7 +20,7 @@ import {
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useTheme } from "@views/hooks";
 import { getContactDisplayName } from "@domains/contact.utils";
-import { Tooltip, NotesSection } from "@views/components";
+import { Tooltip, NotesSection, DetailScreenLayout, Section } from "@views/components";
 import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";
@@ -39,11 +38,11 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
   if (!organization) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+      <DetailScreenLayout>
         <Text style={[styles.error, { color: colors.error }]}>
           {t("organizations.notFound")}
         </Text>
-      </View>
+      </DetailScreenLayout>
     );
   }
 
@@ -94,8 +93,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+    <DetailScreenLayout>
+      <Section>
         {organization.logoUri && (
           <View style={styles.logoContainer}>
             <Image source={{ uri: organization.logoUri }} style={styles.logo} />
@@ -107,9 +106,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         <Text style={[styles.value, { color: colors.textPrimary }]}>
           {organization.name}
         </Text>
-      </View>
+      </Section>
 
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Section>
         <Text style={[styles.label, { color: colors.textSecondary }]}>
           {t("organizations.fields.status")}
         </Text>
@@ -127,10 +126,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               : t("status.inactive")}
           </Text>
         </View>
-      </View>
+      </Section>
 
       {organization.website && (
-        <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Section>
           <Text style={[styles.label, { color: colors.textSecondary }]}>
             {t("organizations.fields.website")}
           </Text>
@@ -141,12 +140,12 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               {organization.website}
             </Text>
           </TouchableOpacity>
-        </View>
+        </Section>
       )}
 
       {organization.socialMedia &&
         Object.values(organization.socialMedia).some((v) => v) && (
-          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+          <Section>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
               {t("organizations.fields.socialMedia")}
             </Text>
@@ -250,19 +249,19 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 </Pressable>
               </Tooltip>
             )}
-          </View>
+          </Section>
         )}
 
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Section>
         <Text style={[styles.label, { color: colors.textSecondary }]}>
           {t("organizations.fields.created")}
         </Text>
         <Text style={[styles.value, { color: colors.textPrimary }]}>
           {new Date(organization.createdAt).toLocaleString()}
         </Text>
-      </View>
+      </Section>
 
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Section>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("organizations.sections.accounts")} ({accounts.length})
         </Text>
@@ -293,9 +292,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             </View>
           ))
         )}
-      </View>
+      </Section>
 
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Section>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("organizations.sections.contacts")} ({contacts.length})
         </Text>
@@ -364,14 +363,13 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             </Pressable>
           ))
         )}
-      </View>
+      </Section>
 
       <NotesSection
         notes={notes}
         entityId={organizationId}
         entityType="organization"
         navigation={navigation}
-        style={{ marginTop: 12, marginHorizontal: 16, borderRadius: 8 }}
       />
 
       <TouchableOpacity
@@ -391,20 +389,11 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           {t("organizations.deleteButton")}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+    </DetailScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-    marginTop: 12,
-    marginHorizontal: 16,
-    borderRadius: 8,
-  },
   label: {
     fontSize: 12,
     marginBottom: 4,

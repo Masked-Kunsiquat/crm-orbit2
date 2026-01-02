@@ -1,6 +1,5 @@
 import {
   Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,7 +20,7 @@ import {
 import { useAccountActions } from "../../hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
-import { Tooltip, NotesSection } from "../../components";
+import { Tooltip, NotesSection, DetailScreenLayout, Section } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -51,11 +50,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   if (!account) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+      <DetailScreenLayout>
         <Text style={[styles.errorText, { color: colors.error }]}>
           {t("accounts.notFound")}
         </Text>
-      </View>
+      </DetailScreenLayout>
     );
   }
 
@@ -103,8 +102,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+    <DetailScreenLayout>
+      <Section>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
             {account.name}
@@ -314,9 +313,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               )}
             </View>
           )}
-      </View>
+      </Section>
 
-      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Section>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("accounts.sections.contacts")} ({allContacts.length})
         </Text>
@@ -489,7 +488,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             </Pressable>
           ))
         )}
-      </View>
+      </Section>
 
       <NotesSection
         notes={notes}
@@ -506,18 +505,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           {t("accounts.deleteButton")}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+    </DetailScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-    marginBottom: 12,
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

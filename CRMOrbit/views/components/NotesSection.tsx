@@ -4,11 +4,11 @@ import {
   TouchableOpacity,
   View,
   Pressable,
-  ViewStyle,
 } from "react-native";
 import type { Note } from "@domains/note";
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
+import { Section } from "./Section";
 
 type EntityType = "account" | "organization" | "contact";
 
@@ -19,7 +19,6 @@ interface NotesSectionProps {
   navigation: {
     navigate: (screen: string, params?: Record<string, unknown>) => void;
   };
-  style?: ViewStyle;
 }
 
 export const NotesSection = ({
@@ -27,7 +26,6 @@ export const NotesSection = ({
   entityId,
   entityType,
   navigation,
-  style,
 }: NotesSectionProps) => {
   const { colors } = useTheme();
 
@@ -43,7 +41,7 @@ export const NotesSection = ({
   };
 
   return (
-    <View style={[styles.section, { backgroundColor: colors.surface }, style]}>
+    <Section>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("notes.title")} ({notes.length})
@@ -92,15 +90,11 @@ export const NotesSection = ({
           </Pressable>
         ))
       )}
-    </View>
+    </Section>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    padding: 16,
-    marginBottom: 12,
-  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
