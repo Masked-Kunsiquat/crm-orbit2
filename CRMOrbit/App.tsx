@@ -14,6 +14,13 @@ import { RootStack } from "./views/navigation";
 
 registerCoreReducers();
 
+/**
+ * Root application component that initializes persistence, hydrates the CRM store, and renders navigation or an error/loading UI.
+ *
+ * Initializes the local database and persistence layer on mount, loads persisted state into the internal CRM store, and displays either the app navigation once ready, a loading indicator while initializing, or an error message if initialization fails.
+ *
+ * @returns The root React element for the app; renders the navigation stack when data is loaded, or a loading/error screen otherwise.
+ */
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
