@@ -527,6 +527,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         <SocialMediaFields
           socialMedia={socialMedia}
           onChange={handleSocialMediaChange}
+          translationPrefix="accounts"
         />
 
         <TouchableOpacity

@@ -232,6 +232,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         <SocialMediaFields
           socialMedia={socialMedia}
           onChange={handleSocialMediaChange}
+          translationPrefix="organizations"
         />
 
         <View style={styles.field}>

@@ -2,44 +2,47 @@ import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { SocialMediaLinks } from "@domains/organization";
 import { useTheme } from "../hooks";
+import { t } from "@i18n/index";
 
 type SocialMediaFieldsProps = {
   socialMedia: SocialMediaLinks;
   onChange: (platform: keyof SocialMediaLinks, value: string) => void;
+  translationPrefix: "organizations" | "accounts";
 };
 
 export const SocialMediaFields = ({
   socialMedia,
   onChange,
+  translationPrefix,
 }: SocialMediaFieldsProps) => {
   const { colors } = useTheme();
 
   const fields: Array<{
     key: keyof SocialMediaLinks;
-    placeholder: string;
+    placeholderKey: string;
   }> = [
     {
       key: "x",
-      placeholder: "X (Twitter) username or URL",
+      placeholderKey: "xPlaceholder",
     },
     {
       key: "linkedin",
-      placeholder: "LinkedIn URL",
+      placeholderKey: "linkedinPlaceholder",
     },
     {
       key: "facebook",
-      placeholder: "Facebook URL",
+      placeholderKey: "facebookPlaceholder",
     },
     {
       key: "instagram",
-      placeholder: "Instagram username or URL",
+      placeholderKey: "instagramPlaceholder",
     },
   ];
 
   return (
     <View style={styles.field}>
       <Text style={[styles.label, { color: colors.textPrimary }]}>
-        Social Media
+        {t(`${translationPrefix}.form.socialMedia.label`)}
       </Text>
       {fields.map((field) => (
         <TextInput
@@ -55,7 +58,9 @@ export const SocialMediaFields = ({
           ]}
           value={socialMedia[field.key] || ""}
           onChangeText={(value) => onChange(field.key, value)}
-          placeholder={field.placeholder}
+          placeholder={t(
+            `${translationPrefix}.form.socialMedia.${field.placeholderKey}`,
+          )}
           placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
         />

@@ -65,7 +65,9 @@ export const SocialLinksSection = ({
             >
               <Pressable
                 onPress={() =>
-                  Linking.openURL(normalizeUrl(platform, socialMedia[platform]!))
+                  Linking.openURL(
+                    normalizeUrl(platform, socialMedia[platform]!),
+                  )
                 }
                 style={styles.socialLinkContainer}
               >
