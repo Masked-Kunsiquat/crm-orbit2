@@ -6,7 +6,6 @@ import {
   View,
   Image,
   Linking,
-  Pressable,
 } from "react-native";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
@@ -18,13 +17,13 @@ import {
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useTheme } from "@views/hooks";
-import { getContactDisplayName } from "@domains/contact.utils";
 import {
   NotesSection,
   DetailScreenLayout,
   Section,
   DetailField,
   SocialLinksSection,
+  ContactCardRow,
 } from "@views/components";
 import { t } from "@i18n/index";
 
@@ -205,63 +204,13 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           </Text>
         ) : (
           contacts.map((contact) => (
-            <Pressable
+            <ContactCardRow
               key={contact.id}
-              style={[
-                styles.contactCard,
-                { backgroundColor: colors.surfaceElevated },
-              ]}
-              onPress={() => {
-                // Navigate to contact detail using root navigator
-                navigation.navigate("ContactDetail", { contactId: contact.id });
-              }}
-            >
-              <View style={styles.contactCardContent}>
-                <Text
-                  style={[styles.contactName, { color: colors.textPrimary }]}
-                >
-                  {getContactDisplayName(contact)}
-                </Text>
-                {contact.title && (
-                  <Text
-                    style={[
-                      styles.contactTitle,
-                      { color: colors.textSecondary },
-                    ]}
-                  >
-                    {contact.title}
-                  </Text>
-                )}
-                <View
-                  style={[
-                    styles.contactTypeBadge,
-                    contact.type === "contact.type.internal" && {
-                      backgroundColor: colors.contactTypeInternalBg,
-                    },
-                    contact.type === "contact.type.external" && {
-                      backgroundColor: colors.contactTypeExternalBg,
-                    },
-                    contact.type === "contact.type.vendor" && {
-                      backgroundColor: colors.contactTypeVendorBg,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.contactTypeText,
-                      { color: colors.textPrimary },
-                    ]}
-                  >
-                    {contact.type === "contact.type.internal"
-                      ? t("contact.type.internal")
-                      : contact.type === "contact.type.external"
-                        ? t("contact.type.external")
-                        : t("contact.type.vendor")}
-                  </Text>
-                </View>
-              </View>
-              <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
-            </Pressable>
+              contact={contact}
+              onPress={() =>
+                navigation.navigate("ContactDetail", { contactId: contact.id })
+              }
+            />
           ))
         )}
       </Section>
@@ -347,45 +296,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     fontStyle: "italic",
-  },
-  contactCard: {
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  contactCardContent: {
-    flex: 1,
-  },
-  contactName: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  contactTitle: {
-    fontSize: 12,
-    fontStyle: "italic",
-    marginBottom: 4,
-  },
-  contactType: {
-    fontSize: 12,
-  },
-  contactTypeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-    marginTop: 4,
-  },
-  contactTypeText: {
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  chevron: {
-    fontSize: 20,
-    marginLeft: 8,
   },
   editButton: {
     margin: 16,

@@ -13,3 +13,4 @@ export { Tooltip } from "./Tooltip";
 export { NotesSection } from "./NotesSection";
 export { SocialLinksSection } from "./SocialLinksSection";
 export { SocialMediaFields } from "./SocialMediaFields";
+export { ContactCardRow } from "./ContactCardRow";
