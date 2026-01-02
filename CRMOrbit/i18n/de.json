@@ -73,7 +73,7 @@
     "organizations.validation.nameRequired": "Organisationsname ist erforderlich",
     "organizations.notFound": "Organisation nicht gefunden",
     "organizations.cannotDeleteTitle": "Löschen nicht möglich",
-    "organizations.cannotDeleteMessage": "\"{name}\" kann nicht gelöscht werden, da {count} zugeordnete(s) Konto(en) vorhanden ist/sind. Bitte löschen oder ordnen Sie die Konten zuerst neu zu.",
+    "organizations.cannotDeleteMessage": "Kann nicht löschen \"{name}\", weil es {count} zugeordnete Konten hat. Bitte löschen Sie sie zuerst.",
     "organizations.deleteTitle": "Organisation löschen",
     "organizations.deleteConfirmation": "Möchten Sie \"{name}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "organizations.deleteError": "Fehler beim Löschen der Organisation",
