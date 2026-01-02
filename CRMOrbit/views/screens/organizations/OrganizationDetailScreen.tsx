@@ -8,7 +8,6 @@ import {
   Linking,
   Pressable,
 } from "react-native";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import {
@@ -21,11 +20,11 @@ import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useTheme } from "@views/hooks";
 import { getContactDisplayName } from "@domains/contact.utils";
 import {
-  Tooltip,
   NotesSection,
   DetailScreenLayout,
   Section,
   DetailField,
+  SocialLinksSection,
 } from "@views/components";
 import { t } from "@i18n/index";
 
@@ -150,106 +149,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Text style={[styles.label, { color: colors.textSecondary }]}>
               {t("organizations.fields.socialMedia")}
             </Text>
-            {organization.socialMedia.facebook && (
-              <Tooltip content={organization.socialMedia.facebook}>
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(organization.socialMedia!.facebook!)
-                  }
-                  style={styles.socialLinkContainer}
-                >
-                  <Text style={[styles.socialLink, { color: colors.link }]}>
-                    {t("organizations.socialMedia.facebook")}
-                  </Text>
-                  <FontAwesome6
-                    name="square-facebook"
-                    size={18}
-                    color={colors.link}
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
-            {organization.socialMedia.instagram && (
-              <Tooltip
-                content={
-                  organization.socialMedia.instagram.startsWith("http")
-                    ? organization.socialMedia.instagram
-                    : `https://instagram.com/${organization.socialMedia.instagram}`
-                }
-              >
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(
-                      organization.socialMedia!.instagram!.startsWith("http")
-                        ? organization.socialMedia!.instagram!
-                        : `https://instagram.com/${organization.socialMedia!.instagram}`,
-                    )
-                  }
-                  style={styles.socialLinkContainer}
-                >
-                  <Text style={[styles.socialLink, { color: colors.link }]}>
-                    {t("organizations.socialMedia.instagram")}
-                  </Text>
-                  <FontAwesome6
-                    name="instagram"
-                    size={18}
-                    color={colors.link}
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
-            {organization.socialMedia.linkedin && (
-              <Tooltip content={organization.socialMedia.linkedin}>
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(organization.socialMedia!.linkedin!)
-                  }
-                  style={styles.socialLinkContainer}
-                >
-                  <Text style={[styles.socialLink, { color: colors.link }]}>
-                    {t("organizations.socialMedia.linkedin")}
-                  </Text>
-                  <FontAwesome6
-                    name="linkedin"
-                    size={18}
-                    color={colors.link}
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
-            {organization.socialMedia.x && (
-              <Tooltip
-                content={
-                  organization.socialMedia.x.startsWith("http")
-                    ? organization.socialMedia.x
-                    : `https://x.com/${organization.socialMedia.x}`
-                }
-              >
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(
-                      organization.socialMedia!.x!.startsWith("http")
-                        ? organization.socialMedia!.x!
-                        : `https://x.com/${organization.socialMedia!.x}`,
-                    )
-                  }
-                  style={styles.socialLinkContainer}
-                >
-                  <Text style={[styles.socialLink, { color: colors.link }]}>
-                    {t("organizations.socialMedia.x")}
-                  </Text>
-                  <FontAwesome6
-                    name="square-x-twitter"
-                    size={18}
-                    color={colors.link}
-                    style={styles.socialIcon}
-                  />
-                </Pressable>
-              </Tooltip>
-            )}
+            <SocialLinksSection
+              socialMedia={organization.socialMedia}
+              translationPrefix="organizations"
+            />
           </Section>
         )}
 
@@ -410,18 +313,6 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 16,
     textDecorationLine: "underline",
-  },
-  socialLinkContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    gap: 8,
-  },
-  socialLink: {
-    fontSize: 16,
-  },
-  socialIcon: {
-    marginLeft: 4,
   },
   statusBadge: {
     paddingHorizontal: 12,

@@ -21,6 +21,7 @@ import type {
   SocialMediaLinks,
 } from "@domains/account";
 import { useTheme } from "../../hooks/useTheme";
+import { SocialMediaFields } from "../../components";
 
 const DEVICE_ID = "device-local";
 
@@ -523,77 +524,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           />
         </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Social Media
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.x || ""}
-            onChangeText={(value) => handleSocialMediaChange("x", value)}
-            placeholder="X (Twitter) username or URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.linkedin || ""}
-            onChangeText={(value) => handleSocialMediaChange("linkedin", value)}
-            placeholder="LinkedIn URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.facebook || ""}
-            onChangeText={(value) => handleSocialMediaChange("facebook", value)}
-            placeholder="Facebook URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.instagram || ""}
-            onChangeText={(value) =>
-              handleSocialMediaChange("instagram", value)
-            }
-            placeholder="Instagram username or URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-        </View>
+        <SocialMediaFields
+          socialMedia={socialMedia}
+          onChange={handleSocialMediaChange}
+        />
 
         <TouchableOpacity
           style={[
@@ -795,8 +729,5 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     fontSize: 15,
-  },
-  socialInput: {
-    marginTop: 8,
   },
 });

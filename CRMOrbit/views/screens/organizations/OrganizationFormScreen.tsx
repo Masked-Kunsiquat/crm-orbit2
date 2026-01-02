@@ -17,6 +17,7 @@ import { useOrganization } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
 import { useTheme } from "@views/hooks/useTheme";
+import { SocialMediaFields } from "@views/components";
 
 const DEVICE_ID = "device-local";
 
@@ -228,77 +229,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           />
         </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Social Media
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.x || ""}
-            onChangeText={(value) => handleSocialMediaChange("x", value)}
-            placeholder="X (Twitter) username or URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.linkedin || ""}
-            onChangeText={(value) => handleSocialMediaChange("linkedin", value)}
-            placeholder="LinkedIn URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.facebook || ""}
-            onChangeText={(value) => handleSocialMediaChange("facebook", value)}
-            placeholder="Facebook URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              styles.socialInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={socialMedia.instagram || ""}
-            onChangeText={(value) =>
-              handleSocialMediaChange("instagram", value)
-            }
-            placeholder="Instagram username or URL"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
-        </View>
+        <SocialMediaFields
+          socialMedia={socialMedia}
+          onChange={handleSocialMediaChange}
+        />
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
@@ -404,9 +338,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
-  },
-  socialInput: {
-    marginTop: 8,
   },
   statusButtons: {
     flexDirection: "row",
