@@ -3,9 +3,14 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
-import type { AccountAddresses, SocialMediaLinks } from "../../domains/account";
+import type {
+  Account,
+  AccountAddresses,
+  SocialMediaLinks,
+} from "../../domains/account";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
+import { detectAccountChanges } from "../../utils/historyChanges";
 
 export const useAccountActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -66,7 +71,13 @@ export const useAccountActions = (deviceId: string) => {
       addresses?: AccountAddresses,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      previousAccount?: Account,
     ): DispatchResult => {
+      const changes =
+        previousAccount
+          ? detectAccountChanges(previousAccount, { name, status })
+          : undefined;
+
       const event = buildEvent({
         type: "account.updated",
         entityId: accountId,
@@ -77,6 +88,7 @@ export const useAccountActions = (deviceId: string) => {
           addresses,
           website,
           socialMedia,
+          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });

@@ -211,6 +211,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         addresses,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        account ?? undefined,
       );
       if (result.success) {
         navigation.goBack();

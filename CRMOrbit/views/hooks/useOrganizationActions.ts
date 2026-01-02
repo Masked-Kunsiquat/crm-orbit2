@@ -3,9 +3,10 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
-import type { SocialMediaLinks } from "../../domains/organization";
+import type { Organization, SocialMediaLinks } from "../../domains/organization";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
+import { detectOrganizationChanges } from "../../utils/historyChanges";
 
 export const useOrganizationActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -63,7 +64,13 @@ export const useOrganizationActions = (deviceId: string) => {
       logoUri?: string,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      previousOrganization?: Organization,
     ): DispatchResult => {
+      const changes =
+        previousOrganization
+          ? detectOrganizationChanges(previousOrganization, { name, status })
+          : undefined;
+
       const event = buildEvent({
         type: "organization.updated",
         entityId: organizationId,
@@ -73,6 +80,7 @@ export const useOrganizationActions = (deviceId: string) => {
           logoUri,
           website,
           socialMedia,
+          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });

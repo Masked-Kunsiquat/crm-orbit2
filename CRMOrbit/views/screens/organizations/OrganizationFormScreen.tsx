@@ -140,6 +140,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         logoUri,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        organization ?? undefined,
       );
       if (result.success) {
         navigation.goBack();

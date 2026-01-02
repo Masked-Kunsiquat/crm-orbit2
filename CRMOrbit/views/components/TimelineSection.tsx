@@ -180,6 +180,12 @@ export const TimelineSection = ({
       const i18nKey = EVENT_I18N_KEYS[item.event.type];
       const eventLabel = i18nKey ? t(i18nKey) : item.event.type;
       const context = getEventContext(item);
+      const payload = item.event.payload as Record<string, unknown>;
+
+      // Check for field changes array in update events
+      const changes = payload?.changes as
+        | Array<{ field: string; oldValue: string; newValue: string }>
+        | undefined;
 
       return (
         <View
@@ -197,6 +203,18 @@ export const TimelineSection = ({
               <Text style={[styles.contextText, { color: colors.textSecondary }]}>
                 {context}
               </Text>
+            )}
+            {changes && changes.length > 0 && (
+              <View style={styles.changesContainer}>
+                {changes.map((change, idx) => (
+                  <Text
+                    key={idx}
+                    style={[styles.changeText, { color: colors.textSecondary }]}
+                  >
+                    {change.oldValue} → {change.newValue}
+                  </Text>
+                ))}
+              </View>
             )}
             <Text style={[styles.timestamp, { color: colors.textMuted }]}>
               {formatTimestamp(item.timestamp)}
@@ -313,6 +331,14 @@ const styles = StyleSheet.create({
   },
   contextText: {
     fontWeight: "400",
+  },
+  changesContainer: {
+    gap: 2,
+    marginTop: 2,
+  },
+  changeText: {
+    fontSize: 13,
+    fontFamily: "monospace",
   },
   noteBody: {
     fontSize: 13,

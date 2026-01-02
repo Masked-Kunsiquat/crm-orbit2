@@ -1,11 +1,12 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import type { ContactMethod } from "../../domains/contact";
+import type { Contact, ContactMethod } from "../../domains/contact";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
+import { detectContactChanges } from "../../utils/historyChanges";
 
 export const useContactActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -101,7 +102,18 @@ export const useContactActions = (deviceId: string) => {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
       } = {},
+      previousContact?: Contact,
     ): DispatchResult => {
+      const changes =
+        previousContact
+          ? detectContactChanges(previousContact, {
+              firstName,
+              lastName,
+              type,
+              title,
+            })
+          : undefined;
+
       const event = buildEvent({
         type: "contact.updated",
         entityId: contactId,
@@ -114,6 +126,7 @@ export const useContactActions = (deviceId: string) => {
             emails: methods.emails ?? [],
             phones: methods.phones ?? [],
           },
+          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });

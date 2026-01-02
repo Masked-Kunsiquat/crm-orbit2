@@ -222,6 +222,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
           emails: validEmails,
           phones: validPhones,
         },
+        contact ?? undefined,
       );
       if (result.success) {
         navigation.goBack();
