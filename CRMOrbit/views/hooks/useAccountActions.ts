@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
@@ -19,7 +18,7 @@ export const useAccountActions = (deviceId: string) => {
       addresses?: AccountAddresses,
       website?: string,
       socialMedia?: SocialMediaLinks,
-    ): DispatchResult & { id: string } => {
+    ): DispatchResult => {
       const id = nextId("account");
       const event = buildEvent({
         type: "account.created",
@@ -37,14 +36,13 @@ export const useAccountActions = (deviceId: string) => {
         deviceId,
       });
 
-      const result = dispatch([event]);
-      return { ...result, id };
+      return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const updateAccountStatus = useCallback(
-    (accountId: EntityId, status: string) => {
+    (accountId: EntityId, status: string): DispatchResult => {
       const event = buildEvent({
         type: "account.status.updated",
         entityId: accountId,
@@ -56,7 +54,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const updateAccount = useCallback(
@@ -85,7 +83,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const linkContact = useCallback(
@@ -94,7 +92,7 @@ export const useAccountActions = (deviceId: string) => {
       contactId: EntityId,
       role = "account.contact.role.primary",
       isPrimary = false,
-    ) => {
+    ): DispatchResult => {
       const id = nextId("accountContact");
       const event = buildEvent({
         type: "account.contact.linked",
@@ -111,11 +109,15 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const setPrimaryContact = useCallback(
-    (accountId: EntityId, contactId: EntityId, role: string) => {
+    (
+      accountId: EntityId,
+      contactId: EntityId,
+      role: string,
+    ): DispatchResult => {
       const id = nextId("setPrimary");
       const event = buildEvent({
         type: "account.contact.setPrimary",
@@ -130,11 +132,15 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const unsetPrimaryContact = useCallback(
-    (accountId: EntityId, contactId: EntityId, role: string) => {
+    (
+      accountId: EntityId,
+      contactId: EntityId,
+      role: string,
+    ): DispatchResult => {
       const id = nextId("unsetPrimary");
       const event = buildEvent({
         type: "account.contact.unsetPrimary",
@@ -149,7 +155,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const unlinkContact = useCallback(
@@ -167,7 +173,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const deleteAccount = useCallback(
@@ -183,7 +189,7 @@ export const useAccountActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   return {

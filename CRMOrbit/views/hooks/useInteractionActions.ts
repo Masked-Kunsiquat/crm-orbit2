@@ -13,7 +13,7 @@ export const useInteractionActions = (deviceId: string) => {
       type: string = "interaction.type.call",
       summary: string,
       occurredAt?: string,
-    ): DispatchResult & { id: string } => {
+    ): DispatchResult => {
       const id = nextId("interaction");
       const event = buildEvent({
         type: "interaction.logged",
@@ -27,11 +27,9 @@ export const useInteractionActions = (deviceId: string) => {
         deviceId,
       });
 
-      const result = dispatch([event]);
-      return { ...result, id };
+      return dispatch([event]);
     },
-    // dispatch is stable (useDispatch wraps it in useCallback with empty deps).
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   return {

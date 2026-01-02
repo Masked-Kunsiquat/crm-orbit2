@@ -13,6 +13,7 @@ import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
 import { t } from "@i18n/index";
+import { nextId } from "@domains/shared/idGenerator";
 
 const DEVICE_ID = "device-local";
 
@@ -48,11 +49,13 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
         Alert.alert(t("common.error"), result.error || t("notes.updateError"));
       }
     } else {
-      const result = createNote(title.trim(), body.trim());
+      // Pre-generate the note id so linking can reference it without relying on return values.
+      const newNoteId = nextId("note");
+      const result = createNote(title.trim(), body.trim(), newNoteId);
       if (result.success) {
         if (entityToLink) {
           const linkResult = linkNote(
-            result.id,
+            newNoteId,
             entityToLink.entityType,
             entityToLink.entityId,
           );
@@ -65,7 +68,7 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
                   text: t("notes.linkFailureDelete"),
                   style: "destructive",
                   onPress: () => {
-                    deleteNote(result.id);
+                    deleteNote(newNoteId);
                     navigation.goBack();
                   },
                 },

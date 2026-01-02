@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
@@ -21,7 +20,7 @@ export const useContactActions = (deviceId: string) => {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
       } = {},
-    ): DispatchResult & { id: string } => {
+    ): DispatchResult => {
       const id = nextId("contact");
       const event = buildEvent({
         type: "contact.created",
@@ -40,10 +39,9 @@ export const useContactActions = (deviceId: string) => {
         deviceId,
       });
 
-      const result = dispatch([event]);
-      return { ...result, id };
+      return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const addContactMethod = useCallback(
@@ -51,7 +49,7 @@ export const useContactActions = (deviceId: string) => {
       contactId: EntityId,
       methodType: "emails" | "phones",
       method: ContactMethod,
-    ) => {
+    ): DispatchResult => {
       const event = buildEvent({
         type: "contact.method.added",
         entityId: contactId,
@@ -64,7 +62,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const updateContactMethod = useCallback(
@@ -73,7 +71,7 @@ export const useContactActions = (deviceId: string) => {
       methodType: "emails" | "phones",
       index: number,
       method: ContactMethod,
-    ) => {
+    ): DispatchResult => {
       const event = buildEvent({
         type: "contact.method.updated",
         entityId: contactId,
@@ -87,7 +85,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const updateContact = useCallback(
@@ -120,7 +118,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const deleteContact = useCallback(
@@ -136,7 +134,7 @@ export const useContactActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   return {

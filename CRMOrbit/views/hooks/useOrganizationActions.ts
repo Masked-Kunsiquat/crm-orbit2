@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
@@ -18,7 +17,7 @@ export const useOrganizationActions = (deviceId: string) => {
       logoUri?: string,
       website?: string,
       socialMedia?: SocialMediaLinks,
-    ): DispatchResult & { id: string } => {
+    ): DispatchResult => {
       const id = nextId("org");
       const event = buildEvent({
         type: "organization.created",
@@ -35,14 +34,13 @@ export const useOrganizationActions = (deviceId: string) => {
         deviceId,
       });
 
-      const result = dispatch([event]);
-      return { ...result, id };
+      return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const updateOrganizationStatus = useCallback(
-    (organizationId: EntityId, status: string) => {
+    (organizationId: EntityId, status: string): DispatchResult => {
       const event = buildEvent({
         type: "organization.status.updated",
         entityId: organizationId,
@@ -54,7 +52,7 @@ export const useOrganizationActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const updateOrganization = useCallback(
@@ -81,7 +79,7 @@ export const useOrganizationActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   const deleteOrganization = useCallback(
@@ -97,7 +95,7 @@ export const useOrganizationActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId],
+    [deviceId, dispatch],
   );
 
   return {
