@@ -19,6 +19,7 @@ import type {
   AccountAddresses,
   SocialMediaLinks,
 } from "@domains/account";
+import { useTheme } from "../../hooks/useTheme";
 
 const DEVICE_ID = "device-local";
 
@@ -29,6 +30,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const account = useAccount(accountId ?? "");
   const allOrganizations = useOrganizations();
   const { createAccount, updateAccount } = useAccountActions(DEVICE_ID);
+  const { colors } = useTheme();
 
   // Sort organizations alphabetically by name
   const organizations = [...allOrganizations].sort((a, b) =>
@@ -212,33 +214,34 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={styles.label}>Account Name *</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Account Name *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={name}
             onChangeText={handleNameChange}
             placeholder="Enter account name"
+            placeholderTextColor={colors.textMuted}
             autoFocus
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Organization *</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Organization *</Text>
           {organizations.length === 0 ? (
-            <Text style={styles.hint}>
+            <Text style={[styles.hint, { color: colors.textMuted }]}>
               No organizations available. Create one first.
             </Text>
           ) : (
-            <View style={styles.pickerContainer}>
+            <View style={[styles.pickerContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Picker
                 selectedValue={organizationId}
                 onValueChange={(value) => {
                   setOrganizationId(value);
                 }}
-                style={styles.picker}
+                style={[styles.picker, { color: colors.textPrimary }]}
               >
                 {organizations.map((org) => (
                   <Picker.Item key={org.id} label={org.name} value={org.id} />
@@ -249,20 +252,22 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Status</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Status</Text>
           <View style={styles.statusButtons}>
             <TouchableOpacity
               style={[
                 styles.statusButton,
-                status === "account.status.active" && styles.statusButtonActive,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                status === "account.status.active" && { backgroundColor: colors.accent, borderColor: colors.accent },
               ]}
               onPress={() => handleStatusChange("account.status.active")}
             >
               <Text
                 style={[
                   styles.statusButtonText,
+                  { color: colors.textSecondary },
                   status === "account.status.active" &&
-                    styles.statusButtonTextActive,
+                    { color: colors.surface },
                 ]}
               >
                 Active
@@ -271,16 +276,18 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             <TouchableOpacity
               style={[
                 styles.statusButton,
+                { backgroundColor: colors.surface, borderColor: colors.border },
                 status === "account.status.inactive" &&
-                  styles.statusButtonActive,
+                  { backgroundColor: colors.accent, borderColor: colors.accent },
               ]}
               onPress={() => handleStatusChange("account.status.inactive")}
             >
               <Text
                 style={[
                   styles.statusButtonText,
+                  { color: colors.textSecondary },
                   status === "account.status.inactive" &&
-                    styles.statusButtonTextActive,
+                    { color: colors.surface },
                 ]}
               >
                 Inactive
@@ -290,33 +297,37 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Site Address</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Site Address</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={siteAddress.street}
             onChangeText={(value) => handleSiteAddressChange("street", value)}
             placeholder="Street"
+            placeholderTextColor={colors.textMuted}
           />
           <TextInput
-            style={[styles.input, styles.addressInput]}
+            style={[styles.input, styles.addressInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={siteAddress.city}
             onChangeText={(value) => handleSiteAddressChange("city", value)}
             placeholder="City"
+            placeholderTextColor={colors.textMuted}
           />
           <View style={styles.addressRow}>
             <TextInput
-              style={[styles.input, styles.addressInputSmall]}
+              style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
               value={siteAddress.state}
               onChangeText={(value) => handleSiteAddressChange("state", value)}
               placeholder="State"
+              placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              style={[styles.input, styles.addressInputSmall]}
+              style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
               value={siteAddress.zipCode}
               onChangeText={(value) =>
                 handleSiteAddressChange("zipCode", value)
               }
               placeholder="ZIP"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
         </View>
@@ -329,12 +340,13 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             <View
               style={[
                 styles.checkbox,
-                useSameForParking && styles.checkboxChecked,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                useSameForParking && { backgroundColor: colors.accent, borderColor: colors.accent },
               ]}
             >
               {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>
+            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>
               Use same address for parking
             </Text>
           </TouchableOpacity>
@@ -342,88 +354,97 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         {!useSameForParking && (
           <View style={styles.field}>
-            <Text style={styles.label}>Parking Address</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Parking Address</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
               value={parkingAddress.street}
               onChangeText={(value) =>
                 handleParkingAddressChange("street", value)
               }
               placeholder="Street"
+              placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              style={[styles.input, styles.addressInput]}
+              style={[styles.input, styles.addressInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
               value={parkingAddress.city}
               onChangeText={(value) =>
                 handleParkingAddressChange("city", value)
               }
               placeholder="City"
+              placeholderTextColor={colors.textMuted}
             />
             <View style={styles.addressRow}>
               <TextInput
-                style={[styles.input, styles.addressInputSmall]}
+                style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
                 value={parkingAddress.state}
                 onChangeText={(value) =>
                   handleParkingAddressChange("state", value)
                 }
                 placeholder="State"
+                placeholderTextColor={colors.textMuted}
               />
               <TextInput
-                style={[styles.input, styles.addressInputSmall]}
+                style={[styles.input, styles.addressInputSmall, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
                 value={parkingAddress.zipCode}
                 onChangeText={(value) =>
                   handleParkingAddressChange("zipCode", value)
                 }
                 placeholder="ZIP"
+                placeholderTextColor={colors.textMuted}
               />
             </View>
           </View>
         )}
 
         <View style={styles.field}>
-          <Text style={styles.label}>Website</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Website</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={website}
             onChangeText={(value) => {
               setWebsite(value);
             }}
             placeholder="https://example.com"
+            placeholderTextColor={colors.textMuted}
             keyboardType="url"
             autoCapitalize="none"
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Social Media</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Social Media</Text>
           <TextInput
-            style={[styles.input, styles.socialInput]}
+            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={socialMedia.x || ""}
             onChangeText={(value) => handleSocialMediaChange("x", value)}
             placeholder="X (Twitter) username or URL"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
           />
           <TextInput
-            style={[styles.input, styles.socialInput]}
+            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={socialMedia.linkedin || ""}
             onChangeText={(value) => handleSocialMediaChange("linkedin", value)}
             placeholder="LinkedIn URL"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
           />
           <TextInput
-            style={[styles.input, styles.socialInput]}
+            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={socialMedia.facebook || ""}
             onChangeText={(value) => handleSocialMediaChange("facebook", value)}
             placeholder="Facebook URL"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
           />
           <TextInput
-            style={[styles.input, styles.socialInput]}
+            style={[styles.input, styles.socialInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={socialMedia.instagram || ""}
             onChangeText={(value) =>
               handleSocialMediaChange("instagram", value)
             }
             placeholder="Instagram username or URL"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
           />
         </View>
@@ -431,12 +452,13 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         <TouchableOpacity
           style={[
             styles.saveButton,
-            organizations.length === 0 && styles.saveButtonDisabled,
+            { backgroundColor: colors.accent },
+            organizations.length === 0 && { backgroundColor: colors.textMuted },
           ]}
           onPress={handleSave}
           disabled={organizations.length === 0}
         >
-          <Text style={styles.saveButtonText}>
+          <Text style={[styles.saveButtonText, { color: colors.surface }]}>
             {accountId ? "Update Account" : "Create Account"}
           </Text>
         </TouchableOpacity>
@@ -448,7 +470,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f2ee",
   },
   form: {
     padding: 16,
@@ -459,32 +480,25 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1b1b1b",
     marginBottom: 8,
   },
   input: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
   value: {
     fontSize: 16,
-    color: "#1b1b1b",
     paddingVertical: 12,
   },
   hint: {
     fontSize: 12,
-    color: "#999",
     marginTop: 4,
   },
   pickerContainer: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
     overflow: "hidden",
   },
   picker: {
@@ -499,34 +513,19 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
     alignItems: "center",
-  },
-  statusButtonActive: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
   },
   statusButtonText: {
     fontSize: 15,
-    color: "#666",
     fontWeight: "500",
   },
-  statusButtonTextActive: {
-    color: "#fff",
-  },
   saveButton: {
-    backgroundColor: "#1f5eff",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 12,
   },
-  saveButtonDisabled: {
-    backgroundColor: "#ccc",
-  },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -551,14 +550,8 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-  },
-  checkboxChecked: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
   },
   checkmark: {
     color: "#fff",
@@ -567,7 +560,6 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     fontSize: 15,
-    color: "#1b1b1b",
   },
   socialInput: {
     marginTop: 8,

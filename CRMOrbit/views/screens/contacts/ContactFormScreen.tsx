@@ -15,6 +15,7 @@ import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import type { ContactType, ContactMethod } from "@domains/contact";
 import { splitLegacyName } from "@domains/contact.utils";
+import { useTheme } from "@views/hooks/useTheme";
 
 const DEVICE_ID = "device-local";
 
@@ -24,6 +25,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params ?? {};
   const contact = useContact(contactId ?? "");
   const { createContact, updateContact } = useContactActions(DEVICE_ID);
+  const { colors } = useTheme();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -194,58 +196,63 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={styles.label}>First Name</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>First Name</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={firstName}
             onChangeText={handleFirstNameChange}
             placeholder="Enter first name"
+            placeholderTextColor={colors.textMuted}
             autoFocus
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Last Name</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Last Name</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={lastName}
             onChangeText={handleLastNameChange}
             placeholder="Enter last name"
+            placeholderTextColor={colors.textMuted}
           />
-          <Text style={styles.hint}>
+          <Text style={[styles.hint, { color: colors.textMuted }]}>
             At least one of First or Last name is required
           </Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Title</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Title</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
             value={title}
             onChangeText={handleTitleChange}
             placeholder="e.g. Property Manager, VP of Operations"
+            placeholderTextColor={colors.textMuted}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Type</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>Type</Text>
           <View style={styles.typeButtons}>
             {types.map((t) => (
               <TouchableOpacity
                 key={t}
                 style={[
                   styles.typeButton,
-                  type === t && styles.typeButtonActive,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  type === t && { backgroundColor: colors.accent, borderColor: colors.accent },
                 ]}
                 onPress={() => handleTypeChange(t)}
               >
                 <Text
                   style={[
                     styles.typeButtonText,
-                    type === t && styles.typeButtonTextActive,
+                    { color: colors.textSecondary },
+                    type === t && { color: colors.surface },
                   ]}
                 >
                   {getTypeLabel(t)}
@@ -257,26 +264,27 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <View style={styles.fieldHeader}>
-            <Text style={styles.label}>Email Addresses</Text>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddEmail}>
-              <Text style={styles.addButtonText}>+ Add</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Email Addresses</Text>
+            <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.accent }]} onPress={handleAddEmail}>
+              <Text style={[styles.addButtonText, { color: colors.surface }]}>+ Add</Text>
             </TouchableOpacity>
           </View>
           {emails.map((email, index) => (
             <View key={index} style={styles.methodRow}>
               <TextInput
-                style={[styles.input, styles.methodInput]}
+                style={[styles.input, styles.methodInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
                 value={email.value}
                 onChangeText={(value) => handleEmailChange(index, value)}
                 placeholder="email@example.com"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
               <TouchableOpacity
-                style={styles.removeButton}
+                style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
                 onPress={() => handleRemoveEmail(index)}
               >
-                <Text style={styles.removeButtonText}>×</Text>
+                <Text style={[styles.removeButtonText, { color: colors.error }]}>×</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -284,32 +292,33 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <View style={styles.fieldHeader}>
-            <Text style={styles.label}>Phone Numbers</Text>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddPhone}>
-              <Text style={styles.addButtonText}>+ Add</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Phone Numbers</Text>
+            <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.accent }]} onPress={handleAddPhone}>
+              <Text style={[styles.addButtonText, { color: colors.surface }]}>+ Add</Text>
             </TouchableOpacity>
           </View>
           {phones.map((phone, index) => (
             <View key={index} style={styles.methodRow}>
               <TextInput
-                style={[styles.input, styles.methodInput]}
+                style={[styles.input, styles.methodInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
                 value={phone.value}
                 onChangeText={(value) => handlePhoneChange(index, value)}
                 placeholder="+1 (555) 123-4567"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
               />
               <TouchableOpacity
-                style={styles.removeButton}
+                style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
                 onPress={() => handleRemovePhone(index)}
               >
-                <Text style={styles.removeButtonText}>×</Text>
+                <Text style={[styles.removeButtonText, { color: colors.error }]}>×</Text>
               </TouchableOpacity>
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>
+        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.accent }]} onPress={handleSave}>
+          <Text style={[styles.saveButtonText, { color: colors.surface }]}>
             {contactId ? "Update Contact" : "Create Contact"}
           </Text>
         </TouchableOpacity>
@@ -321,7 +330,6 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f2ee",
   },
   form: {
     padding: 16,
@@ -338,20 +346,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1b1b1b",
   },
   hint: {
     fontSize: 12,
-    color: "#999",
     marginTop: 4,
   },
   input: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
   typeButtons: {
     flexDirection: "row",
@@ -362,31 +366,19 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
     alignItems: "center",
-  },
-  typeButtonActive: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
   },
   typeButtonText: {
     fontSize: 14,
-    color: "#666",
     fontWeight: "500",
-  },
-  typeButtonTextActive: {
-    color: "#fff",
   },
   addButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
-    backgroundColor: "#1f5eff",
   },
   addButtonText: {
     fontSize: 14,
-    color: "#fff",
     fontWeight: "600",
   },
   methodRow: {
@@ -401,24 +393,20 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 8,
-    backgroundColor: "#ffebee",
     alignItems: "center",
     justifyContent: "center",
   },
   removeButtonText: {
     fontSize: 24,
-    color: "#b00020",
     fontWeight: "300",
   },
   saveButton: {
-    backgroundColor: "#1f5eff",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 12,
   },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

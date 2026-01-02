@@ -325,6 +325,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         entityId={organizationId}
         entityType="organization"
         navigation={navigation}
+        style={{ marginTop: 12, marginHorizontal: 16, borderRadius: 8 }}
       />
 
       <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.link }]} onPress={handleEdit}>

@@ -14,6 +14,7 @@ import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
 import { t } from "@i18n/index";
 import { nextId } from "@domains/shared/idGenerator";
+import { useTheme } from "../../hooks/useTheme";
 
 const DEVICE_ID = "device-local";
 

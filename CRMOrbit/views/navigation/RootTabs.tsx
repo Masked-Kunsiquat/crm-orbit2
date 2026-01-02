@@ -8,6 +8,7 @@ import { OrganizationsStack } from "./OrganizationsStack";
 import { AccountsStack } from "./AccountsStack";
 import { ContactsStack } from "./ContactsStack";
 import { NotesScreen, InteractionsScreen } from "../screens";
+import { useTheme } from "../hooks";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -20,13 +21,19 @@ const TAB_ICON_SIZES: Record<keyof RootTabParamList, number> = {
 };
 
 export const RootTabs = () => {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: "#1f5eff",
-        tabBarInactiveTintColor: "#666",
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+        },
         tabBarIcon: ({ color, size }) => {
           const iconSize = TAB_ICON_SIZES[route.name] ?? size;
           switch (route.name) {

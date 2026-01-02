@@ -4,9 +4,11 @@ import {
   TouchableOpacity,
   View,
   Pressable,
+  ViewStyle,
 } from "react-native";
 import type { Note } from "@domains/note";
 import { t } from "@i18n/index";
+import { useTheme } from "../hooks";
 
 type EntityType = "account" | "organization" | "contact";
 
@@ -17,6 +19,7 @@ interface NotesSectionProps {
   navigation: {
     navigate: (screen: string, params?: Record<string, unknown>) => void;
   };
+  style?: ViewStyle;
 }
 
 export const NotesSection = ({
@@ -24,7 +27,10 @@ export const NotesSection = ({
   entityId,
   entityType,
   navigation,
+  style,
 }: NotesSectionProps) => {
+  const { colors } = useTheme();
+
   const getEmptyMessageKey = (): string => {
     switch (entityType) {
       case "account":
@@ -37,40 +43,46 @@ export const NotesSection = ({
   };
 
   return (
-    <View style={styles.section}>
+    <View style={[styles.section, { backgroundColor: colors.surface }, style]}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("notes.title")} ({notes.length})
         </Text>
         <TouchableOpacity
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: colors.accentMuted }]}
           onPress={() =>
             navigation.navigate("NoteForm", {
               entityToLink: { entityId, entityType },
             })
           }
         >
-          <Text style={styles.addButtonText}>{t("notes.addButton")}</Text>
+          <Text style={[styles.addButtonText, { color: colors.accent }]}>
+            {t("notes.addButton")}
+          </Text>
         </TouchableOpacity>
       </View>
       {notes.length === 0 ? (
-        <Text style={styles.emptyText}>{t(getEmptyMessageKey())}</Text>
+        <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+          {t(getEmptyMessageKey())}
+        </Text>
       ) : (
         notes.map((note) => (
           <Pressable
             key={note.id}
-            style={styles.noteCard}
+            style={[styles.noteCard, { backgroundColor: colors.surfaceElevated }]}
             onPress={() => {
               navigation.navigate("NoteDetail", { noteId: note.id });
             }}
           >
             <View style={styles.noteCardContent}>
-              <Text style={styles.noteTitle}>{note.title}</Text>
-              <Text style={styles.noteBody} numberOfLines={2}>
+              <Text style={[styles.noteTitle, { color: colors.textPrimary }]}>
+                {note.title}
+              </Text>
+              <Text style={[styles.noteBody, { color: colors.textSecondary }]} numberOfLines={2}>
                 {note.body}
               </Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
           </Pressable>
         ))
       )}
@@ -80,7 +92,6 @@ export const NotesSection = ({
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: "#fff",
     padding: 16,
     marginBottom: 12,
   },
@@ -93,27 +104,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1b1b1b",
   },
   addButton: {
-    backgroundColor: "#e3f2fd",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   addButtonText: {
-    color: "#1f5eff",
     fontSize: 13,
     fontWeight: "600",
   },
   emptyText: {
     fontSize: 14,
-    color: "#999",
     fontStyle: "italic",
   },
   noteCard: {
     padding: 12,
-    backgroundColor: "#f9f9f9",
     borderRadius: 6,
     marginBottom: 8,
     flexDirection: "row",
@@ -126,16 +132,13 @@ const styles = StyleSheet.create({
   noteTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1b1b1b",
     marginBottom: 4,
   },
   noteBody: {
     fontSize: 14,
-    color: "#666",
   },
   chevron: {
     fontSize: 20,
-    color: "#cccccc",
     marginLeft: 8,
   },
 });
