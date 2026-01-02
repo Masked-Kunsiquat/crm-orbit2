@@ -179,7 +179,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         {account.socialMedia &&
           Object.values(account.socialMedia).some((v) => v) && (
             <View style={styles.field}>
-              <Text style={styles.label}>{t("accounts.fields.socialMedia")}</Text>
+              <Text style={styles.label}>
+                {t("accounts.fields.socialMedia")}
+              </Text>
               {account.socialMedia.facebook && (
                 <Tooltip content={account.socialMedia.facebook}>
                   <Pressable
@@ -360,7 +362,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               ? t("accounts.noContacts")
               : t("accounts.noContactsFiltered").replace(
                   "{type}",
-                  t(contactFilter as any),
+                  t(contactFilter as string),
                 )}
           </Text>
         ) : (
@@ -414,7 +416,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       />
 
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>{t("accounts.deleteButton")}</Text>
+        <Text style={styles.deleteButtonText}>
+          {t("accounts.deleteButton")}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

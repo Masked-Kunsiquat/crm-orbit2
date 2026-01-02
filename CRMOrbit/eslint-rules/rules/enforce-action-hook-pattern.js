@@ -32,7 +32,10 @@ export default {
     const filename = context.getFilename();
 
     // Only check files that match action hook naming pattern
-    if (!filename.includes("hooks") || !filename.match(/use\w+Actions\.(ts|tsx)$/)) {
+    if (
+      !filename.includes("hooks") ||
+      !filename.match(/use\w+Actions\.(ts|tsx)$/)
+    ) {
       return {};
     }
 
@@ -53,10 +56,14 @@ export default {
 
           // Check if it has deviceId parameter
           const init = hookFunctionNode.init;
-          if (init?.type === "ArrowFunctionExpression" || init?.type === "FunctionExpression") {
+          if (
+            init?.type === "ArrowFunctionExpression" ||
+            init?.type === "FunctionExpression"
+          ) {
             const params = init.params;
             const hasDeviceIdParam = params.some(
-              (param) => param.type === "Identifier" && param.name === "deviceId"
+              (param) =>
+                param.type === "Identifier" && param.name === "deviceId",
             );
 
             if (!hasDeviceIdParam) {
@@ -79,7 +86,11 @@ export default {
 
       // Track action functions and check if they use useCallback
       VariableDeclarator(node) {
-        if (insideHookFunction && node.id?.type === "Identifier" && node !== hookFunctionNode) {
+        if (
+          insideHookFunction &&
+          node.id?.type === "Identifier" &&
+          node !== hookFunctionNode
+        ) {
           const actionName = node.id.name;
 
           // Skip the hook function itself and non-action variables

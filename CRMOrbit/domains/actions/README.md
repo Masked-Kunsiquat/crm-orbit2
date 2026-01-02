@@ -5,6 +5,7 @@ This directory contains typed event-creation utilities that enforce compile-time
 ## Purpose
 
 The actions layer provides a strongly-typed interface for creating domain events, ensuring:
+
 - **Type Safety**: Only valid `EventType` values can be used when building events
 - **Separation of Concerns**: Business event creation logic lives in the domain layer, not the view layer
 - **Reusability**: Event builders can be shared across views and domain logic
@@ -12,9 +13,11 @@ The actions layer provides a strongly-typed interface for creating domain events
 ## Files
 
 ### `eventBuilder.ts`
+
 Exports `buildTypedEvent`, a utility function that creates strongly-typed events with compile-time validation.
 
 **Usage:**
+
 ```typescript
 import { buildTypedEvent } from "@/domains/actions";
 
@@ -22,13 +25,14 @@ const event = buildTypedEvent({
   type: "organization.created", // ✓ Compile-time validated
   entityId: "org-123",
   payload: { name: "Acme Corp", status: "active" },
-  deviceId: "device-456"
+  deviceId: "device-456",
 });
 ```
 
 ## Architectural Recommendations
 
 ### Current Architecture
+
 - **Views Layer**: `CRMOrbit/views/` - React components and UI hooks
 - **Domain Layer**: `CRMOrbit/domains/` - Business logic and utilities
 - **Events Layer**: `CRMOrbit/events/` - Event infrastructure
@@ -39,6 +43,7 @@ const event = buildTypedEvent({
 For better separation of concerns, consider creating domain-specific action hooks that encapsulate event creation for each domain entity:
 
 #### Example: `domains/organization/hooks/useOrganizationActions.ts`
+
 ```typescript
 import { useCallback } from "react";
 import { useDispatch } from "@/views/hooks";
@@ -58,7 +63,7 @@ export const useOrganizationActions = (deviceId: string) => {
       });
       return dispatch([event]);
     },
-    [deviceId, dispatch]
+    [deviceId, dispatch],
   );
 
   const updateOrganizationStatus = useCallback(
@@ -71,7 +76,7 @@ export const useOrganizationActions = (deviceId: string) => {
       });
       return dispatch([event]);
     },
-    [deviceId, dispatch]
+    [deviceId, dispatch],
   );
 
   return {
@@ -82,6 +87,7 @@ export const useOrganizationActions = (deviceId: string) => {
 ```
 
 #### Example: `domains/account/hooks/useAccountActions.ts`
+
 ```typescript
 import { useCallback } from "react";
 import { useDispatch } from "@/views/hooks";
@@ -92,7 +98,12 @@ export const useAccountActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
 
   const createAccount = useCallback(
-    (id: string, name: string, organizationId: string, status: AccountStatus) => {
+    (
+      id: string,
+      name: string,
+      organizationId: string,
+      status: AccountStatus,
+    ) => {
       const event = buildTypedEvent({
         type: "account.created",
         entityId: id,
@@ -101,7 +112,7 @@ export const useAccountActions = (deviceId: string) => {
       });
       return dispatch([event]);
     },
-    [deviceId, dispatch]
+    [deviceId, dispatch],
   );
 
   const linkContact = useCallback(
@@ -114,7 +125,7 @@ export const useAccountActions = (deviceId: string) => {
       });
       return dispatch([event]);
     },
-    [deviceId, dispatch]
+    [deviceId, dispatch],
   );
 
   return {
@@ -143,6 +154,7 @@ export const useAccountActions = (deviceId: string) => {
 ### Current State
 
 The `useEventBuilder` hook in `views/hooks/useDispatch.ts` is now type-safe:
+
 - Accepts `EventType` instead of `string` (line 110)
 - Removed unsafe `as any` cast (line 111)
 - Compiler enforces valid event types at all call sites

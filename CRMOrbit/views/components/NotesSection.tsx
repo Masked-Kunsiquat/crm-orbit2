@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View, Pressable } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Pressable,
+} from "react-native";
 import type { Note } from "@domains/note";
 import { t } from "@i18n/index";
 
@@ -9,7 +15,7 @@ interface NotesSectionProps {
   entityId: string;
   entityType: EntityType;
   navigation: {
-    navigate: (screen: string, params?: any) => void;
+    navigate: (screen: string, params?: Record<string, unknown>) => void;
   };
 }
 

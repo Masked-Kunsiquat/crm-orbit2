@@ -61,7 +61,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
     Alert.alert(
       t("organizations.deleteTitle"),
-      t("organizations.deleteConfirmation").replace("{name}", organization.name),
+      t("organizations.deleteConfirmation").replace(
+        "{name}",
+        organization.name,
+      ),
       [
         {
           text: t("common.cancel"),
@@ -130,7 +133,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       {organization.socialMedia &&
         Object.values(organization.socialMedia).some((v) => v) && (
           <View style={styles.section}>
-            <Text style={styles.label}>{t("organizations.fields.socialMedia")}</Text>
+            <Text style={styles.label}>
+              {t("organizations.fields.socialMedia")}
+            </Text>
             {organization.socialMedia.facebook && (
               <Tooltip content={organization.socialMedia.facebook}>
                 <Pressable
@@ -139,7 +144,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>{t("organizations.socialMedia.facebook")}</Text>
+                  <Text style={styles.socialLink}>
+                    {t("organizations.socialMedia.facebook")}
+                  </Text>
                   <FontAwesome6
                     name="square-facebook"
                     size={18}
@@ -167,7 +174,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>{t("organizations.socialMedia.instagram")}</Text>
+                  <Text style={styles.socialLink}>
+                    {t("organizations.socialMedia.instagram")}
+                  </Text>
                   <FontAwesome6
                     name="instagram"
                     size={18}
@@ -185,7 +194,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>{t("organizations.socialMedia.linkedin")}</Text>
+                  <Text style={styles.socialLink}>
+                    {t("organizations.socialMedia.linkedin")}
+                  </Text>
                   <FontAwesome6
                     name="linkedin"
                     size={18}
@@ -213,7 +224,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                   }
                   style={styles.socialLinkContainer}
                 >
-                  <Text style={styles.socialLink}>{t("organizations.socialMedia.x")}</Text>
+                  <Text style={styles.socialLink}>
+                    {t("organizations.socialMedia.x")}
+                  </Text>
                   <FontAwesome6
                     name="square-x-twitter"
                     size={18}
@@ -261,9 +274,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
           {t("organizations.sections.contacts")} ({contacts.length})
         </Text>
         {contacts.length === 0 ? (
-          <Text style={styles.emptyText}>
-            {t("organizations.noContacts")}
-          </Text>
+          <Text style={styles.emptyText}>{t("organizations.noContacts")}</Text>
         ) : (
           contacts.map((contact) => (
             <Pressable
@@ -315,11 +326,15 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       />
 
       <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-        <Text style={styles.editButtonText}>{t("organizations.editButton")}</Text>
+        <Text style={styles.editButtonText}>
+          {t("organizations.editButton")}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>{t("organizations.deleteButton")}</Text>
+        <Text style={styles.deleteButtonText}>
+          {t("organizations.deleteButton")}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

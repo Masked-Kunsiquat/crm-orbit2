@@ -8,7 +8,6 @@ import {
   View,
   Modal,
   FlatList,
-  Pressable,
 } from "react-native";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";

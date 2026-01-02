@@ -42,11 +42,13 @@ If a shortcut violates any of the above, do not take it.
 ## Layer Responsibilities (DO NOT BLUR THESE)
 
 ### Automerge
+
 - Owns canonical state
 - Handles merges across devices
 - Receives mutations only via reducers
 
 Automerge does **not**:
+
 - Explain meaning
 - Provide audit history
 - Interpret user intent
@@ -55,6 +57,7 @@ Automerge does **not**:
 ---
 
 ### Event Log
+
 - Append-only
 - Human-readable semantics
 - Locale-neutral
@@ -66,6 +69,7 @@ Events explain **why** something changed — not how it was displayed.
 ---
 
 ### Reducers
+
 - Pure functions
 - `(state, event) → newState`
 - Deterministic
@@ -73,6 +77,7 @@ Events explain **why** something changed — not how it was displayed.
 - Enforce invariants
 
 Reducers:
+
 - Apply Automerge changes
 - Never emit events
 - Never touch persistence
@@ -81,11 +86,13 @@ Reducers:
 ---
 
 ### Drizzle ORM
+
 - Stores Automerge snapshots
 - Stores event log
 - Handles migrations
 
 Drizzle must **never**:
+
 - Enforce business rules
 - Mutate domain state
 - Infer history
@@ -97,11 +104,13 @@ Think of it as a filing cabinet.
 ---
 
 ### Zustand (Future)
+
 - Subscribes to Automerge changes
 - Exposes selectors/views
 - Memoizes derived data
 
 Zustand must **never**:
+
 - Mutate domain state
 - Apply business logic
 - Emit events directly
@@ -110,7 +119,6 @@ Zustand must **never**:
 ---
 
 ## Repository Structure (Must Match)
-
 
 /crm-core
 /domains
@@ -130,6 +138,7 @@ Do not cross-import improperly.
 ## Domain Model (v1 — MVP Scope)
 
 ### Organization
+
 ```ts
 Organization {
   id
@@ -138,7 +147,9 @@ Organization {
   metadata
 }
 ```
+
 ### Account
+
 ```ts
 Account {
   id
@@ -150,6 +161,7 @@ Account {
 ```
 
 ### Contact
+
 ```ts
 Contact {
   id
@@ -163,6 +175,7 @@ Contact {
 ```
 
 ### Note
+
 ```ts
 Note {
   id
@@ -173,7 +186,8 @@ Note {
 ```
 
 ### Interaction
-```ts 
+
+```ts
 Interaction {
   id
   type        // i18n key
@@ -183,6 +197,7 @@ Interaction {
 ```
 
 ### Relationships (Explicit Only)
+
 ```ts
 Account ↔ Contact
 AccountContact {
@@ -192,6 +207,7 @@ AccountContact {
   isPrimary
 }
 ```
+
 ```ts
 Note Links (Generic)
 NoteLink {
@@ -206,7 +222,9 @@ No implicit ownership.
 Everything is linked.
 
 ### Event System (Critical)
+
 Event Shape
+
 ```ts
 Event {
   id
@@ -226,6 +244,7 @@ Never deleted
 Must be meaningful to humans after localization
 
 Examples
+
 ```
 contact.created
 contact.method.added
@@ -236,6 +255,7 @@ interaction.logged
 ```
 
 🚫 Do not emit:
+
 ```
 field.updated
 state.changed
@@ -257,7 +277,6 @@ Access UI state
 Access i18n
 Generate localized output
 
-
 History & Undo Model
 
 History is rendered from events
@@ -269,7 +288,6 @@ No time travel hacks
 Example:
 account.contact.primaryUnset
 
-
 Internationalization (Weblate)
 Core Rules
 
@@ -280,8 +298,6 @@ Automerge documents
 Event logs
 Reducers
 Persistence layer
-
-
 
 Translation Keys
 
@@ -295,7 +311,6 @@ status: "account.status.active"
 Example (incorrect):
 status: "Active"
 
-
 Events & Localization
 Events must be semantic, not textual.
 ❌ Incorrect:
@@ -308,25 +323,22 @@ payload: { accountId, contactId }
 UI responsibility:
 t("events.account.contact.setPrimary", { contactName })
 
-
 User-Entered Content
 
 Notes, names, summaries are never translated
 Weblate must never touch user data
 Stored text remains unchanged forever
 
-
 i18n Mapping Layer
 An explicit mapping must exist:
 /i18n
-  enums.ts
-  events.ts
+enums.ts
+events.ts
 
 Example:
 export const EVENT_I18N_KEYS = {
-  "account.contact.setPrimary": "events.account.contact.setPrimary"
+"account.contact.setPrimary": "events.account.contact.setPrimary"
 }
-
 
 Sync Assumptions (v1)
 
@@ -341,7 +353,6 @@ Do not assume:
 Real-time presence
 Permissions
 Multi-user conflict UI
-
 
 Testing Requirements
 Mandatory
@@ -387,4 +398,3 @@ that is correct.
 If a design choice leaks UI or localization concerns into backend state,
 it is wrong.
 Implement accordingly.
-
