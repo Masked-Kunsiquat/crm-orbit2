@@ -4,3 +4,4 @@ export { useAccountActions } from "./useAccountActions";
 export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
 export { useInteractionActions } from "./useInteractionActions";
+export { useTheme } from "./useTheme";

@@ -23,6 +23,7 @@ import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
 import { Tooltip, NotesSection } from "../../components";
 import { t } from "@i18n/index";
+import { useTheme } from "../../hooks/useTheme";
 
 const DEVICE_ID = "device-local";
 
@@ -35,6 +36,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const allContacts = useContacts(accountId);
   const notes = useNotes("account", accountId);
   const { deleteAccount } = useAccountActions(DEVICE_ID);
+  const { colors } = useTheme();
 
   const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
     "all",
@@ -49,8 +51,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   if (!account) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{t("accounts.notFound")}</Text>
+      <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+        <Text style={[styles.errorText, { color: colors.error }]}>
+          {t("accounts.notFound")}
+        </Text>
       </View>
     );
   }
@@ -99,30 +103,44 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>{account.name}</Text>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>{t("common.edit")}</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {account.name}
+          </Text>
+          <TouchableOpacity
+            style={[styles.editButton, { backgroundColor: colors.accent }]}
+            onPress={handleEdit}
+          >
+            <Text style={[styles.editButtonText, { color: colors.surface }]}>
+              {t("common.edit")}
+            </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>{t("accounts.fields.organization")}</Text>
-          <Text style={styles.value}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("accounts.fields.organization")}
+          </Text>
+          <Text style={[styles.value, { color: colors.textPrimary }]}>
             {organization?.name ?? t("common.unknown")}
           </Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>{t("accounts.fields.status")}</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t("accounts.fields.status")}
+          </Text>
           <View
             style={[
               styles.statusBadge,
-              account.status === "account.status.active"
-                ? styles.statusActive
-                : styles.statusInactive,
+              {
+                backgroundColor:
+                  account.status === "account.status.active"
+                    ? colors.statusActiveBg
+                    : colors.statusInactiveBg,
+              },
             ]}
           >
             <Text style={styles.statusText}>
@@ -135,9 +153,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
         {account.addresses?.site && (
           <View style={styles.field}>
-            <Text style={styles.label}>{t("accounts.fields.siteAddress")}</Text>
-            <Text style={styles.value}>{account.addresses.site.street}</Text>
-            <Text style={styles.value}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
+              {t("accounts.fields.siteAddress")}
+            </Text>
+            <Text style={[styles.value, { color: colors.textPrimary }]}>
+              {account.addresses.site.street}
+            </Text>
+            <Text style={[styles.value, { color: colors.textPrimary }]}>
               {account.addresses.site.city}, {account.addresses.site.state}{" "}
               {account.addresses.site.zipCode}
             </Text>
@@ -146,11 +168,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
         {account.addresses?.parking && !account.addresses.useSameForParking && (
           <View style={styles.field}>
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
               {t("accounts.fields.parkingAddress")}
             </Text>
-            <Text style={styles.value}>{account.addresses.parking.street}</Text>
-            <Text style={styles.value}>
+            <Text style={[styles.value, { color: colors.textPrimary }]}>
+              {account.addresses.parking.street}
+            </Text>
+            <Text style={[styles.value, { color: colors.textPrimary }]}>
               {account.addresses.parking.city},{" "}
               {account.addresses.parking.state}{" "}
               {account.addresses.parking.zipCode}
@@ -160,18 +184,24 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
         {account.addresses?.useSameForParking && (
           <View style={styles.field}>
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
               {t("accounts.fields.parkingAddress")}
             </Text>
-            <Text style={styles.value}>{t("accounts.sameAsSiteAddress")}</Text>
+            <Text style={[styles.value, { color: colors.textPrimary }]}>
+              {t("accounts.sameAsSiteAddress")}
+            </Text>
           </View>
         )}
 
         {account.website && (
           <View style={styles.field}>
-            <Text style={styles.label}>{t("accounts.fields.website")}</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
+              {t("accounts.fields.website")}
+            </Text>
             <TouchableOpacity onPress={() => Linking.openURL(account.website!)}>
-              <Text style={styles.link}>{account.website}</Text>
+              <Text style={[styles.link, { color: colors.link }]}>
+                {account.website}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -179,7 +209,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         {account.socialMedia &&
           Object.values(account.socialMedia).some((v) => v) && (
             <View style={styles.field}>
-              <Text style={styles.label}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 {t("accounts.fields.socialMedia")}
               </Text>
               {account.socialMedia.facebook && (
@@ -190,13 +220,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>
+                    <Text style={[styles.socialLink, { color: colors.link }]}>
                       {t("accounts.socialMedia.facebook")}
                     </Text>
                     <FontAwesome6
                       name="square-facebook"
                       size={18}
-                      color="#1f5eff"
+                      color={colors.accent}
                       style={styles.socialIcon}
                     />
                   </Pressable>
@@ -221,13 +251,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }}
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>
+                    <Text style={[styles.socialLink, { color: colors.link }]}>
                       {t("accounts.socialMedia.instagram")}
                     </Text>
                     <FontAwesome6
                       name="instagram"
                       size={18}
-                      color="#1f5eff"
+                      color={colors.accent}
                       style={styles.socialIcon}
                     />
                   </Pressable>
@@ -241,13 +271,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>
+                    <Text style={[styles.socialLink, { color: colors.link }]}>
                       {t("accounts.socialMedia.linkedin")}
                     </Text>
                     <FontAwesome6
                       name="linkedin"
                       size={18}
-                      color="#1f5eff"
+                      color={colors.accent}
                       style={styles.socialIcon}
                     />
                   </Pressable>
@@ -270,13 +300,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     }}
                     style={styles.socialLinkContainer}
                   >
-                    <Text style={styles.socialLink}>
+                    <Text style={[styles.socialLink, { color: colors.link }]}>
                       {t("accounts.socialMedia.x")}
                     </Text>
                     <FontAwesome6
                       name="square-x-twitter"
                       size={18}
-                      color="#1f5eff"
+                      color={colors.accent}
                       style={styles.socialIcon}
                     />
                   </Pressable>
@@ -286,8 +316,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           )}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("accounts.sections.contacts")} ({allContacts.length})
         </Text>
 
@@ -295,14 +325,23 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "all" && styles.filterButtonActive,
+              {
+                borderColor: colors.border,
+                backgroundColor:
+                  contactFilter === "all" ? colors.accent : colors.surface,
+              },
             ]}
             onPress={() => setContactFilter("all")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "all" && styles.filterButtonTextActive,
+                {
+                  color:
+                    contactFilter === "all"
+                      ? colors.surface
+                      : colors.textSecondary,
+                },
               ]}
             >
               {t("accounts.filters.all")} ({allContacts.length})
@@ -311,16 +350,25 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "contact.type.internal" &&
-                styles.filterButtonActive,
+              {
+                borderColor: colors.border,
+                backgroundColor:
+                  contactFilter === "contact.type.internal"
+                    ? colors.accent
+                    : colors.surface,
+              },
             ]}
             onPress={() => setContactFilter("contact.type.internal")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "contact.type.internal" &&
-                  styles.filterButtonTextActive,
+                {
+                  color:
+                    contactFilter === "contact.type.internal"
+                      ? colors.surface
+                      : colors.textSecondary,
+                },
               ]}
             >
               {t("contact.type.internal")} (
@@ -334,16 +382,25 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "contact.type.external" &&
-                styles.filterButtonActive,
+              {
+                borderColor: colors.border,
+                backgroundColor:
+                  contactFilter === "contact.type.external"
+                    ? colors.accent
+                    : colors.surface,
+              },
             ]}
             onPress={() => setContactFilter("contact.type.external")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "contact.type.external" &&
-                  styles.filterButtonTextActive,
+                {
+                  color:
+                    contactFilter === "contact.type.external"
+                      ? colors.surface
+                      : colors.textSecondary,
+                },
               ]}
             >
               {t("contact.type.external")} (
@@ -357,7 +414,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         </View>
 
         {contacts.length === 0 ? (
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
             {contactFilter === "all"
               ? t("accounts.noContacts")
               : t("accounts.noContactsFiltered").replace(
@@ -369,31 +426,52 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           contacts.map((contact) => (
             <Pressable
               key={contact.id}
-              style={styles.contactCard}
+              style={[
+                styles.contactCard,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
               onPress={() => {
                 // Navigate to contact detail using root navigator
                 navigation.navigate("ContactDetail", { contactId: contact.id });
               }}
             >
               <View style={styles.contactCardContent}>
-                <Text style={styles.contactName}>
+                <Text style={[styles.contactName, { color: colors.textPrimary }]}>
                   {getContactDisplayName(contact)}
                 </Text>
                 {contact.title && (
-                  <Text style={styles.contactTitle}>{contact.title}</Text>
+                  <Text
+                    style={[styles.contactTitle, { color: colors.textSecondary }]}
+                  >
+                    {contact.title}
+                  </Text>
                 )}
                 <View
                   style={[
                     styles.contactTypeBadge,
-                    contact.type === "contact.type.internal" &&
-                      styles.contactTypeInternal,
-                    contact.type === "contact.type.external" &&
-                      styles.contactTypeExternal,
-                    contact.type === "contact.type.vendor" &&
-                      styles.contactTypeVendor,
+                    {
+                      backgroundColor:
+                        contact.type === "contact.type.internal"
+                          ? colors.contactTypeInternalBg
+                          : contact.type === "contact.type.external"
+                            ? colors.contactTypeExternalBg
+                            : colors.contactTypeVendorBg,
+                    },
                   ]}
                 >
-                  <Text style={styles.contactTypeText}>
+                  <Text
+                    style={[
+                      styles.contactTypeText,
+                      {
+                        color:
+                          contact.type === "contact.type.internal"
+                            ? colors.contactTypeInternalText
+                            : contact.type === "contact.type.external"
+                              ? colors.contactTypeExternalText
+                              : colors.contactTypeVendorText,
+                      },
+                    ]}
+                  >
                     {contact.type === "contact.type.internal"
                       ? t("contact.type.internal")
                       : contact.type === "contact.type.external"
@@ -402,7 +480,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                   </Text>
                 </View>
               </View>
-              <Text style={styles.chevron}>›</Text>
+              <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
             </Pressable>
           ))
         )}
@@ -415,8 +493,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>
+      <TouchableOpacity
+        style={[styles.deleteButton, { backgroundColor: colors.error }]}
+        onPress={handleDelete}
+      >
+        <Text style={[styles.deleteButtonText, { color: colors.surface }]}>
           {t("accounts.deleteButton")}
         </Text>
       </TouchableOpacity>
@@ -427,10 +508,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f2ee",
   },
   section: {
-    backgroundColor: "#fff",
     padding: 16,
     marginBottom: 12,
   },
@@ -443,17 +522,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#1b1b1b",
     flex: 1,
   },
   editButton: {
-    backgroundColor: "#1f5eff",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
   },
   editButtonText: {
-    color: "#fff",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -463,25 +539,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#666",
     marginBottom: 4,
     textTransform: "uppercase",
   },
   value: {
     fontSize: 16,
-    color: "#1b1b1b",
   },
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,
     alignSelf: "flex-start",
-  },
-  statusActive: {
-    backgroundColor: "#e8f5e9",
-  },
-  statusInactive: {
-    backgroundColor: "#ffebee",
   },
   statusText: {
     fontSize: 14,
@@ -490,7 +558,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1b1b1b",
   },
   filterButtons: {
     flexDirection: "row",
@@ -502,26 +569,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
     alignItems: "center",
     minWidth: 80,
   },
-  filterButtonActive: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
-  },
   filterButtonText: {
     fontSize: 13,
-    color: "#666",
     fontWeight: "500",
-  },
-  filterButtonTextActive: {
-    color: "#fff",
   },
   contactCard: {
     padding: 12,
-    backgroundColor: "#f9f9f9",
     borderRadius: 6,
     marginBottom: 8,
     flexDirection: "row",
@@ -533,24 +589,17 @@ const styles = StyleSheet.create({
   },
   chevron: {
     fontSize: 20,
-    color: "#cccccc",
     marginLeft: 8,
   },
   contactName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1b1b1b",
     marginBottom: 2,
   },
   contactTitle: {
     fontSize: 12,
-    color: "#666666",
     fontStyle: "italic",
     marginBottom: 4,
-  },
-  contactType: {
-    fontSize: 12,
-    color: "#666",
   },
   contactTypeBadge: {
     paddingHorizontal: 8,
@@ -559,33 +608,16 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginTop: 4,
   },
-  contactTypeInternal: {
-    backgroundColor: "#e3f2fd",
-  },
-  contactTypeExternal: {
-    backgroundColor: "#fff3e0",
-  },
-  contactTypeVendor: {
-    backgroundColor: "#f3e5f5",
-  },
   contactTypeText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#1b1b1b",
   },
   emptyText: {
     fontSize: 14,
-    color: "#999",
     fontStyle: "italic",
-  },
-  metadataText: {
-    fontSize: 12,
-    fontFamily: "monospace",
-    color: "#666",
   },
   link: {
     fontSize: 16,
-    color: "#1f5eff",
     textDecorationLine: "underline",
   },
   socialLinkContainer: {
@@ -596,26 +628,22 @@ const styles = StyleSheet.create({
   },
   socialLink: {
     fontSize: 16,
-    color: "#1f5eff",
   },
   socialIcon: {
     marginLeft: 4,
   },
   errorText: {
     fontSize: 16,
-    color: "#b00020",
     textAlign: "center",
     marginTop: 32,
   },
   deleteButton: {
-    backgroundColor: "#b00020",
     margin: 16,
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
   },
   deleteButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

@@ -2,7 +2,7 @@ import type { ReactNode, RefObject } from "react";
 import { useEffect, useState } from "react";
 import { Dimensions, Modal, Pressable, StyleSheet, View } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 
 const MENU_WIDTH = 180;
 const MENU_OFFSET = 6;
@@ -27,6 +27,7 @@ export const HeaderMenu = ({
   onRequestClose,
   children,
 }: HeaderMenuProps) => {
+  const { colors } = useTheme();
   const [anchorLayout, setAnchorLayout] = useState<AnchorLayout | null>(null);
 
   useEffect(() => {
@@ -53,7 +54,19 @@ export const HeaderMenu = ({
   return (
     <Modal transparent visible onRequestClose={onRequestClose}>
       <Pressable style={styles.overlay} onPress={onRequestClose}>
-        <View style={[styles.menu, { left, top }]}>{children}</View>
+        <View
+          style={[
+            styles.menu,
+            {
+              left,
+              top,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          {children}
+        </View>
       </Pressable>
     </Modal>
   );
@@ -65,7 +78,6 @@ const styles = StyleSheet.create({
   },
   menu: {
     position: "absolute",
-    backgroundColor: colors.surface,
     borderRadius: 8,
     paddingVertical: 6,
     minWidth: MENU_WIDTH,
@@ -75,6 +87,5 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
     borderWidth: 1,
-    borderColor: colors.border,
   },
 });

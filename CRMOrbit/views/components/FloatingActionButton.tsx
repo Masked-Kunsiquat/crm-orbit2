@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 
 type FloatingActionButtonProps = {
   label?: string;
@@ -11,12 +11,20 @@ type FloatingActionButtonProps = {
 export const FloatingActionButton = ({
   label = "+",
   onPress,
-  color = colors.accent,
-}: FloatingActionButtonProps) => (
-  <Pressable onPress={onPress} style={[styles.fab, { backgroundColor: color }]}>
-    <Text style={styles.fabText}>{label}</Text>
-  </Pressable>
-);
+  color,
+}: FloatingActionButtonProps) => {
+  const { colors } = useTheme();
+  const buttonColor = color ?? colors.accent;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.fab, { backgroundColor: buttonColor }]}
+    >
+      <Text style={[styles.fabText, { color: colors.surface }]}>{label}</Text>
+    </Pressable>
+  );
+};
 
 const styles = StyleSheet.create({
   fab: {
@@ -36,7 +44,6 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 32,
-    color: colors.surface,
     fontWeight: "300",
   },
 });

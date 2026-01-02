@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 
 type ListCardProps = {
   children: ReactNode;
@@ -16,24 +16,34 @@ export const ListCard = ({
   onPress,
   variant = "elevated",
   style,
-}: ListCardProps) => (
-  <Pressable
-    onPress={onPress}
-    style={[
-      styles.base,
-      variant === "elevated" ? styles.elevated : styles.outlined,
-      style,
-    ]}
-  >
-    {children}
-  </Pressable>
-);
+}: ListCardProps) => {
+  const { colors } = useTheme();
 
-export const ListCardChevron = () => <Text style={styles.chevron}>›</Text>;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.base,
+        { backgroundColor: colors.surface },
+        variant === "elevated"
+          ? styles.elevated
+          : [styles.outlined, { borderColor: colors.border }],
+        style,
+      ]}
+    >
+      {children}
+    </Pressable>
+  );
+};
+
+export const ListCardChevron = () => {
+  const { colors } = useTheme();
+
+  return <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>;
+};
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
@@ -47,11 +57,9 @@ const styles = StyleSheet.create({
   },
   outlined: {
     borderWidth: 1,
-    borderColor: colors.border,
   },
   chevron: {
     fontSize: 24,
-    color: colors.chevron,
     marginLeft: 12,
   },
 });

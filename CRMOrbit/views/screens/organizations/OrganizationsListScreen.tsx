@@ -11,11 +11,12 @@ import {
   ListScreenLayout,
   StatusBadge,
 } from "@views/components";
-import { colors } from "@domains/shared/theme/colors";
+import { useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 type Props = OrganizationsStackScreenProps<"OrganizationsList">;
 
 export const OrganizationsListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const organizations = useOrganizations();
   const [showInactive, setShowInactive] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -51,7 +52,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
             onPress={() => setMenuVisible((current) => !current)}
             style={styles.headerButton}
           >
-            <Text style={styles.headerButtonText}>⋮</Text>
+            <Text style={[styles.headerButtonText, { color: colors.headerTint }]}>
+              ⋮
+            </Text>
           </Pressable>
         </View>
       ),
@@ -62,7 +65,9 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
     <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
       <View style={styles.itemContent}>
         <View style={styles.itemHeader}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={[styles.itemName, { color: colors.textPrimary }]}>
+            {item.name}
+          </Text>
           <StatusBadge
             isActive={item.status === "organization.status.active"}
             activeLabelKey="status.active"
@@ -101,7 +106,7 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
           }}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             {showInactive
               ? t("organizations.menuHideInactive")
               : t("organizations.menuIncludeInactive")}
@@ -123,14 +128,12 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 18,
-    color: colors.headerTint,
   },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   menuItemText: {
-    color: colors.textPrimary,
     fontSize: 14,
   },
   cardRow: {
@@ -149,7 +152,6 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.textPrimary,
     flex: 1,
   },
 });

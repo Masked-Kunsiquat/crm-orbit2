@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 import { t } from "@i18n/index";
 
 type StatusBadgeProps = {
@@ -13,25 +13,32 @@ export const StatusBadge = ({
   isActive,
   activeLabelKey,
   inactiveLabelKey,
-}: StatusBadgeProps) => (
-  <View style={[styles.badge, isActive ? styles.active : styles.inactive]}>
-    <Text style={styles.text}>
-      {isActive ? t(activeLabelKey) : t(inactiveLabelKey)}
-    </Text>
-  </View>
-);
+}: StatusBadgeProps) => {
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={[
+        styles.badge,
+        {
+          backgroundColor: isActive
+            ? colors.statusActiveBg
+            : colors.statusInactiveBg,
+        },
+      ]}
+    >
+      <Text style={styles.text}>
+        {isActive ? t(activeLabelKey) : t(inactiveLabelKey)}
+      </Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-  },
-  active: {
-    backgroundColor: colors.statusActiveBg,
-  },
-  inactive: {
-    backgroundColor: colors.statusInactiveBg,
   },
   text: {
     fontSize: 12,

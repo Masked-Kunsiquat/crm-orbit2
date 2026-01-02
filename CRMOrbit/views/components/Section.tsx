@@ -1,23 +1,28 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 
 type SectionProps = {
   title: string;
   children: ReactNode;
 };
 
-export const Section = ({ title, children }: SectionProps) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    {children}
-  </View>
-);
+export const Section = ({ title, children }: SectionProps) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+        {title}
+      </Text>
+      {children}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -31,6 +36,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 12,
-    color: colors.textPrimary,
   },
 });

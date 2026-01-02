@@ -4,14 +4,17 @@ import type { NotesStackParamList } from "./types";
 import { NotesListScreen } from "../screens/notes/NotesListScreen";
 import { NoteDetailScreen } from "../screens/notes/NoteDetailScreen";
 import { NoteFormScreen } from "../screens/notes/NoteFormScreen";
-import { stackScreenOptions } from "./stackOptions";
+import { getStackScreenOptions } from "./stackOptions";
 import { t } from "@i18n/index";
+import { useTheme } from "../hooks";
 
 const Stack = createNativeStackNavigator<NotesStackParamList>();
 
 export const NotesStack = () => {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator screenOptions={stackScreenOptions}>
+    <Stack.Navigator screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen
         name="NotesList"
         component={NotesListScreen}

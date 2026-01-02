@@ -1,7 +1,7 @@
 import type { ViewStyle } from "react-native";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 
 type ListEmptyStateProps = {
   title: string;
@@ -9,12 +9,18 @@ type ListEmptyStateProps = {
   style?: ViewStyle;
 };
 
-export const ListEmptyState = ({ title, hint, style }: ListEmptyStateProps) => (
-  <View style={[styles.container, style]}>
-    <Text style={styles.title}>{title}</Text>
-    {hint ? <Text style={styles.hint}>{hint}</Text> : null}
-  </View>
-);
+export const ListEmptyState = ({ title, hint, style }: ListEmptyStateProps) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, style]}>
+      <Text style={[styles.title, { color: colors.textMuted }]}>{title}</Text>
+      {hint ? (
+        <Text style={[styles.hint, { color: colors.textFaint }]}>{hint}</Text>
+      ) : null}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -25,12 +31,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    color: colors.textMuted,
     marginBottom: 8,
   },
   hint: {
     fontSize: 14,
-    color: colors.textFaint,
     textAlign: "center",
   },
 });

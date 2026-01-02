@@ -6,11 +6,12 @@ import { useAllNotes } from "../../store/store";
 import type { Note } from "../../../domains/note";
 import { t } from "@i18n/index";
 import { ListCard, ListScreenLayout } from "../../components";
-import { colors } from "../../../domains/shared/theme/colors";
+import { useTheme } from "../../hooks";
 
 type Props = NotesStackScreenProps<"NotesList">;
 
 export const NotesListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const allNotes = useAllNotes();
 
   const sortedNotes = useMemo(() => {
@@ -32,9 +33,9 @@ export const NotesListScreen = ({ navigation }: Props) => {
       renderItem={({ item }) => (
         <ListCard onPress={() => handlePress(item)} variant="outlined">
           <View style={styles.cardHeader}>
-            <Text style={styles.name}>{item.title}</Text>
+            <Text style={[styles.name, { color: colors.textPrimary }]}>{item.title}</Text>
           </View>
-          <Text style={styles.body} numberOfLines={3}>
+          <Text style={[styles.body, { color: colors.textSecondary }]} numberOfLines={3}>
             {item.body}
           </Text>
         </ListCard>
@@ -53,10 +54,8 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.textPrimary,
   },
   body: {
     fontSize: 14,
-    color: colors.textSecondary,
   },
 });

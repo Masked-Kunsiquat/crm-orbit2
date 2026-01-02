@@ -11,6 +11,7 @@ import {
 import { loadPersistedState } from "./domains/persistence/loader";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
+import { useTheme } from "./views/hooks";
 
 registerCoreReducers();
 
@@ -24,6 +25,7 @@ registerCoreReducers();
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { colors } = useTheme();
 
   useEffect(() => {
     const loadData = async () => {
@@ -53,25 +55,31 @@ export default function App() {
 
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Text style={styles.errorText}>Error loading data:</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
+      <View style={[styles.centered, { backgroundColor: colors.canvas }]}>
+        <Text style={[styles.errorText, { color: colors.textPrimary }]}>
+          Error loading data:
+        </Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
+          {error}
+        </Text>
       </View>
     );
   }
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#1f5eff" />
-        <Text style={styles.loadingText}>Loading data...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.canvas }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          Loading data...
+        </Text>
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.canvas }]}>
         <StatusBar style="auto" />
         <RootStack />
       </View>
@@ -82,9 +90,9 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f2ee",
   },
   centered: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -92,17 +100,14 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: "#666",
   },
   errorText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#b00020",
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 14,
-    color: "#666",
     textAlign: "center",
   },
 });

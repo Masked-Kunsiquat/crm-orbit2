@@ -22,6 +22,7 @@ import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import { NotesSection } from "@views/components";
+import { useTheme } from "@views/hooks";
 
 const DEVICE_ID = "device-local";
 
@@ -36,8 +37,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
   const { linkContact, unlinkContact } = useAccountActions(DEVICE_ID);
+  const { colors } = useTheme();
 
   const [showLinkModal, setShowLinkModal] = useState(false);
+
+  const styles = createStyles(colors);
 
   if (!contact) {
     return (
@@ -334,194 +338,195 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  section: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1b1b1b",
-    flex: 1,
-  },
-  editButton: {
-    backgroundColor: "#1f5eff",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  editButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  field: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  value: {
-    fontSize: 16,
-    color: "#1b1b1b",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1b1b1b",
-  },
-  methodItem: {
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  methodValue: {
-    fontSize: 15,
-    color: "#1b1b1b",
-    marginBottom: 2,
-  },
-  methodMeta: {
-    fontSize: 13,
-    color: "#666",
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#999",
-    fontStyle: "italic",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#b00020",
-    textAlign: "center",
-    marginTop: 32,
-  },
-  deleteButton: {
-    backgroundColor: "#b00020",
-    margin: 16,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  fieldHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  linkButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: "#1f5eff",
-  },
-  linkButtonText: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  accountItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  accountInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  accountName: {
-    fontSize: 15,
-    color: "#1b1b1b",
-  },
-  unlinkButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: "#ffebee",
-  },
-  unlinkButtonText: {
-    fontSize: 12,
-    color: "#b00020",
-    fontWeight: "600",
-  },
-  primaryBadge: {
-    backgroundColor: "#e8f5e9",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  primaryText: {
-    fontSize: 12,
-    color: "#4caf50",
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 16,
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1b1b1b",
-    marginBottom: 16,
-  },
-  modalItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  modalItemDisabled: {
-    opacity: 0.5,
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: "#1b1b1b",
-  },
-  modalItemTextDisabled: {
-    color: "#999",
-  },
-  modalCancelButton: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  modalCancelText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.canvas,
+    },
+    section: {
+      backgroundColor: colors.surface,
+      padding: 16,
+      marginBottom: 12,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      flex: 1,
+    },
+    editButton: {
+      backgroundColor: colors.accent,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 6,
+    },
+    editButtonText: {
+      color: colors.surface,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    field: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginBottom: 4,
+      textTransform: "uppercase",
+    },
+    value: {
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+    methodItem: {
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderLight,
+    },
+    methodValue: {
+      fontSize: 15,
+      color: colors.textPrimary,
+      marginBottom: 2,
+    },
+    methodMeta: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontStyle: "italic",
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.error,
+      textAlign: "center",
+      marginTop: 32,
+    },
+    deleteButton: {
+      backgroundColor: colors.error,
+      margin: 16,
+      padding: 16,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    deleteButtonText: {
+      color: colors.surface,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    fieldHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    linkButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      backgroundColor: colors.accent,
+    },
+    linkButtonText: {
+      fontSize: 14,
+      color: colors.surface,
+      fontWeight: "600",
+    },
+    accountItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderLight,
+    },
+    accountInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    accountName: {
+      fontSize: 15,
+      color: colors.textPrimary,
+    },
+    unlinkButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+      backgroundColor: colors.errorBg,
+    },
+    unlinkButtonText: {
+      fontSize: 12,
+      color: colors.error,
+      fontWeight: "600",
+    },
+    primaryBadge: {
+      backgroundColor: colors.successBg,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    primaryText: {
+      fontSize: 12,
+      color: colors.success,
+      fontWeight: "600",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      padding: 16,
+      maxHeight: "80%",
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      marginBottom: 16,
+    },
+    modalItem: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+    },
+    modalItemDisabled: {
+      opacity: 0.5,
+    },
+    modalItemText: {
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    modalItemTextDisabled: {
+      color: colors.textMuted,
+    },
+    modalCancelButton: {
+      marginTop: 16,
+      padding: 16,
+      backgroundColor: colors.borderLight,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    modalCancelText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textSecondary,
+    },
+  });

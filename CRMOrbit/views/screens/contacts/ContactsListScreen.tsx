@@ -11,12 +11,13 @@ import {
   ListCardChevron,
   ListScreenLayout,
 } from "@views/components";
-import { colors } from "@domains/shared/theme/colors";
+import { useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
 
 export const ContactsListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const contacts = useAllContacts();
   const [menuVisible, setMenuVisible] = useState(false);
   const menuAnchorRef = useRef<View>(null);
@@ -50,7 +51,7 @@ export const ContactsListScreen = ({ navigation }: Props) => {
             onPress={() => setMenuVisible((current) => !current)}
             style={styles.headerButton}
           >
-            <Text style={styles.headerButtonText}>⋮</Text>
+            <Text style={[styles.headerButtonText, { color: colors.headerTint }]}>⋮</Text>
           </Pressable>
         </View>
       ),
@@ -60,12 +61,12 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   const renderItem = ({ item }: { item: Contact }) => (
     <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
       <View style={styles.itemContent}>
-        <Text style={styles.itemName}>{getContactDisplayName(item)}</Text>
-        {item.title ? <Text style={styles.itemTitle}>{item.title}</Text> : null}
+        <Text style={[styles.itemName, { color: colors.textPrimary }]}>{getContactDisplayName(item)}</Text>
+        {item.title ? <Text style={[styles.itemTitle, { color: colors.textSecondary }]}>{item.title}</Text> : null}
         {getPrimaryEmail(item) ? (
-          <Text style={styles.itemEmail}>{getPrimaryEmail(item)}</Text>
+          <Text style={[styles.itemEmail, { color: colors.textSecondary }]}>{getPrimaryEmail(item)}</Text>
         ) : null}
-        <Text style={styles.itemType}>{t(item.type)}</Text>
+        <Text style={[styles.itemType, { color: colors.textMuted }]}>{t(item.type)}</Text>
       </View>
       <ListCardChevron />
     </ListCard>
@@ -91,7 +92,7 @@ export const ContactsListScreen = ({ navigation }: Props) => {
           onPress={() => setMenuVisible(false)}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             {t("contacts.moreOptionsSoon")}
           </Text>
         </Pressable>
@@ -111,7 +112,6 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 18,
-    color: colors.headerTint,
   },
   cardRow: {
     flexDirection: "row",
@@ -124,30 +124,25 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.textPrimary,
     marginBottom: 4,
   },
   itemTitle: {
     fontSize: 13,
-    color: colors.textSecondary,
     marginBottom: 2,
     fontStyle: "italic",
   },
   itemEmail: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginBottom: 2,
   },
   itemType: {
     fontSize: 12,
-    color: colors.textMuted,
   },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   menuItemText: {
-    color: colors.textPrimary,
     fontSize: 14,
   },
 });

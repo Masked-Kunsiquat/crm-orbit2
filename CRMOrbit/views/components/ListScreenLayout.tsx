@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import type { ListRenderItem } from "react-native";
 import { FlatList, StyleSheet, View } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { ListEmptyState } from "./ListEmptyState";
 
@@ -24,26 +24,31 @@ export const ListScreenLayout = <ItemT,>({
   emptyHint,
   onAdd,
   listFooterComponent,
-}: ListScreenLayoutProps<ItemT>) => (
-  <View style={styles.container}>
-    <FlatList
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      ListFooterComponent={listFooterComponent}
-      contentContainerStyle={data.length === 0 ? styles.emptyList : styles.list}
-      ListEmptyComponent={
-        <ListEmptyState title={emptyTitle} hint={emptyHint} />
-      }
-    />
-    <FloatingActionButton onPress={onAdd} />
-  </View>
-);
+}: ListScreenLayoutProps<ItemT>) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        ListFooterComponent={listFooterComponent}
+        contentContainerStyle={
+          data.length === 0 ? styles.emptyList : styles.list
+        }
+        ListEmptyComponent={
+          <ListEmptyState title={emptyTitle} hint={emptyHint} />
+        }
+      />
+      <FloatingActionButton onPress={onAdd} />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.canvas,
   },
   list: {
     padding: 16,

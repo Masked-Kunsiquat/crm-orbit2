@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { colors } from "../../domains/shared/theme/colors";
+import { useTheme } from "../hooks";
 
 type ActionButtonProps = {
   label: string;
@@ -12,24 +12,31 @@ export const ActionButton = ({
   label,
   onPress,
   disabled,
-}: ActionButtonProps) => (
-  <Pressable
-    accessibilityRole="button"
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.button,
-      disabled ? styles.buttonDisabled : null,
-      pressed && !disabled ? styles.buttonPressed : null,
-    ]}
-    disabled={disabled}
-  >
-    <Text style={styles.buttonLabel}>{label}</Text>
-  </Pressable>
-);
+}: ActionButtonProps) => {
+  const { colors } = useTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.button,
+        {
+          backgroundColor: disabled ? colors.accentMuted : colors.accent,
+        },
+        pressed && !disabled ? styles.buttonPressed : null,
+      ]}
+      disabled={disabled}
+    >
+      <Text style={[styles.buttonLabel, { color: colors.surface }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+};
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.accent,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 8,
@@ -39,11 +46,7 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.8,
   },
-  buttonDisabled: {
-    backgroundColor: colors.accentMuted,
-  },
   buttonLabel: {
-    color: colors.surface,
     fontWeight: "600",
   },
 });

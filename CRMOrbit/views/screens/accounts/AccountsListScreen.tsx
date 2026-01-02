@@ -11,11 +11,12 @@ import {
   ListScreenLayout,
   StatusBadge,
 } from "../../components";
-import { colors } from "../../../domains/shared/theme/colors";
+import { useTheme } from "../../hooks";
 
 type Props = AccountsStackScreenProps<"AccountsList">;
 
 export const AccountsListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const accounts = useAccounts();
   const organizations = useOrganizations();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -57,7 +58,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
             onPress={() => setMenuVisible((current) => !current)}
             style={styles.headerButton}
           >
-            <Text style={styles.headerButtonText}>⋮</Text>
+            <Text style={[styles.headerButtonText, { color: colors.headerTint }]}>⋮</Text>
           </Pressable>
         </View>
       ),
@@ -72,14 +73,14 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         renderItem={({ item }) => (
           <ListCard onPress={() => handlePress(item)} variant="outlined">
             <View style={styles.cardHeader}>
-              <Text style={styles.name}>{item.name}</Text>
+              <Text style={[styles.name, { color: colors.textPrimary }]}>{item.name}</Text>
               <StatusBadge
                 isActive={item.status === "account.status.active"}
                 activeLabelKey="status.active"
                 inactiveLabelKey="status.inactive"
               />
             </View>
-            <Text style={styles.organization}>
+            <Text style={[styles.organization, { color: colors.textSecondary }]}>
               {getOrganizationName(item.organizationId)}
             </Text>
           </ListCard>
@@ -105,7 +106,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
           }}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             {showInactive
               ? t("accounts.menuHideInactive")
               : t("accounts.menuIncludeInactive")}
@@ -127,7 +128,6 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 18,
-    color: colors.headerTint,
   },
   cardHeader: {
     flexDirection: "row",
@@ -138,19 +138,16 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.textPrimary,
     flex: 1,
   },
   organization: {
     fontSize: 14,
-    color: colors.textSecondary,
   },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   menuItemText: {
-    color: colors.textPrimary,
     fontSize: 14,
   },
 });

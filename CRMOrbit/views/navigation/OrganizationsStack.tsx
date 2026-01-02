@@ -4,13 +4,16 @@ import type { OrganizationsStackParamList } from "./types";
 import { OrganizationsListScreen } from "../screens/organizations/OrganizationsListScreen";
 import { OrganizationDetailScreen } from "../screens/organizations/OrganizationDetailScreen";
 import { OrganizationFormScreen } from "../screens/organizations/OrganizationFormScreen";
-import { stackScreenOptions } from "./stackOptions";
+import { getStackScreenOptions } from "./stackOptions";
+import { useTheme } from "../hooks";
 
 const Stack = createNativeStackNavigator<OrganizationsStackParamList>();
 
 export const OrganizationsStack = () => {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator screenOptions={stackScreenOptions}>
+    <Stack.Navigator screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen
         name="OrganizationsList"
         component={OrganizationsListScreen}
