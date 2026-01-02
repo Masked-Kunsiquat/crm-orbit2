@@ -13,11 +13,13 @@ import {
   useOrganization,
   useContacts,
   useNotes,
+  useTimeline,
 } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
 import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
+  TimelineSection,
   DetailScreenLayout,
   Section,
   DetailField,
@@ -41,6 +43,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const organization = useOrganization(account?.organizationId ?? "");
   const allContacts = useContacts(accountId);
   const notes = useNotes("account", accountId);
+  const timeline = useTimeline("account", accountId);
   const { deleteAccount } = useAccountActions(DEVICE_ID);
   const { colors } = useTheme();
 
@@ -336,6 +339,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         entityType="account"
         navigation={navigation}
       />
+
+      <TimelineSection timeline={timeline} />
 
       <DangerActionButton
         label={t("accounts.deleteButton")}
