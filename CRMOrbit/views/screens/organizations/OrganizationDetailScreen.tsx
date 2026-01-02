@@ -20,7 +20,12 @@ import {
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useTheme } from "@views/hooks";
 import { getContactDisplayName } from "@domains/contact.utils";
-import { Tooltip, NotesSection, DetailScreenLayout, Section } from "@views/components";
+import {
+  Tooltip,
+  NotesSection,
+  DetailScreenLayout,
+  Section,
+} from "@views/components";
 import { t } from "@i18n/index";
 
 const DEVICE_ID = "device-local";

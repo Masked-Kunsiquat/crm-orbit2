@@ -161,18 +161,33 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
                     navigateToEntity(entity.entityType, entity.entityId)
                   }
                 >
-                  <Text style={[styles.linkedItemType, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.linkedItemType,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     {entity.entityType}
                   </Text>
-                  <Text style={[styles.linkedItemName, { color: colors.textPrimary }]}>
+                  <Text
+                    style={[
+                      styles.linkedItemName,
+                      { color: colors.textPrimary },
+                    ]}
+                  >
                     {displayName}
                   </Text>
                 </Pressable>
                 <TouchableOpacity
-                  style={[styles.unlinkButton, { backgroundColor: colors.errorBg }]}
+                  style={[
+                    styles.unlinkButton,
+                    { backgroundColor: colors.errorBg },
+                  ]}
                   onPress={() => handleUnlink(entity.linkId, displayName)}
                 >
-                  <Text style={[styles.unlinkButtonText, { color: colors.error }]}>
+                  <Text
+                    style={[styles.unlinkButtonText, { color: colors.error }]}
+                  >
                     {t("notes.unlinkButton")}
                   </Text>
                 </TouchableOpacity>

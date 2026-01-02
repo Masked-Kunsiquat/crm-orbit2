@@ -5,11 +5,7 @@ import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
-import {
-  HeaderMenu,
-  ListRow,
-  ListScreenLayout,
-} from "@views/components";
+import { HeaderMenu, ListRow, ListScreenLayout } from "@views/components";
 import { useHeaderMenu, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 

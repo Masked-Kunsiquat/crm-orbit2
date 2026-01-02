@@ -20,7 +20,12 @@ import {
 import { useAccountActions } from "../../hooks/useAccountActions";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
-import { Tooltip, NotesSection, DetailScreenLayout, Section } from "../../components";
+import {
+  Tooltip,
+  NotesSection,
+  DetailScreenLayout,
+  Section,
+} from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
 

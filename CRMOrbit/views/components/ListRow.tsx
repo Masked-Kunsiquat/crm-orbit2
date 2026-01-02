@@ -51,8 +51,9 @@ export const ListRow = ({
               style={[
                 styles.title,
                 { color: colors.textPrimary },
-                (hasSubtitle || hasDescription || hasFootnote) &&
-                  { marginBottom: resolvedTitleSpacing },
+                (hasSubtitle || hasDescription || hasFootnote) && {
+                  marginBottom: resolvedTitleSpacing,
+                },
               ]}
             >
               {title}
