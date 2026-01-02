@@ -25,13 +25,15 @@ export const ConfirmDialog = ({
 }: ConfirmDialogProps) => {
   const { colors } = useTheme();
   const showCancel = Boolean(cancelLabel && onCancel);
+  const handleRequestClose =
+    onCancel ?? (confirmVariant === "danger" ? undefined : onConfirm);
 
   return (
     <Modal
       transparent
       animationType="fade"
       visible={visible}
-      onRequestClose={onCancel ?? onConfirm}
+      {...(handleRequestClose ? { onRequestClose: handleRequestClose } : {})}
     >
       <View style={styles.overlay}>
         {onCancel ? (
