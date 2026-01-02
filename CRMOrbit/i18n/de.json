@@ -134,5 +134,20 @@
     "notes.addButton": "Notiz hinzufügen",
     "notes.emptyAccountNotes": "Keine Notizen für dieses Konto.",
     "notes.emptyOrganizationNotes": "Keine Notizen für diese Organisation.",
-    "notes.emptyContactNotes": "Keine Hinweise für diesen Kontakt."
+    "notes.emptyContactNotes": "Keine Hinweise für diesen Kontakt.",
+    "accounts.updateError": "",
+    "accounts.createError": "",
+    "accounts.fields.name": "",
+    "accounts.form.namePlaceholder": "",
+    "accounts.form.organizationPlaceholder": "",
+    "accounts.form.organizationPickerTitle": "",
+    "accounts.form.organizationEmptyHint": "",
+    "accounts.form.useSameAddressForParking": "",
+    "accounts.form.updateButton": "",
+    "accounts.form.createButton": "",
+    "common.address.street": "",
+    "common.address.city": "",
+    "common.address.state": "",
+    "common.address.zip": "",
+    "common.placeholders.website": ""
 }

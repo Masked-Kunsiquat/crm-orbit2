@@ -1,16 +1,17 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
+import { t } from "@i18n/index";
 import type { Address } from "@domains/account";
 import { useTheme } from "../hooks";
 
 type AddressFieldsProps = {
-  label: string;
+  labelKey: string;
   address: Address;
   onChange: (field: keyof Address, value: string) => void;
 };
 
 export const AddressFields = ({
-  label,
+  labelKey,
   address,
   onChange,
 }: AddressFieldsProps) => {
@@ -18,7 +19,9 @@ export const AddressFields = ({
 
   return (
     <View style={styles.field}>
-      <Text style={[styles.label, { color: colors.textPrimary }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.textPrimary }]}>
+        {t(labelKey)}
+      </Text>
       <TextInput
         style={[
           styles.input,
@@ -30,7 +33,7 @@ export const AddressFields = ({
         ]}
         value={address.street}
         onChangeText={(value) => onChange("street", value)}
-        placeholder="Street"
+        placeholder={t("common.address.street")}
         placeholderTextColor={colors.textMuted}
       />
       <TextInput
@@ -45,7 +48,7 @@ export const AddressFields = ({
         ]}
         value={address.city}
         onChangeText={(value) => onChange("city", value)}
-        placeholder="City"
+        placeholder={t("common.address.city")}
         placeholderTextColor={colors.textMuted}
       />
       <View style={styles.addressRow}>
@@ -61,7 +64,7 @@ export const AddressFields = ({
           ]}
           value={address.state}
           onChangeText={(value) => onChange("state", value)}
-          placeholder="State"
+          placeholder={t("common.address.state")}
           placeholderTextColor={colors.textMuted}
         />
         <TextInput
@@ -76,7 +79,7 @@ export const AddressFields = ({
           ]}
           value={address.zipCode}
           onChangeText={(value) => onChange("zipCode", value)}
-          placeholder="ZIP"
+          placeholder={t("common.address.zip")}
           placeholderTextColor={colors.textMuted}
         />
       </View>

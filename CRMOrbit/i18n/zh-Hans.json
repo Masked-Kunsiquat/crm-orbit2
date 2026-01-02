@@ -134,5 +134,20 @@
     "notes.addButton": "添加笔记",
     "notes.emptyAccountNotes": "此账户暂无笔记。",
     "notes.emptyOrganizationNotes": "此组织暂无笔记。",
-    "notes.emptyContactNotes": "此联系人暂无笔记。"
+    "notes.emptyContactNotes": "此联系人暂无笔记。",
+    "accounts.updateError": "",
+    "accounts.createError": "",
+    "accounts.fields.name": "",
+    "accounts.form.namePlaceholder": "",
+    "accounts.form.organizationPlaceholder": "",
+    "accounts.form.organizationPickerTitle": "",
+    "accounts.form.organizationEmptyHint": "",
+    "accounts.form.useSameAddressForParking": "",
+    "accounts.form.updateButton": "",
+    "accounts.form.createButton": "",
+    "common.address.street": "",
+    "common.address.city": "",
+    "common.address.state": "",
+    "common.address.zip": "",
+    "common.placeholders.website": ""
 }

@@ -134,5 +134,20 @@
     "notes.addButton": "Agregar nota",
     "notes.emptyAccountNotes": "No hay notas para esta cuenta.",
     "notes.emptyOrganizationNotes": "No hay notas para esta organización.",
-    "notes.emptyContactNotes": "No hay notas para este contacto."
+    "notes.emptyContactNotes": "No hay notas para este contacto.",
+    "accounts.updateError": "",
+    "accounts.createError": "",
+    "accounts.fields.name": "",
+    "accounts.form.namePlaceholder": "",
+    "accounts.form.organizationPlaceholder": "",
+    "accounts.form.organizationPickerTitle": "",
+    "accounts.form.organizationEmptyHint": "",
+    "accounts.form.useSameAddressForParking": "",
+    "accounts.form.updateButton": "",
+    "accounts.form.createButton": "",
+    "common.address.street": "",
+    "common.address.city": "",
+    "common.address.state": "",
+    "common.address.zip": "",
+    "common.placeholders.website": ""
 }

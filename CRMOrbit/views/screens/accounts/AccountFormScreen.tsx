@@ -148,13 +148,16 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert("Validation Error", t("accounts.validation.nameRequired"));
+      Alert.alert(
+        t("common.validationError"),
+        t("accounts.validation.nameRequired"),
+      );
       return;
     }
 
     if (!organizationId) {
       Alert.alert(
-        "Validation Error",
+        t("common.validationError"),
         t("accounts.validation.organizationRequired"),
       );
       return;
@@ -198,7 +201,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", result.error || "Failed to update account");
+        Alert.alert(
+          t("common.error"),
+          result.error || t("accounts.updateError"),
+        );
       }
     } else {
       const result = createAccount(
@@ -212,7 +218,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", result.error || "Failed to create account");
+        Alert.alert(
+          t("common.error"),
+          result.error || t("accounts.createError"),
+        );
       }
     }
   };
@@ -226,7 +235,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       <View style={styles.form}>
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Account Name *
+            {t("accounts.fields.name")} *
           </Text>
           <TextInput
             style={[
@@ -239,7 +248,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             ]}
             value={name}
             onChangeText={handleNameChange}
-            placeholder="Enter account name"
+            placeholder={t("accounts.form.namePlaceholder")}
             placeholderTextColor={colors.textMuted}
             autoFocus
           />
@@ -247,11 +256,11 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Organization *
+            {t("accounts.fields.organization")} *
           </Text>
           {organizations.length === 0 ? (
             <Text style={[styles.hint, { color: colors.textMuted }]}>
-              No organizations available. Create one first.
+              {t("accounts.form.organizationEmptyHint")}
             </Text>
           ) : (
             <TouchableOpacity
@@ -268,7 +277,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                   { color: colors.textSecondary },
                 ]}
               >
-                {selectedOrganization?.name ?? "Select organization"}
+                {selectedOrganization?.name ??
+                  t("accounts.form.organizationPlaceholder")}
               </Text>
               <Text style={[styles.pickerChevron, { color: colors.chevron }]}>
                 ▼
@@ -279,7 +289,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Status
+            {t("accounts.fields.status")}
           </Text>
           <View style={styles.statusButtons}>
             <TouchableOpacity
@@ -302,7 +312,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                   },
                 ]}
               >
-                Active
+                {t("status.active")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -325,14 +335,14 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
                   },
                 ]}
               >
-                Inactive
+                {t("status.inactive")}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <AddressFields
-          label="Site Address"
+          labelKey="accounts.fields.siteAddress"
           address={siteAddress}
           onChange={handleSiteAddressChange}
         />
@@ -355,14 +365,14 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>
-              Use same address for parking
+              {t("accounts.form.useSameAddressForParking")}
             </Text>
           </TouchableOpacity>
         </View>
 
         {!useSameForParking && (
           <AddressFields
-            label="Parking Address"
+            labelKey="accounts.fields.parkingAddress"
             address={parkingAddress}
             onChange={handleParkingAddressChange}
           />
@@ -370,7 +380,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Website
+            {t("accounts.fields.website")}
           </Text>
           <TextInput
             style={[
@@ -385,7 +395,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             onChangeText={(value) => {
               setWebsite(value);
             }}
-            placeholder="https://example.com"
+            placeholder={t("common.placeholders.website")}
             placeholderTextColor={colors.textMuted}
             keyboardType="url"
             autoCapitalize="none"
@@ -408,7 +418,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           disabled={organizations.length === 0}
         >
           <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-            {accountId ? "Update Account" : "Create Account"}
+            {accountId
+              ? t("accounts.form.updateButton")
+              : t("accounts.form.createButton")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -431,7 +443,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             ]}
           >
             <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-              Select organization
+              {t("accounts.form.organizationPickerTitle")}
             </Text>
             <ScrollView style={styles.pickerList}>
               {organizations.map((org) => {
