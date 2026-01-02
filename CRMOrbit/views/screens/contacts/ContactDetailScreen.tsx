@@ -19,7 +19,10 @@ import {
 } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
-import { getContactDisplayName } from "@domains/contact.utils";
+import {
+  formatPhoneNumber,
+  getContactDisplayName,
+} from "@domains/contact.utils";
 import {
   NotesSection,
   DetailScreenLayout,
@@ -205,8 +208,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         {contact.methods.emails.length === 0 ? (
           <Text style={styles.emptyText}>{t("contacts.emptyEmails")}</Text>
         ) : (
-          contact.methods.emails.map((email, index) => (
-            <View key={index} style={styles.methodItem}>
+          contact.methods.emails.map((email) => (
+            <View key={email.id} style={styles.methodItem}>
               <Text style={styles.methodValue}>{email.value}</Text>
               <Text style={styles.methodMeta}>
                 {getMethodLabel(email.label)} • {t(email.status)}
@@ -223,9 +226,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         {contact.methods.phones.length === 0 ? (
           <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
         ) : (
-          contact.methods.phones.map((phone, index) => (
-            <View key={index} style={styles.methodItem}>
-              <Text style={styles.methodValue}>{phone.value}</Text>
+          contact.methods.phones.map((phone) => (
+            <View key={phone.id} style={styles.methodItem}>
+              <Text style={styles.methodValue}>
+                {formatPhoneNumber(phone.value)}
+              </Text>
               <Text style={styles.methodMeta}>
                 {getMethodLabel(phone.label)} • {t(phone.status)}
               </Text>

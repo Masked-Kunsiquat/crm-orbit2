@@ -12,9 +12,11 @@ export type ContactMethodStatus =
 export type ContactMethodLabel =
   | "contact.method.label.work"
   | "contact.method.label.personal"
+  | "contact.method.label.mobile"
   | "contact.method.label.other";
 
 export interface ContactMethod {
+  id: string;
   value: string;
   label: ContactMethodLabel;
   status: ContactMethodStatus;

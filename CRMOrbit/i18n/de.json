@@ -188,6 +188,7 @@
     "contacts.deleteError": "",
     "contact.method.label.work": "",
     "contact.method.label.personal": "",
+    "contact.method.label.mobile": "",
     "contact.method.label.other": "",
     "contact.method.status.active": "",
     "contact.method.status.inactive": "",

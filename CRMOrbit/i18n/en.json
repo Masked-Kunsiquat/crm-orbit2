@@ -180,6 +180,7 @@
   "contact.type.vendor": "Vendor",
   "contact.method.label.work": "Work",
   "contact.method.label.personal": "Personal",
+  "contact.method.label.mobile": "Mobile",
   "contact.method.label.other": "Other",
   "contact.method.status.active": "Active",
   "contact.method.status.inactive": "Inactive",

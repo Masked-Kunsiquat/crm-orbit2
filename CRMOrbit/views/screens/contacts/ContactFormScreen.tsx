@@ -6,7 +6,8 @@ import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import type { ContactType, ContactMethod } from "@domains/contact";
-import { splitLegacyName } from "@domains/contact.utils";
+import { formatPhoneNumber, splitLegacyName } from "@domains/contact.utils";
+import { nextId } from "@domains/shared/idGenerator";
 import { useTheme } from "@views/hooks/useTheme";
 import {
   FormField,
@@ -34,6 +35,35 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const [phones, setPhones] = useState<ContactMethod[]>([]);
   const lastContactIdRef = useRef<string | undefined>(undefined);
 
+  const emailLabelOptions = [
+    { value: "contact.method.label.work", label: t("contact.method.label.work") },
+    {
+      value: "contact.method.label.personal",
+      label: t("contact.method.label.personal"),
+    },
+    { value: "contact.method.label.other", label: t("contact.method.label.other") },
+  ] as const;
+  const phoneLabelOptions = [
+    { value: "contact.method.label.work", label: t("contact.method.label.work") },
+    {
+      value: "contact.method.label.personal",
+      label: t("contact.method.label.personal"),
+    },
+    { value: "contact.method.label.mobile", label: t("contact.method.label.mobile") },
+    { value: "contact.method.label.other", label: t("contact.method.label.other") },
+  ] as const;
+
+  const ensureMethodIds = (methods: ContactMethod[]) =>
+    methods.map((method) => ({
+      ...method,
+      id: method.id || nextId("contact-method"),
+    }));
+  const formatPhoneMethods = (methods: ContactMethod[]) =>
+    ensureMethodIds(methods).map((method) => ({
+      ...method,
+      value: formatPhoneNumber(method.value),
+    }));
+
   // Only populate form fields on initial mount or when switching to a different contact
   useEffect(() => {
     const currentContactId = contactId ?? undefined;
@@ -57,8 +87,8 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         }
         setTitle(contact.title || "");
         setType(contact.type);
-        setEmails(contact.methods.emails);
-        setPhones(contact.methods.phones);
+        setEmails(ensureMethodIds(contact.methods.emails));
+        setPhones(formatPhoneMethods(contact.methods.phones));
       } else {
         // New contact - reset to defaults
         setFirstName("");
@@ -91,6 +121,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     setEmails([
       ...emails,
       {
+        id: nextId("contact-method"),
         value: "",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
@@ -104,6 +135,15 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     setEmails(newEmails);
   };
 
+  const handleEmailLabelChange = (
+    index: number,
+    label: ContactMethod["label"],
+  ) => {
+    const newEmails = [...emails];
+    newEmails[index] = { ...newEmails[index], label };
+    setEmails(newEmails);
+  };
+
   const handleRemoveEmail = (index: number) => {
     setEmails(emails.filter((_, i) => i !== index));
   };
@@ -112,6 +152,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     setPhones([
       ...phones,
       {
+        id: nextId("contact-method"),
         value: "",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
@@ -121,7 +162,16 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handlePhoneChange = (index: number, value: string) => {
     const newPhones = [...phones];
-    newPhones[index] = { ...newPhones[index], value };
+    newPhones[index] = { ...newPhones[index], value: formatPhoneNumber(value) };
+    setPhones(newPhones);
+  };
+
+  const handlePhoneLabelChange = (
+    index: number,
+    label: ContactMethod["label"],
+  ) => {
+    const newPhones = [...phones];
+    newPhones[index] = { ...newPhones[index], label };
     setPhones(newPhones);
   };
 
@@ -237,9 +287,11 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         methods={emails}
         onAdd={handleAddEmail}
         onChange={handleEmailChange}
+        onLabelChange={handleEmailLabelChange}
         onRemove={handleRemoveEmail}
         placeholder={t("contacts.form.emailPlaceholder")}
         addLabel={t("contacts.form.addAction")}
+        labelOptions={emailLabelOptions}
         keyboardType="email-address"
         autoCapitalize="none"
       />
@@ -249,9 +301,11 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         methods={phones}
         onAdd={handleAddPhone}
         onChange={handlePhoneChange}
+        onLabelChange={handlePhoneLabelChange}
         onRemove={handleRemovePhone}
         placeholder={t("contacts.form.phonePlaceholder")}
         addLabel={t("contacts.form.addAction")}
+        labelOptions={phoneLabelOptions}
         keyboardType="phone-pad"
       />
 

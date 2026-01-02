@@ -42,6 +42,21 @@ export const splitLegacyName = (
 };
 
 /**
+ * Format a phone number as XXX-XXX-XXXX when possible.
+ */
+export const formatPhoneNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, "");
+  const normalized =
+    digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+
+  if (normalized.length !== 10) {
+    return value;
+  }
+
+  return `${normalized.slice(0, 3)}-${normalized.slice(3, 6)}-${normalized.slice(6)}`;
+};
+
+/**
  * Get the primary email for a contact (first active email, or first email if none active)
  */
 export const getPrimaryEmail = (contact: Contact): string | undefined => {
