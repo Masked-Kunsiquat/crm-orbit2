@@ -73,7 +73,7 @@
     "organizations.validation.nameRequired": "组织名称要求",
     "organizations.notFound": "未找到组织",
     "organizations.cannotDeleteTitle": "无法删除",
-    "organizations.cannotDeleteMessage": "无法删除「{name}」，因为它有 {count} 个关联账户。请先删除或重新分配这些账户。",
+    "organizations.cannotDeleteMessage": "不能删除“姓名}”,因为它有{账面}相关账户。 请首先删除或重新调配.",
     "organizations.deleteTitle": "删除组织",
     "organizations.deleteConfirmation": "您确定要删除「{name}」吗？此操作无法撤销。",
     "organizations.deleteError": "删除组织失败",
