@@ -75,7 +75,12 @@ export const useAccountActions = (deviceId: string) => {
     ): DispatchResult => {
       const changes =
         previousAccount
-          ? detectAccountChanges(previousAccount, { name, status })
+          ? detectAccountChanges(previousAccount, {
+              name,
+              status,
+              website,
+              addresses,
+            })
           : undefined;
 
       const event = buildEvent({

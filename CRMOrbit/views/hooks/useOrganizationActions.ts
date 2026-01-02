@@ -68,7 +68,12 @@ export const useOrganizationActions = (deviceId: string) => {
     ): DispatchResult => {
       const changes =
         previousOrganization
-          ? detectOrganizationChanges(previousOrganization, { name, status })
+          ? detectOrganizationChanges(previousOrganization, {
+              name,
+              status,
+              website,
+              socialMedia,
+            })
           : undefined;
 
       const event = buildEvent({

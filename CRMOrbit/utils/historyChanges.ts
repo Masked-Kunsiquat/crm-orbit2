@@ -1,6 +1,6 @@
 import type { Contact, ContactMethod } from "../domains/contact";
-import type { Account } from "../domains/account";
-import type { Organization } from "../domains/organization";
+import type { Account, AccountAddresses } from "../domains/account";
+import type { Organization, SocialMediaLinks } from "../domains/organization";
 
 export type FieldChange = {
   field: string;
@@ -140,6 +140,8 @@ export const detectAccountChanges = (
   newData: {
     name: string;
     status: string;
+    website?: string;
+    addresses?: AccountAddresses;
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -160,6 +162,30 @@ export const detectAccountChanges = (
     });
   }
 
+  const oldWebsite = oldAccount.website || "";
+  const newWebsite = newData.website || "";
+  if (oldWebsite !== newWebsite) {
+    changes.push({
+      field: "website",
+      oldValue: oldWebsite,
+      newValue: newWebsite,
+    });
+  }
+
+  // Check site address changes
+  if (newData.addresses) {
+    const oldSite = oldAccount.addresses?.site;
+    const newSite = newData.addresses.site;
+
+    if (oldSite?.street !== newSite?.street) {
+      changes.push({
+        field: "siteAddress",
+        oldValue: oldSite?.street || "",
+        newValue: newSite?.street || "",
+      });
+    }
+  }
+
   return changes;
 };
 
@@ -171,6 +197,8 @@ export const detectOrganizationChanges = (
   newData: {
     name: string;
     status: string;
+    website?: string;
+    socialMedia?: SocialMediaLinks;
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -188,6 +216,41 @@ export const detectOrganizationChanges = (
       field: "status",
       oldValue: oldOrganization.status,
       newValue: newData.status,
+    });
+  }
+
+  const oldWebsite = oldOrganization.website || "";
+  const newWebsite = newData.website || "";
+  if (oldWebsite !== newWebsite) {
+    changes.push({
+      field: "website",
+      oldValue: oldWebsite,
+      newValue: newWebsite,
+    });
+  }
+
+  // Check social media changes
+  if (newData.socialMedia) {
+    const oldSocial = oldOrganization.socialMedia || {};
+    const newSocial = newData.socialMedia;
+
+    const platforms: Array<keyof SocialMediaLinks> = [
+      "x",
+      "linkedin",
+      "facebook",
+      "instagram",
+    ];
+
+    platforms.forEach((platform) => {
+      const oldValue = oldSocial[platform] || "";
+      const newValue = newSocial[platform] || "";
+      if (oldValue !== newValue) {
+        changes.push({
+          field: platform,
+          oldValue,
+          newValue,
+        });
+      }
     });
   }
 
