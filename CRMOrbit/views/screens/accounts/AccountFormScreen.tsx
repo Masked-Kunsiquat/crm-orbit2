@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Modal,
+  Pressable,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 
 import { t } from "@i18n/index";
 import type { AccountsStackScreenProps } from "../../navigation/types";
@@ -57,6 +58,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [useSameForParking, setUseSameForParking] = useState(false);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
+  const [isOrganizationPickerOpen, setIsOrganizationPickerOpen] =
+    useState(false);
   const lastAccountIdRef = useRef<string | undefined>(undefined);
 
   // Only populate form fields on initial mount or when switching to a different account
@@ -213,6 +216,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     }
   };
 
+  const selectedOrganization = organizations.find(
+    (org) => org.id === organizationId,
+  );
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
       <View style={styles.form}>
@@ -235,19 +242,19 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               No organizations available. Create one first.
             </Text>
           ) : (
-            <View style={[styles.pickerContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Picker
-                selectedValue={organizationId}
-                onValueChange={(value) => {
-                  setOrganizationId(value);
-                }}
-                style={[styles.picker, { color: colors.textPrimary }]}
-              >
-                {organizations.map((org) => (
-                  <Picker.Item key={org.id} label={org.name} value={org.id} />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.pickerButton,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+              onPress={() => setIsOrganizationPickerOpen(true)}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.pickerButtonText, { color: colors.textSecondary }]}>
+                {selectedOrganization?.name ?? "Select organization"}
+              </Text>
+              <Text style={[styles.pickerChevron, { color: colors.chevron }]}>▼</Text>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -463,6 +470,59 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={isOrganizationPickerOpen}
+        onRequestClose={() => setIsOrganizationPickerOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsOrganizationPickerOpen(false)}
+          />
+          <View
+            style={[
+              styles.pickerModal,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              Select organization
+            </Text>
+            <ScrollView style={styles.pickerList}>
+              {organizations.map((org) => {
+                const isSelected = org.id === organizationId;
+                return (
+                  <TouchableOpacity
+                    key={org.id}
+                    style={[
+                      styles.pickerItem,
+                      { borderBottomColor: colors.borderLight },
+                      isSelected && { backgroundColor: colors.surfaceElevated },
+                    ]}
+                    onPress={() => {
+                      setOrganizationId(org.id);
+                      setIsOrganizationPickerOpen(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.pickerItemText,
+                        { color: colors.textPrimary },
+                        isSelected && { color: colors.accent },
+                      ]}
+                    >
+                      {org.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -496,13 +556,49 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  pickerContainer: {
+  pickerButton: {
     borderRadius: 8,
     borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pickerButtonText: {
+    fontSize: 16,
+  },
+  pickerChevron: {
+    fontSize: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  pickerModal: {
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: "70%",
     overflow: "hidden",
   },
-  picker: {
-    height: 50,
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  pickerList: {
+    flexGrow: 0,
+  },
+  pickerItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+  },
+  pickerItemText: {
+    fontSize: 16,
   },
   statusButtons: {
     flexDirection: "row",
