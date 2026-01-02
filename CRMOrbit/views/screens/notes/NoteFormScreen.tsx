@@ -1,29 +1,31 @@
 import { useState, useEffect } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Alert,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
+import {
+  FormField,
+  FormScreenLayout,
+  TextField,
+  ConfirmDialog,
+} from "../../components";
+import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
 import { nextId } from "@domains/shared/idGenerator";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
 type Props = NotesStackScreenProps<"NoteForm">;
 
 export const NoteFormScreen = ({ route, navigation }: Props) => {
+  const { colors } = useTheme();
   const { noteId, entityToLink } = route.params ?? {};
   const note = useNote(noteId ?? "");
   const { createNote, updateNote, linkNote, deleteNote } =
     useNoteActions(DEVICE_ID);
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -37,7 +39,11 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert(t("common.error"), t("notes.validation.titleRequired"));
+      showAlert(
+        t("common.error"),
+        t("notes.validation.titleRequired"),
+        t("common.ok"),
+      );
       return;
     }
 
@@ -46,7 +52,11 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert(t("common.error"), result.error || t("notes.updateError"));
+        showAlert(
+          t("common.error"),
+          result.error || t("notes.updateError"),
+          t("common.ok"),
+        );
       }
     } else {
       // Pre-generate the note id so linking can reference it without relying on return values.
@@ -60,111 +70,81 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
             entityToLink.entityId,
           );
           if (!linkResult.success) {
-            Alert.alert(
-              t("notes.linkFailureTitle"),
-              t("notes.linkFailureMessage"),
-              [
-                {
-                  text: t("notes.linkFailureDelete"),
-                  style: "destructive",
-                  onPress: () => {
-                    deleteNote(newNoteId);
-                    navigation.goBack();
-                  },
-                },
-                {
-                  text: t("notes.linkFailureKeep"),
-                  onPress: () => {
-                    navigation.goBack();
-                  },
-                },
-              ],
-            );
+            showDialog({
+              title: t("notes.linkFailureTitle"),
+              message: t("notes.linkFailureMessage"),
+              confirmLabel: t("notes.linkFailureDelete"),
+              confirmVariant: "danger",
+              cancelLabel: t("notes.linkFailureKeep"),
+              onConfirm: () => {
+                deleteNote(newNoteId);
+                navigation.goBack();
+              },
+              onCancel: () => {
+                navigation.goBack();
+              },
+            });
             return;
           }
         }
         navigation.goBack();
       } else {
-        Alert.alert(t("common.error"), result.error || t("notes.createError"));
+        showAlert(
+          t("common.error"),
+          result.error || t("notes.createError"),
+          t("common.ok"),
+        );
       }
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={styles.label}>{t("notes.form.titleLabel")}</Text>
-          <TextInput
-            style={styles.input}
-            value={title}
-            onChangeText={setTitle}
-            placeholder={t("notes.form.titlePlaceholder")}
-            autoFocus
-          />
-        </View>
+    <FormScreenLayout>
+      <FormField label={t("notes.form.titleLabel")}>
+        <TextField
+          value={title}
+          onChangeText={setTitle}
+          placeholder={t("notes.form.titlePlaceholder")}
+          autoFocus
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>{t("notes.form.bodyLabel")}</Text>
-          <TextInput
-            style={[styles.input, styles.bodyInput]}
-            value={body}
-            onChangeText={setBody}
-            placeholder={t("notes.form.bodyPlaceholder")}
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
+      <FormField label={t("notes.form.bodyLabel")}>
+        <TextField
+          style={styles.bodyInput}
+          value={body}
+          onChangeText={setBody}
+          placeholder={t("notes.form.bodyPlaceholder")}
+          multiline
+          textAlignVertical="top"
+        />
+      </FormField>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>
-            {noteId
-              ? t("notes.form.updateButton")
-              : t("notes.form.createButton")}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      <TouchableOpacity
+        style={[styles.saveButton, { backgroundColor: colors.accent }]}
+        onPress={handleSave}
+      >
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
+          {noteId ? t("notes.form.updateButton") : t("notes.form.createButton")}
+        </Text>
+      </TouchableOpacity>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  form: {
-    padding: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1b1b1b",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
   bodyInput: {
     height: 200,
   },
   saveButton: {
-    backgroundColor: "#1f5eff",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 12,
   },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "./types";
-import { stackScreenOptions } from "./stackOptions";
+import { getStackScreenOptions } from "./stackOptions";
 import { RootTabs } from "./RootTabs";
 import { OrganizationDetailScreen } from "../screens/organizations/OrganizationDetailScreen";
 import { OrganizationFormScreen } from "../screens/organizations/OrganizationFormScreen";
@@ -12,12 +12,15 @@ import { ContactFormScreen } from "../screens/contacts/ContactFormScreen";
 import { NoteDetailScreen } from "../screens/notes/NoteDetailScreen";
 import { NoteFormScreen } from "../screens/notes/NoteFormScreen";
 import { t } from "@i18n/index";
+import { useTheme } from "../hooks";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootStack = () => {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator screenOptions={stackScreenOptions}>
+    <Stack.Navigator screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen
         name="RootTabs"
         component={RootTabs}

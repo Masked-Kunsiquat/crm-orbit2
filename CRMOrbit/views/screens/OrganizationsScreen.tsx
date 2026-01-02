@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from "react-native";
 
-import { ActionButton, Section } from "@views/components";
+import { PrimaryActionButton, Section } from "@views/components";
 import { useOrganizationActions } from "@views/hooks";
 import { useOrganizations } from "@views/store/store";
 
@@ -18,7 +18,10 @@ export const OrganizationsScreen = () => {
 
   return (
     <Section title="Organizations">
-      <ActionButton label="Add organization" onPress={handleAddOrganization} />
+      <PrimaryActionButton
+        label="Add organization"
+        onPress={handleAddOrganization}
+      />
       {organizations.length === 0 ? (
         <Text style={styles.empty}>No organizations yet.</Text>
       ) : (

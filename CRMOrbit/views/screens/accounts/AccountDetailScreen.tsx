@@ -1,15 +1,11 @@
 import {
-  Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Pressable,
   Linking,
 } from "react-native";
 import { useState, useMemo } from "react";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
@@ -19,10 +15,21 @@ import {
   useNotes,
 } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
-import { getContactDisplayName } from "@domains/contact.utils";
 import type { ContactType } from "@domains/contact";
-import { Tooltip, NotesSection } from "../../components";
+import {
+  NotesSection,
+  DetailScreenLayout,
+  Section,
+  DetailField,
+  SocialLinksSection,
+  ContactCardRow,
+  PrimaryActionButton,
+  DangerActionButton,
+  ConfirmDialog,
+} from "../../components";
 import { t } from "@i18n/index";
+import { useTheme } from "../../hooks/useTheme";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -35,6 +42,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const allContacts = useContacts(accountId);
   const notes = useNotes("account", accountId);
   const { deleteAccount } = useAccountActions(DEVICE_ID);
+  const { colors } = useTheme();
+
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
     "all",
@@ -49,9 +59,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   if (!account) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{t("accounts.notFound")}</Text>
-      </View>
+      <DetailScreenLayout>
+        <Text style={[styles.errorText, { color: colors.error }]}>
+          {t("accounts.notFound")}
+        </Text>
+      </DetailScreenLayout>
     );
   }
 
@@ -61,233 +73,146 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   const handleDelete = () => {
     if (allContacts.length > 0) {
-      Alert.alert(
+      showAlert(
         t("accounts.cannotDeleteTitle"),
         t("accounts.cannotDeleteMessage")
           .replace("{name}", account.name)
           .replace("{count}", allContacts.length.toString()),
-        [{ text: t("common.ok") }],
+        t("common.ok"),
       );
       return;
     }
 
-    Alert.alert(
-      t("accounts.deleteTitle"),
-      t("accounts.deleteConfirmation").replace("{name}", account.name),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            const result = deleteAccount(account.id);
-            if (result.success) {
-              navigation.goBack();
-            } else {
-              Alert.alert(
-                t("common.error"),
-                result.error ?? t("accounts.deleteError"),
-              );
-            }
-          },
-        },
-      ],
-    );
+    showDialog({
+      title: t("accounts.deleteTitle"),
+      message: t("accounts.deleteConfirmation").replace("{name}", account.name),
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteAccount(account.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("accounts.deleteError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
+    <DetailScreenLayout>
+      <Section>
         <View style={styles.header}>
-          <Text style={styles.title}>{account.name}</Text>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>{t("common.edit")}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>{t("accounts.fields.organization")}</Text>
-          <Text style={styles.value}>
-            {organization?.name ?? t("common.unknown")}
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {account.name}
           </Text>
+          <PrimaryActionButton
+            label={t("common.edit")}
+            onPress={handleEdit}
+            size="compact"
+          />
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>{t("accounts.fields.status")}</Text>
+        <DetailField label={t("accounts.fields.organization")}>
+          {organization?.name ?? t("common.unknown")}
+        </DetailField>
+
+        <DetailField label={t("accounts.fields.status")}>
           <View
             style={[
               styles.statusBadge,
-              account.status === "account.status.active"
-                ? styles.statusActive
-                : styles.statusInactive,
+              {
+                backgroundColor:
+                  account.status === "account.status.active"
+                    ? colors.statusActiveBg
+                    : colors.statusInactiveBg,
+              },
             ]}
           >
-            <Text style={styles.statusText}>
+            <Text
+              style={[
+                styles.statusText,
+                {
+                  color:
+                    account.status === "account.status.active"
+                      ? colors.success
+                      : colors.error,
+                },
+              ]}
+            >
               {account.status === "account.status.active"
                 ? t("status.active")
                 : t("status.inactive")}
             </Text>
           </View>
-        </View>
+        </DetailField>
 
         {account.addresses?.site && (
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("accounts.fields.siteAddress")}</Text>
-            <Text style={styles.value}>{account.addresses.site.street}</Text>
-            <Text style={styles.value}>
-              {account.addresses.site.city}, {account.addresses.site.state}{" "}
-              {account.addresses.site.zipCode}
-            </Text>
-          </View>
+          <DetailField label={t("accounts.fields.siteAddress")}>
+            <View>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.site.street}
+              </Text>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.site.city}, {account.addresses.site.state}{" "}
+                {account.addresses.site.zipCode}
+              </Text>
+            </View>
+          </DetailField>
         )}
 
         {account.addresses?.parking && !account.addresses.useSameForParking && (
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              {t("accounts.fields.parkingAddress")}
-            </Text>
-            <Text style={styles.value}>{account.addresses.parking.street}</Text>
-            <Text style={styles.value}>
-              {account.addresses.parking.city},{" "}
-              {account.addresses.parking.state}{" "}
-              {account.addresses.parking.zipCode}
-            </Text>
-          </View>
+          <DetailField label={t("accounts.fields.parkingAddress")}>
+            <View>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.parking.street}
+              </Text>
+              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                {account.addresses.parking.city},{" "}
+                {account.addresses.parking.state}{" "}
+                {account.addresses.parking.zipCode}
+              </Text>
+            </View>
+          </DetailField>
         )}
 
         {account.addresses?.useSameForParking && (
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              {t("accounts.fields.parkingAddress")}
-            </Text>
-            <Text style={styles.value}>{t("accounts.sameAsSiteAddress")}</Text>
-          </View>
+          <DetailField label={t("accounts.fields.parkingAddress")}>
+            {t("accounts.sameAsSiteAddress")}
+          </DetailField>
         )}
 
         {account.website && (
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("accounts.fields.website")}</Text>
+          <DetailField label={t("accounts.fields.website")}>
             <TouchableOpacity onPress={() => Linking.openURL(account.website!)}>
-              <Text style={styles.link}>{account.website}</Text>
+              <Text style={[styles.link, { color: colors.link }]}>
+                {account.website}
+              </Text>
             </TouchableOpacity>
-          </View>
+          </DetailField>
         )}
 
         {account.socialMedia &&
           Object.values(account.socialMedia).some((v) => v) && (
             <View style={styles.field}>
-              <Text style={styles.label}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 {t("accounts.fields.socialMedia")}
               </Text>
-              {account.socialMedia.facebook && (
-                <Tooltip content={account.socialMedia.facebook}>
-                  <Pressable
-                    onPress={() =>
-                      Linking.openURL(account.socialMedia!.facebook!)
-                    }
-                    style={styles.socialLinkContainer}
-                  >
-                    <Text style={styles.socialLink}>
-                      {t("accounts.socialMedia.facebook")}
-                    </Text>
-                    <FontAwesome6
-                      name="square-facebook"
-                      size={18}
-                      color="#1f5eff"
-                      style={styles.socialIcon}
-                    />
-                  </Pressable>
-                </Tooltip>
-              )}
-              {account.socialMedia.instagram && (
-                <Tooltip
-                  content={
-                    account.socialMedia.instagram.startsWith("http")
-                      ? account.socialMedia.instagram
-                      : `https://instagram.com/${account.socialMedia.instagram}`
-                  }
-                >
-                  <Pressable
-                    onPress={() => {
-                      const url = account.socialMedia!.instagram!.startsWith(
-                        "http",
-                      )
-                        ? account.socialMedia!.instagram!
-                        : `https://instagram.com/${account.socialMedia!.instagram}`;
-                      Linking.openURL(url);
-                    }}
-                    style={styles.socialLinkContainer}
-                  >
-                    <Text style={styles.socialLink}>
-                      {t("accounts.socialMedia.instagram")}
-                    </Text>
-                    <FontAwesome6
-                      name="instagram"
-                      size={18}
-                      color="#1f5eff"
-                      style={styles.socialIcon}
-                    />
-                  </Pressable>
-                </Tooltip>
-              )}
-              {account.socialMedia.linkedin && (
-                <Tooltip content={account.socialMedia.linkedin}>
-                  <Pressable
-                    onPress={() =>
-                      Linking.openURL(account.socialMedia!.linkedin!)
-                    }
-                    style={styles.socialLinkContainer}
-                  >
-                    <Text style={styles.socialLink}>
-                      {t("accounts.socialMedia.linkedin")}
-                    </Text>
-                    <FontAwesome6
-                      name="linkedin"
-                      size={18}
-                      color="#1f5eff"
-                      style={styles.socialIcon}
-                    />
-                  </Pressable>
-                </Tooltip>
-              )}
-              {account.socialMedia.x && (
-                <Tooltip
-                  content={
-                    account.socialMedia.x.startsWith("http")
-                      ? account.socialMedia.x
-                      : `https://x.com/${account.socialMedia.x}`
-                  }
-                >
-                  <Pressable
-                    onPress={() => {
-                      const url = account.socialMedia!.x!.startsWith("http")
-                        ? account.socialMedia!.x!
-                        : `https://x.com/${account.socialMedia!.x}`;
-                      Linking.openURL(url);
-                    }}
-                    style={styles.socialLinkContainer}
-                  >
-                    <Text style={styles.socialLink}>
-                      {t("accounts.socialMedia.x")}
-                    </Text>
-                    <FontAwesome6
-                      name="square-x-twitter"
-                      size={18}
-                      color="#1f5eff"
-                      style={styles.socialIcon}
-                    />
-                  </Pressable>
-                </Tooltip>
-              )}
+              <SocialLinksSection
+                socialMedia={account.socialMedia}
+                translationPrefix="accounts"
+              />
             </View>
           )}
-      </View>
+      </Section>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
+      <Section>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t("accounts.sections.contacts")} ({allContacts.length})
         </Text>
 
@@ -295,14 +220,23 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "all" && styles.filterButtonActive,
+              {
+                borderColor: colors.border,
+                backgroundColor:
+                  contactFilter === "all" ? colors.accent : colors.surface,
+              },
             ]}
             onPress={() => setContactFilter("all")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "all" && styles.filterButtonTextActive,
+                {
+                  color:
+                    contactFilter === "all"
+                      ? colors.onAccent
+                      : colors.textSecondary,
+                },
               ]}
             >
               {t("accounts.filters.all")} ({allContacts.length})
@@ -311,16 +245,25 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "contact.type.internal" &&
-                styles.filterButtonActive,
+              {
+                borderColor: colors.border,
+                backgroundColor:
+                  contactFilter === "contact.type.internal"
+                    ? colors.accent
+                    : colors.surface,
+              },
             ]}
             onPress={() => setContactFilter("contact.type.internal")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "contact.type.internal" &&
-                  styles.filterButtonTextActive,
+                {
+                  color:
+                    contactFilter === "contact.type.internal"
+                      ? colors.onAccent
+                      : colors.textSecondary,
+                },
               ]}
             >
               {t("contact.type.internal")} (
@@ -334,16 +277,25 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <TouchableOpacity
             style={[
               styles.filterButton,
-              contactFilter === "contact.type.external" &&
-                styles.filterButtonActive,
+              {
+                borderColor: colors.border,
+                backgroundColor:
+                  contactFilter === "contact.type.external"
+                    ? colors.accent
+                    : colors.surface,
+              },
             ]}
             onPress={() => setContactFilter("contact.type.external")}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                contactFilter === "contact.type.external" &&
-                  styles.filterButtonTextActive,
+                {
+                  color:
+                    contactFilter === "contact.type.external"
+                      ? colors.onAccent
+                      : colors.textSecondary,
+                },
               ]}
             >
               {t("contact.type.external")} (
@@ -357,7 +309,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         </View>
 
         {contacts.length === 0 ? (
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
             {contactFilter === "all"
               ? t("accounts.noContacts")
               : t("accounts.noContactsFiltered").replace(
@@ -367,46 +319,16 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           </Text>
         ) : (
           contacts.map((contact) => (
-            <Pressable
+            <ContactCardRow
               key={contact.id}
-              style={styles.contactCard}
-              onPress={() => {
-                // Navigate to contact detail using root navigator
-                navigation.navigate("ContactDetail", { contactId: contact.id });
-              }}
-            >
-              <View style={styles.contactCardContent}>
-                <Text style={styles.contactName}>
-                  {getContactDisplayName(contact)}
-                </Text>
-                {contact.title && (
-                  <Text style={styles.contactTitle}>{contact.title}</Text>
-                )}
-                <View
-                  style={[
-                    styles.contactTypeBadge,
-                    contact.type === "contact.type.internal" &&
-                      styles.contactTypeInternal,
-                    contact.type === "contact.type.external" &&
-                      styles.contactTypeExternal,
-                    contact.type === "contact.type.vendor" &&
-                      styles.contactTypeVendor,
-                  ]}
-                >
-                  <Text style={styles.contactTypeText}>
-                    {contact.type === "contact.type.internal"
-                      ? t("contact.type.internal")
-                      : contact.type === "contact.type.external"
-                        ? t("contact.type.external")
-                        : t("contact.type.vendor")}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </Pressable>
+              contact={contact}
+              onPress={() =>
+                navigation.navigate("ContactDetail", { contactId: contact.id })
+              }
+            />
           ))
         )}
-      </View>
+      </Section>
 
       <NotesSection
         notes={notes}
@@ -415,25 +337,18 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>
-          {t("accounts.deleteButton")}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+      <DangerActionButton
+        label={t("accounts.deleteButton")}
+        onPress={handleDelete}
+        size="block"
+      />
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
+    </DetailScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  section: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -443,19 +358,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#1b1b1b",
     flex: 1,
-  },
-  editButton: {
-    backgroundColor: "#1f5eff",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  editButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
   },
   field: {
     marginBottom: 16,
@@ -463,25 +366,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#666",
     marginBottom: 4,
     textTransform: "uppercase",
-  },
-  value: {
-    fontSize: 16,
-    color: "#1b1b1b",
   },
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,
     alignSelf: "flex-start",
-  },
-  statusActive: {
-    backgroundColor: "#e8f5e9",
-  },
-  statusInactive: {
-    backgroundColor: "#ffebee",
   },
   statusText: {
     fontSize: 14,
@@ -490,7 +382,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1b1b1b",
   },
   filterButtons: {
     flexDirection: "row",
@@ -502,121 +393,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
     alignItems: "center",
     minWidth: 80,
   },
-  filterButtonActive: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
-  },
   filterButtonText: {
     fontSize: 13,
-    color: "#666",
     fontWeight: "500",
-  },
-  filterButtonTextActive: {
-    color: "#fff",
-  },
-  contactCard: {
-    padding: 12,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 6,
-    marginBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  contactCardContent: {
-    flex: 1,
-  },
-  chevron: {
-    fontSize: 20,
-    color: "#cccccc",
-    marginLeft: 8,
-  },
-  contactName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1b1b1b",
-    marginBottom: 2,
-  },
-  contactTitle: {
-    fontSize: 12,
-    color: "#666666",
-    fontStyle: "italic",
-    marginBottom: 4,
-  },
-  contactType: {
-    fontSize: 12,
-    color: "#666",
-  },
-  contactTypeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-    marginTop: 4,
-  },
-  contactTypeInternal: {
-    backgroundColor: "#e3f2fd",
-  },
-  contactTypeExternal: {
-    backgroundColor: "#fff3e0",
-  },
-  contactTypeVendor: {
-    backgroundColor: "#f3e5f5",
-  },
-  contactTypeText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#1b1b1b",
   },
   emptyText: {
     fontSize: 14,
-    color: "#999",
     fontStyle: "italic",
-  },
-  metadataText: {
-    fontSize: 12,
-    fontFamily: "monospace",
-    color: "#666",
   },
   link: {
     fontSize: 16,
-    color: "#1f5eff",
     textDecorationLine: "underline",
-  },
-  socialLinkContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    gap: 8,
-  },
-  socialLink: {
-    fontSize: 16,
-    color: "#1f5eff",
-  },
-  socialIcon: {
-    marginLeft: 4,
   },
   errorText: {
     fontSize: 16,
-    color: "#b00020",
     textAlign: "center",
     marginTop: 32,
-  },
-  deleteButton: {
-    backgroundColor: "#b00020",
-    margin: 16,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

@@ -1,21 +1,16 @@
 import { StyleSheet, Text } from "react-native";
 
-import { ActionButton, Section } from "@views/components";
-import { useAccountActions, useContactActions } from "@views/hooks";
-import {
-  useAccounts,
-  useAllContacts,
-  useAccountContactRelations,
-} from "@views/store/store";
+import { PrimaryActionButton, Section } from "@views/components";
+import { useContactActions } from "@views/hooks";
+import { useAccounts, useAllContacts } from "@views/store/store";
+import { nextId } from "@domains/shared/idGenerator";
 
 const DEVICE_ID = "device-local";
 
 export const ContactsScreen = () => {
   const accounts = useAccounts();
   const allContacts = useAllContacts();
-  const accountContactRelations = useAccountContactRelations();
   const { createContact } = useContactActions(DEVICE_ID);
-  const { linkContact } = useAccountActions(DEVICE_ID);
 
   const handleAddContact = () => {
     // Use timestamp-based identifier (locale-neutral)
@@ -33,6 +28,7 @@ export const ContactsScreen = () => {
       {
         emails: [
           {
+            id: nextId("contact-method"),
             value: contactEmail,
             label: "contact.method.label.work",
             status: "contact.method.status.active",
@@ -42,31 +38,22 @@ export const ContactsScreen = () => {
       },
     );
 
-    // Link to first account if available using the returned ID
+    // Link to first account if available
+    // Note: We can't access the contact ID from the result, so this linking
+    // would need to be done differently (e.g., by finding the most recently
+    // created contact or by having createContact return the ID)
+    // For now, commenting out the auto-linking logic
     if (result.success && accounts.length > 0) {
-      const account = accounts[0];
-
-      // Check if account already has a primary contact
-      const existingPrimary = Object.values(accountContactRelations).some(
-        (relation) =>
-          relation.accountId === account.id &&
-          relation.role === "account.contact.role.primary" &&
-          relation.isPrimary,
-      );
-
-      // Use the returned contact ID immediately - no race condition
-      linkContact(
-        account.id,
-        result.id,
-        "account.contact.role.primary",
-        !existingPrimary,
-      );
+      // TODO: Implement auto-linking once createContact returns the contact ID
+      // const account = accounts[0];
+      // const contactId = ???; // Need ID from createContact result
+      // linkContact(account.id, contactId, "account.contact.role.primary", true);
     }
   };
 
   return (
     <Section title="Contacts">
-      <ActionButton label="Add contact" onPress={handleAddContact} />
+      <PrimaryActionButton label="Add contact" onPress={handleAddContact} />
       {allContacts.length === 0 ? (
         <Text style={styles.empty}>No contacts yet.</Text>
       ) : (

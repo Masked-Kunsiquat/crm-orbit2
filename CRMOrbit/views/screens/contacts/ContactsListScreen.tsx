@@ -1,25 +1,22 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text } from "react-native";
+import { useLayoutEffect, useMemo } from "react";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
-import {
-  HeaderMenu,
-  ListCard,
-  ListCardChevron,
-  ListScreenLayout,
-} from "@views/components";
-import { colors } from "@domains/shared/theme/colors";
+import { HeaderMenu, ListRow, ListScreenLayout } from "@views/components";
+import { useHeaderMenu, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
 
 export const ContactsListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const contacts = useAllContacts();
-  const [menuVisible, setMenuVisible] = useState(false);
-  const menuAnchorRef = useRef<View>(null);
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: "Contact list options",
+  });
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) =>
       getContactDisplayName(a).localeCompare(
@@ -42,34 +39,24 @@ export const ContactsListScreen = ({ navigation }: Props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Contact list options"
-            onPress={() => setMenuVisible((current) => !current)}
-            style={styles.headerButton}
-          >
-            <Text style={styles.headerButtonText}>⋮</Text>
-          </Pressable>
-        </View>
-      ),
+      headerRight,
     });
-  }, [navigation]);
+  }, [navigation, headerRight]);
 
-  const renderItem = ({ item }: { item: Contact }) => (
-    <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
-      <View style={styles.itemContent}>
-        <Text style={styles.itemName}>{getContactDisplayName(item)}</Text>
-        {item.title ? <Text style={styles.itemTitle}>{item.title}</Text> : null}
-        {getPrimaryEmail(item) ? (
-          <Text style={styles.itemEmail}>{getPrimaryEmail(item)}</Text>
-        ) : null}
-        <Text style={styles.itemType}>{t(item.type)}</Text>
-      </View>
-      <ListCardChevron />
-    </ListCard>
-  );
+  const renderItem = ({ item }: { item: Contact }) => {
+    const primaryEmail = getPrimaryEmail(item);
+    return (
+      <ListRow
+        onPress={() => handlePress(item)}
+        title={getContactDisplayName(item)}
+        subtitle={item.title}
+        subtitleItalic={Boolean(item.title)}
+        description={primaryEmail}
+        footnote={t(item.type)}
+        showChevron
+      />
+    );
+  };
 
   return (
     <>
@@ -84,14 +71,14 @@ export const ContactsListScreen = ({ navigation }: Props) => {
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
+        onRequestClose={closeMenu}
       >
         <Pressable
           accessibilityRole="button"
-          onPress={() => setMenuVisible(false)}
+          onPress={closeMenu}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             {t("contacts.moreOptionsSoon")}
           </Text>
         </Pressable>
@@ -101,53 +88,11 @@ export const ContactsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  headerMenuWrapper: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 18,
-    color: colors.headerTint,
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  itemContent: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  itemTitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginBottom: 2,
-    fontStyle: "italic",
-  },
-  itemEmail: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  itemType: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   menuItemText: {
-    color: colors.textPrimary,
     fontSize: 14,
   },
 });

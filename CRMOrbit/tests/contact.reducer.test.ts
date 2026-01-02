@@ -14,6 +14,7 @@ const baseContactEvent = (): Event => ({
     methods: {
       emails: [
         {
+          id: "contact-method-1",
           value: "jordan@example.com",
           label: "contact.method.label.work",
           status: "contact.method.status.active",
@@ -62,6 +63,7 @@ test("contact.method.added appends a method", () => {
       id: "contact-1",
       methodType: "phones",
       method: {
+        id: "contact-method-2",
         value: "+1-555-0100",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
@@ -90,6 +92,7 @@ test("contact.method.updated replaces a method by index", () => {
       methodType: "emails",
       index: 0,
       method: {
+        id: "contact-method-1",
         value: "jordan.smith@example.com",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
@@ -118,6 +121,7 @@ test("contact.method.updated rejects out-of-bounds index", () => {
       methodType: "emails",
       index: 2,
       method: {
+        id: "contact-method-1",
         value: "jordan.smith@example.com",
         label: "contact.method.label.work",
         status: "contact.method.status.active",

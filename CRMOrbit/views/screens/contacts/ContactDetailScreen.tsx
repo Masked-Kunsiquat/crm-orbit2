@@ -1,7 +1,5 @@
 import { useState } from "react";
 import {
-  Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -20,8 +18,23 @@ import {
 } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
-import { getContactDisplayName } from "@domains/contact.utils";
-import { NotesSection } from "@views/components";
+import {
+  formatPhoneNumber,
+  getContactDisplayName,
+} from "@domains/contact.utils";
+import {
+  NotesSection,
+  DetailScreenLayout,
+  Section,
+  DetailField,
+  PrimaryActionButton,
+  DangerActionButton,
+  ConfirmDialog,
+} from "@views/components";
+import { useTheme } from "@views/hooks";
+import type { ColorScheme } from "@domains/shared/theme/colors";
+import { t } from "@i18n/index";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -36,14 +49,18 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const accountContactRelations = useAccountContactRelations();
   const { deleteContact } = useContactActions(DEVICE_ID);
   const { linkContact, unlinkContact } = useAccountActions(DEVICE_ID);
+  const { colors } = useTheme();
+  const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [showLinkModal, setShowLinkModal] = useState(false);
 
+  const styles = createStyles(colors);
+
   if (!contact) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Contact not found</Text>
-      </View>
+      <DetailScreenLayout>
+        <Text style={styles.errorText}>{t("contacts.notFound")}</Text>
+      </DetailScreenLayout>
     );
   }
 
@@ -59,9 +76,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     );
 
     if (existingLink) {
-      Alert.alert(
-        "Already Linked",
-        "This contact is already linked to this account",
+      showAlert(
+        t("contacts.linkedAccounts.alreadyLinkedTitle"),
+        t("contacts.linkedAccounts.alreadyLinkedMessage"),
+        t("common.ok"),
       );
       return;
     }
@@ -81,172 +99,164 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     if (result.success) {
       setShowLinkModal(false);
     } else {
-      Alert.alert("Error", result.error ?? "Failed to link contact");
+      showAlert(
+        t("common.error"),
+        result.error ?? t("contacts.linkError"),
+        t("common.ok"),
+      );
     }
   };
 
   const handleUnlinkAccount = (accountId: string, accountName: string) => {
-    Alert.alert(
-      "Unlink Contact",
-      `Unlink "${getContactDisplayName(contact)}" from "${accountName}"?`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Unlink",
-          style: "destructive",
-          onPress: () => {
-            const result = unlinkContact(accountId, contactId);
-            if (!result.success) {
-              Alert.alert("Error", result.error ?? "Failed to unlink contact");
-            }
-          },
-        },
-      ],
-    );
+    showDialog({
+      title: t("contacts.unlinkTitle"),
+      message: t("contacts.unlinkConfirmation")
+        .replace("{contactName}", getContactDisplayName(contact))
+        .replace("{accountName}", accountName),
+      confirmLabel: t("contacts.unlinkAction"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = unlinkContact(accountId, contactId);
+        if (!result.success) {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("contacts.unlinkError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   const handleDelete = () => {
     if (linkedAccounts.length > 0) {
-      Alert.alert(
-        "Cannot Delete",
-        `Cannot delete "${getContactDisplayName(contact)}" because it is linked to ${linkedAccounts.length} account(s). Please unlink the contact first.`,
-        [{ text: "OK" }],
+      showAlert(
+        t("contacts.cannotDeleteTitle"),
+        t("contacts.cannotDeleteMessage")
+          .replace("{name}", getContactDisplayName(contact))
+          .replace("{count}", linkedAccounts.length.toString()),
+        t("common.ok"),
       );
       return;
     }
 
-    Alert.alert(
-      "Delete Contact",
-      `Are you sure you want to delete "${getContactDisplayName(contact)}"? This action cannot be undone.`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            const result = deleteContact(contact.id);
-            if (result.success) {
-              navigation.goBack();
-            } else {
-              Alert.alert("Error", result.error ?? "Failed to delete contact");
-            }
-          },
-        },
-      ],
-    );
+    showDialog({
+      title: t("contacts.deleteTitle"),
+      message: t("contacts.deleteConfirmation").replace(
+        "{name}",
+        getContactDisplayName(contact),
+      ),
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteContact(contact.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("contacts.deleteError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
   };
 
   const getContactTypeLabel = (type: string) => {
-    switch (type) {
-      case "contact.type.internal":
-        return "Internal";
-      case "contact.type.external":
-        return "External";
-      case "contact.type.vendor":
-        return "Vendor";
-      default:
-        return type;
-    }
+    return t(type);
   };
 
   const getMethodLabel = (label: string) => {
-    switch (label) {
-      case "contact.method.label.work":
-        return "Work";
-      case "contact.method.label.personal":
-        return "Personal";
-      case "contact.method.label.other":
-        return "Other";
-      default:
-        return label;
-    }
+    return t(label);
   };
 
+  const getMethodKey = (
+    method: { id?: string; label: string; status: string; value: string },
+    index: number,
+  ) => method.id || `${method.label}-${method.status}-${method.value}-${index}`;
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
+    <DetailScreenLayout>
+      <Section>
         <View style={styles.header}>
           <Text style={styles.title}>{getContactDisplayName(contact)}</Text>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
+          <PrimaryActionButton
+            label={t("common.edit")}
+            onPress={handleEdit}
+            size="compact"
+          />
         </View>
 
         {contact.title && (
-          <View style={styles.field}>
-            <Text style={styles.label}>Title</Text>
-            <Text style={styles.value}>{contact.title}</Text>
-          </View>
+          <DetailField label={t("contacts.fields.title")}>
+            {contact.title}
+          </DetailField>
         )}
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Type</Text>
-          <Text style={styles.value}>{getContactTypeLabel(contact.type)}</Text>
-        </View>
-      </View>
+        <DetailField label={t("contacts.fields.type")}>
+          {getContactTypeLabel(contact.type)}
+        </DetailField>
+      </Section>
 
-      <View style={styles.section}>
+      <Section>
         <Text style={styles.sectionTitle}>
-          Email Addresses ({contact.methods.emails.length})
+          {t("contacts.sections.emails")} ({contact.methods.emails.length})
         </Text>
         {contact.methods.emails.length === 0 ? (
-          <Text style={styles.emptyText}>No email addresses</Text>
+          <Text style={styles.emptyText}>{t("contacts.emptyEmails")}</Text>
         ) : (
           contact.methods.emails.map((email, index) => (
-            <View key={index} style={styles.methodItem}>
+            <View key={getMethodKey(email, index)} style={styles.methodItem}>
               <Text style={styles.methodValue}>{email.value}</Text>
               <Text style={styles.methodMeta}>
-                {getMethodLabel(email.label)} •{" "}
-                {email.status === "contact.method.status.active"
-                  ? "Active"
-                  : "Inactive"}
+                {getMethodLabel(email.label)} • {t(email.status)}
               </Text>
             </View>
           ))
         )}
-      </View>
+      </Section>
 
-      <View style={styles.section}>
+      <Section>
         <Text style={styles.sectionTitle}>
-          Phone Numbers ({contact.methods.phones.length})
+          {t("contacts.sections.phones")} ({contact.methods.phones.length})
         </Text>
         {contact.methods.phones.length === 0 ? (
-          <Text style={styles.emptyText}>No phone numbers</Text>
+          <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
         ) : (
           contact.methods.phones.map((phone, index) => (
-            <View key={index} style={styles.methodItem}>
-              <Text style={styles.methodValue}>{phone.value}</Text>
+            <View key={getMethodKey(phone, index)} style={styles.methodItem}>
+              <Text style={styles.methodValue}>
+                {formatPhoneNumber(phone.value)}
+              </Text>
               <Text style={styles.methodMeta}>
-                {getMethodLabel(phone.label)} •{" "}
-                {phone.status === "contact.method.status.active"
-                  ? "Active"
-                  : "Inactive"}
+                {getMethodLabel(phone.label)} • {t(phone.status)}
               </Text>
             </View>
           ))
         )}
-      </View>
+      </Section>
 
-      <View style={styles.section}>
+      <Section>
         <View style={styles.fieldHeader}>
           <Text style={styles.sectionTitle}>
-            Linked Accounts ({linkedAccounts.length})
+            {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
           </Text>
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => setShowLinkModal(true)}
           >
-            <Text style={styles.linkButtonText}>+ Link Account</Text>
+            <Text style={styles.linkButtonText}>
+              {t("contacts.linkedAccounts.linkButton")}
+            </Text>
           </TouchableOpacity>
         </View>
         {linkedAccounts.length === 0 ? (
-          <Text style={styles.emptyText}>Not linked to any accounts</Text>
+          <Text style={styles.emptyText}>
+            {t("contacts.linkedAccounts.empty")}
+          </Text>
         ) : (
           linkedAccounts.map((account) => {
             const relation = Object.values(accountContactRelations).find(
@@ -258,7 +268,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   <Text style={styles.accountName}>{account.name}</Text>
                   {relation?.isPrimary && (
                     <View style={styles.primaryBadge}>
-                      <Text style={styles.primaryText}>Primary</Text>
+                      <Text style={styles.primaryText}>
+                        {t("contacts.linkedAccounts.primaryBadge")}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -266,13 +278,15 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   style={styles.unlinkButton}
                   onPress={() => handleUnlinkAccount(account.id, account.name)}
                 >
-                  <Text style={styles.unlinkButtonText}>Unlink</Text>
+                  <Text style={styles.unlinkButtonText}>
+                    {t("contacts.unlinkAction")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             );
           })
         )}
-      </View>
+      </Section>
 
       <NotesSection
         notes={notes}
@@ -281,9 +295,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         navigation={navigation}
       />
 
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>Delete Contact</Text>
-      </TouchableOpacity>
+      <DangerActionButton
+        label={t("contacts.deleteButton")}
+        onPress={handleDelete}
+        size="block"
+      />
 
       <Modal
         visible={showLinkModal}
@@ -293,7 +309,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Link to Account</Text>
+            <Text style={styles.modalTitle}>
+              {t("contacts.linkedAccounts.modalTitle")}
+            </Text>
             <FlatList
               data={allAccounts}
               keyExtractor={(item) => item.id}
@@ -315,7 +333,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       ]}
                     >
                       {item.name}
-                      {isLinked && " (Already linked)"}
+                      {isLinked &&
+                        t("contacts.linkedAccounts.alreadyLinkedSuffix")}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -325,203 +344,160 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               style={styles.modalCancelButton}
               onPress={() => setShowLinkModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t("common.cancel")}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </ScrollView>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
+    </DetailScreenLayout>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  section: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1b1b1b",
-    flex: 1,
-  },
-  editButton: {
-    backgroundColor: "#1f5eff",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  editButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  field: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  value: {
-    fontSize: 16,
-    color: "#1b1b1b",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1b1b1b",
-  },
-  methodItem: {
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  methodValue: {
-    fontSize: 15,
-    color: "#1b1b1b",
-    marginBottom: 2,
-  },
-  methodMeta: {
-    fontSize: 13,
-    color: "#666",
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#999",
-    fontStyle: "italic",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#b00020",
-    textAlign: "center",
-    marginTop: 32,
-  },
-  deleteButton: {
-    backgroundColor: "#b00020",
-    margin: 16,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  fieldHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  linkButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: "#1f5eff",
-  },
-  linkButtonText: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  accountItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  accountInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  accountName: {
-    fontSize: 15,
-    color: "#1b1b1b",
-  },
-  unlinkButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: "#ffebee",
-  },
-  unlinkButtonText: {
-    fontSize: 12,
-    color: "#b00020",
-    fontWeight: "600",
-  },
-  primaryBadge: {
-    backgroundColor: "#e8f5e9",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  primaryText: {
-    fontSize: 12,
-    color: "#4caf50",
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 16,
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1b1b1b",
-    marginBottom: 16,
-  },
-  modalItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  modalItemDisabled: {
-    opacity: 0.5,
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: "#1b1b1b",
-  },
-  modalItemTextDisabled: {
-    color: "#999",
-  },
-  modalCancelButton: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  modalCancelText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-  },
-});
+const createStyles = (colors: ColorScheme) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      flex: 1,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+    methodItem: {
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderLight,
+    },
+    methodValue: {
+      fontSize: 15,
+      color: colors.textPrimary,
+      marginBottom: 2,
+    },
+    methodMeta: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontStyle: "italic",
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.error,
+      textAlign: "center",
+      marginTop: 32,
+    },
+    fieldHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    linkButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      backgroundColor: colors.accent,
+    },
+    linkButtonText: {
+      fontSize: 14,
+      color: colors.onAccent,
+      fontWeight: "600",
+    },
+    accountItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderLight,
+    },
+    accountInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    accountName: {
+      fontSize: 15,
+      color: colors.textPrimary,
+    },
+    unlinkButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+      backgroundColor: colors.errorBg,
+    },
+    unlinkButtonText: {
+      fontSize: 12,
+      color: colors.error,
+      fontWeight: "600",
+    },
+    primaryBadge: {
+      backgroundColor: colors.successBg,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    primaryText: {
+      fontSize: 12,
+      color: colors.success,
+      fontWeight: "600",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      padding: 16,
+      maxHeight: "80%",
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      marginBottom: 16,
+    },
+    modalItem: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+    },
+    modalItemDisabled: {
+      opacity: 0.5,
+    },
+    modalItemText: {
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    modalItemTextDisabled: {
+      color: colors.textMuted,
+    },
+    modalCancelButton: {
+      marginTop: 16,
+      padding: 16,
+      backgroundColor: colors.borderLight,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    modalCancelText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textSecondary,
+    },
+  });

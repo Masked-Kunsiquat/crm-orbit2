@@ -1,20 +1,23 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Alert,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import type { ContactType, ContactMethod } from "@domains/contact";
-import { splitLegacyName } from "@domains/contact.utils";
+import { formatPhoneNumber, splitLegacyName } from "@domains/contact.utils";
+import { nextId } from "@domains/shared/idGenerator";
+import { useTheme } from "@views/hooks/useTheme";
+import {
+  FormField,
+  FormScreenLayout,
+  MethodListEditor,
+  SegmentedOptionGroup,
+  TextField,
+  ConfirmDialog,
+} from "@views/components";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -24,6 +27,8 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params ?? {};
   const contact = useContact(contactId ?? "");
   const { createContact, updateContact } = useContactActions(DEVICE_ID);
+  const { colors } = useTheme();
+  const { dialogProps, showAlert } = useConfirmDialog();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -33,8 +38,52 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const [phones, setPhones] = useState<ContactMethod[]>([]);
   const lastContactIdRef = useRef<string | undefined>(undefined);
 
+  const emailLabelOptions = [
+    {
+      value: "contact.method.label.work",
+      label: t("contact.method.label.work"),
+    },
+    {
+      value: "contact.method.label.personal",
+      label: t("contact.method.label.personal"),
+    },
+    {
+      value: "contact.method.label.other",
+      label: t("contact.method.label.other"),
+    },
+  ] as const;
+  const phoneLabelOptions = [
+    {
+      value: "contact.method.label.work",
+      label: t("contact.method.label.work"),
+    },
+    {
+      value: "contact.method.label.personal",
+      label: t("contact.method.label.personal"),
+    },
+    {
+      value: "contact.method.label.mobile",
+      label: t("contact.method.label.mobile"),
+    },
+    {
+      value: "contact.method.label.other",
+      label: t("contact.method.label.other"),
+    },
+  ] as const;
+
   // Only populate form fields on initial mount or when switching to a different contact
   useEffect(() => {
+    const ensureMethodIds = (methods: ContactMethod[]) =>
+      methods.map((method) => ({
+        ...method,
+        id: method.id || nextId("contact-method"),
+      }));
+    const formatPhoneMethods = (methods: ContactMethod[]) =>
+      ensureMethodIds(methods).map((method) => ({
+        ...method,
+        value: formatPhoneNumber(method.value),
+      }));
+
     const currentContactId = contactId ?? undefined;
     const isContactChanged = currentContactId !== lastContactIdRef.current;
 
@@ -56,8 +105,8 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         }
         setTitle(contact.title || "");
         setType(contact.type);
-        setEmails(contact.methods.emails);
-        setPhones(contact.methods.phones);
+        setEmails(ensureMethodIds(contact.methods.emails));
+        setPhones(formatPhoneMethods(contact.methods.phones));
       } else {
         // New contact - reset to defaults
         setFirstName("");
@@ -90,6 +139,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     setEmails([
       ...emails,
       {
+        id: nextId("contact-method"),
         value: "",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
@@ -103,6 +153,15 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     setEmails(newEmails);
   };
 
+  const handleEmailLabelChange = (
+    index: number,
+    label: ContactMethod["label"],
+  ) => {
+    const newEmails = [...emails];
+    newEmails[index] = { ...newEmails[index], label };
+    setEmails(newEmails);
+  };
+
   const handleRemoveEmail = (index: number) => {
     setEmails(emails.filter((_, i) => i !== index));
   };
@@ -111,6 +170,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     setPhones([
       ...phones,
       {
+        id: nextId("contact-method"),
         value: "",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
@@ -120,7 +180,16 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handlePhoneChange = (index: number, value: string) => {
     const newPhones = [...phones];
-    newPhones[index] = { ...newPhones[index], value };
+    newPhones[index] = { ...newPhones[index], value: formatPhoneNumber(value) };
+    setPhones(newPhones);
+  };
+
+  const handlePhoneLabelChange = (
+    index: number,
+    label: ContactMethod["label"],
+  ) => {
+    const newPhones = [...phones];
+    newPhones[index] = { ...newPhones[index], label };
     setPhones(newPhones);
   };
 
@@ -130,7 +199,11 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!firstName.trim() && !lastName.trim()) {
-      Alert.alert("Validation Error", t("contacts.validation.nameRequired"));
+      showAlert(
+        t("common.validationError"),
+        t("contacts.validation.nameRequired"),
+        t("common.ok"),
+      );
       return;
     }
 
@@ -153,7 +226,11 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", result.error || "Failed to update contact");
+        showAlert(
+          t("common.error"),
+          result.error || t("contacts.updateError"),
+          t("common.ok"),
+        );
       }
     } else {
       const result = createContact(
@@ -169,21 +246,12 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
-        Alert.alert("Error", result.error || "Failed to create contact");
+        showAlert(
+          t("common.error"),
+          result.error || t("contacts.createError"),
+          t("common.ok"),
+        );
       }
-    }
-  };
-
-  const getTypeLabel = (t: ContactType) => {
-    switch (t) {
-      case "contact.type.internal":
-        return "Internal";
-      case "contact.type.external":
-        return "External";
-      case "contact.type.vendor":
-        return "Vendor";
-      default:
-        return t;
     }
   };
 
@@ -192,233 +260,100 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     "contact.type.external",
     "contact.type.vendor",
   ];
+  const typeOptions = types.map((typeKey) => ({
+    value: typeKey,
+    label: t(typeKey),
+  }));
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={styles.label}>First Name</Text>
-          <TextInput
-            style={styles.input}
-            value={firstName}
-            onChangeText={handleFirstNameChange}
-            placeholder="Enter first name"
-            autoFocus
-          />
-        </View>
+    <FormScreenLayout>
+      <FormField label={t("contacts.form.firstNameLabel")}>
+        <TextField
+          value={firstName}
+          onChangeText={handleFirstNameChange}
+          placeholder={t("contacts.form.firstNamePlaceholder")}
+          autoFocus
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Last Name</Text>
-          <TextInput
-            style={styles.input}
-            value={lastName}
-            onChangeText={handleLastNameChange}
-            placeholder="Enter last name"
-          />
-          <Text style={styles.hint}>
-            At least one of First or Last name is required
-          </Text>
-        </View>
+      <FormField
+        label={t("contacts.form.lastNameLabel")}
+        hint={t("contacts.form.nameHint")}
+      >
+        <TextField
+          value={lastName}
+          onChangeText={handleLastNameChange}
+          placeholder={t("contacts.form.lastNamePlaceholder")}
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Title</Text>
-          <TextInput
-            style={styles.input}
-            value={title}
-            onChangeText={handleTitleChange}
-            placeholder="e.g. Property Manager, VP of Operations"
-          />
-        </View>
+      <FormField label={t("contacts.form.titleLabel")}>
+        <TextField
+          value={title}
+          onChangeText={handleTitleChange}
+          placeholder={t("contacts.form.titlePlaceholder")}
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Type</Text>
-          <View style={styles.typeButtons}>
-            {types.map((t) => (
-              <TouchableOpacity
-                key={t}
-                style={[
-                  styles.typeButton,
-                  type === t && styles.typeButtonActive,
-                ]}
-                onPress={() => handleTypeChange(t)}
-              >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    type === t && styles.typeButtonTextActive,
-                  ]}
-                >
-                  {getTypeLabel(t)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+      <FormField label={t("contacts.form.typeLabel")}>
+        <SegmentedOptionGroup
+          options={typeOptions}
+          value={type}
+          onChange={handleTypeChange}
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <View style={styles.fieldHeader}>
-            <Text style={styles.label}>Email Addresses</Text>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddEmail}>
-              <Text style={styles.addButtonText}>+ Add</Text>
-            </TouchableOpacity>
-          </View>
-          {emails.map((email, index) => (
-            <View key={index} style={styles.methodRow}>
-              <TextInput
-                style={[styles.input, styles.methodInput]}
-                value={email.value}
-                onChangeText={(value) => handleEmailChange(index, value)}
-                placeholder="email@example.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => handleRemoveEmail(index)}
-              >
-                <Text style={styles.removeButtonText}>×</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+      <MethodListEditor
+        label={t("contacts.form.emailsLabel")}
+        methods={emails}
+        onAdd={handleAddEmail}
+        onChange={handleEmailChange}
+        onLabelChange={handleEmailLabelChange}
+        onRemove={handleRemoveEmail}
+        placeholder={t("contacts.form.emailPlaceholder")}
+        addLabel={t("contacts.form.addAction")}
+        labelOptions={emailLabelOptions}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-        <View style={styles.field}>
-          <View style={styles.fieldHeader}>
-            <Text style={styles.label}>Phone Numbers</Text>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddPhone}>
-              <Text style={styles.addButtonText}>+ Add</Text>
-            </TouchableOpacity>
-          </View>
-          {phones.map((phone, index) => (
-            <View key={index} style={styles.methodRow}>
-              <TextInput
-                style={[styles.input, styles.methodInput]}
-                value={phone.value}
-                onChangeText={(value) => handlePhoneChange(index, value)}
-                placeholder="+1 (555) 123-4567"
-                keyboardType="phone-pad"
-              />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => handleRemovePhone(index)}
-              >
-                <Text style={styles.removeButtonText}>×</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+      <MethodListEditor
+        label={t("contacts.form.phonesLabel")}
+        methods={phones}
+        onAdd={handleAddPhone}
+        onChange={handlePhoneChange}
+        onLabelChange={handlePhoneLabelChange}
+        onRemove={handleRemovePhone}
+        placeholder={t("contacts.form.phonePlaceholder")}
+        addLabel={t("contacts.form.addAction")}
+        labelOptions={phoneLabelOptions}
+        keyboardType="phone-pad"
+      />
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>
-            {contactId ? "Update Contact" : "Create Contact"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      <TouchableOpacity
+        style={[styles.saveButton, { backgroundColor: colors.accent }]}
+        onPress={handleSave}
+      >
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
+          {contactId
+            ? t("contacts.form.updateButton")
+            : t("contacts.form.createButton")}
+        </Text>
+      </TouchableOpacity>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  form: {
-    padding: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  fieldHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1b1b1b",
-  },
-  hint: {
-    fontSize: 12,
-    color: "#999",
-    marginTop: 4,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  typeButtons: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  typeButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  typeButtonActive: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
-  },
-  typeButtonText: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "500",
-  },
-  typeButtonTextActive: {
-    color: "#fff",
-  },
-  addButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: "#1f5eff",
-  },
-  addButtonText: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  methodRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 8,
-  },
-  methodInput: {
-    flex: 1,
-  },
-  removeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: "#ffebee",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  removeButtonText: {
-    fontSize: 24,
-    color: "#b00020",
-    fontWeight: "300",
-  },
   saveButton: {
-    backgroundColor: "#1f5eff",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 12,
   },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

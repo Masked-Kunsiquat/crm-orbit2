@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect } from "react";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganizations } from "@views/store/store";
@@ -11,27 +11,36 @@ import {
   ListScreenLayout,
   StatusBadge,
 } from "@views/components";
-import { colors } from "@domains/shared/theme/colors";
+import { useHeaderMenu, useInactiveFilter, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 type Props = OrganizationsStackScreenProps<"OrganizationsList">;
 
 export const OrganizationsListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const organizations = useOrganizations();
-  const [showInactive, setShowInactive] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const menuAnchorRef = useRef<View>(null);
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: "Organization list options",
+  });
 
-  const filteredOrganizations = useMemo(() => {
-    const visible = showInactive
-      ? organizations
-      : organizations.filter(
-          (org) => org.status === "organization.status.active",
-        );
-
-    return [...visible].sort((a, b) =>
+  const {
+    filteredItems: filteredOrganizations,
+    menuLabel,
+    emptyHint,
+    toggleShowInactive,
+  } = useInactiveFilter({
+    items: organizations,
+    isActive: (org) => org.status === "organization.status.active",
+    sort: (a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    );
-  }, [organizations, showInactive]);
+    menuLabels: {
+      showInactive: t("organizations.menuIncludeInactive"),
+      hideInactive: t("organizations.menuHideInactive"),
+    },
+    emptyHint: {
+      whenShowingInactive: t("organizations.emptyHint"),
+      whenHidingInactive: t("organizations.includeInactiveHint"),
+    },
+  });
 
   const handlePress = (org: Organization) => {
     navigation.navigate("OrganizationDetail", { organizationId: org.id });
@@ -43,26 +52,17 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Organization list options"
-            onPress={() => setMenuVisible((current) => !current)}
-            style={styles.headerButton}
-          >
-            <Text style={styles.headerButtonText}>⋮</Text>
-          </Pressable>
-        </View>
-      ),
+      headerRight,
     });
-  }, [navigation]);
+  }, [navigation, headerRight]);
 
   const renderItem = ({ item }: { item: Organization }) => (
     <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
       <View style={styles.itemContent}>
         <View style={styles.itemHeader}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={[styles.itemName, { color: colors.textPrimary }]}>
+            {item.name}
+          </Text>
           <StatusBadge
             isActive={item.status === "organization.status.active"}
             activeLabelKey="status.active"
@@ -81,30 +81,24 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         emptyTitle={t("organizations.emptyTitle")}
-        emptyHint={
-          showInactive
-            ? t("organizations.emptyHint")
-            : t("organizations.includeInactiveHint")
-        }
+        emptyHint={emptyHint}
         onAdd={handleAdd}
       />
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
+        onRequestClose={closeMenu}
       >
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            setShowInactive((current) => !current);
-            setMenuVisible(false);
+            toggleShowInactive();
+            closeMenu();
           }}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>
-            {showInactive
-              ? t("organizations.menuHideInactive")
-              : t("organizations.menuIncludeInactive")}
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+            {menuLabel}
           </Text>
         </Pressable>
       </HeaderMenu>
@@ -113,24 +107,11 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  headerMenuWrapper: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 18,
-    color: colors.headerTint,
-  },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   menuItemText: {
-    color: colors.textPrimary,
     fontSize: 14,
   },
   cardRow: {
@@ -149,7 +130,6 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.textPrimary,
     flex: 1,
   },
 });

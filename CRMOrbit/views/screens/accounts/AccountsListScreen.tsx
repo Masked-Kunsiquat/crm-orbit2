@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text } from "react-native";
+import { useLayoutEffect } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../store/store";
@@ -7,32 +7,41 @@ import type { Account } from "../../../domains/account";
 import { t } from "@i18n/index";
 import {
   HeaderMenu,
-  ListCard,
+  ListRow,
   ListScreenLayout,
   StatusBadge,
 } from "../../components";
-import { colors } from "../../../domains/shared/theme/colors";
+import { useHeaderMenu, useInactiveFilter, useTheme } from "../../hooks";
 
 type Props = AccountsStackScreenProps<"AccountsList">;
 
 export const AccountsListScreen = ({ navigation }: Props) => {
+  const { colors } = useTheme();
   const accounts = useAccounts();
   const organizations = useOrganizations();
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [showInactive, setShowInactive] = useState(false);
-  const menuAnchorRef = useRef<View>(null);
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: t("accounts.listOptions"),
+  });
 
-  const filteredAccounts = useMemo(() => {
-    const visible = showInactive
-      ? accounts
-      : accounts.filter(
-          (account) => account.status === "account.status.active",
-        );
-
-    return [...visible].sort((a, b) =>
+  const {
+    filteredItems: filteredAccounts,
+    menuLabel,
+    emptyHint,
+    toggleShowInactive,
+  } = useInactiveFilter({
+    items: accounts,
+    isActive: (account) => account.status === "account.status.active",
+    sort: (a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    );
-  }, [accounts, showInactive]);
+    menuLabels: {
+      showInactive: t("accounts.menuIncludeInactive"),
+      hideInactive: t("accounts.menuHideInactive"),
+    },
+    emptyHint: {
+      whenShowingInactive: t("accounts.emptyHint"),
+      whenHidingInactive: t("accounts.includeInactiveHint"),
+    },
+  });
 
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
@@ -49,20 +58,9 @@ export const AccountsListScreen = ({ navigation }: Props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View ref={menuAnchorRef} style={styles.headerMenuWrapper}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("accounts.listOptions")}
-            onPress={() => setMenuVisible((current) => !current)}
-            style={styles.headerButton}
-          >
-            <Text style={styles.headerButtonText}>⋮</Text>
-          </Pressable>
-        </View>
-      ),
+      headerRight,
     });
-  }, [navigation]);
+  }, [navigation, headerRight]);
 
   return (
     <>
@@ -70,45 +68,40 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         data={filteredAccounts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ListCard onPress={() => handlePress(item)} variant="outlined">
-            <View style={styles.cardHeader}>
-              <Text style={styles.name}>{item.name}</Text>
+          <ListRow
+            onPress={() => handlePress(item)}
+            title={item.name}
+            titleAccessory={
               <StatusBadge
                 isActive={item.status === "account.status.active"}
                 activeLabelKey="status.active"
                 inactiveLabelKey="status.inactive"
               />
-            </View>
-            <Text style={styles.organization}>
-              {getOrganizationName(item.organizationId)}
-            </Text>
-          </ListCard>
+            }
+            description={getOrganizationName(item.organizationId)}
+            titleSpacing={8}
+            variant="outlined"
+          />
         )}
         emptyTitle={t("accounts.emptyTitle")}
-        emptyHint={
-          showInactive
-            ? t("accounts.emptyHint")
-            : t("accounts.includeInactiveHint")
-        }
+        emptyHint={emptyHint}
         onAdd={handleCreate}
       />
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
+        onRequestClose={closeMenu}
       >
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            setShowInactive((current) => !current);
-            setMenuVisible(false);
+            toggleShowInactive();
+            closeMenu();
           }}
           style={styles.menuItem}
         >
-          <Text style={styles.menuItemText}>
-            {showInactive
-              ? t("accounts.menuHideInactive")
-              : t("accounts.menuIncludeInactive")}
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+            {menuLabel}
           </Text>
         </Pressable>
       </HeaderMenu>
@@ -117,40 +110,11 @@ export const AccountsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  headerMenuWrapper: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-  headerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  headerButtonText: {
-    fontSize: 18,
-    color: colors.headerTint,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  organization: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   menuItemText: {
-    color: colors.textPrimary,
     fontSize: 14,
   },
 });

@@ -4,13 +4,16 @@ import type { AccountsStackParamList } from "./types";
 import { AccountsListScreen } from "../screens/accounts/AccountsListScreen";
 import { AccountDetailScreen } from "../screens/accounts/AccountDetailScreen";
 import { AccountFormScreen } from "../screens/accounts/AccountFormScreen";
-import { stackScreenOptions } from "./stackOptions";
+import { getStackScreenOptions } from "./stackOptions";
+import { useTheme } from "../hooks";
 
 const Stack = createNativeStackNavigator<AccountsStackParamList>();
 
 export const AccountsStack = () => {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator screenOptions={stackScreenOptions}>
+    <Stack.Navigator screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen
         name="AccountsList"
         component={AccountsListScreen}

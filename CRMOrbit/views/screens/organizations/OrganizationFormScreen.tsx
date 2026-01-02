@@ -1,14 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Alert,
-  Image,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 import { t } from "@i18n/index";
@@ -16,6 +7,16 @@ import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
+import { useTheme } from "@views/hooks/useTheme";
+import {
+  FormField,
+  FormScreenLayout,
+  SegmentedOptionGroup,
+  SocialMediaFields,
+  TextField,
+  ConfirmDialog,
+} from "@views/components";
+import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 const DEVICE_ID = "device-local";
 
@@ -26,6 +27,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const organization = useOrganization(organizationId ?? "");
   const { createOrganization, updateOrganization } =
     useOrganizationActions(DEVICE_ID);
+  const { colors } = useTheme();
+  const { dialogProps, showAlert } = useConfirmDialog();
 
   const [name, setName] = useState("");
   const [status, setStatus] = useState<
@@ -35,6 +38,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
   const lastOrgIdRef = useRef<string | undefined>(undefined);
+  const statusOptions = [
+    { value: "organization.status.active", label: t("status.active") },
+    { value: "organization.status.inactive", label: t("status.inactive") },
+  ] as const;
 
   // Only populate form fields on initial mount or when switching to a different organization
   useEffect(() => {
@@ -76,9 +83,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert(
-        "Permission Required",
-        "Please grant photo library access to select a logo",
+      showAlert(
+        t("organizations.form.logoPermissionTitle"),
+        t("organizations.form.logoPermissionMessage"),
+        t("common.ok"),
       );
       return;
     }
@@ -107,9 +115,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert(
+      showAlert(
         t("common.validationError"),
         t("organizations.validation.nameRequired"),
+        t("common.ok"),
       );
       return;
     }
@@ -136,7 +145,11 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         navigation.goBack();
       } else {
         console.error("Update failed:", result.error);
-        Alert.alert("Error", result.error || "Failed to update organization");
+        showAlert(
+          t("common.error"),
+          result.error || t("organizations.updateError"),
+          t("common.ok"),
+        );
       }
     } else {
       const result = createOrganization(
@@ -150,169 +163,90 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         navigation.goBack();
       } else {
         console.error("Create failed:", result.error);
-        Alert.alert("Error", result.error || "Failed to create organization");
+        showAlert(
+          t("common.error"),
+          result.error || t("organizations.createError"),
+          t("common.ok"),
+        );
       }
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={styles.label}>Organization Name *</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={handleNameChange}
-            placeholder="Enter organization name"
-            autoFocus
-          />
-        </View>
+    <FormScreenLayout>
+      <FormField label={`${t("organizations.form.nameLabel")} *`}>
+        <TextField
+          value={name}
+          onChangeText={handleNameChange}
+          placeholder={t("organizations.form.namePlaceholder")}
+          autoFocus
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Logo</Text>
-          <TouchableOpacity
-            style={styles.imagePickerButton}
-            onPress={handlePickImage}
-          >
-            {logoUri ? (
-              <Image source={{ uri: logoUri }} style={styles.logoPreview} />
-            ) : (
-              <Text style={styles.imagePickerText}>Tap to select logo</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Website</Text>
-          <TextInput
-            style={styles.input}
-            value={website}
-            onChangeText={(value) => {
-              setWebsite(value);
-            }}
-            placeholder="https://example.com"
-            keyboardType="url"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Social Media</Text>
-          <TextInput
-            style={[styles.input, styles.socialInput]}
-            value={socialMedia.x || ""}
-            onChangeText={(value) => handleSocialMediaChange("x", value)}
-            placeholder="X (Twitter) username or URL"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[styles.input, styles.socialInput]}
-            value={socialMedia.linkedin || ""}
-            onChangeText={(value) => handleSocialMediaChange("linkedin", value)}
-            placeholder="LinkedIn URL"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[styles.input, styles.socialInput]}
-            value={socialMedia.facebook || ""}
-            onChangeText={(value) => handleSocialMediaChange("facebook", value)}
-            placeholder="Facebook URL"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[styles.input, styles.socialInput]}
-            value={socialMedia.instagram || ""}
-            onChangeText={(value) =>
-              handleSocialMediaChange("instagram", value)
-            }
-            placeholder="Instagram username or URL"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Status</Text>
-          <View style={styles.statusButtons}>
-            <TouchableOpacity
-              style={[
-                styles.statusButton,
-                status === "organization.status.active" &&
-                  styles.statusButtonActive,
-              ]}
-              onPress={() => handleStatusChange("organization.status.active")}
-            >
-              <Text
-                style={[
-                  styles.statusButtonText,
-                  status === "organization.status.active" &&
-                    styles.statusButtonTextActive,
-                ]}
-              >
-                Active
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.statusButton,
-                status === "organization.status.inactive" &&
-                  styles.statusButtonActive,
-              ]}
-              onPress={() => handleStatusChange("organization.status.inactive")}
-            >
-              <Text
-                style={[
-                  styles.statusButtonText,
-                  status === "organization.status.inactive" &&
-                    styles.statusButtonTextActive,
-                ]}
-              >
-                Inactive
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>
-            {organizationId ? "Update Organization" : "Create Organization"}
-          </Text>
+      <FormField label={t("organizations.fields.logo")}>
+        <TouchableOpacity
+          style={[
+            styles.imagePickerButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          onPress={handlePickImage}
+        >
+          {logoUri ? (
+            <Image source={{ uri: logoUri }} style={styles.logoPreview} />
+          ) : (
+            <Text style={[styles.imagePickerText, { color: colors.textMuted }]}>
+              {t("organizations.form.logoPlaceholder")}
+            </Text>
+          )}
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </FormField>
+
+      <FormField label={t("organizations.fields.website")}>
+        <TextField
+          value={website}
+          onChangeText={(value) => {
+            setWebsite(value);
+          }}
+          placeholder={t("common.placeholders.website")}
+          keyboardType="url"
+          autoCapitalize="none"
+        />
+      </FormField>
+
+      <SocialMediaFields
+        socialMedia={socialMedia}
+        onChange={handleSocialMediaChange}
+        translationPrefix="organizations"
+      />
+
+      <FormField label={t("organizations.fields.status")}>
+        <SegmentedOptionGroup
+          options={statusOptions}
+          value={status}
+          onChange={handleStatusChange}
+        />
+      </FormField>
+
+      <TouchableOpacity
+        style={[styles.saveButton, { backgroundColor: colors.accent }]}
+        onPress={handleSave}
+      >
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
+          {organizationId
+            ? t("organizations.form.updateButton")
+            : t("organizations.form.createButton")}
+        </Text>
+      </TouchableOpacity>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f4f2ee",
-  },
-  form: {
-    padding: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1b1b1b",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
   imagePickerButton: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
     borderStyle: "dashed",
     padding: 20,
     alignItems: "center",
@@ -321,50 +255,19 @@ const styles = StyleSheet.create({
   },
   imagePickerText: {
     fontSize: 14,
-    color: "#999",
   },
   logoPreview: {
     width: 100,
     height: 100,
     borderRadius: 8,
   },
-  socialInput: {
-    marginTop: 8,
-  },
-  statusButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  statusButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  statusButtonActive: {
-    backgroundColor: "#1f5eff",
-    borderColor: "#1f5eff",
-  },
-  statusButtonText: {
-    fontSize: 15,
-    color: "#666",
-    fontWeight: "500",
-  },
-  statusButtonTextActive: {
-    color: "#fff",
-  },
   saveButton: {
-    backgroundColor: "#1f5eff",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 12,
   },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
