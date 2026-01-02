@@ -149,5 +149,15 @@
     "common.address.city": "",
     "common.address.state": "",
     "common.address.zip": "",
-    "common.placeholders.website": ""
+    "common.placeholders.website": "",
+    "organizations.updateError": "",
+    "organizations.createError": "",
+    "organizations.fields.logo": "",
+    "organizations.form.nameLabel": "",
+    "organizations.form.namePlaceholder": "",
+    "organizations.form.logoPlaceholder": "",
+    "organizations.form.logoPermissionTitle": "",
+    "organizations.form.logoPermissionMessage": "",
+    "organizations.form.updateButton": "",
+    "organizations.form.createButton": ""
 }

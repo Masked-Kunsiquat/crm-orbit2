@@ -80,8 +80,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
     if (!permissionResult.granted) {
       Alert.alert(
-        "Permission Required",
-        "Please grant photo library access to select a logo",
+        t("organizations.form.logoPermissionTitle"),
+        t("organizations.form.logoPermissionMessage"),
       );
       return;
     }
@@ -139,7 +139,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         navigation.goBack();
       } else {
         console.error("Update failed:", result.error);
-        Alert.alert("Error", result.error || "Failed to update organization");
+        Alert.alert(
+          t("common.error"),
+          result.error || t("organizations.updateError"),
+        );
       }
     } else {
       const result = createOrganization(
@@ -153,7 +156,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         navigation.goBack();
       } else {
         console.error("Create failed:", result.error);
-        Alert.alert("Error", result.error || "Failed to create organization");
+        Alert.alert(
+          t("common.error"),
+          result.error || t("organizations.createError"),
+        );
       }
     }
   };
@@ -163,7 +169,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       <View style={styles.form}>
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Organization Name *
+            {t("organizations.form.nameLabel")} *
           </Text>
           <TextInput
             style={[
@@ -176,7 +182,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             ]}
             value={name}
             onChangeText={handleNameChange}
-            placeholder="Enter organization name"
+            placeholder={t("organizations.form.namePlaceholder")}
             placeholderTextColor={colors.textMuted}
             autoFocus
           />
@@ -184,7 +190,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Logo
+            {t("organizations.fields.logo")}
           </Text>
           <TouchableOpacity
             style={[
@@ -199,7 +205,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
               <Text
                 style={[styles.imagePickerText, { color: colors.textMuted }]}
               >
-                Tap to select logo
+                {t("organizations.form.logoPlaceholder")}
               </Text>
             )}
           </TouchableOpacity>
@@ -207,7 +213,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Website
+            {t("organizations.fields.website")}
           </Text>
           <TextInput
             style={[
@@ -222,7 +228,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             onChangeText={(value) => {
               setWebsite(value);
             }}
-            placeholder="https://example.com"
+            placeholder={t("common.placeholders.website")}
             placeholderTextColor={colors.textMuted}
             keyboardType="url"
             autoCapitalize="none"
@@ -237,7 +243,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
 
         <View style={styles.field}>
           <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Status
+            {t("organizations.fields.status")}
           </Text>
           <View style={styles.statusButtons}>
             <TouchableOpacity
@@ -260,7 +266,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
                   },
                 ]}
               >
-                Active
+                {t("status.active")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -283,7 +289,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
                   },
                 ]}
               >
-                Inactive
+                {t("status.inactive")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -294,7 +300,9 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           onPress={handleSave}
         >
           <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-            {organizationId ? "Update Organization" : "Create Organization"}
+            {organizationId
+              ? t("organizations.form.updateButton")
+              : t("organizations.form.createButton")}
           </Text>
         </TouchableOpacity>
       </View>
