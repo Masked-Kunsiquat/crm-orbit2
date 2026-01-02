@@ -215,6 +215,8 @@
   "screens.newNote": "New Note",
   "timeline.title": "History",
   "timeline.empty": "No activity yet",
+  "timeline.loadMore": "Load More",
+  "timeline.moreItems": "more items",
   "events.organization.created": "Created organization",
   "events.organization.status.updated": "Updated status",
   "events.organization.updated": "Updated organization",

@@ -213,6 +213,8 @@
     "contacts.form.createButton": "",
     "timeline.title": "历史记录",
     "timeline.empty": "暂无活动",
+    "timeline.loadMore": "加载更多",
+    "timeline.moreItems": "更多项目",
     "events.organization.created": "已创建组织",
     "events.organization.status.updated": "状态已更新",
     "events.organization.updated": "组织已更新",

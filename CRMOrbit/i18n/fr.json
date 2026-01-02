@@ -213,6 +213,8 @@
     "contacts.form.createButton": "",
     "timeline.title": "Historique",
     "timeline.empty": "Pas encore d'activité",
+    "timeline.loadMore": "Charger plus",
+    "timeline.moreItems": "éléments supplémentaires",
     "events.organization.created": "Organisation créée",
     "events.organization.status.updated": "Statut mis à jour",
     "events.organization.updated": "Organisation mise à jour",

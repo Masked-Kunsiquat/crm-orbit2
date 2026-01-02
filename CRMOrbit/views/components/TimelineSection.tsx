@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import type { TimelineItem } from "@views/store/timeline";
 import type { AutomergeDoc } from "@automerge/schema";
 import { EVENT_I18N_KEYS } from "@i18n/events";
@@ -9,10 +10,16 @@ import { Section } from "./Section";
 interface TimelineSectionProps {
   timeline: TimelineItem[];
   doc: AutomergeDoc;
+  initialItemsToShow?: number;
 }
 
-export const TimelineSection = ({ timeline, doc }: TimelineSectionProps) => {
+export const TimelineSection = ({
+  timeline,
+  doc,
+  initialItemsToShow = 10,
+}: TimelineSectionProps) => {
   const { colors } = useTheme();
+  const [itemsToShow, setItemsToShow] = useState(initialItemsToShow);
 
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
@@ -312,6 +319,13 @@ export const TimelineSection = ({ timeline, doc }: TimelineSectionProps) => {
     return null;
   };
 
+  const visibleTimeline = timeline.slice(0, itemsToShow);
+  const hasMore = timeline.length > itemsToShow;
+
+  const handleLoadMore = () => {
+    setItemsToShow((prev) => prev + initialItemsToShow);
+  };
+
   return (
     <Section>
       <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
@@ -323,7 +337,18 @@ export const TimelineSection = ({ timeline, doc }: TimelineSectionProps) => {
         </Text>
       ) : (
         <View style={styles.timelineContainer}>
-          {timeline.map((item) => renderTimelineItem(item))}
+          {visibleTimeline.map((item) => renderTimelineItem(item))}
+          {hasMore && (
+            <TouchableOpacity
+              style={[styles.loadMoreButton, { borderColor: colors.border }]}
+              onPress={handleLoadMore}
+            >
+              <Text style={[styles.loadMoreText, { color: colors.accent }]}>
+                {t("timeline.loadMore")} ({timeline.length - itemsToShow}{" "}
+                {t("timeline.moreItems")})
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </Section>
@@ -374,5 +399,16 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     marginTop: 4,
+  },
+  loadMoreButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
