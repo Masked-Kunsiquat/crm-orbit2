@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import type { TimelineItem } from "@views/store/timeline";
 import type { AutomergeDoc } from "@automerge/schema";
@@ -23,6 +23,11 @@ export const TimelineSection = ({
 }: TimelineSectionProps) => {
   const { colors } = useTheme();
   const [itemsToShow, setItemsToShow] = useState(initialItemsToShow);
+
+  // Reset pagination when timeline length changes (e.g., navigating to different entity)
+  useEffect(() => {
+    setItemsToShow(initialItemsToShow);
+  }, [timeline.length, initialItemsToShow]);
 
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
