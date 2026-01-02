@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   Alert,
@@ -17,7 +15,12 @@ import { useOrganization } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
 import { useTheme } from "@views/hooks/useTheme";
-import { SocialMediaFields } from "@views/components";
+import {
+  FormField,
+  FormScreenLayout,
+  SocialMediaFields,
+  TextField,
+} from "@views/components";
 
 const DEVICE_ID = "device-local";
 
@@ -165,172 +168,118 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("organizations.form.nameLabel")} *
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={name}
-            onChangeText={handleNameChange}
-            placeholder={t("organizations.form.namePlaceholder")}
-            placeholderTextColor={colors.textMuted}
-            autoFocus
-          />
-        </View>
+    <FormScreenLayout>
+      <FormField label={`${t("organizations.form.nameLabel")} *`}>
+        <TextField
+          value={name}
+          onChangeText={handleNameChange}
+          placeholder={t("organizations.form.namePlaceholder")}
+          autoFocus
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("organizations.fields.logo")}
-          </Text>
+      <FormField label={t("organizations.fields.logo")}>
+        <TouchableOpacity
+          style={[
+            styles.imagePickerButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          onPress={handlePickImage}
+        >
+          {logoUri ? (
+            <Image source={{ uri: logoUri }} style={styles.logoPreview} />
+          ) : (
+            <Text style={[styles.imagePickerText, { color: colors.textMuted }]}>
+              {t("organizations.form.logoPlaceholder")}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </FormField>
+
+      <FormField label={t("organizations.fields.website")}>
+        <TextField
+          value={website}
+          onChangeText={(value) => {
+            setWebsite(value);
+          }}
+          placeholder={t("common.placeholders.website")}
+          keyboardType="url"
+          autoCapitalize="none"
+        />
+      </FormField>
+
+      <SocialMediaFields
+        socialMedia={socialMedia}
+        onChange={handleSocialMediaChange}
+        translationPrefix="organizations"
+      />
+
+      <FormField label={t("organizations.fields.status")}>
+        <View style={styles.statusButtons}>
           <TouchableOpacity
             style={[
-              styles.imagePickerButton,
+              styles.statusButton,
               { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            onPress={handlePickImage}
-          >
-            {logoUri ? (
-              <Image source={{ uri: logoUri }} style={styles.logoPreview} />
-            ) : (
-              <Text
-                style={[styles.imagePickerText, { color: colors.textMuted }]}
-              >
-                {t("organizations.form.logoPlaceholder")}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("organizations.fields.website")}
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
+              status === "organization.status.active" && {
+                backgroundColor: colors.accent,
+                borderColor: colors.accent,
               },
             ]}
-            value={website}
-            onChangeText={(value) => {
-              setWebsite(value);
-            }}
-            placeholder={t("common.placeholders.website")}
-            placeholderTextColor={colors.textMuted}
-            keyboardType="url"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <SocialMediaFields
-          socialMedia={socialMedia}
-          onChange={handleSocialMediaChange}
-          translationPrefix="organizations"
-        />
-
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("organizations.fields.status")}
-          </Text>
-          <View style={styles.statusButtons}>
-            <TouchableOpacity
+            onPress={() => handleStatusChange("organization.status.active")}
+          >
+            <Text
               style={[
-                styles.statusButton,
-                { backgroundColor: colors.surface, borderColor: colors.border },
+                styles.statusButtonText,
+                { color: colors.textSecondary },
                 status === "organization.status.active" && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
+                  color: colors.surface,
                 },
               ]}
-              onPress={() => handleStatusChange("organization.status.active")}
             >
-              <Text
-                style={[
-                  styles.statusButtonText,
-                  { color: colors.textSecondary },
-                  status === "organization.status.active" && {
-                    color: colors.surface,
-                  },
-                ]}
-              >
-                {t("status.active")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              {t("status.active")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.statusButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              status === "organization.status.inactive" && {
+                backgroundColor: colors.accent,
+                borderColor: colors.accent,
+              },
+            ]}
+            onPress={() => handleStatusChange("organization.status.inactive")}
+          >
+            <Text
               style={[
-                styles.statusButton,
-                { backgroundColor: colors.surface, borderColor: colors.border },
+                styles.statusButtonText,
+                { color: colors.textSecondary },
                 status === "organization.status.inactive" && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
+                  color: colors.surface,
                 },
               ]}
-              onPress={() => handleStatusChange("organization.status.inactive")}
             >
-              <Text
-                style={[
-                  styles.statusButtonText,
-                  { color: colors.textSecondary },
-                  status === "organization.status.inactive" && {
-                    color: colors.surface,
-                  },
-                ]}
-              >
-                {t("status.inactive")}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {t("status.inactive")}
+            </Text>
+          </TouchableOpacity>
         </View>
+      </FormField>
 
-        <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: colors.accent }]}
-          onPress={handleSave}
-        >
-          <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-            {organizationId
-              ? t("organizations.form.updateButton")
-              : t("organizations.form.createButton")}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      <TouchableOpacity
+        style={[styles.saveButton, { backgroundColor: colors.accent }]}
+        onPress={handleSave}
+      >
+        <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+          {organizationId
+            ? t("organizations.form.updateButton")
+            : t("organizations.form.createButton")}
+        </Text>
+      </TouchableOpacity>
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  form: {
-    padding: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
   imagePickerButton: {
     borderRadius: 8,
     borderWidth: 1,

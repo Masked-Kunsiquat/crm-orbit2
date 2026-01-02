@@ -3,7 +3,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   Alert,
@@ -21,7 +20,13 @@ import type {
   SocialMediaLinks,
 } from "@domains/account";
 import { useTheme } from "../../hooks/useTheme";
-import { AddressFields, SocialMediaFields } from "../../components";
+import {
+  AddressFields,
+  FormField,
+  FormScreenLayout,
+  SocialMediaFields,
+  TextField,
+} from "../../components";
 
 const DEVICE_ID = "device-local";
 
@@ -231,199 +236,170 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   );
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("accounts.fields.name")} *
-          </Text>
-          <TextInput
+    <FormScreenLayout>
+      <FormField label={`${t("accounts.fields.name")} *`}>
+        <TextField
+          value={name}
+          onChangeText={handleNameChange}
+          placeholder={t("accounts.form.namePlaceholder")}
+          autoFocus
+        />
+      </FormField>
+
+      <FormField
+        label={`${t("accounts.fields.organization")} *`}
+        hint={
+          organizations.length === 0
+            ? t("accounts.form.organizationEmptyHint")
+            : undefined
+        }
+      >
+        {organizations.length === 0 ? null : (
+          <TouchableOpacity
             style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
+              styles.pickerButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            onPress={() => setIsOrganizationPickerOpen(true)}
+            accessibilityRole="button"
+          >
+            <Text
+              style={[
+                styles.pickerButtonText,
+                { color: colors.textSecondary },
+              ]}
+            >
+              {selectedOrganization?.name ??
+                t("accounts.form.organizationPlaceholder")}
+            </Text>
+            <Text style={[styles.pickerChevron, { color: colors.chevron }]}>
+              ▼
+            </Text>
+          </TouchableOpacity>
+        )}
+      </FormField>
+
+      <FormField label={t("accounts.fields.status")}>
+        <View style={styles.statusButtons}>
+          <TouchableOpacity
+            style={[
+              styles.statusButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              status === "account.status.active" && {
+                backgroundColor: colors.accent,
+                borderColor: colors.accent,
               },
             ]}
-            value={name}
-            onChangeText={handleNameChange}
-            placeholder={t("accounts.form.namePlaceholder")}
-            placeholderTextColor={colors.textMuted}
-            autoFocus
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("accounts.fields.organization")} *
-          </Text>
-          {organizations.length === 0 ? (
-            <Text style={[styles.hint, { color: colors.textMuted }]}>
-              {t("accounts.form.organizationEmptyHint")}
-            </Text>
-          ) : (
-            <TouchableOpacity
-              style={[
-                styles.pickerButton,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-              ]}
-              onPress={() => setIsOrganizationPickerOpen(true)}
-              accessibilityRole="button"
-            >
-              <Text
-                style={[
-                  styles.pickerButtonText,
-                  { color: colors.textSecondary },
-                ]}
-              >
-                {selectedOrganization?.name ??
-                  t("accounts.form.organizationPlaceholder")}
-              </Text>
-              <Text style={[styles.pickerChevron, { color: colors.chevron }]}>
-                ▼
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("accounts.fields.status")}
-          </Text>
-          <View style={styles.statusButtons}>
-            <TouchableOpacity
-              style={[
-                styles.statusButton,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-                status === "account.status.active" && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
-                },
-              ]}
-              onPress={() => handleStatusChange("account.status.active")}
-            >
-              <Text
-                style={[
-                  styles.statusButtonText,
-                  { color: colors.textSecondary },
-                  status === "account.status.active" && {
-                    color: colors.surface,
-                  },
-                ]}
-              >
-                {t("status.active")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.statusButton,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-                status === "account.status.inactive" && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
-                },
-              ]}
-              onPress={() => handleStatusChange("account.status.inactive")}
-            >
-              <Text
-                style={[
-                  styles.statusButtonText,
-                  { color: colors.textSecondary },
-                  status === "account.status.inactive" && {
-                    color: colors.surface,
-                  },
-                ]}
-              >
-                {t("status.inactive")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <AddressFields
-          labelKey="accounts.fields.siteAddress"
-          address={siteAddress}
-          onChange={handleSiteAddressChange}
-        />
-
-        <View style={styles.field}>
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => handleUseSameForParkingChange(!useSameForParking)}
+            onPress={() => handleStatusChange("account.status.active")}
           >
-            <View
+            <Text
               style={[
-                styles.checkbox,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-                useSameForParking && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
+                styles.statusButtonText,
+                { color: colors.textSecondary },
+                status === "account.status.active" && {
+                  color: colors.surface,
                 },
               ]}
             >
-              {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>
-              {t("accounts.form.useSameAddressForParking")}
+              {t("status.active")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.statusButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              status === "account.status.inactive" && {
+                backgroundColor: colors.accent,
+                borderColor: colors.accent,
+              },
+            ]}
+            onPress={() => handleStatusChange("account.status.inactive")}
+          >
+            <Text
+              style={[
+                styles.statusButtonText,
+                { color: colors.textSecondary },
+                status === "account.status.inactive" && {
+                  color: colors.surface,
+                },
+              ]}
+            >
+              {t("status.inactive")}
             </Text>
           </TouchableOpacity>
         </View>
+      </FormField>
 
-        {!useSameForParking && (
-          <AddressFields
-            labelKey="accounts.fields.parkingAddress"
-            address={parkingAddress}
-            onChange={handleParkingAddressChange}
-          />
-        )}
+      <AddressFields
+        labelKey="accounts.fields.siteAddress"
+        address={siteAddress}
+        onChange={handleSiteAddressChange}
+      />
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("accounts.fields.website")}
-          </Text>
-          <TextInput
+      <FormField>
+        <TouchableOpacity
+          style={styles.checkboxRow}
+          onPress={() => handleUseSameForParkingChange(!useSameForParking)}
+        >
+          <View
             style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
+              styles.checkbox,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              useSameForParking && {
+                backgroundColor: colors.accent,
+                borderColor: colors.accent,
               },
             ]}
-            value={website}
-            onChangeText={(value) => {
-              setWebsite(value);
-            }}
-            placeholder={t("common.placeholders.website")}
-            placeholderTextColor={colors.textMuted}
-            keyboardType="url"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <SocialMediaFields
-          socialMedia={socialMedia}
-          onChange={handleSocialMediaChange}
-          translationPrefix="accounts"
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.saveButton,
-            { backgroundColor: colors.accent },
-            organizations.length === 0 && { backgroundColor: colors.textMuted },
-          ]}
-          onPress={handleSave}
-          disabled={organizations.length === 0}
-        >
-          <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-            {accountId
-              ? t("accounts.form.updateButton")
-              : t("accounts.form.createButton")}
+          >
+            {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>
+            {t("accounts.form.useSameAddressForParking")}
           </Text>
         </TouchableOpacity>
-      </View>
+      </FormField>
+
+      {!useSameForParking && (
+        <AddressFields
+          labelKey="accounts.fields.parkingAddress"
+          address={parkingAddress}
+          onChange={handleParkingAddressChange}
+        />
+      )}
+
+      <FormField label={t("accounts.fields.website")}>
+        <TextField
+          value={website}
+          onChangeText={(value) => {
+            setWebsite(value);
+          }}
+          placeholder={t("common.placeholders.website")}
+          keyboardType="url"
+          autoCapitalize="none"
+        />
+      </FormField>
+
+      <SocialMediaFields
+        socialMedia={socialMedia}
+        onChange={handleSocialMediaChange}
+        translationPrefix="accounts"
+      />
+
+      <TouchableOpacity
+        style={[
+          styles.saveButton,
+          { backgroundColor: colors.accent },
+          organizations.length === 0 && { backgroundColor: colors.textMuted },
+        ]}
+        onPress={handleSave}
+        disabled={organizations.length === 0}
+      >
+        <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+          {accountId
+            ? t("accounts.form.updateButton")
+            : t("accounts.form.createButton")}
+        </Text>
+      </TouchableOpacity>
 
       <Modal
         transparent
@@ -477,39 +453,11 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  form: {
-    padding: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
-  value: {
-    fontSize: 16,
-    paddingVertical: 12,
-  },
-  hint: {
-    fontSize: 12,
-    marginTop: 4,
-  },
   pickerButton: {
     borderRadius: 8,
     borderWidth: 1,

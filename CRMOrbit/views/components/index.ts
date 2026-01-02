@@ -18,4 +18,7 @@ export { NotesSection } from "./NotesSection";
 export { SocialLinksSection } from "./SocialLinksSection";
 export { SocialMediaFields } from "./SocialMediaFields";
 export { AddressFields } from "./AddressFields";
+export { FormScreenLayout } from "./FormScreenLayout";
+export { FormField } from "./FormField";
+export { TextField } from "./TextField";
 export { ContactCardRow } from "./ContactCardRow";

@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   Alert,
@@ -16,6 +14,7 @@ import { useContactActions } from "@views/hooks/useContactActions";
 import type { ContactType, ContactMethod } from "@domains/contact";
 import { splitLegacyName } from "@domains/contact.utils";
 import { useTheme } from "@views/hooks/useTheme";
+import { FormField, FormScreenLayout, TextField } from "@views/components";
 
 const DEVICE_ID = "device-local";
 
@@ -196,249 +195,149 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   ];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            First Name
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={firstName}
-            onChangeText={handleFirstNameChange}
-            placeholder="Enter first name"
-            placeholderTextColor={colors.textMuted}
-            autoFocus
-          />
-        </View>
+    <FormScreenLayout>
+      <FormField label="First Name">
+        <TextField
+          value={firstName}
+          onChangeText={handleFirstNameChange}
+          placeholder="Enter first name"
+          autoFocus
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Last Name
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={lastName}
-            onChangeText={handleLastNameChange}
-            placeholder="Enter last name"
-            placeholderTextColor={colors.textMuted}
-          />
-          <Text style={[styles.hint, { color: colors.textMuted }]}>
-            At least one of First or Last name is required
-          </Text>
-        </View>
+      <FormField
+        label="Last Name"
+        hint="At least one of First or Last name is required"
+      >
+        <TextField
+          value={lastName}
+          onChangeText={handleLastNameChange}
+          placeholder="Enter last name"
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Title
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={title}
-            onChangeText={handleTitleChange}
-            placeholder="e.g. Property Manager, VP of Operations"
-            placeholderTextColor={colors.textMuted}
-          />
-        </View>
+      <FormField label="Title">
+        <TextField
+          value={title}
+          onChangeText={handleTitleChange}
+          placeholder="e.g. Property Manager, VP of Operations"
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            Type
-          </Text>
-          <View style={styles.typeButtons}>
-            {types.map((t) => (
-              <TouchableOpacity
-                key={t}
-                style={[
-                  styles.typeButton,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                  },
-                  type === t && {
-                    backgroundColor: colors.accent,
-                    borderColor: colors.accent,
-                  },
-                ]}
-                onPress={() => handleTypeChange(t)}
-              >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    { color: colors.textSecondary },
-                    type === t && { color: colors.surface },
-                  ]}
-                >
-                  {getTypeLabel(t)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.field}>
-          <View style={styles.fieldHeader}>
-            <Text style={[styles.label, { color: colors.textPrimary }]}>
-              Email Addresses
-            </Text>
+      <FormField label="Type">
+        <View style={styles.typeButtons}>
+          {types.map((t) => (
             <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: colors.accent }]}
-              onPress={handleAddEmail}
+              key={t}
+              style={[
+                styles.typeButton,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+                type === t && {
+                  backgroundColor: colors.accent,
+                  borderColor: colors.accent,
+                },
+              ]}
+              onPress={() => handleTypeChange(t)}
             >
-              <Text style={[styles.addButtonText, { color: colors.surface }]}>
-                + Add
+              <Text
+                style={[
+                  styles.typeButtonText,
+                  { color: colors.textSecondary },
+                  type === t && { color: colors.surface },
+                ]}
+              >
+                {getTypeLabel(t)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </FormField>
+
+      <FormField
+        label="Email Addresses"
+        accessory={
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.accent }]}
+            onPress={handleAddEmail}
+          >
+            <Text style={[styles.addButtonText, { color: colors.surface }]}>
+              + Add
+            </Text>
+          </TouchableOpacity>
+        }
+      >
+        {emails.map((email, index) => (
+          <View key={index} style={styles.methodRow}>
+            <TextField
+              style={styles.methodInput}
+              value={email.value}
+              onChangeText={(value) => handleEmailChange(index, value)}
+              placeholder="email@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
+              onPress={() => handleRemoveEmail(index)}
+            >
+              <Text style={[styles.removeButtonText, { color: colors.error }]}>
+                ×
               </Text>
             </TouchableOpacity>
           </View>
-          {emails.map((email, index) => (
-            <View key={index} style={styles.methodRow}>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.methodInput,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  },
-                ]}
-                value={email.value}
-                onChangeText={(value) => handleEmailChange(index, value)}
-                placeholder="email@example.com"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                style={[
-                  styles.removeButton,
-                  { backgroundColor: colors.errorBg },
-                ]}
-                onPress={() => handleRemoveEmail(index)}
-              >
-                <Text
-                  style={[styles.removeButtonText, { color: colors.error }]}
-                >
-                  ×
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+        ))}
+      </FormField>
 
-        <View style={styles.field}>
-          <View style={styles.fieldHeader}>
-            <Text style={[styles.label, { color: colors.textPrimary }]}>
-              Phone Numbers
+      <FormField
+        label="Phone Numbers"
+        accessory={
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.accent }]}
+            onPress={handleAddPhone}
+          >
+            <Text style={[styles.addButtonText, { color: colors.surface }]}>
+              + Add
             </Text>
+          </TouchableOpacity>
+        }
+      >
+        {phones.map((phone, index) => (
+          <View key={index} style={styles.methodRow}>
+            <TextField
+              style={styles.methodInput}
+              value={phone.value}
+              onChangeText={(value) => handlePhoneChange(index, value)}
+              placeholder="+1 (555) 123-4567"
+              keyboardType="phone-pad"
+            />
             <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: colors.accent }]}
-              onPress={handleAddPhone}
+              style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
+              onPress={() => handleRemovePhone(index)}
             >
-              <Text style={[styles.addButtonText, { color: colors.surface }]}>
-                + Add
+              <Text style={[styles.removeButtonText, { color: colors.error }]}>
+                ×
               </Text>
             </TouchableOpacity>
           </View>
-          {phones.map((phone, index) => (
-            <View key={index} style={styles.methodRow}>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.methodInput,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  },
-                ]}
-                value={phone.value}
-                onChangeText={(value) => handlePhoneChange(index, value)}
-                placeholder="+1 (555) 123-4567"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="phone-pad"
-              />
-              <TouchableOpacity
-                style={[
-                  styles.removeButton,
-                  { backgroundColor: colors.errorBg },
-                ]}
-                onPress={() => handleRemovePhone(index)}
-              >
-                <Text
-                  style={[styles.removeButtonText, { color: colors.error }]}
-                >
-                  ×
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+        ))}
+      </FormField>
 
-        <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: colors.accent }]}
-          onPress={handleSave}
-        >
-          <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-            {contactId ? "Update Contact" : "Create Contact"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      <TouchableOpacity
+        style={[styles.saveButton, { backgroundColor: colors.accent }]}
+        onPress={handleSave}
+      >
+        <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+          {contactId ? "Update Contact" : "Create Contact"}
+        </Text>
+      </TouchableOpacity>
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  form: {
-    padding: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  fieldHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  hint: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
   typeButtons: {
     flexDirection: "row",
     gap: 8,

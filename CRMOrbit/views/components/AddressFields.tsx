@@ -1,8 +1,9 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { t } from "@i18n/index";
 import type { Address } from "@domains/account";
-import { useTheme } from "../hooks";
+import { FormField } from "./FormField";
+import { TextField } from "./TextField";
 
 type AddressFieldsProps = {
   labelKey: string;
@@ -15,93 +16,38 @@ export const AddressFields = ({
   address,
   onChange,
 }: AddressFieldsProps) => {
-  const { colors } = useTheme();
-
   return (
-    <View style={styles.field}>
-      <Text style={[styles.label, { color: colors.textPrimary }]}>
-        {t(labelKey)}
-      </Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-            color: colors.textPrimary,
-          },
-        ]}
+    <FormField label={t(labelKey)}>
+      <TextField
         value={address.street}
         onChangeText={(value) => onChange("street", value)}
         placeholder={t("common.address.street")}
-        placeholderTextColor={colors.textMuted}
       />
-      <TextInput
-        style={[
-          styles.input,
-          styles.addressInput,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-            color: colors.textPrimary,
-          },
-        ]}
+      <TextField
+        style={styles.addressInput}
         value={address.city}
         onChangeText={(value) => onChange("city", value)}
         placeholder={t("common.address.city")}
-        placeholderTextColor={colors.textMuted}
       />
       <View style={styles.addressRow}>
-        <TextInput
-          style={[
-            styles.input,
-            styles.addressInputSmall,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              color: colors.textPrimary,
-            },
-          ]}
+        <TextField
+          style={styles.addressInputSmall}
           value={address.state}
           onChangeText={(value) => onChange("state", value)}
           placeholder={t("common.address.state")}
-          placeholderTextColor={colors.textMuted}
         />
-        <TextInput
-          style={[
-            styles.input,
-            styles.addressInputSmall,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              color: colors.textPrimary,
-            },
-          ]}
+        <TextField
+          style={styles.addressInputSmall}
           value={address.zipCode}
           onChangeText={(value) => onChange("zipCode", value)}
           placeholder={t("common.address.zip")}
-          placeholderTextColor={colors.textMuted}
         />
       </View>
-    </View>
+    </FormField>
   );
 };
 
 const styles = StyleSheet.create({
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
   addressInput: {
     marginTop: 8,
   },

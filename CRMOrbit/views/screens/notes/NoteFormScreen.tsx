@@ -2,16 +2,14 @@ import { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View,
   Alert,
 } from "react-native";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
 import { useNoteActions } from "../../hooks";
-import { DetailScreenLayout, Section } from "../../components";
+import { FormField, FormScreenLayout, TextField } from "../../components";
 import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
 import { nextId } from "@domains/shared/idGenerator";
@@ -93,82 +91,42 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
   };
 
   return (
-    <DetailScreenLayout>
-      <Section>
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("notes.form.titleLabel")}
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={title}
-            onChangeText={setTitle}
-            placeholder={t("notes.form.titlePlaceholder")}
-            placeholderTextColor={colors.textMuted}
-            autoFocus
-          />
-        </View>
+    <FormScreenLayout>
+      <FormField label={t("notes.form.titleLabel")}>
+        <TextField
+          value={title}
+          onChangeText={setTitle}
+          placeholder={t("notes.form.titlePlaceholder")}
+          autoFocus
+        />
+      </FormField>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: colors.textPrimary }]}>
-            {t("notes.form.bodyLabel")}
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              styles.bodyInput,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              },
-            ]}
-            value={body}
-            onChangeText={setBody}
-            placeholder={t("notes.form.bodyPlaceholder")}
-            placeholderTextColor={colors.textMuted}
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
+      <FormField label={t("notes.form.bodyLabel")}>
+        <TextField
+          style={styles.bodyInput}
+          value={body}
+          onChangeText={setBody}
+          placeholder={t("notes.form.bodyPlaceholder")}
+          multiline
+          textAlignVertical="top"
+        />
+      </FormField>
 
-        <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: colors.accent }]}
-          onPress={handleSave}
-        >
-          <Text style={styles.saveButtonText}>
-            {noteId
-              ? t("notes.form.updateButton")
-              : t("notes.form.createButton")}
-          </Text>
-        </TouchableOpacity>
-      </Section>
-    </DetailScreenLayout>
+      <TouchableOpacity
+        style={[styles.saveButton, { backgroundColor: colors.accent }]}
+        onPress={handleSave}
+      >
+        <Text style={styles.saveButtonText}>
+          {noteId
+            ? t("notes.form.updateButton")
+            : t("notes.form.createButton")}
+        </Text>
+      </TouchableOpacity>
+    </FormScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
   bodyInput: {
     height: 200,
   },
