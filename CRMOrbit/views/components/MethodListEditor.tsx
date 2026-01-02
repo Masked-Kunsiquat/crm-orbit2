@@ -1,0 +1,103 @@
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import type { TextInputProps } from "react-native";
+
+import type { ContactMethod } from "@domains/contact";
+import { useTheme } from "../hooks";
+import { FormField } from "./FormField";
+import { TextField } from "./TextField";
+
+type MethodListEditorProps = {
+  label: string;
+  methods: ContactMethod[];
+  onAdd: () => void;
+  onChange: (index: number, value: string) => void;
+  onRemove: (index: number) => void;
+  placeholder: string;
+  addLabel: string;
+  removeLabel?: string;
+  keyboardType?: TextInputProps["keyboardType"];
+  autoCapitalize?: TextInputProps["autoCapitalize"];
+};
+
+export const MethodListEditor = ({
+  label,
+  methods,
+  onAdd,
+  onChange,
+  onRemove,
+  placeholder,
+  addLabel,
+  removeLabel = "x",
+  keyboardType,
+  autoCapitalize,
+}: MethodListEditorProps) => {
+  const { colors } = useTheme();
+
+  return (
+    <FormField
+      label={label}
+      accessory={
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: colors.accent }]}
+          onPress={onAdd}
+        >
+          <Text style={[styles.addButtonText, { color: colors.surface }]}>
+            {addLabel}
+          </Text>
+        </TouchableOpacity>
+      }
+    >
+      {methods.map((method, index) => (
+        <View key={index} style={styles.methodRow}>
+          <TextField
+            style={styles.methodInput}
+            value={method.value}
+            onChangeText={(value) => onChange(index, value)}
+            placeholder={placeholder}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+          />
+          <TouchableOpacity
+            style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
+            onPress={() => onRemove(index)}
+          >
+            <Text style={[styles.removeButtonText, { color: colors.error }]}>
+              {removeLabel}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+    </FormField>
+  );
+};
+
+const styles = StyleSheet.create({
+  addButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  methodRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  methodInput: {
+    flex: 1,
+  },
+  removeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  removeButtonText: {
+    fontSize: 24,
+    fontWeight: "300",
+  },
+});

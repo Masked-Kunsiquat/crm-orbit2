@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, Alert } from "react-native";
 
 import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
@@ -11,6 +11,7 @@ import { useTheme } from "@views/hooks/useTheme";
 import {
   FormField,
   FormScreenLayout,
+  MethodListEditor,
   SegmentedOptionGroup,
   TextField,
 } from "@views/components";
@@ -231,74 +232,28 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         />
       </FormField>
 
-      <FormField
+      <MethodListEditor
         label={t("contacts.form.emailsLabel")}
-        accessory={
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
-            onPress={handleAddEmail}
-          >
-            <Text style={[styles.addButtonText, { color: colors.surface }]}>
-              {t("contacts.form.addAction")}
-            </Text>
-          </TouchableOpacity>
-        }
-      >
-        {emails.map((email, index) => (
-          <View key={index} style={styles.methodRow}>
-            <TextField
-              style={styles.methodInput}
-              value={email.value}
-              onChangeText={(value) => handleEmailChange(index, value)}
-              placeholder={t("contacts.form.emailPlaceholder")}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TouchableOpacity
-              style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
-              onPress={() => handleRemoveEmail(index)}
-            >
-              <Text style={[styles.removeButtonText, { color: colors.error }]}>
-                ×
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </FormField>
+        methods={emails}
+        onAdd={handleAddEmail}
+        onChange={handleEmailChange}
+        onRemove={handleRemoveEmail}
+        placeholder={t("contacts.form.emailPlaceholder")}
+        addLabel={t("contacts.form.addAction")}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-      <FormField
+      <MethodListEditor
         label={t("contacts.form.phonesLabel")}
-        accessory={
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
-            onPress={handleAddPhone}
-          >
-            <Text style={[styles.addButtonText, { color: colors.surface }]}>
-              {t("contacts.form.addAction")}
-            </Text>
-          </TouchableOpacity>
-        }
-      >
-        {phones.map((phone, index) => (
-          <View key={index} style={styles.methodRow}>
-            <TextField
-              style={styles.methodInput}
-              value={phone.value}
-              onChangeText={(value) => handlePhoneChange(index, value)}
-              placeholder={t("contacts.form.phonePlaceholder")}
-              keyboardType="phone-pad"
-            />
-            <TouchableOpacity
-              style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
-              onPress={() => handleRemovePhone(index)}
-            >
-              <Text style={[styles.removeButtonText, { color: colors.error }]}>
-                ×
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </FormField>
+        methods={phones}
+        onAdd={handleAddPhone}
+        onChange={handlePhoneChange}
+        onRemove={handleRemovePhone}
+        placeholder={t("contacts.form.phonePlaceholder")}
+        addLabel={t("contacts.form.addAction")}
+        keyboardType="phone-pad"
+      />
 
       <TouchableOpacity
         style={[styles.saveButton, { backgroundColor: colors.accent }]}
@@ -315,34 +270,6 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  addButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  methodRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 8,
-  },
-  methodInput: {
-    flex: 1,
-  },
-  removeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  removeButtonText: {
-    fontSize: 24,
-    fontWeight: "300",
-  },
   saveButton: {
     padding: 16,
     borderRadius: 8,
