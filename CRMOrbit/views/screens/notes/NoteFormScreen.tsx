@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, Alert } from "react-native";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
@@ -117,9 +112,7 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
         onPress={handleSave}
       >
         <Text style={styles.saveButtonText}>
-          {noteId
-            ? t("notes.form.updateButton")
-            : t("notes.form.createButton")}
+          {noteId ? t("notes.form.updateButton") : t("notes.form.createButton")}
         </Text>
       </TouchableOpacity>
     </FormScreenLayout>

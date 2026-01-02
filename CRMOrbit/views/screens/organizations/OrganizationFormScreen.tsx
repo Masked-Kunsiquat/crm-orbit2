@@ -1,12 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Alert,
-  Image,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, Alert, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 import { t } from "@i18n/index";
@@ -18,6 +11,7 @@ import { useTheme } from "@views/hooks/useTheme";
 import {
   FormField,
   FormScreenLayout,
+  SegmentedOptionGroup,
   SocialMediaFields,
   TextField,
 } from "@views/components";
@@ -41,6 +35,10 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
   const lastOrgIdRef = useRef<string | undefined>(undefined);
+  const statusOptions = [
+    { value: "organization.status.active", label: t("status.active") },
+    { value: "organization.status.inactive", label: t("status.inactive") },
+  ] as const;
 
   // Only populate form fields on initial mount or when switching to a different organization
   useEffect(() => {
@@ -215,54 +213,11 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       />
 
       <FormField label={t("organizations.fields.status")}>
-        <View style={styles.statusButtons}>
-          <TouchableOpacity
-            style={[
-              styles.statusButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-              status === "organization.status.active" && {
-                backgroundColor: colors.accent,
-                borderColor: colors.accent,
-              },
-            ]}
-            onPress={() => handleStatusChange("organization.status.active")}
-          >
-            <Text
-              style={[
-                styles.statusButtonText,
-                { color: colors.textSecondary },
-                status === "organization.status.active" && {
-                  color: colors.surface,
-                },
-              ]}
-            >
-              {t("status.active")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.statusButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-              status === "organization.status.inactive" && {
-                backgroundColor: colors.accent,
-                borderColor: colors.accent,
-              },
-            ]}
-            onPress={() => handleStatusChange("organization.status.inactive")}
-          >
-            <Text
-              style={[
-                styles.statusButtonText,
-                { color: colors.textSecondary },
-                status === "organization.status.inactive" && {
-                  color: colors.surface,
-                },
-              ]}
-            >
-              {t("status.inactive")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SegmentedOptionGroup
+          options={statusOptions}
+          value={status}
+          onChange={handleStatusChange}
+        />
       </FormField>
 
       <TouchableOpacity
@@ -296,21 +251,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
-  },
-  statusButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  statusButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  statusButtonText: {
-    fontSize: 15,
-    fontWeight: "500",
   },
   saveButton: {
     padding: 16,

@@ -1,11 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Alert,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 
 import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
@@ -14,7 +8,12 @@ import { useContactActions } from "@views/hooks/useContactActions";
 import type { ContactType, ContactMethod } from "@domains/contact";
 import { splitLegacyName } from "@domains/contact.utils";
 import { useTheme } from "@views/hooks/useTheme";
-import { FormField, FormScreenLayout, TextField } from "@views/components";
+import {
+  FormField,
+  FormScreenLayout,
+  SegmentedOptionGroup,
+  TextField,
+} from "@views/components";
 
 const DEVICE_ID = "device-local";
 
@@ -184,15 +183,15 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     }
   };
 
-  const getTypeLabel = (typeKey: ContactType) => {
-    return t(typeKey);
-  };
-
   const types: ContactType[] = [
     "contact.type.internal",
     "contact.type.external",
     "contact.type.vendor",
   ];
+  const typeOptions = types.map((typeKey) => ({
+    value: typeKey,
+    label: t(typeKey),
+  }));
 
   return (
     <FormScreenLayout>
@@ -225,35 +224,11 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       </FormField>
 
       <FormField label={t("contacts.form.typeLabel")}>
-        <View style={styles.typeButtons}>
-          {types.map((t) => (
-            <TouchableOpacity
-              key={t}
-              style={[
-                styles.typeButton,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                },
-                type === t && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
-                },
-              ]}
-              onPress={() => handleTypeChange(t)}
-            >
-              <Text
-                style={[
-                  styles.typeButtonText,
-                  { color: colors.textSecondary },
-                  type === t && { color: colors.surface },
-                ]}
-              >
-                {getTypeLabel(t)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <SegmentedOptionGroup
+          options={typeOptions}
+          value={type}
+          onChange={handleTypeChange}
+        />
       </FormField>
 
       <FormField
@@ -340,21 +315,6 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  typeButtons: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  typeButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  typeButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
   addButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,

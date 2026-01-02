@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { useTheme } from "../hooks";
 

@@ -24,6 +24,7 @@ import {
   AddressFields,
   FormField,
   FormScreenLayout,
+  SegmentedOptionGroup,
   SocialMediaFields,
   TextField,
 } from "../../components";
@@ -67,6 +68,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [isOrganizationPickerOpen, setIsOrganizationPickerOpen] =
     useState(false);
   const lastAccountIdRef = useRef<string | undefined>(undefined);
+  const statusOptions = [
+    { value: "account.status.active", label: t("status.active") },
+    { value: "account.status.inactive", label: t("status.inactive") },
+  ] as const;
 
   // Only populate form fields on initial mount or when switching to a different account
   useEffect(() => {
@@ -264,10 +269,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
             accessibilityRole="button"
           >
             <Text
-              style={[
-                styles.pickerButtonText,
-                { color: colors.textSecondary },
-              ]}
+              style={[styles.pickerButtonText, { color: colors.textSecondary }]}
             >
               {selectedOrganization?.name ??
                 t("accounts.form.organizationPlaceholder")}
@@ -280,54 +282,11 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       </FormField>
 
       <FormField label={t("accounts.fields.status")}>
-        <View style={styles.statusButtons}>
-          <TouchableOpacity
-            style={[
-              styles.statusButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-              status === "account.status.active" && {
-                backgroundColor: colors.accent,
-                borderColor: colors.accent,
-              },
-            ]}
-            onPress={() => handleStatusChange("account.status.active")}
-          >
-            <Text
-              style={[
-                styles.statusButtonText,
-                { color: colors.textSecondary },
-                status === "account.status.active" && {
-                  color: colors.surface,
-                },
-              ]}
-            >
-              {t("status.active")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.statusButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-              status === "account.status.inactive" && {
-                backgroundColor: colors.accent,
-                borderColor: colors.accent,
-              },
-            ]}
-            onPress={() => handleStatusChange("account.status.inactive")}
-          >
-            <Text
-              style={[
-                styles.statusButtonText,
-                { color: colors.textSecondary },
-                status === "account.status.inactive" && {
-                  color: colors.surface,
-                },
-              ]}
-            >
-              {t("status.inactive")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SegmentedOptionGroup
+          options={statusOptions}
+          value={status}
+          onChange={handleStatusChange}
+        />
       </FormField>
 
       <AddressFields
@@ -501,21 +460,6 @@ const styles = StyleSheet.create({
   },
   pickerItemText: {
     fontSize: 16,
-  },
-  statusButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  statusButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  statusButtonText: {
-    fontSize: 15,
-    fontWeight: "500",
   },
   saveButton: {
     padding: 16,

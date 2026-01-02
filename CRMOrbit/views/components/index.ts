@@ -21,4 +21,5 @@ export { AddressFields } from "./AddressFields";
 export { FormScreenLayout } from "./FormScreenLayout";
 export { FormField } from "./FormField";
 export { TextField } from "./TextField";
+export { SegmentedOptionGroup } from "./SegmentedOptionGroup";
 export { ContactCardRow } from "./ContactCardRow";
