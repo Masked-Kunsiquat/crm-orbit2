@@ -224,7 +224,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         style={[styles.saveButton, { backgroundColor: colors.accent }]}
         onPress={handleSave}
       >
-        <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
           {organizationId
             ? t("organizations.form.updateButton")
             : t("organizations.form.createButton")}

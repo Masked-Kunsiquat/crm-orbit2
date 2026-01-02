@@ -42,7 +42,7 @@ export const SegmentedOptionGroup = <T extends string>({
               style={[
                 styles.optionText,
                 { color: colors.textSecondary },
-                isSelected && { color: colors.surface },
+                isSelected && { color: colors.onAccent },
               ]}
             >
               {option.label}

@@ -353,7 +353,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         onPress={handleSave}
         disabled={organizations.length === 0}
       >
-        <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
           {accountId
             ? t("accounts.form.updateButton")
             : t("accounts.form.createButton")}

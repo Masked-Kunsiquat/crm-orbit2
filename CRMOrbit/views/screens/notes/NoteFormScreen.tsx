@@ -111,7 +111,7 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
         style={[styles.saveButton, { backgroundColor: colors.accent }]}
         onPress={handleSave}
       >
-        <Text style={styles.saveButtonText}>
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
           {noteId ? t("notes.form.updateButton") : t("notes.form.createButton")}
         </Text>
       </TouchableOpacity>
@@ -130,7 +130,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

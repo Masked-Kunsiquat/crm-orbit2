@@ -13,6 +13,7 @@ export type ColorScheme = {
   // Accent/Primary
   accent: string;
   accentMuted: string;
+  onAccent: string;
 
   // Borders
   border: string;
@@ -56,6 +57,7 @@ export const lightColors: ColorScheme = {
   // Accent/Primary
   accent: "#1f5eff",
   accentMuted: "#9aa7cf",
+  onAccent: "#ffffff",
 
   // Borders
   border: "#e0e0e0",
@@ -99,6 +101,7 @@ export const darkColors: ColorScheme = {
   // Accent/Primary
   accent: "#4d7dff",
   accentMuted: "#6b8bc3",
+  onAccent: "#ffffff",
 
   // Borders
   border: "#3a3a3a",

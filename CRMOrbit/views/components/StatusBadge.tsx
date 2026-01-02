@@ -27,7 +27,12 @@ export const StatusBadge = ({
         },
       ]}
     >
-      <Text style={styles.text}>
+      <Text
+        style={[
+          styles.text,
+          { color: isActive ? colors.success : colors.error },
+        ]}
+      >
         {isActive ? t(activeLabelKey) : t(inactiveLabelKey)}
       </Text>
     </View>

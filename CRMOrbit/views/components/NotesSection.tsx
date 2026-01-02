@@ -47,14 +47,14 @@ export const NotesSection = ({
           {t("notes.title")} ({notes.length})
         </Text>
         <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colors.accentMuted }]}
+          style={[styles.addButton, { backgroundColor: colors.accent }]}
           onPress={() =>
             navigation.navigate("NoteForm", {
               entityToLink: { entityId, entityType },
             })
           }
         >
-          <Text style={[styles.addButtonText, { color: colors.accent }]}>
+          <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
             {t("notes.addButton")}
           </Text>
         </TouchableOpacity>

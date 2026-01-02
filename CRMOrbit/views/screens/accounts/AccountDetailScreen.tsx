@@ -137,7 +137,17 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               },
             ]}
           >
-            <Text style={styles.statusText}>
+            <Text
+              style={[
+                styles.statusText,
+                {
+                  color:
+                    account.status === "account.status.active"
+                      ? colors.success
+                      : colors.error,
+                },
+              ]}
+            >
               {account.status === "account.status.active"
                 ? t("status.active")
                 : t("status.inactive")}
@@ -227,7 +237,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 {
                   color:
                     contactFilter === "all"
-                      ? colors.surface
+                      ? colors.onAccent
                       : colors.textSecondary,
                 },
               ]}
@@ -254,7 +264,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 {
                   color:
                     contactFilter === "contact.type.internal"
-                      ? colors.surface
+                      ? colors.onAccent
                       : colors.textSecondary,
                 },
               ]}
@@ -286,7 +296,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 {
                   color:
                     contactFilter === "contact.type.external"
-                      ? colors.surface
+                      ? colors.onAccent
                       : colors.textSecondary,
                 },
               ]}

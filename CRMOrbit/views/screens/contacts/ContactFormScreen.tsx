@@ -36,36 +36,51 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   const lastContactIdRef = useRef<string | undefined>(undefined);
 
   const emailLabelOptions = [
-    { value: "contact.method.label.work", label: t("contact.method.label.work") },
+    {
+      value: "contact.method.label.work",
+      label: t("contact.method.label.work"),
+    },
     {
       value: "contact.method.label.personal",
       label: t("contact.method.label.personal"),
     },
-    { value: "contact.method.label.other", label: t("contact.method.label.other") },
+    {
+      value: "contact.method.label.other",
+      label: t("contact.method.label.other"),
+    },
   ] as const;
   const phoneLabelOptions = [
-    { value: "contact.method.label.work", label: t("contact.method.label.work") },
+    {
+      value: "contact.method.label.work",
+      label: t("contact.method.label.work"),
+    },
     {
       value: "contact.method.label.personal",
       label: t("contact.method.label.personal"),
     },
-    { value: "contact.method.label.mobile", label: t("contact.method.label.mobile") },
-    { value: "contact.method.label.other", label: t("contact.method.label.other") },
+    {
+      value: "contact.method.label.mobile",
+      label: t("contact.method.label.mobile"),
+    },
+    {
+      value: "contact.method.label.other",
+      label: t("contact.method.label.other"),
+    },
   ] as const;
-
-  const ensureMethodIds = (methods: ContactMethod[]) =>
-    methods.map((method) => ({
-      ...method,
-      id: method.id || nextId("contact-method"),
-    }));
-  const formatPhoneMethods = (methods: ContactMethod[]) =>
-    ensureMethodIds(methods).map((method) => ({
-      ...method,
-      value: formatPhoneNumber(method.value),
-    }));
 
   // Only populate form fields on initial mount or when switching to a different contact
   useEffect(() => {
+    const ensureMethodIds = (methods: ContactMethod[]) =>
+      methods.map((method) => ({
+        ...method,
+        id: method.id || nextId("contact-method"),
+      }));
+    const formatPhoneMethods = (methods: ContactMethod[]) =>
+      ensureMethodIds(methods).map((method) => ({
+        ...method,
+        value: formatPhoneNumber(method.value),
+      }));
+
     const currentContactId = contactId ?? undefined;
     const isContactChanged = currentContactId !== lastContactIdRef.current;
 
@@ -313,7 +328,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         style={[styles.saveButton, { backgroundColor: colors.accent }]}
         onPress={handleSave}
       >
-        <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
           {contactId
             ? t("contacts.form.updateButton")
             : t("contacts.form.createButton")}

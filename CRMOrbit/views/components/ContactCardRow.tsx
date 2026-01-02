@@ -63,10 +63,7 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
           ]}
         >
           <Text
-            style={[
-              styles.contactTypeText,
-              { color: contactType.textColor },
-            ]}
+            style={[styles.contactTypeText, { color: contactType.textColor }]}
           >
             {contactType.label}
           </Text>

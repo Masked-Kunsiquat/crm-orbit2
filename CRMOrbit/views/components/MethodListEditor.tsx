@@ -47,7 +47,7 @@ export const MethodListEditor = ({
           style={[styles.addButton, { backgroundColor: colors.accent }]}
           onPress={onAdd}
         >
-          <Text style={[styles.addButtonText, { color: colors.surface }]}>
+          <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
             {addLabel}
           </Text>
         </TouchableOpacity>

@@ -21,7 +21,7 @@ export const FloatingActionButton = ({
       onPress={onPress}
       style={[styles.fab, { backgroundColor: buttonColor }]}
     >
-      <Text style={[styles.fabText, { color: colors.surface }]}>{label}</Text>
+      <Text style={[styles.fabText, { color: colors.onAccent }]}>{label}</Text>
     </Pressable>
   );
 };

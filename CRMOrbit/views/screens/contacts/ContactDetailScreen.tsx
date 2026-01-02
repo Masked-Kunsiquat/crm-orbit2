@@ -411,7 +411,7 @@ const createStyles = (colors: ColorScheme) =>
     },
     linkButtonText: {
       fontSize: 14,
-      color: colors.surface,
+      color: colors.onAccent,
       fontWeight: "600",
     },
     accountItem: {
