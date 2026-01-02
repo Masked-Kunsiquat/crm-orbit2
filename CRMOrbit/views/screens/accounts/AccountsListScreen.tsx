@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { useLayoutEffect } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
@@ -7,7 +7,7 @@ import type { Account } from "../../../domains/account";
 import { t } from "@i18n/index";
 import {
   HeaderMenu,
-  ListCard,
+  ListRow,
   ListScreenLayout,
   StatusBadge,
 } from "../../components";
@@ -68,23 +68,20 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         data={filteredAccounts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ListCard onPress={() => handlePress(item)} variant="outlined">
-            <View style={styles.cardHeader}>
-              <Text style={[styles.name, { color: colors.textPrimary }]}>
-                {item.name}
-              </Text>
+          <ListRow
+            onPress={() => handlePress(item)}
+            title={item.name}
+            titleAccessory={
               <StatusBadge
                 isActive={item.status === "account.status.active"}
                 activeLabelKey="status.active"
                 inactiveLabelKey="status.inactive"
               />
-            </View>
-            <Text
-              style={[styles.organization, { color: colors.textSecondary }]}
-            >
-              {getOrganizationName(item.organizationId)}
-            </Text>
-          </ListCard>
+            }
+            description={getOrganizationName(item.organizationId)}
+            titleSpacing={8}
+            variant="outlined"
+          />
         )}
         emptyTitle={t("accounts.emptyTitle")}
         emptyHint={emptyHint}
@@ -113,20 +110,6 @@ export const AccountsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "600",
-    flex: 1,
-  },
-  organization: {
-    fontSize: 14,
-  },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,

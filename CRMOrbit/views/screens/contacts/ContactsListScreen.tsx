@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { useLayoutEffect, useMemo } from "react";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
@@ -7,8 +7,7 @@ import type { Contact } from "@domains/contact";
 import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
 import {
   HeaderMenu,
-  ListCard,
-  ListCardChevron,
+  ListRow,
   ListScreenLayout,
 } from "@views/components";
 import { useHeaderMenu, useTheme } from "@views/hooks";
@@ -48,29 +47,20 @@ export const ContactsListScreen = ({ navigation }: Props) => {
     });
   }, [navigation, headerRight]);
 
-  const renderItem = ({ item }: { item: Contact }) => (
-    <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
-      <View style={styles.itemContent}>
-        <Text style={[styles.itemName, { color: colors.textPrimary }]}>
-          {getContactDisplayName(item)}
-        </Text>
-        {item.title ? (
-          <Text style={[styles.itemTitle, { color: colors.textSecondary }]}>
-            {item.title}
-          </Text>
-        ) : null}
-        {getPrimaryEmail(item) ? (
-          <Text style={[styles.itemEmail, { color: colors.textSecondary }]}>
-            {getPrimaryEmail(item)}
-          </Text>
-        ) : null}
-        <Text style={[styles.itemType, { color: colors.textMuted }]}>
-          {t(item.type)}
-        </Text>
-      </View>
-      <ListCardChevron />
-    </ListCard>
-  );
+  const renderItem = ({ item }: { item: Contact }) => {
+    const primaryEmail = getPrimaryEmail(item);
+    return (
+      <ListRow
+        onPress={() => handlePress(item)}
+        title={getContactDisplayName(item)}
+        subtitle={item.title}
+        subtitleItalic={Boolean(item.title)}
+        description={primaryEmail}
+        footnote={t(item.type)}
+        showChevron
+      />
+    );
+  };
 
   return (
     <>
@@ -102,31 +92,6 @@ export const ContactsListScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  itemContent: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  itemTitle: {
-    fontSize: 13,
-    marginBottom: 2,
-    fontStyle: "italic",
-  },
-  itemEmail: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  itemType: {
-    fontSize: 12,
-  },
   menuItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
