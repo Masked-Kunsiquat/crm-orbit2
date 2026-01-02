@@ -78,6 +78,35 @@ const areLinkedEntitiesEqual = (
   return true;
 };
 
+const areTimelineItemsEqual = (
+  left: TimelineItem[],
+  right: TimelineItem[],
+): boolean => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    const leftItem = left[i];
+    const rightItem = right[i];
+    if (
+      leftItem.kind !== rightItem.kind ||
+      leftItem.timestamp !== rightItem.timestamp
+    ) {
+      return false;
+    }
+    if (leftItem.kind === "event" && rightItem.kind === "event") {
+      if (leftItem.event.id !== rightItem.event.id) return false;
+    } else if (leftItem.kind === "note" && rightItem.kind === "note") {
+      if (leftItem.note.id !== rightItem.note.id) return false;
+    } else if (
+      leftItem.kind === "interaction" &&
+      rightItem.kind === "interaction"
+    ) {
+      if (leftItem.interaction.id !== rightItem.interaction.id) return false;
+    }
+  }
+  return true;
+};
+
 /**
  * Internal API for trusted hooks (useDispatch, App initialization, etc.)
  * This allows mutation through the proper event-sourcing flow only.
@@ -155,9 +184,22 @@ export const useTimeline = (
   entityType: NoteLinkEntityType,
   entityId: EntityId,
 ): TimelineItem[] => {
-  const selector = (state: CrmStoreState) =>
-    buildTimelineForEntity(state.doc, state.events, entityType, entityId);
-  return crmStore(useShallow(selector));
+  const cacheRef = useRef<TimelineItem[] | null>(null);
+  const selector = (state: CrmStoreState) => {
+    const next = buildTimelineForEntity(
+      state.doc,
+      state.events,
+      entityType,
+      entityId,
+    );
+    const cached = cacheRef.current;
+    if (cached && areTimelineItemsEqual(cached, next)) {
+      return cached;
+    }
+    cacheRef.current = next;
+    return next;
+  };
+  return crmStore(selector);
 };
 
 export const useOrganization = (id: EntityId): Organization | undefined =>
