@@ -38,11 +38,8 @@ export const TimelineSection = ({
 
     const payload = item.event.payload as Record<string, unknown>;
 
-    // For contact method events (contact.method.added, contact.method.updated)
-    if (
-      item.event.type === "contact.method.added" ||
-      item.event.type === "contact.method.updated"
-    ) {
+    // For contact method added events
+    if (item.event.type === "contact.method.added") {
       const method = payload?.method as Record<string, unknown> | undefined;
       if (method && typeof method.value === "string") {
         const value = method.value;
@@ -52,6 +49,31 @@ export const TimelineSection = ({
           label = t(method.label);
         }
         return label ? `${value} (${label})` : value;
+      }
+    }
+
+    // For contact method updated events - show before/after if available
+    if (item.event.type === "contact.method.updated") {
+      const method = payload?.method as Record<string, unknown> | undefined;
+      const previousMethod = payload?.previousMethod as
+        | Record<string, unknown>
+        | undefined;
+
+      if (method && typeof method.value === "string") {
+        const newValue = method.value;
+        let label = "";
+        if (typeof method.label === "string") {
+          label = t(method.label);
+        }
+
+        // If we have previous method, show before -> after
+        if (previousMethod && typeof previousMethod.value === "string") {
+          const oldValue = previousMethod.value;
+          return `${oldValue} → ${newValue}`;
+        }
+
+        // Otherwise just show the new value
+        return label ? `${newValue} (${label})` : newValue;
       }
     }
 
@@ -91,9 +113,10 @@ export const TimelineSection = ({
           return getContactName(contact);
         }
       }
-      // Fallback to payload data for created events
+      // Fallback to payload data for created/updated events
       if (
-        item.event.type === "contact.created" &&
+        (item.event.type === "contact.created" ||
+          item.event.type === "contact.updated") &&
         (typeof payload?.firstName === "string" ||
           typeof payload?.lastName === "string")
       ) {
@@ -104,7 +127,47 @@ export const TimelineSection = ({
       }
     }
 
-    // Extract name from payload if available (simple events like account/org)
+    // For account events, look up the account name
+    if (
+      item.event.type === "account.created" ||
+      item.event.type === "account.updated" ||
+      item.event.type === "account.deleted" ||
+      item.event.type === "account.status.updated"
+    ) {
+      const accountId = item.event.entityId;
+      if (accountId) {
+        const account = doc.accounts[accountId];
+        if (account) {
+          return account.name || t("common.unknown");
+        }
+      }
+      // Fallback to payload data
+      if (typeof payload?.name === "string") {
+        return payload.name;
+      }
+    }
+
+    // For organization events, look up the organization name
+    if (
+      item.event.type === "organization.created" ||
+      item.event.type === "organization.updated" ||
+      item.event.type === "organization.deleted" ||
+      item.event.type === "organization.status.updated"
+    ) {
+      const orgId = item.event.entityId;
+      if (orgId) {
+        const org = doc.organizations[orgId];
+        if (org) {
+          return org.name || t("common.unknown");
+        }
+      }
+      // Fallback to payload data
+      if (typeof payload?.name === "string") {
+        return payload.name;
+      }
+    }
+
+    // Extract name from payload if available (fallback)
     if (typeof payload?.name === "string") {
       return payload.name;
     }
@@ -123,7 +186,7 @@ export const TimelineSection = ({
           key={item.event.id}
           style={[
             styles.timelineItem,
-            { borderLeftColor: colors.borderMedium },
+            { borderLeftColor: colors.border },
           ]}
         >
           <View style={styles.timelineContent}>
@@ -149,7 +212,7 @@ export const TimelineSection = ({
           key={item.note.id}
           style={[
             styles.timelineItem,
-            { borderLeftColor: colors.borderMedium },
+            { borderLeftColor: colors.border },
           ]}
         >
           <View style={styles.timelineContent}>
@@ -178,7 +241,7 @@ export const TimelineSection = ({
           key={item.interaction.id}
           style={[
             styles.timelineItem,
-            { borderLeftColor: colors.borderMedium },
+            { borderLeftColor: colors.border },
           ]}
         >
           <View style={styles.timelineContent}>

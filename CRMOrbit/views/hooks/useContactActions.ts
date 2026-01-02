@@ -71,6 +71,7 @@ export const useContactActions = (deviceId: string) => {
       methodType: "emails" | "phones",
       index: number,
       method: ContactMethod,
+      previousMethod?: ContactMethod,
     ): DispatchResult => {
       const event = buildEvent({
         type: "contact.method.updated",
@@ -79,6 +80,7 @@ export const useContactActions = (deviceId: string) => {
           methodType,
           index,
           method,
+          ...(previousMethod && { previousMethod }),
         },
         deviceId,
       });
