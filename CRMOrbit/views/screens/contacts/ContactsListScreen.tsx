@@ -4,7 +4,7 @@ import { useLayoutEffect, useMemo } from "react";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
-import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
+import { getContactDisplayName } from "@domains/contact.utils";
 import {
   ContactTypeBadge,
   HeaderMenu,
@@ -49,18 +49,15 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   }, [navigation, headerRight]);
 
   const renderItem = ({ item }: { item: Contact }) => {
-    const primaryEmail = getPrimaryEmail(item);
     return (
       <ListRow
         onPress={() => handlePress(item)}
         title={getContactDisplayName(item)}
         subtitle={item.title}
         subtitleItalic={Boolean(item.title)}
-        description={primaryEmail}
         titleAccessory={
           <ContactTypeBadge type={item.type} style={styles.typeBadge} />
         }
-        showChevron
       />
     );
   };
