@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName } from "@domains/contact.utils";
+import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { ContactTypeBadge } from "./ContactTypeBadge";
 import {
@@ -29,17 +31,22 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
   const primaryPhone = contact.methods.phones[0];
   const primaryEmail = contact.methods.emails[0];
 
+  const handleLinkingError = (error: unknown) => {
+    const message = error instanceof Error ? error.message : t("common.error");
+    Alert.alert(t("common.error"), message, t("common.ok"));
+  };
+
   const handlePhoneCall = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation();
     if (primaryPhone) {
-      void openPhoneDialer(primaryPhone.value);
+      void openPhoneDialer(primaryPhone.value).catch(handleLinkingError);
     }
   };
 
   const handleSMS = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation();
     if (primaryPhone) {
-      void openSMS(primaryPhone.value);
+      void openSMS(primaryPhone.value).catch(handleLinkingError);
     }
   };
 

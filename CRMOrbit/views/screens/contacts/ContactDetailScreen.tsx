@@ -197,6 +197,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     index: number,
   ) => method.id || `${method.label}-${method.status}-${method.value}-${index}`;
 
+  const handleLinkingError = (error: unknown) => {
+    const message = error instanceof Error ? error.message : t("common.error");
+    showAlert(t("common.error"), message, t("common.ok"));
+  };
+
   return (
     <DetailScreenLayout>
       <Section>
@@ -313,7 +318,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                           accessibilityRole="button"
                           accessibilityLabel={callLabel}
                           onPress={() => {
-                            void openPhoneDialer(phone.value);
+                            void openPhoneDialer(phone.value).catch(
+                              handleLinkingError,
+                            );
                           }}
                           style={styles.actionIcon}
                         >
@@ -327,7 +334,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                           accessibilityRole="button"
                           accessibilityLabel={smsLabel}
                           onPress={() => {
-                            void openSMS(phone.value);
+                            void openSMS(phone.value).catch(handleLinkingError);
                           }}
                           style={styles.actionIcon}
                         >

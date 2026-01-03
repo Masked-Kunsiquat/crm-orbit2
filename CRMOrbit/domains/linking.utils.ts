@@ -10,35 +10,12 @@ const normalizePhoneNumber = (phoneNumber: string): string => {
   return phoneNumber.replace(/[^\d+]/g, "");
 };
 
-const showLinkingAlert = (messageKey: string): void => {
-  Alert.alert(t("common.error"), t(messageKey), t("common.ok"));
+const createLinkingError = (messageKey: string): Error => {
+  return new Error(t(messageKey));
 };
 
-const openLinkingUrl = async (
-  url: string,
-  description: string,
-  alertMessages?: {
-    unsupportedMessageKey?: string;
-    failedMessageKey?: string;
-  },
-): Promise<void> => {
-  try {
-    const supported = await Linking.canOpenURL(url);
-    if (!supported) {
-      logger.warn(`${description} not available`, { url });
-      if (alertMessages?.unsupportedMessageKey) {
-        showLinkingAlert(alertMessages.unsupportedMessageKey);
-      }
-      return;
-    }
-
-    await Linking.openURL(url);
-  } catch (error) {
-    logger.error(`Failed to open ${description}`, { url }, error);
-    if (alertMessages?.failedMessageKey) {
-      showLinkingAlert(alertMessages.failedMessageKey);
-    }
-  }
+const showLinkingAlert = (messageKey: string): void => {
+  Alert.alert(t("common.error"), t(messageKey), t("common.ok"));
 };
 
 const openMapsUrl = async (
@@ -69,28 +46,70 @@ const openMapsUrl = async (
  * Opens the native phone dialer with the phone number pre-filled
  * @param phoneNumber - The phone number to dial (can include formatting characters)
  */
-export const openPhoneDialer = (phoneNumber: string): void => {
+export const openPhoneDialer = async (
+  phoneNumber: string,
+): Promise<void> => {
   const cleanNumber = normalizePhoneNumber(phoneNumber);
   if (!cleanNumber) {
     logger.warn("Phone number missing for dialer", { phoneNumber });
-    return;
+    throw createLinkingError("phone_number_invalid");
   }
 
-  void openLinkingUrl(`tel:${cleanNumber}`, "phone dialer");
+  const url = `tel:${cleanNumber}`;
+
+  let supported = false;
+  try {
+    supported = await Linking.canOpenURL(url);
+  } catch (error) {
+    logger.error("Failed to check phone dialer support", { url }, error);
+    throw createLinkingError("phone_dialer_failed");
+  }
+
+  if (!supported) {
+    logger.warn("Phone dialer not available", { url });
+    throw createLinkingError("phone_dialer_unavailable");
+  }
+
+  try {
+    await Linking.openURL(url);
+  } catch (error) {
+    logger.error("Failed to open phone dialer", { url }, error);
+    throw createLinkingError("phone_dialer_failed");
+  }
 };
 
 /**
  * Opens the native SMS app with the phone number pre-filled
  * @param phoneNumber - The phone number to send SMS to (can include formatting characters)
  */
-export const openSMS = (phoneNumber: string): void => {
+export const openSMS = async (phoneNumber: string): Promise<void> => {
   const cleanNumber = normalizePhoneNumber(phoneNumber);
   if (!cleanNumber) {
     logger.warn("Phone number missing for SMS", { phoneNumber });
-    return;
+    throw createLinkingError("phone_number_invalid");
   }
 
-  void openLinkingUrl(`sms:${cleanNumber}`, "SMS");
+  const url = `sms:${cleanNumber}`;
+
+  let supported = false;
+  try {
+    supported = await Linking.canOpenURL(url);
+  } catch (error) {
+    logger.error("Failed to check SMS support", { url }, error);
+    throw createLinkingError("sms_open_failed");
+  }
+
+  if (!supported) {
+    logger.warn("Messaging app not available", { url });
+    throw createLinkingError("sms_app_unavailable");
+  }
+
+  try {
+    await Linking.openURL(url);
+  } catch (error) {
+    logger.error("Failed to open SMS app", { url }, error);
+    throw createLinkingError("sms_open_failed");
+  }
 };
 
 /**
