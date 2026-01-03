@@ -252,12 +252,19 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       <View style={styles.methodValueRow}>
                         <Text style={styles.methodValue}>{email.value}</Text>
                         <TouchableOpacity
-                          onPress={() => openEmailComposer(email.value)}
+                          accessibilityRole="button"
+                          accessibilityLabel={t("compose_email", {
+                            email: email.value,
+                          })}
+                          accessible={true}
+                          onPress={() => {
+                            void openEmailComposer(email.value);
+                          }}
                           style={styles.actionIcon}
                         >
                           <Ionicons
                             name="mail-outline"
-                            size={20}
+                            size={22}
                             color={colors.accent}
                           />
                         </TouchableOpacity>

@@ -1,4 +1,5 @@
-import { Linking } from "react-native";
+import { Alert, Linking } from "react-native";
+import { t } from "@i18n/index";
 import { createLogger } from "../utils/logger";
 
 const logger = createLogger("Linking");
@@ -60,8 +61,24 @@ export const openSMS = async (phoneNumber: string): Promise<boolean> => {
  * Opens the default email app with the email address pre-filled
  * @param email - The email address to send to
  */
-export const openEmailComposer = (email: string): void => {
-  Linking.openURL(`mailto:${email}`);
+export const openEmailComposer = async (email: string): Promise<boolean> => {
+  const url = `mailto:${email}`;
+
+  try {
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      logger.warn("No email app available", { email });
+      Alert.alert(t("common.error"), t("no_email_app"), t("common.ok"));
+      return false;
+    }
+
+    await Linking.openURL(url);
+    return true;
+  } catch (error) {
+    logger.error("Failed to open email composer", { email }, error);
+    Alert.alert(t("common.error"), t("email_send_failed"), t("common.ok"));
+    return false;
+  }
 };
 
 /**

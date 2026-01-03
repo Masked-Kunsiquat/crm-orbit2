@@ -46,7 +46,7 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
   const handleEmail = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation();
     if (primaryEmail) {
-      openEmailComposer(primaryEmail.value);
+      void openEmailComposer(primaryEmail.value);
     }
   };
 
