@@ -4,11 +4,14 @@ import { applyEvents, buildEvent } from "@events/dispatcher";
 import type { Event } from "@events/event";
 import type { EventType } from "@events/eventTypes";
 import { __internal_getCrmStore } from "@views/store/store";
+import { createLogger } from "@utils/logger";
 import {
   getDatabase,
   createPersistenceDb,
 } from "@domains/persistence/database";
 import { appendEvents } from "@domains/persistence/store";
+
+const logger = createLogger("Dispatch");
 
 type DispatchState = {
   isProcessing: boolean;
@@ -58,17 +61,20 @@ export const useDispatch = () => {
         try {
           const db = getDatabase();
           const persistenceDb = createPersistenceDb(db);
-          console.log(
-            "Persisting events to database:",
-            newEvents.map((e) => ({ type: e.type, entityId: e.entityId })),
+          logger.info(
+            "Persisting events to database",
+            newEvents.map((event) => ({
+              type: event.type,
+              entityId: event.entityId,
+            })),
           );
           await appendEvents(persistenceDb, newEvents);
-          console.log("Successfully persisted events to database");
+          logger.info("Successfully persisted events to database");
         } catch (persistError) {
-          console.error("Failed to persist events:", persistError);
-          console.error("Event details:", newEvents);
+          logger.error("Failed to persist events", persistError);
+          logger.error("Event details", newEvents);
           // Optionally alert user of persistence failure
-          console.warn(
+          logger.warn(
             "CRITICAL: Events were applied to memory but NOT saved to database!",
           );
         }

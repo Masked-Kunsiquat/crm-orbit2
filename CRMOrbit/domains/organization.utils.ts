@@ -4,16 +4,25 @@ import type { Organization } from "./organization";
  * Extract domain from a website URL
  */
 export const extractDomain = (website: string): string | null => {
-  try {
-    // Add protocol if missing
-    const urlString = website.startsWith("http")
-      ? website
-      : `https://${website}`;
-    const url = new URL(urlString);
-    return url.hostname.replace(/^www\./, "");
-  } catch {
+  const trimmed = website.trim();
+  if (!trimmed) {
     return null;
   }
+
+  // Add protocol if missing
+  const urlString = trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+  const match = urlString.match(/^[a-z][a-z0-9+.-]*:\/\/([^/?#]+)/i);
+  if (!match) {
+    return null;
+  }
+
+  const host = match[1] ?? "";
+  const hostname = host.split(":")[0];
+  if (!hostname) {
+    return null;
+  }
+
+  return hostname.replace(/^www\./, "");
 };
 
 /**
