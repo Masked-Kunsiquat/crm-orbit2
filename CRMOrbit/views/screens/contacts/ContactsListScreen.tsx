@@ -25,7 +25,7 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   const [sortBy, setSortBy] = useState<SortBy>("firstName");
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
-    accessibilityLabel: "Contact list options",
+    accessibilityLabel: t("contacts.listOptions"),
   });
 
   const sortedContacts = useMemo(() => {

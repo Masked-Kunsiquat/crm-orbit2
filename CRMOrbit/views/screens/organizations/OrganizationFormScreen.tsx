@@ -123,7 +123,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           console.error("Failed to persist image:", error);
           showAlert(
             t("common.error"),
-            "Failed to save image. Please try again.",
+            t("organizations.form.saveImageFailed"),
             t("common.ok"),
           );
         } finally {

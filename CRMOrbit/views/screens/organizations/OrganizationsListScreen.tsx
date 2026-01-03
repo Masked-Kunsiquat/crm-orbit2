@@ -23,7 +23,7 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
   const flatListRef = useRef<FlatList<Organization>>(null);
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
-    accessibilityLabel: "Organization list options",
+    accessibilityLabel: t("organizations.listOptions"),
   });
 
   const {
