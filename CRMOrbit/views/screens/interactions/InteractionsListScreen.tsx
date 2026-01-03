@@ -42,7 +42,7 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
         return (
           <Ionicons name="mail-outline" size={20} color={colors.accent} />
         );
-      case "interaction.type.phone":
+      case "interaction.type.call":
         return (
           <Ionicons name="call-outline" size={20} color={colors.accent} />
         );

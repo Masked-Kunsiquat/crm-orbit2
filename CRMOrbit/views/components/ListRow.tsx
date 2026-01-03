@@ -11,6 +11,7 @@ type ListRowProps = {
   variant?: "elevated" | "outlined";
   showChevron?: boolean;
   titleAccessory?: ReactNode;
+  children?: ReactNode;
   subtitle?: string;
   subtitleItalic?: boolean;
   titleSpacing?: number;
@@ -27,6 +28,7 @@ export const ListRow = ({
   variant = "elevated",
   showChevron = false,
   titleAccessory,
+  children,
   subtitle,
   subtitleItalic = false,
   titleSpacing,
@@ -86,19 +88,24 @@ export const ListRow = ({
               {description}
             </Text>
           ) : null}
-          {footnote ? (
-            <Text
-              style={[styles.footnote, { color: colors.textMuted }]}
-              numberOfLines={footnoteNumberOfLines}
-            >
-              {footnote}
-            </Text>
-          ) : null}
-        </View>
-        {showChevron ? <ListCardChevron /> : null}
+        {footnote ? (
+          <Text
+            style={[styles.footnote, { color: colors.textMuted }]}
+            numberOfLines={footnoteNumberOfLines}
+          >
+            {footnote}
+          </Text>
+        ) : null}
       </View>
-    </ListCard>
-  );
+      {children || showChevron ? (
+        <View style={styles.trailing}>
+          {children}
+          {showChevron ? <ListCardChevron /> : null}
+        </View>
+      ) : null}
+    </View>
+  </ListCard>
+);
 };
 
 const styles = StyleSheet.create({
@@ -122,6 +129,10 @@ const styles = StyleSheet.create({
   },
   titleAccessory: {
     marginLeft: 8,
+  },
+  trailing: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   subtitle: {
     fontSize: 13,
