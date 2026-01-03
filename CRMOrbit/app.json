@@ -4,11 +4,11 @@
     "slug": "CRMOrbit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/crmorbit-fore.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icons/crmorbit-fore.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
