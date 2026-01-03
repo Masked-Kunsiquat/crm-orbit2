@@ -24,5 +24,6 @@ export { FormScreenLayout } from "./FormScreenLayout";
 export { FormField } from "./FormField";
 export { TextField } from "./TextField";
 export { SegmentedOptionGroup } from "./SegmentedOptionGroup";
+export { DetailTabs } from "./DetailTabs";
 export { MethodListEditor } from "./MethodListEditor";
 export { ContactCardRow } from "./ContactCardRow";
