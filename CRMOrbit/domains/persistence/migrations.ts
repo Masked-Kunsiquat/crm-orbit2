@@ -12,6 +12,10 @@ export const MIGRATIONS: string[] = [
     doc text not null,
     timestamp text not null
   );`,
+  `create table if not exists app_metadata (
+    key text primary key,
+    value text not null
+  );`,
 ];
 
 export type MigrationDb = {

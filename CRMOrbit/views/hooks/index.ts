@@ -4,7 +4,7 @@ export { useAccountActions } from "./useAccountActions";
 export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
 export { useEntityLinkActions } from "./useEntityLinkActions";
-export { useDeviceId } from "./useDeviceId";
+export { getDeviceIdFromEnv, setDeviceId, useDeviceId } from "./useDeviceId";
 export { useInteractionActions } from "./useInteractionActions";
 export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";

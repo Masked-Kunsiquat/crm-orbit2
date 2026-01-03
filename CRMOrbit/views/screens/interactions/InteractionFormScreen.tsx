@@ -1,6 +1,16 @@
-import { useState, useEffect } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { useCallback, useState, useEffect, useMemo } from "react";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
 import { useInteraction } from "../../store/store";
 import { useDeviceId, useInteractionActions } from "../../hooks";
@@ -40,6 +50,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const [type, setType] = useState<InteractionType>("interaction.type.call");
   const [summary, setSummary] = useState("");
   const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString());
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (interaction) {
@@ -51,6 +62,70 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       setOccurredAt(new Date().toISOString());
     }
   }, [interaction]);
+
+  const occurredAtLabel = useMemo(() => {
+    const date = new Date(occurredAt);
+    if (Number.isNaN(date.getTime())) {
+      return t("common.unknown");
+    }
+    return date.toLocaleString();
+  }, [occurredAt]);
+
+  const getResolvedDate = useCallback(() => {
+    const date = new Date(occurredAt);
+    if (Number.isNaN(date.getTime())) {
+      return new Date();
+    }
+    return date;
+  }, [occurredAt]);
+
+  const handlePickerChange = (
+    event: DateTimePickerEvent,
+    date?: Date,
+  ) => {
+    if (event.type === "dismissed") {
+      return;
+    }
+
+    if (date) {
+      setOccurredAt(date.toISOString());
+    }
+  };
+
+  const openAndroidPicker = useCallback(() => {
+    const currentDate = getResolvedDate();
+    DateTimePickerAndroid.open({
+      mode: "date",
+      value: currentDate,
+      onChange: (event, date) => {
+        if (event.type !== "set" || !date) {
+          return;
+        }
+
+        const nextDate = new Date(currentDate);
+        nextDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+
+        DateTimePickerAndroid.open({
+          mode: "time",
+          value: nextDate,
+          onChange: (timeEvent, time) => {
+            if (timeEvent.type !== "set" || !time) {
+              return;
+            }
+
+            const finalDate = new Date(nextDate);
+            finalDate.setHours(
+              time.getHours(),
+              time.getMinutes(),
+              time.getSeconds(),
+              time.getMilliseconds(),
+            );
+            setOccurredAt(finalDate.toISOString());
+          },
+        });
+      },
+    });
+  }, [getResolvedDate]);
 
   const handleSave = () => {
     if (!summary.trim()) {
@@ -109,15 +184,35 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
         </FormField>
 
         <FormField label={t("interactions.form.occurredAtLabel")}>
-          <DateTimePicker
-            value={new Date(occurredAt)}
-            mode="datetime"
-            onChange={(_, date) => {
-              if (date) {
-                setOccurredAt(date.toISOString());
-              }
-            }}
-          />
+          <View style={styles.dateRow}>
+            <TouchableOpacity
+              style={[
+                styles.dateButton,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.surfaceElevated,
+                },
+              ]}
+              onPress={() => {
+                if (Platform.OS === "android") {
+                  openAndroidPicker();
+                } else {
+                  setShowPicker((prev) => !prev);
+                }
+              }}
+            >
+              <Text style={[styles.dateText, { color: colors.textPrimary }]}>
+                {occurredAtLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {Platform.OS === "ios" && showPicker ? (
+            <DateTimePicker
+              value={getResolvedDate()}
+              mode="datetime"
+              onChange={handlePickerChange}
+            />
+          ) : null}
         </FormField>
 
         <FormField label={t("interactions.form.summaryLabel")}>
@@ -151,6 +246,19 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  dateRow: {
+    marginTop: 8,
+  },
+  dateButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  dateText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   summaryInput: {
     minHeight: 100,

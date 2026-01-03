@@ -5,9 +5,7 @@ import { nextId } from "@domains/shared/idGenerator";
 let cachedDeviceId: string | null = null;
 let warnedFallback = false;
 
-const resolveDeviceId = (): string => {
-  if (cachedDeviceId) return cachedDeviceId;
-
+const getEnvDeviceId = (): string | null => {
   const envDeviceId = (
     globalThis as {
       process?: { env?: Record<string, string | undefined> };
@@ -15,8 +13,15 @@ const resolveDeviceId = (): string => {
   ).process?.env?.EXPO_PUBLIC_DEVICE_ID;
 
   const trimmed = typeof envDeviceId === "string" ? envDeviceId.trim() : "";
-  if (trimmed) {
-    cachedDeviceId = trimmed;
+  return trimmed || null;
+};
+
+const resolveDeviceId = (): string => {
+  if (cachedDeviceId) return cachedDeviceId;
+
+  const envId = getEnvDeviceId();
+  if (envId) {
+    cachedDeviceId = envId;
     return cachedDeviceId;
   }
 
@@ -31,5 +36,11 @@ const resolveDeviceId = (): string => {
 
   return cachedDeviceId;
 };
+
+export const setDeviceId = (deviceId: string): void => {
+  cachedDeviceId = deviceId.trim() || deviceId;
+};
+
+export const getDeviceIdFromEnv = (): string | null => getEnvDeviceId();
 
 export const useDeviceId = (): string => useMemo(resolveDeviceId, []);

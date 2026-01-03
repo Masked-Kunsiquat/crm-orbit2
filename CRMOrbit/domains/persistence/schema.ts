@@ -14,3 +14,8 @@ export const automergeSnapshots = sqliteTable("automerge_snapshots", {
   doc: text("doc").notNull(),
   timestamp: text("timestamp").notNull(),
 });
+
+export const appMetadata = sqliteTable("app_metadata", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
