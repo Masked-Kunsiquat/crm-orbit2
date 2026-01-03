@@ -53,6 +53,7 @@ const applyInteractionLogged = (
 };
 
 type InteractionUpdatedPayload = {
+  id?: EntityId;
   type: InteractionType;
   occurredAt: Timestamp;
   summary: string;

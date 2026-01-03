@@ -30,30 +30,32 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     }
   ).relations?.noteLinks;
 
-  if (doc.relations?.entityLinks) {
-    return doc;
-  }
+  const existingLinks =
+    doc.relations?.entityLinks ??
+    ({} as AutomergeDoc["relations"]["entityLinks"]);
 
-  const migratedLinks = legacyLinks
+  const mergedLinks = legacyLinks
     ? Object.entries(legacyLinks).reduce(
         (acc, [id, link]) => {
-          acc[id] = {
-            linkType: "note",
-            noteId: link.noteId,
-            entityType: link.entityType,
-            entityId: link.entityId,
-          };
+          if (!acc[id]) {
+            acc[id] = {
+              linkType: "note",
+              noteId: link.noteId,
+              entityType: link.entityType,
+              entityId: link.entityId,
+            };
+          }
           return acc;
         },
-        {} as AutomergeDoc["relations"]["entityLinks"],
+        { ...existingLinks },
       )
-    : {};
+    : existingLinks;
 
   return {
     ...doc,
     relations: {
       ...doc.relations,
-      entityLinks: migratedLinks,
+      entityLinks: mergedLinks,
     },
   };
 };

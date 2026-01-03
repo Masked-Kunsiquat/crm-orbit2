@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import type { Interaction, InteractionType } from "../../domains/interaction";
+import type { InteractionType } from "../../domains/interaction";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
@@ -40,7 +40,6 @@ export const useInteractionActions = (deviceId: string) => {
       type: InteractionType,
       summary: string,
       occurredAt: string,
-      _previousInteraction?: Interaction, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
         type: "interaction.updated",

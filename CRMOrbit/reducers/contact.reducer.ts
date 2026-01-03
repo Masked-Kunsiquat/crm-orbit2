@@ -74,8 +74,7 @@ const applyContactCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const legacyName =
     typeof payload.name === "string" ? payload.name.trim() : "";
   const legacySplit = legacyName ? splitLegacyName(legacyName) : undefined;
-  const resolvedFirstName =
-    payload.firstName ?? legacySplit?.firstName ?? "";
+  const resolvedFirstName = payload.firstName ?? legacySplit?.firstName ?? "";
   const resolvedLastName = payload.lastName ?? legacySplit?.lastName ?? "";
   const resolvedName =
     legacyName || `${resolvedFirstName} ${resolvedLastName}`.trim();
@@ -200,7 +199,8 @@ const applyContactUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     payload.firstName ?? legacySplit?.firstName ?? existing.firstName;
   const nextLastName =
     payload.lastName ?? legacySplit?.lastName ?? existing.lastName;
-  const nextLegacyName = legacyName || `${nextFirstName} ${nextLastName}`.trim();
+  const nextLegacyName =
+    legacyName || `${nextFirstName} ${nextLastName}`.trim();
   const shouldUpdateName =
     payload.firstName !== undefined ||
     payload.lastName !== undefined ||

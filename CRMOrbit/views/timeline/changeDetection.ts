@@ -48,6 +48,13 @@ const detectMethodChanges = (
           newValue: newMethod.value,
         });
       }
+      if (oldMethod.label !== newMethod.label) {
+        changes.push({
+          field: `${methodType}_label`,
+          oldValue: oldMethod.label,
+          newValue: newMethod.label,
+        });
+      }
     }
   });
 

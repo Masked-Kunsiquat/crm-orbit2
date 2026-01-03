@@ -71,7 +71,6 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
         type,
         summary.trim(),
         occurredAtISO,
-        interaction,
       );
       if (result.success) {
         navigation.goBack();
