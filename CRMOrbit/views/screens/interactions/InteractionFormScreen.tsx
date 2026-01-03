@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { useInteraction } from "../../store/store";
 import { useDeviceId, useInteractionActions } from "../../hooks";
@@ -33,13 +34,14 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const deviceId = useDeviceId();
   const { interactionId } = route.params ?? {};
   const interaction = useInteraction(interactionId ?? "");
-  const { logInteraction, updateInteraction } =
-    useInteractionActions(deviceId);
+  const { logInteraction, updateInteraction } = useInteractionActions(deviceId);
   const { dialogProps, showAlert } = useConfirmDialog();
 
   const [type, setType] = useState<InteractionType>("interaction.type.call");
   const [summary, setSummary] = useState("");
-  const [occurredAt, setOccurredAt] = useState("");
+  const [occurredAt, setOccurredAt] = useState(
+    () => new Date().toISOString(),
+  );
 
   useEffect(() => {
     if (interaction) {
@@ -105,6 +107,18 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
             }))}
             value={type}
             onChange={(value) => setType(value as InteractionType)}
+          />
+        </FormField>
+
+        <FormField label={t("interactions.form.occurredAtLabel")}>
+          <DateTimePicker
+            value={new Date(occurredAt)}
+            mode="datetime"
+            onChange={(_, date) => {
+              if (date) {
+                setOccurredAt(date.toISOString());
+              }
+            }}
           />
         </FormField>
 
