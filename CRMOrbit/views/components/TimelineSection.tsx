@@ -807,17 +807,27 @@ export const TimelineSection = ({
             {changes && changes.length > 0 && (
               <View style={styles.changesContainer}>
                 {changes.map((change, idx) => {
+                  // Helper to translate values that look like i18n keys
+                  const translateIfKey = (value: string) => {
+                    if (value.includes(".")) {
+                      // Looks like an i18n key, try to translate it
+                      const translated = t(value);
+                      return translated !== value ? translated : value;
+                    }
+                    return value;
+                  };
+
                   // Format the change display based on whether it's an add/remove/update
                   let displayText = "";
                   if (change.oldValue === "" && change.newValue !== "") {
                     // Added
-                    displayText = `+ ${change.newValue}`;
+                    displayText = `+ ${translateIfKey(change.newValue)}`;
                   } else if (change.oldValue !== "" && change.newValue === "") {
                     // Removed
-                    displayText = `- ${change.oldValue}`;
+                    displayText = `- ${translateIfKey(change.oldValue)}`;
                   } else {
                     // Updated
-                    displayText = `${change.oldValue} → ${change.newValue}`;
+                    displayText = `${translateIfKey(change.oldValue)} → ${translateIfKey(change.newValue)}`;
                   }
 
                   return (
