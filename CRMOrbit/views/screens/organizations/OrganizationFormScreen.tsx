@@ -198,7 +198,11 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       // For new organizations, persist image first if it's a temp URI
       const newOrganizationId = nextId("org");
       let finalLogoUri = logoUri;
-      if (logoUri && logoUri.startsWith("file://")) {
+      if (
+        logoUri &&
+        !logoUri.trim().toLowerCase().startsWith("http://") &&
+        !logoUri.trim().toLowerCase().startsWith("https://")
+      ) {
         setIsProcessingImage(true);
         try {
           finalLogoUri = await persistImage(
