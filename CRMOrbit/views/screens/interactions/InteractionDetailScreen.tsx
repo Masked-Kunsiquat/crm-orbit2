@@ -11,11 +11,9 @@ import {
   ConfirmDialog,
   TimelineSection,
 } from "../../components";
-import { useTheme } from "../../hooks";
+import { useDeviceId, useTheme } from "../../hooks";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
-
-const DEVICE_ID = "device-local";
 
 type Props = {
   route: { params: { interactionId: string } };
@@ -25,11 +23,12 @@ type Props = {
 
 export const InteractionDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
+  const deviceId = useDeviceId();
   const { interactionId } = route.params;
   const interaction = useInteraction(interactionId);
   const timeline = useTimeline("interaction", interactionId);
   const doc = useDoc();
-  const { deleteInteraction } = useInteractionActions(DEVICE_ID);
+  const { deleteInteraction } = useInteractionActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const handleEdit = useCallback(() => {

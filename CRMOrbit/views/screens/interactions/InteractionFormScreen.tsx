@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import { useInteraction } from "../../store/store";
-import { useInteractionActions } from "../../hooks";
+import { useDeviceId, useInteractionActions } from "../../hooks";
 import type { InteractionType } from "../../../domains/interaction";
 import {
   FormField,
@@ -14,8 +14,6 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useTheme } from "../../hooks";
-
-const DEVICE_ID = "device-local";
 
 const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
   { label: "interaction.type.call", value: "interaction.type.call" },
@@ -32,10 +30,11 @@ type Props = {
 
 export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
+  const deviceId = useDeviceId();
   const { interactionId } = route.params ?? {};
   const interaction = useInteraction(interactionId ?? "");
   const { logInteraction, updateInteraction } =
-    useInteractionActions(DEVICE_ID);
+    useInteractionActions(deviceId);
   const { dialogProps, showAlert } = useConfirmDialog();
 
   const [type, setType] = useState<InteractionType>("interaction.type.call");
