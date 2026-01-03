@@ -9,22 +9,19 @@ import type { AlphabetScrollbarProps } from "./types";
 export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
   const { colors } = useTheme();
   const ref = useRef<View | null>(null);
-  const height = useRef(1);
-  const lastIndex = useSharedValue(-1);
+  const heightRef = useRef(1);
+  const lastIndexValue = useSharedValue(-1);
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
-  const handleIndexChange = useCallback(
-    (idx: number) => {
-      const data = props.data;
-      if (!data || idx < 0 || idx >= data.length) return;
-      const letter = data[idx]!;
-      props.onCharSelect?.(letter);
-      setActiveLetter(letter);
+  const handleSelect = useCallback(
+    (char: string) => {
+      props.onCharSelect?.(char);
+      setActiveLetter(char);
     },
     [props],
   );
 
-  const handleGestureEnd = useCallback(() => {
+  const clearActive = useCallback(() => {
     setActiveLetter(null);
   }, []);
 
@@ -38,17 +35,20 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
           const length = data?.length ?? 0;
           if (!data || length === 0) return;
 
-          const yRel = Math.max(0, Math.min(height.current, e.y));
-          const itemH = height.current / length;
+          const yRel = Math.max(0, Math.min(heightRef.current, e.y));
+          const itemH = heightRef.current / length;
           const idx = Math.max(
             0,
             Math.min(length - 1, Math.floor(yRel / itemH)),
           );
 
-          runOnJS(handleIndexChange)(idx);
-          runOnJS(handleGestureEnd)();
+          const letter = data[idx];
+          if (letter) {
+            runOnJS(handleSelect)(letter);
+            runOnJS(clearActive)();
+          }
         }),
-    [props.data, handleIndexChange, handleGestureEnd, props.hitSlop],
+    [props.data, props.hitSlop, handleSelect, clearActive],
   );
 
   const pan = useMemo(
@@ -61,24 +61,27 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
           const length = data?.length ?? 0;
           if (!data || length === 0) return;
 
-          const yRel = Math.max(0, Math.min(height.current, e.y));
-          const itemH = height.current / length;
+          const yRel = Math.max(0, Math.min(heightRef.current, e.y));
+          const itemH = heightRef.current / length;
           const idx = Math.max(
             0,
             Math.min(length - 1, Math.floor(yRel / itemH)),
           );
 
-          if (idx !== lastIndex.value) {
-            lastIndex.value = idx;
-            runOnJS(handleIndexChange)(idx);
+          if (idx !== lastIndexValue.value) {
+            lastIndexValue.value = idx;
+            const letter = data[idx];
+            if (letter) {
+              runOnJS(handleSelect)(letter);
+            }
           }
         })
         .onFinalize(() => {
           "worklet";
-          lastIndex.value = -1;
-          runOnJS(handleGestureEnd)();
+          lastIndexValue.value = -1;
+          runOnJS(clearActive)();
         }),
-    [props.data, lastIndex, handleIndexChange, handleGestureEnd],
+    [props.data, lastIndexValue, handleSelect, clearActive],
   );
 
   const gesture = useMemo(() => Gesture.Race(tap, pan), [tap, pan]);
@@ -89,7 +92,7 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         ref={ref}
         style={[styles.container, props.containerStyle]}
         onLayout={(e) => {
-          height.current = e.nativeEvent.layout.height;
+          heightRef.current = e.nativeEvent.layout.height;
         }}
       >
         {props.data?.map((letter) => {
