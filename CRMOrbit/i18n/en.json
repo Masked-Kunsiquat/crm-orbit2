@@ -250,7 +250,7 @@
   "events.note.unlinked": "Unlinked note",
   "events.interaction.linked": "Linked interaction",
   "events.interaction.unlinked": "Unlinked interaction",
-  "events.interaction.logged": "Logged interaction",
+  "events.interaction.logged": "Created interaction",
   "events.interaction.updated": "Updated interaction",
   "events.interaction.deleted": "Deleted interaction",
   "interactions.title": "Interactions",
