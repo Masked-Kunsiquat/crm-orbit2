@@ -8,11 +8,16 @@ import {
   initializeDatabase,
   createPersistenceDb,
 } from "./domains/persistence/database";
-import { getOrCreateDeviceId } from "./domains/persistence/deviceId";
+import { loadLatestDeviceId } from "./domains/persistence/deviceId";
 import { loadPersistedState } from "./domains/persistence/loader";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
-import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
+import {
+  getDeviceIdFromEnv,
+  setDeviceId,
+  useTheme,
+} from "./views/hooks";
+import { nextId } from "./domains/shared/idGenerator";
 
 registerCoreReducers();
 
@@ -35,16 +40,16 @@ export default function App() {
         const db = await initializeDatabase();
         const persistenceDb = createPersistenceDb(db);
 
-        // Load persisted state
-        const { doc, events } = await loadPersistedState(persistenceDb);
-
         const envDeviceId = getDeviceIdFromEnv();
         if (envDeviceId) {
           setDeviceId(envDeviceId);
         } else {
-          const resolvedDeviceId = await getOrCreateDeviceId(persistenceDb);
-          setDeviceId(resolvedDeviceId);
+          const resolvedDeviceId = await loadLatestDeviceId(persistenceDb);
+          setDeviceId(resolvedDeviceId ?? nextId("device"));
         }
+
+        // Load persisted state
+        const { doc, events } = await loadPersistedState(persistenceDb);
 
         // Update store with loaded data
         const store = __internal_getCrmStore();

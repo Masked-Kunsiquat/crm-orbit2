@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 
 import { runMigrations } from "./migrations";
 import type { PersistenceDb } from "./store";
-import { appMetadata, automergeSnapshots, eventLog } from "./schema";
+import { automergeSnapshots, eventLog } from "./schema";
 
 const DB_NAME = "crm_orbit.db";
 
@@ -58,12 +58,7 @@ export const createPersistenceDb = (
       values: (value) => ({
         run: async () => {
           await db
-            .insert(
-              table as
-                | typeof eventLog
-                | typeof automergeSnapshots
-                | typeof appMetadata,
-            )
+            .insert(table as typeof eventLog | typeof automergeSnapshots)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .values(value as any);
         },
@@ -74,12 +69,7 @@ export const createPersistenceDb = (
         all: async (): Promise<T[]> => {
           const results = await db
             .select()
-            .from(
-              table as
-                | typeof eventLog
-                | typeof automergeSnapshots
-                | typeof appMetadata,
-            );
+            .from(table as typeof eventLog | typeof automergeSnapshots);
           return results as T[];
         },
       }),
