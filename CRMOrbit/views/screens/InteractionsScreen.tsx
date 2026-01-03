@@ -1,14 +1,13 @@
 import { StyleSheet, Text } from "react-native";
 
 import { PrimaryActionButton, Section } from "@views/components";
-import { useInteractionActions } from "@views/hooks";
+import { useDeviceId, useInteractionActions } from "@views/hooks";
 import { useAllInteractions } from "@views/store/store";
-
-const DEVICE_ID = "device-local";
 
 export const InteractionsScreen = () => {
   const interactions = useAllInteractions();
-  const { logInteraction } = useInteractionActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { logInteraction } = useInteractionActions(deviceId);
 
   const handleAddInteraction = () => {
     // Use timestamp-based identifier (locale-neutral)

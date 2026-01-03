@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import type { ContactMethod } from "../../domains/contact";
+import type { Contact, ContactMethod } from "../../domains/contact";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
@@ -71,6 +71,7 @@ export const useContactActions = (deviceId: string) => {
       methodType: "emails" | "phones",
       index: number,
       method: ContactMethod,
+      previousMethod?: ContactMethod,
     ): DispatchResult => {
       const event = buildEvent({
         type: "contact.method.updated",
@@ -79,6 +80,7 @@ export const useContactActions = (deviceId: string) => {
           methodType,
           index,
           method,
+          ...(previousMethod && { previousMethod }),
         },
         deviceId,
       });
@@ -99,6 +101,7 @@ export const useContactActions = (deviceId: string) => {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
       } = {},
+      _previousContact?: Contact, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
         type: "contact.updated",

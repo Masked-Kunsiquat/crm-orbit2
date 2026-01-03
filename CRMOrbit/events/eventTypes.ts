@@ -21,7 +21,11 @@ export const EVENT_TYPES = [
   "note.deleted",
   "note.linked",
   "note.unlinked",
+  "interaction.linked",
+  "interaction.unlinked",
   "interaction.logged",
+  "interaction.updated",
+  "interaction.deleted",
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];

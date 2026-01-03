@@ -3,7 +3,10 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
-import type { SocialMediaLinks } from "../../domains/organization";
+import type {
+  Organization,
+  SocialMediaLinks,
+} from "../../domains/organization";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
@@ -63,6 +66,7 @@ export const useOrganizationActions = (deviceId: string) => {
       logoUri?: string,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      _previousOrganization?: Organization, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
         type: "organization.updated",

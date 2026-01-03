@@ -4,7 +4,7 @@ import { accountContactReducer } from "./accountContact.reducer";
 import { accountReducer } from "./account.reducer";
 import { contactReducer } from "./contact.reducer";
 import { interactionReducer } from "./interaction.reducer";
-import { noteLinkReducer } from "./noteLink.reducer";
+import { entityLinkReducer } from "./entityLink.reducer";
 import { noteReducer } from "./note.reducer";
 import { organizationReducer } from "./organization.reducer";
 
@@ -29,7 +29,9 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "note.created": noteReducer,
   "note.updated": noteReducer,
   "note.deleted": noteReducer,
-  "note.linked": noteLinkReducer,
-  "note.unlinked": noteLinkReducer,
+  "note.linked": entityLinkReducer,
+  "note.unlinked": entityLinkReducer,
+  "interaction.linked": entityLinkReducer,
+  "interaction.unlinked": entityLinkReducer,
   "interaction.logged": interactionReducer,
 };

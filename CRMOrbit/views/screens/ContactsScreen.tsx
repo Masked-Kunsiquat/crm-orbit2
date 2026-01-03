@@ -1,16 +1,15 @@
 import { StyleSheet, Text } from "react-native";
 
 import { PrimaryActionButton, Section } from "@views/components";
-import { useContactActions } from "@views/hooks";
+import { useContactActions, useDeviceId } from "@views/hooks";
 import { useAccounts, useAllContacts } from "@views/store/store";
 import { nextId } from "@domains/shared/idGenerator";
-
-const DEVICE_ID = "device-local";
 
 export const ContactsScreen = () => {
   const accounts = useAccounts();
   const allContacts = useAllContacts();
-  const { createContact } = useContactActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { createContact } = useContactActions(deviceId);
 
   const handleAddContact = () => {
     // Use timestamp-based identifier (locale-neutral)

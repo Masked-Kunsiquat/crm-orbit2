@@ -15,6 +15,7 @@ export { DetailScreenLayout } from "./DetailScreenLayout";
 export { StatusBadge } from "./StatusBadge";
 export { Tooltip } from "./Tooltip";
 export { NotesSection } from "./NotesSection";
+export { TimelineSection } from "./TimelineSection";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { SocialLinksSection } from "./SocialLinksSection";
 export { SocialMediaFields } from "./SocialMediaFields";

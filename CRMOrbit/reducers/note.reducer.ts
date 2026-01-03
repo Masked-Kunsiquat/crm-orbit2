@@ -93,20 +93,20 @@ const applyNoteDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { [id]: _removed, ...remainingNotes } = doc.notes;
 
-  const remainingLinks = Object.entries(doc.relations.noteLinks).reduce(
+  const remainingLinks = Object.entries(doc.relations.entityLinks).reduce(
     (acc, [linkId, link]) => {
-      if (link.noteId !== id) {
+      if (link.linkType !== "note" || link.noteId !== id) {
         acc[linkId] = link;
       }
       return acc;
     },
-    {} as AutomergeDoc["relations"]["noteLinks"],
+    {} as AutomergeDoc["relations"]["entityLinks"],
   );
 
-  logger.debug("Removed note links", {
+  logger.debug("Removed note entity links", {
     noteId: id,
     linksRemoved:
-      Object.keys(doc.relations.noteLinks).length -
+      Object.keys(doc.relations.entityLinks).length -
       Object.keys(remainingLinks).length,
   });
 
@@ -115,7 +115,7 @@ const applyNoteDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     notes: remainingNotes,
     relations: {
       ...doc.relations,
-      noteLinks: remainingLinks,
+      entityLinks: remainingLinks,
     },
   };
 };

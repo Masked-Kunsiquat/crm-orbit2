@@ -4,7 +4,7 @@ import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
 import type { AccountContact } from "@domains/relations/accountContact";
-import type { NoteLink } from "@domains/relations/noteLink";
+import type { EntityLink } from "@domains/relations/entityLink";
 import type { EntityId } from "@domains/shared/types";
 
 export interface AutomergeDoc {
@@ -15,6 +15,6 @@ export interface AutomergeDoc {
   interactions: Record<EntityId, Interaction>;
   relations: {
     accountContacts: Record<EntityId, AccountContact>;
-    noteLinks: Record<EntityId, NoteLink>;
+    entityLinks: Record<EntityId, EntityLink>;
   };
 }

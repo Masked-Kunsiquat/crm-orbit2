@@ -3,6 +3,7 @@ import type {
   ContactMethod,
   ContactMethods,
 } from "../domains/contact";
+import { splitLegacyName } from "../domains/contact.utils";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
@@ -14,8 +15,9 @@ const logger = createLogger("ContactReducer");
 type ContactCreatedPayload = {
   id: EntityId;
   type: Contact["type"];
-  firstName: string;
-  lastName: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
   title?: string;
   methods: ContactMethods;
 };
@@ -35,6 +37,7 @@ type ContactMethodUpdatedPayload = {
 
 type ContactUpdatedPayload = {
   id?: EntityId;
+  name?: string;
   firstName?: string;
   lastName?: string;
   title?: string;
@@ -68,11 +71,20 @@ const applyContactCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     throw new Error("Contact methods must include emails and phones arrays.");
   }
 
+  const legacyName =
+    typeof payload.name === "string" ? payload.name.trim() : "";
+  const legacySplit = legacyName ? splitLegacyName(legacyName) : undefined;
+  const resolvedFirstName = payload.firstName ?? legacySplit?.firstName ?? "";
+  const resolvedLastName = payload.lastName ?? legacySplit?.lastName ?? "";
+  const resolvedName =
+    legacyName || `${resolvedFirstName} ${resolvedLastName}`.trim();
+
   const contact: Contact = {
     id,
     type: payload.type,
-    firstName: payload.firstName,
-    lastName: payload.lastName,
+    ...(resolvedName && { name: resolvedName }),
+    firstName: resolvedFirstName,
+    lastName: resolvedLastName,
     title: payload.title,
     methods: {
       emails: [...payload.methods.emails],
@@ -84,7 +96,7 @@ const applyContactCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
 
   logger.info("Contact created", {
     id,
-    name: `${payload.firstName} ${payload.lastName}`,
+    name: resolvedName,
   });
 
   return {
@@ -180,16 +192,33 @@ const applyContactUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
 
   logger.debug("Updating contact", { id, updates: payload });
 
+  const nameValue = typeof payload.name === "string" ? payload.name : undefined;
+  const legacyName = nameValue ? nameValue.trim() : "";
+  const legacySplit = legacyName ? splitLegacyName(legacyName) : undefined;
+  const nextFirstName =
+    payload.firstName ?? legacySplit?.firstName ?? existing.firstName;
+  const nextLastName =
+    payload.lastName ?? legacySplit?.lastName ?? existing.lastName;
+  const nextLegacyName =
+    legacyName || `${nextFirstName} ${nextLastName}`.trim();
+  const shouldUpdateName =
+    payload.firstName !== undefined ||
+    payload.lastName !== undefined ||
+    payload.name !== undefined;
+
   return {
     ...doc,
     contacts: {
       ...doc.contacts,
       [id]: {
         ...existing,
-        ...(payload.firstName !== undefined && {
-          firstName: payload.firstName,
+        ...(shouldUpdateName && { name: nextLegacyName || undefined }),
+        ...((payload.firstName !== undefined || legacySplit) && {
+          firstName: nextFirstName,
         }),
-        ...(payload.lastName !== undefined && { lastName: payload.lastName }),
+        ...((payload.lastName !== undefined || legacySplit) && {
+          lastName: nextLastName,
+        }),
         ...(payload.title !== undefined && { title: payload.title }),
         ...(payload.type !== undefined && { type: payload.type }),
         ...(payload.methods !== undefined && {

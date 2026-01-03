@@ -11,6 +11,10 @@ import { ContactDetailScreen } from "../screens/contacts/ContactDetailScreen";
 import { ContactFormScreen } from "../screens/contacts/ContactFormScreen";
 import { NoteDetailScreen } from "../screens/notes/NoteDetailScreen";
 import { NoteFormScreen } from "../screens/notes/NoteFormScreen";
+import {
+  InteractionDetailScreen,
+  InteractionFormScreen,
+} from "../screens/interactions";
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 
@@ -80,6 +84,20 @@ export const RootStack = () => {
           title: route.params?.noteId
             ? t("screens.editNote")
             : t("screens.newNote"),
+        })}
+      />
+      <Stack.Screen
+        name="InteractionDetail"
+        component={InteractionDetailScreen}
+        options={{ title: t("screens.interactionDetails") }}
+      />
+      <Stack.Screen
+        name="InteractionForm"
+        component={InteractionFormScreen}
+        options={({ route }) => ({
+          title: route.params?.interactionId
+            ? t("screens.editInteraction")
+            : t("screens.newInteraction"),
         })}
       />
     </Stack.Navigator>

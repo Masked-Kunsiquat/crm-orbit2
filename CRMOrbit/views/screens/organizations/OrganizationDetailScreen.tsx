@@ -13,11 +13,14 @@ import {
   useAccountsByOrganization,
   useContactsByOrganization,
   useNotes,
+  useTimeline,
+  useDoc,
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
-import { useTheme } from "@views/hooks";
+import { useDeviceId, useTheme } from "@views/hooks";
 import {
   NotesSection,
+  TimelineSection,
   DetailScreenLayout,
   Section,
   DetailField,
@@ -30,8 +33,6 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 
 export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
@@ -41,7 +42,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const accounts = useAccountsByOrganization(organizationId);
   const contacts = useContactsByOrganization(organizationId);
   const notes = useNotes("organization", organizationId);
-  const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
+  const timeline = useTimeline("organization", organizationId);
+  const doc = useDoc();
+  const deviceId = useDeviceId();
+  const { deleteOrganization } = useOrganizationActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   if (!organization) {
@@ -219,6 +223,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         entityType="organization"
         navigation={navigation}
       />
+
+      <TimelineSection timeline={timeline} doc={doc} />
 
       <PrimaryActionButton
         label={t("organizations.editButton")}

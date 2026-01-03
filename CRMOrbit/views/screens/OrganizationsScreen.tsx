@@ -1,14 +1,13 @@
 import { StyleSheet, Text } from "react-native";
 
 import { PrimaryActionButton, Section } from "@views/components";
-import { useOrganizationActions } from "@views/hooks";
+import { useDeviceId, useOrganizationActions } from "@views/hooks";
 import { useOrganizations } from "@views/store/store";
-
-const DEVICE_ID = "device-local";
 
 export const OrganizationsScreen = () => {
   const organizations = useOrganizations();
-  const { createOrganization } = useOrganizationActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { createOrganization } = useOrganizationActions(deviceId);
 
   const handleAddOrganization = () => {
     // Use entity ID as name (locale-neutral identifier)

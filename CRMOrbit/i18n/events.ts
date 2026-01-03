@@ -23,5 +23,9 @@ export const EVENT_I18N_KEYS: Record<EventType, string> = {
   "note.deleted": "events.note.deleted",
   "note.linked": "events.note.linked",
   "note.unlinked": "events.note.unlinked",
+  "interaction.linked": "events.interaction.linked",
+  "interaction.unlinked": "events.interaction.unlinked",
   "interaction.logged": "events.interaction.logged",
+  "interaction.updated": "events.interaction.updated",
+  "interaction.deleted": "events.interaction.deleted",
 };

@@ -9,11 +9,13 @@ import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
-import { NoteLinkEntityType } from "@domains/relations/noteLink";
+import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
 import {
+  getEntitiesForInteraction,
   getEntitiesForNote,
+  getInteractionsForEntity,
   getNotesForEntity,
   getPrimaryContacts,
   LinkedEntityInfo,
@@ -37,7 +39,7 @@ const crmStore = create<CrmStoreState>((set) => ({
     interactions: {},
     relations: {
       accountContacts: {},
-      noteLinks: {},
+      entityLinks: {},
     },
   },
   events: [],
@@ -73,6 +75,35 @@ const areLinkedEntitiesEqual = (
       leftItem.name !== rightItem.name
     ) {
       return false;
+    }
+  }
+  return true;
+};
+
+const areTimelineItemsEqual = (
+  left: TimelineItem[],
+  right: TimelineItem[],
+): boolean => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    const leftItem = left[i];
+    const rightItem = right[i];
+    if (
+      leftItem.kind !== rightItem.kind ||
+      leftItem.timestamp !== rightItem.timestamp
+    ) {
+      return false;
+    }
+    if (leftItem.kind === "event" && rightItem.kind === "event") {
+      if (leftItem.event.id !== rightItem.event.id) return false;
+    } else if (leftItem.kind === "note" && rightItem.kind === "note") {
+      if (leftItem.note.id !== rightItem.note.id) return false;
+    } else if (
+      leftItem.kind === "interaction" &&
+      rightItem.kind === "interaction"
+    ) {
+      if (leftItem.interaction.id !== rightItem.interaction.id) return false;
     }
   }
   return true;
@@ -125,7 +156,7 @@ export const usePrimaryContacts = (accountId: EntityId): Contact[] => {
 };
 
 export const useNotes = (
-  entityType: NoteLinkEntityType,
+  entityType: EntityLinkType,
   entityId: EntityId,
 ): Note[] => {
   const selector = (state: CrmStoreState) => {
@@ -133,6 +164,25 @@ export const useNotes = (
     return noteIds
       .map((noteId) => state.doc.notes[noteId])
       .filter((note): note is Note => Boolean(note));
+  };
+  return crmStore(useShallow(selector));
+};
+
+export const useInteractions = (
+  entityType: EntityLinkType,
+  entityId: EntityId,
+): Interaction[] => {
+  const selector = (state: CrmStoreState) => {
+    const interactionIds = getInteractionsForEntity(
+      state.doc,
+      entityType,
+      entityId,
+    );
+    return interactionIds
+      .map((interactionId) => state.doc.interactions[interactionId])
+      .filter((interaction): interaction is Interaction =>
+        Boolean(interaction),
+      );
   };
   return crmStore(useShallow(selector));
 };
@@ -151,13 +201,42 @@ export const useEntitiesForNote = (noteId: EntityId): LinkedEntityInfo[] => {
   return crmStore(selector);
 };
 
+export const useEntitiesForInteraction = (
+  interactionId: EntityId,
+): LinkedEntityInfo[] => {
+  const cacheRef = useRef<LinkedEntityInfo[] | null>(null);
+  const selector = (state: CrmStoreState) => {
+    const next = getEntitiesForInteraction(state.doc, interactionId);
+    const cached = cacheRef.current;
+    if (cached && areLinkedEntitiesEqual(cached, next)) {
+      return cached;
+    }
+    cacheRef.current = next;
+    return next;
+  };
+  return crmStore(selector);
+};
+
 export const useTimeline = (
-  entityType: NoteLinkEntityType,
+  entityType: EntityLinkType,
   entityId: EntityId,
 ): TimelineItem[] => {
-  const selector = (state: CrmStoreState) =>
-    buildTimelineForEntity(state.doc, state.events, entityType, entityId);
-  return crmStore(useShallow(selector));
+  const cacheRef = useRef<TimelineItem[] | null>(null);
+  const selector = (state: CrmStoreState) => {
+    const next = buildTimelineForEntity(
+      state.doc,
+      state.events,
+      entityType,
+      entityId,
+    );
+    const cached = cacheRef.current;
+    if (cached && areTimelineItemsEqual(cached, next)) {
+      return cached;
+    }
+    cacheRef.current = next;
+    return next;
+  };
+  return crmStore(selector);
 };
 
 export const useOrganization = (id: EntityId): Organization | undefined =>
@@ -222,6 +301,11 @@ export const useAllInteractions = (): Interaction[] => {
   const selector = (state: CrmStoreState) =>
     Object.values(state.doc.interactions);
   return crmStore(useShallow(selector));
+};
+
+export const useDoc = (): AutomergeDoc => {
+  const selector = (state: CrmStoreState) => state.doc;
+  return crmStore(selector);
 };
 
 export const useAccountContactRelations = () => {

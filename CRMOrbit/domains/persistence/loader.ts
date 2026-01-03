@@ -1,4 +1,5 @@
 import type { AutomergeDoc } from "@automerge/schema";
+import type { EntityLinkType } from "@domains/relations/entityLink";
 import { applyEvents } from "@events/dispatcher";
 import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
@@ -13,8 +14,50 @@ const EMPTY_DOC: AutomergeDoc = {
   interactions: {},
   relations: {
     accountContacts: {},
-    noteLinks: {},
+    entityLinks: {},
   },
+};
+
+const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
+  const legacyLinks = (
+    doc as {
+      relations?: {
+        noteLinks?: Record<
+          string,
+          { noteId: string; entityType: EntityLinkType; entityId: string }
+        >;
+      };
+    }
+  ).relations?.noteLinks;
+
+  const existingLinks =
+    doc.relations?.entityLinks ??
+    ({} as AutomergeDoc["relations"]["entityLinks"]);
+
+  const mergedLinks = legacyLinks
+    ? Object.entries(legacyLinks).reduce(
+        (acc, [id, link]) => {
+          if (!acc[id]) {
+            acc[id] = {
+              linkType: "note",
+              noteId: link.noteId,
+              entityType: link.entityType,
+              entityId: link.entityId,
+            };
+          }
+          return acc;
+        },
+        { ...existingLinks },
+      )
+    : existingLinks;
+
+  return {
+    ...doc,
+    relations: {
+      ...doc.relations,
+      entityLinks: mergedLinks,
+    },
+  };
 };
 
 /**
@@ -43,7 +86,7 @@ export const loadPersistedState = async (
   // Start with snapshot or empty doc
   let doc: AutomergeDoc;
   if (snapshot) {
-    doc = JSON.parse(snapshot.doc);
+    doc = normalizeSnapshot(JSON.parse(snapshot.doc));
     // Filter events that came after the snapshot
     const relevantEvents = events.filter(
       (e) => e.timestamp > snapshot.timestamp,

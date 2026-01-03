@@ -5,6 +5,7 @@ import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
+import { useDeviceId } from "@views/hooks";
 import type { ContactType, ContactMethod } from "@domains/contact";
 import { formatPhoneNumber, splitLegacyName } from "@domains/contact.utils";
 import { nextId } from "@domains/shared/idGenerator";
@@ -19,14 +20,13 @@ import {
 } from "@views/components";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = ContactsStackScreenProps<"ContactForm">;
 
 export const ContactFormScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params ?? {};
   const contact = useContact(contactId ?? "");
-  const { createContact, updateContact } = useContactActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { createContact, updateContact } = useContactActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showAlert } = useConfirmDialog();
 
@@ -222,6 +222,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
           emails: validEmails,
           phones: validPhones,
         },
+        contact ?? undefined,
       );
       if (result.success) {
         navigation.goBack();

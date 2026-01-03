@@ -3,7 +3,11 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
-import type { AccountAddresses, SocialMediaLinks } from "../../domains/account";
+import type {
+  Account,
+  AccountAddresses,
+  SocialMediaLinks,
+} from "../../domains/account";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
@@ -66,6 +70,7 @@ export const useAccountActions = (deviceId: string) => {
       addresses?: AccountAddresses,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      _previousAccount?: Account, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
         type: "account.updated",

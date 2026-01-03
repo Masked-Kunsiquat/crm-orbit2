@@ -15,6 +15,8 @@ import {
   useAccounts,
   useAccountContactRelations,
   useNotes,
+  useTimeline,
+  useDoc,
 } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
@@ -24,6 +26,7 @@ import {
 } from "@domains/contact.utils";
 import {
   NotesSection,
+  TimelineSection,
   DetailScreenLayout,
   Section,
   DetailField,
@@ -31,12 +34,10 @@ import {
   DangerActionButton,
   ConfirmDialog,
 } from "@views/components";
-import { useTheme } from "@views/hooks";
+import { useDeviceId, useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
-
-const DEVICE_ID = "device-local";
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
 
@@ -45,10 +46,13 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const contact = useContact(contactId);
   const linkedAccounts = useAccountsByContact(contactId);
   const notes = useNotes("contact", contactId);
+  const timeline = useTimeline("contact", contactId);
+  const doc = useDoc();
   const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
-  const { deleteContact } = useContactActions(DEVICE_ID);
-  const { linkContact, unlinkContact } = useAccountActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { deleteContact } = useContactActions(deviceId);
+  const { linkContact, unlinkContact } = useAccountActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
@@ -294,6 +298,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         entityType="contact"
         navigation={navigation}
       />
+
+      <TimelineSection timeline={timeline} doc={doc} />
 
       <DangerActionButton
         label={t("contacts.deleteButton")}
