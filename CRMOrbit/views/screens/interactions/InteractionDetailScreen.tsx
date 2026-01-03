@@ -5,7 +5,7 @@ import {
   View,
   Pressable,
 } from "react-native";
-import { useLayoutEffect, useCallback } from "react";
+import { useLayoutEffect, useCallback, useState, useMemo } from "react";
 
 import {
   useInteraction,
@@ -22,6 +22,7 @@ import {
   DangerActionButton,
   ConfirmDialog,
   TimelineSection,
+  LinkEntityToInteractionModal,
 } from "../../components";
 import { useDeviceId, useTheme } from "../../hooks";
 import { t } from "@i18n/index";
@@ -44,6 +45,13 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
   const { deleteInteraction } = useInteractionActions(deviceId);
   const { unlinkInteraction } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+
+  const [showLinkModal, setShowLinkModal] = useState(false);
+
+  const existingEntityIds = useMemo(
+    () => new Set(linkedEntities.map((entity) => entity.entityId)),
+    [linkedEntities],
+  );
 
   const handleEdit = useCallback(() => {
     if (!interaction?.id) return;
@@ -161,9 +169,19 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
       </Section>
 
       <Section>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("interactions.linkedTo")}
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            {t("interactions.linkedTo")} ({linkedEntities.length})
+          </Text>
+          <TouchableOpacity
+            style={[styles.linkButton, { backgroundColor: colors.accent }]}
+            onPress={() => setShowLinkModal(true)}
+          >
+            <Text style={[styles.linkButtonText, { color: colors.onAccent }]}>
+              {t("interactions.linkEntityButton")}
+            </Text>
+          </TouchableOpacity>
+        </View>
         {linkedEntities.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
             {t("interactions.noLinkedEntities")}
@@ -236,6 +254,13 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
         size="block"
       />
 
+      <LinkEntityToInteractionModal
+        visible={showLinkModal}
+        onClose={() => setShowLinkModal(false)}
+        interactionId={interactionId}
+        existingEntityIds={existingEntityIds}
+      />
+
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
   );
@@ -258,10 +283,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 4,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 12,
+  },
+  linkButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  linkButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
   },
   emptyText: {
     fontSize: 14,

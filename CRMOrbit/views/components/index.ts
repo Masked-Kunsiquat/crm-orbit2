@@ -20,6 +20,7 @@ export { TimelineSection } from "./TimelineSection";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { LinkNoteModal } from "./LinkNoteModal";
 export { LinkInteractionModal } from "./LinkInteractionModal";
+export { LinkEntityToInteractionModal } from "./LinkEntityToInteractionModal";
 export { SocialLinksSection } from "./SocialLinksSection";
 export { SocialMediaFields } from "./SocialMediaFields";
 export { AddressFields } from "./AddressFields";
