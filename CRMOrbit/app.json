@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.crmorbit.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/crmorbit-fore.png",
         "monochromeImage": "./assets/icons/crmorbit-mono.png",
