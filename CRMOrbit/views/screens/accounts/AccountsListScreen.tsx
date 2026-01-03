@@ -47,7 +47,13 @@ export const AccountsListScreen = ({ navigation }: Props) => {
   });
 
   // Alphabet scrollbar data: # for symbols/numbers, then A-Z
-  const alphabetData = useMemo(() => ["#", ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))], []);
+  const alphabetData = useMemo(
+    () => [
+      "#",
+      ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)),
+    ],
+    [],
+  );
 
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
@@ -114,7 +120,10 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         onAdd={handleCreate}
         rightAccessory={
           filteredAccounts.length > 0 ? (
-            <AlphabetScrollbar data={alphabetData} onCharSelect={handleAlphabetSelect} />
+            <AlphabetScrollbar
+              data={alphabetData}
+              onCharSelect={handleAlphabetSelect}
+            />
           ) : null
         }
       />

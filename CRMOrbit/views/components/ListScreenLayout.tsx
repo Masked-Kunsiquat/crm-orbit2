@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { ReactElement, RefObject } from "react";
 import type { FlatList as FlatListType, ListRenderItem } from "react-native";
 import { FlatList, StyleSheet, View } from "react-native";
 
@@ -15,7 +15,7 @@ type ListScreenLayoutProps<ItemT> = {
   onAdd: () => void;
   listFooterComponent?: ReactElement | null;
   rightAccessory?: ReactElement | null;
-  flatListRef?: React.RefObject<FlatListType<ItemT>>;
+  flatListRef?: RefObject<FlatListType<ItemT> | null>;
 };
 
 export const ListScreenLayout = <ItemT,>({

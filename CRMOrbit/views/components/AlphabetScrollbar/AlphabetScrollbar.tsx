@@ -27,7 +27,7 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         props.onCharSelect?.(data[idx]!);
       }
     },
-    [props]
+    [props],
   );
 
   const tap = useMemo(
@@ -37,7 +37,7 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         .onEnd((e) => {
           runOnJS(handle)(e.y);
         }),
-    [handle, props.hitSlop]
+    [handle, props.hitSlop],
   );
 
   const pan = useMemo(
@@ -50,7 +50,7 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         .onFinalize(() => {
           lastIndexRef.current = -1;
         }),
-    [handle]
+    [handle],
   );
 
   const gesture = useMemo(() => Gesture.Race(tap, pan), [tap, pan]);
@@ -65,8 +65,13 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         }}
       >
         {props.data?.map((letter) => (
-          <View key={letter} style={[styles.charContainer, props.charContainerStyle]}>
-            <Text style={[styles.char, { color: colors.accent }, props.charStyle]}>
+          <View
+            key={letter}
+            style={[styles.charContainer, props.charContainerStyle]}
+          >
+            <Text
+              style={[styles.char, { color: colors.accent }, props.charStyle]}
+            >
               {letter}
             </Text>
           </View>
