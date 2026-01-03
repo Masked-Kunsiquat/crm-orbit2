@@ -279,45 +279,62 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             {contact.methods.phones.length === 0 ? (
               <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
             ) : (
-              contact.methods.phones.map((phone, index) => (
-                <View
-                  key={getMethodKey(phone, index)}
-                  style={styles.methodItem}
-                >
-                  <View style={styles.methodContent}>
-                    <View style={styles.methodTextContainer}>
-                      <Text style={styles.methodValue}>
-                        {formatPhoneNumber(phone.value)}
-                      </Text>
-                      <Text style={styles.methodMeta}>
-                        {getMethodLabel(phone.label)} • {t(phone.status)}
-                      </Text>
-                    </View>
-                    <View style={styles.methodActions}>
-                      <TouchableOpacity
-                        onPress={() => openPhoneDialer(phone.value)}
-                        style={styles.actionIcon}
-                      >
-                        <Ionicons
-                          name="call-outline"
-                          size={20}
-                          color={colors.accent}
-                        />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => openSMS(phone.value)}
-                        style={styles.actionIcon}
-                      >
-                        <MaterialCommunityIcons
-                          name="message-text-outline"
-                          size={20}
-                          color={colors.accent}
-                        />
-                      </TouchableOpacity>
+              contact.methods.phones.map((phone, index) => {
+                const formattedPhone = formatPhoneNumber(phone.value);
+                const methodLabel = getMethodLabel(phone.label);
+                const callLabel = t("call_phone")
+                  .replace("{label}", methodLabel)
+                  .replace("{phone}", formattedPhone);
+                const smsLabel = t("send_sms")
+                  .replace("{label}", methodLabel)
+                  .replace("{phone}", formattedPhone);
+
+                return (
+                  <View
+                    key={getMethodKey(phone, index)}
+                    style={styles.methodItem}
+                  >
+                    <View style={styles.methodContent}>
+                      <View style={styles.methodTextContainer}>
+                        <Text style={styles.methodValue}>{formattedPhone}</Text>
+                        <Text style={styles.methodMeta}>
+                          {methodLabel} • {t(phone.status)}
+                        </Text>
+                      </View>
+                      <View style={styles.methodActions}>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={callLabel}
+                          onPress={() => {
+                            void openPhoneDialer(phone.value);
+                          }}
+                          style={styles.actionIcon}
+                        >
+                          <Ionicons
+                            name="call-outline"
+                            size={20}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={smsLabel}
+                          onPress={() => {
+                            void openSMS(phone.value);
+                          }}
+                          style={styles.actionIcon}
+                        >
+                          <MaterialCommunityIcons
+                            name="message-text-outline"
+                            size={20}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))
+                );
+              })
             )}
           </Section>
         </>
@@ -638,6 +655,6 @@ const createStyles = (colors: ColorScheme) =>
       marginLeft: 12,
     },
     actionIcon: {
-      padding: 4,
+      padding: 12,
     },
   });

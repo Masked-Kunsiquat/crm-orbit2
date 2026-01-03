@@ -32,14 +32,14 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
   const handlePhoneCall = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation();
     if (primaryPhone) {
-      openPhoneDialer(primaryPhone.value);
+      void openPhoneDialer(primaryPhone.value);
     }
   };
 
   const handleSMS = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation();
     if (primaryPhone) {
-      openSMS(primaryPhone.value);
+      void openSMS(primaryPhone.value);
     }
   };
 

@@ -1,23 +1,59 @@
 import { Linking } from "react-native";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("Linking");
+
+const normalizePhoneNumber = (phoneNumber: string): string => {
+  return phoneNumber.replace(/[^\d+]/g, "");
+};
+
+const openLinkingUrl = async (
+  url: string,
+  description: string,
+): Promise<boolean> => {
+  try {
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      logger.warn(`${description} not available`, { url });
+      return false;
+    }
+
+    await Linking.openURL(url);
+    return true;
+  } catch (error) {
+    logger.error(`Failed to open ${description}`, { url }, error);
+    return false;
+  }
+};
 
 /**
  * Opens the native phone dialer with the phone number pre-filled
  * @param phoneNumber - The phone number to dial (can include formatting characters)
  */
-export const openPhoneDialer = (phoneNumber: string): void => {
-  // Remove all non-numeric characters except + for international numbers
-  const cleanNumber = phoneNumber.replace(/[^\d+]/g, "");
-  Linking.openURL(`tel:${cleanNumber}`);
+export const openPhoneDialer = async (
+  phoneNumber: string,
+): Promise<boolean> => {
+  const cleanNumber = normalizePhoneNumber(phoneNumber);
+  if (!cleanNumber) {
+    logger.warn("Phone number missing for dialer", { phoneNumber });
+    return false;
+  }
+
+  return openLinkingUrl(`tel:${cleanNumber}`, "phone dialer");
 };
 
 /**
  * Opens the native SMS app with the phone number pre-filled
  * @param phoneNumber - The phone number to send SMS to (can include formatting characters)
  */
-export const openSMS = (phoneNumber: string): void => {
-  // Remove all non-numeric characters except + for international numbers
-  const cleanNumber = phoneNumber.replace(/[^\d+]/g, "");
-  Linking.openURL(`sms:${cleanNumber}`);
+export const openSMS = async (phoneNumber: string): Promise<boolean> => {
+  const cleanNumber = normalizePhoneNumber(phoneNumber);
+  if (!cleanNumber) {
+    logger.warn("Phone number missing for SMS", { phoneNumber });
+    return false;
+  }
+
+  return openLinkingUrl(`sms:${cleanNumber}`, "SMS");
 };
 
 /**
