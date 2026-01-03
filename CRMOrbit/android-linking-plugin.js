@@ -21,8 +21,7 @@ const withAndroidLinkingQueries = (config) => {
       androidManifest.queries = [];
     }
 
-    const getActionName = (intent) =>
-      intent?.action?.[0]?.$?.["android:name"];
+    const getActionName = (intent) => intent?.action?.[0]?.$?.["android:name"];
     const getDataScheme = (intent) => intent?.data?.[0]?.$?.["android:scheme"];
     const intentMatches = (target, intent) => {
       const actionName = getActionName(intent);

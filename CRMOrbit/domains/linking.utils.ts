@@ -15,7 +15,9 @@ const createLinkingError = (messageKey: string): Error => {
 };
 
 const showLinkingAlert = (messageKey: string): void => {
-  Alert.alert(t("common.error"), t(messageKey), t("common.ok"));
+  Alert.alert(t("common.error"), t(messageKey), [
+    { text: t("common.ok") },
+  ]);
 };
 
 const openMapsUrl = async (
@@ -37,7 +39,11 @@ const openMapsUrl = async (
     logger.warn("Maps app not available", { url: primaryUrl });
     showLinkingAlert("no_maps_app");
   } catch (error) {
-    logger.error("Failed to open maps", { url: primaryUrl, fallbackUrl }, error);
+    logger.error(
+      "Failed to open maps",
+      { url: primaryUrl, fallbackUrl },
+      error,
+    );
     showLinkingAlert("maps_open_failed");
   }
 };
@@ -46,9 +52,7 @@ const openMapsUrl = async (
  * Opens the native phone dialer with the phone number pre-filled
  * @param phoneNumber - The phone number to dial (can include formatting characters)
  */
-export const openPhoneDialer = async (
-  phoneNumber: string,
-): Promise<void> => {
+export const openPhoneDialer = async (phoneNumber: string): Promise<void> => {
   const cleanNumber = normalizePhoneNumber(phoneNumber);
   if (!cleanNumber) {
     logger.warn("Phone number missing for dialer", { phoneNumber });
@@ -136,7 +140,11 @@ export const openEmailComposer = async (email: string): Promise<void> => {
 
     await Linking.openURL(url);
   } catch (error) {
-    logger.error("Failed to open email composer", { email: trimmedEmail }, error);
+    logger.error(
+      "Failed to open email composer",
+      { email: trimmedEmail },
+      error,
+    );
     showLinkingAlert("email_send_failed");
   }
 };
