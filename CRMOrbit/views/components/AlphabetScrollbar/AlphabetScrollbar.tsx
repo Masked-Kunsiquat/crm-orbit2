@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS, useSharedValue } from "react-native-reanimated";
@@ -8,9 +8,8 @@ import type { AlphabetScrollbarProps } from "./types";
 
 export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
   const { colors } = useTheme();
-  const ref = useRef<View | null>(null);
-  const heightRef = useRef(1);
-  const lastIndexValue = useSharedValue(-1);
+  const containerHeight = useSharedValue(1);
+  const lastIndex = useSharedValue(-1);
 
   const handleSelect = useCallback(
     (char: string) => {
@@ -29,8 +28,8 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
           const length = data?.length ?? 0;
           if (!data || length === 0) return;
 
-          const yRel = Math.max(0, Math.min(heightRef.current, e.y));
-          const itemH = heightRef.current / length;
+          const yRel = Math.max(0, Math.min(containerHeight.value, e.y));
+          const itemH = containerHeight.value / length;
           const idx = Math.max(
             0,
             Math.min(length - 1, Math.floor(yRel / itemH)),
@@ -41,7 +40,7 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
             runOnJS(handleSelect)(letter);
           }
         }),
-    [props.data, props.hitSlop, handleSelect],
+    [props.data, props.hitSlop, containerHeight, handleSelect],
   );
 
   const pan = useMemo(
@@ -54,15 +53,15 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
           const length = data?.length ?? 0;
           if (!data || length === 0) return;
 
-          const yRel = Math.max(0, Math.min(heightRef.current, e.y));
-          const itemH = heightRef.current / length;
+          const yRel = Math.max(0, Math.min(containerHeight.value, e.y));
+          const itemH = containerHeight.value / length;
           const idx = Math.max(
             0,
             Math.min(length - 1, Math.floor(yRel / itemH)),
           );
 
-          if (idx !== lastIndexValue.value) {
-            lastIndexValue.value = idx;
+          if (idx !== lastIndex.value) {
+            lastIndex.value = idx;
             const letter = data[idx];
             if (letter) {
               runOnJS(handleSelect)(letter);
@@ -71,9 +70,9 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         })
         .onFinalize(() => {
           "worklet";
-          lastIndexValue.value = -1;
+          lastIndex.value = -1;
         }),
-    [props.data, lastIndexValue, handleSelect],
+    [props.data, containerHeight, lastIndex, handleSelect],
   );
 
   const gesture = useMemo(() => Gesture.Race(tap, pan), [tap, pan]);
@@ -81,10 +80,9 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
   return (
     <GestureDetector gesture={gesture}>
       <View
-        ref={ref}
         style={[styles.container, props.containerStyle]}
         onLayout={(e) => {
-          heightRef.current = e.nativeEvent.layout.height;
+          containerHeight.value = e.nativeEvent.layout.height;
         }}
       >
         {props.data?.map((letter) => (
