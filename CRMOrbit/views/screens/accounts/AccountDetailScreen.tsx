@@ -10,9 +10,9 @@ import { useState, useMemo } from "react";
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
   useAccount,
-  useOrganization,
   useContacts,
   useNotes,
+  useInteractions,
   useTimeline,
   useDoc,
 } from "../../store/store";
@@ -21,10 +21,12 @@ import { useDeviceId } from "../../hooks";
 import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
+  InteractionsSection,
   TimelineSection,
   DetailScreenLayout,
   Section,
   DetailField,
+  DetailTabs,
   SocialLinksSection,
   ContactCardRow,
   PrimaryActionButton,
@@ -36,13 +38,14 @@ import { useTheme } from "../../hooks/useTheme";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
+type AccountTab = "overview" | "details" | "notes" | "activity";
 
 export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params;
   const account = useAccount(accountId);
-  const organization = useOrganization(account?.organizationId ?? "");
   const allContacts = useContacts(accountId);
   const notes = useNotes("account", accountId);
+  const interactions = useInteractions("account", accountId);
   const timeline = useTimeline("account", accountId);
   const doc = useDoc();
   const deviceId = useDeviceId();
@@ -51,6 +54,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
+  const [activeTab, setActiveTab] = useState<AccountTab>("overview");
   const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
     "all",
   );
@@ -113,236 +117,243 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     <DetailScreenLayout>
       <Section>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>
-            {account.name}
-          </Text>
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {account.name}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {account.status === "account.status.active"
+                ? t("status.active")
+                : t("status.inactive")}
+            </Text>
+          </View>
           <PrimaryActionButton
             label={t("common.edit")}
             onPress={handleEdit}
             size="compact"
           />
         </View>
-
-        <DetailField label={t("accounts.fields.organization")}>
-          {organization?.name ?? t("common.unknown")}
-        </DetailField>
-
-        <DetailField label={t("accounts.fields.status")}>
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor:
-                  account.status === "account.status.active"
-                    ? colors.statusActiveBg
-                    : colors.statusInactiveBg,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.statusText,
-                {
-                  color:
-                    account.status === "account.status.active"
-                      ? colors.success
-                      : colors.error,
-                },
-              ]}
-            >
-              {account.status === "account.status.active"
-                ? t("status.active")
-                : t("status.inactive")}
-            </Text>
-          </View>
-        </DetailField>
-
-        {account.addresses?.site && (
-          <DetailField label={t("accounts.fields.siteAddress")}>
-            <View>
-              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                {account.addresses.site.street}
-              </Text>
-              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                {account.addresses.site.city}, {account.addresses.site.state}{" "}
-                {account.addresses.site.zipCode}
-              </Text>
-            </View>
-          </DetailField>
-        )}
-
-        {account.addresses?.parking && !account.addresses.useSameForParking && (
-          <DetailField label={t("accounts.fields.parkingAddress")}>
-            <View>
-              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                {account.addresses.parking.street}
-              </Text>
-              <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                {account.addresses.parking.city},{" "}
-                {account.addresses.parking.state}{" "}
-                {account.addresses.parking.zipCode}
-              </Text>
-            </View>
-          </DetailField>
-        )}
-
-        {account.addresses?.useSameForParking && (
-          <DetailField label={t("accounts.fields.parkingAddress")}>
-            {t("accounts.sameAsSiteAddress")}
-          </DetailField>
-        )}
-
-        {account.website && (
-          <DetailField label={t("accounts.fields.website")}>
-            <TouchableOpacity onPress={() => Linking.openURL(account.website!)}>
-              <Text style={[styles.link, { color: colors.link }]}>
-                {account.website}
-              </Text>
-            </TouchableOpacity>
-          </DetailField>
-        )}
-
-        {account.socialMedia &&
-          Object.values(account.socialMedia).some((v) => v) && (
-            <View style={styles.field}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>
-                {t("accounts.fields.socialMedia")}
-              </Text>
-              <SocialLinksSection
-                socialMedia={account.socialMedia}
-                translationPrefix="accounts"
-              />
-            </View>
-          )}
       </Section>
 
-      <Section>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("accounts.sections.contacts")} ({allContacts.length})
-        </Text>
-
-        <View style={styles.filterButtons}>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              {
-                borderColor: colors.border,
-                backgroundColor:
-                  contactFilter === "all" ? colors.accent : colors.surface,
-              },
-            ]}
-            onPress={() => setContactFilter("all")}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                {
-                  color:
-                    contactFilter === "all"
-                      ? colors.onAccent
-                      : colors.textSecondary,
-                },
-              ]}
-            >
-              {t("accounts.filters.all")} ({allContacts.length})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              {
-                borderColor: colors.border,
-                backgroundColor:
-                  contactFilter === "contact.type.internal"
-                    ? colors.accent
-                    : colors.surface,
-              },
-            ]}
-            onPress={() => setContactFilter("contact.type.internal")}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                {
-                  color:
-                    contactFilter === "contact.type.internal"
-                      ? colors.onAccent
-                      : colors.textSecondary,
-                },
-              ]}
-            >
-              {t("contact.type.internal")} (
-              {
-                allContacts.filter((c) => c.type === "contact.type.internal")
-                  .length
-              }
-              )
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              {
-                borderColor: colors.border,
-                backgroundColor:
-                  contactFilter === "contact.type.external"
-                    ? colors.accent
-                    : colors.surface,
-              },
-            ]}
-            onPress={() => setContactFilter("contact.type.external")}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                {
-                  color:
-                    contactFilter === "contact.type.external"
-                      ? colors.onAccent
-                      : colors.textSecondary,
-                },
-              ]}
-            >
-              {t("contact.type.external")} (
-              {
-                allContacts.filter((c) => c.type === "contact.type.external")
-                  .length
-              }
-              )
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {contacts.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {contactFilter === "all"
-              ? t("accounts.noContacts")
-              : t("accounts.noContactsFiltered").replace(
-                  "{type}",
-                  t(contactFilter as string),
-                )}
-          </Text>
-        ) : (
-          contacts.map((contact) => (
-            <ContactCardRow
-              key={contact.id}
-              contact={contact}
-              onPress={() =>
-                navigation.navigate("ContactDetail", { contactId: contact.id })
-              }
-            />
-          ))
-        )}
-      </Section>
-
-      <NotesSection
-        notes={notes}
-        entityId={accountId}
-        entityType="account"
-        navigation={navigation}
+      <DetailTabs
+        tabs={[
+          { value: "overview", label: t("tabs.overview") },
+          { value: "details", label: t("tabs.details") },
+          { value: "notes", label: t("tabs.notes") },
+          { value: "activity", label: t("tabs.activity") },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
-      <TimelineSection timeline={timeline} doc={doc} />
+      {activeTab === "overview" ? (
+        <Section>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            {t("accounts.sections.contacts")} ({allContacts.length})
+          </Text>
+
+          <View style={styles.filterButtons}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: colors.border,
+                  backgroundColor:
+                    contactFilter === "all" ? colors.accent : colors.surface,
+                },
+              ]}
+              onPress={() => setContactFilter("all")}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  {
+                    color:
+                      contactFilter === "all"
+                        ? colors.onAccent
+                        : colors.textSecondary,
+                  },
+                ]}
+              >
+                {t("accounts.filters.all")} ({allContacts.length})
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: colors.border,
+                  backgroundColor:
+                    contactFilter === "contact.type.internal"
+                      ? colors.accent
+                      : colors.surface,
+                },
+              ]}
+              onPress={() => setContactFilter("contact.type.internal")}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  {
+                    color:
+                      contactFilter === "contact.type.internal"
+                        ? colors.onAccent
+                        : colors.textSecondary,
+                  },
+                ]}
+              >
+                {t("contact.type.internal")} (
+                {
+                  allContacts.filter((c) => c.type === "contact.type.internal")
+                    .length
+                }
+                )
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: colors.border,
+                  backgroundColor:
+                    contactFilter === "contact.type.external"
+                      ? colors.accent
+                      : colors.surface,
+                },
+              ]}
+              onPress={() => setContactFilter("contact.type.external")}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  {
+                    color:
+                      contactFilter === "contact.type.external"
+                        ? colors.onAccent
+                        : colors.textSecondary,
+                  },
+                ]}
+              >
+                {t("contact.type.external")} (
+                {
+                  allContacts.filter((c) => c.type === "contact.type.external")
+                    .length
+                }
+                )
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {contacts.length === 0 ? (
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              {contactFilter === "all"
+                ? t("accounts.noContacts")
+                : t("accounts.noContactsFiltered").replace(
+                    "{type}",
+                    t(contactFilter as string),
+                  )}
+            </Text>
+          ) : (
+            contacts.map((contact) => (
+              <ContactCardRow
+                key={contact.id}
+                contact={contact}
+                onPress={() =>
+                  navigation.navigate("ContactDetail", {
+                    contactId: contact.id,
+                  })
+                }
+              />
+            ))
+          )}
+        </Section>
+      ) : null}
+
+      {activeTab === "details" ? (
+        <Section>
+          {account.website && (
+            <DetailField label={t("accounts.fields.website")}>
+              <TouchableOpacity
+                onPress={() => Linking.openURL(account.website!)}
+              >
+                <Text style={[styles.link, { color: colors.link }]}>
+                  {account.website}
+                </Text>
+              </TouchableOpacity>
+            </DetailField>
+          )}
+
+          {account.addresses?.site && (
+            <DetailField label={t("accounts.fields.siteAddress")}>
+              <View>
+                <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                  {account.addresses.site.street}
+                </Text>
+                <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                  {account.addresses.site.city}, {account.addresses.site.state}{" "}
+                  {account.addresses.site.zipCode}
+                </Text>
+              </View>
+            </DetailField>
+          )}
+
+          {account.addresses?.parking &&
+            !account.addresses.useSameForParking && (
+              <DetailField label={t("accounts.fields.parkingAddress")}>
+                <View>
+                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                    {account.addresses.parking.street}
+                  </Text>
+                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                    {account.addresses.parking.city},{" "}
+                    {account.addresses.parking.state}{" "}
+                    {account.addresses.parking.zipCode}
+                  </Text>
+                </View>
+              </DetailField>
+            )}
+
+          {account.addresses?.useSameForParking && (
+            <DetailField label={t("accounts.fields.parkingAddress")}>
+              {t("accounts.sameAsSiteAddress")}
+            </DetailField>
+          )}
+
+          {account.socialMedia &&
+            Object.values(account.socialMedia).some((v) => v) && (
+              <View style={styles.field}>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>
+                  {t("accounts.fields.socialMedia")}
+                </Text>
+                <SocialLinksSection
+                  socialMedia={account.socialMedia}
+                  translationPrefix="accounts"
+                />
+              </View>
+            )}
+        </Section>
+      ) : null}
+
+      {activeTab === "notes" ? (
+        <>
+          <NotesSection
+            notes={notes}
+            entityId={accountId}
+            entityType="account"
+            navigation={navigation}
+          />
+          <InteractionsSection
+            interactions={interactions}
+            entityId={accountId}
+            entityType="account"
+            navigation={navigation}
+          />
+        </>
+      ) : null}
+
+      {activeTab === "activity" ? (
+        <TimelineSection timeline={timeline} doc={doc} />
+      ) : null}
 
       <DangerActionButton
         label={t("accounts.deleteButton")}
@@ -360,12 +371,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+  },
+  headerText: {
+    flex: 1,
+    marginRight: 12,
   },
   title: {
     fontSize: 24,
     fontWeight: "700",
-    flex: 1,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
   },
   field: {
     marginBottom: 16,
@@ -375,16 +392,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 4,
     textTransform: "uppercase",
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   sectionTitle: {
     fontSize: 16,

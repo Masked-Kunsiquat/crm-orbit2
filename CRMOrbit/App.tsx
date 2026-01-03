@@ -1,4 +1,4 @@
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
@@ -103,8 +103,16 @@ export default function App() {
     );
   }
 
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colors.canvas,
+    },
+  };
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <View style={[styles.container, { backgroundColor: colors.canvas }]}>
         <StatusBar style="auto" />
         <RootStack />
