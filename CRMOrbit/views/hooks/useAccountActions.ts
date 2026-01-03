@@ -79,6 +79,7 @@ export const useAccountActions = (deviceId: string) => {
             status,
             website,
             addresses,
+            socialMedia,
           })
         : undefined;
 

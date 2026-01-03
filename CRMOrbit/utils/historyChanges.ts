@@ -143,6 +143,7 @@ export const detectAccountChanges = (
     status: string;
     website?: string;
     addresses?: AccountAddresses;
+    socialMedia?: SocialMediaLinks;
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -185,6 +186,31 @@ export const detectAccountChanges = (
         newValue: newSite?.street || "",
       });
     }
+  }
+
+  // Check social media changes
+  if (newData.socialMedia) {
+    const oldSocial = oldAccount.socialMedia || {};
+    const newSocial = newData.socialMedia;
+
+    const platforms: Array<keyof SocialMediaLinks> = [
+      "x",
+      "linkedin",
+      "facebook",
+      "instagram",
+    ];
+
+    platforms.forEach((platform) => {
+      const oldValue = oldSocial[platform] || "";
+      const newValue = newSocial[platform] || "";
+      if (oldValue !== newValue) {
+        changes.push({
+          field: platform,
+          oldValue,
+          newValue,
+        });
+      }
+    });
   }
 
   return changes;
