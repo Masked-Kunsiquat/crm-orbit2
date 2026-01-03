@@ -12,7 +12,7 @@ import {
 import { t } from "@i18n/index";
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
-import { useAccountActions } from "../../hooks";
+import { useAccountActions, useDeviceId } from "../../hooks";
 import type {
   Address,
   AccountAddresses,
@@ -30,15 +30,14 @@ import {
 } from "../../components";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = AccountsStackScreenProps<"AccountForm">;
 
 export const AccountFormScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params ?? {};
   const account = useAccount(accountId ?? "");
   const allOrganizations = useOrganizations();
-  const { createAccount, updateAccount } = useAccountActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { createAccount, updateAccount } = useAccountActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showAlert } = useConfirmDialog();
 

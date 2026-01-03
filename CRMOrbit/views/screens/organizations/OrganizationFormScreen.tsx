@@ -5,7 +5,7 @@ import * as ImagePicker from "expo-image-picker";
 import { t } from "@i18n/index";
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization } from "@views/store/store";
-import { useOrganizationActions } from "@views/hooks";
+import { useDeviceId, useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
 import { useTheme } from "@views/hooks/useTheme";
 import {
@@ -18,15 +18,14 @@ import {
 } from "@views/components";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = OrganizationsStackScreenProps<"OrganizationForm">;
 
 export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const { organizationId } = route.params ?? {};
   const organization = useOrganization(organizationId ?? "");
+  const deviceId = useDeviceId();
   const { createOrganization, updateOrganization } =
-    useOrganizationActions(DEVICE_ID);
+    useOrganizationActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showAlert } = useConfirmDialog();
 

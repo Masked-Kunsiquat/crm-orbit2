@@ -34,12 +34,10 @@ import {
   DangerActionButton,
   ConfirmDialog,
 } from "@views/components";
-import { useTheme } from "@views/hooks";
+import { useDeviceId, useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
-
-const DEVICE_ID = "device-local";
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
 
@@ -52,8 +50,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const doc = useDoc();
   const allAccounts = useAccounts();
   const accountContactRelations = useAccountContactRelations();
-  const { deleteContact } = useContactActions(DEVICE_ID);
-  const { linkContact, unlinkContact } = useAccountActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { deleteContact } = useContactActions(deviceId);
+  const { linkContact, unlinkContact } = useAccountActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 

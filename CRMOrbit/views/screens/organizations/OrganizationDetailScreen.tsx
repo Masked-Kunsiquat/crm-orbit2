@@ -17,7 +17,7 @@ import {
   useDoc,
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
-import { useTheme } from "@views/hooks";
+import { useDeviceId, useTheme } from "@views/hooks";
 import {
   NotesSection,
   TimelineSection,
@@ -33,8 +33,6 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 
 export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
@@ -46,7 +44,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const notes = useNotes("organization", organizationId);
   const timeline = useTimeline("organization", organizationId);
   const doc = useDoc();
-  const { deleteOrganization } = useOrganizationActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { deleteOrganization } = useOrganizationActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   if (!organization) {

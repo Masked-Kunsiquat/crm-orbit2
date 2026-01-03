@@ -1,15 +1,14 @@
 import { StyleSheet, Text } from "react-native";
 
 import { PrimaryActionButton, Section } from "@views/components";
-import { useAccountActions } from "@views/hooks";
+import { useAccountActions, useDeviceId } from "@views/hooks";
 import { useAccounts, useOrganizations } from "@views/store/store";
-
-const DEVICE_ID = "device-local";
 
 export const AccountsScreen = () => {
   const organizations = useOrganizations();
   const accounts = useAccounts();
-  const { createAccount } = useAccountActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { createAccount } = useAccountActions(deviceId);
 
   const handleAddAccount = () => {
     const organization = organizations[0];

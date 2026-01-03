@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import { useNote } from "../../store/store";
-import { useNoteActions } from "../../hooks";
+import { useDeviceId, useNoteActions } from "../../hooks";
 import {
   FormField,
   FormScreenLayout,
@@ -15,16 +15,15 @@ import { t } from "@i18n/index";
 import { nextId } from "@domains/shared/idGenerator";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = NotesStackScreenProps<"NoteForm">;
 
 export const NoteFormScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
+  const deviceId = useDeviceId();
   const { noteId, entityToLink } = route.params ?? {};
   const note = useNote(noteId ?? "");
   const { createNote, updateNote, linkNote, deleteNote } =
-    useNoteActions(DEVICE_ID);
+    useNoteActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [title, setTitle] = useState("");

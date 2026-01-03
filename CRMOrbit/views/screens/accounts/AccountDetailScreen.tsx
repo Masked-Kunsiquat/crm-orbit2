@@ -17,6 +17,7 @@ import {
   useDoc,
 } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
+import { useDeviceId } from "../../hooks";
 import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
@@ -34,8 +35,6 @@ import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 
-const DEVICE_ID = "device-local";
-
 type Props = AccountsStackScreenProps<"AccountDetail">;
 
 export const AccountDetailScreen = ({ route, navigation }: Props) => {
@@ -46,7 +45,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const notes = useNotes("account", accountId);
   const timeline = useTimeline("account", accountId);
   const doc = useDoc();
-  const { deleteAccount } = useAccountActions(DEVICE_ID);
+  const deviceId = useDeviceId();
+  const { deleteAccount } = useAccountActions(deviceId);
   const { colors } = useTheme();
 
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
