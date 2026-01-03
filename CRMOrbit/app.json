@@ -4,11 +4,11 @@
     "slug": "CRMOrbit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/crmorbit-fore.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icons/crmorbit-fore.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/crmorbit-fore.png",
+        "monochromeImage": "./assets/icons/crmorbit-mono.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
