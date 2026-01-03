@@ -64,7 +64,7 @@ const applyInteractionUpdated = (
   event: Event,
 ): AutomergeDoc => {
   const payload = event.payload as InteractionUpdatedPayload;
-  const id = event.entityId;
+  const id = resolveEntityId(event, payload);
 
   if (!id) {
     logger.error("Missing entityId in interaction.updated event");
@@ -107,7 +107,7 @@ const applyInteractionDeleted = (
   event: Event,
 ): AutomergeDoc => {
   const payload = event.payload as InteractionDeletedPayload;
-  const id = payload.id;
+  const id = resolveEntityId(event, payload);
 
   logger.debug("Deleting interaction", { id });
 
