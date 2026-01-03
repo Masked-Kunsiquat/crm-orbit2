@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import {
@@ -41,6 +42,11 @@ import { useDeviceId, useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
+import {
+  openPhoneDialer,
+  openSMS,
+  openEmailComposer,
+} from "@domains/linking.utils";
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
 type ContactTab = "overview" | "details" | "notes" | "activity";
@@ -241,10 +247,26 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   key={getMethodKey(email, index)}
                   style={styles.methodItem}
                 >
-                  <Text style={styles.methodValue}>{email.value}</Text>
-                  <Text style={styles.methodMeta}>
-                    {getMethodLabel(email.label)} • {t(email.status)}
-                  </Text>
+                  <View style={styles.methodContent}>
+                    <View style={styles.methodTextContainer}>
+                      <View style={styles.methodValueRow}>
+                        <Text style={styles.methodValue}>{email.value}</Text>
+                        <TouchableOpacity
+                          onPress={() => openEmailComposer(email.value)}
+                          style={styles.actionIcon}
+                        >
+                          <Ionicons
+                            name="mail-outline"
+                            size={20}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={styles.methodMeta}>
+                        {getMethodLabel(email.label)} • {t(email.status)}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               ))
             )}
@@ -262,12 +284,38 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   key={getMethodKey(phone, index)}
                   style={styles.methodItem}
                 >
-                  <Text style={styles.methodValue}>
-                    {formatPhoneNumber(phone.value)}
-                  </Text>
-                  <Text style={styles.methodMeta}>
-                    {getMethodLabel(phone.label)} • {t(phone.status)}
-                  </Text>
+                  <View style={styles.methodContent}>
+                    <View style={styles.methodTextContainer}>
+                      <Text style={styles.methodValue}>
+                        {formatPhoneNumber(phone.value)}
+                      </Text>
+                      <Text style={styles.methodMeta}>
+                        {getMethodLabel(phone.label)} • {t(phone.status)}
+                      </Text>
+                    </View>
+                    <View style={styles.methodActions}>
+                      <TouchableOpacity
+                        onPress={() => openPhoneDialer(phone.value)}
+                        style={styles.actionIcon}
+                      >
+                        <Ionicons
+                          name="call-outline"
+                          size={20}
+                          color={colors.accent}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => openSMS(phone.value)}
+                        style={styles.actionIcon}
+                      >
+                        <MaterialCommunityIcons
+                          name="message-text-outline"
+                          size={20}
+                          color={colors.accent}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
               ))
             )}
@@ -569,5 +617,27 @@ const createStyles = (colors: ColorScheme) =>
       fontSize: 16,
       fontWeight: "600",
       color: colors.textSecondary,
+    },
+    methodContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    methodTextContainer: {
+      flex: 1,
+    },
+    methodValueRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    methodActions: {
+      flexDirection: "row",
+      gap: 12,
+      marginLeft: 12,
+    },
+    actionIcon: {
+      padding: 4,
     },
   });

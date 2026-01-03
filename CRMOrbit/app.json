@@ -28,7 +28,8 @@
     },
     "plugins": [
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "./android-linking-plugin.js"
     ]
   }
 }

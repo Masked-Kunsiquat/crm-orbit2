@@ -1,9 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName } from "@domains/contact.utils";
 import { useTheme } from "../hooks";
 import { ContactTypeBadge } from "./ContactTypeBadge";
+import {
+  openPhoneDialer,
+  openSMS,
+  openEmailComposer,
+} from "@domains/linking.utils";
 
 type ContactCardRowProps = {
   contact: Contact;
@@ -12,6 +18,30 @@ type ContactCardRowProps = {
 
 export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
   const { colors } = useTheme();
+
+  const primaryPhone = contact.methods.phones[0];
+  const primaryEmail = contact.methods.emails[0];
+
+  const handlePhoneCall = (e: any) => {
+    e.stopPropagation();
+    if (primaryPhone) {
+      openPhoneDialer(primaryPhone.value);
+    }
+  };
+
+  const handleSMS = (e: any) => {
+    e.stopPropagation();
+    if (primaryPhone) {
+      openSMS(primaryPhone.value);
+    }
+  };
+
+  const handleEmail = (e: any) => {
+    e.stopPropagation();
+    if (primaryEmail) {
+      openEmailComposer(primaryEmail.value);
+    }
+  };
 
   return (
     <Pressable
@@ -29,6 +59,49 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
         )}
         <ContactTypeBadge type={contact.type} style={styles.contactTypeBadge} />
       </View>
+
+      <View style={styles.actionsContainer}>
+        {primaryPhone && (
+          <>
+            <TouchableOpacity
+              onPress={handlePhoneCall}
+              style={styles.actionButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name="call-outline"
+                size={18}
+                color={colors.accent}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSMS}
+              style={styles.actionButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialCommunityIcons
+                name="message-text-outline"
+                size={18}
+                color={colors.accent}
+              />
+            </TouchableOpacity>
+          </>
+        )}
+        {primaryEmail && (
+          <TouchableOpacity
+            onPress={handleEmail}
+            style={styles.actionButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons
+              name="mail-outline"
+              size={18}
+              color={colors.accent}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
     </Pressable>
   );
@@ -63,5 +136,14 @@ const styles = StyleSheet.create({
   chevron: {
     fontSize: 20,
     marginLeft: 8,
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginLeft: 8,
+  },
+  actionButton: {
+    padding: 4,
   },
 });
