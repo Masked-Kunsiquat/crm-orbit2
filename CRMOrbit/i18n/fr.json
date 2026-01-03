@@ -22,6 +22,8 @@
     "phone_dialer_failed": "Impossible d'ouvrir l'application de téléphone.",
     "sms_app_unavailable": "Aucune application de messagerie n'est disponible sur cet appareil.",
     "sms_open_failed": "Impossible d'ouvrir l'application de messagerie.",
+    "url_invalid": "Saisissez une URL de site web valide.",
+    "url_open_failed": "Impossible d'ouvrir le lien.",
     "no_maps_app": "Aucune application de cartes n'est disponible sur cet appareil.",
     "maps_open_failed": "Impossible d'ouvrir l'application de cartes.",
     "notes.listTitle": "Notes",

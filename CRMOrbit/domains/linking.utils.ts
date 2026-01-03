@@ -5,9 +5,27 @@ import { createLogger } from "../utils/logger";
 const logger = createLogger("Linking");
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const URL_SCHEME_REGEX = /^[a-z][a-z0-9+.-]*:\/\//i;
 
 const normalizePhoneNumber = (phoneNumber: string): string => {
   return phoneNumber.replace(/[^\d+]/g, "");
+};
+
+export const normalizeWebUrl = (value: string): string | null => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (URL_SCHEME_REGEX.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("//")) {
+    return `https:${trimmed}`;
+  }
+
+  return `https://${trimmed}`;
 };
 
 const createLinkingError = (messageKey: string): Error => {
@@ -144,6 +162,33 @@ export const openEmailComposer = async (email: string): Promise<void> => {
       error,
     );
     showLinkingAlert("email_send_failed");
+  }
+};
+
+/**
+ * Opens a web URL, normalizing missing schemes (e.g., example.com -> https://example.com).
+ * @param url - The URL string to open.
+ */
+export const openWebUrl = async (url: string): Promise<void> => {
+  const normalized = normalizeWebUrl(url);
+  if (!normalized) {
+    logger.warn("Invalid URL", { url });
+    showLinkingAlert("url_invalid");
+    return;
+  }
+
+  try {
+    const supported = await Linking.canOpenURL(normalized);
+    if (!supported) {
+      logger.warn("URL not supported", { url: normalized });
+      showLinkingAlert("url_open_failed");
+      return;
+    }
+
+    await Linking.openURL(normalized);
+  } catch (error) {
+    logger.error("Failed to open URL", { url: normalized }, error);
+    showLinkingAlert("url_open_failed");
   }
 };
 

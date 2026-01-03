@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Linking,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
@@ -38,6 +32,7 @@ import {
 } from "@views/components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
+import { openWebUrl } from "@domains/linking.utils";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 type OrganizationTab = "overview" | "details" | "notes" | "activity";
@@ -222,7 +217,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Section>
               <DetailField label={t("organizations.fields.website")}>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL(organization.website!)}
+                  onPress={() => void openWebUrl(organization.website!)}
                 >
                   <Text style={[styles.link, { color: colors.link }]}>
                     {organization.website}

@@ -22,6 +22,8 @@
     "phone_dialer_failed": "No se pudo abrir la app de teléfono.",
     "sms_app_unavailable": "No hay una app de mensajería disponible en este dispositivo.",
     "sms_open_failed": "No se pudo abrir la app de mensajería.",
+    "url_invalid": "Introduce una URL de sitio web válida.",
+    "url_open_failed": "No se pudo abrir el enlace.",
     "no_maps_app": "No hay una app de mapas disponible en este dispositivo.",
     "maps_open_failed": "No se pudo abrir la app de mapas.",
     "notes.listTitle": "Notas",

@@ -22,6 +22,8 @@
     "phone_dialer_failed": "无法打开电话应用。",
     "sms_app_unavailable": "此设备上没有可用的短信应用。",
     "sms_open_failed": "无法打开短信应用。",
+    "url_invalid": "请输入有效的网站 URL。",
+    "url_open_failed": "无法打开链接。",
     "no_maps_app": "此设备上没有可用的地图应用。",
     "maps_open_failed": "无法打开地图应用。",
     "notes.listTitle": "笔记",
