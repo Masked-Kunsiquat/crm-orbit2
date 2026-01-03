@@ -59,6 +59,7 @@
     "notes.form.updateButton": "更新笔记",
     "notes.form.createButton": "创建笔记",
     "organizations.form.saveImageFailed": "无法保存图片。请重试。",
+    "organizations.form.saveImageCreateFailed": "无法保存图片。组织将不包含徽标。",
     "accounts.validation.nameRequired": "需要账户名称",
     "accounts.validation.organizationRequired": "需要组织",
     "accounts.notFound": "未找到账户",

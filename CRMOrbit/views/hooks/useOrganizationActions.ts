@@ -20,8 +20,9 @@ export const useOrganizationActions = (deviceId: string) => {
       logoUri?: string,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      idOverride?: EntityId,
     ): DispatchResult => {
-      const id = nextId("org");
+      const id = idOverride ?? nextId("org");
       const event = buildEvent({
         type: "organization.created",
         entityId: id,

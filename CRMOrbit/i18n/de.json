@@ -59,6 +59,7 @@
     "notes.form.updateButton": "Notiz aktualisieren",
     "notes.form.createButton": "Notiz erstellen",
     "organizations.form.saveImageFailed": "Bild konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "organizations.form.saveImageCreateFailed": "Bild konnte nicht gespeichert werden. Organisation wird ohne Logo erstellt.",
     "accounts.validation.nameRequired": "Kontoname ist erforderlich",
     "accounts.validation.organizationRequired": "Organisation ist erforderlich",
     "accounts.notFound": "Konto nicht gefunden",

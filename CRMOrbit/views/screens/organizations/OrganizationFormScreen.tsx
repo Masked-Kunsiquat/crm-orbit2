@@ -14,6 +14,7 @@ import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization } from "@views/store/store";
 import { useDeviceId, useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
+import { nextId } from "@domains/shared/idGenerator";
 import { useTheme } from "@views/hooks/useTheme";
 import {
   FormField,
@@ -195,18 +196,21 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       }
     } else {
       // For new organizations, persist image first if it's a temp URI
+      const newOrganizationId = nextId("org");
       let finalLogoUri = logoUri;
       if (logoUri && logoUri.startsWith("file://")) {
         setIsProcessingImage(true);
         try {
-          // Generate temp ID for the organization
-          const tempOrgId = `org_${Date.now()}`;
-          finalLogoUri = await persistImage(logoUri, "organization", tempOrgId);
+          finalLogoUri = await persistImage(
+            logoUri,
+            "organization",
+            newOrganizationId,
+          );
         } catch (error) {
           console.error("Failed to persist image:", error);
           showAlert(
             t("common.error"),
-            "Failed to save image. Organization will be created without logo.",
+            t("organizations.form.saveImageCreateFailed"),
             t("common.ok"),
           );
           finalLogoUri = undefined;
@@ -221,6 +225,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         finalLogoUri,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        newOrganizationId,
       );
       if (result.success) {
         navigation.goBack();

@@ -196,6 +196,7 @@
   "organizations.form.logoPermissionTitle": "Permission Required",
   "organizations.form.logoPermissionMessage": "Please grant photo library access to select a logo",
   "organizations.form.saveImageFailed": "Failed to save image. Please try again.",
+  "organizations.form.saveImageCreateFailed": "Failed to save image. Organization will be created without logo.",
   "organizations.form.updateButton": "Update Organization",
   "organizations.form.createButton": "Create Organization",
   "organizations.form.socialMedia.label": "Social Media",

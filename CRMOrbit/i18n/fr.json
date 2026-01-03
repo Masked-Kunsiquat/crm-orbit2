@@ -59,6 +59,7 @@
     "notes.form.updateButton": "Mettre à jour la note",
     "notes.form.createButton": "Créer une note",
     "organizations.form.saveImageFailed": "Impossible d'enregistrer l'image. Veuillez réessayer.",
+    "organizations.form.saveImageCreateFailed": "Impossible d'enregistrer l'image. L'organisation sera créée sans logo.",
     "accounts.validation.nameRequired": "Nom du compte requis",
     "accounts.validation.organizationRequired": "Organisation nécessaire",
     "accounts.notFound": "Compte non trouvé",
