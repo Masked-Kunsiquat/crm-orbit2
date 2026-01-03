@@ -94,10 +94,6 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
           {t("interactions.occurredAt")}:{" "}
           {new Date(interaction.occurredAt).toLocaleString()}
         </Text>
-        <Text style={[styles.date, { color: colors.textMuted }]}>
-          {t("interactions.createdAt")}:{" "}
-          {new Date(interaction.createdAt).toLocaleString()}
-        </Text>
       </Section>
 
       <TimelineSection timeline={timeline} doc={doc} />
