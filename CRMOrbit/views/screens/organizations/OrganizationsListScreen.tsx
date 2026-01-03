@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useLayoutEffect } from "react";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useLayoutEffect, useMemo, useRef } from "react";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganizations } from "@views/store/store";
 import type { Organization } from "@domains/organization";
 import {
+  AlphabetScrollbar,
   HeaderMenu,
   ListCard,
   ListScreenLayout,
@@ -17,6 +18,8 @@ type Props = OrganizationsStackScreenProps<"OrganizationsList">;
 export const OrganizationsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const organizations = useOrganizations();
+  const flatListRef = useRef<FlatList<Organization>>(null);
+
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
     accessibilityLabel: "Organization list options",
   });
@@ -40,6 +43,34 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
       whenHidingInactive: t("organizations.includeInactiveHint"),
     },
   });
+
+  // Alphabet scrollbar data: # for symbols/numbers, then A-Z
+  const alphabetData = useMemo(
+    () => [
+      "#",
+      ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)),
+    ],
+    [],
+  );
+
+  const handleAlphabetSelect = (char: string) => {
+    const index = filteredOrganizations.findIndex((org) => {
+      const firstChar = org.name.charAt(0).toUpperCase();
+      if (char === "#") {
+        // For #, match any non-letter (symbols, numbers)
+        return !/[A-Z]/.test(firstChar);
+      }
+      return firstChar === char;
+    });
+
+    if (index !== -1) {
+      flatListRef.current?.scrollToIndex({
+        index,
+        animated: true,
+        viewPosition: 0,
+      });
+    }
+  };
 
   const handlePress = (org: Organization) => {
     navigation.navigate("OrganizationDetail", { organizationId: org.id });
@@ -78,9 +109,18 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
         data={filteredOrganizations}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        flatListRef={flatListRef}
         emptyTitle={t("organizations.emptyTitle")}
         emptyHint={emptyHint}
         onAdd={handleAdd}
+        rightAccessory={
+          filteredOrganizations.length > 0 ? (
+            <AlphabetScrollbar
+              data={alphabetData}
+              onCharSelect={handleAlphabetSelect}
+            />
+          ) : null
+        }
       />
       <HeaderMenu
         anchorRef={menuAnchorRef}
