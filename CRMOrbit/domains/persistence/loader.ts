@@ -5,7 +5,7 @@ import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
-import { createLogger } from "@utils/logger";
+import { createLogger, silenceLogs, unsilenceLogs } from "@utils/logger";
 
 const logger = createLogger("PersistenceLoader");
 
@@ -87,10 +87,8 @@ export const loadPersistedState = async (
     deviceId: record.deviceId,
   }));
 
-  logger.info(
-    "Event types loaded",
-    events.map((event) => event.type),
-  );
+  // Silence logs during event replay to avoid log spam
+  silenceLogs();
 
   // Start with snapshot or empty doc
   let doc: AutomergeDoc;
@@ -107,6 +105,14 @@ export const loadPersistedState = async (
     // No snapshot, replay all events from empty doc
     doc = events.length > 0 ? applyEvents(EMPTY_DOC, events) : EMPTY_DOC;
   }
+
+  // Re-enable logs after replay
+  unsilenceLogs();
+
+  // Log summary of what was loaded
+  logger.info(
+    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions`,
+  );
 
   return { doc, events };
 };
