@@ -65,16 +65,23 @@ export const LinkEntityToInteractionModal = ({
   ];
 
   const currentEntities = useMemo(() => {
+    let entities: Array<{ id: string; name: string }> = [];
+
     switch (selectedEntityType) {
       case "organization":
-        return organizations.map((org: Organization) => ({
+        entities = organizations.map((org: Organization) => ({
           id: org.id,
           name: org.name,
         }));
+        break;
       case "account":
-        return accounts.map((acc: Account) => ({ id: acc.id, name: acc.name }));
+        entities = accounts.map((acc: Account) => ({
+          id: acc.id,
+          name: acc.name,
+        }));
+        break;
       case "contact":
-        return contacts.map((contact: Contact) => {
+        entities = contacts.map((contact: Contact) => {
           const fullName = `${contact.firstName} ${contact.lastName}`.trim();
           const primaryEmail = contact.methods.emails[0]?.value;
           const displayName =
@@ -84,9 +91,15 @@ export const LinkEntityToInteractionModal = ({
             name: displayName,
           };
         });
+        break;
       default:
         return [];
     }
+
+    // Sort alphabetically by name
+    return entities.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
   }, [selectedEntityType, organizations, accounts, contacts]);
 
   const handleSelectEntityType = useCallback((type: LinkableEntityType) => {

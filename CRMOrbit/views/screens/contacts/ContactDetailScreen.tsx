@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -54,6 +54,13 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const timeline = useTimeline("contact", contactId);
   const doc = useDoc();
   const allAccounts = useAccounts();
+  const sortedAccounts = useMemo(
+    () =>
+      [...allAccounts].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      ),
+    [allAccounts],
+  );
   const accountContactRelations = useAccountContactRelations();
   const deviceId = useDeviceId();
   const { deleteContact } = useContactActions(deviceId);
@@ -360,7 +367,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               {t("contacts.linkedAccounts.modalTitle")}
             </Text>
             <FlatList
-              data={allAccounts}
+              data={sortedAccounts}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => {
                 const isLinked = linkedAccounts.some((a) => a.id === item.id);
