@@ -8,7 +8,7 @@ import {
 import { useLayoutEffect, useCallback } from "react";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
-import { useNote, useEntitiesForNote } from "../../store/store";
+import { useNote, useEntitiesForNote, useTimeline, useDoc } from "../../store/store";
 import { useNoteActions } from "../../hooks/useNoteActions";
 import {
   DetailScreenLayout,
@@ -16,6 +16,7 @@ import {
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  TimelineSection,
 } from "../../components";
 import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
@@ -30,6 +31,8 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   const { noteId } = route.params;
   const note = useNote(noteId);
   const linkedEntities = useEntitiesForNote(noteId);
+  const timeline = useTimeline("note", noteId);
+  const doc = useDoc();
   const { deleteNote, unlinkNote } = useNoteActions(DEVICE_ID);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
@@ -198,6 +201,8 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
           })
         )}
       </Section>
+
+      <TimelineSection timeline={timeline} doc={doc} />
 
       <DangerActionButton
         label={t("notes.deleteButton")}
