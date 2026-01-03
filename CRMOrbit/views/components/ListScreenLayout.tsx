@@ -40,7 +40,11 @@ export const ListScreenLayout = <ItemT,>({
         keyExtractor={keyExtractor}
         ListFooterComponent={listFooterComponent}
         contentContainerStyle={
-          data.length === 0 ? styles.emptyList : styles.list
+          data.length === 0
+            ? styles.emptyList
+            : rightAccessory
+              ? styles.listWithAccessory
+              : styles.list
         }
         ListEmptyComponent={
           <ListEmptyState title={emptyTitle} hint={emptyHint} />
@@ -60,6 +64,10 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
+  },
+  listWithAccessory: {
+    padding: 16,
+    paddingRight: 44,
   },
   emptyList: {
     flex: 1,
