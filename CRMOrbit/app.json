@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "CRMOrbit",
-    "slug": "CRMOrbit",
+    "slug": "crm-orbit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -31,6 +31,12 @@
       "expo-sqlite",
       "@react-native-community/datetimepicker",
       "./android-linking-plugin.js"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d02faca1-6ed6-4dfd-988e-dafcf731376a"
+      }
+    },
+    "owner": "masked-kunsiquat"
   }
 }
