@@ -79,10 +79,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
     return date;
   }, [occurredAt]);
 
-  const handlePickerChange = (
-    event: DateTimePickerEvent,
-    date?: Date,
-  ) => {
+  const handlePickerChange = (event: DateTimePickerEvent, date?: Date) => {
     if (event.type === "dismissed") {
       return;
     }
@@ -103,7 +100,11 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
         }
 
         const nextDate = new Date(currentDate);
-        nextDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+        nextDate.setFullYear(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        );
 
         DateTimePickerAndroid.open({
           mode: "time",

@@ -56,11 +56,7 @@ export const ContactTypeBadge = ({
       ]}
     >
       <Text
-        style={[
-          styles.text,
-          { color: contactType.textColor },
-          textStyle,
-        ]}
+        style={[styles.text, { color: contactType.textColor }, textStyle]}
         numberOfLines={1}
       >
         {contactType.label}
