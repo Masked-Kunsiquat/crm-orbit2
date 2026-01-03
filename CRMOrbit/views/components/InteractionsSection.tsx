@@ -75,7 +75,11 @@ export const InteractionsSection = ({
       confirmVariant: "danger",
       cancelLabel: t("common.cancel"),
       onConfirm: () => {
-        unlinkInteraction(linkId);
+        unlinkInteraction(linkId, {
+          interactionId,
+          entityType,
+          entityId,
+        });
       },
     });
   };

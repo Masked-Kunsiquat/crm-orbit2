@@ -68,7 +68,12 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
     );
   }
 
-  const handleUnlink = (linkId: string, name: string) => {
+  const handleUnlink = (
+    linkId: string,
+    name: string,
+    entityType: (typeof linkedEntities)[number]["entityType"],
+    entityId: string,
+  ) => {
     showDialog({
       title: t("notes.unlinkTitle"),
       message: t("notes.unlinkConfirmation").replace("{name}", name),
@@ -76,7 +81,11 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
       confirmVariant: "danger",
       cancelLabel: t("notes.unlinkCancel"),
       onConfirm: () => {
-        unlinkNote(linkId);
+        unlinkNote(linkId, {
+          noteId,
+          entityType,
+          entityId,
+        });
       },
     });
   };
@@ -192,7 +201,14 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
                     styles.unlinkButton,
                     { backgroundColor: colors.errorBg },
                   ]}
-                  onPress={() => handleUnlink(entity.linkId, displayName)}
+                  onPress={() =>
+                    handleUnlink(
+                      entity.linkId,
+                      displayName,
+                      entity.entityType,
+                      entity.entityId,
+                    )
+                  }
                 >
                   <Text
                     style={[styles.unlinkButtonText, { color: colors.error }]}

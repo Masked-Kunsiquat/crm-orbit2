@@ -34,4 +34,6 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "interaction.linked": entityLinkReducer,
   "interaction.unlinked": entityLinkReducer,
   "interaction.logged": interactionReducer,
+  "interaction.updated": interactionReducer,
+  "interaction.deleted": interactionReducer,
 };

@@ -13,8 +13,14 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 
 import { useInteraction } from "../../store/store";
-import { useDeviceId, useInteractionActions } from "../../hooks";
+import {
+  useDeviceId,
+  useEntityLinkActions,
+  useInteractionActions,
+} from "../../hooks";
 import type { InteractionType } from "../../../domains/interaction";
+import type { EntityLinkType } from "../../../domains/relations/entityLink";
+import { nextId } from "../../../domains/shared/idGenerator";
 import {
   FormField,
   FormScreenLayout,
@@ -34,7 +40,12 @@ const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
 ];
 
 type Props = {
-  route: { params?: { interactionId?: string } };
+  route: {
+    params?: {
+      interactionId?: string;
+      entityToLink?: { entityId: string; entityType: EntityLinkType };
+    };
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 };
@@ -42,10 +53,12 @@ type Props = {
 export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const { interactionId } = route.params ?? {};
+  const { interactionId, entityToLink } = route.params ?? {};
   const interaction = useInteraction(interactionId ?? "");
-  const { logInteraction, updateInteraction } = useInteractionActions(deviceId);
-  const { dialogProps, showAlert } = useConfirmDialog();
+  const { logInteraction, updateInteraction, deleteInteraction } =
+    useInteractionActions(deviceId);
+  const { linkInteraction } = useEntityLinkActions(deviceId);
+  const { dialogProps, showAlert, showDialog } = useConfirmDialog();
 
   const [type, setType] = useState<InteractionType>("interaction.type.call");
   const [summary, setSummary] = useState("");
@@ -157,8 +170,38 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
         );
       }
     } else {
-      const result = logInteraction(type, summary.trim(), occurredAtISO);
+      const newInteractionId = nextId("interaction");
+      const result = logInteraction(
+        type,
+        summary.trim(),
+        occurredAtISO,
+        newInteractionId,
+      );
       if (result.success) {
+        if (entityToLink) {
+          const linkResult = linkInteraction(
+            newInteractionId,
+            entityToLink.entityType,
+            entityToLink.entityId,
+          );
+          if (!linkResult.success) {
+            showDialog({
+              title: t("interactions.linkFailureTitle"),
+              message: t("interactions.linkFailureMessage"),
+              confirmLabel: t("interactions.linkFailureDelete"),
+              confirmVariant: "danger",
+              cancelLabel: t("interactions.linkFailureKeep"),
+              onConfirm: () => {
+                deleteInteraction(newInteractionId);
+                navigation.goBack();
+              },
+              onCancel: () => {
+                navigation.goBack();
+              },
+            });
+            return;
+          }
+        }
         navigation.goBack();
       } else {
         showAlert(

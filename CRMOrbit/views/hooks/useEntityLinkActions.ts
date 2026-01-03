@@ -35,11 +35,18 @@ export const useEntityLinkActions = (deviceId: string) => {
   );
 
   const unlinkNote = useCallback(
-    (linkId: EntityId): DispatchResult => {
+    (
+      linkId: EntityId,
+      payload?: {
+        noteId?: EntityId;
+        entityType?: EntityLinkType;
+        entityId?: EntityId;
+      },
+    ): DispatchResult => {
       const event = buildEvent({
         type: "note.unlinked",
         entityId: linkId,
-        payload: {},
+        payload: payload ?? {},
         deviceId,
       });
 
@@ -73,11 +80,18 @@ export const useEntityLinkActions = (deviceId: string) => {
   );
 
   const unlinkInteraction = useCallback(
-    (linkId: EntityId): DispatchResult => {
+    (
+      linkId: EntityId,
+      payload?: {
+        interactionId?: EntityId;
+        entityType?: EntityLinkType;
+        entityId?: EntityId;
+      },
+    ): DispatchResult => {
       const event = buildEvent({
         type: "interaction.unlinked",
         entityId: linkId,
-        payload: {},
+        payload: payload ?? {},
         deviceId,
       });
 

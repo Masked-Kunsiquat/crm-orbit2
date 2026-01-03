@@ -15,8 +15,9 @@ export const useInteractionActions = (deviceId: string) => {
       type: InteractionType = "interaction.type.call",
       summary: string,
       occurredAt?: string,
+      interactionId?: EntityId,
     ): DispatchResult => {
-      const id = nextId("interaction");
+      const id = interactionId ?? nextId("interaction");
       const event = buildEvent({
         type: "interaction.logged",
         entityId: id,

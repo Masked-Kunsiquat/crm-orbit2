@@ -81,7 +81,11 @@ export const NotesSection = ({
       confirmVariant: "danger",
       cancelLabel: t("notes.unlinkCancel"),
       onConfirm: () => {
-        unlinkNote(linkId);
+        unlinkNote(linkId, {
+          noteId,
+          entityType,
+          entityId,
+        });
       },
     });
   };
