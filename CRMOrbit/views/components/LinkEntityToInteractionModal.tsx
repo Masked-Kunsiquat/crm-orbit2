@@ -74,10 +74,16 @@ export const LinkEntityToInteractionModal = ({
       case "account":
         return accounts.map((acc: Account) => ({ id: acc.id, name: acc.name }));
       case "contact":
-        return contacts.map((contact: Contact) => ({
-          id: contact.id,
-          name: `${contact.firstName} ${contact.lastName}`.trim(),
-        }));
+        return contacts.map((contact: Contact) => {
+          const fullName = `${contact.firstName} ${contact.lastName}`.trim();
+          const primaryEmail = contact.methods.emails[0]?.value;
+          const displayName =
+            fullName || primaryEmail || `Contact ${contact.id}`;
+          return {
+            id: contact.id,
+            name: displayName,
+          };
+        });
       default:
         return [];
     }

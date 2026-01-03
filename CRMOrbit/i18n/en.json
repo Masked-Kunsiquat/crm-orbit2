@@ -1,6 +1,7 @@
 {
   "accounts.title": "Accounts",
   "accounts.linkTitle": "Link to Account",
+  "accounts.sameAsSiteAddress": "Same as site address",
   "accounts.emptyTitle": "No accounts yet.",
   "accounts.emptyHint": "Create your first account to get started.",
   "accounts.includeInactiveHint": "Tap ⋮ to include inactive",
