@@ -45,8 +45,7 @@ export const SegmentedOptionGroup = <T extends string>({
                 isSelected && { color: colors.onAccent },
               ]}
               numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.85}
+              ellipsizeMode="tail"
             >
               {option.label}
             </Text>
