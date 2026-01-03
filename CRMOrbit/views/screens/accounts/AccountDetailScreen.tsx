@@ -296,7 +296,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                     {account.addresses.site.street}
                   </Text>
                   <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                    {account.addresses.site.city}, {account.addresses.site.state}{" "}
+                    {account.addresses.site.city},{" "}
+                    {account.addresses.site.state}{" "}
                     {account.addresses.site.zipCode}
                   </Text>
                 </View>

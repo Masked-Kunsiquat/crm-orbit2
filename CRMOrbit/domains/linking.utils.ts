@@ -51,7 +51,9 @@ export const openMapsWithCoordinates = (
   label?: string,
 ): void => {
   const labelParam = label ? `(${encodeURIComponent(label)})` : "";
-  Linking.openURL(`geo:${latitude},${longitude}?q=${latitude},${longitude}${labelParam}`);
+  Linking.openURL(
+    `geo:${latitude},${longitude}?q=${latitude},${longitude}${labelParam}`,
+  );
 };
 
 /**
