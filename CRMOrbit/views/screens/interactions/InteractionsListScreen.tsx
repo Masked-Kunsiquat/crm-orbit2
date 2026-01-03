@@ -39,13 +39,9 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
   const getInteractionIcon = (type: string) => {
     switch (type) {
       case "interaction.type.email":
-        return (
-          <Ionicons name="mail-outline" size={20} color={colors.accent} />
-        );
+        return <Ionicons name="mail-outline" size={20} color={colors.accent} />;
       case "interaction.type.call":
-        return (
-          <Ionicons name="call-outline" size={20} color={colors.accent} />
-        );
+        return <Ionicons name="call-outline" size={20} color={colors.accent} />;
       case "interaction.type.meeting":
         return (
           <Ionicons
@@ -81,7 +77,9 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
         description={`${formattedDate} at ${formattedTime}`}
         style={styles.listRow}
       >
-        <View style={styles.iconContainer}>{getInteractionIcon(item.type)}</View>
+        <View style={styles.iconContainer}>
+          {getInteractionIcon(item.type)}
+        </View>
       </ListRow>
     );
   };

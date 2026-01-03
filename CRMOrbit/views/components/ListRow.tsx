@@ -88,24 +88,24 @@ export const ListRow = ({
               {description}
             </Text>
           ) : null}
-        {footnote ? (
-          <Text
-            style={[styles.footnote, { color: colors.textMuted }]}
-            numberOfLines={footnoteNumberOfLines}
-          >
-            {footnote}
-          </Text>
+          {footnote ? (
+            <Text
+              style={[styles.footnote, { color: colors.textMuted }]}
+              numberOfLines={footnoteNumberOfLines}
+            >
+              {footnote}
+            </Text>
+          ) : null}
+        </View>
+        {children || showChevron ? (
+          <View style={styles.trailing}>
+            {children}
+            {showChevron ? <ListCardChevron /> : null}
+          </View>
         ) : null}
       </View>
-      {children || showChevron ? (
-        <View style={styles.trailing}>
-          {children}
-          {showChevron ? <ListCardChevron /> : null}
-        </View>
-      ) : null}
-    </View>
-  </ListCard>
-);
+    </ListCard>
+  );
 };
 
 const styles = StyleSheet.create({
