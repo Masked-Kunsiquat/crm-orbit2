@@ -9,7 +9,6 @@ import type {
 } from "../../domains/organization";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
-import { detectOrganizationChanges } from "../../utils/historyChanges";
 
 export const useOrganizationActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -67,17 +66,8 @@ export const useOrganizationActions = (deviceId: string) => {
       logoUri?: string,
       website?: string,
       socialMedia?: SocialMediaLinks,
-      previousOrganization?: Organization,
+      _previousOrganization?: Organization, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
-      const changes = previousOrganization
-        ? detectOrganizationChanges(previousOrganization, {
-            name,
-            status,
-            website,
-            socialMedia,
-          })
-        : undefined;
-
       const event = buildEvent({
         type: "organization.updated",
         entityId: organizationId,
@@ -87,7 +77,6 @@ export const useOrganizationActions = (deviceId: string) => {
           logoUri,
           website,
           socialMedia,
-          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });

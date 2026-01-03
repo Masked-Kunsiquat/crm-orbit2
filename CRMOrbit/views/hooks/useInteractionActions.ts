@@ -6,7 +6,6 @@ import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
-import { detectInteractionChanges } from "../../utils/historyChanges";
 
 export const useInteractionActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -41,16 +40,8 @@ export const useInteractionActions = (deviceId: string) => {
       type: InteractionType,
       summary: string,
       occurredAt: string,
-      previousInteraction?: Interaction,
+      _previousInteraction?: Interaction, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
-      const changes = previousInteraction
-        ? detectInteractionChanges(previousInteraction, {
-            type,
-            summary,
-            occurredAt,
-          })
-        : undefined;
-
       const event = buildEvent({
         type: "interaction.updated",
         entityId: interactionId,
@@ -58,7 +49,6 @@ export const useInteractionActions = (deviceId: string) => {
           type,
           summary,
           occurredAt,
-          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });

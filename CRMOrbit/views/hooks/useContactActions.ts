@@ -6,7 +6,6 @@ import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
-import { detectContactChanges } from "../../utils/historyChanges";
 
 export const useContactActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -102,21 +101,8 @@ export const useContactActions = (deviceId: string) => {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
       } = {},
-      previousContact?: Contact,
+      _previousContact?: Contact, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
-      const changes = previousContact
-        ? detectContactChanges(previousContact, {
-            firstName,
-            lastName,
-            type,
-            title,
-            methods: {
-              emails: methods.emails ?? [],
-              phones: methods.phones ?? [],
-            },
-          })
-        : undefined;
-
       const event = buildEvent({
         type: "contact.updated",
         entityId: contactId,
@@ -129,7 +115,6 @@ export const useContactActions = (deviceId: string) => {
             emails: methods.emails ?? [],
             phones: methods.phones ?? [],
           },
-          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });

@@ -10,7 +10,6 @@ import type {
 } from "../../domains/account";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
-import { detectAccountChanges } from "../../utils/historyChanges";
 
 export const useAccountActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -71,18 +70,8 @@ export const useAccountActions = (deviceId: string) => {
       addresses?: AccountAddresses,
       website?: string,
       socialMedia?: SocialMediaLinks,
-      previousAccount?: Account,
+      _previousAccount?: Account, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
-      const changes = previousAccount
-        ? detectAccountChanges(previousAccount, {
-            name,
-            status,
-            website,
-            addresses,
-            socialMedia,
-          })
-        : undefined;
-
       const event = buildEvent({
         type: "account.updated",
         entityId: accountId,
@@ -93,7 +82,6 @@ export const useAccountActions = (deviceId: string) => {
           addresses,
           website,
           socialMedia,
-          ...(changes && changes.length > 0 && { changes }),
         },
         deviceId,
       });
