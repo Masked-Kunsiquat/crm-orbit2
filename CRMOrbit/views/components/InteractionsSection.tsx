@@ -6,21 +6,23 @@ import {
   View,
   Pressable,
 } from "react-native";
-import type { Note } from "@domains/note";
+
+import type { Interaction } from "@domains/interaction";
 import type { EntityId } from "@domains/shared/types";
 import { t } from "@i18n/index";
+
 import { useDeviceId, useTheme } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { useDoc } from "../store/store";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { LinkNoteModal } from "./LinkNoteModal";
+import { LinkInteractionModal } from "./LinkInteractionModal";
 import { Section } from "./Section";
 
 type EntityType = "account" | "organization" | "contact";
 
-interface NotesSectionProps {
-  notes: Note[];
+interface InteractionsSectionProps {
+  interactions: Interaction[];
   entityId: string;
   entityType: EntityType;
   navigation: {
@@ -28,60 +30,52 @@ interface NotesSectionProps {
   };
 }
 
-export const NotesSection = ({
-  notes,
+export const InteractionsSection = ({
+  interactions,
   entityId,
   entityType,
   navigation,
-}: NotesSectionProps) => {
+}: InteractionsSectionProps) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
   const doc = useDoc();
-  const { unlinkNote } = useEntityLinkActions(deviceId);
+  const { unlinkInteraction } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);
 
-  const existingNoteIds = useMemo(() => notes.map((note) => note.id), [notes]);
-  const linkIdsByNoteId = useMemo(() => {
+  const existingInteractionIds = useMemo(
+    () => interactions.map((interaction) => interaction.id),
+    [interactions],
+  );
+  const linkIdsByInteractionId = useMemo(() => {
     const entries = Object.entries(doc.relations.entityLinks);
     const map = new Map<EntityId, EntityId>();
     for (const [linkId, link] of entries) {
       if (
-        link.linkType === "note" &&
-        link.noteId &&
+        link.linkType === "interaction" &&
+        link.interactionId &&
         link.entityType === entityType &&
         link.entityId === entityId
       ) {
-        map.set(link.noteId, linkId);
+        map.set(link.interactionId, linkId);
       }
     }
     return map;
   }, [doc.relations.entityLinks, entityId, entityType]);
 
-  const getEmptyMessageKey = (): string => {
-    switch (entityType) {
-      case "account":
-        return "notes.emptyAccountNotes";
-      case "organization":
-        return "notes.emptyOrganizationNotes";
-      case "contact":
-        return "notes.emptyContactNotes";
-    }
-  };
-
-  const handleUnlink = (noteId: EntityId, title: string) => {
-    const linkId = linkIdsByNoteId.get(noteId);
+  const handleUnlink = (interactionId: EntityId, summary: string) => {
+    const linkId = linkIdsByInteractionId.get(interactionId);
     if (!linkId) {
       return;
     }
     showDialog({
-      title: t("notes.unlinkTitle"),
-      message: t("notes.unlinkConfirmation").replace("{name}", title),
-      confirmLabel: t("notes.unlinkAction"),
+      title: t("interactions.unlinkTitle"),
+      message: t("interactions.unlinkConfirmation").replace("{name}", summary),
+      confirmLabel: t("interactions.unlinkAction"),
       confirmVariant: "danger",
-      cancelLabel: t("notes.unlinkCancel"),
+      cancelLabel: t("common.cancel"),
       onConfirm: () => {
-        unlinkNote(linkId);
+        unlinkInteraction(linkId);
       },
     });
   };
@@ -90,19 +84,19 @@ export const NotesSection = ({
     <Section>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("notes.title")} ({notes.length})
+          {t("interactions.title")} ({interactions.length})
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.accent }]}
             onPress={() =>
-              navigation.navigate("NoteForm", {
+              navigation.navigate("InteractionForm", {
                 entityToLink: { entityId, entityType },
               })
             }
           >
             <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
-              {t("notes.addButton")}
+              {t("interactions.form.logButton")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -115,60 +109,75 @@ export const NotesSection = ({
             <Text
               style={[styles.linkButtonText, { color: colors.textPrimary }]}
             >
-              {t("notes.linkExisting")}
+              {t("interactions.linkExisting")}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
-      {notes.length === 0 ? (
+      {interactions.length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-          {t(getEmptyMessageKey())}
+          {t("interactions.emptyTitle")}
         </Text>
       ) : (
-        notes.map((note) => (
+        interactions.map((interaction) => (
           <View
-            key={note.id}
+            key={interaction.id}
             style={[
-              styles.noteCard,
+              styles.interactionCard,
               { backgroundColor: colors.surfaceElevated },
             ]}
           >
             <Pressable
-              style={styles.noteCardRow}
+              style={styles.interactionCardRow}
               onPress={() => {
-                navigation.navigate("NoteDetail", { noteId: note.id });
+                navigation.navigate("InteractionDetail", {
+                  interactionId: interaction.id,
+                });
               }}
             >
-              <View style={styles.noteCardContent}>
-                <Text style={[styles.noteTitle, { color: colors.textPrimary }]}>
-                  {note.title}
+              <View style={styles.interactionCardContent}>
+                <Text
+                  style={[
+                    styles.interactionType,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {t(interaction.type)}
                 </Text>
                 <Text
-                  style={[styles.noteBody, { color: colors.textSecondary }]}
+                  style={[
+                    styles.interactionSummary,
+                    { color: colors.textPrimary },
+                  ]}
                   numberOfLines={2}
                 >
-                  {note.body}
+                  {interaction.summary}
+                </Text>
+                <Text
+                  style={[styles.interactionMeta, { color: colors.textMuted }]}
+                >
+                  {new Date(interaction.occurredAt).toLocaleString()}
                 </Text>
               </View>
               <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
             </Pressable>
             <TouchableOpacity
               style={[styles.unlinkButton, { backgroundColor: colors.errorBg }]}
-              onPress={() => handleUnlink(note.id, note.title)}
+              onPress={() => handleUnlink(interaction.id, interaction.summary)}
             >
               <Text style={[styles.unlinkButtonText, { color: colors.error }]}>
-                {t("notes.unlinkButton")}
+                {t("interactions.unlinkButton")}
               </Text>
             </TouchableOpacity>
           </View>
         ))
       )}
-      <LinkNoteModal
+      <LinkInteractionModal
         visible={showLinkModal}
         onClose={() => setShowLinkModal(false)}
         entityType={entityType}
         entityId={entityId}
-        existingNoteIds={existingNoteIds}
+        existingInteractionIds={existingInteractionIds}
       />
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </Section>
@@ -213,26 +222,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: "italic",
   },
-  noteCard: {
+  interactionCard: {
     padding: 12,
     borderRadius: 6,
     marginBottom: 8,
   },
-  noteCardRow: {
+  interactionCardRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  noteCardContent: {
+  interactionCardContent: {
     flex: 1,
   },
-  noteTitle: {
+  interactionType: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  interactionSummary: {
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 4,
   },
-  noteBody: {
-    fontSize: 14,
+  interactionMeta: {
+    fontSize: 12,
   },
   chevron: {
     fontSize: 20,
