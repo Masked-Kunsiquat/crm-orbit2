@@ -116,6 +116,7 @@ const applyInteractionDeleted = (
     throw new Error(`Interaction not found: ${id}`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { [id]: _deleted, ...remainingInteractions } = doc.interactions;
 
   logger.info("Interaction deleted", { id });

@@ -22,6 +22,8 @@ export type RootStackParamList = {
       entityType: NoteLinkEntityType;
     };
   };
+  InteractionDetail: { interactionId: EntityId };
+  InteractionForm: { interactionId?: EntityId };
 };
 
 // Root tab navigator

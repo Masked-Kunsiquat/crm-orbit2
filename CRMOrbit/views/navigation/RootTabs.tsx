@@ -7,7 +7,8 @@ import type { RootTabParamList } from "./types";
 import { OrganizationsStack } from "./OrganizationsStack";
 import { AccountsStack } from "./AccountsStack";
 import { ContactsStack } from "./ContactsStack";
-import { NotesScreen, InteractionsScreen } from "../screens";
+import { NotesStack } from "./NotesStack";
+import { InteractionsStack } from "./InteractionsStack";
 import { useTheme } from "../hooks";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -100,12 +101,12 @@ export const RootTabs = () => {
       />
       <Tab.Screen
         name="NotesTab"
-        component={NotesScreen}
+        component={NotesStack}
         options={{ tabBarLabel: "Notes" }}
       />
       <Tab.Screen
         name="InteractionsTab"
-        component={InteractionsScreen}
+        component={InteractionsStack}
         options={{ tabBarLabel: "Interactions" }}
       />
     </Tab.Navigator>

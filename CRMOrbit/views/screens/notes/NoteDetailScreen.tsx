@@ -8,7 +8,12 @@ import {
 import { useLayoutEffect, useCallback } from "react";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
-import { useNote, useEntitiesForNote, useTimeline, useDoc } from "../../store/store";
+import {
+  useNote,
+  useEntitiesForNote,
+  useTimeline,
+  useDoc,
+} from "../../store/store";
 import { useNoteActions } from "../../hooks/useNoteActions";
 import {
   DetailScreenLayout,
