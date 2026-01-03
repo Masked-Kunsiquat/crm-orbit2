@@ -31,6 +31,6 @@ export const DetailTabs = <T extends string>({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
 });
