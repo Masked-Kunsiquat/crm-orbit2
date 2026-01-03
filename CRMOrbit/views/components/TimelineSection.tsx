@@ -1,11 +1,76 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import type { TimelineItem } from "@views/store/timeline";
 import type { AutomergeDoc } from "@automerge/schema";
 import { EVENT_I18N_KEYS } from "@i18n/events";
 import { t } from "@i18n/index";
+import type { Event } from "@events/event";
+import { resolveEntityId } from "@reducers/shared";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
+import {
+  detectContactChanges,
+  detectAccountChanges,
+  detectOrganizationChanges,
+  detectNoteChanges,
+  detectInteractionChanges,
+  type FieldChange,
+} from "../timeline/changeDetection";
+import type { Contact, ContactMethod } from "@domains/contact";
+import type { Account } from "@domains/account";
+import type { Organization } from "@domains/organization";
+import type { Note } from "@domains/note";
+import type { Interaction } from "@domains/interaction";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const resolveContactMethods = (
+  value: unknown,
+  fallback: Contact["methods"],
+): Contact["methods"] => {
+  if (isRecord(value)) {
+    const emails = value.emails;
+    const phones = value.phones;
+    if (Array.isArray(emails) && Array.isArray(phones)) {
+      return {
+        emails: emails as ContactMethod[],
+        phones: phones as ContactMethod[],
+      };
+    }
+  }
+
+  return fallback;
+};
+
+const isContactType = (value: unknown): value is Contact["type"] =>
+  value === "contact.type.internal" ||
+  value === "contact.type.external" ||
+  value === "contact.type.vendor";
+
+const isAccountStatus = (value: unknown): value is Account["status"] =>
+  value === "account.status.active" || value === "account.status.inactive";
+
+const isOrganizationStatus = (value: unknown): value is Organization["status"] =>
+  value === "organization.status.active" ||
+  value === "organization.status.inactive";
+
+const isInteractionType = (value: unknown): value is Interaction["type"] =>
+  value === "interaction.type.call" ||
+  value === "interaction.type.email" ||
+  value === "interaction.type.meeting" ||
+  value === "interaction.type.other";
+
+const tryResolveEntityId = (
+  event: Event,
+  payload: Record<string, unknown>,
+): string | null => {
+  try {
+    return resolveEntityId(event, payload as { id?: string });
+  } catch {
+    return null;
+  }
+};
 
 interface TimelineSectionProps {
   timeline: TimelineItem[];
@@ -44,6 +109,433 @@ export const TimelineSection = ({
     const parts = [contact.firstName, contact.lastName].filter(Boolean);
     return parts.length > 0 ? parts.join(" ") : t("common.unknown");
   };
+
+  const changesByEventId = useMemo(() => {
+    const changes = new Map<string, FieldChange[]>();
+    const contacts = new Map<string, Contact>();
+    const accounts = new Map<string, Account>();
+    const organizations = new Map<string, Organization>();
+    const notes = new Map<string, Note>();
+    const interactions = new Map<string, Interaction>();
+
+    const buildContactState = (
+      id: string,
+      payload: Record<string, unknown>,
+      timestamp: string,
+      existing?: Contact,
+    ): Contact => ({
+      id,
+      name: typeof payload.name === "string" ? payload.name : existing?.name,
+      firstName:
+        typeof payload.firstName === "string"
+          ? payload.firstName
+          : (existing?.firstName ?? ""),
+      lastName:
+        typeof payload.lastName === "string"
+          ? payload.lastName
+          : (existing?.lastName ?? ""),
+      type:
+        isContactType(payload.type)
+          ? payload.type
+          : (existing?.type ?? "contact.type.internal"),
+      title:
+        typeof payload.title === "string" ? payload.title : existing?.title,
+      methods: resolveContactMethods(
+        payload.methods,
+        existing?.methods ?? { emails: [], phones: [] },
+      ),
+      createdAt: existing?.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+
+    const buildAccountState = (
+      id: string,
+      payload: Record<string, unknown>,
+      timestamp: string,
+      existing?: Account,
+    ): Account => ({
+      id,
+      organizationId:
+        typeof payload.organizationId === "string"
+          ? payload.organizationId
+          : (existing?.organizationId ?? ""),
+      name:
+        typeof payload.name === "string"
+          ? payload.name
+          : (existing?.name ?? ""),
+      status:
+        isAccountStatus(payload.status)
+          ? payload.status
+          : (existing?.status ?? "account.status.active"),
+      addresses:
+        payload.addresses !== undefined
+          ? (payload.addresses as Account["addresses"])
+          : existing?.addresses,
+      website:
+        typeof payload.website === "string"
+          ? payload.website
+          : existing?.website,
+      socialMedia:
+        payload.socialMedia !== undefined
+          ? (payload.socialMedia as Account["socialMedia"])
+          : existing?.socialMedia,
+      metadata:
+        payload.metadata !== undefined
+          ? (payload.metadata as Record<string, unknown>)
+          : existing?.metadata,
+      createdAt: existing?.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+
+    const buildOrganizationState = (
+      id: string,
+      payload: Record<string, unknown>,
+      timestamp: string,
+      existing?: Organization,
+    ): Organization => ({
+      id,
+      name:
+        typeof payload.name === "string"
+          ? payload.name
+          : (existing?.name ?? ""),
+      status:
+        isOrganizationStatus(payload.status)
+          ? payload.status
+          : (existing?.status ?? "organization.status.active"),
+      logoUri:
+        typeof payload.logoUri === "string"
+          ? payload.logoUri
+          : existing?.logoUri,
+      website:
+        typeof payload.website === "string"
+          ? payload.website
+          : existing?.website,
+      socialMedia:
+        payload.socialMedia !== undefined
+          ? (payload.socialMedia as Organization["socialMedia"])
+          : existing?.socialMedia,
+      metadata:
+        payload.metadata !== undefined
+          ? (payload.metadata as Record<string, unknown>)
+          : existing?.metadata,
+      createdAt: existing?.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+
+    const buildNoteState = (
+      id: string,
+      payload: Record<string, unknown>,
+      timestamp: string,
+      existing?: Note,
+    ): Note => ({
+      id,
+      title:
+        typeof payload.title === "string"
+          ? payload.title
+          : (existing?.title ?? ""),
+      body:
+        typeof payload.body === "string"
+          ? payload.body
+          : (existing?.body ?? ""),
+      createdAt:
+        typeof payload.createdAt === "string"
+          ? payload.createdAt
+          : (existing?.createdAt ?? timestamp),
+      updatedAt: timestamp,
+    });
+
+    const buildInteractionState = (
+      id: string,
+      payload: Record<string, unknown>,
+      timestamp: string,
+      existing?: Interaction,
+    ): Interaction => ({
+      id,
+      type:
+        isInteractionType(payload.type)
+          ? payload.type
+          : (existing?.type ?? "interaction.type.call"),
+      occurredAt:
+        typeof payload.occurredAt === "string"
+          ? payload.occurredAt
+          : (existing?.occurredAt ?? timestamp),
+      summary:
+        typeof payload.summary === "string"
+          ? payload.summary
+          : (existing?.summary ?? ""),
+      createdAt: existing?.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+
+    for (const item of timeline) {
+      if (item.kind !== "event") continue;
+
+      const event = item.event;
+      const payload = isRecord(event.payload) ? event.payload : {};
+
+      switch (event.type) {
+        case "contact.created": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          contacts.set(id, buildContactState(id, payload, event.timestamp));
+          break;
+        }
+        case "contact.method.added": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = id ? contacts.get(id) : undefined;
+          const methodType = payload.methodType;
+          const method = payload.method as ContactMethod | undefined;
+          if (
+            !existing ||
+            (methodType !== "emails" && methodType !== "phones") ||
+            !method
+          ) {
+            break;
+          }
+          contacts.set(id, {
+            ...existing,
+            methods: {
+              ...existing.methods,
+              [methodType]: [...existing.methods[methodType], method],
+            },
+            updatedAt: event.timestamp,
+          });
+          break;
+        }
+        case "contact.method.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = id ? contacts.get(id) : undefined;
+          const methodType = payload.methodType;
+          const method = payload.method as ContactMethod | undefined;
+          const index =
+            typeof payload.index === "number" ? payload.index : undefined;
+          if (
+            !existing ||
+            (methodType !== "emails" && methodType !== "phones") ||
+            !method ||
+            index === undefined ||
+            index < 0 ||
+            index >= existing.methods[methodType].length
+          ) {
+            break;
+          }
+          const nextMethods = [...existing.methods[methodType]];
+          nextMethods[index] = method;
+          contacts.set(id, {
+            ...existing,
+            methods: {
+              ...existing.methods,
+              [methodType]: nextMethods,
+            },
+            updatedAt: event.timestamp,
+          });
+          break;
+        }
+        case "contact.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = contacts.get(id);
+          const next = buildContactState(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
+          if (existing) {
+            const diff = detectContactChanges(existing, {
+              firstName: next.firstName,
+              lastName: next.lastName,
+              type: next.type,
+              title: next.title,
+              methods: next.methods,
+            });
+            if (diff.length > 0) {
+              changes.set(event.id, diff);
+            }
+          }
+          contacts.set(id, next);
+          break;
+        }
+        case "contact.deleted": {
+          const id = tryResolveEntityId(event, payload);
+          if (id) contacts.delete(id);
+          break;
+        }
+        case "account.created": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          accounts.set(id, buildAccountState(id, payload, event.timestamp));
+          break;
+        }
+        case "account.status.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = id ? accounts.get(id) : undefined;
+          if (!existing || !isAccountStatus(payload.status)) break;
+          accounts.set(id, {
+            ...existing,
+            status: payload.status,
+            updatedAt: event.timestamp,
+          });
+          break;
+        }
+        case "account.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = accounts.get(id);
+          const next = buildAccountState(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
+          if (existing) {
+            const diff = detectAccountChanges(existing, {
+              name: next.name,
+              status: next.status,
+              website: next.website,
+              addresses: next.addresses,
+              socialMedia: next.socialMedia,
+            });
+            if (diff.length > 0) {
+              changes.set(event.id, diff);
+            }
+          }
+          accounts.set(id, next);
+          break;
+        }
+        case "account.deleted": {
+          const id = tryResolveEntityId(event, payload);
+          if (id) accounts.delete(id);
+          break;
+        }
+        case "organization.created": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          organizations.set(
+            id,
+            buildOrganizationState(id, payload, event.timestamp),
+          );
+          break;
+        }
+        case "organization.status.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = id ? organizations.get(id) : undefined;
+          if (!existing || !isOrganizationStatus(payload.status)) break;
+          organizations.set(id, {
+            ...existing,
+            status: payload.status,
+            updatedAt: event.timestamp,
+          });
+          break;
+        }
+        case "organization.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = organizations.get(id);
+          const next = buildOrganizationState(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
+          if (existing) {
+            const diff = detectOrganizationChanges(existing, {
+              name: next.name,
+              status: next.status,
+              website: next.website,
+              socialMedia: next.socialMedia,
+            });
+            if (diff.length > 0) {
+              changes.set(event.id, diff);
+            }
+          }
+          organizations.set(id, next);
+          break;
+        }
+        case "organization.deleted": {
+          const id = tryResolveEntityId(event, payload);
+          if (id) organizations.delete(id);
+          break;
+        }
+        case "note.created": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          notes.set(id, buildNoteState(id, payload, event.timestamp));
+          break;
+        }
+        case "note.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = notes.get(id);
+          const next = buildNoteState(id, payload, event.timestamp, existing);
+          if (existing) {
+            const diff = detectNoteChanges(existing, {
+              title: next.title,
+              body: next.body,
+            });
+            if (diff.length > 0) {
+              changes.set(event.id, diff);
+            }
+          }
+          notes.set(id, next);
+          break;
+        }
+        case "note.deleted": {
+          const id = tryResolveEntityId(event, payload);
+          if (id) notes.delete(id);
+          break;
+        }
+        case "interaction.logged": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          interactions.set(
+            id,
+            buildInteractionState(id, payload, event.timestamp),
+          );
+          break;
+        }
+        case "interaction.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = interactions.get(id);
+          const next = buildInteractionState(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
+          if (existing) {
+            const diff = detectInteractionChanges(existing, {
+              type: next.type,
+              summary: next.summary,
+              occurredAt: next.occurredAt,
+            });
+            if (diff.length > 0) {
+              changes.set(event.id, diff);
+            }
+          }
+          interactions.set(id, next);
+          break;
+        }
+        case "interaction.deleted": {
+          const id = tryResolveEntityId(event, payload);
+          if (id) interactions.delete(id);
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
+    return changes;
+  }, [timeline]);
+
+  const getChangesForItem = (item: TimelineItem): FieldChange[] | undefined =>
+    item.kind === "event" ? changesByEventId.get(item.event.id) : undefined;
 
   const getEventContext = (item: TimelineItem): string | null => {
     if (item.kind !== "event") return null;
@@ -224,12 +716,9 @@ export const TimelineSection = ({
       const i18nKey = EVENT_I18N_KEYS[item.event.type];
       let eventLabel = i18nKey ? t(i18nKey) : item.event.type;
       const context = getEventContext(item);
-      const payload = item.event.payload as Record<string, unknown>;
 
-      // Check for field changes array in update events
-      const changes = payload?.changes as
-        | Array<{ field: string; oldValue: string; newValue: string }>
-        | undefined;
+      // Compute field changes at render time for update events
+      const changes = getChangesForItem(item);
 
       // If this is an update event with changes, enhance the label with field names
       if (
@@ -237,7 +726,9 @@ export const TimelineSection = ({
         changes.length > 0 &&
         (item.event.type === "contact.updated" ||
           item.event.type === "account.updated" ||
-          item.event.type === "organization.updated")
+          item.event.type === "organization.updated" ||
+          item.event.type === "note.updated" ||
+          item.event.type === "interaction.updated")
       ) {
         const capitalizeField = (field: string) => {
           // Handle camelCase fields
