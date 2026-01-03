@@ -8,10 +8,14 @@ import {
   initializeDatabase,
   createPersistenceDb,
 } from "./domains/persistence/database";
+import { loadLatestDeviceId } from "./domains/persistence/deviceId";
 import { loadPersistedState } from "./domains/persistence/loader";
+import { appendEvents } from "./domains/persistence/store";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
-import { useTheme } from "./views/hooks";
+import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
+import { nextId } from "./domains/shared/idGenerator";
+import { buildEvent } from "./events/dispatcher";
 
 registerCoreReducers();
 
@@ -31,11 +35,33 @@ export default function App() {
     const loadData = async () => {
       try {
         // Initialize database
-        const db = await initializeDatabase();
-        const persistenceDb = createPersistenceDb(db);
+        const persistenceDb = await initializeDatabase();
+        const storeDb = createPersistenceDb(persistenceDb);
+
+        const envDeviceId = getDeviceIdFromEnv();
+        if (envDeviceId) {
+          setDeviceId(envDeviceId);
+        } else {
+          const resolvedDeviceId = await loadLatestDeviceId(persistenceDb);
+          if (resolvedDeviceId) {
+            setDeviceId(resolvedDeviceId);
+          } else {
+            const generatedId = nextId("device");
+            setDeviceId(generatedId);
+            const deviceEvent = buildEvent({
+              type: "device.registered",
+              entityId: generatedId,
+              payload: {
+                deviceId: generatedId,
+              },
+              deviceId: generatedId,
+            });
+            await appendEvents(storeDb, [deviceEvent]);
+          }
+        }
 
         // Load persisted state
-        const { doc, events } = await loadPersistedState(persistenceDb);
+        const { doc, events } = await loadPersistedState(storeDb);
 
         // Update store with loaded data
         const store = __internal_getCrmStore();

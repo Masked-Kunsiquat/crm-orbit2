@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,6 +13,7 @@ import {
   useOrganization,
   useAccountsByOrganization,
   useContactsByOrganization,
+  useInteractions,
   useNotes,
   useTimeline,
   useDoc,
@@ -20,20 +22,24 @@ import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useDeviceId, useTheme } from "@views/hooks";
 import {
   NotesSection,
+  InteractionsSection,
   TimelineSection,
   DetailScreenLayout,
   Section,
   DetailField,
+  DetailTabs,
   SocialLinksSection,
   ContactCardRow,
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  StatusBadge,
 } from "@views/components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
+type OrganizationTab = "overview" | "details" | "notes" | "activity";
 
 export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
@@ -42,11 +48,13 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const accounts = useAccountsByOrganization(organizationId);
   const contacts = useContactsByOrganization(organizationId);
   const notes = useNotes("organization", organizationId);
+  const interactions = useInteractions("organization", organizationId);
   const timeline = useTimeline("organization", organizationId);
   const doc = useDoc();
   const deviceId = useDeviceId();
   const { deleteOrganization } = useOrganizationActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const [activeTab, setActiveTab] = useState<OrganizationTab>("overview");
 
   if (!organization) {
     return (
@@ -101,142 +109,161 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   return (
     <DetailScreenLayout>
       <Section>
-        {organization.logoUri && (
+        {organization.logoUri ? (
           <View style={styles.logoContainer}>
             <Image source={{ uri: organization.logoUri }} style={styles.logo} />
           </View>
-        )}
-        <DetailField label={t("organizations.fields.name")}>
-          {organization.name}
-        </DetailField>
-      </Section>
-
-      <Section>
-        <DetailField label={t("organizations.fields.status")}>
-          <View
-            style={[
-              styles.statusBadge,
-              organization.status === "organization.status.active"
-                ? { backgroundColor: colors.successBg }
-                : { backgroundColor: colors.errorBg },
-            ]}
-          >
-            <Text style={[styles.statusText, { color: colors.textPrimary }]}>
-              {organization.status === "organization.status.active"
-                ? t("status.active")
-                : t("status.inactive")}
+        ) : null}
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {organization.name}
             </Text>
-          </View>
-        </DetailField>
-      </Section>
-
-      {organization.website && (
-        <Section>
-          <DetailField label={t("organizations.fields.website")}>
-            <TouchableOpacity
-              onPress={() => Linking.openURL(organization.website!)}
-            >
-              <Text style={[styles.link, { color: colors.link }]}>
-                {organization.website}
-              </Text>
-            </TouchableOpacity>
-          </DetailField>
-        </Section>
-      )}
-
-      {organization.socialMedia &&
-        Object.values(organization.socialMedia).some((v) => v) && (
-          <Section>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              {t("organizations.fields.socialMedia")}
-            </Text>
-            <SocialLinksSection
-              socialMedia={organization.socialMedia}
-              translationPrefix="organizations"
-            />
-          </Section>
-        )}
-
-      <Section>
-        <DetailField label={t("organizations.fields.created")}>
-          {new Date(organization.createdAt).toLocaleString()}
-        </DetailField>
-      </Section>
-
-      <Section>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("organizations.sections.accounts")} ({accounts.length})
-        </Text>
-        {accounts.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {t("organizations.noAccounts")}
-          </Text>
-        ) : (
-          accounts.map((account) => (
-            <View
-              key={account.id}
-              style={[
-                styles.relatedItem,
-                { borderTopColor: colors.borderLight },
-              ]}
-            >
-              <View
-                style={[
-                  styles.statusIndicator,
-                  account.status === "account.status.active"
-                    ? { backgroundColor: colors.success }
-                    : { backgroundColor: colors.error },
-                ]}
+            <View style={styles.statusRow}>
+              <StatusBadge
+                isActive={organization.status === "organization.status.active"}
+                activeLabelKey="status.active"
+                inactiveLabelKey="status.inactive"
               />
-              <Text style={[styles.relatedName, { color: colors.textPrimary }]}>
-                {account.name}
-              </Text>
             </View>
-          ))
-        )}
+          </View>
+          <PrimaryActionButton
+            label={t("common.edit")}
+            onPress={handleEdit}
+            size="compact"
+          />
+        </View>
       </Section>
 
-      <Section>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("organizations.sections.contacts")} ({contacts.length})
-        </Text>
-        {contacts.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {t("organizations.noContacts")}
-          </Text>
-        ) : (
-          contacts.map((contact) => (
-            <ContactCardRow
-              key={contact.id}
-              contact={contact}
-              onPress={() =>
-                navigation.navigate("ContactDetail", { contactId: contact.id })
-              }
-            />
-          ))
-        )}
-      </Section>
-
-      <NotesSection
-        notes={notes}
-        entityId={organizationId}
-        entityType="organization"
-        navigation={navigation}
+      <DetailTabs
+        tabs={[
+          { value: "overview", label: t("tabs.overview") },
+          { value: "details", label: t("tabs.details") },
+          { value: "notes", label: t("tabs.notes") },
+          { value: "activity", label: t("tabs.activity") },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
-      <TimelineSection timeline={timeline} doc={doc} />
+      {activeTab === "overview" ? (
+        <>
+          <Section>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              {t("organizations.sections.contacts")} ({contacts.length})
+            </Text>
+            {contacts.length === 0 ? (
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                {t("organizations.noContacts")}
+              </Text>
+            ) : (
+              contacts.map((contact) => (
+                <ContactCardRow
+                  key={contact.id}
+                  contact={contact}
+                  onPress={() =>
+                    navigation.navigate("ContactDetail", {
+                      contactId: contact.id,
+                    })
+                  }
+                />
+              ))
+            )}
+          </Section>
 
-      <PrimaryActionButton
-        label={t("organizations.editButton")}
-        onPress={handleEdit}
-        size="block"
-      />
+          <Section>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              {t("organizations.sections.accounts")} ({accounts.length})
+            </Text>
+            {accounts.length === 0 ? (
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                {t("organizations.noAccounts")}
+              </Text>
+            ) : (
+              accounts.map((account) => (
+                <View
+                  key={account.id}
+                  style={[
+                    styles.relatedItem,
+                    { borderTopColor: colors.borderLight },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.statusIndicator,
+                      account.status === "account.status.active"
+                        ? { backgroundColor: colors.success }
+                        : { backgroundColor: colors.error },
+                    ]}
+                  />
+                  <Text
+                    style={[styles.relatedName, { color: colors.textPrimary }]}
+                  >
+                    {account.name}
+                  </Text>
+                </View>
+              ))
+            )}
+          </Section>
+        </>
+      ) : null}
+
+      {activeTab === "details" ? (
+        <>
+          {organization.website ? (
+            <Section>
+              <DetailField label={t("organizations.fields.website")}>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(organization.website!)}
+                >
+                  <Text style={[styles.link, { color: colors.link }]}>
+                    {organization.website}
+                  </Text>
+                </TouchableOpacity>
+              </DetailField>
+            </Section>
+          ) : null}
+
+          {organization.socialMedia &&
+          Object.values(organization.socialMedia).some((v) => v) ? (
+            <Section>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                {t("organizations.fields.socialMedia")}
+              </Text>
+              <SocialLinksSection
+                socialMedia={organization.socialMedia}
+                translationPrefix="organizations"
+              />
+            </Section>
+          ) : null}
+        </>
+      ) : null}
+
+      {activeTab === "notes" ? (
+        <>
+          <NotesSection
+            notes={notes}
+            entityId={organizationId}
+            entityType="organization"
+            navigation={navigation}
+          />
+          <InteractionsSection
+            interactions={interactions}
+            entityId={organizationId}
+            entityType="organization"
+            navigation={navigation}
+          />
+        </>
+      ) : null}
+
+      {activeTab === "activity" ? (
+        <TimelineSection timeline={timeline} doc={doc} />
+      ) : null}
 
       <DangerActionButton
         label={t("organizations.deleteButton")}
         onPress={handleDelete}
         size="block"
-        stacked
       />
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
@@ -245,6 +272,23 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerText: {
+    flex: 1,
+    marginRight: 12,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  statusRow: {
+    alignSelf: "flex-start",
+  },
   label: {
     fontSize: 12,
     marginBottom: 4,
@@ -263,16 +307,6 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 16,
     textDecorationLine: "underline",
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   sectionTitle: {
     fontSize: 16,

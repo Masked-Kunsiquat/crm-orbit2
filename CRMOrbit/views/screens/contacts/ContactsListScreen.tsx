@@ -4,8 +4,13 @@ import { useLayoutEffect, useMemo } from "react";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
-import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
-import { HeaderMenu, ListRow, ListScreenLayout } from "@views/components";
+import { getContactDisplayName } from "@domains/contact.utils";
+import {
+  ContactTypeBadge,
+  HeaderMenu,
+  ListRow,
+  ListScreenLayout,
+} from "@views/components";
 import { useHeaderMenu, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 
@@ -44,16 +49,15 @@ export const ContactsListScreen = ({ navigation }: Props) => {
   }, [navigation, headerRight]);
 
   const renderItem = ({ item }: { item: Contact }) => {
-    const primaryEmail = getPrimaryEmail(item);
     return (
       <ListRow
         onPress={() => handlePress(item)}
         title={getContactDisplayName(item)}
         subtitle={item.title}
         subtitleItalic={Boolean(item.title)}
-        description={primaryEmail}
-        footnote={t(item.type)}
-        showChevron
+        titleAccessory={
+          <ContactTypeBadge type={item.type} style={styles.typeBadge} />
+        }
       />
     );
   };
@@ -94,5 +98,8 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 14,
+  },
+  typeBadge: {
+    alignSelf: "center",
   },
 });

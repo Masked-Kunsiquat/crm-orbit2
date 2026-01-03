@@ -87,11 +87,18 @@ export const useNoteActions = (deviceId: string) => {
   );
 
   const unlinkNote = useCallback(
-    (linkId: EntityId): DispatchResult => {
+    (
+      linkId: EntityId,
+      payload?: {
+        noteId?: EntityId;
+        entityType?: EntityLinkType;
+        entityId?: EntityId;
+      },
+    ): DispatchResult => {
       const event = buildEvent({
         type: "note.unlinked",
         entityId: linkId,
-        payload: {},
+        payload: payload ?? {},
         deviceId,
       });
 

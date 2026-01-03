@@ -14,6 +14,7 @@ import {
   useAccountsByContact,
   useAccounts,
   useAccountContactRelations,
+  useInteractions,
   useNotes,
   useTimeline,
   useDoc,
@@ -26,10 +27,12 @@ import {
 } from "@domains/contact.utils";
 import {
   NotesSection,
+  InteractionsSection,
   TimelineSection,
   DetailScreenLayout,
   Section,
-  DetailField,
+  DetailTabs,
+  ContactTypeBadge,
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
@@ -40,12 +43,14 @@ import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
+type ContactTab = "overview" | "details" | "notes" | "activity";
 
 export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params;
   const contact = useContact(contactId);
   const linkedAccounts = useAccountsByContact(contactId);
   const notes = useNotes("contact", contactId);
+  const interactions = useInteractions("contact", contactId);
   const timeline = useTimeline("contact", contactId);
   const doc = useDoc();
   const allAccounts = useAccounts();
@@ -57,6 +62,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<ContactTab>("overview");
 
   const styles = createStyles(colors);
 
@@ -169,10 +175,6 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
-  const getContactTypeLabel = (type: string) => {
-    return t(type);
-  };
-
   const getMethodLabel = (label: string) => {
     return t(label);
   };
@@ -193,113 +195,152 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             size="compact"
           />
         </View>
-
-        {contact.title && (
-          <DetailField label={t("contacts.fields.title")}>
-            {contact.title}
-          </DetailField>
-        )}
-
-        <DetailField label={t("contacts.fields.type")}>
-          {getContactTypeLabel(contact.type)}
-        </DetailField>
-      </Section>
-
-      <Section>
-        <Text style={styles.sectionTitle}>
-          {t("contacts.sections.emails")} ({contact.methods.emails.length})
-        </Text>
-        {contact.methods.emails.length === 0 ? (
-          <Text style={styles.emptyText}>{t("contacts.emptyEmails")}</Text>
-        ) : (
-          contact.methods.emails.map((email, index) => (
-            <View key={getMethodKey(email, index)} style={styles.methodItem}>
-              <Text style={styles.methodValue}>{email.value}</Text>
-              <Text style={styles.methodMeta}>
-                {getMethodLabel(email.label)} • {t(email.status)}
-              </Text>
-            </View>
-          ))
-        )}
-      </Section>
-
-      <Section>
-        <Text style={styles.sectionTitle}>
-          {t("contacts.sections.phones")} ({contact.methods.phones.length})
-        </Text>
-        {contact.methods.phones.length === 0 ? (
-          <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
-        ) : (
-          contact.methods.phones.map((phone, index) => (
-            <View key={getMethodKey(phone, index)} style={styles.methodItem}>
-              <Text style={styles.methodValue}>
-                {formatPhoneNumber(phone.value)}
-              </Text>
-              <Text style={styles.methodMeta}>
-                {getMethodLabel(phone.label)} • {t(phone.status)}
-              </Text>
-            </View>
-          ))
-        )}
-      </Section>
-
-      <Section>
-        <View style={styles.fieldHeader}>
-          <Text style={styles.sectionTitle}>
-            {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
-          </Text>
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => setShowLinkModal(true)}
-          >
-            <Text style={styles.linkButtonText}>
-              {t("contacts.linkedAccounts.linkButton")}
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.metaRow}>
+          {contact.title ? (
+            <Text style={styles.subtitle}>{contact.title}</Text>
+          ) : null}
+          <ContactTypeBadge
+            type={contact.type}
+            style={[
+              styles.typeBadge,
+              contact.title ? styles.typeBadgeWithTitle : null,
+            ]}
+          />
         </View>
-        {linkedAccounts.length === 0 ? (
-          <Text style={styles.emptyText}>
-            {t("contacts.linkedAccounts.empty")}
-          </Text>
-        ) : (
-          linkedAccounts.map((account) => {
-            const relation = Object.values(accountContactRelations).find(
-              (r) => r.accountId === account.id && r.contactId === contactId,
-            );
-            return (
-              <View key={account.id} style={styles.accountItem}>
-                <View style={styles.accountInfo}>
-                  <Text style={styles.accountName}>{account.name}</Text>
-                  {relation?.isPrimary && (
-                    <View style={styles.primaryBadge}>
-                      <Text style={styles.primaryText}>
-                        {t("contacts.linkedAccounts.primaryBadge")}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={styles.unlinkButton}
-                  onPress={() => handleUnlinkAccount(account.id, account.name)}
-                >
-                  <Text style={styles.unlinkButtonText}>
-                    {t("contacts.unlinkAction")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })
-        )}
       </Section>
 
-      <NotesSection
-        notes={notes}
-        entityId={contactId}
-        entityType="contact"
-        navigation={navigation}
+      <DetailTabs
+        tabs={[
+          { value: "overview", label: t("tabs.overview") },
+          { value: "details", label: t("tabs.details") },
+          { value: "notes", label: t("tabs.notes") },
+          { value: "activity", label: t("tabs.activity") },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
-      <TimelineSection timeline={timeline} doc={doc} />
+      {activeTab === "overview" ? (
+        <>
+          <Section>
+            <Text style={styles.sectionTitle}>
+              {t("contacts.sections.emails")} ({contact.methods.emails.length})
+            </Text>
+            {contact.methods.emails.length === 0 ? (
+              <Text style={styles.emptyText}>{t("contacts.emptyEmails")}</Text>
+            ) : (
+              contact.methods.emails.map((email, index) => (
+                <View
+                  key={getMethodKey(email, index)}
+                  style={styles.methodItem}
+                >
+                  <Text style={styles.methodValue}>{email.value}</Text>
+                  <Text style={styles.methodMeta}>
+                    {getMethodLabel(email.label)} • {t(email.status)}
+                  </Text>
+                </View>
+              ))
+            )}
+          </Section>
+
+          <Section>
+            <Text style={styles.sectionTitle}>
+              {t("contacts.sections.phones")} ({contact.methods.phones.length})
+            </Text>
+            {contact.methods.phones.length === 0 ? (
+              <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
+            ) : (
+              contact.methods.phones.map((phone, index) => (
+                <View
+                  key={getMethodKey(phone, index)}
+                  style={styles.methodItem}
+                >
+                  <Text style={styles.methodValue}>
+                    {formatPhoneNumber(phone.value)}
+                  </Text>
+                  <Text style={styles.methodMeta}>
+                    {getMethodLabel(phone.label)} • {t(phone.status)}
+                  </Text>
+                </View>
+              ))
+            )}
+          </Section>
+        </>
+      ) : null}
+
+      {activeTab === "details" ? (
+        <Section>
+          <View style={styles.fieldHeader}>
+            <Text style={styles.sectionTitle}>
+              {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
+            </Text>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => setShowLinkModal(true)}
+            >
+              <Text style={styles.linkButtonText}>
+                {t("contacts.linkedAccounts.linkButton")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {linkedAccounts.length === 0 ? (
+            <Text style={styles.emptyText}>
+              {t("contacts.linkedAccounts.empty")}
+            </Text>
+          ) : (
+            linkedAccounts.map((account) => {
+              const relation = Object.values(accountContactRelations).find(
+                (r) => r.accountId === account.id && r.contactId === contactId,
+              );
+              return (
+                <View key={account.id} style={styles.accountItem}>
+                  <View style={styles.accountInfo}>
+                    <Text style={styles.accountName}>{account.name}</Text>
+                    {relation?.isPrimary && (
+                      <View style={styles.primaryBadge}>
+                        <Text style={styles.primaryText}>
+                          {t("contacts.linkedAccounts.primaryBadge")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={styles.unlinkButton}
+                    onPress={() =>
+                      handleUnlinkAccount(account.id, account.name)
+                    }
+                  >
+                    <Text style={styles.unlinkButtonText}>
+                      {t("contacts.unlinkAction")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })
+          )}
+        </Section>
+      ) : null}
+
+      {activeTab === "notes" ? (
+        <>
+          <NotesSection
+            notes={notes}
+            entityId={contactId}
+            entityType="contact"
+            navigation={navigation}
+          />
+          <InteractionsSection
+            interactions={interactions}
+            entityId={contactId}
+            entityType="contact"
+            navigation={navigation}
+          />
+        </>
+      ) : null}
+
+      {activeTab === "activity" ? (
+        <TimelineSection timeline={timeline} doc={doc} />
+      ) : null}
 
       <DangerActionButton
         label={t("contacts.deleteButton")}
@@ -374,6 +415,22 @@ const createStyles = (colors: ColorScheme) =>
       fontWeight: "700",
       color: colors.textPrimary,
       flex: 1,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    metaRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      marginTop: 4,
+    },
+    typeBadge: {
+      alignSelf: "center",
+    },
+    typeBadgeWithTitle: {
+      marginLeft: 8,
     },
     sectionTitle: {
       fontSize: 16,

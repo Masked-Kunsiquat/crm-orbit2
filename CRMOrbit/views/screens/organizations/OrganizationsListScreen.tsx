@@ -7,7 +7,6 @@ import type { Organization } from "@domains/organization";
 import {
   HeaderMenu,
   ListCard,
-  ListCardChevron,
   ListScreenLayout,
   StatusBadge,
 } from "@views/components";
@@ -70,7 +69,6 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
           />
         </View>
       </View>
-      <ListCardChevron />
     </ListCard>
   );
 

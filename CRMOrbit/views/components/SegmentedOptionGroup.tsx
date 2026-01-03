@@ -44,6 +44,8 @@ export const SegmentedOptionGroup = <T extends string>({
                 { color: colors.textSecondary },
                 isSelected && { color: colors.onAccent },
               ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
               {option.label}
             </Text>
@@ -57,12 +59,13 @@ export const SegmentedOptionGroup = <T extends string>({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    gap: 8,
+    gap: 6,
   },
   option: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 6,
     borderWidth: 1,
     alignItems: "center",
   },
@@ -70,7 +73,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   optionText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "500",
   },
 });

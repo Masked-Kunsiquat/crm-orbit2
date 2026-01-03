@@ -133,17 +133,6 @@ export const buildTimelineForEntity = (
     }
   }
 
-  if (entityType === "interaction") {
-    const interaction = doc.interactions[entityId];
-    if (interaction) {
-      items.push({
-        kind: "interaction",
-        timestamp: interaction.occurredAt,
-        interaction,
-      });
-    }
-  }
-
   return items.sort((a, b) => {
     if (a.timestamp === b.timestamp) {
       const aId =

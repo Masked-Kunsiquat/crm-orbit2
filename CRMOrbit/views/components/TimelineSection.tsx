@@ -539,6 +539,35 @@ export const TimelineSection = ({
     if (item.kind !== "event") return null;
 
     const payload = item.event.payload as Record<string, unknown>;
+    const resolveLinkedEntity = (
+      entityType: string | null,
+      entityId: string | null,
+    ): string | null => {
+      if (!entityType || !entityId) {
+        return null;
+      }
+
+      let entityName = t("common.unknown");
+
+      if (entityType === "organization") {
+        const org = doc.organizations[entityId];
+        entityName = org?.name || t("common.unknown");
+      } else if (entityType === "account") {
+        const account = doc.accounts[entityId];
+        entityName = account?.name || t("common.unknown");
+      } else if (entityType === "contact") {
+        const contact = doc.contacts[entityId];
+        entityName = contact ? getContactName(contact) : t("common.unknown");
+      }
+
+      if (!entityName) {
+        return null;
+      }
+
+      const displayType =
+        entityType.charAt(0).toUpperCase() + entityType.slice(1);
+      return `${displayType}: ${entityName}`;
+    };
 
     // For contact method added events
     if (item.event.type === "contact.method.added") {
@@ -679,25 +708,12 @@ export const TimelineSection = ({
       const entityId =
         typeof payload?.entityId === "string" ? payload.entityId : null;
 
-      if (entityType && entityId) {
-        let entityName = t("common.unknown");
+      return resolveLinkedEntity(entityType, entityId);
+    }
 
-        // Look up the entity name based on type
-        if (entityType === "organization") {
-          const org = doc.organizations[entityId];
-          entityName = org?.name || t("common.unknown");
-        } else if (entityType === "account") {
-          const account = doc.accounts[entityId];
-          entityName = account?.name || t("common.unknown");
-        } else if (entityType === "contact") {
-          const contact = doc.contacts[entityId];
-          entityName = contact ? getContactName(contact) : t("common.unknown");
-        }
-
-        // Capitalize entity type for display (e.g., "organization" -> "Organization")
-        const displayType =
-          entityType.charAt(0).toUpperCase() + entityType.slice(1);
-        return `${displayType}: ${entityName}`;
+    if (item.event.type === "interaction.logged") {
+      if (typeof payload?.summary === "string" && payload.summary.trim()) {
+        return payload.summary;
       }
     }
 
@@ -710,13 +726,26 @@ export const TimelineSection = ({
         typeof payload?.interactionId === "string"
           ? payload.interactionId
           : null;
+      const entityType =
+        typeof payload?.entityType === "string" ? payload.entityType : null;
+      const entityId =
+        typeof payload?.entityId === "string" ? payload.entityId : null;
+
+      const entityContext = resolveLinkedEntity(entityType, entityId);
+      let interactionSummary: string | null = null;
 
       if (interactionId) {
         const interaction = doc.interactions[interactionId];
         if (interaction?.summary) {
-          return interaction.summary;
+          interactionSummary = interaction.summary;
         }
       }
+
+      if (entityContext && interactionSummary) {
+        return `${entityContext} • ${interactionSummary}`;
+      }
+
+      return entityContext ?? interactionSummary;
     }
 
     // Extract name from payload if available (fallback)

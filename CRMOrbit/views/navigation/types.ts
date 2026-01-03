@@ -23,7 +23,13 @@ export type RootStackParamList = {
     };
   };
   InteractionDetail: { interactionId: EntityId };
-  InteractionForm: { interactionId?: EntityId };
+  InteractionForm: {
+    interactionId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+  };
 };
 
 // Root tab navigator
@@ -73,7 +79,13 @@ export type NotesStackParamList = {
 export type InteractionsStackParamList = {
   InteractionsList: undefined;
   InteractionDetail: { interactionId: EntityId };
-  InteractionForm: { interactionId?: EntityId };
+  InteractionForm: {
+    interactionId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+  };
 };
 
 // Screen props types
