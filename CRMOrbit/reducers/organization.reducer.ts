@@ -116,21 +116,34 @@ const applyOrganizationUpdated = (
 
   logger.debug("Updating organization", { id, updates: payload });
 
+  const updated: Organization = {
+    ...existing,
+    updatedAt: event.timestamp,
+  };
+
+  // Only update fields that are present in the payload
+  if (payload.name !== undefined) {
+    updated.name = payload.name;
+  }
+  if (payload.status !== undefined) {
+    updated.status = payload.status;
+  }
+  if (payload.website !== undefined) {
+    updated.website = payload.website;
+  }
+  if (payload.socialMedia !== undefined) {
+    updated.socialMedia = payload.socialMedia;
+  }
+  // logoUri can be explicitly set to undefined to clear it
+  if ("logoUri" in payload) {
+    updated.logoUri = payload.logoUri;
+  }
+
   return {
     ...doc,
     organizations: {
       ...doc.organizations,
-      [id]: {
-        ...existing,
-        ...(payload.name !== undefined && { name: payload.name }),
-        ...(payload.status !== undefined && { status: payload.status }),
-        ...(payload.logoUri !== undefined && { logoUri: payload.logoUri }),
-        ...(payload.website !== undefined && { website: payload.website }),
-        ...(payload.socialMedia !== undefined && {
-          socialMedia: payload.socialMedia,
-        }),
-        updatedAt: event.timestamp,
-      },
+      [id]: updated,
     },
   };
 };
