@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { persistImage } from "@utils/imageStorage";
 
 import { t } from "@i18n/index";
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
@@ -37,6 +38,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [logoUri, setLogoUri] = useState<string | undefined>(undefined);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const lastOrgIdRef = useRef<string | undefined>(undefined);
   const statusOptions = [
     { value: "organization.status.active", label: t("status.active") },
@@ -99,7 +101,33 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setLogoUri(result.assets[0].uri);
+      const tempUri = result.assets[0].uri;
+
+      // For new organizations, use temp URI and persist on save
+      // For existing organizations, persist immediately
+      if (organizationId) {
+        setIsProcessingImage(true);
+        try {
+          const permanentUri = await persistImage(
+            tempUri,
+            "organization",
+            organizationId,
+          );
+          setLogoUri(permanentUri);
+        } catch (error) {
+          console.error("Failed to persist image:", error);
+          showAlert(
+            t("common.error"),
+            "Failed to save image. Please try again.",
+            t("common.ok"),
+          );
+        } finally {
+          setIsProcessingImage(false);
+        }
+      } else {
+        // For new orgs, just store temp URI - will persist on save
+        setLogoUri(tempUri);
+      }
     }
   };
 
@@ -113,7 +141,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       showAlert(
         t("common.validationError"),
@@ -153,10 +181,31 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         );
       }
     } else {
+      // For new organizations, persist image first if it's a temp URI
+      let finalLogoUri = logoUri;
+      if (logoUri && logoUri.startsWith("file://")) {
+        setIsProcessingImage(true);
+        try {
+          // Generate temp ID for the organization
+          const tempOrgId = `org_${Date.now()}`;
+          finalLogoUri = await persistImage(logoUri, "organization", tempOrgId);
+        } catch (error) {
+          console.error("Failed to persist image:", error);
+          showAlert(
+            t("common.error"),
+            "Failed to save image. Organization will be created without logo.",
+            t("common.ok"),
+          );
+          finalLogoUri = undefined;
+        } finally {
+          setIsProcessingImage(false);
+        }
+      }
+
       const result = createOrganization(
         name.trim(),
         status,
-        logoUri,
+        finalLogoUri,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
       );
@@ -191,8 +240,11 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
           onPress={handlePickImage}
+          disabled={isProcessingImage}
         >
-          {logoUri ? (
+          {isProcessingImage ? (
+            <ActivityIndicator size="large" color={colors.accent} />
+          ) : logoUri ? (
             <Image
               source={{ uri: logoUri }}
               style={styles.logoPreview}
