@@ -14,6 +14,7 @@
     "contacts.emptyHint": "Tippen Sie auf die + Schaltfläche, um einen zu erstellen",
     "contacts.moreOptionsSoon": "Weitere Optionen demnächst",
     "compose_email": "E-Mail an {email} verfassen",
+    "email_invalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
     "no_email_app": "Auf diesem Gerät ist keine E-Mail-App verfügbar.",
     "email_send_failed": "E-Mail-App konnte nicht geöffnet werden.",
     "no_maps_app": "Auf diesem Gerät ist keine Karten-App verfügbar.",

@@ -4,6 +4,8 @@ import { createLogger } from "../utils/logger";
 
 const logger = createLogger("Linking");
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const normalizePhoneNumber = (phoneNumber: string): string => {
   return phoneNumber.replace(/[^\d+]/g, "");
 };
@@ -95,12 +97,29 @@ export const openSMS = (phoneNumber: string): void => {
  * Opens the default email app with the email address pre-filled
  * @param email - The email address to send to
  */
-export const openEmailComposer = (email: string): void => {
-  const url = `mailto:${email}`;
-  void openLinkingUrl(url, "email composer", {
-    unsupportedMessageKey: "no_email_app",
-    failedMessageKey: "email_send_failed",
-  });
+export const openEmailComposer = async (email: string): Promise<void> => {
+  const trimmedEmail = email.trim();
+  if (!EMAIL_REGEX.test(trimmedEmail)) {
+    logger.warn("Invalid email address for composer", { email });
+    showLinkingAlert("email_invalid");
+    return;
+  }
+
+  const url = `mailto:${trimmedEmail}`;
+
+  try {
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      logger.warn("No email app available", { email: trimmedEmail });
+      showLinkingAlert("no_email_app");
+      return;
+    }
+
+    await Linking.openURL(url);
+  } catch (error) {
+    logger.error("Failed to open email composer", { email: trimmedEmail }, error);
+    showLinkingAlert("email_send_failed");
+  }
 };
 
 /**

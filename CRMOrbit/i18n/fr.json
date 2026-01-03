@@ -14,6 +14,7 @@
     "contacts.emptyHint": "Appuyez sur le bouton + pour créer un",
     "contacts.moreOptionsSoon": "Plus d'options bientôt",
     "compose_email": "Rédiger un e-mail à {email}",
+    "email_invalid": "Saisissez une adresse e-mail valide.",
     "no_email_app": "Aucune application e-mail n'est disponible sur cet appareil.",
     "email_send_failed": "Impossible d'ouvrir l'application e-mail.",
     "no_maps_app": "Aucune application de cartes n'est disponible sur cet appareil.",

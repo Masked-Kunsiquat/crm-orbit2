@@ -23,6 +23,7 @@
   "call_phone": "Call {label} ({phone})",
   "send_sms": "Send SMS to {label} ({phone})",
   "compose_email": "Compose email to {email}",
+  "email_invalid": "Enter a valid email address.",
   "no_email_app": "No email app is available on this device.",
   "email_send_failed": "Unable to open the email app.",
   "no_maps_app": "No maps app is available on this device.",

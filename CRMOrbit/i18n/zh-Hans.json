@@ -14,6 +14,7 @@
     "contacts.emptyHint": "点击 + 按钮创建一个",
     "contacts.moreOptionsSoon": "更多选项即将推出",
     "compose_email": "给 {email} 撰写邮件",
+    "email_invalid": "请输入有效的电子邮件地址。",
     "no_email_app": "此设备上没有可用的邮件应用。",
     "email_send_failed": "无法打开邮件应用。",
     "no_maps_app": "此设备上没有可用的地图应用。",
