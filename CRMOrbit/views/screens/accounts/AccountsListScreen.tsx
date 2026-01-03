@@ -1,11 +1,12 @@
-import { Pressable, StyleSheet, Text } from "react-native";
-import { useLayoutEffect } from "react";
+import { FlatList, Pressable, StyleSheet, Text } from "react-native";
+import { useLayoutEffect, useMemo, useRef } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../store/store";
 import type { Account } from "../../../domains/account";
 import { t } from "@i18n/index";
 import {
+  AlphabetScrollbar,
   HeaderMenu,
   ListRow,
   ListScreenLayout,
@@ -19,6 +20,8 @@ export const AccountsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const accounts = useAccounts();
   const organizations = useOrganizations();
+  const flatListRef = useRef<FlatList<Account>>(null);
+
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
     accessibilityLabel: t("accounts.listOptions"),
   });
@@ -43,6 +46,9 @@ export const AccountsListScreen = ({ navigation }: Props) => {
     },
   });
 
+  // Alphabet scrollbar data: # for symbols/numbers, then A-Z
+  const alphabetData = useMemo(() => ["#", ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))], []);
+
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
     return org?.name ?? t("common.unknown");
@@ -56,6 +62,26 @@ export const AccountsListScreen = ({ navigation }: Props) => {
     navigation.navigate("AccountForm", {});
   };
 
+  const handleAlphabetSelect = (char: string) => {
+    // Find first account starting with the selected character
+    const index = filteredAccounts.findIndex((account) => {
+      const firstChar = account.name.charAt(0).toUpperCase();
+      if (char === "#") {
+        // For #, match any non-letter (symbols, numbers)
+        return !/[A-Z]/.test(firstChar);
+      }
+      return firstChar === char;
+    });
+
+    if (index !== -1) {
+      flatListRef.current?.scrollToIndex({
+        index,
+        animated: true,
+        viewPosition: 0,
+      });
+    }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight,
@@ -67,6 +93,7 @@ export const AccountsListScreen = ({ navigation }: Props) => {
       <ListScreenLayout
         data={filteredAccounts}
         keyExtractor={(item) => item.id}
+        flatListRef={flatListRef}
         renderItem={({ item }) => (
           <ListRow
             onPress={() => handlePress(item)}
@@ -85,6 +112,11 @@ export const AccountsListScreen = ({ navigation }: Props) => {
         emptyTitle={t("accounts.emptyTitle")}
         emptyHint={emptyHint}
         onAdd={handleCreate}
+        rightAccessory={
+          filteredAccounts.length > 0 ? (
+            <AlphabetScrollbar data={alphabetData} onCharSelect={handleAlphabetSelect} />
+          ) : null
+        }
       />
       <HeaderMenu
         anchorRef={menuAnchorRef}
