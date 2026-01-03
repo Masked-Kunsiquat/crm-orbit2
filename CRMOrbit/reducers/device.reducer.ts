@@ -9,5 +9,14 @@ export const deviceReducer = (
   event: Event,
 ): AutomergeDoc => {
   logger.debug("Processing device event", { type: event.type });
-  return doc;
+
+  switch (event.type) {
+    case "device.registered":
+      return doc;
+    default:
+      logger.error("Unhandled event type", { type: event.type });
+      throw new Error(
+        `device.reducer does not handle event type: ${event.type}`,
+      );
+  }
 };

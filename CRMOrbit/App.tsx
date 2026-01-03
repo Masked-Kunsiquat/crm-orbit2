@@ -35,14 +35,14 @@ export default function App() {
     const loadData = async () => {
       try {
         // Initialize database
-        const db = await initializeDatabase();
-        const persistenceDb = createPersistenceDb(db);
+        const persistenceDb = await initializeDatabase();
+        const storeDb = createPersistenceDb(persistenceDb);
 
         const envDeviceId = getDeviceIdFromEnv();
         if (envDeviceId) {
           setDeviceId(envDeviceId);
         } else {
-          const resolvedDeviceId = await loadLatestDeviceId(db);
+          const resolvedDeviceId = await loadLatestDeviceId(persistenceDb);
           if (resolvedDeviceId) {
             setDeviceId(resolvedDeviceId);
           } else {
@@ -56,12 +56,12 @@ export default function App() {
               },
               deviceId: generatedId,
             });
-            await appendEvents(persistenceDb, [deviceEvent]);
+            await appendEvents(storeDb, [deviceEvent]);
           }
         }
 
         // Load persisted state
-        const { doc, events } = await loadPersistedState(persistenceDb);
+        const { doc, events } = await loadPersistedState(storeDb);
 
         // Update store with loaded data
         const store = __internal_getCrmStore();
