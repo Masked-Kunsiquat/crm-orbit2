@@ -4,9 +4,9 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Image,
   Linking,
 } from "react-native";
+import { Image } from "expo-image";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import {
@@ -20,6 +20,7 @@ import {
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useDeviceId, useTheme } from "@views/hooks";
+import { getOrganizationLogoUrl } from "@domains/organization.utils";
 import {
   NotesSection,
   InteractionsSection,
@@ -106,12 +107,19 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
+  const logoUrl = getOrganizationLogoUrl(organization, 128);
+
   return (
     <DetailScreenLayout>
       <Section>
-        {organization.logoUri ? (
+        {logoUrl ? (
           <View style={styles.logoContainer}>
-            <Image source={{ uri: organization.logoUri }} style={styles.logo} />
+            <Image
+              source={{ uri: logoUrl }}
+              style={styles.logo}
+              contentFit="contain"
+              transition={200}
+            />
           </View>
         ) : null}
         <View style={styles.header}>

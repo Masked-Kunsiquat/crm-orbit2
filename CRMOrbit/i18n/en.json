@@ -188,6 +188,7 @@
   "organizations.form.nameLabel": "Organization Name",
   "organizations.form.namePlaceholder": "Enter organization name",
   "organizations.form.logoPlaceholder": "Tap to select logo",
+  "organizations.form.removeLogo": "Remove Logo",
   "organizations.form.logoPermissionTitle": "Permission Required",
   "organizations.form.logoPermissionMessage": "Please grant photo library access to select a logo",
   "organizations.form.updateButton": "Update Organization",

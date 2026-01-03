@@ -199,6 +199,16 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             </Text>
           )}
         </TouchableOpacity>
+        {logoUri && (
+          <TouchableOpacity
+            style={[styles.removeButton, { backgroundColor: colors.error }]}
+            onPress={() => setLogoUri(undefined)}
+          >
+            <Text style={[styles.removeButtonText, { color: colors.onError }]}>
+              {t("organizations.form.removeLogo")}
+            </Text>
+          </TouchableOpacity>
+        )}
       </FormField>
 
       <FormField label={t("organizations.fields.website")}>
@@ -260,6 +270,16 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
+  },
+  removeButton: {
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  removeButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
   saveButton: {
     padding: 16,
