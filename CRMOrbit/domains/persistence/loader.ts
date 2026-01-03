@@ -72,6 +72,7 @@ export const loadPersistedState = async (
 
   // Load all events
   const eventRecords = await db.select().from<EventLogRecord>(eventLog).all();
+  console.log(`Loaded ${eventRecords.length} event records from database`);
 
   // Parse events from records
   const events: Event[] = eventRecords.map((record) => ({
@@ -82,6 +83,8 @@ export const loadPersistedState = async (
     timestamp: record.timestamp,
     deviceId: record.deviceId,
   }));
+
+  console.log("Event types loaded:", events.map(e => e.type));
 
   // Start with snapshot or empty doc
   let doc: AutomergeDoc;
