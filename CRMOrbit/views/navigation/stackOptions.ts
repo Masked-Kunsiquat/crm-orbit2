@@ -13,4 +13,5 @@ export const getStackScreenOptions = (
   headerStyle: { backgroundColor: colors.headerBackground },
   headerTintColor: colors.headerTint,
   headerTitleStyle: { fontWeight: "600" },
+  contentStyle: { backgroundColor: colors.canvas },
 });
