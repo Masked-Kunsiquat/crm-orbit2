@@ -198,3 +198,100 @@ test("interaction.linked creates a link", () => {
   assert.equal(link.entityType, "organization");
   assert.equal(link.entityId, "org-1");
 });
+
+test("note.unlinked uses event.entityId when payload is empty", () => {
+  const doc = initAutomergeDoc();
+  const withOrg = organizationReducer(doc, createOrganization());
+  const withNote = noteReducer(withOrg, createNote());
+  const linked: Event = {
+    id: "evt-link-3",
+    type: "note.linked",
+    payload: {
+      id: "link-3",
+      noteId: "note-1",
+      entityType: "organization",
+      entityId: "org-1",
+    },
+    timestamp: "2024-05-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const unlinked: Event = {
+    id: "evt-link-4",
+    type: "note.unlinked",
+    entityId: "link-3",
+    payload: {},
+    timestamp: "2024-05-04T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const withLink = entityLinkReducer(withNote, linked);
+  const next = entityLinkReducer(withLink, unlinked);
+
+  assert.equal(next.relations.entityLinks["link-3"], undefined);
+});
+
+test("interaction.unlinked uses event.entityId with partial payload", () => {
+  const doc = initAutomergeDoc();
+  const withOrg = organizationReducer(doc, createOrganization());
+  const withInteraction = interactionReducer(withOrg, createInteraction());
+  const linked: Event = {
+    id: "evt-link-5",
+    type: "interaction.linked",
+    payload: {
+      id: "link-5",
+      interactionId: "interaction-1",
+      entityType: "organization",
+      entityId: "org-1",
+    },
+    timestamp: "2024-05-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const unlinked: Event = {
+    id: "evt-link-6",
+    type: "interaction.unlinked",
+    entityId: "link-5",
+    payload: {
+      interactionId: "interaction-1",
+    },
+    timestamp: "2024-05-04T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const withLink = entityLinkReducer(withInteraction, linked);
+  const next = entityLinkReducer(withLink, unlinked);
+
+  assert.equal(next.relations.entityLinks["link-5"], undefined);
+});
+
+test("interaction.unlinked ignores missing entityType when entityId is present", () => {
+  const doc = initAutomergeDoc();
+  const withOrg = organizationReducer(doc, createOrganization());
+  const withInteraction = interactionReducer(withOrg, createInteraction());
+  const linked: Event = {
+    id: "evt-link-7",
+    type: "interaction.linked",
+    payload: {
+      id: "link-7",
+      interactionId: "interaction-1",
+      entityType: "organization",
+      entityId: "org-1",
+    },
+    timestamp: "2024-05-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const unlinked: Event = {
+    id: "evt-link-8",
+    type: "interaction.unlinked",
+    entityId: "link-7",
+    payload: {
+      entityType: "organization",
+    },
+    timestamp: "2024-05-04T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const withLink = entityLinkReducer(withInteraction, linked);
+  const next = entityLinkReducer(withLink, unlinked);
+
+  assert.equal(next.relations.entityLinks["link-7"], undefined);
+});

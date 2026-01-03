@@ -12,11 +12,7 @@ import { loadLatestDeviceId } from "./domains/persistence/deviceId";
 import { loadPersistedState } from "./domains/persistence/loader";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
-import {
-  getDeviceIdFromEnv,
-  setDeviceId,
-  useTheme,
-} from "./views/hooks";
+import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
 import { nextId } from "./domains/shared/idGenerator";
 
 registerCoreReducers();

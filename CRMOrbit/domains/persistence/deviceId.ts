@@ -2,9 +2,7 @@ import type { DeviceId } from "../shared/types";
 import type { PersistenceDb, EventLogRecord } from "./store";
 import { eventLog } from "./schema";
 
-const getMostRecentDeviceId = (
-  records: EventLogRecord[],
-): DeviceId | null => {
+const getMostRecentDeviceId = (records: EventLogRecord[]): DeviceId | null => {
   const withDeviceId = records.filter((record) => Boolean(record.deviceId));
   if (withDeviceId.length === 0) {
     return null;
