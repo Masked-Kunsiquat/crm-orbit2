@@ -14,6 +14,7 @@ import {
   useAccountsByContact,
   useAccounts,
   useAccountContactRelations,
+  useInteractions,
   useNotes,
   useTimeline,
   useDoc,
@@ -26,6 +27,7 @@ import {
 } from "@domains/contact.utils";
 import {
   NotesSection,
+  InteractionsSection,
   TimelineSection,
   DetailScreenLayout,
   Section,
@@ -48,6 +50,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const contact = useContact(contactId);
   const linkedAccounts = useAccountsByContact(contactId);
   const notes = useNotes("contact", contactId);
+  const interactions = useInteractions("contact", contactId);
   const timeline = useTimeline("contact", contactId);
   const doc = useDoc();
   const allAccounts = useAccounts();
@@ -319,12 +322,20 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       ) : null}
 
       {activeTab === "notes" ? (
-        <NotesSection
-          notes={notes}
-          entityId={contactId}
-          entityType="contact"
-          navigation={navigation}
-        />
+        <>
+          <NotesSection
+            notes={notes}
+            entityId={contactId}
+            entityType="contact"
+            navigation={navigation}
+          />
+          <InteractionsSection
+            interactions={interactions}
+            entityId={contactId}
+            entityType="contact"
+            navigation={navigation}
+          />
+        </>
       ) : null}
 
       {activeTab === "activity" ? (
