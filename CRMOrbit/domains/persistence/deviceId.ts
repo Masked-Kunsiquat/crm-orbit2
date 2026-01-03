@@ -1,32 +1,20 @@
+import { desc, isNotNull } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/expo-sqlite";
+
 import type { DeviceId } from "../shared/types";
-import type { PersistenceDb, EventLogRecord } from "./store";
 import { eventLog } from "./schema";
 
-const getMostRecentDeviceId = (records: EventLogRecord[]): DeviceId | null => {
-  const withDeviceId = records.filter((record) => Boolean(record.deviceId));
-  if (withDeviceId.length === 0) {
-    return null;
-  }
-
-  const latest = withDeviceId.reduce((currentLatest, record) => {
-    if (record.timestamp > currentLatest.timestamp) {
-      return record;
-    }
-    if (
-      record.timestamp === currentLatest.timestamp &&
-      record.id > currentLatest.id
-    ) {
-      return record;
-    }
-    return currentLatest;
-  });
-
-  return latest.deviceId ?? null;
-};
+type DrizzleDb = ReturnType<typeof drizzle>;
 
 export const loadLatestDeviceId = async (
-  db: PersistenceDb,
+  db: DrizzleDb,
 ): Promise<DeviceId | null> => {
-  const records = await db.select().from<EventLogRecord>(eventLog).all();
-  return getMostRecentDeviceId(records);
+  const rows = await db
+    .select({ deviceId: eventLog.deviceId })
+    .from(eventLog)
+    .where(isNotNull(eventLog.deviceId))
+    .orderBy(desc(eventLog.timestamp), desc(eventLog.id))
+    .limit(1);
+
+  return rows[0]?.deviceId ?? null;
 };

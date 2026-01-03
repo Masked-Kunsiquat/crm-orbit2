@@ -253,6 +253,7 @@
   "events.interaction.logged": "Created interaction",
   "events.interaction.updated": "Updated interaction",
   "events.interaction.deleted": "Deleted interaction",
+  "events.device.registered": "Registered device",
   "interactions.title": "Interactions",
   "interactions.emptyTitle": "No interactions yet",
   "interactions.emptyHint": "Tap the + button to log one",

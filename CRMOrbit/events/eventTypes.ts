@@ -26,6 +26,7 @@ export const EVENT_TYPES = [
   "interaction.logged",
   "interaction.updated",
   "interaction.deleted",
+  "device.registered",
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];

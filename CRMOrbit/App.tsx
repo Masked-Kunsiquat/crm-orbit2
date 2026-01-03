@@ -10,10 +10,12 @@ import {
 } from "./domains/persistence/database";
 import { loadLatestDeviceId } from "./domains/persistence/deviceId";
 import { loadPersistedState } from "./domains/persistence/loader";
+import { appendEvents } from "./domains/persistence/store";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
 import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
 import { nextId } from "./domains/shared/idGenerator";
+import { buildEvent } from "./events/dispatcher";
 
 registerCoreReducers();
 
@@ -40,8 +42,22 @@ export default function App() {
         if (envDeviceId) {
           setDeviceId(envDeviceId);
         } else {
-          const resolvedDeviceId = await loadLatestDeviceId(persistenceDb);
-          setDeviceId(resolvedDeviceId ?? nextId("device"));
+          const resolvedDeviceId = await loadLatestDeviceId(db);
+          if (resolvedDeviceId) {
+            setDeviceId(resolvedDeviceId);
+          } else {
+            const generatedId = nextId("device");
+            setDeviceId(generatedId);
+            const deviceEvent = buildEvent({
+              type: "device.registered",
+              entityId: generatedId,
+              payload: {
+                deviceId: generatedId,
+              },
+              deviceId: generatedId,
+            });
+            await appendEvents(persistenceDb, [deviceEvent]);
+          }
         }
 
         // Load persisted state
