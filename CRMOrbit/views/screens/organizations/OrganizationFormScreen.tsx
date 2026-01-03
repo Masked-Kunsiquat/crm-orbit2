@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { persistImage } from "@utils/imageStorage";
+import { persistImage, deletePersistedImage } from "@utils/imageStorage";
 
 import { t } from "@i18n/index";
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
@@ -129,6 +129,14 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         setLogoUri(tempUri);
       }
     }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (logoUri && !logoUri.startsWith("http")) {
+      // If it's a local file, delete it
+      await deletePersistedImage(logoUri);
+    }
+    setLogoUri(undefined);
   };
 
   const handleSocialMediaChange = (
@@ -259,7 +267,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         {logoUri && (
           <TouchableOpacity
             style={[styles.removeButton, { backgroundColor: colors.error }]}
-            onPress={() => setLogoUri(undefined)}
+            onPress={handleRemoveLogo}
           >
             <Text style={[styles.removeButtonText, { color: colors.onError }]}>
               {t("organizations.form.removeLogo")}
