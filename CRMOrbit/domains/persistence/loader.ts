@@ -84,7 +84,10 @@ export const loadPersistedState = async (
     deviceId: record.deviceId,
   }));
 
-  console.log("Event types loaded:", events.map(e => e.type));
+  console.log(
+    "Event types loaded:",
+    events.map((e) => e.type),
+  );
 
   // Start with snapshot or empty doc
   let doc: AutomergeDoc;

@@ -58,14 +58,19 @@ export const useDispatch = () => {
         try {
           const db = getDatabase();
           const persistenceDb = createPersistenceDb(db);
-          console.log("Persisting events to database:", newEvents.map(e => ({ type: e.type, entityId: e.entityId })));
+          console.log(
+            "Persisting events to database:",
+            newEvents.map((e) => ({ type: e.type, entityId: e.entityId })),
+          );
           await appendEvents(persistenceDb, newEvents);
           console.log("Successfully persisted events to database");
         } catch (persistError) {
           console.error("Failed to persist events:", persistError);
           console.error("Event details:", newEvents);
           // Optionally alert user of persistence failure
-          console.warn("CRITICAL: Events were applied to memory but NOT saved to database!");
+          console.warn(
+            "CRITICAL: Events were applied to memory but NOT saved to database!",
+          );
         }
       })();
 

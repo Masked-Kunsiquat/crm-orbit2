@@ -74,7 +74,7 @@ export const useOrganizationActions = (deviceId: string) => {
         payload: {
           name,
           status,
-          logoUri,
+          logoUri: logoUri ?? null,
           website,
           socialMedia,
         },

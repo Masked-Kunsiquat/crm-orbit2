@@ -30,7 +30,7 @@ type OrganizationUpdatedPayload = {
   id: EntityId;
   name?: string;
   status?: OrganizationStatus;
-  logoUri?: string;
+  logoUri?: string | null;
   website?: string;
   socialMedia?: SocialMediaLinks;
 };
@@ -134,9 +134,9 @@ const applyOrganizationUpdated = (
   if (payload.socialMedia !== undefined) {
     updated.socialMedia = payload.socialMedia;
   }
-  // logoUri can be explicitly set to undefined to clear it
+  // logoUri can be explicitly cleared (undefined in memory, null when persisted)
   if ("logoUri" in payload) {
-    updated.logoUri = payload.logoUri;
+    updated.logoUri = payload.logoUri ?? undefined;
   }
 
   return {
