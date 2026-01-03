@@ -2,6 +2,7 @@ import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { registerCoreReducers } from "./events/dispatcher";
 import {
@@ -112,12 +113,14 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer theme={navTheme}>
-      <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-        <StatusBar style="auto" />
-        <RootStack />
-      </View>
-    </NavigationContainer>
+    <GestureHandlerRootView style={styles.container}>
+      <NavigationContainer theme={navTheme}>
+        <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+          <StatusBar style="auto" />
+          <RootStack />
+        </View>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
 
