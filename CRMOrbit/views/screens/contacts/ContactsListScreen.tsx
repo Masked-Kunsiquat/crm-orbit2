@@ -5,7 +5,12 @@ import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useAllContacts } from "@views/store/store";
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName, getPrimaryEmail } from "@domains/contact.utils";
-import { HeaderMenu, ListRow, ListScreenLayout } from "@views/components";
+import {
+  ContactTypeBadge,
+  HeaderMenu,
+  ListRow,
+  ListScreenLayout,
+} from "@views/components";
 import { useHeaderMenu, useTheme } from "@views/hooks";
 import { t } from "@i18n/index";
 
@@ -52,7 +57,9 @@ export const ContactsListScreen = ({ navigation }: Props) => {
         subtitle={item.title}
         subtitleItalic={Boolean(item.title)}
         description={primaryEmail}
-        footnote={t(item.type)}
+        titleAccessory={
+          <ContactTypeBadge type={item.type} style={styles.typeBadge} />
+        }
         showChevron
       />
     );
@@ -94,5 +101,8 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 14,
+  },
+  typeBadge: {
+    alignSelf: "center",
   },
 });

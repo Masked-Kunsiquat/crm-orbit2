@@ -30,6 +30,7 @@ import {
   DetailScreenLayout,
   Section,
   DetailTabs,
+  ContactTypeBadge,
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
@@ -180,10 +181,6 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     index: number,
   ) => method.id || `${method.label}-${method.status}-${method.value}-${index}`;
 
-  const headerMeta = [contact.title, t(contact.type)]
-    .filter(Boolean)
-    .join(" • ");
-
   return (
     <DetailScreenLayout>
       <Section>
@@ -195,7 +192,18 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             size="compact"
           />
         </View>
-        {headerMeta ? <Text style={styles.subtitle}>{headerMeta}</Text> : null}
+        <View style={styles.metaRow}>
+          {contact.title ? (
+            <Text style={styles.subtitle}>{contact.title}</Text>
+          ) : null}
+          <ContactTypeBadge
+            type={contact.type}
+            style={[
+              styles.typeBadge,
+              contact.title ? styles.typeBadgeWithTitle : null,
+            ]}
+          />
+        </View>
       </Section>
 
       <DetailTabs
@@ -400,6 +408,18 @@ const createStyles = (colors: ColorScheme) =>
     subtitle: {
       fontSize: 14,
       color: colors.textSecondary,
+    },
+    metaRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      marginTop: 4,
+    },
+    typeBadge: {
+      alignSelf: "center",
+    },
+    typeBadgeWithTitle: {
+      marginLeft: 8,
     },
     sectionTitle: {
       fontSize: 16,

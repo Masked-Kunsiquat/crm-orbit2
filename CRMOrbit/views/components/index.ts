@@ -30,3 +30,4 @@ export { SegmentedOptionGroup } from "./SegmentedOptionGroup";
 export { DetailTabs } from "./DetailTabs";
 export { MethodListEditor } from "./MethodListEditor";
 export { ContactCardRow } from "./ContactCardRow";
+export { ContactTypeBadge } from "./ContactTypeBadge";
