@@ -1,9 +1,11 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLayoutEffect, useMemo, useRef } from "react";
+import { Image } from "expo-image";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganizations } from "@views/store/store";
 import type { Organization } from "@domains/organization";
+import { getOrganizationLogoUrl } from "@domains/organization.utils";
 import {
   AlphabetScrollbar,
   HeaderMenu,
@@ -86,22 +88,34 @@ export const OrganizationsListScreen = ({ navigation }: Props) => {
     });
   }, [navigation, headerRight]);
 
-  const renderItem = ({ item }: { item: Organization }) => (
-    <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
-      <View style={styles.itemContent}>
-        <View style={styles.itemHeader}>
-          <Text style={[styles.itemName, { color: colors.textPrimary }]}>
-            {item.name}
-          </Text>
-          <StatusBadge
-            isActive={item.status === "organization.status.active"}
-            activeLabelKey="status.active"
-            inactiveLabelKey="status.inactive"
+  const renderItem = ({ item }: { item: Organization }) => {
+    const logoUrl = getOrganizationLogoUrl(item, 64);
+
+    return (
+      <ListCard onPress={() => handlePress(item)} style={styles.cardRow}>
+        {logoUrl && (
+          <Image
+            source={{ uri: logoUrl }}
+            style={styles.logo}
+            contentFit="contain"
+            transition={200}
           />
+        )}
+        <View style={styles.itemContent}>
+          <View style={styles.itemHeader}>
+            <Text style={[styles.itemName, { color: colors.textPrimary }]}>
+              {item.name}
+            </Text>
+            <StatusBadge
+              isActive={item.status === "organization.status.active"}
+              activeLabelKey="status.active"
+              inactiveLabelKey="status.inactive"
+            />
+          </View>
         </View>
-      </View>
-    </ListCard>
-  );
+      </ListCard>
+    );
+  };
 
   return (
     <>
@@ -156,6 +170,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: 12,
+    borderRadius: 8,
   },
   itemContent: {
     flex: 1,
