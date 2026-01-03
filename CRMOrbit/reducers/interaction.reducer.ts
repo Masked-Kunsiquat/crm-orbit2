@@ -119,11 +119,25 @@ const applyInteractionDeleted = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { [id]: _deleted, ...remainingInteractions } = doc.interactions;
 
+  const remainingLinks = Object.entries(doc.relations.entityLinks).reduce(
+    (acc, [linkId, link]) => {
+      if (link.linkType !== "interaction" || link.interactionId !== id) {
+        acc[linkId] = link;
+      }
+      return acc;
+    },
+    {} as AutomergeDoc["relations"]["entityLinks"],
+  );
+
   logger.info("Interaction deleted", { id });
 
   return {
     ...doc,
     interactions: remainingInteractions,
+    relations: {
+      ...doc.relations,
+      entityLinks: remainingLinks,
+    },
   };
 };
 

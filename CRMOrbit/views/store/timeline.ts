@@ -2,10 +2,10 @@ import type { AutomergeDoc } from "@automerge/schema";
 import type { Event } from "@events/event";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
-import type { NoteLinkEntityType } from "@domains/relations/noteLink";
+import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId, Timestamp } from "@domains/shared/types";
 
-export type TimelineEntityType = NoteLinkEntityType;
+export type TimelineEntityType = EntityLinkType;
 
 export type TimelineItem =
   | {
@@ -101,21 +101,36 @@ export const buildTimelineForEntity = (
     }
   }
 
-  for (const link of Object.values(doc.relations.noteLinks)) {
+  for (const link of Object.values(doc.relations.entityLinks)) {
     if (link.entityType !== entityType || link.entityId !== entityId) {
       continue;
     }
 
-    const note = doc.notes[link.noteId];
-    if (!note) {
-      continue;
+    if (link.linkType === "note" && link.noteId) {
+      const note = doc.notes[link.noteId];
+      if (!note) {
+        continue;
+      }
+
+      items.push({
+        kind: "note",
+        timestamp: note.createdAt,
+        note,
+      });
     }
 
-    items.push({
-      kind: "note",
-      timestamp: note.createdAt,
-      note,
-    });
+    if (link.linkType === "interaction" && link.interactionId) {
+      const interaction = doc.interactions[link.interactionId];
+      if (!interaction) {
+        continue;
+      }
+
+      items.push({
+        kind: "interaction",
+        timestamp: interaction.occurredAt,
+        interaction,
+      });
+    }
   }
 
   if (entityType === "interaction") {

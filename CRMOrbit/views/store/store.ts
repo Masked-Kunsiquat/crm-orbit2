@@ -9,11 +9,13 @@ import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
-import { NoteLinkEntityType } from "@domains/relations/noteLink";
+import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
 import {
+  getEntitiesForInteraction,
   getEntitiesForNote,
+  getInteractionsForEntity,
   getNotesForEntity,
   getPrimaryContacts,
   LinkedEntityInfo,
@@ -37,7 +39,7 @@ const crmStore = create<CrmStoreState>((set) => ({
     interactions: {},
     relations: {
       accountContacts: {},
-      noteLinks: {},
+      entityLinks: {},
     },
   },
   events: [],
@@ -154,7 +156,7 @@ export const usePrimaryContacts = (accountId: EntityId): Contact[] => {
 };
 
 export const useNotes = (
-  entityType: NoteLinkEntityType,
+  entityType: EntityLinkType,
   entityId: EntityId,
 ): Note[] => {
   const selector = (state: CrmStoreState) => {
@@ -162,6 +164,25 @@ export const useNotes = (
     return noteIds
       .map((noteId) => state.doc.notes[noteId])
       .filter((note): note is Note => Boolean(note));
+  };
+  return crmStore(useShallow(selector));
+};
+
+export const useInteractions = (
+  entityType: EntityLinkType,
+  entityId: EntityId,
+): Interaction[] => {
+  const selector = (state: CrmStoreState) => {
+    const interactionIds = getInteractionsForEntity(
+      state.doc,
+      entityType,
+      entityId,
+    );
+    return interactionIds
+      .map((interactionId) => state.doc.interactions[interactionId])
+      .filter((interaction): interaction is Interaction =>
+        Boolean(interaction),
+      );
   };
   return crmStore(useShallow(selector));
 };
@@ -180,8 +201,24 @@ export const useEntitiesForNote = (noteId: EntityId): LinkedEntityInfo[] => {
   return crmStore(selector);
 };
 
+export const useEntitiesForInteraction = (
+  interactionId: EntityId,
+): LinkedEntityInfo[] => {
+  const cacheRef = useRef<LinkedEntityInfo[] | null>(null);
+  const selector = (state: CrmStoreState) => {
+    const next = getEntitiesForInteraction(state.doc, interactionId);
+    const cached = cacheRef.current;
+    if (cached && areLinkedEntitiesEqual(cached, next)) {
+      return cached;
+    }
+    cacheRef.current = next;
+    return next;
+  };
+  return crmStore(selector);
+};
+
 export const useTimeline = (
-  entityType: NoteLinkEntityType,
+  entityType: EntityLinkType,
   entityId: EntityId,
 ): TimelineItem[] => {
   const cacheRef = useRef<TimelineItem[] | null>(null);

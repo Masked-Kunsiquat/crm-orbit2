@@ -3,6 +3,7 @@ export { useOrganizationActions } from "./useOrganizationActions";
 export { useAccountActions } from "./useAccountActions";
 export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
+export { useEntityLinkActions } from "./useEntityLinkActions";
 export { useInteractionActions } from "./useInteractionActions";
 export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";

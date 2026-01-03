@@ -141,8 +141,8 @@ test("note.deleted removes note from state", () => {
   );
 });
 
-test("note.deleted removes all related noteLinks", () => {
-  // Initialize document with a note and multiple noteLinks
+test("note.deleted removes all related entityLinks", () => {
+  // Initialize document with a note and multiple entityLinks
   let doc = initAutomergeDoc();
 
   // Create a note
@@ -159,33 +159,37 @@ test("note.deleted removes all related noteLinks", () => {
   };
   doc = noteReducer(doc, noteCreated);
 
-  // Manually add noteLinks that reference this note
-  doc.relations.noteLinks["link-1"] = {
+  // Manually add entityLinks that reference this note
+  doc.relations.entityLinks["link-1"] = {
+    linkType: "note",
     noteId: "note-1",
     entityType: "organization",
     entityId: "org-1",
   };
-  doc.relations.noteLinks["link-2"] = {
+  doc.relations.entityLinks["link-2"] = {
+    linkType: "note",
     noteId: "note-1",
     entityType: "account",
     entityId: "acc-1",
   };
-  doc.relations.noteLinks["link-3"] = {
+  doc.relations.entityLinks["link-3"] = {
+    linkType: "note",
     noteId: "note-1",
     entityType: "contact",
     entityId: "contact-1",
   };
   // Add a link for a different note to ensure it's preserved
-  doc.relations.noteLinks["link-4"] = {
+  doc.relations.entityLinks["link-4"] = {
+    linkType: "note",
     noteId: "note-2",
     entityType: "organization",
     entityId: "org-2",
   };
 
   assert.equal(
-    Object.keys(doc.relations.noteLinks).length,
+    Object.keys(doc.relations.entityLinks).length,
     4,
-    "Should have 4 noteLinks before deletion",
+    "Should have 4 entityLinks before deletion",
   );
 
   // Delete the note
@@ -208,44 +212,49 @@ test("note.deleted removes all related noteLinks", () => {
     "Note should be removed from state",
   );
 
-  // Assert all noteLinks referencing the deleted note are removed
+  // Assert all entityLinks referencing the deleted note are removed
   assert.equal(
-    result.relations.noteLinks["link-1"],
+    result.relations.entityLinks["link-1"],
     undefined,
-    "NoteLink link-1 should be removed",
+    "EntityLink link-1 should be removed",
   );
   assert.equal(
-    result.relations.noteLinks["link-2"],
+    result.relations.entityLinks["link-2"],
     undefined,
-    "NoteLink link-2 should be removed",
+    "EntityLink link-2 should be removed",
   );
   assert.equal(
-    result.relations.noteLinks["link-3"],
+    result.relations.entityLinks["link-3"],
     undefined,
-    "NoteLink link-3 should be removed",
+    "EntityLink link-3 should be removed",
   );
 
-  // Assert noteLinks for other notes are preserved
+  // Assert entityLinks for other notes are preserved
   assert.ok(
-    result.relations.noteLinks["link-4"],
-    "NoteLink link-4 for different note should be preserved",
+    result.relations.entityLinks["link-4"],
+    "EntityLink link-4 for different note should be preserved",
   );
   assert.equal(
-    result.relations.noteLinks["link-4"].noteId,
+    result.relations.entityLinks["link-4"].linkType,
+    "note",
+    "Preserved link should be a note link",
+  );
+  assert.equal(
+    result.relations.entityLinks["link-4"].noteId,
     "note-2",
     "Preserved link should still reference note-2",
   );
 
   // Assert overall state consistency
   assert.equal(
-    Object.keys(result.relations.noteLinks).length,
+    Object.keys(result.relations.entityLinks).length,
     1,
-    "Should have 1 noteLink remaining (link-4)",
+    "Should have 1 entityLink remaining (link-4)",
   );
 });
 
 test("note.deleted maintains state consistency with no dangling references", () => {
-  // Initialize document with multiple notes and noteLinks
+  // Initialize document with multiple notes and entityLinks
   let doc = initAutomergeDoc();
 
   // Create two notes
@@ -275,33 +284,37 @@ test("note.deleted maintains state consistency with no dangling references", () 
   doc = noteReducer(doc, note1Created);
   doc = noteReducer(doc, note2Created);
 
-  // Add multiple noteLinks for note-1 and note-2
-  doc.relations.noteLinks["link-1"] = {
+  // Add multiple entityLinks for note-1 and note-2
+  doc.relations.entityLinks["link-1"] = {
+    linkType: "note",
     noteId: "note-1",
     entityType: "organization",
     entityId: "org-1",
   };
-  doc.relations.noteLinks["link-2"] = {
+  doc.relations.entityLinks["link-2"] = {
+    linkType: "note",
     noteId: "note-1",
     entityType: "account",
     entityId: "acc-1",
   };
-  doc.relations.noteLinks["link-3"] = {
+  doc.relations.entityLinks["link-3"] = {
+    linkType: "note",
     noteId: "note-2",
     entityType: "contact",
     entityId: "contact-1",
   };
-  doc.relations.noteLinks["link-4"] = {
+  doc.relations.entityLinks["link-4"] = {
+    linkType: "note",
     noteId: "note-2",
     entityType: "interaction",
     entityId: "int-1",
   };
 
   const initialNotesCount = Object.keys(doc.notes).length;
-  const initialLinksCount = Object.keys(doc.relations.noteLinks).length;
+  const initialLinksCount = Object.keys(doc.relations.entityLinks).length;
 
   assert.equal(initialNotesCount, 2, "Should have 2 notes initially");
-  assert.equal(initialLinksCount, 4, "Should have 4 noteLinks initially");
+  assert.equal(initialLinksCount, 4, "Should have 4 entityLinks initially");
 
   // Delete note-1
   const note1Deleted: Event = {
@@ -330,50 +343,53 @@ test("note.deleted maintains state consistency with no dangling references", () 
     "Should have 1 note remaining",
   );
   assert.equal(
-    Object.keys(result.relations.noteLinks).length,
+    Object.keys(result.relations.entityLinks).length,
     2,
-    "Should have 2 noteLinks remaining (for note-2)",
+    "Should have 2 entityLinks remaining (for note-2)",
   );
 
   // Verify no dangling references exist
-  const remainingLinkIds = Object.keys(result.relations.noteLinks);
+  const remainingLinkIds = Object.keys(result.relations.entityLinks);
   for (const linkId of remainingLinkIds) {
-    const link = result.relations.noteLinks[linkId];
+    const link = result.relations.entityLinks[linkId];
+    assert.equal(link.linkType, "note", `Link ${linkId} should be for notes`);
+    const noteId = link.noteId;
+    assert.ok(noteId, `Link ${linkId} should include a noteId`);
     assert.notEqual(
-      link.noteId,
+      noteId,
       "note-1",
       `Link ${linkId} should not reference deleted note-1`,
     );
     assert.ok(
-      result.notes[link.noteId],
+      result.notes[noteId],
       `Link ${linkId} should reference an existing note`,
     );
   }
 
   // Verify relations object structure is preserved
   assert.ok(result.relations, "Relations object should exist");
-  assert.ok(result.relations.noteLinks, "noteLinks object should exist");
+  assert.ok(result.relations.entityLinks, "entityLinks object should exist");
   assert.ok(
     result.relations.accountContacts,
     "accountContacts object should be preserved",
   );
 
-  // Verify the specific noteLinks that should remain
+  // Verify the specific entityLinks that should remain
   assert.ok(
-    result.relations.noteLinks["link-3"],
+    result.relations.entityLinks["link-3"],
     "link-3 for note-2 should be preserved",
   );
   assert.ok(
-    result.relations.noteLinks["link-4"],
+    result.relations.entityLinks["link-4"],
     "link-4 for note-2 should be preserved",
   );
   assert.equal(
-    result.relations.noteLinks["link-1"],
+    result.relations.entityLinks["link-1"],
     undefined,
     "link-1 for note-1 should be removed",
   );
   assert.equal(
-    result.relations.noteLinks["link-2"],
+    result.relations.entityLinks["link-2"],
     undefined,
     "link-2 for note-1 should be removed",
   );

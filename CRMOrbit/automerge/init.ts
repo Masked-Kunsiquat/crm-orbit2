@@ -8,6 +8,6 @@ export const initAutomergeDoc = (): AutomergeDoc => ({
   interactions: {},
   relations: {
     accountContacts: {},
-    noteLinks: {},
+    entityLinks: {},
   },
 });

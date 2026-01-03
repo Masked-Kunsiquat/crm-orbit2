@@ -7,60 +7,8 @@ import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
-export const useNoteActions = (deviceId: string) => {
+export const useEntityLinkActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
-
-  const createNote = useCallback(
-    (title: string, body: string, noteId?: EntityId): DispatchResult => {
-      const id = noteId ?? nextId("note");
-      const event = buildEvent({
-        type: "note.created",
-        entityId: id,
-        payload: {
-          id,
-          title,
-          body,
-        },
-        deviceId,
-      });
-
-      return dispatch([event]);
-    },
-    [deviceId, dispatch],
-  );
-
-  const updateNote = useCallback(
-    (noteId: EntityId, title: string, body: string): DispatchResult => {
-      const event = buildEvent({
-        type: "note.updated",
-        entityId: noteId,
-        payload: {
-          title,
-          body,
-        },
-        deviceId,
-      });
-
-      return dispatch([event]);
-    },
-    [deviceId, dispatch],
-  );
-
-  const deleteNote = useCallback(
-    (noteId: EntityId): DispatchResult => {
-      const event = buildEvent({
-        type: "note.deleted",
-        entityId: noteId,
-        payload: {
-          id: noteId,
-        },
-        deviceId,
-      });
-
-      return dispatch([event]);
-    },
-    [deviceId, dispatch],
-  );
 
   const linkNote = useCallback(
     (
@@ -100,11 +48,48 @@ export const useNoteActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  const linkInteraction = useCallback(
+    (
+      interactionId: EntityId,
+      entityType: EntityLinkType,
+      entityId: EntityId,
+    ): DispatchResult => {
+      const id = nextId("entityLink");
+      const event = buildEvent({
+        type: "interaction.linked",
+        entityId: id,
+        payload: {
+          id,
+          interactionId,
+          entityType,
+          entityId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
+  const unlinkInteraction = useCallback(
+    (linkId: EntityId): DispatchResult => {
+      const event = buildEvent({
+        type: "interaction.unlinked",
+        entityId: linkId,
+        payload: {},
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
   return {
-    createNote,
-    updateNote,
-    deleteNote,
     linkNote,
     unlinkNote,
+    linkInteraction,
+    unlinkInteraction,
   };
 };

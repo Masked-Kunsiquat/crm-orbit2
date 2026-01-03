@@ -51,7 +51,9 @@ const isContactType = (value: unknown): value is Contact["type"] =>
 const isAccountStatus = (value: unknown): value is Account["status"] =>
   value === "account.status.active" || value === "account.status.inactive";
 
-const isOrganizationStatus = (value: unknown): value is Organization["status"] =>
+const isOrganizationStatus = (
+  value: unknown,
+): value is Organization["status"] =>
   value === "organization.status.active" ||
   value === "organization.status.inactive";
 
@@ -134,10 +136,9 @@ export const TimelineSection = ({
         typeof payload.lastName === "string"
           ? payload.lastName
           : (existing?.lastName ?? ""),
-      type:
-        isContactType(payload.type)
-          ? payload.type
-          : (existing?.type ?? "contact.type.internal"),
+      type: isContactType(payload.type)
+        ? payload.type
+        : (existing?.type ?? "contact.type.internal"),
       title:
         typeof payload.title === "string" ? payload.title : existing?.title,
       methods: resolveContactMethods(
@@ -163,10 +164,9 @@ export const TimelineSection = ({
         typeof payload.name === "string"
           ? payload.name
           : (existing?.name ?? ""),
-      status:
-        isAccountStatus(payload.status)
-          ? payload.status
-          : (existing?.status ?? "account.status.active"),
+      status: isAccountStatus(payload.status)
+        ? payload.status
+        : (existing?.status ?? "account.status.active"),
       addresses:
         payload.addresses !== undefined
           ? (payload.addresses as Account["addresses"])
@@ -198,10 +198,9 @@ export const TimelineSection = ({
         typeof payload.name === "string"
           ? payload.name
           : (existing?.name ?? ""),
-      status:
-        isOrganizationStatus(payload.status)
-          ? payload.status
-          : (existing?.status ?? "organization.status.active"),
+      status: isOrganizationStatus(payload.status)
+        ? payload.status
+        : (existing?.status ?? "organization.status.active"),
       logoUri:
         typeof payload.logoUri === "string"
           ? payload.logoUri
@@ -251,10 +250,9 @@ export const TimelineSection = ({
       existing?: Interaction,
     ): Interaction => ({
       id,
-      type:
-        isInteractionType(payload.type)
-          ? payload.type
-          : (existing?.type ?? "interaction.type.call"),
+      type: isInteractionType(payload.type)
+        ? payload.type
+        : (existing?.type ?? "interaction.type.call"),
       occurredAt:
         typeof payload.occurredAt === "string"
           ? payload.occurredAt
@@ -700,6 +698,24 @@ export const TimelineSection = ({
         const displayType =
           entityType.charAt(0).toUpperCase() + entityType.slice(1);
         return `${displayType}: ${entityName}`;
+      }
+    }
+
+    // For interaction link events
+    if (
+      item.event.type === "interaction.linked" ||
+      item.event.type === "interaction.unlinked"
+    ) {
+      const interactionId =
+        typeof payload?.interactionId === "string"
+          ? payload.interactionId
+          : null;
+
+      if (interactionId) {
+        const interaction = doc.interactions[interactionId];
+        if (interaction?.summary) {
+          return interaction.summary;
+        }
       }
     }
 

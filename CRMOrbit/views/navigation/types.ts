@@ -2,7 +2,7 @@ import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import type { NoteLinkEntityType } from "@domains/relations/noteLink";
+import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "../../domains/shared/types";
 
 // Root stack navigator
@@ -19,7 +19,7 @@ export type RootStackParamList = {
     noteId?: EntityId;
     entityToLink?: {
       entityId: EntityId;
-      entityType: NoteLinkEntityType;
+      entityType: EntityLinkType;
     };
   };
   InteractionDetail: { interactionId: EntityId };
@@ -64,7 +64,7 @@ export type NotesStackParamList = {
     noteId?: EntityId;
     entityToLink?: {
       entityId: EntityId;
-      entityType: NoteLinkEntityType;
+      entityType: EntityLinkType;
     };
   };
 };
