@@ -20,7 +20,7 @@ export const InteractionsStack = () => {
       <Stack.Screen
         name="InteractionsList"
         component={InteractionsListScreen}
-        options={{ title: "Interactions" }}
+        options={{ title: t("interactions.title") }}
       />
       <Stack.Screen
         name="InteractionDetail"

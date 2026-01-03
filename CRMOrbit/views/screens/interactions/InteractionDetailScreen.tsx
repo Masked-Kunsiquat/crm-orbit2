@@ -48,7 +48,7 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
         />
       ),
     });
-  }, [navigation, handleEdit]);
+  }, [navigation, handleEdit, colors]);
 
   if (!interaction) {
     return (

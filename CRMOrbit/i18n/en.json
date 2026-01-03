@@ -245,6 +245,7 @@
   "events.interaction.logged": "Logged interaction",
   "events.interaction.updated": "Updated interaction",
   "events.interaction.deleted": "Deleted interaction",
+  "interactions.title": "Interactions",
   "interactions.emptyTitle": "No interactions yet",
   "interactions.emptyHint": "Tap the + button to log one",
   "interactions.notFound": "Interaction not found",
