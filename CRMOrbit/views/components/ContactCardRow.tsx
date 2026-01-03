@@ -33,7 +33,7 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
 
   const handleLinkingError = (error: unknown) => {
     const message = error instanceof Error ? error.message : t("common.error");
-    Alert.alert(t("common.error"), message, t("common.ok"));
+    Alert.alert(t("common.error"), message, [{ text: t("common.ok") }]);
   };
 
   const handlePhoneCall = (e: React.BaseSyntheticEvent) => {

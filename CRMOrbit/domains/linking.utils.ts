@@ -15,9 +15,7 @@ const createLinkingError = (messageKey: string): Error => {
 };
 
 const showLinkingAlert = (messageKey: string): void => {
-  Alert.alert(t("common.error"), t(messageKey), [
-    { text: t("common.ok") },
-  ]);
+  Alert.alert(t("common.error"), t(messageKey), [{ text: t("common.ok") }]);
 };
 
 const openMapsUrl = async (
