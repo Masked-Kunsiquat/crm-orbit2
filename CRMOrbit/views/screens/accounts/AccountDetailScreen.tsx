@@ -5,6 +5,7 @@ import {
   View,
   Linking,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useState, useMemo } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
@@ -36,6 +37,10 @@ import {
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import {
+  openMapsWithAddress,
+  formatAddressForMaps,
+} from "@domains/linking.utils";
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
 type AccountTab = "overview" | "details" | "notes" | "activity";
@@ -285,14 +290,31 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
           {account.addresses?.site && (
             <DetailField label={t("accounts.fields.siteAddress")}>
-              <View>
-                <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                  {account.addresses.site.street}
-                </Text>
-                <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                  {account.addresses.site.city}, {account.addresses.site.state}{" "}
-                  {account.addresses.site.zipCode}
-                </Text>
+              <View style={styles.addressContainer}>
+                <View style={styles.addressText}>
+                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                    {account.addresses.site.street}
+                  </Text>
+                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                    {account.addresses.site.city},{" "}
+                    {account.addresses.site.state}{" "}
+                    {account.addresses.site.zipCode}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() =>
+                    void openMapsWithAddress(
+                      formatAddressForMaps(account.addresses!.site!),
+                    )
+                  }
+                  style={styles.mapIconButton}
+                >
+                  <Ionicons
+                    name="location-outline"
+                    size={24}
+                    color={colors.accent}
+                  />
+                </TouchableOpacity>
               </View>
             </DetailField>
           )}
@@ -300,15 +322,31 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           {account.addresses?.parking &&
             !account.addresses.useSameForParking && (
               <DetailField label={t("accounts.fields.parkingAddress")}>
-                <View>
-                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                    {account.addresses.parking.street}
-                  </Text>
-                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                    {account.addresses.parking.city},{" "}
-                    {account.addresses.parking.state}{" "}
-                    {account.addresses.parking.zipCode}
-                  </Text>
+                <View style={styles.addressContainer}>
+                  <View style={styles.addressText}>
+                    <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                      {account.addresses.parking.street}
+                    </Text>
+                    <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                      {account.addresses.parking.city},{" "}
+                      {account.addresses.parking.state}{" "}
+                      {account.addresses.parking.zipCode}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() =>
+                      void openMapsWithAddress(
+                        formatAddressForMaps(account.addresses!.parking!),
+                      )
+                    }
+                    style={styles.mapIconButton}
+                  >
+                    <Ionicons
+                      name="location-outline"
+                      size={24}
+                      color={colors.accent}
+                    />
+                  </TouchableOpacity>
                 </View>
               </DetailField>
             )}
@@ -426,5 +464,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 32,
+  },
+  addressContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  addressText: {
+    flex: 1,
+  },
+  mapIconButton: {
+    padding: 4,
   },
 });

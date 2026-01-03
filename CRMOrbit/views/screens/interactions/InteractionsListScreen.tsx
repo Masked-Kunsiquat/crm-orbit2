@@ -1,9 +1,12 @@
 import { useMemo } from "react";
+import { View, StyleSheet } from "react-native";
+import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
 
 import { useAllInteractions } from "../../store/store";
 import type { Interaction } from "../../../domains/interaction";
 import { ListRow, ListScreenLayout } from "../../components";
 import { t } from "@i18n/index";
+import { useTheme } from "../../hooks";
 
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,6 +15,7 @@ type Props = {
 
 export const InteractionsListScreen = ({ navigation }: Props) => {
   const interactions = useAllInteractions();
+  const { colors } = useTheme();
 
   const sortedInteractions = useMemo(() => {
     return [...interactions].sort((a, b) => {
@@ -32,6 +36,28 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
     navigation.navigate("InteractionForm", {});
   };
 
+  const getInteractionIcon = (type: string) => {
+    switch (type) {
+      case "interaction.type.email":
+        return <Ionicons name="mail-outline" size={20} color={colors.accent} />;
+      case "interaction.type.call":
+        return <Ionicons name="call-outline" size={20} color={colors.accent} />;
+      case "interaction.type.meeting":
+        return (
+          <Ionicons
+            name="people-circle-outline"
+            size={20}
+            color={colors.accent}
+          />
+        );
+      case "interaction.type.other":
+      default:
+        return (
+          <FontAwesome6 name="lines-leaning" size={20} color={colors.accent} />
+        );
+    }
+  };
+
   const renderItem = ({ item }: { item: Interaction }) => {
     const occurredDate = new Date(item.occurredAt);
     const formattedDate = occurredDate.toLocaleDateString(undefined, {
@@ -48,10 +74,13 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
       <ListRow
         onPress={() => handlePress(item)}
         title={item.summary}
-        subtitle={t(item.type)}
         description={`${formattedDate} at ${formattedTime}`}
-        showChevron
-      />
+        style={styles.listRow}
+      >
+        <View style={styles.iconContainer}>
+          {getInteractionIcon(item.type)}
+        </View>
+      </ListRow>
     );
   };
 
@@ -66,3 +95,14 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
     />
   );
 };
+
+const styles = StyleSheet.create({
+  listRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  iconContainer: {
+    marginLeft: 8,
+  },
+});

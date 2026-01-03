@@ -80,7 +80,6 @@ export const AccountsListScreen = ({ navigation }: Props) => {
             }
             description={getOrganizationName(item.organizationId)}
             titleSpacing={8}
-            variant="outlined"
           />
         )}
         emptyTitle={t("accounts.emptyTitle")}

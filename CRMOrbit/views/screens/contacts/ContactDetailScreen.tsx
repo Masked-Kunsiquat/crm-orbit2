@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import {
@@ -41,6 +42,11 @@ import { useDeviceId, useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
+import {
+  openPhoneDialer,
+  openSMS,
+  openEmailComposer,
+} from "@domains/linking.utils";
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
 type ContactTab = "overview" | "details" | "notes" | "activity";
@@ -191,6 +197,11 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     index: number,
   ) => method.id || `${method.label}-${method.status}-${method.value}-${index}`;
 
+  const handleLinkingError = (error: unknown) => {
+    const message = error instanceof Error ? error.message : t("common.error");
+    showAlert(t("common.error"), message, t("common.ok"));
+  };
+
   return (
     <DetailScreenLayout>
       <Section>
@@ -241,10 +252,33 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   key={getMethodKey(email, index)}
                   style={styles.methodItem}
                 >
-                  <Text style={styles.methodValue}>{email.value}</Text>
-                  <Text style={styles.methodMeta}>
-                    {getMethodLabel(email.label)} • {t(email.status)}
-                  </Text>
+                  <View style={styles.methodContent}>
+                    <View style={styles.methodTextContainer}>
+                      <View style={styles.methodValueRow}>
+                        <Text style={styles.methodValue}>{email.value}</Text>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={t("compose_email", {
+                            email: email.value,
+                          })}
+                          accessible={true}
+                          onPress={() => {
+                            void openEmailComposer(email.value);
+                          }}
+                          style={styles.actionIcon}
+                        >
+                          <Ionicons
+                            name="mail-outline"
+                            size={22}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={styles.methodMeta}>
+                        {getMethodLabel(email.label)} • {t(email.status)}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               ))
             )}
@@ -257,19 +291,64 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             {contact.methods.phones.length === 0 ? (
               <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
             ) : (
-              contact.methods.phones.map((phone, index) => (
-                <View
-                  key={getMethodKey(phone, index)}
-                  style={styles.methodItem}
-                >
-                  <Text style={styles.methodValue}>
-                    {formatPhoneNumber(phone.value)}
-                  </Text>
-                  <Text style={styles.methodMeta}>
-                    {getMethodLabel(phone.label)} • {t(phone.status)}
-                  </Text>
-                </View>
-              ))
+              contact.methods.phones.map((phone, index) => {
+                const formattedPhone = formatPhoneNumber(phone.value);
+                const methodLabel = getMethodLabel(phone.label);
+                const callLabel = t("call_phone")
+                  .replace("{label}", methodLabel)
+                  .replace("{phone}", formattedPhone);
+                const smsLabel = t("send_sms")
+                  .replace("{label}", methodLabel)
+                  .replace("{phone}", formattedPhone);
+
+                return (
+                  <View
+                    key={getMethodKey(phone, index)}
+                    style={styles.methodItem}
+                  >
+                    <View style={styles.methodContent}>
+                      <View style={styles.methodTextContainer}>
+                        <Text style={styles.methodValue}>{formattedPhone}</Text>
+                        <Text style={styles.methodMeta}>
+                          {methodLabel} • {t(phone.status)}
+                        </Text>
+                      </View>
+                      <View style={styles.methodActions}>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={callLabel}
+                          onPress={() => {
+                            void openPhoneDialer(phone.value).catch(
+                              handleLinkingError,
+                            );
+                          }}
+                          style={styles.actionIcon}
+                        >
+                          <Ionicons
+                            name="call-outline"
+                            size={20}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={smsLabel}
+                          onPress={() => {
+                            void openSMS(phone.value).catch(handleLinkingError);
+                          }}
+                          style={styles.actionIcon}
+                        >
+                          <MaterialCommunityIcons
+                            name="message-text-outline"
+                            size={20}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
             )}
           </Section>
         </>
@@ -569,5 +648,27 @@ const createStyles = (colors: ColorScheme) =>
       fontSize: 16,
       fontWeight: "600",
       color: colors.textSecondary,
+    },
+    methodContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    methodTextContainer: {
+      flex: 1,
+    },
+    methodValueRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    methodActions: {
+      flexDirection: "row",
+      gap: 12,
+      marginLeft: 12,
+    },
+    actionIcon: {
+      padding: 12,
     },
   });
