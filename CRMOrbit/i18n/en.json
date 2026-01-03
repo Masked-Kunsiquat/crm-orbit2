@@ -280,6 +280,8 @@
   "interactions.linkFailureMessage": "The interaction was created but could not be linked. Would you like to keep it anyway?",
   "interactions.linkFailureKeep": "Keep Interaction",
   "interactions.linkFailureDelete": "Delete Interaction",
+  "interactions.linkedTo": "Linked To",
+  "interactions.noLinkedEntities": "Not linked to any entity.",
   "interactions.unlinkTitle": "Unlink Interaction",
   "interactions.unlinkConfirmation": "Are you sure you want to unlink this interaction from \"{name}\"?",
   "interactions.unlinkAction": "Unlink",
