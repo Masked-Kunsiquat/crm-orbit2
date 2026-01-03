@@ -19,11 +19,7 @@ import { t } from "@i18n/index";
 import { useDeviceId, useTheme } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
-import {
-  useOrganizations,
-  useAccounts,
-  useAllContacts,
-} from "../store/store";
+import { useOrganizations, useAccounts, useAllContacts } from "../store/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ListEmptyState } from "./ListEmptyState";
 

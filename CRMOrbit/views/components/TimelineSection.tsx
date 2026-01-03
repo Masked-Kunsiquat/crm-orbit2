@@ -876,7 +876,7 @@ export const TimelineSection = ({
         >
           <View style={styles.timelineContent}>
             <Text style={[styles.eventLabel, { color: colors.textPrimary }]}>
-              {t("events.interaction.logged")}
+              {t("events.interaction.logged")}: {t(item.interaction.type)}
             </Text>
             {item.interaction.summary && (
               <Text
