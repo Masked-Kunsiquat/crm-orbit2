@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   listWithAccessory: {
     padding: 16,
-    paddingRight: 44,
+    paddingRight: 32,
   },
   emptyList: {
     flex: 1,
