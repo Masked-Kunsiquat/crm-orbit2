@@ -39,9 +39,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
 
   const [type, setType] = useState<InteractionType>("interaction.type.call");
   const [summary, setSummary] = useState("");
-  const [occurredAt, setOccurredAt] = useState(
-    () => new Date().toISOString(),
-  );
+  const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString());
 
   useEffect(() => {
     if (interaction) {
