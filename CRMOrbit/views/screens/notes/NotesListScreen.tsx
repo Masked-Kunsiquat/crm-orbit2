@@ -34,7 +34,6 @@ export const NotesListScreen = ({ navigation }: Props) => {
           description={item.body}
           descriptionNumberOfLines={3}
           titleSpacing={8}
-          variant="outlined"
         />
       )}
       emptyTitle={t("notes.emptyTitle")}

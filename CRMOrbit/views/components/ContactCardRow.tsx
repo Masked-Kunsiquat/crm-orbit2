@@ -100,8 +100,6 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
           </TouchableOpacity>
         )}
       </View>
-
-      <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
     </Pressable>
   );
 };
@@ -131,10 +129,6 @@ const styles = StyleSheet.create({
   contactTypeBadge: {
     alignSelf: "flex-start",
     marginTop: 4,
-  },
-  chevron: {
-    fontSize: 20,
-    marginLeft: 8,
   },
   actionsContainer: {
     flexDirection: "row",

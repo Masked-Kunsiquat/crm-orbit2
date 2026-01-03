@@ -163,7 +163,6 @@ export const InteractionsSection = ({
                   {new Date(interaction.occurredAt).toLocaleString()}
                 </Text>
               </View>
-              <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
             </Pressable>
             <TouchableOpacity
               style={[styles.unlinkButton, { backgroundColor: colors.errorBg }]}
@@ -234,7 +233,6 @@ const styles = StyleSheet.create({
   interactionCardRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
   interactionCardContent: {
     flex: 1,
@@ -252,10 +250,6 @@ const styles = StyleSheet.create({
   },
   interactionMeta: {
     fontSize: 12,
-  },
-  chevron: {
-    fontSize: 20,
-    marginLeft: 8,
   },
   unlinkButton: {
     marginTop: 8,
