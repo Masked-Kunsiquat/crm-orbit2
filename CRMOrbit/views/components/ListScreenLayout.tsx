@@ -1,5 +1,5 @@
-import type { ReactElement } from "react";
-import type { ListRenderItem } from "react-native";
+import type { ReactElement, RefObject } from "react";
+import type { FlatList as FlatListType, ListRenderItem } from "react-native";
 import { FlatList, StyleSheet, View } from "react-native";
 
 import { useTheme } from "../hooks";
@@ -14,6 +14,8 @@ type ListScreenLayoutProps<ItemT> = {
   emptyHint?: string;
   onAdd: () => void;
   listFooterComponent?: ReactElement | null;
+  rightAccessory?: ReactElement | null;
+  flatListRef?: RefObject<FlatListType<ItemT> | null>;
 };
 
 export const ListScreenLayout = <ItemT,>({
@@ -24,23 +26,33 @@ export const ListScreenLayout = <ItemT,>({
   emptyHint,
   onAdd,
   listFooterComponent,
+  rightAccessory,
+  flatListRef,
 }: ListScreenLayoutProps<ItemT>) => {
   const { colors } = useTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       <FlatList
+        ref={flatListRef}
         data={data}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListFooterComponent={listFooterComponent}
         contentContainerStyle={
-          data.length === 0 ? styles.emptyList : styles.list
+          data.length === 0
+            ? styles.emptyList
+            : rightAccessory
+              ? styles.listWithAccessory
+              : styles.list
         }
         ListEmptyComponent={
           <ListEmptyState title={emptyTitle} hint={emptyHint} />
         }
       />
+      {rightAccessory && (
+        <View style={styles.rightAccessoryContainer}>{rightAccessory}</View>
+      )}
       <FloatingActionButton onPress={onAdd} />
     </View>
   );
@@ -53,8 +65,19 @@ const styles = StyleSheet.create({
   list: {
     padding: 16,
   },
+  listWithAccessory: {
+    padding: 16,
+    paddingRight: 28,
+  },
   emptyList: {
     flex: 1,
     padding: 16,
+  },
+  rightAccessoryContainer: {
+    position: "absolute",
+    right: 4,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
   },
 });

@@ -1,12 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity, Image } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { persistImage, deletePersistedImage } from "@utils/imageStorage";
 
 import { t } from "@i18n/index";
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization } from "@views/store/store";
 import { useDeviceId, useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
+import { nextId } from "@domains/shared/idGenerator";
 import { useTheme } from "@views/hooks/useTheme";
 import {
   FormField,
@@ -36,6 +44,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const [logoUri, setLogoUri] = useState<string | undefined>(undefined);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const lastOrgIdRef = useRef<string | undefined>(undefined);
   const statusOptions = [
     { value: "organization.status.active", label: t("status.active") },
@@ -98,8 +107,42 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setLogoUri(result.assets[0].uri);
+      const tempUri = result.assets[0].uri;
+
+      // For new organizations, use temp URI and persist on save
+      // For existing organizations, persist immediately
+      if (organizationId) {
+        setIsProcessingImage(true);
+        try {
+          const permanentUri = await persistImage(
+            tempUri,
+            "organization",
+            organizationId,
+          );
+          setLogoUri(permanentUri);
+        } catch (error) {
+          console.error("Failed to persist image:", error);
+          showAlert(
+            t("common.error"),
+            t("organizations.form.saveImageFailed"),
+            t("common.ok"),
+          );
+        } finally {
+          setIsProcessingImage(false);
+        }
+      } else {
+        // For new orgs, just store temp URI - will persist on save
+        setLogoUri(tempUri);
+      }
     }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (logoUri && !logoUri.startsWith("http")) {
+      // If it's a local file, delete it
+      await deletePersistedImage(logoUri);
+    }
+    setLogoUri(undefined);
   };
 
   const handleSocialMediaChange = (
@@ -112,7 +155,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       showAlert(
         t("common.validationError"),
@@ -152,12 +195,41 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         );
       }
     } else {
+      // For new organizations, persist image first if it's a temp URI
+      const newOrganizationId = nextId("org");
+      let finalLogoUri = logoUri;
+      if (
+        logoUri &&
+        !logoUri.trim().toLowerCase().startsWith("http://") &&
+        !logoUri.trim().toLowerCase().startsWith("https://")
+      ) {
+        setIsProcessingImage(true);
+        try {
+          finalLogoUri = await persistImage(
+            logoUri,
+            "organization",
+            newOrganizationId,
+          );
+        } catch (error) {
+          console.error("Failed to persist image:", error);
+          showAlert(
+            t("common.error"),
+            t("organizations.form.saveImageCreateFailed"),
+            t("common.ok"),
+          );
+          finalLogoUri = undefined;
+        } finally {
+          setIsProcessingImage(false);
+        }
+      }
+
       const result = createOrganization(
         name.trim(),
         status,
-        logoUri,
+        finalLogoUri,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        newOrganizationId,
       );
       if (result.success) {
         navigation.goBack();
@@ -190,15 +262,32 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
           onPress={handlePickImage}
+          disabled={isProcessingImage}
         >
-          {logoUri ? (
-            <Image source={{ uri: logoUri }} style={styles.logoPreview} />
+          {isProcessingImage ? (
+            <ActivityIndicator size="large" color={colors.accent} />
+          ) : logoUri ? (
+            <Image
+              source={{ uri: logoUri }}
+              style={styles.logoPreview}
+              contentFit="cover"
+            />
           ) : (
             <Text style={[styles.imagePickerText, { color: colors.textMuted }]}>
               {t("organizations.form.logoPlaceholder")}
             </Text>
           )}
         </TouchableOpacity>
+        {logoUri && (
+          <TouchableOpacity
+            style={[styles.removeButton, { backgroundColor: colors.error }]}
+            onPress={handleRemoveLogo}
+          >
+            <Text style={[styles.removeButtonText, { color: colors.onError }]}>
+              {t("organizations.form.removeLogo")}
+            </Text>
+          </TouchableOpacity>
+        )}
       </FormField>
 
       <FormField label={t("organizations.fields.website")}>
@@ -260,6 +349,16 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
+  },
+  removeButton: {
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  removeButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
   saveButton: {
     padding: 16,

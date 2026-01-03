@@ -5,6 +5,9 @@ import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
+import { createLogger } from "@utils/logger";
+
+const logger = createLogger("PersistenceLoader");
 
 const EMPTY_DOC: AutomergeDoc = {
   organizations: {},
@@ -72,6 +75,7 @@ export const loadPersistedState = async (
 
   // Load all events
   const eventRecords = await db.select().from<EventLogRecord>(eventLog).all();
+  logger.info(`Loaded ${eventRecords.length} event records from database`);
 
   // Parse events from records
   const events: Event[] = eventRecords.map((record) => ({
@@ -82,6 +86,11 @@ export const loadPersistedState = async (
     timestamp: record.timestamp,
     deviceId: record.deviceId,
   }));
+
+  logger.info(
+    "Event types loaded",
+    events.map((event) => event.type),
+  );
 
   // Start with snapshot or empty doc
   let doc: AutomergeDoc;

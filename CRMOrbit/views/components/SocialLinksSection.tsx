@@ -1,7 +1,8 @@
-import { Linking, Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { SocialMediaLinks } from "@domains/organization";
+import { normalizeWebUrl, openWebUrl } from "@domains/linking.utils";
 import { useTheme } from "../hooks";
 import { Tooltip } from "./Tooltip";
 import { t } from "@i18n/index";
@@ -22,7 +23,7 @@ const normalizeUrl = (platform: string, value: string): string => {
     case "x":
       return `https://x.com/${value}`;
     default:
-      return value;
+      return normalizeWebUrl(value) ?? value;
   }
 };
 
@@ -65,7 +66,7 @@ export const SocialLinksSection = ({
             >
               <Pressable
                 onPress={() =>
-                  Linking.openURL(
+                  void openWebUrl(
                     normalizeUrl(platform, socialMedia[platform]!),
                   )
                 }

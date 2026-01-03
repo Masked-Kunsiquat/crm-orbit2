@@ -102,6 +102,40 @@ test("organization.status.updated rejects missing organizations", () => {
   });
 });
 
+test("organization.updated clears logo when logoUri is null", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+      logoUri: "file://logo.png",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    entityId: "org-1",
+    payload: {
+      id: "org-1",
+      logoUri: null,
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.ok(org);
+  assert.equal(org.logoUri, undefined);
+});
+
 test("organization.deleted removes organization when no dependent accounts exist", () => {
   const doc = initAutomergeDoc();
   const created: Event = {

@@ -1,10 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Linking,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useMemo } from "react";
 
@@ -40,6 +34,7 @@ import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import {
   openMapsWithAddress,
   formatAddressForMaps,
+  openWebUrl,
 } from "@domains/linking.utils";
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
@@ -279,7 +274,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           {account.website && (
             <DetailField label={t("accounts.fields.website")}>
               <TouchableOpacity
-                onPress={() => Linking.openURL(account.website!)}
+                onPress={() => void openWebUrl(account.website!)}
               >
                 <Text style={[styles.link, { color: colors.link }]}>
                   {account.website}

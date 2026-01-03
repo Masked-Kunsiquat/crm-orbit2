@@ -1,12 +1,6 @@
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Image,
-  Linking,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import {
@@ -20,6 +14,7 @@ import {
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useDeviceId, useTheme } from "@views/hooks";
+import { getOrganizationLogoUrl } from "@domains/organization.utils";
 import {
   NotesSection,
   InteractionsSection,
@@ -37,6 +32,7 @@ import {
 } from "@views/components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
+import { openWebUrl } from "@domains/linking.utils";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 type OrganizationTab = "overview" | "details" | "notes" | "activity";
@@ -106,12 +102,19 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
+  const logoUrl = getOrganizationLogoUrl(organization, 128);
+
   return (
     <DetailScreenLayout>
       <Section>
-        {organization.logoUri ? (
+        {logoUrl ? (
           <View style={styles.logoContainer}>
-            <Image source={{ uri: organization.logoUri }} style={styles.logo} />
+            <Image
+              source={{ uri: logoUrl }}
+              style={styles.logo}
+              contentFit="contain"
+              transition={200}
+            />
           </View>
         ) : null}
         <View style={styles.header}>
@@ -214,7 +217,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Section>
               <DetailField label={t("organizations.fields.website")}>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL(organization.website!)}
+                  onPress={() => void openWebUrl(organization.website!)}
                 >
                   <Text style={[styles.link, { color: colors.link }]}>
                     {organization.website}
