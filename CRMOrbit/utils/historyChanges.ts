@@ -2,6 +2,8 @@ import type { Contact, ContactMethod } from "../domains/contact";
 import type { Account, AccountAddresses } from "../domains/account";
 import type { Organization, SocialMediaLinks } from "../domains/organization";
 import type { Note } from "../domains/note";
+import type { Interaction, InteractionType } from "../domains/interaction";
+import type { Timestamp } from "../domains/shared/types";
 
 export type FieldChange = {
   field: string;
@@ -309,6 +311,46 @@ export const detectNoteChanges = (
       field: "body",
       oldValue: oldNote.body,
       newValue: newData.body,
+    });
+  }
+
+  return changes;
+};
+
+/**
+ * Detects changes between an old interaction and new interaction data
+ */
+export const detectInteractionChanges = (
+  oldInteraction: Interaction,
+  newData: {
+    type: InteractionType;
+    summary: string;
+    occurredAt: Timestamp;
+  },
+): FieldChange[] => {
+  const changes: FieldChange[] = [];
+
+  if (oldInteraction.type !== newData.type) {
+    changes.push({
+      field: "type",
+      oldValue: oldInteraction.type,
+      newValue: newData.type,
+    });
+  }
+
+  if (oldInteraction.summary !== newData.summary) {
+    changes.push({
+      field: "summary",
+      oldValue: oldInteraction.summary,
+      newValue: newData.summary,
+    });
+  }
+
+  if (oldInteraction.occurredAt !== newData.occurredAt) {
+    changes.push({
+      field: "occurredAt",
+      oldValue: oldInteraction.occurredAt,
+      newValue: newData.occurredAt,
     });
   }
 

@@ -239,5 +239,7 @@
   "events.note.deleted": "Deleted note",
   "events.note.linked": "Linked note",
   "events.note.unlinked": "Unlinked note",
-  "events.interaction.logged": "Logged interaction"
+  "events.interaction.logged": "Logged interaction",
+  "events.interaction.updated": "Updated interaction",
+  "events.interaction.deleted": "Deleted interaction"
 }
