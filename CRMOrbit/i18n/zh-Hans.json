@@ -16,6 +16,8 @@
     "compose_email": "给 {email} 撰写邮件",
     "no_email_app": "此设备上没有可用的邮件应用。",
     "email_send_failed": "无法打开邮件应用。",
+    "no_maps_app": "此设备上没有可用的地图应用。",
+    "maps_open_failed": "无法打开地图应用。",
     "notes.listTitle": "笔记",
     "notes.detailTitle": "笔记详情",
     "notes.emptyTitle": "暂无笔记",

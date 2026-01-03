@@ -16,6 +16,8 @@
     "compose_email": "Redactar correo a {email}",
     "no_email_app": "No hay una app de correo disponible en este dispositivo.",
     "email_send_failed": "No se pudo abrir la app de correo.",
+    "no_maps_app": "No hay una app de mapas disponible en este dispositivo.",
+    "maps_open_failed": "No se pudo abrir la app de mapas.",
     "notes.listTitle": "Notas",
     "notes.detailTitle": "Detalles de la nota",
     "notes.emptyTitle": "Aún no hay notas",

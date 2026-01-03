@@ -8,22 +8,34 @@ const normalizePhoneNumber = (phoneNumber: string): string => {
   return phoneNumber.replace(/[^\d+]/g, "");
 };
 
+const showLinkingAlert = (messageKey: string): void => {
+  Alert.alert(t("common.error"), t(messageKey), t("common.ok"));
+};
+
 const openLinkingUrl = async (
   url: string,
   description: string,
-): Promise<boolean> => {
+  alertMessages?: {
+    unsupportedMessageKey?: string;
+    failedMessageKey?: string;
+  },
+): Promise<void> => {
   try {
     const supported = await Linking.canOpenURL(url);
     if (!supported) {
       logger.warn(`${description} not available`, { url });
-      return false;
+      if (alertMessages?.unsupportedMessageKey) {
+        showLinkingAlert(alertMessages.unsupportedMessageKey);
+      }
+      return;
     }
 
     await Linking.openURL(url);
-    return true;
   } catch (error) {
     logger.error(`Failed to open ${description}`, { url }, error);
-    return false;
+    if (alertMessages?.failedMessageKey) {
+      showLinkingAlert(alertMessages.failedMessageKey);
+    }
   }
 };
 
@@ -31,54 +43,40 @@ const openLinkingUrl = async (
  * Opens the native phone dialer with the phone number pre-filled
  * @param phoneNumber - The phone number to dial (can include formatting characters)
  */
-export const openPhoneDialer = async (
-  phoneNumber: string,
-): Promise<boolean> => {
+export const openPhoneDialer = (phoneNumber: string): void => {
   const cleanNumber = normalizePhoneNumber(phoneNumber);
   if (!cleanNumber) {
     logger.warn("Phone number missing for dialer", { phoneNumber });
-    return false;
+    return;
   }
 
-  return openLinkingUrl(`tel:${cleanNumber}`, "phone dialer");
+  void openLinkingUrl(`tel:${cleanNumber}`, "phone dialer");
 };
 
 /**
  * Opens the native SMS app with the phone number pre-filled
  * @param phoneNumber - The phone number to send SMS to (can include formatting characters)
  */
-export const openSMS = async (phoneNumber: string): Promise<boolean> => {
+export const openSMS = (phoneNumber: string): void => {
   const cleanNumber = normalizePhoneNumber(phoneNumber);
   if (!cleanNumber) {
     logger.warn("Phone number missing for SMS", { phoneNumber });
-    return false;
+    return;
   }
 
-  return openLinkingUrl(`sms:${cleanNumber}`, "SMS");
+  void openLinkingUrl(`sms:${cleanNumber}`, "SMS");
 };
 
 /**
  * Opens the default email app with the email address pre-filled
  * @param email - The email address to send to
  */
-export const openEmailComposer = async (email: string): Promise<boolean> => {
+export const openEmailComposer = (email: string): void => {
   const url = `mailto:${email}`;
-
-  try {
-    const supported = await Linking.canOpenURL(url);
-    if (!supported) {
-      logger.warn("No email app available", { email });
-      Alert.alert(t("common.error"), t("no_email_app"), t("common.ok"));
-      return false;
-    }
-
-    await Linking.openURL(url);
-    return true;
-  } catch (error) {
-    logger.error("Failed to open email composer", { email }, error);
-    Alert.alert(t("common.error"), t("email_send_failed"), t("common.ok"));
-    return false;
-  }
+  void openLinkingUrl(url, "email composer", {
+    unsupportedMessageKey: "no_email_app",
+    failedMessageKey: "email_send_failed",
+  });
 };
 
 /**
@@ -88,7 +86,10 @@ export const openEmailComposer = async (email: string): Promise<boolean> => {
  */
 export const openMapsWithAddress = (address: string): void => {
   const encodedAddress = encodeURIComponent(address);
-  Linking.openURL(`geo:0,0?q=${encodedAddress}`);
+  void openLinkingUrl(`geo:0,0?q=${encodedAddress}`, "maps", {
+    unsupportedMessageKey: "no_maps_app",
+    failedMessageKey: "maps_open_failed",
+  });
 };
 
 /**
@@ -104,8 +105,13 @@ export const openMapsWithCoordinates = (
   label?: string,
 ): void => {
   const labelParam = label ? `(${encodeURIComponent(label)})` : "";
-  Linking.openURL(
+  void openLinkingUrl(
     `geo:${latitude},${longitude}?q=${latitude},${longitude}${labelParam}`,
+    "maps",
+    {
+      unsupportedMessageKey: "no_maps_app",
+      failedMessageKey: "maps_open_failed",
+    },
   );
 };
 

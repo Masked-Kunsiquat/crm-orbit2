@@ -25,6 +25,8 @@
   "compose_email": "Compose email to {email}",
   "no_email_app": "No email app is available on this device.",
   "email_send_failed": "Unable to open the email app.",
+  "no_maps_app": "No maps app is available on this device.",
+  "maps_open_failed": "Unable to open the maps app.",
   "tabs.overview": "Overview",
   "tabs.details": "Details",
   "tabs.notes": "Notes",

@@ -16,6 +16,8 @@
     "compose_email": "E-Mail an {email} verfassen",
     "no_email_app": "Auf diesem Gerät ist keine E-Mail-App verfügbar.",
     "email_send_failed": "E-Mail-App konnte nicht geöffnet werden.",
+    "no_maps_app": "Auf diesem Gerät ist keine Karten-App verfügbar.",
+    "maps_open_failed": "Karten-App konnte nicht geöffnet werden.",
     "notes.listTitle": "Notizen",
     "notes.detailTitle": "Notizdetails",
     "notes.emptyTitle": "Noch keine Notizen vorhanden",
