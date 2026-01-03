@@ -303,7 +303,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 </View>
                 <TouchableOpacity
                   onPress={() =>
-                    openMapsWithAddress(
+                    void openMapsWithAddress(
                       formatAddressForMaps(account.addresses!.site!),
                     )
                   }
@@ -335,7 +335,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                   </View>
                   <TouchableOpacity
                     onPress={() =>
-                      openMapsWithAddress(
+                      void openMapsWithAddress(
                         formatAddressForMaps(account.addresses!.parking!),
                       )
                     }

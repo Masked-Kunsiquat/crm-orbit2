@@ -1,4 +1,4 @@
-import { Alert, Linking } from "react-native";
+import { Alert, Linking, Platform } from "react-native";
 import { t } from "@i18n/index";
 import { createLogger } from "../utils/logger";
 
@@ -36,6 +36,30 @@ const openLinkingUrl = async (
     if (alertMessages?.failedMessageKey) {
       showLinkingAlert(alertMessages.failedMessageKey);
     }
+  }
+};
+
+const openMapsUrl = async (
+  primaryUrl: string,
+  fallbackUrl?: string,
+): Promise<void> => {
+  try {
+    const supported = await Linking.canOpenURL(primaryUrl);
+    if (supported) {
+      await Linking.openURL(primaryUrl);
+      return;
+    }
+
+    if (fallbackUrl) {
+      await Linking.openURL(fallbackUrl);
+      return;
+    }
+
+    logger.warn("Maps app not available", { url: primaryUrl });
+    showLinkingAlert("no_maps_app");
+  } catch (error) {
+    logger.error("Failed to open maps", { url: primaryUrl, fallbackUrl }, error);
+    showLinkingAlert("maps_open_failed");
   }
 };
 
@@ -84,12 +108,17 @@ export const openEmailComposer = (email: string): void => {
  * Shows app picker with all installed mapping apps
  * @param address - The full address string
  */
-export const openMapsWithAddress = (address: string): void => {
+export const openMapsWithAddress = async (address: string): Promise<void> => {
   const encodedAddress = encodeURIComponent(address);
-  void openLinkingUrl(`geo:0,0?q=${encodedAddress}`, "maps", {
-    unsupportedMessageKey: "no_maps_app",
-    failedMessageKey: "maps_open_failed",
-  });
+  if (Platform.OS === "ios") {
+    await openMapsUrl(
+      `maps://?q=${encodedAddress}`,
+      `https://maps.apple.com/?q=${encodedAddress}`,
+    );
+    return;
+  }
+
+  await openMapsUrl(`geo:0,0?q=${encodedAddress}`);
 };
 
 /**
@@ -99,20 +128,25 @@ export const openMapsWithAddress = (address: string): void => {
  * @param longitude - The longitude coordinate
  * @param label - Optional label for the location
  */
-export const openMapsWithCoordinates = (
+export const openMapsWithCoordinates = async (
   latitude: number,
   longitude: number,
   label?: string,
-): void => {
-  const labelParam = label ? `(${encodeURIComponent(label)})` : "";
-  void openLinkingUrl(
-    `geo:${latitude},${longitude}?q=${latitude},${longitude}${labelParam}`,
-    "maps",
-    {
-      unsupportedMessageKey: "no_maps_app",
-      failedMessageKey: "maps_open_failed",
-    },
-  );
+): Promise<void> => {
+  const encodedLabel = label ? encodeURIComponent(label) : "";
+  const coordinates = `${latitude},${longitude}`;
+
+  if (Platform.OS === "ios") {
+    const query = encodedLabel ? `&q=${encodedLabel}` : "";
+    await openMapsUrl(
+      `maps://?ll=${coordinates}${query}`,
+      `https://maps.apple.com/?ll=${coordinates}${query}`,
+    );
+    return;
+  }
+
+  const labelSuffix = encodedLabel ? `(${encodedLabel})` : "";
+  await openMapsUrl(`geo:${coordinates}?q=${coordinates}${labelSuffix}`);
 };
 
 /**
