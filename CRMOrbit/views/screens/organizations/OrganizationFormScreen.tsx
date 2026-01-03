@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 
 import { t } from "@i18n/index";
@@ -192,7 +193,11 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           onPress={handlePickImage}
         >
           {logoUri ? (
-            <Image source={{ uri: logoUri }} style={styles.logoPreview} />
+            <Image
+              source={{ uri: logoUri }}
+              style={styles.logoPreview}
+              contentFit="cover"
+            />
           ) : (
             <Text style={[styles.imagePickerText, { color: colors.textMuted }]}>
               {t("organizations.form.logoPlaceholder")}
