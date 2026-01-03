@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS, useSharedValue } from "react-native-reanimated";
@@ -11,19 +11,13 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
   const ref = useRef<View | null>(null);
   const heightRef = useRef(1);
   const lastIndexValue = useSharedValue(-1);
-  const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
   const handleSelect = useCallback(
     (char: string) => {
       props.onCharSelect?.(char);
-      setActiveLetter(char);
     },
     [props],
   );
-
-  const clearActive = useCallback(() => {
-    setActiveLetter(null);
-  }, []);
 
   const tap = useMemo(
     () =>
@@ -45,10 +39,9 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
           const letter = data[idx];
           if (letter) {
             runOnJS(handleSelect)(letter);
-            runOnJS(clearActive)();
           }
         }),
-    [props.data, props.hitSlop, handleSelect, clearActive],
+    [props.data, props.hitSlop, handleSelect],
   );
 
   const pan = useMemo(
@@ -79,9 +72,8 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
         .onFinalize(() => {
           "worklet";
           lastIndexValue.value = -1;
-          runOnJS(clearActive)();
         }),
-    [props.data, lastIndexValue, handleSelect, clearActive],
+    [props.data, lastIndexValue, handleSelect],
   );
 
   const gesture = useMemo(() => Gesture.Race(tap, pan), [tap, pan]);
@@ -95,30 +87,16 @@ export const AlphabetScrollbar = (props: AlphabetScrollbarProps) => {
           heightRef.current = e.nativeEvent.layout.height;
         }}
       >
-        {props.data?.map((letter) => {
-          const isActive = letter === activeLetter;
-          return (
-            <View
-              key={letter}
-              style={[
-                styles.charContainer,
-                isActive && styles.charContainerActive,
-                isActive && { backgroundColor: colors.accent },
-                props.charContainerStyle,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.char,
-                  { color: isActive ? colors.onAccent : colors.accent },
-                  props.charStyle,
-                ]}
-              >
-                {letter}
-              </Text>
-            </View>
-          );
-        })}
+        {props.data?.map((letter) => (
+          <View
+            key={letter}
+            style={[styles.charContainer, props.charContainerStyle]}
+          >
+            <Text style={[styles.char, { color: colors.accent }, props.charStyle]}>
+              {letter}
+            </Text>
+          </View>
+        ))}
       </View>
     </GestureDetector>
   );
@@ -135,11 +113,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     alignItems: "center",
     justifyContent: "center",
-  },
-  charContainerActive: {
-    borderRadius: 10,
-    paddingVertical: 3,
-    paddingHorizontal: 6,
   },
   char: {
     fontSize: 11,
