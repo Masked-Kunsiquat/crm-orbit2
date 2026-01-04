@@ -5,7 +5,7 @@ import { useTheme } from "../../hooks";
 
 type Props = MiscStackScreenProps<"MiscLanding">;
 
-export const MiscLandingScreen = ({ navigation }: Props) => {
+export const MiscLandingScreen = ({ navigation: _navigation }: Props) => {
   const { colors } = useTheme();
 
   return (
