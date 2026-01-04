@@ -330,7 +330,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
               ]}
             >
               <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
-                {isRevealed ? revealedValue ?? MASKED_VALUE : MASKED_VALUE}
+                {isRevealed ? (revealedValue ?? MASKED_VALUE) : MASKED_VALUE}
               </Text>
               {!isRevealed ? (
                 <Text

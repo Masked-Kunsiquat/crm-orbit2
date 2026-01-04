@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { applyEvents, buildEvent, registerCoreReducers } from "./events/dispatcher";
+import {
+  applyEvents,
+  buildEvent,
+  registerCoreReducers,
+} from "./events/dispatcher";
 import {
   initializeDatabase,
   createPersistenceDb,

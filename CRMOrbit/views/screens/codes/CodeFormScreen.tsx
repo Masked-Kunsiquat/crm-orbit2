@@ -22,7 +22,7 @@ import {
 } from "../../components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
-import { decryptCode } from "../../../utils/encryption";
+import { decryptCode, encryptCode } from "../../../utils/encryption";
 
 const CODE_TYPE_OPTIONS: Array<{ label: string; value: CodeType }> = [
   { label: "code.type.door", value: "code.type.door" },
@@ -90,11 +90,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
           setCodeValue(decryptedValue);
         } catch {
           if (!isActive) return;
-          showAlert(
-            t("common.error"),
-            t("codes.decryptError"),
-            t("common.ok"),
-          );
+          showAlert(t("common.error"), t("codes.decryptError"), t("common.ok"));
         } finally {
           if (isActive) {
             setIsDecrypting(false);
@@ -149,11 +145,24 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
+    let encryptedValue = "";
+
+    try {
+      encryptedValue = await encryptCode(codeValue.trim());
+    } catch {
+      showAlert(
+        t("common.error"),
+        t("codes.encryptError"),
+        t("common.ok"),
+      );
+      return;
+    }
+
     if (codeId) {
-      const result = await updateCode(
+      const result = updateCode(
         codeId,
         label.trim(),
-        codeValue.trim(),
+        encryptedValue,
         type,
         notes.trim() || undefined,
         accountId,
@@ -168,10 +177,10 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
         );
       }
     } else {
-      const result = await createCode(
+      const result = createCode(
         accountId,
         label.trim(),
-        codeValue.trim(),
+        encryptedValue,
         type,
         notes.trim() || undefined,
       );

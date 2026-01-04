@@ -94,6 +94,7 @@
   "codes.deleteButton": "Delete Code",
   "codes.createError": "Failed to create code",
   "codes.updateError": "Failed to update code",
+  "codes.encryptError": "Failed to encrypt code",
   "codes.decryptError": "Failed to decrypt code",
   "codes.copyButton": "Copy code",
   "codes.copyTitle": "Code copied",

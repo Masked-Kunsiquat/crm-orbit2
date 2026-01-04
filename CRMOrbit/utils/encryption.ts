@@ -7,9 +7,47 @@ const KEY_LENGTH = 256;
 const IV_LENGTH = 12;
 const PAYLOAD_VERSION = 1;
 
+type KeyUsage = "encrypt" | "decrypt";
+
+type CryptoKeyLike = unknown;
+
+type SubtleCryptoLike = {
+  generateKey: (
+    algorithm: { name: string; length?: number },
+    extractable: boolean,
+    keyUsages: KeyUsage[],
+  ) => Promise<CryptoKeyLike>;
+  exportKey: (format: "raw", key: CryptoKeyLike) => Promise<ArrayBuffer>;
+  importKey: (
+    format: "raw",
+    keyData: ArrayBuffer | Uint8Array,
+    algorithm: { name: string },
+    extractable: boolean,
+    keyUsages: KeyUsage[],
+  ) => Promise<CryptoKeyLike>;
+  encrypt: (
+    algorithm: { name: string; iv: Uint8Array },
+    key: CryptoKeyLike,
+    data: ArrayBuffer | Uint8Array,
+  ) => Promise<ArrayBuffer>;
+  decrypt: (
+    algorithm: { name: string; iv: Uint8Array },
+    key: CryptoKeyLike,
+    data: ArrayBuffer | Uint8Array,
+  ) => Promise<ArrayBuffer>;
+};
+
 type CryptoApi = {
-  subtle: SubtleCrypto;
+  subtle: SubtleCryptoLike;
   getRandomValues: (array: Uint8Array) => Uint8Array;
+};
+
+type TextEncoderLike = {
+  encode: (input?: string) => Uint8Array;
+};
+
+type TextDecoderLike = {
+  decode: (input?: Uint8Array) => string;
 };
 
 export type EncryptedPayload = {
@@ -18,7 +56,7 @@ export type EncryptedPayload = {
   data: string;
 };
 
-let cachedKey: CryptoKey | null = null;
+let cachedKey: CryptoKeyLike | null = null;
 let cachedKeyMaterial: Uint8Array | null = null;
 
 const getCrypto = (): CryptoApi => {
@@ -33,18 +71,20 @@ const encodeBase64 = (value: Uint8Array): string => fromByteArray(value);
 
 const decodeBase64 = (value: string): Uint8Array => toByteArray(value);
 
-const getTextEncoder = (): TextEncoder => {
-  if (typeof TextEncoder === "undefined") {
+const getTextEncoder = (): TextEncoderLike => {
+  const Encoder = globalThis.TextEncoder;
+  if (!Encoder) {
     throw new Error("TextEncoder is not available.");
   }
-  return new TextEncoder();
+  return new Encoder();
 };
 
-const getTextDecoder = (): TextDecoder => {
-  if (typeof TextDecoder === "undefined") {
+const getTextDecoder = (): TextDecoderLike => {
+  const Decoder = globalThis.TextDecoder;
+  if (!Decoder) {
     throw new Error("TextDecoder is not available.");
   }
-  return new TextDecoder();
+  return new Decoder();
 };
 
 const loadKeyMaterial = async (): Promise<Uint8Array | null> => {
@@ -83,7 +123,9 @@ const generateKeyMaterial = async (): Promise<Uint8Array> => {
   return new Uint8Array(raw);
 };
 
-const importKey = async (keyMaterial: Uint8Array): Promise<CryptoKey> => {
+const importKey = async (
+  keyMaterial: Uint8Array,
+): Promise<CryptoKeyLike> => {
   const cryptoApi = getCrypto();
   return cryptoApi.subtle.importKey(
     "raw",
@@ -94,7 +136,7 @@ const importKey = async (keyMaterial: Uint8Array): Promise<CryptoKey> => {
   );
 };
 
-const getOrCreateKey = async (): Promise<CryptoKey> => {
+const getOrCreateKey = async (): Promise<CryptoKeyLike> => {
   if (cachedKey) {
     return cachedKey;
   }
