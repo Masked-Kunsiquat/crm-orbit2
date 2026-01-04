@@ -62,44 +62,6 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  if (!code) {
-    return (
-      <DetailScreenLayout>
-        <Text style={[styles.errorText, { color: colors.error }]}>
-          {t("codes.notFound")}
-        </Text>
-      </DetailScreenLayout>
-    );
-  }
-
-  const accountName = account?.name ?? t("common.unknownEntity");
-
-  const handleEdit = () => {
-    navigation.navigate("CodeForm", { codeId: code.id });
-  };
-
-  const handleDelete = () => {
-    showDialog({
-      title: t("codes.deleteTitle"),
-      message: t("codes.deleteConfirmation"),
-      confirmLabel: t("common.delete"),
-      confirmVariant: "danger",
-      cancelLabel: t("common.cancel"),
-      onConfirm: () => {
-        const result = deleteCode(code.id);
-        if (result.success) {
-          navigation.goBack();
-        } else {
-          showAlert(
-            t("common.error"),
-            result.error ?? t("codes.deleteError"),
-            t("common.ok"),
-          );
-        }
-      },
-    });
-  };
-
   const clearRevealTimeout = useCallback(() => {
     if (revealTimeoutRef.current) {
       clearTimeout(revealTimeoutRef.current);
@@ -197,6 +159,44 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       clearRevealTimeout();
     };
   }, [clearRevealTimeout]);
+
+  if (!code) {
+    return (
+      <DetailScreenLayout>
+        <Text style={[styles.errorText, { color: colors.error }]}>
+          {t("codes.notFound")}
+        </Text>
+      </DetailScreenLayout>
+    );
+  }
+
+  const accountName = account?.name ?? t("common.unknownEntity");
+
+  const handleEdit = () => {
+    navigation.navigate("CodeForm", { codeId: code.id });
+  };
+
+  const handleDelete = () => {
+    showDialog({
+      title: t("codes.deleteTitle"),
+      message: t("codes.deleteConfirmation"),
+      confirmLabel: t("common.delete"),
+      confirmVariant: "danger",
+      cancelLabel: t("common.cancel"),
+      onConfirm: () => {
+        const result = deleteCode(code.id);
+        if (result.success) {
+          navigation.goBack();
+        } else {
+          showAlert(
+            t("common.error"),
+            result.error ?? t("codes.deleteError"),
+            t("common.ok"),
+          );
+        }
+      },
+    });
+  };
 
   return (
     <DetailScreenLayout>
