@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { Code, CodeType } from "../../../domains/code";
 import { ListRow, ListScreenLayout } from "../../components";
@@ -9,11 +10,11 @@ import { t } from "@i18n/index";
 import { useTheme } from "../../hooks";
 
 const CODE_TYPE_ICONS: Record<CodeType, string> = {
-  "code.type.door": "door",
-  "code.type.lockbox": "lock",
+  "code.type.door": "door-closed-lock",
+  "code.type.lockbox": "lock-outline",
   "code.type.alarm": "alarm-light-outline",
   "code.type.gate": "gate",
-  "code.type.other": "key-outline",
+  "code.type.other": "lines-leaning",
 };
 
 type Props = {
@@ -53,15 +54,21 @@ export const CodesListScreen = ({ navigation }: Props) => {
         title={item.label}
         description={accountName}
         descriptionNumberOfLines={2}
-        footnote={item.codeValue}
-        footnoteNumberOfLines={1}
       >
         <View style={styles.typeIconContainer}>
-          <MaterialCommunityIcons
-            name={CODE_TYPE_ICONS[item.type]}
-            size={20}
-            color={colors.textSecondary}
-          />
+          {item.type === "code.type.other" ? (
+            <FontAwesome6
+              name={CODE_TYPE_ICONS[item.type]}
+              size={18}
+              color={colors.accent}
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name={CODE_TYPE_ICONS[item.type]}
+              size={20}
+              color={colors.accent}
+            />
+          )}
         </View>
       </ListRow>
     );

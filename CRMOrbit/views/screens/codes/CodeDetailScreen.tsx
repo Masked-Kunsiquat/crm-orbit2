@@ -1,4 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import { useAccount, useCode } from "../../store/store";
 import { useDeviceId, useTheme } from "../../hooks";
@@ -13,6 +15,15 @@ import {
 } from "../../components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import type { CodeType } from "../../../domains/code";
+
+const CODE_TYPE_ICONS: Record<CodeType, string> = {
+  "code.type.door": "door-closed-lock",
+  "code.type.lockbox": "lock-outline",
+  "code.type.alarm": "alarm-light-outline",
+  "code.type.gate": "gate",
+  "code.type.other": "lines-leaning",
+};
 
 type Props = {
   route: { params: { codeId: string } };
@@ -72,12 +83,24 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       <Section>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {code.label}
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {t(code.type)}
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                {code.label}
+              </Text>
+              {code.type === "code.type.other" ? (
+                <FontAwesome6
+                  name={CODE_TYPE_ICONS[code.type]}
+                  size={18}
+                  color={colors.accent}
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name={CODE_TYPE_ICONS[code.type]}
+                  size={20}
+                  color={colors.accent}
+                />
+              )}
+            </View>
           </View>
           <PrimaryActionButton
             label={t("common.edit")}
@@ -112,8 +135,6 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
           </Text>
         </DetailField>
 
-        <DetailField label={t("codes.fields.type")}>{t(code.type)}</DetailField>
-
         {code.notes ? (
           <DetailField label={t("codes.fields.notes")}>
             {code.notes}
@@ -143,13 +164,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   title: {
     fontSize: 22,
     fontWeight: "700",
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
   },
   codeValue: {
     fontSize: 18,

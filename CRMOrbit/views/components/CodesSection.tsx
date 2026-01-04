@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import type { Code, CodeType } from "@domains/code";
 import { t } from "@i18n/index";
@@ -15,11 +16,11 @@ import { useTheme } from "../hooks";
 import { Section } from "./Section";
 
 const CODE_TYPE_ICONS: Record<CodeType, string> = {
-  "code.type.door": "door",
-  "code.type.lockbox": "lock",
+  "code.type.door": "door-closed-lock",
+  "code.type.lockbox": "lock-outline",
   "code.type.alarm": "alarm-light-outline",
   "code.type.gate": "gate",
-  "code.type.other": "key-outline",
+  "code.type.other": "lines-leaning",
 };
 
 type CodesSectionProps = {
@@ -92,11 +93,19 @@ export const CodesSection = ({
                 </Text>
               </View>
               <View style={styles.typeIconContainer}>
-                <MaterialCommunityIcons
-                  name={CODE_TYPE_ICONS[code.type]}
-                  size={22}
-                  color={colors.textSecondary}
-                />
+                {code.type === "code.type.other" ? (
+                  <FontAwesome6
+                    name={CODE_TYPE_ICONS[code.type]}
+                    size={20}
+                    color={colors.accent}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name={CODE_TYPE_ICONS[code.type]}
+                    size={22}
+                    color={colors.accent}
+                  />
+                )}
               </View>
             </Pressable>
           </View>
