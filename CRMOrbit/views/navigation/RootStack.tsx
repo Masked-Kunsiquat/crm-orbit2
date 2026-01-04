@@ -15,6 +15,7 @@ import {
   InteractionDetailScreen,
   InteractionFormScreen,
 } from "../screens/interactions";
+import { CodeDetailScreen, CodeFormScreen } from "../screens/codes";
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 
@@ -98,6 +99,20 @@ export const RootStack = () => {
           title: route.params?.interactionId
             ? t("screens.editInteraction")
             : t("screens.newInteraction"),
+        })}
+      />
+      <Stack.Screen
+        name="CodeDetail"
+        component={CodeDetailScreen}
+        options={{ title: t("screens.codeDetails") }}
+      />
+      <Stack.Screen
+        name="CodeForm"
+        component={CodeFormScreen}
+        options={({ route }) => ({
+          title: route.params?.codeId
+            ? t("screens.editCode")
+            : t("screens.newCode"),
         })}
       />
     </Stack.Navigator>

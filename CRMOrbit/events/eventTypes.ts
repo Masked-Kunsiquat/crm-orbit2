@@ -26,6 +26,9 @@ export const EVENT_TYPES = [
   "interaction.logged",
   "interaction.updated",
   "interaction.deleted",
+  "code.created",
+  "code.updated",
+  "code.deleted",
   "device.registered",
 ] as const;
 

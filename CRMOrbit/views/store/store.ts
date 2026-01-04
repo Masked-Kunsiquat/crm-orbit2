@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { AutomergeDoc } from "@automerge/schema";
 import type { Event } from "@events/event";
 import type { Account } from "@domains/account";
+import type { Code } from "@domains/code";
 import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
@@ -37,8 +38,10 @@ const crmStore = create<CrmStoreState>((set) => ({
     contacts: {},
     notes: {},
     interactions: {},
+    codes: {},
     relations: {
       accountContacts: {},
+      accountCodes: {},
       entityLinks: {},
     },
   },
@@ -155,6 +158,19 @@ export const usePrimaryContacts = (accountId: EntityId): Contact[] => {
   return crmStore(useShallow(selector));
 };
 
+export const useCodes = (accountId: EntityId): Code[] => {
+  const selector = (state: CrmStoreState) => {
+    const codeIds = Object.values(state.doc.relations.accountCodes)
+      .filter((relation) => relation.accountId === accountId)
+      .map((relation) => relation.codeId);
+
+    return codeIds
+      .map((codeId) => state.doc.codes[codeId])
+      .filter((code): code is Code => Boolean(code));
+  };
+  return crmStore(useShallow(selector));
+};
+
 export const useNotes = (
   entityType: EntityLinkType,
   entityId: EntityId,
@@ -254,6 +270,9 @@ export const useNote = (id: EntityId): Note | undefined =>
 export const useInteraction = (id: EntityId): Interaction | undefined =>
   crmStore(useShallow((state) => state.doc.interactions[id]));
 
+export const useCode = (id: EntityId): Code | undefined =>
+  crmStore(useShallow((state) => state.doc.codes[id]));
+
 export const useAccountsByOrganization = (
   organizationId: EntityId,
 ): Account[] => {
@@ -289,6 +308,11 @@ export const useContactsByOrganization = (
 
 export const useAllNotes = (): Note[] => {
   const selector = (state: CrmStoreState) => Object.values(state.doc.notes);
+  return crmStore(useShallow(selector));
+};
+
+export const useAllCodes = (): Code[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.codes);
   return crmStore(useShallow(selector));
 };
 

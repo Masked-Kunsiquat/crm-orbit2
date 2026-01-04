@@ -5,7 +5,7 @@ import {
   View,
   Pressable,
 } from "react-native";
-import { useLayoutEffect, useCallback, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 import {
   useInteraction,
@@ -53,23 +53,10 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
     [linkedEntities],
   );
 
-  const handleEdit = useCallback(() => {
+  const handleEdit = () => {
     if (!interaction?.id) return;
     navigation.navigate("InteractionForm", { interactionId: interaction.id });
-  }, [interaction?.id, navigation]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <PrimaryActionButton
-          label={t("common.edit")}
-          onPress={handleEdit}
-          size="compact"
-          tone="link"
-        />
-      ),
-    });
-  }, [navigation, handleEdit, colors]);
+  };
 
   if (!interaction) {
     return (
@@ -156,16 +143,25 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
   return (
     <DetailScreenLayout>
       <Section>
-        <Text style={[styles.typeLabel, { color: colors.textSecondary }]}>
-          {t(interaction.type)}
-        </Text>
-        <Text style={[styles.summary, { color: colors.textPrimary }]}>
-          {interaction.summary}
-        </Text>
-        <Text style={[styles.date, { color: colors.textSecondary }]}>
-          {t("interactions.occurredAt")}:{" "}
-          {new Date(interaction.occurredAt).toLocaleString()}
-        </Text>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={[styles.typeLabel, { color: colors.textSecondary }]}>
+              {t(interaction.type)}
+            </Text>
+            <Text style={[styles.summary, { color: colors.textPrimary }]}>
+              {interaction.summary}
+            </Text>
+            <Text style={[styles.date, { color: colors.textSecondary }]}>
+              {t("interactions.occurredAt")}:{" "}
+              {new Date(interaction.occurredAt).toLocaleString()}
+            </Text>
+          </View>
+          <PrimaryActionButton
+            label={t("common.edit")}
+            onPress={handleEdit}
+            size="compact"
+          />
+        </View>
       </Section>
 
       <Section>
@@ -267,6 +263,15 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  headerText: {
+    flex: 1,
+    marginRight: 12,
+  },
   typeLabel: {
     fontSize: 12,
     textTransform: "uppercase",
@@ -281,7 +286,6 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
-    marginBottom: 4,
   },
   sectionHeader: {
     flexDirection: "row",

@@ -6,6 +6,7 @@ export { useNoteActions } from "./useNoteActions";
 export { useEntityLinkActions } from "./useEntityLinkActions";
 export { getDeviceIdFromEnv, setDeviceId, useDeviceId } from "./useDeviceId";
 export { useInteractionActions } from "./useInteractionActions";
+export { useCodeActions } from "./useCodeActions";
 export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";
 export { useTheme } from "./useTheme";

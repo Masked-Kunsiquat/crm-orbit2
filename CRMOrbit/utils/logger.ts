@@ -26,6 +26,8 @@ export interface LoggerConfig {
   minLevel?: LogLevel;
   /** Custom timestamp formatter */
   formatTimestamp?: () => string;
+  /** Silence all logs (useful during batch operations like event replay) */
+  silenced?: boolean;
 }
 
 export interface Logger {
@@ -40,6 +42,7 @@ let globalConfig: LoggerConfig = {
   enableDebug: typeof __DEV__ !== "undefined" ? __DEV__ : false,
   minLevel: "debug",
   formatTimestamp: () => new Date().toISOString(),
+  silenced: false,
 };
 
 /**
@@ -54,6 +57,20 @@ export const configureLogger = (config: Partial<LoggerConfig>): void => {
  */
 export const getLoggerConfig = (): Readonly<LoggerConfig> => {
   return { ...globalConfig };
+};
+
+/**
+ * Silence all logs (useful during batch operations like event replay)
+ */
+export const silenceLogs = (): void => {
+  globalConfig.silenced = true;
+};
+
+/**
+ * Re-enable logs after silencing
+ */
+export const unsilenceLogs = (): void => {
+  globalConfig.silenced = false;
 };
 
 /** Log level priorities for filtering */
@@ -82,6 +99,11 @@ const formatMessage = (
  * Check if a log level should be displayed
  */
 const shouldLog = (level: LogLevel): boolean => {
+  // Don't log if silenced
+  if (globalConfig.silenced) {
+    return false;
+  }
+
   const minLevel = globalConfig.minLevel || "debug";
   return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[minLevel];
 };
@@ -99,7 +121,7 @@ const serializeArgs = (args: unknown[]): string => {
       }
       if (typeof arg === "object") {
         try {
-          return JSON.stringify(arg, null, 2);
+          return JSON.stringify(arg);
         } catch {
           return String(arg);
         }

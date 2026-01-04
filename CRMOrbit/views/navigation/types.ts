@@ -30,6 +30,8 @@ export type RootStackParamList = {
       entityType: EntityLinkType;
     };
   };
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
 };
 
 // Root tab navigator
@@ -38,7 +40,7 @@ export type RootTabParamList = {
   AccountsTab: undefined;
   ContactsTab: undefined;
   NotesTab: undefined;
-  InteractionsTab: undefined;
+  MiscTab: undefined;
 };
 
 // Organizations stack navigator
@@ -62,8 +64,9 @@ export type ContactsStackParamList = {
   ContactForm: { contactId?: EntityId };
 };
 
-// Notes stack navigator
+// Notes stack navigator (now includes Interactions)
 export type NotesStackParamList = {
+  NotesAndInteractionsLanding: undefined;
   NotesList: undefined;
   NoteDetail: { noteId: EntityId };
   NoteForm: {
@@ -73,10 +76,6 @@ export type NotesStackParamList = {
       entityType: EntityLinkType;
     };
   };
-};
-
-// Interactions stack navigator
-export type InteractionsStackParamList = {
   InteractionsList: undefined;
   InteractionDetail: { interactionId: EntityId };
   InteractionForm: {
@@ -86,6 +85,14 @@ export type InteractionsStackParamList = {
       entityType: EntityLinkType;
     };
   };
+};
+
+// Misc stack navigator
+export type MiscStackParamList = {
+  MiscLanding: undefined;
+  CodesList: undefined;
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
 };
 
 // Screen props types
@@ -126,15 +133,14 @@ export type NotesStackScreenProps<T extends keyof NotesStackParamList> =
     >
   >;
 
-export type InteractionsStackScreenProps<
-  T extends keyof InteractionsStackParamList,
-> = CompositeScreenProps<
-  NativeStackScreenProps<InteractionsStackParamList, T>,
+export type MiscStackScreenProps<T extends keyof MiscStackParamList> =
   CompositeScreenProps<
-    BottomTabScreenProps<RootTabParamList>,
-    NativeStackScreenProps<RootStackParamList>
-  >
->;
+    NativeStackScreenProps<MiscStackParamList, T>,
+    CompositeScreenProps<
+      BottomTabScreenProps<RootTabParamList>,
+      NativeStackScreenProps<RootStackParamList>
+    >
+  >;
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

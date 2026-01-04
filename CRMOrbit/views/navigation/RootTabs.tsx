@@ -8,7 +8,7 @@ import { OrganizationsStack } from "./OrganizationsStack";
 import { AccountsStack } from "./AccountsStack";
 import { ContactsStack } from "./ContactsStack";
 import { NotesStack } from "./NotesStack";
-import { InteractionsStack } from "./InteractionsStack";
+import { MiscStack } from "./MiscStack";
 import { useTheme } from "../hooks";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -18,7 +18,7 @@ const TAB_ICON_SIZES: Record<keyof RootTabParamList, number> = {
   AccountsTab: 24,
   ContactsTab: 24,
   NotesTab: 24,
-  InteractionsTab: 24,
+  MiscTab: 24,
 };
 
 export const RootTabs = () => {
@@ -70,7 +70,7 @@ export const RootTabs = () => {
                   color={color}
                 />
               );
-            case "InteractionsTab":
+            case "MiscTab":
               return (
                 <MaterialCommunityIcons
                   name="lightning-bolt-outline"
@@ -105,9 +105,9 @@ export const RootTabs = () => {
         options={{ tabBarLabel: "Notes" }}
       />
       <Tab.Screen
-        name="InteractionsTab"
-        component={InteractionsStack}
-        options={{ tabBarLabel: "Interactions" }}
+        name="MiscTab"
+        component={MiscStack}
+        options={{ tabBarLabel: "Misc" }}
       />
     </Tab.Navigator>
   );
