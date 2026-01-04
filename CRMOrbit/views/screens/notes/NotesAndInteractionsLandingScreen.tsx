@@ -38,7 +38,7 @@ export const NotesAndInteractionsLandingScreen = ({ navigation }: Props) => {
               {t("notes.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              View and manage all notes
+              {t("notes.view_and_manage_all")}
             </Text>
           </View>
           <View style={styles.countBadge}>
@@ -63,7 +63,7 @@ export const NotesAndInteractionsLandingScreen = ({ navigation }: Props) => {
               {t("interactions.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              View and log all interactions
+              {t("interactions.view_and_log_all")}
             </Text>
           </View>
           <View style={styles.countBadge}>
