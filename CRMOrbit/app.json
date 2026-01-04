@@ -32,7 +32,8 @@
       "expo-sqlite",
       "@react-native-community/datetimepicker",
       "./android-linking-plugin.js",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-barcode-scanner"
     ],
     "extra": {
       "eas": {
