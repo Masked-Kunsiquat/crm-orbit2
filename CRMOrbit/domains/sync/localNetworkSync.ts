@@ -108,7 +108,7 @@ const createTcpSocket = (): TcpSocketModule => {
 };
 
 const resolveDeviceId = (): string => {
-  const deviceId = useSyncStore.getState().localDeviceId.trim();
+  const deviceId = useSyncStore.getState().localDeviceId?.trim() ?? "";
   if (!deviceId) {
     throw new Error(
       "Local device ID not set. Initialize sync before advertising.",
@@ -298,7 +298,10 @@ class LocalNetworkSyncService {
   >();
   private serverSockets = new Map<TcpSocketLike, string>();
   private activeConnectionsByIp = new Map<string, number>();
-  private connectionRate = new Map<string, { count: number; resetAt: number }>();
+  private connectionRate = new Map<
+    string,
+    { count: number; resetAt: number }
+  >();
 
   constructor() {
     this.zeroconf = createZeroconf();
@@ -403,14 +406,15 @@ class LocalNetworkSyncService {
 
   private detachZeroconfListener(
     event: "resolved" | "remove" | "error",
-    handler: (arg: unknown) => void,
+    handler: ((service: ZeroconfService) => void) | ((error: unknown) => void),
   ): void {
+    const listener = handler as (arg: unknown) => void;
     if (this.zeroconf.removeListener) {
-      this.zeroconf.removeListener(event, handler);
+      this.zeroconf.removeListener(event, listener);
       return;
     }
     if (this.zeroconf.off) {
-      this.zeroconf.off(event, handler);
+      this.zeroconf.off(event, listener);
     }
   }
 
@@ -470,11 +474,10 @@ class LocalNetworkSyncService {
     }
 
     const now = Date.now();
-    const entry =
-      this.connectionRate.get(remoteAddress) || {
-        count: 0,
-        resetAt: now + this.rateLimitWindowMs,
-      };
+    const entry = this.connectionRate.get(remoteAddress) || {
+      count: 0,
+      resetAt: now + this.rateLimitWindowMs,
+    };
     if (now > entry.resetAt) {
       entry.count = 0;
       entry.resetAt = now + this.rateLimitWindowMs;
@@ -489,7 +492,10 @@ class LocalNetworkSyncService {
     return true;
   }
 
-  private trackServerSocket(socket: TcpSocketLike, remoteAddress: string): void {
+  private trackServerSocket(
+    socket: TcpSocketLike,
+    remoteAddress: string,
+  ): void {
     this.activeSockets.add(socket);
     this.serverSockets.set(socket, remoteAddress);
     const current = this.activeConnectionsByIp.get(remoteAddress) || 0;

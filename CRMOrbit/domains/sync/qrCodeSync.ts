@@ -46,7 +46,8 @@ const parseChunkPayload = (payload: string): SyncQRCodeChunk | null => {
     throw new Error("Invalid sync QR chunk payload.");
   }
 
-  const [, version, bundleId, indexStr, totalStr, data] = parts;
+  const [, version, bundleId, indexStr, totalStr] = parts;
+  const data = parts.slice(5).join("|");
   if (Number(version) !== CHUNK_VERSION) {
     throw new Error("Unsupported sync QR chunk version.");
   }

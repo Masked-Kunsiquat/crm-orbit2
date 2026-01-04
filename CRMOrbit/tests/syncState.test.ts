@@ -5,7 +5,7 @@ import { useSyncStore } from "@domains/sync/syncState";
 
 const resetSyncStore = () => {
   useSyncStore.setState({
-    localDeviceId: "",
+    localDeviceId: null,
     discoveredPeers: {},
     activeSessions: {},
     lastSyncTimestamp: null,
@@ -22,6 +22,12 @@ test("setLocalDeviceId trims the value", () => {
   useSyncStore.getState().setLocalDeviceId(" device-1 ");
 
   assert.equal(useSyncStore.getState().localDeviceId, "device-1");
+});
+
+test("setLocalDeviceId clears whitespace-only values", () => {
+  useSyncStore.getState().setLocalDeviceId("   ");
+
+  assert.equal(useSyncStore.getState().localDeviceId, null);
 });
 
 test("addPeer and removePeer update discoveredPeers", () => {
@@ -99,4 +105,5 @@ test("completeSession records timestamp and clears current method", () => {
   assert.equal(state.lastSyncTimestamp, session.completedAt);
   assert.equal(state.status, "completed");
   assert.equal(state.currentMethod, null);
+  assert.equal(state.activeSessions[session.id], undefined);
 });

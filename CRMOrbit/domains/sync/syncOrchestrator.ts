@@ -441,7 +441,7 @@ class SyncOrchestrator {
   }
 
   private getLocalDeviceId(): string {
-    const deviceId = useSyncStore.getState().localDeviceId.trim();
+    const deviceId = useSyncStore.getState().localDeviceId?.trim() ?? "";
     if (!deviceId) {
       throw new Error("Local device ID not set.");
     }

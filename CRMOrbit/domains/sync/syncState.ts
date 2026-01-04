@@ -5,7 +5,7 @@ import type { DeviceInfo, SyncMethod, SyncSession, SyncStatus } from "./types";
 
 interface SyncState {
   // Device management
-  localDeviceId: string;
+  localDeviceId: string | null;
   discoveredPeers: Record<string, DeviceInfo>;
 
   // Sync sessions
@@ -21,23 +21,25 @@ interface SyncState {
   setStatus: (status: SyncStatus) => void;
   addPeer: (peer: DeviceInfo) => void;
   removePeer: (deviceId: string) => void;
-  startSession: (session: SyncSession) => void;
+  startSession: (session: SyncSession, initialStatus?: SyncStatus) => void;
   updateSession: (sessionId: string, updates: Partial<SyncSession>) => void;
   completeSession: (sessionId: string) => void;
 }
 
 export const useSyncStore = create<SyncState>((set) => ({
-  localDeviceId: "", // Initialize via useDeviceId hook.
+  localDeviceId: null, // Initialize via useDeviceId hook.
   discoveredPeers: {},
   activeSessions: {},
   lastSyncTimestamp: null,
   status: "idle",
   currentMethod: null,
 
-  setLocalDeviceId: (deviceId) =>
+  setLocalDeviceId: (deviceId) => {
+    const trimmed = deviceId.trim();
     set({
-      localDeviceId: deviceId.trim() || deviceId,
-    }),
+      localDeviceId: trimmed.length > 0 ? trimmed : null,
+    });
+  },
 
   setStatus: (status) => set({ status }),
 
@@ -53,10 +55,14 @@ export const useSyncStore = create<SyncState>((set) => ({
       return { discoveredPeers: nextPeers };
     }),
 
-  startSession: (session) =>
+  startSession: (session, initialStatus = "connecting") =>
     set((state) => ({
-      activeSessions: { ...state.activeSessions, [session.id]: session },
-      status: "connecting",
+      ...state,
+      activeSessions: {
+        ...state.activeSessions,
+        [session.id]: { ...session, status: initialStatus },
+      },
+      status: initialStatus,
       currentMethod: session.method,
     })),
 
@@ -65,6 +71,7 @@ export const useSyncStore = create<SyncState>((set) => ({
       const session = state.activeSessions[sessionId];
       if (!session) return state;
       return {
+        ...state,
         activeSessions: {
           ...state.activeSessions,
           [sessionId]: { ...session, ...updates },
@@ -76,7 +83,11 @@ export const useSyncStore = create<SyncState>((set) => ({
     set((state) => {
       const session = state.activeSessions[sessionId];
       if (!session) return state;
+      const nextSessions = { ...state.activeSessions };
+      delete nextSessions[sessionId];
       return {
+        ...state,
+        activeSessions: nextSessions,
         lastSyncTimestamp: session.completedAt || new Date().toISOString(),
         status: "completed",
         currentMethod: null,
