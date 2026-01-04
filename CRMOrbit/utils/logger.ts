@@ -121,7 +121,7 @@ const serializeArgs = (args: unknown[]): string => {
       }
       if (typeof arg === "object") {
         try {
-          return JSON.stringify(arg, null, 2);
+          return JSON.stringify(arg);
         } catch {
           return String(arg);
         }
