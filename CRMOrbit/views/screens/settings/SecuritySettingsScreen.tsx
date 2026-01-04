@@ -1,18 +1,17 @@
-import { useState } from "react";
-
-import { FormField, FormScreenLayout, SegmentedOptionGroup } from "../../components";
+import {
+  FormField,
+  FormScreenLayout,
+  SegmentedOptionGroup,
+} from "../../components";
 import { t } from "@i18n/index";
-
-type BiometricSetting = "enabled" | "disabled";
-type BlurTimeoutSetting = "15" | "30" | "60" | "never";
-type AuthFrequencySetting = "each" | "session";
+import { useDeviceId } from "../../hooks";
+import { useSettingsActions } from "../../hooks/useSettingsActions";
+import { useSecuritySettings } from "../../store/store";
 
 export const SecuritySettingsScreen = () => {
-  const [biometricSetting, setBiometricSetting] =
-    useState<BiometricSetting>("enabled");
-  const [blurTimeout, setBlurTimeout] = useState<BlurTimeoutSetting>("30");
-  const [authFrequency, setAuthFrequency] =
-    useState<AuthFrequencySetting>("each");
+  const deviceId = useDeviceId();
+  const settings = useSecuritySettings();
+  const { updateSecuritySettings } = useSettingsActions(deviceId);
 
   return (
     <FormScreenLayout>
@@ -28,8 +27,10 @@ export const SecuritySettingsScreen = () => {
               label: t("settings.security.biometric.disabled"),
             },
           ]}
-          value={biometricSetting}
-          onChange={setBiometricSetting}
+          value={settings.biometricAuth}
+          onChange={(value) =>
+            updateSecuritySettings({ biometricAuth: value })
+          }
         />
       </FormField>
 
@@ -53,8 +54,8 @@ export const SecuritySettingsScreen = () => {
               label: t("settings.security.blurTimeout.never"),
             },
           ]}
-          value={blurTimeout}
-          onChange={setBlurTimeout}
+          value={settings.blurTimeout}
+          onChange={(value) => updateSecuritySettings({ blurTimeout: value })}
         />
       </FormField>
 
@@ -70,8 +71,10 @@ export const SecuritySettingsScreen = () => {
               label: t("settings.security.authFrequency.session"),
             },
           ]}
-          value={authFrequency}
-          onChange={setAuthFrequency}
+          value={settings.authFrequency}
+          onChange={(value) =>
+            updateSecuritySettings({ authFrequency: value })
+          }
         />
       </FormField>
     </FormScreenLayout>

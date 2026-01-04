@@ -1,5 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
+import { DEFAULT_SETTINGS } from "@domains/settings";
 import { applyEvents } from "@events/dispatcher";
 import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
@@ -16,6 +17,7 @@ const EMPTY_DOC: AutomergeDoc = {
   notes: {},
   interactions: {},
   codes: {},
+  settings: DEFAULT_SETTINGS,
   relations: {
     accountContacts: {},
     accountCodes: {},
@@ -62,6 +64,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   return {
     ...doc,
     codes: doc.codes ?? ({} as AutomergeDoc["codes"]),
+    settings: doc.settings ?? DEFAULT_SETTINGS,
     relations: {
       ...doc.relations,
       entityLinks: mergedLinks,

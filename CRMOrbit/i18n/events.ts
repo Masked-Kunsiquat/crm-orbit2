@@ -31,5 +31,6 @@ export const EVENT_I18N_KEYS: Record<EventType, string> = {
   "code.created": "events.code.created",
   "code.updated": "events.code.updated",
   "code.deleted": "events.code.deleted",
+  "settings.security.updated": "events.settings.security.updated",
   "device.registered": "events.device.registered",
 };

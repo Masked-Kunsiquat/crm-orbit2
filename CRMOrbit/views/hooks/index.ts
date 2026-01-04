@@ -8,6 +8,7 @@ export { getDeviceIdFromEnv, setDeviceId, useDeviceId } from "./useDeviceId";
 export { useInteractionActions } from "./useInteractionActions";
 export { useCodeActions } from "./useCodeActions";
 export { useLocalAuth } from "./useLocalAuth";
+export { useSettingsActions } from "./useSettingsActions";
 export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";
 export { useTheme } from "./useTheme";
