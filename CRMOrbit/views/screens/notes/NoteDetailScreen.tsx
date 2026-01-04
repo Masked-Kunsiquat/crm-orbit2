@@ -5,7 +5,6 @@ import {
   View,
   Pressable,
 } from "react-native";
-import { useLayoutEffect, useCallback } from "react";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import {
@@ -40,23 +39,10 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   const { deleteNote, unlinkNote } = useNoteActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
-  const handleEdit = useCallback(() => {
+  const handleEdit = () => {
     if (!note?.id) return;
     navigation.navigate("NoteForm", { noteId: note.id });
-  }, [note?.id, navigation]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <PrimaryActionButton
-          label={t("common.edit")}
-          onPress={handleEdit}
-          size="compact"
-          tone="link"
-        />
-      ),
-    });
-  }, [navigation, handleEdit, colors]);
+  };
 
   if (!note) {
     return (
@@ -143,12 +129,21 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   return (
     <DetailScreenLayout>
       <Section>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          {note.title}
-        </Text>
-        <Text style={[styles.date, { color: colors.textSecondary }]}>
-          {new Date(note.createdAt).toLocaleString()}
-        </Text>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {note.title}
+            </Text>
+            <Text style={[styles.date, { color: colors.textSecondary }]}>
+              {new Date(note.createdAt).toLocaleString()}
+            </Text>
+          </View>
+          <PrimaryActionButton
+            label={t("common.edit")}
+            onPress={handleEdit}
+            size="compact"
+          />
+        </View>
         <Text style={[styles.body, { color: colors.textPrimary }]}>
           {note.body}
         </Text>
@@ -236,6 +231,16 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  headerText: {
+    flex: 1,
+    marginRight: 12,
+  },
   title: {
     fontSize: 24,
     fontWeight: "700",
@@ -243,7 +248,6 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    marginBottom: 16,
   },
   body: {
     fontSize: 16,
