@@ -137,8 +137,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const handleDecryptError = useCallback(
     (error: unknown) => {
       const isMissingKey =
-        error instanceof Error &&
-        error.message === "Encryption key not found.";
+        error instanceof Error && error.message === "Encryption key not found.";
       const messageKey = isMissingKey
         ? "codes.keyMissingError"
         : "codes.decryptError";
