@@ -193,10 +193,13 @@ class WebRTCPeerConnection {
       };
 
       peerEvents.addEventListener("icegatheringstatechange", handler);
-      timeoutId = setTimeout(() => {
-        peerEvents.removeEventListener("icegatheringstatechange", handler);
-        resolve();
-      }, Math.max(0, timeoutMs));
+      timeoutId = setTimeout(
+        () => {
+          peerEvents.removeEventListener("icegatheringstatechange", handler);
+          resolve();
+        },
+        Math.max(0, timeoutMs),
+      );
     });
   }
 }

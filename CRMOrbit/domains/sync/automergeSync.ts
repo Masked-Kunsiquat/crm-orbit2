@@ -40,20 +40,85 @@ const getTextDecoder = (): TextDecoderLike => {
   return new Decoder();
 };
 
+const concatenateUint8Arrays = (chunks: Uint8Array[]): Uint8Array => {
+  if (chunks.length === 0) return new Uint8Array();
+  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return merged;
+};
+
 const encodeChanges = (changes: Change[]): Uint8Array => {
   if (changes.length === 0) return new Uint8Array();
-  const payload = JSON.stringify(changes);
-  return getTextEncoder().encode(payload);
+  const encodeChange = (
+    Automerge as unknown as {
+      encodeChange?: (change: Change) => Uint8Array;
+    }
+  ).encodeChange;
+  if (!encodeChange) {
+    throw new Error("Automerge.encodeChange is unavailable.");
+  }
+  const encoded = changes.map((change) => encodeChange(change));
+  return concatenateUint8Arrays(encoded);
 };
 
 const decodeChanges = (changes: Uint8Array): Change[] => {
   if (changes.length === 0) return [];
-  const payload = getTextDecoder().decode(changes);
-  const parsed = JSON.parse(payload) as unknown;
-  if (!Array.isArray(parsed)) {
-    throw new Error("Invalid sync payload: expected change array.");
+  const decodeChange = (
+    Automerge as unknown as {
+      decodeChange?: (buffer: Uint8Array) => unknown;
+    }
+  ).decodeChange;
+  if (!decodeChange) {
+    throw new Error("Automerge.decodeChange is unavailable.");
   }
-  return parsed as Change[];
+
+  const decoded: Change[] = [];
+  let offset = 0;
+
+  while (offset < changes.length) {
+    const slice = changes.subarray(offset);
+    const result = decodeChange(slice);
+
+    if (Array.isArray(result)) {
+      const [change, bytes] = result as [Change, number];
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(change);
+      offset += bytes;
+      continue;
+    }
+
+    if (result && typeof result === "object" && "change" in result) {
+      const changeResult = result as {
+        change: Change;
+        bytes?: number;
+        length?: number;
+        bytesRead?: number;
+      };
+      const bytes =
+        changeResult.bytes ??
+        changeResult.length ??
+        changeResult.bytesRead ??
+        0;
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(changeResult.change);
+      offset += bytes;
+      continue;
+    }
+
+    decoded.push(result as Change);
+    break;
+  }
+
+  return decoded;
 };
 
 const encodeSnapshot = (snapshot: Uint8Array | string): string => {

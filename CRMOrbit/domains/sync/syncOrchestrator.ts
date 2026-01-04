@@ -86,6 +86,13 @@ class SyncOrchestrator {
   private currentDoc: AutomergeDoc | null = null;
   private pendingQrBundles = new Map<string, Map<number, SyncQRCodeChunk>>();
   private sessionByPeer = new Map<string, string>();
+  private pendingWebRTCResponses = new Map<
+    string,
+    {
+      resolve: (doc: AutomergeDoc) => void;
+      reject: (error: unknown) => void;
+    }
+  >();
 
   /**
    * Initialize sync with current document.
@@ -263,6 +270,9 @@ class SyncOrchestrator {
 
     const sessionId = this.startSession(peer.deviceId, "webrtc");
     this.sessionByPeer.set(peer.deviceId, sessionId);
+    const responsePromise = new Promise<AutomergeDoc>((resolve, reject) => {
+      this.pendingWebRTCResponses.set(peer.deviceId, { resolve, reject });
+    });
     try {
       const connection = createWebRTCConnection();
 
@@ -291,13 +301,16 @@ class SyncOrchestrator {
         changesSent: changes.length,
       });
 
+      const updatedDoc = await responsePromise;
+      this.pendingWebRTCResponses.delete(peer.deviceId);
       this.completeSession(sessionId);
-      this.sessionByPeer.delete(peer.deviceId);
-      return this.currentDoc;
+      return updatedDoc;
     } catch (error) {
+      this.rejectPendingWebRTCResponse(peer.deviceId, error);
       this.failSession(sessionId, error);
-      this.sessionByPeer.delete(peer.deviceId);
       throw error;
+    } finally {
+      this.sessionByPeer.delete(peer.deviceId);
     }
   }
 
@@ -355,37 +368,72 @@ class SyncOrchestrator {
       throw new Error("Document not initialized");
     }
 
-    const message = decodeSyncMessage(payload);
+    try {
+      const message = decodeSyncMessage(payload);
 
-    let updatedDoc = this.currentDoc;
-    if (message.changes) {
-      updatedDoc = this.applyIncomingChanges(message.changes);
-      await saveSyncCheckpoint(updatedDoc, peerId);
+      let updatedDoc = this.currentDoc;
+      if (message.changes) {
+        updatedDoc = this.applyIncomingChanges(message.changes);
+        await saveSyncCheckpoint(updatedDoc, peerId);
+        const sessionId = this.sessionByPeer.get(peerId);
+        if (sessionId) {
+          this.updateSession(sessionId, {
+            changesReceived: message.changes.length,
+          });
+        }
+      }
+
+      if (message.type === "sync-request") {
+        const outgoingChanges = await getChangesSinceLastSync(
+          updatedDoc,
+          peerId,
+        );
+        connection.sendData(
+          encodeSyncMessage({
+            type: "sync-response",
+            deviceId: this.getLocalDeviceId(),
+            timestamp: new Date().toISOString(),
+            changes: outgoingChanges,
+          }),
+        );
+
+        const sessionId = this.sessionByPeer.get(peerId);
+        if (sessionId) {
+          this.updateSession(sessionId, {
+            changesSent: outgoingChanges.length,
+          });
+        }
+      }
+
+      if (message.type === "sync-response") {
+        this.resolvePendingWebRTCResponse(peerId, updatedDoc);
+      }
+    } catch (error) {
       const sessionId = this.sessionByPeer.get(peerId);
       if (sessionId) {
-        this.updateSession(sessionId, {
-          changesReceived: message.changes.length,
-        });
+        this.failSession(sessionId, error);
       }
+      this.rejectPendingWebRTCResponse(peerId, error);
+      logger.error("Failed to handle WebRTC message", { peerId }, error);
     }
+  }
 
-    if (message.type === "sync-request") {
-      const outgoingChanges = await getChangesSinceLastSync(updatedDoc, peerId);
-      connection.sendData(
-        encodeSyncMessage({
-          type: "sync-response",
-          deviceId: this.getLocalDeviceId(),
-          timestamp: new Date().toISOString(),
-          changes: outgoingChanges,
-        }),
-      );
+  private resolvePendingWebRTCResponse(
+    peerId: string,
+    doc: AutomergeDoc,
+  ): void {
+    const pending = this.pendingWebRTCResponses.get(peerId);
+    if (pending) {
+      pending.resolve(doc);
+      this.pendingWebRTCResponses.delete(peerId);
+    }
+  }
 
-      const sessionId = this.sessionByPeer.get(peerId);
-      if (sessionId) {
-        this.updateSession(sessionId, {
-          changesSent: outgoingChanges.length,
-        });
-      }
+  private rejectPendingWebRTCResponse(peerId: string, error: unknown): void {
+    const pending = this.pendingWebRTCResponses.get(peerId);
+    if (pending) {
+      pending.reject(error);
+      this.pendingWebRTCResponses.delete(peerId);
     }
   }
 
