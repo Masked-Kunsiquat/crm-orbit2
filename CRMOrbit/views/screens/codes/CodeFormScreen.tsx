@@ -150,11 +150,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
     try {
       encryptedValue = await encryptCode(codeValue.trim());
     } catch {
-      showAlert(
-        t("common.error"),
-        t("codes.encryptError"),
-        t("common.ok"),
-      );
+      showAlert(t("common.error"), t("codes.encryptError"), t("common.ok"));
       return;
     }
 

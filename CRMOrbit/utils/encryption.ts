@@ -26,12 +26,12 @@ type SubtleCryptoLike = {
     keyUsages: KeyUsage[],
   ) => Promise<CryptoKeyLike>;
   encrypt: (
-    algorithm: { name: string; iv: Uint8Array },
+    algorithm: { name: string; iv: ArrayBuffer | Uint8Array },
     key: CryptoKeyLike,
     data: ArrayBuffer | Uint8Array,
   ) => Promise<ArrayBuffer>;
   decrypt: (
-    algorithm: { name: string; iv: Uint8Array },
+    algorithm: { name: string; iv: ArrayBuffer | Uint8Array },
     key: CryptoKeyLike,
     data: ArrayBuffer | Uint8Array,
   ) => Promise<ArrayBuffer>;
@@ -70,6 +70,16 @@ const getCrypto = (): CryptoApi => {
 const encodeBase64 = (value: Uint8Array): string => fromByteArray(value);
 
 const decodeBase64 = (value: string): Uint8Array => toByteArray(value);
+
+const toArrayBuffer = (value: Uint8Array): ArrayBuffer => {
+  if (value.buffer instanceof ArrayBuffer) {
+    return value.buffer.slice(
+      value.byteOffset,
+      value.byteOffset + value.byteLength,
+    );
+  }
+  return value.slice().buffer as ArrayBuffer;
+};
 
 const getTextEncoder = (): TextEncoderLike => {
   const Encoder = globalThis.TextEncoder;
@@ -123,13 +133,12 @@ const generateKeyMaterial = async (): Promise<Uint8Array> => {
   return new Uint8Array(raw);
 };
 
-const importKey = async (
-  keyMaterial: Uint8Array,
-): Promise<CryptoKeyLike> => {
+const importKey = async (keyMaterial: Uint8Array): Promise<CryptoKeyLike> => {
   const cryptoApi = getCrypto();
+  const keyBuffer = toArrayBuffer(keyMaterial);
   return cryptoApi.subtle.importKey(
     "raw",
-    keyMaterial,
+    keyBuffer,
     { name: ALGORITHM },
     false,
     ["encrypt", "decrypt"],
@@ -192,10 +201,12 @@ export const encryptCode = async (plaintext: string): Promise<string> => {
   const key = await getOrCreateKey();
   const iv = cryptoApi.getRandomValues(new Uint8Array(IV_LENGTH));
   const encoded = getTextEncoder().encode(plaintext);
+  const ivBuffer = toArrayBuffer(iv);
+  const dataBuffer = toArrayBuffer(encoded);
   const cipherBuffer = await cryptoApi.subtle.encrypt(
-    { name: ALGORITHM, iv },
+    { name: ALGORITHM, iv: ivBuffer },
     key,
-    encoded,
+    dataBuffer,
   );
 
   const payload: EncryptedPayload = {
@@ -213,10 +224,12 @@ export const decryptCode = async (ciphertext: string): Promise<string> => {
   const key = await getOrCreateKey();
   const iv = decodeBase64(parsed.iv);
   const data = decodeBase64(parsed.data);
+  const ivBuffer = toArrayBuffer(iv);
+  const dataBuffer = toArrayBuffer(data);
   const plainBuffer = await cryptoApi.subtle.decrypt(
-    { name: ALGORITHM, iv },
+    { name: ALGORITHM, iv: ivBuffer },
     key,
-    data,
+    dataBuffer,
   );
 
   return getTextDecoder().decode(new Uint8Array(plainBuffer));
