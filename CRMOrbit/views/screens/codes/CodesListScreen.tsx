@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ComponentProps } from "react";
 import { StyleSheet, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -9,13 +9,20 @@ import { useAllCodes, useAccounts } from "../../store/store";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks";
 
-const CODE_TYPE_ICONS: Record<CodeType, string> = {
+type MaterialIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
+type FontAwesome6IconName = ComponentProps<typeof FontAwesome6>["name"];
+
+const CODE_TYPE_ICONS: Record<
+  Exclude<CodeType, "code.type.other">,
+  MaterialIconName
+> = {
   "code.type.door": "door-closed-lock",
   "code.type.lockbox": "lock-outline",
   "code.type.alarm": "alarm-light-outline",
   "code.type.gate": "gate",
-  "code.type.other": "lines-leaning",
 };
+
+const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
 
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,7 +65,7 @@ export const CodesListScreen = ({ navigation }: Props) => {
         <View style={styles.typeIconContainer}>
           {item.type === "code.type.other" ? (
             <FontAwesome6
-              name={CODE_TYPE_ICONS[item.type]}
+              name={OTHER_CODE_ICON}
               size={18}
               color={colors.accent}
             />

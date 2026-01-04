@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ComponentProps } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -15,13 +15,20 @@ import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
 
-const CODE_TYPE_ICONS: Record<CodeType, string> = {
+type MaterialIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
+type FontAwesome6IconName = ComponentProps<typeof FontAwesome6>["name"];
+
+const CODE_TYPE_ICONS: Record<
+  Exclude<CodeType, "code.type.other">,
+  MaterialIconName
+> = {
   "code.type.door": "door-closed-lock",
   "code.type.lockbox": "lock-outline",
   "code.type.alarm": "alarm-light-outline",
   "code.type.gate": "gate",
-  "code.type.other": "lines-leaning",
 };
+
+const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
 
 type CodesSectionProps = {
   codes: Code[];
@@ -95,7 +102,7 @@ export const CodesSection = ({
               <View style={styles.typeIconContainer}>
                 {code.type === "code.type.other" ? (
                   <FontAwesome6
-                    name={CODE_TYPE_ICONS[code.type]}
+                    name={OTHER_CODE_ICON}
                     size={20}
                     color={colors.accent}
                   />
