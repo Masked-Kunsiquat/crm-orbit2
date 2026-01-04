@@ -11,7 +11,15 @@ const SERVICE_TYPE = "_crmorbit._tcp";
 const SERVICE_DOMAIN = "local.";
 const DEFAULT_PORT = 8765;
 const FRAME_HEADER_BYTES = 4;
+const AUTH_HEADER_BYTES = 2;
 const MAX_FRAME_SIZE = 10 * 1024 * 1024;
+const MAX_AUTH_TOKEN_BYTES = 256;
+const DEFAULT_BIND_ADDRESS = "127.0.0.1";
+const DEFAULT_SYNC_TIMEOUT_MS = 10000;
+const DEFAULT_MAX_CONCURRENT_CONNECTIONS = 8;
+const DEFAULT_MAX_CONNECTIONS_PER_IP = 4;
+const DEFAULT_RATE_LIMIT_WINDOW_MS = 10000;
+const DEFAULT_RATE_LIMIT_MAX = 20;
 
 type ByteArray = Uint8Array<ArrayBufferLike>;
 
@@ -28,6 +36,14 @@ interface ZeroconfLike {
   on(event: "resolved", handler: (service: ZeroconfService) => void): void;
   on(event: "remove", handler: (service: ZeroconfService) => void): void;
   on(event: "error", handler: (error: unknown) => void): void;
+  off?: (
+    event: "resolved" | "remove" | "error",
+    handler: (arg: unknown) => void,
+  ) => void;
+  removeListener?: (
+    event: "resolved" | "remove" | "error",
+    handler: (arg: unknown) => void,
+  ) => void;
   publishService: (
     type: string,
     protocol: "tcp" | "udp",
@@ -47,11 +63,21 @@ type ZeroconfConstructor = {
 
 type TcpSocketLike = {
   on: (
-    event: "data" | "error" | "close",
+    event: "data" | "error" | "close" | "timeout",
     handler: (data: unknown) => void,
   ) => void;
+  off?: (
+    event: "data" | "error" | "close" | "timeout",
+    handler: (data: unknown) => void,
+  ) => void;
+  removeListener?: (
+    event: "data" | "error" | "close" | "timeout",
+    handler: (data: unknown) => void,
+  ) => void;
+  setTimeout?: (timeout: number) => void;
   write: (data: Uint8Array) => void;
   destroy: () => void;
+  remoteAddress?: string;
 };
 
 type TcpServerLike = {
@@ -102,6 +128,30 @@ const selectAddress = (addresses?: string[]): string | undefined => {
   return ipv4 || addresses[0];
 };
 
+const encodeString = (value: string): Uint8Array => {
+  const Encoder = globalThis.TextEncoder as
+    | (new () => { encode: (input?: string) => Uint8Array })
+    | undefined;
+  if (Encoder) {
+    return new Encoder().encode(value);
+  }
+  const bytes = new Uint8Array(value.length);
+  for (let i = 0; i < value.length; i += 1) {
+    bytes[i] = value.charCodeAt(i) & 0xff;
+  }
+  return bytes;
+};
+
+const decodeString = (value: Uint8Array): string => {
+  const Decoder = globalThis.TextDecoder as
+    | (new () => { decode: (input?: Uint8Array) => string })
+    | undefined;
+  if (Decoder) {
+    return new Decoder().decode(value);
+  }
+  return String.fromCharCode(...Array.from(value));
+};
+
 const concatBuffers = (left: ByteArray, right: ByteArray): ByteArray => {
   if (left.length === 0) return right;
   if (right.length === 0) return left;
@@ -141,6 +191,55 @@ const coerceChunk = (chunk: unknown): ByteArray => {
   return new Uint8Array() as ByteArray;
 };
 
+const encodeAuthenticatedPayload = (
+  payload: Uint8Array,
+  token: string,
+): ByteArray => {
+  const tokenBytes = encodeString(token);
+  if (tokenBytes.length === 0) {
+    throw new Error("Auth token required.");
+  }
+  if (tokenBytes.length > MAX_AUTH_TOKEN_BYTES) {
+    throw new Error("Auth token too long.");
+  }
+
+  const framed = new Uint8Array(
+    AUTH_HEADER_BYTES + tokenBytes.length + payload.length,
+  ) as ByteArray;
+  framed[0] = (tokenBytes.length >>> 8) & 0xff;
+  framed[1] = tokenBytes.length & 0xff;
+  framed.set(tokenBytes, AUTH_HEADER_BYTES);
+  framed.set(payload, AUTH_HEADER_BYTES + tokenBytes.length);
+  return framed;
+};
+
+const decodeAuthenticatedPayload = (
+  payload: Uint8Array,
+): { token: string; payload: ByteArray } => {
+  if (payload.length < AUTH_HEADER_BYTES) {
+    throw new Error("Missing authentication header.");
+  }
+  const tokenLength = payload[0] * 0x100 + payload[1];
+  if (tokenLength <= 0 || tokenLength > MAX_AUTH_TOKEN_BYTES) {
+    throw new Error("Invalid authentication token length.");
+  }
+  if (payload.length < AUTH_HEADER_BYTES + tokenLength) {
+    throw new Error("Malformed authentication header.");
+  }
+  const tokenBytes = payload.slice(
+    AUTH_HEADER_BYTES,
+    AUTH_HEADER_BYTES + tokenLength,
+  );
+  const innerPayload = payload.slice(AUTH_HEADER_BYTES + tokenLength);
+  if (innerPayload.length === 0) {
+    throw new Error("Missing sync payload.");
+  }
+  return {
+    token: decodeString(tokenBytes),
+    payload: innerPayload,
+  };
+};
+
 const createFrameParser = (
   onFrame: (payload: ByteArray) => void,
 ): ((chunk: ByteArray) => void) => {
@@ -152,6 +251,9 @@ const createFrameParser = (
 
     while (buffer.length >= FRAME_HEADER_BYTES) {
       const length = readFrameLength(buffer);
+      if (length === 0) {
+        throw new Error("Sync frame missing payload.");
+      }
       if (length > MAX_FRAME_SIZE) {
         throw new Error(`Sync frame too large: ${length} bytes`);
       }
@@ -175,46 +277,273 @@ class LocalNetworkSyncService {
   private isAdvertising = false;
   private isScanning = false;
   private syncHandler: SyncRequestHandler | null = null;
+  private listenersAttached = false;
+  private bindAddress = DEFAULT_BIND_ADDRESS;
+  private syncTimeoutMs = DEFAULT_SYNC_TIMEOUT_MS;
+  private maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
+  private maxConnectionsPerIp = DEFAULT_MAX_CONNECTIONS_PER_IP;
+  private rateLimitWindowMs = DEFAULT_RATE_LIMIT_WINDOW_MS;
+  private rateLimitMaxConnections = DEFAULT_RATE_LIMIT_MAX;
+  private authToken: string | null = null;
+  private outgoingTokenResolver: ((peer: DeviceInfo) => string) | null = null;
+  private activeSockets = new Set<TcpSocketLike>();
+  private socketHandlers = new Map<
+    TcpSocketLike,
+    {
+      data: (data: unknown) => void;
+      error: (data: unknown) => void;
+      close: (data: unknown) => void;
+      timeout: (data: unknown) => void;
+    }
+  >();
+  private serverSockets = new Map<TcpSocketLike, string>();
+  private activeConnectionsByIp = new Map<string, number>();
+  private connectionRate = new Map<string, { count: number; resetAt: number }>();
 
   constructor() {
     this.zeroconf = createZeroconf();
     this.tcpSocket = createTcpSocket();
+    this.ensureListeners();
+  }
+
+  private handleResolved = (service: ZeroconfService) => {
+    logger.info("Discovered peer", { service });
+
+    const deviceId = service.txt?.deviceId || service.name || "";
+    if (!deviceId) return;
+
+    const localDeviceId = useSyncStore.getState().localDeviceId;
+    if (localDeviceId && deviceId === localDeviceId) {
+      return;
+    }
+
+    const deviceInfo: DeviceInfo = {
+      deviceId,
+      deviceName: service.txt?.deviceName || service.name || "Unknown Device",
+      lastSeen: new Date().toISOString(),
+      ipAddress: selectAddress(service.addresses),
+      port: service.port,
+    };
+
+    useSyncStore.getState().addPeer(deviceInfo);
+  };
+
+  private handleRemove = (service: ZeroconfService) => {
+    logger.info("Peer left network", { service });
+    const deviceId = service.txt?.deviceId || service.name;
+    if (deviceId) {
+      useSyncStore.getState().removePeer(deviceId);
+    }
+  };
+
+  private handleError = (error: unknown) => {
+    logger.error("Zeroconf error", {}, error);
+  };
+
+  private setupListeners() {
+    this.zeroconf.on("resolved", this.handleResolved);
+    this.zeroconf.on("remove", this.handleRemove);
+    this.zeroconf.on("error", this.handleError);
+    this.listenersAttached = true;
+  }
+
+  private ensureListeners() {
+    if (this.listenersAttached) return;
     this.setupListeners();
   }
 
-  private setupListeners() {
-    this.zeroconf.on("resolved", (service) => {
-      logger.info("Discovered peer", { service });
+  configure(options: {
+    bindAddress?: string;
+    syncTimeoutMs?: number;
+    maxConcurrentConnections?: number;
+    maxConnectionsPerIp?: number;
+    rateLimit?: { windowMs: number; maxConnections: number };
+    authToken?: string;
+    outgoingTokenResolver?: (peer: DeviceInfo) => string;
+  }): void {
+    if (options.bindAddress) {
+      this.bindAddress = options.bindAddress;
+    }
+    if (options.syncTimeoutMs) {
+      this.syncTimeoutMs = Math.max(1000, options.syncTimeoutMs);
+    }
+    if (options.maxConcurrentConnections) {
+      this.maxConcurrentConnections = Math.max(
+        1,
+        options.maxConcurrentConnections,
+      );
+    }
+    if (options.maxConnectionsPerIp) {
+      this.maxConnectionsPerIp = Math.max(1, options.maxConnectionsPerIp);
+    }
+    if (options.rateLimit) {
+      this.rateLimitWindowMs = Math.max(1000, options.rateLimit.windowMs);
+      this.rateLimitMaxConnections = Math.max(
+        1,
+        options.rateLimit.maxConnections,
+      );
+    }
+    if (options.authToken !== undefined) {
+      this.authToken = options.authToken.trim() || null;
+    }
+    if (options.outgoingTokenResolver) {
+      this.outgoingTokenResolver = options.outgoingTokenResolver;
+    }
+  }
 
-      const deviceId = service.txt?.deviceId || service.name || "";
-      if (!deviceId) return;
+  dispose(): void {
+    this.stopAdvertising();
+    this.stopScanning();
+    this.detachZeroconfListeners();
+    this.cleanupAllSockets();
+    this.connectionRate.clear();
+    this.activeConnectionsByIp.clear();
+    this.listenersAttached = false;
+  }
 
-      const localDeviceId = useSyncStore.getState().localDeviceId;
-      if (localDeviceId && deviceId === localDeviceId) {
-        return;
+  private detachZeroconfListener(
+    event: "resolved" | "remove" | "error",
+    handler: (arg: unknown) => void,
+  ): void {
+    if (this.zeroconf.removeListener) {
+      this.zeroconf.removeListener(event, handler);
+      return;
+    }
+    if (this.zeroconf.off) {
+      this.zeroconf.off(event, handler);
+    }
+  }
+
+  private detachZeroconfListeners(): void {
+    if (!this.listenersAttached) return;
+    this.detachZeroconfListener("resolved", this.handleResolved);
+    this.detachZeroconfListener("remove", this.handleRemove);
+    this.detachZeroconfListener("error", this.handleError);
+  }
+
+  private detachSocketListener(
+    socket: TcpSocketLike,
+    event: "data" | "error" | "close" | "timeout",
+    handler: (data: unknown) => void,
+  ): void {
+    if (socket.removeListener) {
+      socket.removeListener(event, handler);
+      return;
+    }
+    if (socket.off) {
+      socket.off(event, handler);
+    }
+  }
+
+  private resolveIncomingToken(): string {
+    if (this.authToken) return this.authToken;
+    const deviceId = resolveDeviceId();
+    this.authToken = deviceId;
+    return deviceId;
+  }
+
+  private resolveOutgoingToken(peer: DeviceInfo): string {
+    if (this.outgoingTokenResolver) {
+      const token = this.outgoingTokenResolver(peer).trim();
+      if (!token) {
+        throw new Error("Outgoing auth token missing.");
       }
+      return token;
+    }
+    return peer.deviceId;
+  }
 
-      const deviceInfo: DeviceInfo = {
-        deviceId,
-        deviceName: service.txt?.deviceName || service.name || "Unknown Device",
-        lastSeen: new Date().toISOString(),
-        ipAddress: selectAddress(service.addresses),
-        port: service.port,
+  private canAcceptConnection(remoteAddress: string): boolean {
+    if (this.serverSockets.size >= this.maxConcurrentConnections) {
+      logger.warn("Too many concurrent sync connections", {
+        remoteAddress,
+      });
+      return false;
+    }
+
+    const activeForIp = this.activeConnectionsByIp.get(remoteAddress) || 0;
+    if (activeForIp >= this.maxConnectionsPerIp) {
+      logger.warn("Too many concurrent connections for peer", {
+        remoteAddress,
+      });
+      return false;
+    }
+
+    const now = Date.now();
+    const entry =
+      this.connectionRate.get(remoteAddress) || {
+        count: 0,
+        resetAt: now + this.rateLimitWindowMs,
       };
+    if (now > entry.resetAt) {
+      entry.count = 0;
+      entry.resetAt = now + this.rateLimitWindowMs;
+    }
+    if (entry.count >= this.rateLimitMaxConnections) {
+      logger.warn("Rate limit exceeded for peer", { remoteAddress });
+      this.connectionRate.set(remoteAddress, entry);
+      return false;
+    }
+    entry.count += 1;
+    this.connectionRate.set(remoteAddress, entry);
+    return true;
+  }
 
-      useSyncStore.getState().addPeer(deviceInfo);
-    });
+  private trackServerSocket(socket: TcpSocketLike, remoteAddress: string): void {
+    this.activeSockets.add(socket);
+    this.serverSockets.set(socket, remoteAddress);
+    const current = this.activeConnectionsByIp.get(remoteAddress) || 0;
+    this.activeConnectionsByIp.set(remoteAddress, current + 1);
+  }
 
-    this.zeroconf.on("remove", (service) => {
-      logger.info("Peer left network", { service });
-      const deviceId = service.txt?.deviceId || service.name;
-      if (deviceId) {
-        useSyncStore.getState().removePeer(deviceId);
+  private untrackServerSocket(socket: TcpSocketLike): void {
+    const remoteAddress = this.serverSockets.get(socket);
+    this.activeSockets.delete(socket);
+    this.serverSockets.delete(socket);
+    if (remoteAddress) {
+      const current = this.activeConnectionsByIp.get(remoteAddress) || 0;
+      if (current <= 1) {
+        this.activeConnectionsByIp.delete(remoteAddress);
+      } else {
+        this.activeConnectionsByIp.set(remoteAddress, current - 1);
       }
-    });
+    }
+  }
 
-    this.zeroconf.on("error", (error) => {
-      logger.error("Zeroconf error", {}, error);
+  private trackClientSocket(socket: TcpSocketLike): void {
+    this.activeSockets.add(socket);
+  }
+
+  private untrackClientSocket(socket: TcpSocketLike): void {
+    this.activeSockets.delete(socket);
+  }
+
+  private cleanupAllSockets(): void {
+    this.socketHandlers.forEach((handlers, socket) => {
+      this.detachSocketListener(socket, "data", handlers.data);
+      this.detachSocketListener(socket, "error", handlers.error);
+      this.detachSocketListener(socket, "close", handlers.close);
+      this.detachSocketListener(socket, "timeout", handlers.timeout);
+      socket.destroy();
+    });
+    this.socketHandlers.clear();
+    this.activeSockets.clear();
+    this.serverSockets.clear();
+  }
+
+  private cleanupServerSockets(): void {
+    const sockets = Array.from(this.serverSockets.keys());
+    sockets.forEach((socket) => {
+      const handlers = this.socketHandlers.get(socket);
+      if (handlers) {
+        this.detachSocketListener(socket, "data", handlers.data);
+        this.detachSocketListener(socket, "error", handlers.error);
+        this.detachSocketListener(socket, "close", handlers.close);
+        this.detachSocketListener(socket, "timeout", handlers.timeout);
+        this.socketHandlers.delete(socket);
+      }
+      socket.destroy();
+      this.untrackServerSocket(socket);
     });
   }
 
@@ -225,8 +554,12 @@ class LocalNetworkSyncService {
     if (this.isAdvertising) return;
 
     try {
+      this.ensureListeners();
       const deviceId = resolveDeviceId();
       const deviceName = resolveDeviceName(deviceId);
+      if (!this.authToken) {
+        this.authToken = deviceId;
+      }
 
       await this.startTCPServer();
 
@@ -265,6 +598,7 @@ class LocalNetworkSyncService {
   startScanning(): void {
     if (this.isScanning) return;
 
+    this.ensureListeners();
     useSyncStore.getState().setStatus("discovering");
     this.zeroconf.scan(SERVICE_TYPE, "tcp", SERVICE_DOMAIN);
     this.isScanning = true;
@@ -306,74 +640,171 @@ class LocalNetworkSyncService {
       throw new Error("Peer connection info missing for local network sync.");
     }
 
+    const outgoingToken = this.resolveOutgoingToken(peer);
+    const outgoingPayload = encodeAuthenticatedPayload(syncData, outgoingToken);
     const socket = this.tcpSocket.connect(
       { host: peer.ipAddress, port: peer.port },
       () => {
-        socket.write(encodeFrame(syncData));
+        socket.write(encodeFrame(outgoingPayload));
       },
     );
+    this.trackClientSocket(socket);
 
     return new Promise((resolve, reject) => {
       let settled = false;
-      const parser = createFrameParser((payload) => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const finish = (outcome: { payload?: Uint8Array; error?: unknown }) => {
         if (settled) return;
         settled = true;
-        resolve(payload);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        this.detachSocketListener(socket, "data", handleData);
+        this.detachSocketListener(socket, "error", handleError);
+        this.detachSocketListener(socket, "close", handleClose);
+        this.detachSocketListener(socket, "timeout", handleTimeoutEvent);
+        this.untrackClientSocket(socket);
+        this.socketHandlers.delete(socket);
         socket.destroy();
+        if (outcome.error) {
+          const error =
+            outcome.error instanceof Error
+              ? outcome.error
+              : new Error("Sync socket error.");
+          reject(error);
+          return;
+        }
+        if (!outcome.payload) {
+          reject(new Error("Missing sync response payload."));
+          return;
+        }
+        resolve(outcome.payload);
+      };
+
+      const handleTimeout = () => {
+        finish({ error: new Error("Sync request timed out.") });
+      };
+
+      const parser = createFrameParser((payload) => {
+        try {
+          const response = decodeAuthenticatedPayload(payload);
+          if (response.token !== outgoingToken) {
+            throw new Error("Invalid auth token in sync response.");
+          }
+          finish({ payload: response.payload });
+        } catch (error) {
+          finish({ error });
+        }
       });
 
-      socket.on("data", (data) => {
+      const handleData = (data: unknown) => {
         try {
           parser(coerceChunk(data));
         } catch (error) {
-          if (!settled) {
-            settled = true;
-            reject(error);
-          }
-          socket.destroy();
+          finish({ error });
         }
+      };
+
+      const handleError = (error: unknown) => {
+        finish({ error });
+      };
+
+      const handleClose = (_event: unknown) => {
+        finish({ error: new Error("Connection closed before sync response.") });
+      };
+
+      const handleTimeoutEvent = (_event: unknown) => {
+        handleTimeout();
+      };
+
+      socket.on("data", handleData);
+      socket.on("error", handleError);
+      socket.on("close", handleClose);
+      socket.on("timeout", handleTimeoutEvent);
+      this.socketHandlers.set(socket, {
+        data: handleData,
+        error: handleError,
+        close: handleClose,
+        timeout: handleTimeoutEvent,
       });
 
-      socket.on("error", (error) => {
-        if (!settled) {
-          settled = true;
-          reject(error);
-        }
-        socket.destroy();
-      });
-
-      socket.on("close", () => {
-        if (!settled) {
-          settled = true;
-          reject(new Error("Connection closed before sync response."));
-        }
-      });
+      timeoutId = setTimeout(handleTimeout, this.syncTimeoutMs);
+      if (socket.setTimeout) {
+        socket.setTimeout(this.syncTimeoutMs);
+      }
     });
   }
 
   private async startTCPServer(): Promise<void> {
     if (this.server) return;
     const server = this.tcpSocket.createServer((socket) => {
+      const remoteAddress = socket.remoteAddress || "unknown";
+      if (!this.canAcceptConnection(remoteAddress)) {
+        socket.destroy();
+        return;
+      }
+      this.trackServerSocket(socket, remoteAddress);
+
       const parser = createFrameParser((payload) => {
         void this.handleSyncRequest(socket, payload);
       });
 
-      socket.on("data", (data) => {
+      const cleanup = () => {
+        this.detachSocketListener(socket, "data", handleData);
+        this.detachSocketListener(socket, "error", handleError);
+        this.detachSocketListener(socket, "close", handleClose);
+        this.detachSocketListener(socket, "timeout", handleTimeout);
+        this.untrackServerSocket(socket);
+        this.socketHandlers.delete(socket);
+      };
+
+      const handleData = (data: unknown) => {
         try {
           parser(coerceChunk(data));
         } catch (error) {
           logger.error("Failed to parse sync payload", {}, error);
           socket.destroy();
+          cleanup();
         }
+      };
+
+      const handleError = (error: unknown) => {
+        logger.error("TCP socket error", {}, error);
+        cleanup();
+      };
+
+      const handleClose = (_event: unknown) => {
+        cleanup();
+      };
+
+      const handleTimeout = (_event: unknown) => {
+        logger.warn("TCP socket timed out", { remoteAddress });
+        socket.destroy();
+        cleanup();
+      };
+
+      socket.on("data", handleData);
+      socket.on("error", handleError);
+      socket.on("close", handleClose);
+      socket.on("timeout", handleTimeout);
+      this.socketHandlers.set(socket, {
+        data: handleData,
+        error: handleError,
+        close: handleClose,
+        timeout: handleTimeout,
       });
 
-      socket.on("error", (error) => {
-        logger.error("TCP socket error", {}, error);
-      });
+      if (socket.setTimeout) {
+        socket.setTimeout(this.syncTimeoutMs);
+      }
     });
 
-    server.listen({ port: DEFAULT_PORT, host: "0.0.0.0" }, () => {
-      logger.info("TCP server listening", { port: DEFAULT_PORT });
+    server.listen({ port: DEFAULT_PORT, host: this.bindAddress }, () => {
+      logger.info("TCP server listening", {
+        port: DEFAULT_PORT,
+        host: this.bindAddress,
+      });
     });
 
     this.server = server;
@@ -384,6 +815,7 @@ class LocalNetworkSyncService {
       this.server.close();
       this.server = null;
     }
+    this.cleanupServerSockets();
   }
 
   private async handleSyncRequest(
@@ -397,8 +829,19 @@ class LocalNetworkSyncService {
     }
 
     try {
-      const response = await this.syncHandler(payload);
-      socket.write(encodeFrame(response));
+      const decoded = decodeAuthenticatedPayload(payload);
+      const expectedToken = this.resolveIncomingToken();
+      if (decoded.token !== expectedToken) {
+        logger.warn("Rejected sync request with invalid auth token");
+        socket.destroy();
+        return;
+      }
+      const response = await this.syncHandler(decoded.payload);
+      const responsePayload = encodeAuthenticatedPayload(
+        response,
+        decoded.token,
+      );
+      socket.write(encodeFrame(responsePayload));
     } catch (error) {
       logger.error("Failed to handle sync request", {}, error);
       socket.destroy();

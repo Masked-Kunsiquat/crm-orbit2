@@ -11,6 +11,7 @@ const mockLocalNetworkSync = {
   stopScanning: jest.fn(),
   syncWithPeer: jest.fn(),
   setSyncHandler: jest.fn(),
+  dispose: jest.fn(),
 };
 
 const mockWebRTCConnection = {
@@ -82,6 +83,7 @@ beforeEach(() => {
   mockLocalNetworkSync.stopScanning.mockReset();
   mockLocalNetworkSync.syncWithPeer.mockReset();
   mockLocalNetworkSync.setSyncHandler.mockReset();
+  mockLocalNetworkSync.dispose.mockReset();
 
   mockCreateWebRTCConnection.mockClear();
   mockWebRTCConnection.createOffer.mockReset();
@@ -158,6 +160,7 @@ test("stopAutoDiscovery stops local network advertising + scanning", async () =>
 
   assert.equal(mockLocalNetworkSync.stopAdvertising.mock.calls.length, 1);
   assert.equal(mockLocalNetworkSync.stopScanning.mock.calls.length, 1);
+  assert.equal(mockLocalNetworkSync.dispose.mock.calls.length, 1);
 });
 
 test("syncWithPeer uses local network when peer has IP", async () => {

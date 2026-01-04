@@ -119,6 +119,7 @@ class SyncOrchestrator {
   stopAutoDiscovery(): void {
     localNetworkSync.stopAdvertising();
     localNetworkSync.stopScanning();
+    localNetworkSync.dispose();
     logger.info("Auto-discovery stopped");
   }
 
