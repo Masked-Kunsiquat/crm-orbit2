@@ -8,6 +8,7 @@ import { entityLinkReducer } from "./entityLink.reducer";
 import { noteReducer } from "./note.reducer";
 import { organizationReducer } from "./organization.reducer";
 import { deviceReducer } from "./device.reducer";
+import { codeReducer } from "./code.reducer";
 
 export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "organization.created": organizationReducer,
@@ -37,5 +38,8 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "interaction.logged": interactionReducer,
   "interaction.updated": interactionReducer,
   "interaction.deleted": interactionReducer,
+  "code.created": codeReducer,
+  "code.updated": codeReducer,
+  "code.deleted": codeReducer,
   "device.registered": deviceReducer,
 };
