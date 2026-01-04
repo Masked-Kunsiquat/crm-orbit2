@@ -62,6 +62,19 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
   const [isAccountPickerOpen, setIsAccountPickerOpen] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
 
+  const handleDecryptError = useCallback(
+    (error: unknown) => {
+      const isMissingKey =
+        error instanceof Error &&
+        error.message === "Encryption key not found.";
+      const messageKey = isMissingKey
+        ? "codes.keyMissingError"
+        : "codes.decryptError";
+      showAlert(t("common.error"), t(messageKey), t("common.ok"));
+    },
+    [showAlert],
+  );
+
   useEffect(() => {
     let isActive = true;
 
@@ -90,9 +103,9 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
           const decryptedValue = await decryptCode(code.codeValue);
           if (!isActive) return;
           setCodeValue(decryptedValue);
-        } catch {
+        } catch (error) {
           if (!isActive) return;
-          showAlert(t("common.error"), t("codes.decryptError"), t("common.ok"));
+          handleDecryptError(error);
         } finally {
           if (isActive) {
             setIsDecrypting(false);
@@ -109,7 +122,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
     return () => {
       isActive = false;
     };
-  }, [code, codeId, prefillAccountId, showAlert]);
+  }, [code, codeId, handleDecryptError, prefillAccountId]);
 
   useFocusEffect(
     useCallback(() => {

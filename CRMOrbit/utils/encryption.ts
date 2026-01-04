@@ -162,6 +162,20 @@ const getOrCreateKey = async (): Promise<CryptoKeyLike> => {
   return cachedKey;
 };
 
+const getExistingKey = async (): Promise<CryptoKeyLike> => {
+  if (cachedKey) {
+    return cachedKey;
+  }
+
+  const existing = await loadKeyMaterial();
+  if (!existing) {
+    throw new Error("Encryption key not found.");
+  }
+
+  cachedKey = await importKey(existing);
+  return cachedKey;
+};
+
 const ensurePayload = (value: unknown): EncryptedPayload => {
   if (typeof value !== "object" || value === null) {
     throw new Error("Invalid encrypted payload.");
@@ -221,7 +235,7 @@ export const encryptCode = async (plaintext: string): Promise<string> => {
 export const decryptCode = async (ciphertext: string): Promise<string> => {
   const cryptoApi = getCrypto();
   const parsed = ensurePayload(JSON.parse(ciphertext));
-  const key = await getOrCreateKey();
+  const key = await getExistingKey();
   const iv = decodeBase64(parsed.iv);
   const data = decodeBase64(parsed.data);
   const ivBuffer = toArrayBuffer(iv);

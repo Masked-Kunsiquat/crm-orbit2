@@ -134,6 +134,19 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     securitySettings.biometricAuth,
   ]);
 
+  const handleDecryptError = useCallback(
+    (error: unknown) => {
+      const isMissingKey =
+        error instanceof Error &&
+        error.message === "Encryption key not found.";
+      const messageKey = isMissingKey
+        ? "codes.keyMissingError"
+        : "codes.decryptError";
+      showAlert(t("common.error"), t(messageKey), t("common.ok"));
+    },
+    [showAlert],
+  );
+
   const resolveDecryptedValue = useCallback(async (): Promise<string> => {
     if (!code) {
       return "";
@@ -158,15 +171,15 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       const nextValue = await resolveDecryptedValue();
       setRevealedValue(nextValue);
       revealWithTimeout();
-    } catch {
-      showAlert(t("common.error"), t("codes.decryptError"), t("common.ok"));
+    } catch (error) {
+      handleDecryptError(error);
     }
   }, [
     ensureAuthorized,
     isRevealed,
     revealWithTimeout,
+    handleDecryptError,
     resolveDecryptedValue,
-    showAlert,
   ]);
 
   const handleHide = useCallback(() => {
@@ -186,8 +199,8 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     if (!isRevealed || !valueToCopy) {
       try {
         valueToCopy = await resolveDecryptedValue();
-      } catch {
-        showAlert(t("common.error"), t("codes.decryptError"), t("common.ok"));
+      } catch (error) {
+        handleDecryptError(error);
         return;
       }
     }
@@ -212,6 +225,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   }, [
     clearClipboardTimeout,
     ensureAuthorized,
+    handleDecryptError,
     isRevealed,
     revealedValue,
     resolveDecryptedValue,
