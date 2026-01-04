@@ -13,9 +13,15 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import * as Clipboard from "expo-clipboard";
 import * as ScreenCapture from "expo-screen-capture";
 import { useFocusEffect } from "@react-navigation/native";
+import { BlurView } from "expo-blur";
 
 import { useAccount, useCode, useSecuritySettings } from "../../store/store";
-import { useDeviceId, useLocalAuth, useTheme } from "../../hooks";
+import {
+  useCodeAuthSession,
+  useDeviceId,
+  useLocalAuth,
+  useTheme,
+} from "../../hooks";
 import { useCodeActions } from "../../hooks/useCodeActions";
 import {
   ConfirmDialog,
@@ -46,7 +52,6 @@ const CODE_TYPE_ICONS: Record<
 const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
 const DEFAULT_REVEAL_DURATION_MS = 30_000;
 const MASKED_VALUE = "********";
-let sessionAuthorized = false;
 
 type Props = {
   route: { params: { codeId: string } };
@@ -62,10 +67,15 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const deviceId = useDeviceId();
   const { deleteCode } = useCodeActions(deviceId);
   const { authenticate } = useLocalAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const { isSessionAuthorized, markSessionAuthorized, resetSessionAuthorized } =
+    useCodeAuthSession();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
   const [isRevealed, setIsRevealed] = useState(false);
   const [revealedValue, setRevealedValue] = useState<string | null>(null);
+  const [isShielded, setIsShielded] = useState(
+    AppState.currentState !== "active",
+  );
   const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clipboardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -119,17 +129,19 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       return true;
     }
 
-    if (securitySettings.authFrequency === "session" && sessionAuthorized) {
+    if (securitySettings.authFrequency === "session" && isSessionAuthorized()) {
       return true;
     }
 
     const success = await authenticate(t("codes.authReason"));
     if (success) {
-      sessionAuthorized = true;
+      markSessionAuthorized();
     }
     return success;
   }, [
     authenticate,
+    isSessionAuthorized,
+    markSessionAuthorized,
     securitySettings.authFrequency,
     securitySettings.biometricAuth,
   ]);
@@ -236,14 +248,19 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       securitySettings.biometricAuth === "disabled" ||
       securitySettings.authFrequency === "each"
     ) {
-      sessionAuthorized = false;
+      resetSessionAuthorized();
     }
-  }, [securitySettings.authFrequency, securitySettings.biometricAuth]);
+  }, [
+    resetSessionAuthorized,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
+      setIsShielded(state !== "active");
       if (state !== "active") {
-        sessionAuthorized = false;
+        resetSessionAuthorized();
         handleHide();
       }
     });
@@ -251,7 +268,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     return () => {
       subscription.remove();
     };
-  }, [handleHide]);
+  }, [handleHide, resetSessionAuthorized]);
 
   useFocusEffect(
     useCallback(() => {
@@ -422,6 +439,22 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      {isShielded ? (
+        <BlurView
+          intensity={70}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        >
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.canvas, opacity: 0.6 },
+            ]}
+          />
+        </BlurView>
+      ) : null}
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>

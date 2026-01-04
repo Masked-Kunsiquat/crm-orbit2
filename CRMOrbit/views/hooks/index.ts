@@ -7,6 +7,7 @@ export { useEntityLinkActions } from "./useEntityLinkActions";
 export { getDeviceIdFromEnv, setDeviceId, useDeviceId } from "./useDeviceId";
 export { useInteractionActions } from "./useInteractionActions";
 export { useCodeActions } from "./useCodeActions";
+export { useCodeAuthSession } from "./useCodeAuthSession";
 export { useLocalAuth } from "./useLocalAuth";
 export { useSettingsActions } from "./useSettingsActions";
 export { useHeaderMenu } from "./useHeaderMenu";

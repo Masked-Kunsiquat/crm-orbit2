@@ -97,6 +97,7 @@
   "codes.encryptError": "Failed to encrypt code",
   "codes.decryptError": "Failed to decrypt code",
   "codes.keyMissingError": "Encryption key is missing. Codes cannot be decrypted on this device.",
+  "codes.authRequired": "Authentication is required to edit this code.",
   "codes.copyButton": "Copy code",
   "codes.copyTitle": "Code copied",
   "codes.copySuccess": "The code has been copied to the clipboard.",

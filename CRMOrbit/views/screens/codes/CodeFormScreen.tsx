@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  AppState,
   Modal,
   Pressable,
   ScrollView,
@@ -11,8 +12,14 @@ import {
 } from "react-native";
 
 import type { CodeType } from "../../../domains/code";
-import { useAccounts, useCode } from "../../store/store";
-import { useCodeActions, useDeviceId, useTheme } from "../../hooks";
+import { useAccounts, useCode, useSecuritySettings } from "../../store/store";
+import {
+  useCodeActions,
+  useCodeAuthSession,
+  useDeviceId,
+  useLocalAuth,
+  useTheme,
+} from "../../hooks";
 import {
   ConfirmDialog,
   FormField,
@@ -25,6 +32,7 @@ import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { decryptCode, encryptCode } from "../../../utils/encryption";
 import * as ScreenCapture from "expo-screen-capture";
 import { useFocusEffect } from "@react-navigation/native";
+import { BlurView } from "expo-blur";
 
 const CODE_TYPE_OPTIONS: Array<{ label: string; value: CodeType }> = [
   { label: "code.type.door", value: "code.type.door" },
@@ -46,12 +54,16 @@ type Props = {
 };
 
 export const CodeFormScreen = ({ route, navigation }: Props) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const deviceId = useDeviceId();
   const { codeId, accountId: prefillAccountId } = route.params ?? {};
   const code = useCode(codeId ?? "");
   const accounts = useAccounts();
+  const securitySettings = useSecuritySettings();
   const { createCode, updateCode } = useCodeActions(deviceId);
+  const { authenticate } = useLocalAuth();
+  const { isSessionAuthorized, markSessionAuthorized, resetSessionAuthorized } =
+    useCodeAuthSession();
   const { dialogProps, showAlert } = useConfirmDialog();
 
   const [accountId, setAccountId] = useState("");
@@ -61,6 +73,31 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
   const [notes, setNotes] = useState("");
   const [isAccountPickerOpen, setIsAccountPickerOpen] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
+  const [isShielded, setIsShielded] = useState(
+    AppState.currentState !== "active",
+  );
+
+  const ensureAuthorized = useCallback(async (): Promise<boolean> => {
+    if (securitySettings.biometricAuth === "disabled") {
+      return true;
+    }
+
+    if (securitySettings.authFrequency === "session" && isSessionAuthorized()) {
+      return true;
+    }
+
+    const success = await authenticate(t("codes.authReason"));
+    if (success) {
+      markSessionAuthorized();
+    }
+    return success;
+  }, [
+    authenticate,
+    isSessionAuthorized,
+    markSessionAuthorized,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
 
   const handleDecryptError = useCallback(
     (error: unknown) => {
@@ -98,6 +135,19 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       if (code.isEncrypted) {
         setIsDecrypting(true);
         setCodeValue("");
+        const authorized = await ensureAuthorized();
+        if (!authorized) {
+          if (isActive) {
+            setIsDecrypting(false);
+            showAlert(
+              t("common.error"),
+              t("codes.authRequired"),
+              t("common.ok"),
+            );
+            navigation.goBack();
+          }
+          return;
+        }
         try {
           const decryptedValue = await decryptCode(code.codeValue);
           if (!isActive) return;
@@ -121,7 +171,41 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
     return () => {
       isActive = false;
     };
-  }, [code, codeId, handleDecryptError, prefillAccountId]);
+  }, [
+    code,
+    codeId,
+    ensureAuthorized,
+    handleDecryptError,
+    navigation,
+    prefillAccountId,
+    showAlert,
+  ]);
+
+  useEffect(() => {
+    if (
+      securitySettings.biometricAuth === "disabled" ||
+      securitySettings.authFrequency === "each"
+    ) {
+      resetSessionAuthorized();
+    }
+  }, [
+    resetSessionAuthorized,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      setIsShielded(state !== "active");
+      if (state !== "active") {
+        resetSessionAuthorized();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [resetSessionAuthorized]);
 
   useFocusEffect(
     useCallback(() => {
@@ -217,154 +301,198 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
 
   if (codeId && (!code || isDecrypting)) {
     return (
-      <FormScreenLayout contentStyle={styles.loadingContainer}>
-        <ActivityIndicator color={colors.accent} />
-      </FormScreenLayout>
+      <View style={styles.screen}>
+        <FormScreenLayout contentStyle={styles.loadingContainer}>
+          <ActivityIndicator color={colors.accent} />
+        </FormScreenLayout>
+        {isShielded ? (
+          <BlurView
+            intensity={70}
+            tint={isDark ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          >
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.canvas, opacity: 0.6 },
+              ]}
+            />
+          </BlurView>
+        ) : null}
+      </View>
     );
   }
 
   return (
-    <FormScreenLayout>
-      <FormField
-        label={`${t("codes.form.accountLabel")} *`}
-        hint={
-          accounts.length === 0 ? t("codes.form.accountEmptyHint") : undefined
-        }
-      >
-        {accounts.length === 0 ? null : (
-          <TouchableOpacity
-            style={[
-              styles.pickerButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            onPress={() => setIsAccountPickerOpen(true)}
-            accessibilityRole="button"
-          >
-            <Text
-              style={[styles.pickerButtonText, { color: colors.textSecondary }]}
+    <View style={styles.screen}>
+      <FormScreenLayout>
+        <FormField
+          label={`${t("codes.form.accountLabel")} *`}
+          hint={
+            accounts.length === 0 ? t("codes.form.accountEmptyHint") : undefined
+          }
+        >
+          {accounts.length === 0 ? null : (
+            <TouchableOpacity
+              style={[
+                styles.pickerButton,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+              onPress={() => setIsAccountPickerOpen(true)}
+              accessibilityRole="button"
             >
-              {selectedAccount?.name ?? t("codes.form.accountPlaceholder")}
-            </Text>
-            <Text style={[styles.pickerChevron, { color: colors.chevron }]}>
-              ▼
-            </Text>
-          </TouchableOpacity>
-        )}
-      </FormField>
+              <Text
+                style={[
+                  styles.pickerButtonText,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                {selectedAccount?.name ?? t("codes.form.accountPlaceholder")}
+              </Text>
+              <Text style={[styles.pickerChevron, { color: colors.chevron }]}>
+                ▼
+              </Text>
+            </TouchableOpacity>
+          )}
+        </FormField>
 
-      <FormField label={`${t("codes.form.labelLabel")} *`}>
-        <TextField
-          value={label}
-          onChangeText={setLabel}
-          placeholder={t("codes.form.labelPlaceholder")}
-          autoFocus
-        />
-      </FormField>
-
-      <FormField label={`${t("codes.form.valueLabel")} *`}>
-        <TextField
-          value={codeValue}
-          onChangeText={setCodeValue}
-          placeholder={t("codes.form.valuePlaceholder")}
-          autoCapitalize="none"
-        />
-      </FormField>
-
-      <FormField label={t("codes.form.typeLabel")}>
-        <SegmentedOptionGroup
-          options={CODE_TYPE_OPTIONS.map((option) => ({
-            ...option,
-            label: t(option.label),
-          }))}
-          value={type}
-          onChange={setType}
-        />
-      </FormField>
-
-      <FormField label={t("codes.form.notesLabel")}>
-        <TextField
-          style={styles.notesInput}
-          value={notes}
-          onChangeText={setNotes}
-          placeholder={t("codes.form.notesPlaceholder")}
-          multiline
-          textAlignVertical="top"
-        />
-      </FormField>
-
-      <TouchableOpacity
-        style={[
-          styles.saveButton,
-          { backgroundColor: colors.accent },
-          accounts.length === 0 && { backgroundColor: colors.textMuted },
-        ]}
-        onPress={handleSave}
-        disabled={accounts.length === 0}
-      >
-        <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
-          {codeId ? t("codes.form.updateButton") : t("codes.form.createButton")}
-        </Text>
-      </TouchableOpacity>
-
-      <Modal
-        transparent
-        animationType="fade"
-        visible={isAccountPickerOpen}
-        onRequestClose={() => setIsAccountPickerOpen(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setIsAccountPickerOpen(false)}
+        <FormField label={`${t("codes.form.labelLabel")} *`}>
+          <TextField
+            value={label}
+            onChangeText={setLabel}
+            placeholder={t("codes.form.labelPlaceholder")}
+            autoFocus
           />
+        </FormField>
+
+        <FormField label={`${t("codes.form.valueLabel")} *`}>
+          <TextField
+            value={codeValue}
+            onChangeText={setCodeValue}
+            placeholder={t("codes.form.valuePlaceholder")}
+            autoCapitalize="none"
+          />
+        </FormField>
+
+        <FormField label={t("codes.form.typeLabel")}>
+          <SegmentedOptionGroup
+            options={CODE_TYPE_OPTIONS.map((option) => ({
+              ...option,
+              label: t(option.label),
+            }))}
+            value={type}
+            onChange={setType}
+          />
+        </FormField>
+
+        <FormField label={t("codes.form.notesLabel")}>
+          <TextField
+            style={styles.notesInput}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder={t("codes.form.notesPlaceholder")}
+            multiline
+            textAlignVertical="top"
+          />
+        </FormField>
+
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            { backgroundColor: colors.accent },
+            accounts.length === 0 && { backgroundColor: colors.textMuted },
+          ]}
+          onPress={handleSave}
+          disabled={accounts.length === 0}
+        >
+          <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
+            {codeId
+              ? t("codes.form.updateButton")
+              : t("codes.form.createButton")}
+          </Text>
+        </TouchableOpacity>
+
+        <Modal
+          transparent
+          animationType="fade"
+          visible={isAccountPickerOpen}
+          onRequestClose={() => setIsAccountPickerOpen(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setIsAccountPickerOpen(false)}
+            />
+            <View
+              style={[
+                styles.pickerModal,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("codes.form.accountPickerTitle")}
+              </Text>
+              <ScrollView style={styles.pickerList}>
+                {sortedAccounts.map((account) => {
+                  const isSelected = account.id === accountId;
+                  return (
+                    <TouchableOpacity
+                      key={account.id}
+                      style={[
+                        styles.pickerItem,
+                        { borderBottomColor: colors.borderLight },
+                        isSelected && {
+                          backgroundColor: colors.surfaceElevated,
+                        },
+                      ]}
+                      onPress={() => {
+                        setAccountId(account.id);
+                        setIsAccountPickerOpen(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerItemText,
+                          { color: colors.textPrimary },
+                          isSelected && { color: colors.accent },
+                        ]}
+                      >
+                        {account.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
+      </FormScreenLayout>
+      {isShielded ? (
+        <BlurView
+          intensity={70}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        >
           <View
             style={[
-              styles.pickerModal,
-              { backgroundColor: colors.surface, borderColor: colors.border },
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.canvas, opacity: 0.6 },
             ]}
-          >
-            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-              {t("codes.form.accountPickerTitle")}
-            </Text>
-            <ScrollView style={styles.pickerList}>
-              {sortedAccounts.map((account) => {
-                const isSelected = account.id === accountId;
-                return (
-                  <TouchableOpacity
-                    key={account.id}
-                    style={[
-                      styles.pickerItem,
-                      { borderBottomColor: colors.borderLight },
-                      isSelected && { backgroundColor: colors.surfaceElevated },
-                    ]}
-                    onPress={() => {
-                      setAccountId(account.id);
-                      setIsAccountPickerOpen(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.pickerItemText,
-                        { color: colors.textPrimary },
-                        isSelected && { color: colors.accent },
-                      ]}
-                    >
-                      {account.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
-    </FormScreenLayout>
+          />
+        </BlurView>
+      ) : null}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   notesInput: {
     height: 160,
   },
