@@ -17,6 +17,10 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
     navigation.navigate("CodesList");
   };
 
+  const handleSettingsPress = () => {
+    navigation.navigate("SettingsList");
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       <ListCard onPress={handleCodesPress}>
@@ -39,6 +43,26 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
           <View style={styles.countBadge}>
             <Text style={[styles.countText, { color: colors.textSecondary }]}>
               {allCodes.length}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleSettingsPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="cog-outline"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("settings.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("settings.description")}
             </Text>
           </View>
         </View>

@@ -93,6 +93,8 @@ export type MiscStackParamList = {
   CodesList: undefined;
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
+  SettingsList: undefined;
+  SecuritySettings: undefined;
 };
 
 // Screen props types
