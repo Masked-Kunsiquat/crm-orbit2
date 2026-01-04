@@ -6,6 +6,7 @@ import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
   useAccount,
   useContacts,
+  useCodes,
   useNotes,
   useInteractions,
   useTimeline,
@@ -17,6 +18,7 @@ import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
   InteractionsSection,
+  CodesSection,
   TimelineSection,
   DetailScreenLayout,
   Section,
@@ -44,6 +46,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params;
   const account = useAccount(accountId);
   const allContacts = useContacts(accountId);
+  const codes = useCodes(accountId);
   const notes = useNotes("account", accountId);
   const interactions = useInteractions("account", accountId);
   const timeline = useTimeline("account", accountId);
@@ -369,14 +372,19 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
       {activeTab === "notes" ? (
         <>
-          <NotesSection
-            notes={notes}
-            entityId={accountId}
-            entityType="account"
+          <CodesSection
+            codes={codes}
+            accountId={accountId}
             navigation={navigation}
           />
           <InteractionsSection
             interactions={interactions}
+            entityId={accountId}
+            entityType="account"
+            navigation={navigation}
+          />
+          <NotesSection
+            notes={notes}
             entityId={accountId}
             entityType="account"
             navigation={navigation}

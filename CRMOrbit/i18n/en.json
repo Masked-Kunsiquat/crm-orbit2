@@ -85,6 +85,8 @@
   "codes.emptyTitle": "No codes yet",
   "codes.emptyHint": "Tap the + button to create one",
   "codes.view_and_manage_all": "View and manage all codes",
+  "codes.addButton": "Add Code",
+  "codes.emptyAccountCodes": "No codes for this account.",
   "codes.notFound": "Code not found",
   "codes.deleteTitle": "Delete Code",
   "codes.deleteConfirmation": "Are you sure you want to delete this code? This action cannot be undone.",
