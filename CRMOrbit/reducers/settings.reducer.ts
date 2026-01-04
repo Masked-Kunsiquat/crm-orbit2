@@ -37,9 +37,7 @@ const applySecuritySettingsUpdated = (
     payload.biometricAuth !== undefined &&
     !isSecurityBiometricSetting(payload.biometricAuth)
   ) {
-    throw new Error(
-      `Invalid biometricAuth setting: ${payload.biometricAuth}`,
-    );
+    throw new Error(`Invalid biometricAuth setting: ${payload.biometricAuth}`);
   }
 
   if (

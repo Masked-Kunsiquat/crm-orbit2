@@ -28,9 +28,7 @@ export const SecuritySettingsScreen = () => {
             },
           ]}
           value={settings.biometricAuth}
-          onChange={(value) =>
-            updateSecuritySettings({ biometricAuth: value })
-          }
+          onChange={(value) => updateSecuritySettings({ biometricAuth: value })}
         />
       </FormField>
 
@@ -72,9 +70,7 @@ export const SecuritySettingsScreen = () => {
             },
           ]}
           value={settings.authFrequency}
-          onChange={(value) =>
-            updateSecuritySettings({ authFrequency: value })
-          }
+          onChange={(value) => updateSecuritySettings({ authFrequency: value })}
         />
       </FormField>
     </FormScreenLayout>

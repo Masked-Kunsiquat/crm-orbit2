@@ -1,10 +1,16 @@
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import type { ComponentProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
-import { useAccount, useCode } from "../../store/store";
+import { useAccount, useCode, useSecuritySettings } from "../../store/store";
 import { useDeviceId, useLocalAuth, useTheme } from "../../hooks";
 import { useCodeActions } from "../../hooks/useCodeActions";
 import {
@@ -33,8 +39,9 @@ const CODE_TYPE_ICONS: Record<
 };
 
 const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
-const REVEAL_DURATION_MS = 30_000;
+const DEFAULT_REVEAL_DURATION_MS = 30_000;
 const MASKED_VALUE = "********";
+let sessionAuthorized = false;
 
 type Props = {
   route: { params: { codeId: string } };
@@ -46,6 +53,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const { codeId } = route.params;
   const code = useCode(codeId);
   const account = useAccount(code?.accountId ?? "");
+  const securitySettings = useSecuritySettings();
   const deviceId = useDeviceId();
   const { deleteCode } = useCodeActions(deviceId);
   const { authenticate } = useLocalAuth();
@@ -99,26 +107,90 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     }
   }, []);
 
+  const resolveBlurTimeoutMs = useCallback((): number | null => {
+    switch (securitySettings.blurTimeout) {
+      case "15":
+        return 15_000;
+      case "30":
+        return 30_000;
+      case "60":
+        return 60_000;
+      case "never":
+        return null;
+      default:
+        return DEFAULT_REVEAL_DURATION_MS;
+    }
+  }, [securitySettings.blurTimeout]);
+
+  const revealWithTimeout = useCallback(() => {
+    setIsRevealed(true);
+    clearRevealTimeout();
+    const timeoutMs = resolveBlurTimeoutMs();
+    if (timeoutMs === null) {
+      return;
+    }
+    revealTimeoutRef.current = setTimeout(() => {
+      setIsRevealed(false);
+      revealTimeoutRef.current = null;
+    }, timeoutMs);
+  }, [clearRevealTimeout, resolveBlurTimeoutMs]);
+
   const handleReveal = useCallback(async () => {
     if (isRevealed) {
       return;
     }
+    if (securitySettings.biometricAuth === "disabled") {
+      revealWithTimeout();
+      return;
+    }
+
+    if (securitySettings.authFrequency === "session" && sessionAuthorized) {
+      revealWithTimeout();
+      return;
+    }
+
     const success = await authenticate(t("codes.authReason"));
     if (!success) {
       return;
     }
-    setIsRevealed(true);
-    clearRevealTimeout();
-    revealTimeoutRef.current = setTimeout(() => {
-      setIsRevealed(false);
-      revealTimeoutRef.current = null;
-    }, REVEAL_DURATION_MS);
-  }, [authenticate, clearRevealTimeout, isRevealed]);
+    sessionAuthorized = true;
+    revealWithTimeout();
+  }, [
+    authenticate,
+    isRevealed,
+    revealWithTimeout,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
 
   const handleHide = useCallback(() => {
     clearRevealTimeout();
     setIsRevealed(false);
   }, [clearRevealTimeout]);
+
+  useEffect(() => {
+    if (
+      securitySettings.biometricAuth === "disabled" ||
+      securitySettings.authFrequency === "each"
+    ) {
+      sessionAuthorized = false;
+    }
+  }, [securitySettings.authFrequency, securitySettings.biometricAuth]);
+
+  useEffect(() => {
+    if (!isRevealed) {
+      return;
+    }
+    clearRevealTimeout();
+    const timeoutMs = resolveBlurTimeoutMs();
+    if (timeoutMs === null) {
+      return;
+    }
+    revealTimeoutRef.current = setTimeout(() => {
+      setIsRevealed(false);
+      revealTimeoutRef.current = null;
+    }, timeoutMs);
+  }, [clearRevealTimeout, isRevealed, resolveBlurTimeoutMs]);
 
   useEffect(() => {
     return () => {
@@ -186,7 +258,9 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
               {isRevealed ? code.codeValue : MASKED_VALUE}
             </Text>
             {!isRevealed ? (
-              <Text style={[styles.revealHint, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.revealHint, { color: colors.textSecondary }]}
+              >
                 {t("codes.tapToReveal")}
               </Text>
             ) : null}
