@@ -38,7 +38,9 @@ const applyCodeCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   }
 
   if (!doc.accounts[payload.accountId]) {
-    logger.error("Account not found for code", { accountId: payload.accountId });
+    logger.error("Account not found for code", {
+      accountId: payload.accountId,
+    });
     throw new Error(`Account not found for code: ${payload.accountId}`);
   }
 
@@ -178,8 +180,6 @@ export const codeReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       return applyCodeDeleted(doc, event);
     default:
       logger.error("Unhandled event type", { type: event.type });
-      throw new Error(
-        `code.reducer does not handle event type: ${event.type}`,
-      );
+      throw new Error(`code.reducer does not handle event type: ${event.type}`);
   }
 };

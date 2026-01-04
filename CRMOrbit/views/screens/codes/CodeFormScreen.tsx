@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -64,10 +65,14 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       setCodeValue(code.codeValue);
       setType(code.type);
       setNotes(code.notes ?? "");
-    } else if (prefillAccountId) {
-      setAccountId(prefillAccountId);
+    } else if (!codeId) {
+      setAccountId(prefillAccountId ?? "");
+      setLabel("");
+      setCodeValue("");
+      setType("code.type.other");
+      setNotes("");
     }
-  }, [code, prefillAccountId]);
+  }, [code, codeId, prefillAccountId]);
 
   const sortedAccounts = useMemo(() => {
     return [...accounts].sort((a, b) =>
@@ -142,6 +147,14 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       }
     }
   };
+
+  if (codeId && !code) {
+    return (
+      <FormScreenLayout contentStyle={styles.loadingContainer}>
+        <ActivityIndicator color={colors.accent} />
+      </FormScreenLayout>
+    );
+  }
 
   return (
     <FormScreenLayout>
@@ -341,5 +354,10 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
