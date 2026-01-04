@@ -1,10 +1,27 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  AppState,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import type { ComponentProps } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import * as Clipboard from "expo-clipboard";
+import * as ScreenCapture from "expo-screen-capture";
+import { useFocusEffect } from "@react-navigation/native";
+import { BlurView } from "expo-blur";
 
-import { useAccount, useCode } from "../../store/store";
-import { useDeviceId, useTheme } from "../../hooks";
+import { useAccount, useCode, useSecuritySettings } from "../../store/store";
+import {
+  useCodeAuthSession,
+  useDeviceId,
+  useLocalAuth,
+  useTheme,
+} from "../../hooks";
 import { useCodeActions } from "../../hooks/useCodeActions";
 import {
   ConfirmDialog,
@@ -17,6 +34,7 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import type { CodeType } from "../../../domains/code";
+import { decryptCode } from "@utils/encryption";
 
 type MaterialIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 type FontAwesome6IconName = ComponentProps<typeof FontAwesome6>["name"];
@@ -32,6 +50,8 @@ const CODE_TYPE_ICONS: Record<
 };
 
 const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
+const DEFAULT_REVEAL_DURATION_MS = 30_000;
+const MASKED_VALUE = "********";
 
 type Props = {
   route: { params: { codeId: string } };
@@ -43,10 +63,228 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const { codeId } = route.params;
   const code = useCode(codeId);
   const account = useAccount(code?.accountId ?? "");
+  const securitySettings = useSecuritySettings();
   const deviceId = useDeviceId();
   const { deleteCode } = useCodeActions(deviceId);
-  const { colors } = useTheme();
+  const { authenticate } = useLocalAuth();
+  const { colors, isDark } = useTheme();
+  const { isSessionAuthorized, markSessionAuthorized, resetSessionAuthorized } =
+    useCodeAuthSession();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [revealedValue, setRevealedValue] = useState<string | null>(null);
+  const [isShielded, setIsShielded] = useState(
+    AppState.currentState !== "active",
+  );
+  const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clipboardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearRevealTimeout = useCallback(() => {
+    if (revealTimeoutRef.current) {
+      clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearClipboardTimeout = useCallback(() => {
+    if (clipboardTimeoutRef.current) {
+      clearTimeout(clipboardTimeoutRef.current);
+      clipboardTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resolveBlurTimeoutMs = useCallback((): number | null => {
+    switch (securitySettings.blurTimeout) {
+      case "15":
+        return 15_000;
+      case "30":
+        return 30_000;
+      case "60":
+        return 60_000;
+      case "never":
+        return null;
+      default:
+        return DEFAULT_REVEAL_DURATION_MS;
+    }
+  }, [securitySettings.blurTimeout]);
+
+  const revealWithTimeout = useCallback(() => {
+    setIsRevealed(true);
+    clearRevealTimeout();
+    const timeoutMs = resolveBlurTimeoutMs();
+    if (timeoutMs === null) {
+      return;
+    }
+    revealTimeoutRef.current = setTimeout(() => {
+      setIsRevealed(false);
+      setRevealedValue(null);
+      revealTimeoutRef.current = null;
+    }, timeoutMs);
+  }, [clearRevealTimeout, resolveBlurTimeoutMs]);
+
+  const ensureAuthorized = useCallback(async (): Promise<boolean> => {
+    if (securitySettings.biometricAuth === "disabled") {
+      return true;
+    }
+
+    if (securitySettings.authFrequency === "session" && isSessionAuthorized()) {
+      return true;
+    }
+
+    const success = await authenticate(t("codes.authReason"));
+    if (success) {
+      markSessionAuthorized();
+    }
+    return success;
+  }, [
+    authenticate,
+    isSessionAuthorized,
+    markSessionAuthorized,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
+
+  const handleDecryptError = useCallback(
+    (error: unknown) => {
+      const isMissingKey =
+        error instanceof Error && error.message === "Encryption key not found.";
+      const messageKey = isMissingKey
+        ? "codes.keyMissingError"
+        : "codes.decryptError";
+      showAlert(t("common.error"), t(messageKey), t("common.ok"));
+    },
+    [showAlert],
+  );
+
+  const resolveDecryptedValue = useCallback(async (): Promise<string> => {
+    if (!code) {
+      return "";
+    }
+    if (!code.isEncrypted) {
+      return code.codeValue;
+    }
+    return await decryptCode(code.codeValue);
+  }, [code]);
+
+  const handleReveal = useCallback(async () => {
+    if (isRevealed) {
+      return;
+    }
+
+    const isAuthorized = await ensureAuthorized();
+    if (!isAuthorized) {
+      return;
+    }
+
+    try {
+      const nextValue = await resolveDecryptedValue();
+      setRevealedValue(nextValue);
+      revealWithTimeout();
+    } catch (error) {
+      handleDecryptError(error);
+    }
+  }, [
+    ensureAuthorized,
+    isRevealed,
+    revealWithTimeout,
+    handleDecryptError,
+    resolveDecryptedValue,
+  ]);
+
+  const handleHide = useCallback(() => {
+    clearRevealTimeout();
+    setIsRevealed(false);
+    setRevealedValue(null);
+  }, [clearRevealTimeout]);
+
+  const handleCopy = useCallback(async () => {
+    const isAuthorized = await ensureAuthorized();
+    if (!isAuthorized) {
+      return;
+    }
+
+    let valueToCopy = revealedValue ?? "";
+
+    if (!isRevealed || !valueToCopy) {
+      try {
+        valueToCopy = await resolveDecryptedValue();
+      } catch (error) {
+        handleDecryptError(error);
+        return;
+      }
+    }
+
+    try {
+      await Clipboard.setStringAsync(valueToCopy);
+      showAlert(t("codes.copyTitle"), t("codes.copySuccess"), t("common.ok"));
+      clearClipboardTimeout();
+      clipboardTimeoutRef.current = setTimeout(async () => {
+        try {
+          const currentValue = await Clipboard.getStringAsync();
+          if (currentValue === valueToCopy) {
+            await Clipboard.setStringAsync("");
+          }
+        } catch {
+          // Ignore clipboard cleanup failures.
+        }
+      }, 30_000);
+    } catch {
+      showAlert(t("common.error"), t("codes.copyError"), t("common.ok"));
+    }
+  }, [
+    clearClipboardTimeout,
+    ensureAuthorized,
+    handleDecryptError,
+    isRevealed,
+    revealedValue,
+    resolveDecryptedValue,
+    showAlert,
+  ]);
+
+  useEffect(() => {
+    if (
+      securitySettings.biometricAuth === "disabled" ||
+      securitySettings.authFrequency === "each"
+    ) {
+      resetSessionAuthorized();
+    }
+  }, [
+    resetSessionAuthorized,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      setIsShielded(state !== "active");
+      if (state !== "active") {
+        resetSessionAuthorized();
+        handleHide();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [handleHide, resetSessionAuthorized]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void ScreenCapture.preventScreenCaptureAsync();
+      return () => {
+        void ScreenCapture.allowScreenCaptureAsync();
+      };
+    }, []),
+  );
+
+  useEffect(() => {
+    return () => {
+      clearRevealTimeout();
+      clearClipboardTimeout();
+    };
+  }, [clearClipboardTimeout, clearRevealTimeout]);
 
   if (!code) {
     return (
@@ -138,9 +376,39 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
         </DetailField>
 
         <DetailField label={t("codes.fields.value")}>
-          <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
-            {code.codeValue}
-          </Text>
+          <View style={styles.codeValueContainer}>
+            <Pressable
+              onPress={isRevealed ? handleHide : handleReveal}
+              style={[
+                styles.codeValueRow,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+                isRevealed && {
+                  backgroundColor: colors.successBg,
+                  borderColor: colors.success,
+                },
+              ]}
+            >
+              <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
+                {isRevealed ? (revealedValue ?? MASKED_VALUE) : MASKED_VALUE}
+              </Text>
+              {!isRevealed ? (
+                <Text
+                  style={[styles.revealHint, { color: colors.textSecondary }]}
+                >
+                  {t("codes.tapToReveal")}
+                </Text>
+              ) : null}
+            </Pressable>
+            <PrimaryActionButton
+              label={t("codes.copyButton")}
+              onPress={handleCopy}
+              size="compact"
+              tone="link"
+            />
+          </View>
         </DetailField>
 
         {code.notes ? (
@@ -155,6 +423,22 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      {isShielded ? (
+        <BlurView
+          intensity={70}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        >
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.canvas, opacity: 0.6 },
+            ]}
+          />
+        </BlurView>
+      ) : null}
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
@@ -185,6 +469,28 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     letterSpacing: 0.5,
+  },
+  codeValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  codeValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexGrow: 1,
+  },
+  revealHint: {
+    fontSize: 12,
+    fontWeight: "500",
   },
   value: {
     fontSize: 16,

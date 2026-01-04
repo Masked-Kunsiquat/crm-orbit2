@@ -10,6 +10,8 @@ import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
+import type { SecuritySettings } from "@domains/settings";
+import { DEFAULT_SETTINGS } from "@domains/settings";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
@@ -39,6 +41,7 @@ const crmStore = create<CrmStoreState>((set) => ({
     notes: {},
     interactions: {},
     codes: {},
+    settings: DEFAULT_SETTINGS,
     relations: {
       accountContacts: {},
       accountCodes: {},
@@ -269,6 +272,9 @@ export const useNote = (id: EntityId): Note | undefined =>
 
 export const useInteraction = (id: EntityId): Interaction | undefined =>
   crmStore(useShallow((state) => state.doc.interactions[id]));
+
+export const useSecuritySettings = (): SecuritySettings =>
+  crmStore(useShallow((state) => state.doc.settings.security));
 
 export const useCode = (id: EntityId): Code | undefined =>
   crmStore(useShallow((state) => state.doc.codes[id]));

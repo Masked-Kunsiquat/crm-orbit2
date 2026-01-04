@@ -9,6 +9,7 @@ import { noteReducer } from "./note.reducer";
 import { organizationReducer } from "./organization.reducer";
 import { deviceReducer } from "./device.reducer";
 import { codeReducer } from "./code.reducer";
+import { settingsReducer } from "./settings.reducer";
 
 export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "organization.created": organizationReducer,
@@ -40,6 +41,8 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "interaction.deleted": interactionReducer,
   "code.created": codeReducer,
   "code.updated": codeReducer,
+  "code.encrypted": codeReducer,
   "code.deleted": codeReducer,
+  "settings.security.updated": settingsReducer,
   "device.registered": deviceReducer,
 };

@@ -29,6 +29,7 @@ const CODE_TYPE_ICONS: Record<
 };
 
 const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
+const MASKED_VALUE = "********";
 
 type CodesSectionProps = {
   codes: Code[];
@@ -96,7 +97,7 @@ export const CodesSection = ({
                   {code.label}
                 </Text>
                 <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
-                  {code.codeValue}
+                  {code.isEncrypted ? MASKED_VALUE : code.codeValue}
                 </Text>
               </View>
               <View style={styles.typeIconContainer}>

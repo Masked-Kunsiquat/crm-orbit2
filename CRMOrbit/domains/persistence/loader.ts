@@ -1,5 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
+import { DEFAULT_SETTINGS } from "@domains/settings";
 import { applyEvents } from "@events/dispatcher";
 import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
@@ -16,6 +17,7 @@ const EMPTY_DOC: AutomergeDoc = {
   notes: {},
   interactions: {},
   codes: {},
+  settings: DEFAULT_SETTINGS,
   relations: {
     accountContacts: {},
     accountCodes: {},
@@ -41,6 +43,18 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   const existingAccountCodes =
     doc.relations?.accountCodes ??
     ({} as AutomergeDoc["relations"]["accountCodes"]);
+  const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
+
+  const normalizedCodes = Object.fromEntries(
+    Object.entries(existingCodes).map(([id, code]) => [
+      id,
+      {
+        ...code,
+        isEncrypted:
+          typeof code.isEncrypted === "boolean" ? code.isEncrypted : false,
+      },
+    ]),
+  ) as AutomergeDoc["codes"];
 
   const mergedLinks = legacyLinks
     ? Object.entries(legacyLinks).reduce(
@@ -61,7 +75,8 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
 
   return {
     ...doc,
-    codes: doc.codes ?? ({} as AutomergeDoc["codes"]),
+    codes: normalizedCodes,
+    settings: doc.settings ?? DEFAULT_SETTINGS,
     relations: {
       ...doc.relations,
       entityLinks: mergedLinks,

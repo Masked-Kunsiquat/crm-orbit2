@@ -12,6 +12,7 @@ type CodeCreatedPayload = {
   accountId: EntityId;
   label: string;
   codeValue: string;
+  isEncrypted?: boolean;
   type: CodeType;
   notes?: string;
   createdAt?: string;
@@ -22,8 +23,15 @@ type CodeUpdatedPayload = {
   accountId?: EntityId;
   label?: string;
   codeValue?: string;
+  isEncrypted?: boolean;
   type?: CodeType;
   notes?: string;
+};
+
+type CodeEncryptedPayload = {
+  id?: EntityId;
+  codeValue: string;
+  isEncrypted?: boolean;
 };
 
 const applyCodeCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
@@ -50,12 +58,14 @@ const applyCodeCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   }
 
   const createdAt = payload.createdAt ?? event.timestamp;
+  const isEncrypted = payload.isEncrypted ?? false;
 
   const code: Code = {
     id,
     accountId: payload.accountId,
     label: payload.label,
     codeValue: payload.codeValue,
+    isEncrypted,
     type: payload.type,
     ...(payload.notes !== undefined && { notes: payload.notes }),
     createdAt,
@@ -109,6 +119,7 @@ const applyCodeUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     accountId: nextAccountId,
     label: payload.label ?? existing.label,
     codeValue: payload.codeValue ?? existing.codeValue,
+    isEncrypted: payload.isEncrypted ?? existing.isEncrypted ?? false,
     type: payload.type ?? existing.type,
     ...(payload.notes !== undefined
       ? { notes: payload.notes }
@@ -133,6 +144,43 @@ const applyCodeUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
           codeId: id,
         },
       },
+    },
+  };
+};
+
+const applyCodeEncrypted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as CodeEncryptedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.codes[id] as Code | undefined;
+
+  if (!existing) {
+    logger.error("Code not found for encryption", { id });
+    throw new Error(`Code not found: ${id}`);
+  }
+
+  if (typeof payload.codeValue !== "string") {
+    logger.error("Encrypted code payload missing codeValue", { id });
+    throw new Error(`Encrypted code payload missing codeValue: ${id}`);
+  }
+
+  const nextEncrypted = payload.isEncrypted ?? true;
+  if (!nextEncrypted) {
+    logger.error("Encrypted code payload must set isEncrypted", { id });
+    throw new Error(`Encrypted code payload must set isEncrypted: ${id}`);
+  }
+
+  const updated: Code = {
+    ...existing,
+    codeValue: payload.codeValue,
+    isEncrypted: true,
+    updatedAt: event.timestamp,
+  };
+
+  return {
+    ...doc,
+    codes: {
+      ...doc.codes,
+      [id]: updated,
     },
   };
 };
@@ -176,6 +224,8 @@ export const codeReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       return applyCodeCreated(doc, event);
     case "code.updated":
       return applyCodeUpdated(doc, event);
+    case "code.encrypted":
+      return applyCodeEncrypted(doc, event);
     case "code.deleted":
       return applyCodeDeleted(doc, event);
     default:

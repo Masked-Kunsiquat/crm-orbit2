@@ -7,6 +7,10 @@ import {
   CodeFormScreen,
   CodesListScreen,
 } from "../screens/codes";
+import {
+  SecuritySettingsScreen,
+  SettingsListScreen,
+} from "../screens/settings";
 import { getStackScreenOptions } from "./stackOptions";
 import { useTheme } from "../hooks";
 import { t } from "@i18n/index";
@@ -22,6 +26,16 @@ export const MiscStack = () => {
         name="MiscLanding"
         component={MiscLandingScreen}
         options={{ title: t("screens.miscellaneous") }}
+      />
+      <Stack.Screen
+        name="SettingsList"
+        component={SettingsListScreen}
+        options={{ title: t("settings.title") }}
+      />
+      <Stack.Screen
+        name="SecuritySettings"
+        component={SecuritySettingsScreen}
+        options={{ title: t("settings.security.title") }}
       />
       <Stack.Screen
         name="CodesList"

@@ -6,7 +6,6 @@ import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
-
 export const useCodeActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
 
@@ -28,6 +27,7 @@ export const useCodeActions = (deviceId: string) => {
           accountId,
           label,
           codeValue,
+          isEncrypted: true,
           type,
           ...(notes !== undefined && { notes }),
         },
@@ -54,6 +54,7 @@ export const useCodeActions = (deviceId: string) => {
         payload: {
           label,
           codeValue,
+          isEncrypted: true,
           type,
           ...(notes !== undefined && { notes }),
           ...(accountId && { accountId }),
