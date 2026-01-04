@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -23,6 +23,8 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { decryptCode, encryptCode } from "../../../utils/encryption";
+import * as ScreenCapture from "expo-screen-capture";
+import { useFocusEffect } from "@react-navigation/native";
 
 const CODE_TYPE_OPTIONS: Array<{ label: string; value: CodeType }> = [
   { label: "code.type.door", value: "code.type.door" },
@@ -108,6 +110,15 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       isActive = false;
     };
   }, [code, codeId, prefillAccountId, showAlert]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void ScreenCapture.preventScreenCaptureAsync();
+      return () => {
+        void ScreenCapture.allowScreenCaptureAsync();
+      };
+    }, []),
+  );
 
   const sortedAccounts = useMemo(() => {
     return [...accounts].sort((a, b) =>

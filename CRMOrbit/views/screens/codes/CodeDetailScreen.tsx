@@ -1,4 +1,5 @@
 import {
+  AppState,
   Pressable,
   StyleSheet,
   Text,
@@ -10,6 +11,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import * as Clipboard from "expo-clipboard";
+import * as ScreenCapture from "expo-screen-capture";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { useAccount, useCode, useSecuritySettings } from "../../store/store";
 import { useDeviceId, useLocalAuth, useTheme } from "../../hooks";
@@ -64,11 +67,21 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [revealedValue, setRevealedValue] = useState<string | null>(null);
   const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clipboardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const clearRevealTimeout = useCallback(() => {
     if (revealTimeoutRef.current) {
       clearTimeout(revealTimeoutRef.current);
       revealTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearClipboardTimeout = useCallback(() => {
+    if (clipboardTimeoutRef.current) {
+      clearTimeout(clipboardTimeoutRef.current);
+      clipboardTimeoutRef.current = null;
     }
   }, []);
 
@@ -182,10 +195,22 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     try {
       await Clipboard.setStringAsync(valueToCopy);
       showAlert(t("codes.copyTitle"), t("codes.copySuccess"), t("common.ok"));
+      clearClipboardTimeout();
+      clipboardTimeoutRef.current = setTimeout(async () => {
+        try {
+          const currentValue = await Clipboard.getStringAsync();
+          if (currentValue === valueToCopy) {
+            await Clipboard.setStringAsync("");
+          }
+        } catch {
+          // Ignore clipboard cleanup failures.
+        }
+      }, 30_000);
     } catch {
       showAlert(t("common.error"), t("codes.copyError"), t("common.ok"));
     }
   }, [
+    clearClipboardTimeout,
     ensureAuthorized,
     isRevealed,
     revealedValue,
@@ -201,6 +226,28 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       sessionAuthorized = false;
     }
   }, [securitySettings.authFrequency, securitySettings.biometricAuth]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active") {
+        sessionAuthorized = false;
+        handleHide();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [handleHide]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void ScreenCapture.preventScreenCaptureAsync();
+      return () => {
+        void ScreenCapture.allowScreenCaptureAsync();
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (!isRevealed) {
@@ -221,8 +268,9 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   useEffect(() => {
     return () => {
       clearRevealTimeout();
+      clearClipboardTimeout();
     };
-  }, [clearRevealTimeout]);
+  }, [clearClipboardTimeout, clearRevealTimeout]);
 
   if (!code) {
     return (
