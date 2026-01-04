@@ -56,6 +56,36 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
   return parsed as Change[];
 };
 
+const encodeSnapshot = (snapshot: Uint8Array | string): string => {
+  const bytes =
+    typeof snapshot === "string" ? getTextEncoder().encode(snapshot) : snapshot;
+  return fromByteArray(bytes);
+};
+
+const loadSnapshot = (encoded: string): Doc<AutomergeDoc> => {
+  let bytes: Uint8Array | null = null;
+  try {
+    bytes = toByteArray(encoded);
+  } catch {
+    bytes = null;
+  }
+
+  if (bytes) {
+    try {
+      return Automerge.load<AutomergeDoc>(bytes as unknown as string);
+    } catch (error) {
+      const decoded = getTextDecoder().decode(bytes);
+      try {
+        return Automerge.load<AutomergeDoc>(decoded);
+      } catch {
+        throw error;
+      }
+    }
+  }
+
+  return Automerge.load<AutomergeDoc>(encoded);
+};
+
 /**
  * Get changes since last sync with a peer.
  */
@@ -70,10 +100,7 @@ export const getChangesSinceLastSync = async (
 
     const current = asAutomergeDoc(currentDoc);
     const changes = lastSyncSnapshot
-      ? Automerge.getChanges(
-          Automerge.load<AutomergeDoc>(lastSyncSnapshot),
-          current,
-        )
+      ? Automerge.getChanges(loadSnapshot(lastSyncSnapshot), current)
       : Automerge.getAllChanges(current);
 
     if (!lastSyncSnapshot) {
@@ -130,7 +157,11 @@ export const saveSyncCheckpoint = async (
 ): Promise<void> => {
   try {
     const snapshot = Automerge.save(asAutomergeDoc(doc));
-    await AsyncStorage.setItem(`${LAST_SYNC_VERSION_KEY}_${peerId}`, snapshot);
+    const encodedSnapshot = encodeSnapshot(snapshot);
+    await AsyncStorage.setItem(
+      `${LAST_SYNC_VERSION_KEY}_${peerId}`,
+      encodedSnapshot,
+    );
 
     logger.info("Saved sync checkpoint", { peerId });
   } catch (error) {
