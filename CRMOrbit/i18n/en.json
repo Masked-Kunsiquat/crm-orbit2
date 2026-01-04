@@ -293,6 +293,7 @@
   "screens.interactionDetails": "Interaction Details",
   "screens.editInteraction": "Edit Interaction",
   "screens.newInteraction": "New Interaction",
+  "screens.miscellaneous": "Miscellaneous",
   "screens.codeDetails": "Code Details",
   "screens.editCode": "Edit Code",
   "screens.newCode": "New Code",

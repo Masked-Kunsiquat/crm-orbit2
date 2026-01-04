@@ -9,6 +9,7 @@ import {
 } from "../screens/codes";
 import { getStackScreenOptions } from "./stackOptions";
 import { useTheme } from "../hooks";
+import { t } from "@i18n/index";
 
 const Stack = createNativeStackNavigator<MiscStackParamList>();
 
@@ -20,23 +21,25 @@ export const MiscStack = () => {
       <Stack.Screen
         name="MiscLanding"
         component={MiscLandingScreen}
-        options={{ title: "Miscellaneous" }}
+        options={{ title: t("screens.miscellaneous") }}
       />
       <Stack.Screen
         name="CodesList"
         component={CodesListScreen}
-        options={{ title: "All Codes" }}
+        options={{ title: t("codes.listTitle") }}
       />
       <Stack.Screen
         name="CodeDetail"
         component={CodeDetailScreen}
-        options={{ title: "Code Details" }}
+        options={{ title: t("screens.codeDetails") }}
       />
       <Stack.Screen
         name="CodeForm"
         component={CodeFormScreen}
         options={({ route }) => ({
-          title: route.params?.codeId ? "Edit Code" : "New Code",
+          title: route.params?.codeId
+            ? t("screens.editCode")
+            : t("screens.newCode"),
         })}
       />
     </Stack.Navigator>
