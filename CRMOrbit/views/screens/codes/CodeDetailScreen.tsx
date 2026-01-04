@@ -24,6 +24,7 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import type { CodeType } from "../../../domains/code";
+import { decryptCode } from "@utils/encryption";
 
 type MaterialIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 type FontAwesome6IconName = ComponentProps<typeof FontAwesome6>["name"];
@@ -60,6 +61,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
   const [isRevealed, setIsRevealed] = useState(false);
+  const [revealedValue, setRevealedValue] = useState<string | null>(null);
   const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearRevealTimeout = useCallback(() => {
@@ -93,6 +95,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     }
     revealTimeoutRef.current = setTimeout(() => {
       setIsRevealed(false);
+      setRevealedValue(null);
       revealTimeoutRef.current = null;
     }, timeoutMs);
   }, [clearRevealTimeout, resolveBlurTimeoutMs]);
@@ -101,13 +104,44 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     if (isRevealed) {
       return;
     }
+
+    const resolveValue = async () => {
+      if (!code) {
+        return "";
+      }
+      if (!code.isEncrypted) {
+        return code.codeValue;
+      }
+      return await decryptCode(code.codeValue);
+    };
+
     if (securitySettings.biometricAuth === "disabled") {
-      revealWithTimeout();
+      try {
+        const nextValue = await resolveValue();
+        setRevealedValue(nextValue);
+        revealWithTimeout();
+      } catch {
+        showAlert(
+          t("common.error"),
+          t("codes.decryptError"),
+          t("common.ok"),
+        );
+      }
       return;
     }
 
     if (securitySettings.authFrequency === "session" && sessionAuthorized) {
-      revealWithTimeout();
+      try {
+        const nextValue = await resolveValue();
+        setRevealedValue(nextValue);
+        revealWithTimeout();
+      } catch {
+        showAlert(
+          t("common.error"),
+          t("codes.decryptError"),
+          t("common.ok"),
+        );
+      }
       return;
     }
 
@@ -116,11 +150,23 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       return;
     }
     sessionAuthorized = true;
-    revealWithTimeout();
+    try {
+      const nextValue = await resolveValue();
+      setRevealedValue(nextValue);
+      revealWithTimeout();
+    } catch {
+      showAlert(
+        t("common.error"),
+        t("codes.decryptError"),
+        t("common.ok"),
+      );
+    }
   }, [
     authenticate,
+    code,
     isRevealed,
     revealWithTimeout,
+    showAlert,
     securitySettings.authFrequency,
     securitySettings.biometricAuth,
   ]);
@@ -128,6 +174,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const handleHide = useCallback(() => {
     clearRevealTimeout();
     setIsRevealed(false);
+    setRevealedValue(null);
   }, [clearRevealTimeout]);
 
   useEffect(() => {
@@ -150,6 +197,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     }
     revealTimeoutRef.current = setTimeout(() => {
       setIsRevealed(false);
+      setRevealedValue(null);
       revealTimeoutRef.current = null;
     }, timeoutMs);
   }, [clearRevealTimeout, isRevealed, resolveBlurTimeoutMs]);
@@ -255,7 +303,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
             style={styles.codeValueRow}
           >
             <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
-              {isRevealed ? code.codeValue : MASKED_VALUE}
+              {isRevealed ? revealedValue ?? MASKED_VALUE : MASKED_VALUE}
             </Text>
             {!isRevealed ? (
               <Text

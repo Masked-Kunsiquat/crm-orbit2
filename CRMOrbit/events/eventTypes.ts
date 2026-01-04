@@ -28,6 +28,7 @@ export const EVENT_TYPES = [
   "interaction.deleted",
   "code.created",
   "code.updated",
+  "code.encrypted",
   "code.deleted",
   "settings.security.updated",
   "device.registered",

@@ -22,6 +22,7 @@ import {
 } from "../../components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import { decryptCode } from "../../../utils/encryption";
 
 const CODE_TYPE_OPTIONS: Array<{ label: string; value: CodeType }> = [
   { label: "code.type.door", value: "code.type.door" },
@@ -57,22 +58,60 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
   const [type, setType] = useState<CodeType>("code.type.other");
   const [notes, setNotes] = useState("");
   const [isAccountPickerOpen, setIsAccountPickerOpen] = useState(false);
+  const [isDecrypting, setIsDecrypting] = useState(false);
 
   useEffect(() => {
-    if (code) {
+    let isActive = true;
+
+    const hydrateFromCode = async () => {
+      if (!code) {
+        if (!codeId) {
+          setAccountId(prefillAccountId ?? "");
+          setLabel("");
+          setCodeValue("");
+          setType("code.type.other");
+          setNotes("");
+          setIsDecrypting(false);
+        }
+        return;
+      }
+
       setAccountId(code.accountId);
       setLabel(code.label);
-      setCodeValue(code.codeValue);
       setType(code.type);
       setNotes(code.notes ?? "");
-    } else if (!codeId) {
-      setAccountId(prefillAccountId ?? "");
-      setLabel("");
-      setCodeValue("");
-      setType("code.type.other");
-      setNotes("");
-    }
-  }, [code, codeId, prefillAccountId]);
+
+      if (code.isEncrypted) {
+        setIsDecrypting(true);
+        setCodeValue("");
+        try {
+          const decryptedValue = await decryptCode(code.codeValue);
+          if (!isActive) return;
+          setCodeValue(decryptedValue);
+        } catch {
+          if (!isActive) return;
+          showAlert(
+            t("common.error"),
+            t("codes.decryptError"),
+            t("common.ok"),
+          );
+        } finally {
+          if (isActive) {
+            setIsDecrypting(false);
+          }
+        }
+      } else {
+        setCodeValue(code.codeValue);
+        setIsDecrypting(false);
+      }
+    };
+
+    void hydrateFromCode();
+
+    return () => {
+      isActive = false;
+    };
+  }, [code, codeId, prefillAccountId, showAlert]);
 
   const sortedAccounts = useMemo(() => {
     return [...accounts].sort((a, b) =>
@@ -82,7 +121,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
 
   const selectedAccount = accounts.find((account) => account.id === accountId);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!accountId) {
       showAlert(
         t("common.error"),
@@ -111,7 +150,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
     }
 
     if (codeId) {
-      const result = updateCode(
+      const result = await updateCode(
         codeId,
         label.trim(),
         codeValue.trim(),
@@ -129,7 +168,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
         );
       }
     } else {
-      const result = createCode(
+      const result = await createCode(
         accountId,
         label.trim(),
         codeValue.trim(),
@@ -148,7 +187,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
     }
   };
 
-  if (codeId && !code) {
+  if (codeId && (!code || isDecrypting)) {
     return (
       <FormScreenLayout contentStyle={styles.loadingContainer}>
         <ActivityIndicator color={colors.accent} />

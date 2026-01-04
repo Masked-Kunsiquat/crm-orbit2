@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { registerCoreReducers } from "./events/dispatcher";
+import { applyEvents, buildEvent, registerCoreReducers } from "./events/dispatcher";
 import {
   initializeDatabase,
   createPersistenceDb,
@@ -12,11 +12,11 @@ import {
 import { loadLatestDeviceId } from "./domains/persistence/deviceId";
 import { loadPersistedState } from "./domains/persistence/loader";
 import { appendEvents } from "./domains/persistence/store";
+import { buildCodeEncryptionEvents } from "./domains/migrations/codeEncryption";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
 import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
 import { nextId } from "./domains/shared/idGenerator";
-import { buildEvent } from "./events/dispatcher";
 
 registerCoreReducers();
 
@@ -39,16 +39,20 @@ export default function App() {
         const persistenceDb = await initializeDatabase();
         const storeDb = createPersistenceDb(persistenceDb);
 
+        let activeDeviceId = "";
         const envDeviceId = getDeviceIdFromEnv();
         if (envDeviceId) {
           setDeviceId(envDeviceId);
+          activeDeviceId = envDeviceId;
         } else {
           const resolvedDeviceId = await loadLatestDeviceId(persistenceDb);
           if (resolvedDeviceId) {
             setDeviceId(resolvedDeviceId);
+            activeDeviceId = resolvedDeviceId;
           } else {
             const generatedId = nextId("device");
             setDeviceId(generatedId);
+            activeDeviceId = generatedId;
             const deviceEvent = buildEvent({
               type: "device.registered",
               entityId: generatedId,
@@ -62,7 +66,22 @@ export default function App() {
         }
 
         // Load persisted state
-        const { doc, events } = await loadPersistedState(storeDb);
+        const { doc: loadedDoc, events: loadedEvents } =
+          await loadPersistedState(storeDb);
+
+        const migrationEvents = await buildCodeEncryptionEvents(
+          loadedDoc,
+          activeDeviceId,
+        );
+
+        let doc = loadedDoc;
+        let events = loadedEvents;
+
+        if (migrationEvents.length > 0) {
+          await appendEvents(storeDb, migrationEvents);
+          doc = applyEvents(loadedDoc, migrationEvents);
+          events = [...loadedEvents, ...migrationEvents];
+        }
 
         // Update store with loaded data
         const store = __internal_getCrmStore();
