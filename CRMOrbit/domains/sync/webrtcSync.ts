@@ -22,11 +22,7 @@ const encodeString = (value: string): Uint8Array => {
   if (Encoder) {
     return new Encoder().encode(value);
   }
-  const bytes = new Uint8Array(value.length);
-  for (let i = 0; i < value.length; i += 1) {
-    bytes[i] = value.charCodeAt(i) & 0xff;
-  }
-  return bytes;
+  throw new Error("TextEncoder unavailable: cannot encode UTF-8 characters.");
 };
 
 const toUint8Array = (data: unknown): Uint8Array => {
@@ -171,7 +167,7 @@ class WebRTCPeerConnection {
     });
   }
 
-  private waitForIceGatheringComplete(): Promise<void> {
+  private waitForIceGatheringComplete(timeoutMs: number = 5000): Promise<void> {
     if (!this.peerConnection) {
       return Promise.resolve();
     }
@@ -185,14 +181,22 @@ class WebRTCPeerConnection {
         return;
       }
 
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
       const handler = () => {
         if (peerConnection.iceGatheringState === "complete") {
           peerEvents.removeEventListener("icegatheringstatechange", handler);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
           resolve();
         }
       };
 
       peerEvents.addEventListener("icegatheringstatechange", handler);
+      timeoutId = setTimeout(() => {
+        peerEvents.removeEventListener("icegatheringstatechange", handler);
+        resolve();
+      }, Math.max(0, timeoutMs));
     });
   }
 }
