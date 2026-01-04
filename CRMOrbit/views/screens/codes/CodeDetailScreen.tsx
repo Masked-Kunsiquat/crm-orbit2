@@ -9,6 +9,7 @@ import type { ComponentProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import * as Clipboard from "expo-clipboard";
 
 import { useAccount, useCode, useSecuritySettings } from "../../store/store";
 import { useDeviceId, useLocalAuth, useTheme } from "../../hooks";
@@ -100,75 +101,59 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     }, timeoutMs);
   }, [clearRevealTimeout, resolveBlurTimeoutMs]);
 
+  const ensureAuthorized = useCallback(async (): Promise<boolean> => {
+    if (securitySettings.biometricAuth === "disabled") {
+      return true;
+    }
+
+    if (securitySettings.authFrequency === "session" && sessionAuthorized) {
+      return true;
+    }
+
+    const success = await authenticate(t("codes.authReason"));
+    if (success) {
+      sessionAuthorized = true;
+    }
+    return success;
+  }, [
+    authenticate,
+    securitySettings.authFrequency,
+    securitySettings.biometricAuth,
+  ]);
+
+  const resolveDecryptedValue = useCallback(async (): Promise<string> => {
+    if (!code) {
+      return "";
+    }
+    if (!code.isEncrypted) {
+      return code.codeValue;
+    }
+    return await decryptCode(code.codeValue);
+  }, [code]);
+
   const handleReveal = useCallback(async () => {
     if (isRevealed) {
       return;
     }
 
-    const resolveValue = async () => {
-      if (!code) {
-        return "";
-      }
-      if (!code.isEncrypted) {
-        return code.codeValue;
-      }
-      return await decryptCode(code.codeValue);
-    };
-
-    if (securitySettings.biometricAuth === "disabled") {
-      try {
-        const nextValue = await resolveValue();
-        setRevealedValue(nextValue);
-        revealWithTimeout();
-      } catch {
-        showAlert(
-          t("common.error"),
-          t("codes.decryptError"),
-          t("common.ok"),
-        );
-      }
+    const isAuthorized = await ensureAuthorized();
+    if (!isAuthorized) {
       return;
     }
 
-    if (securitySettings.authFrequency === "session" && sessionAuthorized) {
-      try {
-        const nextValue = await resolveValue();
-        setRevealedValue(nextValue);
-        revealWithTimeout();
-      } catch {
-        showAlert(
-          t("common.error"),
-          t("codes.decryptError"),
-          t("common.ok"),
-        );
-      }
-      return;
-    }
-
-    const success = await authenticate(t("codes.authReason"));
-    if (!success) {
-      return;
-    }
-    sessionAuthorized = true;
     try {
-      const nextValue = await resolveValue();
+      const nextValue = await resolveDecryptedValue();
       setRevealedValue(nextValue);
       revealWithTimeout();
     } catch {
-      showAlert(
-        t("common.error"),
-        t("codes.decryptError"),
-        t("common.ok"),
-      );
+      showAlert(t("common.error"), t("codes.decryptError"), t("common.ok"));
     }
   }, [
-    authenticate,
-    code,
+    ensureAuthorized,
     isRevealed,
     revealWithTimeout,
+    resolveDecryptedValue,
     showAlert,
-    securitySettings.authFrequency,
-    securitySettings.biometricAuth,
   ]);
 
   const handleHide = useCallback(() => {
@@ -176,6 +161,37 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
     setIsRevealed(false);
     setRevealedValue(null);
   }, [clearRevealTimeout]);
+
+  const handleCopy = useCallback(async () => {
+    const isAuthorized = await ensureAuthorized();
+    if (!isAuthorized) {
+      return;
+    }
+
+    let valueToCopy = revealedValue ?? "";
+
+    if (!isRevealed || !valueToCopy) {
+      try {
+        valueToCopy = await resolveDecryptedValue();
+      } catch {
+        showAlert(t("common.error"), t("codes.decryptError"), t("common.ok"));
+        return;
+      }
+    }
+
+    try {
+      await Clipboard.setStringAsync(valueToCopy);
+      showAlert(t("codes.copyTitle"), t("codes.copySuccess"), t("common.ok"));
+    } catch {
+      showAlert(t("common.error"), t("codes.copyError"), t("common.ok"));
+    }
+  }, [
+    ensureAuthorized,
+    isRevealed,
+    revealedValue,
+    resolveDecryptedValue,
+    showAlert,
+  ]);
 
   useEffect(() => {
     if (
@@ -298,21 +314,39 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
         </DetailField>
 
         <DetailField label={t("codes.fields.value")}>
-          <Pressable
-            onPress={isRevealed ? handleHide : handleReveal}
-            style={styles.codeValueRow}
-          >
-            <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
-              {isRevealed ? revealedValue ?? MASKED_VALUE : MASKED_VALUE}
-            </Text>
-            {!isRevealed ? (
-              <Text
-                style={[styles.revealHint, { color: colors.textSecondary }]}
-              >
-                {t("codes.tapToReveal")}
+          <View style={styles.codeValueContainer}>
+            <Pressable
+              onPress={isRevealed ? handleHide : handleReveal}
+              style={[
+                styles.codeValueRow,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+                isRevealed && {
+                  backgroundColor: colors.successBg,
+                  borderColor: colors.success,
+                },
+              ]}
+            >
+              <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
+                {isRevealed ? revealedValue ?? MASKED_VALUE : MASKED_VALUE}
               </Text>
-            ) : null}
-          </Pressable>
+              {!isRevealed ? (
+                <Text
+                  style={[styles.revealHint, { color: colors.textSecondary }]}
+                >
+                  {t("codes.tapToReveal")}
+                </Text>
+              ) : null}
+            </Pressable>
+            <PrimaryActionButton
+              label={t("codes.copyButton")}
+              onPress={handleCopy}
+              size="compact"
+              tone="link"
+            />
+          </View>
         </DetailField>
 
         {code.notes ? (
@@ -358,11 +392,23 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.5,
   },
+  codeValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
   codeValueRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     flexWrap: "wrap",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexGrow: 1,
   },
   revealHint: {
     fontSize: 12,
