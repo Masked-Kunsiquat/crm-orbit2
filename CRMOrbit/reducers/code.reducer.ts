@@ -12,6 +12,7 @@ type CodeCreatedPayload = {
   accountId: EntityId;
   label: string;
   codeValue: string;
+  isEncrypted?: boolean;
   type: CodeType;
   notes?: string;
   createdAt?: string;
@@ -22,6 +23,7 @@ type CodeUpdatedPayload = {
   accountId?: EntityId;
   label?: string;
   codeValue?: string;
+  isEncrypted?: boolean;
   type?: CodeType;
   notes?: string;
 };
@@ -50,12 +52,14 @@ const applyCodeCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   }
 
   const createdAt = payload.createdAt ?? event.timestamp;
+  const isEncrypted = payload.isEncrypted ?? false;
 
   const code: Code = {
     id,
     accountId: payload.accountId,
     label: payload.label,
     codeValue: payload.codeValue,
+    isEncrypted,
     type: payload.type,
     ...(payload.notes !== undefined && { notes: payload.notes }),
     createdAt,
@@ -109,6 +113,7 @@ const applyCodeUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     accountId: nextAccountId,
     label: payload.label ?? existing.label,
     codeValue: payload.codeValue ?? existing.codeValue,
+    isEncrypted: payload.isEncrypted ?? existing.isEncrypted ?? false,
     type: payload.type ?? existing.type,
     ...(payload.notes !== undefined
       ? { notes: payload.notes }

@@ -28,6 +28,7 @@ export const useCodeActions = (deviceId: string) => {
           accountId,
           label,
           codeValue,
+          isEncrypted: false,
           type,
           ...(notes !== undefined && { notes }),
         },

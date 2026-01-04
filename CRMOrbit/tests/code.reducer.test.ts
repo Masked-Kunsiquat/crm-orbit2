@@ -43,6 +43,7 @@ test("code.created adds a new code and relation", () => {
       accountId: "acct-1",
       label: "Front Door",
       codeValue: "1234",
+      isEncrypted: false,
       type: "code.type.door",
     },
     timestamp: "2024-02-01T00:00:00.000Z",
@@ -57,6 +58,7 @@ test("code.created adds a new code and relation", () => {
   assert.equal(code.accountId, "acct-1");
   assert.equal(code.label, "Front Door");
   assert.equal(code.codeValue, "1234");
+  assert.equal(code.isEncrypted, false);
   assert.equal(code.type, "code.type.door");
   assert.equal(code.createdAt, event.timestamp);
   assert.equal(code.updatedAt, event.timestamp);
@@ -75,6 +77,7 @@ test("code.created rejects duplicates", () => {
       accountId: "acct-1",
       label: "Front Door",
       codeValue: "1234",
+      isEncrypted: false,
       type: "code.type.door",
     },
     timestamp: "2024-02-01T00:00:00.000Z",
@@ -98,6 +101,7 @@ test("code.created rejects missing accounts", () => {
       accountId: "acct-1",
       label: "Front Door",
       codeValue: "1234",
+      isEncrypted: false,
       type: "code.type.door",
     },
     timestamp: "2024-02-01T00:00:00.000Z",
@@ -125,6 +129,7 @@ test("code.updated updates fields and relation", () => {
       accountId: "acct-1",
       label: "Front Door",
       codeValue: "1234",
+      isEncrypted: false,
       type: "code.type.door",
     },
     timestamp: "2024-02-01T00:00:00.000Z",
@@ -138,6 +143,7 @@ test("code.updated updates fields and relation", () => {
       accountId: "acct-2",
       label: "Gate Code",
       codeValue: "9999",
+      isEncrypted: true,
       type: "code.type.gate",
       notes: "Temporary",
     },
@@ -153,6 +159,7 @@ test("code.updated updates fields and relation", () => {
   assert.equal(code.accountId, "acct-2");
   assert.equal(code.label, "Gate Code");
   assert.equal(code.codeValue, "9999");
+  assert.equal(code.isEncrypted, true);
   assert.equal(code.type, "code.type.gate");
   assert.equal(code.notes, "Temporary");
   assert.equal(code.updatedAt, updated.timestamp);
@@ -168,6 +175,7 @@ test("code.updated rejects missing codes", () => {
       id: "code-1",
       label: "Gate Code",
       codeValue: "9999",
+      isEncrypted: true,
       type: "code.type.gate",
     },
     timestamp: "2024-02-02T00:00:00.000Z",
@@ -191,6 +199,7 @@ test("code.updated rejects missing accounts", () => {
       accountId: "acct-1",
       label: "Front Door",
       codeValue: "1234",
+      isEncrypted: false,
       type: "code.type.door",
     },
     timestamp: "2024-02-01T00:00:00.000Z",
@@ -204,6 +213,7 @@ test("code.updated rejects missing accounts", () => {
       accountId: "acct-missing",
       label: "Gate Code",
       codeValue: "9999",
+      isEncrypted: true,
       type: "code.type.gate",
     },
     timestamp: "2024-02-02T00:00:00.000Z",
@@ -229,6 +239,7 @@ test("code.deleted removes code and relation", () => {
       accountId: "acct-1",
       label: "Front Door",
       codeValue: "1234",
+      isEncrypted: false,
       type: "code.type.door",
     },
     timestamp: "2024-02-01T00:00:00.000Z",

@@ -11,6 +11,7 @@ export interface Code extends Entity {
   accountId: EntityId;
   label: string;
   codeValue: string;
+  isEncrypted: boolean;
   type: CodeType;
   notes?: string;
 }

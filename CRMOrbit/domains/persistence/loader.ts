@@ -43,6 +43,18 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   const existingAccountCodes =
     doc.relations?.accountCodes ??
     ({} as AutomergeDoc["relations"]["accountCodes"]);
+  const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
+
+  const normalizedCodes = Object.fromEntries(
+    Object.entries(existingCodes).map(([id, code]) => [
+      id,
+      {
+        ...code,
+        isEncrypted:
+          typeof code.isEncrypted === "boolean" ? code.isEncrypted : false,
+      },
+    ]),
+  ) as AutomergeDoc["codes"];
 
   const mergedLinks = legacyLinks
     ? Object.entries(legacyLinks).reduce(
@@ -63,7 +75,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
 
   return {
     ...doc,
-    codes: doc.codes ?? ({} as AutomergeDoc["codes"]),
+    codes: normalizedCodes,
     settings: doc.settings ?? DEFAULT_SETTINGS,
     relations: {
       ...doc.relations,
