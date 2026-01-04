@@ -82,7 +82,9 @@ const createTcpSocket = (): TcpSocketModule => {
 const resolveDeviceId = (): string => {
   const deviceId = useSyncStore.getState().localDeviceId.trim();
   if (!deviceId) {
-    throw new Error("Local device ID not set. Initialize sync before advertising.");
+    throw new Error(
+      "Local device ID not set. Initialize sync before advertising.",
+    );
   }
   return deviceId;
 };
@@ -109,10 +111,7 @@ const concatBuffers = (left: Uint8Array, right: Uint8Array): Uint8Array => {
 
 const readFrameLength = (buffer: Uint8Array): number => {
   return (
-    buffer[0] * 0x1000000 +
-    buffer[1] * 0x10000 +
-    buffer[2] * 0x100 +
-    buffer[3]
+    buffer[0] * 0x1000000 + buffer[1] * 0x10000 + buffer[2] * 0x100 + buffer[3]
   );
 };
 
@@ -288,7 +287,10 @@ class LocalNetworkSyncService {
   /**
    * Connect and sync with a discovered peer.
    */
-  async syncWithPeer(peer: DeviceInfo, syncData: Uint8Array): Promise<Uint8Array> {
+  async syncWithPeer(
+    peer: DeviceInfo,
+    syncData: Uint8Array,
+  ): Promise<Uint8Array> {
     logger.info("Syncing with peer", {
       peerId: peer.deviceId,
       payloadSize: syncData.length,

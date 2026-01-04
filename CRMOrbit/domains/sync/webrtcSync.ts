@@ -1,7 +1,4 @@
-import {
-  RTCPeerConnection,
-  RTCSessionDescription,
-} from "react-native-webrtc";
+import { RTCPeerConnection, RTCSessionDescription } from "react-native-webrtc";
 
 import { createLogger } from "@utils/logger";
 
@@ -38,8 +35,9 @@ const toUint8Array = (data: unknown): Uint8Array => {
 
 class WebRTCPeerConnection {
   private peerConnection: RTCPeerConnection | null = null;
-  private dataChannel: ReturnType<RTCPeerConnection["createDataChannel"]> | null =
-    null;
+  private dataChannel: ReturnType<
+    RTCPeerConnection["createDataChannel"]
+  > | null = null;
   private onDataReceived?: (data: Uint8Array) => void;
 
   async createOffer(
@@ -149,9 +147,7 @@ class WebRTCPeerConnection {
 
   private setupIceCandidateHandler(): void {
     if (!this.peerConnection) return;
-    this.peerConnection.onicecandidate = (event: {
-      candidate?: unknown;
-    }) => {
+    this.peerConnection.onicecandidate = (event: { candidate?: unknown }) => {
       if (event.candidate) {
         logger.debug("ICE candidate", { candidate: event.candidate });
       }
