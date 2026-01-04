@@ -30,6 +30,8 @@ export type RootStackParamList = {
       entityType: EntityLinkType;
     };
   };
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
 };
 
 // Root tab navigator
@@ -88,6 +90,9 @@ export type NotesStackParamList = {
 // Misc stack navigator
 export type MiscStackParamList = {
   MiscLanding: undefined;
+  CodesList: undefined;
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
 };
 
 // Screen props types

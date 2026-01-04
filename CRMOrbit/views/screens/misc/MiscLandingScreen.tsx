@@ -1,18 +1,48 @@
 import { StyleSheet, Text, View } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
+import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
+import { useAllCodes } from "../../store/store";
+import { t } from "@i18n/index";
 
 type Props = MiscStackScreenProps<"MiscLanding">;
 
-export const MiscLandingScreen = ({ navigation: _navigation }: Props) => {
+export const MiscLandingScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
+  const allCodes = useAllCodes();
+
+  const handleCodesPress = () => {
+    navigation.navigate("CodesList");
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <Text style={[styles.text, { color: colors.textSecondary }]}>
-        Future home of Codes and other utilities
-      </Text>
+      <ListCard onPress={handleCodesPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="key-outline"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("codes.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("codes.view_and_manage_all")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {allCodes.length}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
     </View>
   );
 };
@@ -21,11 +51,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    justifyContent: "center",
+  },
+  cardContent: {
+    flexDirection: "row",
     alignItems: "center",
   },
   text: {
     fontSize: 16,
     textAlign: "center",
+  },
+  iconContainer: {
+    marginRight: 16,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 14,
+  },
+  countBadge: {
+    minWidth: 32,
+    alignItems: "flex-end",
+  },
+  countText: {
+    fontSize: 20,
+    fontWeight: "600",
   },
 });
