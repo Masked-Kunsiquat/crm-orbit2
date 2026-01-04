@@ -59,6 +59,7 @@ export type EncryptedPayload = {
 let cachedKey: CryptoKeyLike | null = null;
 let cachedKeyMaterial: Uint8Array | null = null;
 let keyInitPromise: Promise<CryptoKeyLike> | null = null;
+let keyMaterialInitPromise: Promise<Uint8Array> | null = null;
 
 const getCrypto = (): CryptoApi => {
   const cryptoApi = globalThis.crypto as CryptoApi | undefined;
@@ -123,6 +124,33 @@ const storeKeyMaterial = async (keyMaterial: Uint8Array): Promise<void> => {
   await SecureStore.setItemAsync(KEY_STORAGE_KEY, encodeBase64(keyMaterial));
 };
 
+const getOrCreateKeyMaterial = async (): Promise<Uint8Array> => {
+  if (cachedKeyMaterial) {
+    return cachedKeyMaterial;
+  }
+
+  if (keyMaterialInitPromise) {
+    return keyMaterialInitPromise;
+  }
+
+  keyMaterialInitPromise = (async () => {
+    const existing = await loadKeyMaterial();
+    if (existing) {
+      return existing;
+    }
+
+    const material = await generateKeyMaterial();
+    await storeKeyMaterial(material);
+    return material;
+  })();
+
+  try {
+    return await keyMaterialInitPromise;
+  } finally {
+    keyMaterialInitPromise = null;
+  }
+};
+
 const generateKeyMaterial = async (): Promise<Uint8Array> => {
   const cryptoApi = getCrypto();
   const key = await cryptoApi.subtle.generateKey(
@@ -156,14 +184,7 @@ const getOrCreateKey = async (): Promise<CryptoKeyLike> => {
   }
 
   keyInitPromise = (async () => {
-    const existing = await loadKeyMaterial();
-    if (existing) {
-      cachedKey = await importKey(existing);
-      return cachedKey;
-    }
-
-    const material = await generateKeyMaterial();
-    await storeKeyMaterial(material);
+    const material = await getOrCreateKeyMaterial();
     cachedKey = await importKey(material);
     return cachedKey;
   })();
@@ -207,14 +228,14 @@ const ensurePayload = (value: unknown): EncryptedPayload => {
 };
 
 export const exportEncryptionKey = async (): Promise<string> => {
-  const material = (await loadKeyMaterial()) ?? (await generateKeyMaterial());
-  if (!cachedKeyMaterial) {
-    await storeKeyMaterial(material);
-  }
+  const material = await getOrCreateKeyMaterial();
   return encodeBase64(material);
 };
 
 export const importEncryptionKey = async (base64Key: string): Promise<void> => {
+  keyInitPromise = null;
+  cachedKey = null;
+  keyMaterialInitPromise = null;
   const material = decodeBase64(base64Key.trim());
   if (material.length !== KEY_LENGTH / 8) {
     throw new Error("Invalid encryption key length.");
