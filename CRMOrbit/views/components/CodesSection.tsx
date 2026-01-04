@@ -6,12 +6,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import type { Code } from "@domains/code";
+import type { Code, CodeType } from "@domains/code";
 import { t } from "@i18n/index";
 
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
+
+const CODE_TYPE_ICONS: Record<CodeType, string> = {
+  "code.type.door": "door",
+  "code.type.lockbox": "lock",
+  "code.type.alarm": "alarm-light-outline",
+  "code.type.gate": "gate",
+  "code.type.other": "key-outline",
+};
 
 type CodesSectionProps = {
   codes: Code[];
@@ -78,16 +87,17 @@ export const CodesSection = ({
                 <Text style={[styles.codeLabel, { color: colors.textPrimary }]}>
                   {code.label}
                 </Text>
-                <Text
-                  style={[styles.codeType, { color: colors.textSecondary }]}
-                >
-                  {t(code.type)}
-                </Text>
                 <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
                   {code.codeValue}
                 </Text>
               </View>
-              <Text style={[styles.chevron, { color: colors.chevron }]}>›</Text>
+              <View style={styles.typeIconContainer}>
+                <MaterialCommunityIcons
+                  name={CODE_TYPE_ICONS[code.type]}
+                  size={22}
+                  color={colors.textSecondary}
+                />
+              </View>
             </Pressable>
           </View>
         ))
@@ -142,19 +152,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 4,
   },
-  codeType: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    fontWeight: "600",
-    marginBottom: 4,
-  },
   codeValue: {
     fontSize: 15,
     fontWeight: "600",
     letterSpacing: 0.5,
   },
-  chevron: {
-    fontSize: 20,
+  typeIconContainer: {
+    minWidth: 28,
+    alignItems: "flex-end",
     marginLeft: 8,
   },
 });

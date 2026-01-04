@@ -1,9 +1,20 @@
 import { useMemo } from "react";
+import { StyleSheet, View } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import type { Code } from "../../../domains/code";
+import type { Code, CodeType } from "../../../domains/code";
 import { ListRow, ListScreenLayout } from "../../components";
 import { useAllCodes, useAccounts } from "../../store/store";
 import { t } from "@i18n/index";
+import { useTheme } from "../../hooks";
+
+const CODE_TYPE_ICONS: Record<CodeType, string> = {
+  "code.type.door": "door",
+  "code.type.lockbox": "lock",
+  "code.type.alarm": "alarm-light-outline",
+  "code.type.gate": "gate",
+  "code.type.other": "key-outline",
+};
 
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +24,7 @@ type Props = {
 export const CodesListScreen = ({ navigation }: Props) => {
   const codes = useAllCodes();
   const accounts = useAccounts();
+  const { colors } = useTheme();
 
   const accountNames = useMemo(() => {
     return new Map(accounts.map((account) => [account.id, account.name]));
@@ -35,16 +47,23 @@ export const CodesListScreen = ({ navigation }: Props) => {
   const renderItem = ({ item }: { item: Code }) => {
     const accountName =
       accountNames.get(item.accountId) ?? t("common.unknownEntity");
-    const description = `${accountName} • ${t(item.type)}`;
     return (
       <ListRow
         onPress={() => handlePress(item)}
         title={item.label}
-        description={description}
+        description={accountName}
         descriptionNumberOfLines={2}
         footnote={item.codeValue}
         footnoteNumberOfLines={1}
-      />
+      >
+        <View style={styles.typeIconContainer}>
+          <MaterialCommunityIcons
+            name={CODE_TYPE_ICONS[item.type]}
+            size={20}
+            color={colors.textSecondary}
+          />
+        </View>
+      </ListRow>
     );
   };
 
@@ -59,3 +78,10 @@ export const CodesListScreen = ({ navigation }: Props) => {
     />
   );
 };
+
+const styles = StyleSheet.create({
+  typeIconContainer: {
+    minWidth: 32,
+    alignItems: "flex-end",
+  },
+});
