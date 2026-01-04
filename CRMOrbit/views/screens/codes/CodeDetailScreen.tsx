@@ -280,22 +280,6 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   );
 
   useEffect(() => {
-    if (!isRevealed) {
-      return;
-    }
-    clearRevealTimeout();
-    const timeoutMs = resolveBlurTimeoutMs();
-    if (timeoutMs === null) {
-      return;
-    }
-    revealTimeoutRef.current = setTimeout(() => {
-      setIsRevealed(false);
-      setRevealedValue(null);
-      revealTimeoutRef.current = null;
-    }, timeoutMs);
-  }, [clearRevealTimeout, isRevealed, resolveBlurTimeoutMs]);
-
-  useEffect(() => {
     return () => {
       clearRevealTimeout();
       clearClipboardTimeout();

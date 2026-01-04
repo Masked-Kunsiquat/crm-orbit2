@@ -58,6 +58,7 @@ export type EncryptedPayload = {
 
 let cachedKey: CryptoKeyLike | null = null;
 let cachedKeyMaterial: Uint8Array | null = null;
+let keyInitPromise: Promise<CryptoKeyLike> | null = null;
 
 const getCrypto = (): CryptoApi => {
   const cryptoApi = globalThis.crypto as CryptoApi | undefined;
@@ -150,16 +151,28 @@ const getOrCreateKey = async (): Promise<CryptoKeyLike> => {
     return cachedKey;
   }
 
-  const existing = await loadKeyMaterial();
-  if (existing) {
-    cachedKey = await importKey(existing);
-    return cachedKey;
+  if (keyInitPromise) {
+    return keyInitPromise;
   }
 
-  const material = await generateKeyMaterial();
-  await storeKeyMaterial(material);
-  cachedKey = await importKey(material);
-  return cachedKey;
+  keyInitPromise = (async () => {
+    const existing = await loadKeyMaterial();
+    if (existing) {
+      cachedKey = await importKey(existing);
+      return cachedKey;
+    }
+
+    const material = await generateKeyMaterial();
+    await storeKeyMaterial(material);
+    cachedKey = await importKey(material);
+    return cachedKey;
+  })();
+
+  try {
+    return await keyInitPromise;
+  } finally {
+    keyInitPromise = null;
+  }
 };
 
 const getExistingKey = async (): Promise<CryptoKeyLike> => {
