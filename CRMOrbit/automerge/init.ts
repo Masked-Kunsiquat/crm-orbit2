@@ -6,8 +6,10 @@ export const initAutomergeDoc = (): AutomergeDoc => ({
   contacts: {},
   notes: {},
   interactions: {},
+  codes: {},
   relations: {
     accountContacts: {},
+    accountCodes: {},
     entityLinks: {},
   },
 });

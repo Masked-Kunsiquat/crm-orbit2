@@ -15,8 +15,10 @@ const EMPTY_DOC: AutomergeDoc = {
   contacts: {},
   notes: {},
   interactions: {},
+  codes: {},
   relations: {
     accountContacts: {},
+    accountCodes: {},
     entityLinks: {},
   },
 };
@@ -36,6 +38,9 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   const existingLinks =
     doc.relations?.entityLinks ??
     ({} as AutomergeDoc["relations"]["entityLinks"]);
+  const existingAccountCodes =
+    doc.relations?.accountCodes ??
+    ({} as AutomergeDoc["relations"]["accountCodes"]);
 
   const mergedLinks = legacyLinks
     ? Object.entries(legacyLinks).reduce(
@@ -56,9 +61,11 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
 
   return {
     ...doc,
+    codes: doc.codes ?? ({} as AutomergeDoc["codes"]),
     relations: {
       ...doc.relations,
       entityLinks: mergedLinks,
+      accountCodes: existingAccountCodes,
     },
   };
 };
@@ -111,7 +118,7 @@ export const loadPersistedState = async (
 
   // Log summary of what was loaded
   logger.info(
-    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions`,
+    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes`,
   );
 
   return { doc, events };
