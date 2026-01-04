@@ -1,5 +1,5 @@
 import Automerge from "automerge";
-import type { Change } from "automerge";
+import type { Change, Doc } from "automerge";
 import type { AutomergeDoc } from "@automerge/schema";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fromByteArray, toByteArray } from "base64-js";
@@ -8,6 +8,9 @@ import { createLogger } from "@utils/logger";
 const logger = createLogger("AutomergeSync");
 
 const LAST_SYNC_VERSION_KEY = "last_sync_version";
+
+const asAutomergeDoc = (doc: AutomergeDoc): Doc<AutomergeDoc> =>
+  doc as Doc<AutomergeDoc>;
 
 type TextEncoderLike = {
   encode: (input?: string) => Uint8Array;
@@ -65,9 +68,13 @@ export const getChangesSinceLastSync = async (
       `${LAST_SYNC_VERSION_KEY}_${peerId}`,
     );
 
+    const current = asAutomergeDoc(currentDoc);
     const changes = lastSyncSnapshot
-      ? Automerge.getChanges(Automerge.load(lastSyncSnapshot), currentDoc)
-      : Automerge.getAllChanges(currentDoc);
+      ? Automerge.getChanges(
+          Automerge.load<AutomergeDoc>(lastSyncSnapshot),
+          current,
+        )
+      : Automerge.getAllChanges(current);
 
     if (!lastSyncSnapshot) {
       logger.info("First sync with peer, sending all changes", { peerId });
@@ -99,7 +106,10 @@ export const applyReceivedChanges = (
     }
 
     const decodedChanges = decodeChanges(changes);
-    const newDoc = Automerge.applyChanges(currentDoc, decodedChanges);
+    const newDoc = Automerge.applyChanges(
+      asAutomergeDoc(currentDoc),
+      decodedChanges,
+    );
 
     logger.info("Applied received changes", {
       changeCount: decodedChanges.length,
@@ -119,7 +129,7 @@ export const saveSyncCheckpoint = async (
   peerId: string,
 ): Promise<void> => {
   try {
-    const snapshot = Automerge.save(doc);
+    const snapshot = Automerge.save(asAutomergeDoc(doc));
     await AsyncStorage.setItem(`${LAST_SYNC_VERSION_KEY}_${peerId}`, snapshot);
 
     logger.info("Saved sync checkpoint", { peerId });

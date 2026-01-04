@@ -13,6 +13,8 @@ const DEFAULT_PORT = 8765;
 const FRAME_HEADER_BYTES = 4;
 const MAX_FRAME_SIZE = 10 * 1024 * 1024;
 
+type ByteArray = Uint8Array<ArrayBufferLike>;
+
 type ZeroconfTxtRecord = Record<string, string | undefined>;
 
 type ZeroconfService = {
@@ -22,10 +24,10 @@ type ZeroconfService = {
   port?: number;
 };
 
-type ZeroconfLike = {
-  on: (event: "resolved", handler: (service: ZeroconfService) => void) => void;
-  on: (event: "remove", handler: (service: ZeroconfService) => void) => void;
-  on: (event: "error", handler: (error: unknown) => void) => void;
+interface ZeroconfLike {
+  on(event: "resolved", handler: (service: ZeroconfService) => void): void;
+  on(event: "remove", handler: (service: ZeroconfService) => void): void;
+  on(event: "error", handler: (error: unknown) => void): void;
   publishService: (
     type: string,
     protocol: "tcp" | "udp",
@@ -37,7 +39,7 @@ type ZeroconfLike = {
   unpublishService: (type: string, protocol: "tcp" | "udp") => void;
   scan: (type: string, protocol: "tcp" | "udp", domain: string) => void;
   stop: () => void;
-};
+}
 
 type ZeroconfConstructor = {
   new (): ZeroconfLike;
@@ -100,24 +102,24 @@ const selectAddress = (addresses?: string[]): string | undefined => {
   return ipv4 || addresses[0];
 };
 
-const concatBuffers = (left: Uint8Array, right: Uint8Array): Uint8Array => {
+const concatBuffers = (left: ByteArray, right: ByteArray): ByteArray => {
   if (left.length === 0) return right;
   if (right.length === 0) return left;
-  const merged = new Uint8Array(left.length + right.length);
+  const merged = new Uint8Array(left.length + right.length) as ByteArray;
   merged.set(left, 0);
   merged.set(right, left.length);
   return merged;
 };
 
-const readFrameLength = (buffer: Uint8Array): number => {
+const readFrameLength = (buffer: ByteArray): number => {
   return (
     buffer[0] * 0x1000000 + buffer[1] * 0x10000 + buffer[2] * 0x100 + buffer[3]
   );
 };
 
-const encodeFrame = (payload: Uint8Array): Uint8Array => {
+const encodeFrame = (payload: ByteArray): ByteArray => {
   const length = payload.length;
-  const frame = new Uint8Array(FRAME_HEADER_BYTES + length);
+  const frame = new Uint8Array(FRAME_HEADER_BYTES + length) as ByteArray;
   frame[0] = (length >>> 24) & 0xff;
   frame[1] = (length >>> 16) & 0xff;
   frame[2] = (length >>> 8) & 0xff;
@@ -126,19 +128,23 @@ const encodeFrame = (payload: Uint8Array): Uint8Array => {
   return frame;
 };
 
-const coerceChunk = (chunk: unknown): Uint8Array => {
-  if (chunk instanceof Uint8Array) return chunk;
-  if (chunk instanceof ArrayBuffer) return new Uint8Array(chunk);
+const coerceChunk = (chunk: unknown): ByteArray => {
+  if (chunk instanceof Uint8Array) return chunk as ByteArray;
+  if (chunk instanceof ArrayBuffer) return new Uint8Array(chunk) as ByteArray;
   if (ArrayBuffer.isView(chunk)) {
-    return new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+    return new Uint8Array(
+      chunk.buffer,
+      chunk.byteOffset,
+      chunk.byteLength,
+    ) as ByteArray;
   }
-  return new Uint8Array();
+  return new Uint8Array() as ByteArray;
 };
 
 const createFrameParser = (
-  onFrame: (payload: Uint8Array) => void,
-): ((chunk: Uint8Array) => void) => {
-  let buffer = new Uint8Array();
+  onFrame: (payload: ByteArray) => void,
+): ((chunk: ByteArray) => void) => {
+  let buffer = new Uint8Array() as ByteArray;
 
   return (chunk) => {
     if (chunk.length === 0) return;

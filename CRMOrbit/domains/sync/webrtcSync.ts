@@ -9,6 +9,14 @@ const ICE_SERVERS = [
   { urls: "stun:stun1.l.google.com:19302" },
 ];
 
+type EventTargetLike = {
+  addEventListener: (type: string, listener: (event: unknown) => void) => void;
+  removeEventListener: (
+    type: string,
+    listener: (event: unknown) => void,
+  ) => void;
+};
+
 const encodeString = (value: string): Uint8Array => {
   const Encoder = globalThis.TextEncoder;
   if (Encoder) {
@@ -119,39 +127,48 @@ class WebRTCPeerConnection {
   private setupDataChannel(): void {
     if (!this.dataChannel) return;
 
-    this.dataChannel.onopen = () => {
-      logger.info("Data channel opened");
-    };
+    const channelEvents = this.dataChannel as unknown as EventTargetLike;
 
-    this.dataChannel.onmessage = (event: { data: unknown }) => {
+    channelEvents.addEventListener("open", () => {
+      logger.info("Data channel opened");
+    });
+
+    channelEvents.addEventListener("message", (event: unknown) => {
       logger.info("Received data via WebRTC");
       if (this.onDataReceived) {
-        this.onDataReceived(toUint8Array(event.data));
+        const payload = event as { data?: unknown };
+        this.onDataReceived(toUint8Array(payload.data));
       }
-    };
+    });
 
-    this.dataChannel.onerror = (error: unknown) => {
+    channelEvents.addEventListener("error", (error: unknown) => {
       logger.error("Data channel error", {}, error);
-    };
+    });
   }
 
   private setupDataChannelReceiver(): void {
     if (!this.peerConnection) return;
-    this.peerConnection.ondatachannel = (event: {
-      channel: ReturnType<RTCPeerConnection["createDataChannel"]>;
-    }) => {
-      this.dataChannel = event.channel;
+    const peerConnection = this.peerConnection;
+    const peerEvents = peerConnection as unknown as EventTargetLike;
+    peerEvents.addEventListener("datachannel", (event: unknown) => {
+      const dataEvent = event as {
+        channel: ReturnType<RTCPeerConnection["createDataChannel"]>;
+      };
+      this.dataChannel = dataEvent.channel;
       this.setupDataChannel();
-    };
+    });
   }
 
   private setupIceCandidateHandler(): void {
     if (!this.peerConnection) return;
-    this.peerConnection.onicecandidate = (event: { candidate?: unknown }) => {
-      if (event.candidate) {
-        logger.debug("ICE candidate", { candidate: event.candidate });
+    const peerConnection = this.peerConnection;
+    const peerEvents = peerConnection as unknown as EventTargetLike;
+    peerEvents.addEventListener("icecandidate", (event: unknown) => {
+      const candidateEvent = event as { candidate?: unknown };
+      if (candidateEvent.candidate) {
+        logger.debug("ICE candidate", { candidate: candidateEvent.candidate });
       }
-    };
+    });
   }
 
   private waitForIceGatheringComplete(): Promise<void> {
@@ -159,17 +176,23 @@ class WebRTCPeerConnection {
       return Promise.resolve();
     }
 
+    const peerConnection = this.peerConnection;
+    const peerEvents = peerConnection as unknown as EventTargetLike;
+
     return new Promise((resolve) => {
-      if (this.peerConnection?.iceGatheringState === "complete") {
+      if (peerConnection.iceGatheringState === "complete") {
         resolve();
         return;
       }
 
-      this.peerConnection.onicegatheringstatechange = () => {
-        if (this.peerConnection?.iceGatheringState === "complete") {
+      const handler = () => {
+        if (peerConnection.iceGatheringState === "complete") {
+          peerEvents.removeEventListener("icegatheringstatechange", handler);
           resolve();
         }
       };
+
+      peerEvents.addEventListener("icegatheringstatechange", handler);
     });
   }
 }
