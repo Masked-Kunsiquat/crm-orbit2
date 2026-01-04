@@ -1,10 +1,11 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { ComponentProps } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import { useAccount, useCode } from "../../store/store";
-import { useDeviceId, useTheme } from "../../hooks";
+import { useDeviceId, useLocalAuth, useTheme } from "../../hooks";
 import { useCodeActions } from "../../hooks/useCodeActions";
 import {
   ConfirmDialog,
@@ -32,6 +33,8 @@ const CODE_TYPE_ICONS: Record<
 };
 
 const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
+const REVEAL_DURATION_MS = 30_000;
+const MASKED_VALUE = "********";
 
 type Props = {
   route: { params: { codeId: string } };
@@ -45,8 +48,11 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const account = useAccount(code?.accountId ?? "");
   const deviceId = useDeviceId();
   const { deleteCode } = useCodeActions(deviceId);
+  const { authenticate } = useLocalAuth();
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const [isRevealed, setIsRevealed] = useState(false);
+  const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (!code) {
     return (
@@ -85,6 +91,40 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
       },
     });
   };
+
+  const clearRevealTimeout = useCallback(() => {
+    if (revealTimeoutRef.current) {
+      clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleReveal = useCallback(async () => {
+    if (isRevealed) {
+      return;
+    }
+    const success = await authenticate(t("codes.authReason"));
+    if (!success) {
+      return;
+    }
+    setIsRevealed(true);
+    clearRevealTimeout();
+    revealTimeoutRef.current = setTimeout(() => {
+      setIsRevealed(false);
+      revealTimeoutRef.current = null;
+    }, REVEAL_DURATION_MS);
+  }, [authenticate, clearRevealTimeout, isRevealed]);
+
+  const handleHide = useCallback(() => {
+    clearRevealTimeout();
+    setIsRevealed(false);
+  }, [clearRevealTimeout]);
+
+  useEffect(() => {
+    return () => {
+      clearRevealTimeout();
+    };
+  }, [clearRevealTimeout]);
 
   return (
     <DetailScreenLayout>
@@ -138,9 +178,19 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
         </DetailField>
 
         <DetailField label={t("codes.fields.value")}>
-          <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
-            {code.codeValue}
-          </Text>
+          <Pressable
+            onPress={isRevealed ? handleHide : handleReveal}
+            style={styles.codeValueRow}
+          >
+            <Text style={[styles.codeValue, { color: colors.textPrimary }]}>
+              {isRevealed ? code.codeValue : MASKED_VALUE}
+            </Text>
+            {!isRevealed ? (
+              <Text style={[styles.revealHint, { color: colors.textSecondary }]}>
+                {t("codes.tapToReveal")}
+              </Text>
+            ) : null}
+          </Pressable>
         </DetailField>
 
         {code.notes ? (
@@ -185,6 +235,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     letterSpacing: 0.5,
+  },
+  codeValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  revealHint: {
+    fontSize: 12,
+    fontWeight: "500",
   },
   value: {
     fontSize: 16,

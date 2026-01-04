@@ -99,6 +99,8 @@
   "codes.fields.value": "Code",
   "codes.fields.type": "Type",
   "codes.fields.notes": "Notes",
+  "codes.tapToReveal": "Tap to reveal",
+  "codes.authReason": "Authenticate to view code",
   "codes.form.accountLabel": "Account",
   "codes.form.accountPlaceholder": "Select account",
   "codes.form.accountPickerTitle": "Select account",
