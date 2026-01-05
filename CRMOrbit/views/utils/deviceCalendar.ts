@@ -84,6 +84,14 @@ const setLastCalendarSync = async (timestamp: string): Promise<void> => {
   await AsyncStorage.setItem(CALENDAR_LAST_SYNC_KEY, timestamp);
 };
 
+const normalizeEventTimes = (event: CalendarSyncEvent): CalendarSyncEvent => {
+  if (event.endDate.getTime() > event.startDate.getTime()) {
+    return event;
+  }
+  const adjustedEnd = new Date(event.startDate.getTime() + 60_000);
+  return { ...event, endDate: adjustedEnd };
+};
+
 export const ensureDeviceCalendar = async (
   calendarName: string,
 ): Promise<string> => {
@@ -133,7 +141,8 @@ export const syncDeviceCalendarEvents = async (
   let updated = 0;
   let deleted = 0;
 
-  for (const event of events) {
+  for (const rawEvent of events) {
+    const event = normalizeEventTimes(rawEvent);
     const existingId = existingMap[event.key];
     if (existingId) {
       try {
@@ -142,6 +151,7 @@ export const syncDeviceCalendarEvents = async (
           startDate: event.startDate,
           endDate: event.endDate,
           notes: event.notes,
+          alarms: [],
         });
         nextMap[event.key] = existingId;
         updated += 1;
@@ -157,6 +167,7 @@ export const syncDeviceCalendarEvents = async (
         startDate: event.startDate,
         endDate: event.endDate,
         notes: event.notes,
+        alarms: [],
       });
       nextMap[event.key] = newId;
       created += 1;
