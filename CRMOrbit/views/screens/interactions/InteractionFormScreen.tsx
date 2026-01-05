@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -34,6 +34,11 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useTheme } from "../../hooks";
+import {
+  formatDurationLabel,
+  parseDurationMinutes,
+  splitDurationMinutes,
+} from "../../utils/duration";
 
 const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
   { label: "interaction.type.call", value: "interaction.type.call" },
@@ -41,6 +46,17 @@ const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
   { label: "interaction.type.meeting", value: "interaction.type.meeting" },
   { label: "interaction.type.other", value: "interaction.type.other" },
 ];
+
+type DurationPreset = "30" | "60" | "120" | "240" | "custom";
+
+const DURATION_PRESETS: DurationPreset[] = ["30", "60", "120", "240"];
+
+const DEFAULT_DURATION_BY_TYPE: Record<InteractionType, number | undefined> = {
+  "interaction.type.call": 15,
+  "interaction.type.meeting": 30,
+  "interaction.type.email": undefined,
+  "interaction.type.other": undefined,
+};
 
 type Props = {
   route: {
@@ -74,11 +90,33 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
     "interaction.status.completed",
   );
   const [summary, setSummary] = useState("");
+  const [durationPreset, setDurationPreset] =
+    useState<DurationPreset>("custom");
+  const [durationHours, setDurationHours] = useState("");
+  const [durationMinutesInput, setDurationMinutesInput] = useState("");
+  const [durationTouched, setDurationTouched] = useState(false);
   const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString());
   const [scheduledFor, setScheduledFor] = useState(() =>
     new Date().toISOString(),
   );
   const [showPicker, setShowPicker] = useState(false);
+  const didInitDefaults = useRef(false);
+
+  const applyDurationMinutes = useCallback((durationMinutes?: number) => {
+    if (!durationMinutes) {
+      setDurationHours("");
+      setDurationMinutesInput("");
+      setDurationPreset("custom");
+      return;
+    }
+    const { hours, minutes } = splitDurationMinutes(durationMinutes);
+    setDurationHours(hours ? `${hours}` : "");
+    setDurationMinutesInput(minutes ? `${minutes}` : "");
+    const preset = DURATION_PRESETS.find(
+      (value) => Number(value) === durationMinutes,
+    );
+    setDurationPreset(preset ?? "custom");
+  }, []);
 
   useEffect(() => {
     if (interaction) {
@@ -87,14 +125,32 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       setSummary(interaction.summary);
       setOccurredAt(interaction.occurredAt);
       setScheduledFor(interaction.scheduledFor ?? interaction.occurredAt);
-    } else {
-      // Set default to current date/time
-      const now = new Date().toISOString();
-      setOccurredAt(now);
-      setScheduledFor(now);
-      setStatus("interaction.status.completed");
+      applyDurationMinutes(interaction.durationMinutes);
+      setDurationTouched(true);
+      didInitDefaults.current = true;
+      return;
     }
-  }, [interaction]);
+
+    if (didInitDefaults.current) {
+      return;
+    }
+
+    // Set default to current date/time on first load only.
+    const now = new Date().toISOString();
+    setOccurredAt(now);
+    setScheduledFor(now);
+    setStatus("interaction.status.completed");
+    applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
+    setDurationTouched(false);
+    didInitDefaults.current = true;
+  }, [applyDurationMinutes, interaction, type]);
+
+  useEffect(() => {
+    if (interaction || durationTouched) {
+      return;
+    }
+    applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
+  }, [applyDurationMinutes, durationTouched, interaction, type]);
 
   const activeTimestamp =
     status === "interaction.status.completed" ? occurredAt : scheduledFor;
@@ -188,11 +244,39 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
     }
   };
 
+  const handleDurationPresetChange = (value: DurationPreset) => {
+    setDurationPreset(value);
+    setDurationTouched(true);
+    if (value === "custom") {
+      return;
+    }
+    const minutes = Number(value);
+    const { hours, minutes: remainder } = splitDurationMinutes(minutes);
+    setDurationHours(hours ? `${hours}` : "");
+    setDurationMinutesInput(remainder ? `${remainder}` : "");
+  };
+
   const handleSave = () => {
     if (!summary.trim()) {
       showAlert(
         t("common.error"),
         t("interactions.validation.summaryRequired"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    const durationValue = parseDurationMinutes(
+      durationHours,
+      durationMinutesInput,
+    );
+    if (
+      durationValue === null ||
+      (durationValue !== undefined && durationValue <= 0)
+    ) {
+      showAlert(
+        t("common.error"),
+        t("interactions.validation.durationInvalid"),
         t("common.ok"),
       );
       return;
@@ -216,7 +300,8 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
         (status === "interaction.status.completed" &&
           interaction?.occurredAt !== nextTimestamp) ||
         (status !== "interaction.status.completed" &&
-          previousScheduledFor !== nextTimestamp);
+          previousScheduledFor !== nextTimestamp) ||
+        interaction?.durationMinutes !== durationValue;
 
       if (shouldUpdateDetails) {
         const result = updateInteraction(
@@ -224,6 +309,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
           type,
           trimmedSummary,
           nextTimestamp,
+          durationValue ?? undefined,
         );
         if (!result.success) {
           showAlert(
@@ -275,12 +361,14 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
               type,
               trimmedSummary,
               nextTimestamp,
+              durationValue ?? undefined,
               newInteractionId,
             )
           : logInteraction(
               type,
               trimmedSummary,
               nextTimestamp,
+              durationValue ?? undefined,
               newInteractionId,
             );
       if (result.success) {
@@ -318,6 +406,14 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       }
     }
   };
+
+  const durationOptions: Array<{ label: string; value: DurationPreset }> = [
+    ...DURATION_PRESETS.map((value) => ({
+      label: formatDurationLabel(Number(value)),
+      value,
+    })),
+    { label: t("common.custom"), value: "custom" },
+  ];
 
   return (
     <FormScreenLayout>
@@ -396,6 +492,57 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
           ) : null}
         </FormField>
 
+        <FormField
+          label={t("interactions.form.durationLabel")}
+          hint={t("interactions.form.durationHint")}
+        >
+          <SegmentedOptionGroup
+            options={durationOptions}
+            value={durationPreset}
+            onChange={handleDurationPresetChange}
+          />
+          <View style={styles.durationInputs}>
+            <View style={styles.durationField}>
+              <Text
+                style={[styles.durationLabel, { color: colors.textSecondary }]}
+              >
+                {t("common.duration.hoursLabel")}
+              </Text>
+              <TextField
+                value={durationHours}
+                onChangeText={(value) => {
+                  setDurationHours(value);
+                  setDurationPreset("custom");
+                  setDurationTouched(true);
+                }}
+                placeholder={t("common.duration.hoursPlaceholder")}
+                keyboardType="numeric"
+                autoCapitalize="none"
+                style={styles.durationInput}
+              />
+            </View>
+            <View style={styles.durationField}>
+              <Text
+                style={[styles.durationLabel, { color: colors.textSecondary }]}
+              >
+                {t("common.duration.minutesLabel")}
+              </Text>
+              <TextField
+                value={durationMinutesInput}
+                onChangeText={(value) => {
+                  setDurationMinutesInput(value);
+                  setDurationPreset("custom");
+                  setDurationTouched(true);
+                }}
+                placeholder={t("common.duration.minutesPlaceholder")}
+                keyboardType="numeric"
+                autoCapitalize="none"
+                style={styles.durationInput}
+              />
+            </View>
+          </View>
+        </FormField>
+
         <FormField label={t("interactions.form.summaryLabel")}>
           <TextField
             value={summary}
@@ -440,6 +587,21 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: "500",
+  },
+  durationInputs: {
+    marginTop: 12,
+    flexDirection: "row",
+    gap: 12,
+  },
+  durationField: {
+    flex: 1,
+  },
+  durationLabel: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  durationInput: {
+    minHeight: 44,
   },
   summaryInput: {
     minHeight: 100,

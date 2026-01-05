@@ -13,6 +13,7 @@ type ListScreenLayoutProps<ItemT> = {
   emptyTitle: string;
   emptyHint?: string;
   onAdd: () => void;
+  listHeaderComponent?: ReactElement | null;
   listFooterComponent?: ReactElement | null;
   rightAccessory?: ReactElement | null;
   flatListRef?: RefObject<FlatListType<ItemT> | null>;
@@ -25,6 +26,7 @@ export const ListScreenLayout = <ItemT,>({
   emptyTitle,
   emptyHint,
   onAdd,
+  listHeaderComponent,
   listFooterComponent,
   rightAccessory,
   flatListRef,
@@ -38,6 +40,7 @@ export const ListScreenLayout = <ItemT,>({
         data={data}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        ListHeaderComponent={listHeaderComponent}
         ListFooterComponent={listFooterComponent}
         contentContainerStyle={
           data.length === 0

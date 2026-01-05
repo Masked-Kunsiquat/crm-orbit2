@@ -13,6 +13,7 @@ export const useAuditActions = (deviceId: string) => {
     (
       accountId: EntityId,
       scheduledFor: string,
+      durationMinutes: number,
       notes?: string,
       floorsVisited?: number[],
       auditId?: EntityId,
@@ -25,6 +26,7 @@ export const useAuditActions = (deviceId: string) => {
           id,
           accountId,
           scheduledFor,
+          durationMinutes,
           ...(notes !== undefined && { notes }),
           ...(floorsVisited !== undefined && { floorsVisited }),
         },
@@ -57,6 +59,7 @@ export const useAuditActions = (deviceId: string) => {
     (
       auditId: EntityId,
       occurredAt: string,
+      durationMinutes: number,
       score?: number,
       notes?: string,
       floorsVisited?: number[],
@@ -67,6 +70,7 @@ export const useAuditActions = (deviceId: string) => {
         payload: {
           id: auditId,
           occurredAt,
+          durationMinutes,
           ...(score !== undefined && { score }),
           ...(notes !== undefined && { notes }),
           ...(floorsVisited !== undefined && { floorsVisited }),
@@ -146,6 +150,39 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  const cancelAudit = useCallback(
+    (auditId: EntityId): DispatchResult => {
+      const event = buildEvent({
+        type: "audit.canceled",
+        entityId: auditId,
+        payload: {
+          id: auditId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
+  const updateAuditDuration = useCallback(
+    (auditId: EntityId, durationMinutes: number): DispatchResult => {
+      const event = buildEvent({
+        type: "audit.duration.updated",
+        entityId: auditId,
+        payload: {
+          id: auditId,
+          durationMinutes,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
   return {
     createAudit,
     rescheduleAudit,
@@ -153,6 +190,8 @@ export const useAuditActions = (deviceId: string) => {
     updateAuditNotes,
     updateAuditFloorsVisited,
     reassignAuditAccount,
+    cancelAudit,
+    updateAuditDuration,
     deleteAudit,
   };
 };

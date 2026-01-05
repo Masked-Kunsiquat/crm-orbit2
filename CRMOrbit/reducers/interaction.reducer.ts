@@ -17,6 +17,7 @@ type InteractionLoggedPayload = {
   occurredAt: Timestamp;
   summary: string;
   status?: InteractionStatus;
+  durationMinutes?: number;
 };
 
 type InteractionScheduledPayload = {
@@ -25,6 +26,7 @@ type InteractionScheduledPayload = {
   scheduledFor: Timestamp;
   summary: string;
   status?: InteractionStatus;
+  durationMinutes?: number;
 };
 
 type InteractionRescheduledPayload = {
@@ -51,12 +53,25 @@ const assertStatusValid = (status: InteractionStatus | undefined): void => {
   }
 };
 
+const resolveDurationMinutes = (
+  durationMinutes: number | undefined,
+): number | undefined => {
+  if (durationMinutes == null) {
+    return undefined;
+  }
+  if (!Number.isInteger(durationMinutes) || durationMinutes <= 0) {
+    throw new Error("Interaction durationMinutes must be a positive integer.");
+  }
+  return durationMinutes;
+};
+
 const applyInteractionLogged = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
   const payload = event.payload as InteractionLoggedPayload;
   const id = resolveEntityId(event, payload);
+  const durationMinutes = resolveDurationMinutes(payload.durationMinutes);
 
   logger.debug("Logging interaction", { id, type: payload.type });
 
@@ -76,6 +91,7 @@ const applyInteractionLogged = (
     occurredAt: payload.occurredAt,
     summary: payload.summary,
     status: payload.status ?? "interaction.status.completed",
+    durationMinutes,
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
@@ -101,6 +117,7 @@ const applyInteractionScheduled = (
 ): AutomergeDoc => {
   const payload = event.payload as InteractionScheduledPayload;
   const id = resolveEntityId(event, payload);
+  const durationMinutes = resolveDurationMinutes(payload.durationMinutes);
 
   if (doc.interactions[id]) {
     throw new Error(`Interaction already exists: ${id}`);
@@ -119,6 +136,7 @@ const applyInteractionScheduled = (
     occurredAt: payload.scheduledFor,
     summary: payload.summary,
     status: payload.status ?? "interaction.status.scheduled",
+    durationMinutes,
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
@@ -214,6 +232,7 @@ type InteractionUpdatedPayload = {
   type?: InteractionType;
   occurredAt?: Timestamp;
   summary?: string;
+  durationMinutes?: number;
   changes?: Array<{ field: string; oldValue: string; newValue: string }>;
 };
 
@@ -237,11 +256,14 @@ const applyInteractionUpdated = (
 
   logger.debug("Updating interaction", { id });
 
+  const durationMinutes = resolveDurationMinutes(payload.durationMinutes);
+
   const updated: Interaction = {
     ...existing,
     ...(payload.type !== undefined && { type: payload.type }),
     ...(payload.occurredAt !== undefined && { occurredAt: payload.occurredAt }),
     ...(payload.summary !== undefined && { summary: payload.summary }),
+    ...(durationMinutes !== undefined && { durationMinutes }),
     updatedAt: event.timestamp,
   };
 

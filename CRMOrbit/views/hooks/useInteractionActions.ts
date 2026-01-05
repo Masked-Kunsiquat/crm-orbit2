@@ -18,6 +18,7 @@ export const useInteractionActions = (deviceId: string) => {
       type: InteractionType = "interaction.type.call",
       summary: string,
       occurredAt?: string,
+      durationMinutes?: number,
       interactionId?: EntityId,
     ): DispatchResult => {
       const id = interactionId ?? nextId("interaction");
@@ -29,6 +30,7 @@ export const useInteractionActions = (deviceId: string) => {
           type,
           occurredAt: occurredAt ?? new Date().toISOString(),
           summary,
+          ...(durationMinutes !== undefined && { durationMinutes }),
         },
         deviceId,
       });
@@ -44,6 +46,7 @@ export const useInteractionActions = (deviceId: string) => {
       type: InteractionType,
       summary: string,
       occurredAt: string,
+      durationMinutes?: number,
     ): DispatchResult => {
       const event = buildEvent({
         type: "interaction.updated",
@@ -52,6 +55,7 @@ export const useInteractionActions = (deviceId: string) => {
           type,
           summary,
           occurredAt,
+          ...(durationMinutes !== undefined && { durationMinutes }),
         },
         deviceId,
       });
@@ -66,6 +70,7 @@ export const useInteractionActions = (deviceId: string) => {
       type: InteractionType,
       summary: string,
       scheduledFor: string,
+      durationMinutes?: number,
       interactionId?: EntityId,
     ): DispatchResult => {
       const id = interactionId ?? nextId("interaction");
@@ -77,6 +82,7 @@ export const useInteractionActions = (deviceId: string) => {
           type,
           scheduledFor,
           summary,
+          ...(durationMinutes !== undefined && { durationMinutes }),
         },
         deviceId,
       });

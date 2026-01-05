@@ -31,6 +31,27 @@ test("interaction.logged adds a new interaction", () => {
   assert.equal(interaction.updatedAt, event.timestamp);
 });
 
+test("interaction.logged rejects invalid duration", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-interaction-1",
+    type: "interaction.logged",
+    payload: {
+      id: "interaction-1",
+      type: "interaction.type.call",
+      occurredAt: "2024-06-01T00:00:00.000Z",
+      summary: "Customer called to discuss renewal.",
+      durationMinutes: 0,
+    },
+    timestamp: "2024-06-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => interactionReducer(doc, event), {
+    message: "Interaction durationMinutes must be a positive integer.",
+  });
+});
+
 test("interaction.logged rejects duplicate ids", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
@@ -108,6 +129,38 @@ test("interaction.rescheduled updates scheduledFor", () => {
 
   assert.equal(interaction.scheduledFor, "2024-06-11T15:30:00.000Z");
   assert.equal(interaction.occurredAt, "2024-06-11T15:30:00.000Z");
+});
+
+test("interaction.updated stores duration updates", () => {
+  const doc = initAutomergeDoc();
+  const logged: Event = {
+    id: "evt-interaction-1",
+    type: "interaction.logged",
+    payload: {
+      id: "interaction-1",
+      type: "interaction.type.call",
+      occurredAt: "2024-06-01T00:00:00.000Z",
+      summary: "Customer called to discuss renewal.",
+    },
+    timestamp: "2024-06-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-interaction-2",
+    type: "interaction.updated",
+    payload: {
+      id: "interaction-1",
+      durationMinutes: 30,
+    },
+    timestamp: "2024-06-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = interactionReducer(doc, logged);
+  const updatedDoc = interactionReducer(createdDoc, updated);
+  const interaction = updatedDoc.interactions["interaction-1"];
+
+  assert.equal(interaction.durationMinutes, 30);
 });
 
 test("interaction.status.updated uses existing occurredAt when completing", () => {

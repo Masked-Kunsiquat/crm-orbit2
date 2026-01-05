@@ -27,11 +27,26 @@ import {
 import { useDeviceId, useTheme } from "../../hooks";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import {
+  addMinutesToTimestamp,
+  formatDurationLabel,
+} from "../../utils/duration";
 
 type Props = {
   route: { params: { interactionId: string } };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+};
+
+const formatTimestamp = (timestamp?: string): string => {
+  if (!timestamp) {
+    return t("common.unknown");
+  }
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return t("common.unknown");
+  }
+  return date.toLocaleString();
 };
 
 export const InteractionDetailScreen = ({ route, navigation }: Props) => {
@@ -149,13 +164,11 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
   const timestampValue = usesScheduledTimestamp
     ? (interaction.scheduledFor ?? interaction.occurredAt)
     : interaction.occurredAt;
-  const formattedTimestamp = (() => {
-    const date = new Date(timestampValue);
-    if (Number.isNaN(date.getTime())) {
-      return t("common.unknown");
-    }
-    return date.toLocaleString();
-  })();
+  const formattedTimestamp = formatTimestamp(timestampValue);
+  const endTimestamp = addMinutesToTimestamp(
+    timestampValue,
+    interaction.durationMinutes,
+  );
 
   return (
     <DetailScreenLayout>
@@ -174,6 +187,18 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
             <Text style={[styles.date, { color: colors.textSecondary }]}>
               {timestampLabel}: {formattedTimestamp}
             </Text>
+            {interaction.durationMinutes ? (
+              <Text style={[styles.date, { color: colors.textSecondary }]}>
+                {t("interactions.fields.duration")}:{" "}
+                {formatDurationLabel(interaction.durationMinutes)}
+              </Text>
+            ) : null}
+            {endTimestamp ? (
+              <Text style={[styles.date, { color: colors.textSecondary }]}>
+                {t("interactions.fields.endsAt")}:{" "}
+                {formatTimestamp(endTimestamp)}
+              </Text>
+            ) : null}
           </View>
           <PrimaryActionButton
             label={t("common.edit")}

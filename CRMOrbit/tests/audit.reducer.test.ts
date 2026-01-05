@@ -71,6 +71,7 @@ test("audit.created adds a scheduled audit", () => {
       id: "audit-1",
       accountId: "acct-1",
       scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 120,
       notes: "Bring checklist",
       floorsVisited: [-2, 1, 2],
     },
@@ -84,8 +85,34 @@ test("audit.created adds a scheduled audit", () => {
   assert.ok(audit);
   assert.equal(audit.accountId, "acct-1");
   assert.equal(audit.scheduledFor, "2024-03-01T12:00:00.000Z");
+  assert.equal(audit.durationMinutes, 120);
+  assert.equal(audit.status, "audits.status.scheduled");
   assert.equal(audit.notes, "Bring checklist");
   assert.deepEqual(audit.floorsVisited, [-2, 1, 2]);
+});
+
+test("audit.created fills missing duration with a migration default", () => {
+  const doc = createDocWithAccount({
+    minFloor: -2,
+    maxFloor: 3,
+  });
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = auditReducer(doc, event);
+  const audit = next.audits["audit-1"];
+
+  assert.equal(audit.durationMinutes, 60);
+  assert.equal(audit.status, "audits.status.scheduled");
 });
 
 test("audit.created rejects missing account", () => {
@@ -138,6 +165,7 @@ test("audit.completed stores outcomes", () => {
       id: "audit-1",
       accountId: "acct-1",
       scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 90,
     },
     timestamp: "2024-03-01T00:00:00.000Z",
     deviceId: "device-1",
@@ -164,6 +192,8 @@ test("audit.completed stores outcomes", () => {
   assert.equal(audit.score, 92);
   assert.equal(audit.notes, "All good");
   assert.deepEqual(audit.floorsVisited, [1, 2, 4]);
+  assert.equal(audit.status, "audits.status.completed");
+  assert.equal(audit.durationMinutes, 90);
 });
 
 test("audit.completed rejects floors outside the configured range", () => {
@@ -178,6 +208,7 @@ test("audit.completed rejects floors outside the configured range", () => {
       id: "audit-1",
       accountId: "acct-1",
       scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
     },
     timestamp: "2024-03-01T00:00:00.000Z",
     deviceId: "device-1",
@@ -220,6 +251,7 @@ test("audit.account.reassigned validates floors against new account", () => {
       accountId: "acct-1",
       scheduledFor: "2024-03-01T12:00:00.000Z",
       floorsVisited: [1],
+      durationMinutes: 60,
     },
     timestamp: "2024-03-01T00:00:00.000Z",
     deviceId: "device-1",
@@ -254,6 +286,7 @@ test("audit.deleted removes audit", () => {
       id: "audit-1",
       accountId: "acct-1",
       scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
     },
     timestamp: "2024-03-01T00:00:00.000Z",
     deviceId: "device-1",
@@ -272,4 +305,75 @@ test("audit.deleted removes audit", () => {
   const deletedDoc = auditReducer(createdDoc, deleted);
 
   assert.equal(deletedDoc.audits["audit-1"], undefined);
+});
+
+test("audit.canceled marks audit as canceled and clears outcomes", () => {
+  const doc = createDocWithAccount({
+    minFloor: -1,
+    maxFloor: 2,
+  });
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const canceled: Event = {
+    id: "evt-audit-2",
+    type: "audit.canceled",
+    payload: {
+      id: "audit-1",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const canceledDoc = auditReducer(createdDoc, canceled);
+  const audit = canceledDoc.audits["audit-1"];
+
+  assert.equal(audit.status, "audits.status.canceled");
+  assert.equal(audit.occurredAt, undefined);
+  assert.equal(audit.score, undefined);
+  assert.equal(audit.floorsVisited, undefined);
+});
+
+test("audit.duration.updated updates duration minutes", () => {
+  const doc = createDocWithAccount({
+    minFloor: -1,
+    maxFloor: 2,
+  });
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-audit-2",
+    type: "audit.duration.updated",
+    payload: {
+      id: "audit-1",
+      durationMinutes: 120,
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const updatedDoc = auditReducer(createdDoc, updated);
+
+  assert.equal(updatedDoc.audits["audit-1"].durationMinutes, 120);
 });

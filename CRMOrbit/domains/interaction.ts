@@ -17,4 +17,5 @@ export interface Interaction extends Entity {
   scheduledFor?: Timestamp;
   status?: InteractionStatus;
   summary: string;
+  durationMinutes?: number;
 }

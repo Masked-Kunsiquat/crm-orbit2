@@ -24,6 +24,8 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "audit.created": auditReducer,
   "audit.rescheduled": auditReducer,
   "audit.completed": auditReducer,
+  "audit.canceled": auditReducer,
+  "audit.duration.updated": auditReducer,
   "audit.notes.updated": auditReducer,
   "audit.floorsVisited.updated": auditReducer,
   "audit.account.reassigned": auditReducer,

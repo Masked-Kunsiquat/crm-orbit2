@@ -3,38 +3,61 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../hooks";
 import { t } from "@i18n/index";
 
-type StatusBadgeProps = {
-  isActive: boolean;
-  activeLabelKey: string;
-  inactiveLabelKey: string;
-};
+type StatusTone = "success" | "warning" | "danger";
 
-export const StatusBadge = ({
-  isActive,
-  activeLabelKey,
-  inactiveLabelKey,
-}: StatusBadgeProps) => {
+type StatusBadgeProps =
+  | {
+      tone: StatusTone;
+      labelKey: string;
+    }
+  | {
+      isActive: boolean;
+      activeLabelKey: string;
+      inactiveLabelKey: string;
+    };
+
+export const StatusBadge = (props: StatusBadgeProps) => {
   const { colors } = useTheme();
+
+  const resolveTone = () => {
+    if ("tone" in props) {
+      return props.tone;
+    }
+    return props.isActive ? "success" : "danger";
+  };
+
+  const tone = resolveTone();
+  const backgroundColor =
+    tone === "success"
+      ? colors.successBg
+      : tone === "warning"
+        ? colors.warningBg
+        : colors.errorBg;
+  const textColor =
+    tone === "success"
+      ? colors.success
+      : tone === "warning"
+        ? colors.warning
+        : colors.error;
+
+  const label =
+    "labelKey" in props
+      ? t(props.labelKey)
+      : props.isActive
+        ? t(props.activeLabelKey)
+        : t(props.inactiveLabelKey);
 
   return (
     <View
       style={[
         styles.badge,
         {
-          backgroundColor: isActive
-            ? colors.statusActiveBg
-            : colors.statusInactiveBg,
+          backgroundColor,
         },
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          { color: isActive ? colors.success : colors.error },
-        ]}
-        numberOfLines={1}
-      >
-        {isActive ? t(activeLabelKey) : t(inactiveLabelKey)}
+      <Text style={[styles.text, { color: textColor }]} numberOfLines={1}>
+        {label}
       </Text>
     </View>
   );

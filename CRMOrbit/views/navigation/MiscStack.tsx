@@ -16,6 +16,11 @@ import { SyncScreen } from "../screens/SyncScreen";
 import { getStackScreenOptions } from "./stackOptions";
 import { useTheme } from "../hooks";
 import { t } from "@i18n/index";
+import { CalendarScreen } from "../screens/calendar";
+import {
+  InteractionDetailScreen,
+  InteractionFormScreen,
+} from "../screens/interactions";
 
 const Stack = createNativeStackNavigator<MiscStackParamList>();
 
@@ -50,6 +55,11 @@ export const MiscStack = () => {
         options={{ title: t("codes.listTitle") }}
       />
       <Stack.Screen
+        name="Calendar"
+        component={CalendarScreen}
+        options={{ title: t("screens.calendar") }}
+      />
+      <Stack.Screen
         name="AuditsList"
         component={AuditsListScreen}
         options={{ title: t("audits.listTitle") }}
@@ -58,6 +68,11 @@ export const MiscStack = () => {
         name="AuditDetail"
         component={AuditDetailScreen}
         options={{ title: t("screens.auditDetails") }}
+      />
+      <Stack.Screen
+        name="InteractionDetail"
+        component={InteractionDetailScreen}
+        options={{ title: t("screens.interactionDetails") }}
       />
       <Stack.Screen
         name="CodeDetail"
@@ -71,6 +86,15 @@ export const MiscStack = () => {
           title: route.params?.codeId
             ? t("screens.editCode")
             : t("screens.newCode"),
+        })}
+      />
+      <Stack.Screen
+        name="InteractionForm"
+        component={InteractionFormScreen}
+        options={({ route }) => ({
+          title: route.params?.interactionId
+            ? t("screens.editInteraction")
+            : t("screens.newInteraction"),
         })}
       />
     </Stack.Navigator>

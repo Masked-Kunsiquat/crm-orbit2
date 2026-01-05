@@ -10,6 +10,8 @@ export const EVENT_TYPES = [
   "audit.created",
   "audit.rescheduled",
   "audit.completed",
+  "audit.canceled",
+  "audit.duration.updated",
   "audit.notes.updated",
   "audit.floorsVisited.updated",
   "audit.account.reassigned",

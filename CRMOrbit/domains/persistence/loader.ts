@@ -27,6 +27,7 @@ const EMPTY_DOC: AutomergeDoc = {
 };
 
 const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
+  const DEFAULT_AUDIT_DURATION_MINUTES = 60;
   const legacyLinks = (
     doc as {
       relations?: {
@@ -46,6 +47,23 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     ({} as AutomergeDoc["relations"]["accountCodes"]);
   const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
   const existingAudits = doc.audits ?? ({} as AutomergeDoc["audits"]);
+
+  const normalizedAudits = Object.fromEntries(
+    Object.entries(existingAudits).map(([id, audit]) => {
+      const durationMinutes =
+        Number.isInteger(audit.durationMinutes) && audit.durationMinutes > 0
+          ? audit.durationMinutes
+          : DEFAULT_AUDIT_DURATION_MINUTES;
+      return [
+        id,
+        {
+          ...audit,
+          durationMinutes,
+          status: audit.status,
+        },
+      ];
+    }),
+  ) as AutomergeDoc["audits"];
 
   const normalizedCodes = Object.fromEntries(
     Object.entries(existingCodes).map(([id, code]) => [
@@ -78,7 +96,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   return {
     ...doc,
     codes: normalizedCodes,
-    audits: existingAudits,
+    audits: normalizedAudits,
     settings: doc.settings ?? DEFAULT_SETTINGS,
     relations: {
       ...doc.relations,
