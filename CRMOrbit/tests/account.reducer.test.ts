@@ -224,3 +224,87 @@ test("account.deleted rejects deletion when contacts are linked", () => {
     message: "Cannot delete account acct-1: contacts still linked",
   });
 });
+
+test("account.created stores floor configuration", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: -2,
+      maxFloor: 10,
+      excludedFloors: [0, 5],
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = accountReducer(orgDoc, event);
+  const account = next.accounts["acct-1"];
+
+  assert.equal(account.minFloor, -2);
+  assert.equal(account.maxFloor, 10);
+  assert.deepEqual(account.excludedFloors, [0, 5]);
+});
+
+test("account.created rejects incomplete floor range", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: 1,
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Account floor range requires both minFloor and maxFloor.",
+  });
+});
+
+test("account.updated rejects excluded floors outside the range", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: 1,
+      maxFloor: 3,
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      excludedFloors: [5],
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+
+  assert.throws(() => accountReducer(createdDoc, updated), {
+    message: "Account excluded floor 5 is outside the configured range.",
+  });
+});
