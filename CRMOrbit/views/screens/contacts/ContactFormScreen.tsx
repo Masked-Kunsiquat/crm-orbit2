@@ -5,6 +5,7 @@ import { t } from "@i18n/index";
 import type { ContactsStackScreenProps } from "@views/navigation/types";
 import { useContact } from "@views/store/store";
 import { useContactActions } from "@views/hooks/useContactActions";
+import { useAccountActions } from "@views/hooks/useAccountActions";
 import { useDeviceId } from "@views/hooks";
 import type { ContactType, ContactMethod } from "@domains/contact";
 import { formatPhoneNumber, splitLegacyName } from "@domains/contact.utils";
@@ -23,10 +24,11 @@ import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 type Props = ContactsStackScreenProps<"ContactForm">;
 
 export const ContactFormScreen = ({ route, navigation }: Props) => {
-  const { contactId } = route.params ?? {};
+  const { contactId, accountLink } = route.params ?? {};
   const contact = useContact(contactId ?? "");
   const deviceId = useDeviceId();
   const { createContact, updateContact } = useContactActions(deviceId);
+  const { linkContact } = useAccountActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showAlert } = useConfirmDialog();
 
@@ -234,6 +236,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         );
       }
     } else {
+      const contactIdForLink = accountLink ? nextId("contact") : undefined;
       const result = createContact(
         firstName.trim(),
         lastName.trim(),
@@ -243,9 +246,29 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
           emails: validEmails,
           phones: validPhones,
         },
+        contactIdForLink,
       );
       if (result.success) {
-        navigation.goBack();
+        if (accountLink && contactIdForLink) {
+          const linkResult = linkContact(
+            accountLink.accountId,
+            contactIdForLink,
+            accountLink.role,
+            Boolean(accountLink.setPrimary),
+          );
+          if (linkResult.success) {
+            navigation.goBack();
+          } else {
+            showAlert(
+              t("common.error"),
+              linkResult.error || t("contacts.linkError"),
+              t("common.ok"),
+              () => navigation.goBack(),
+            );
+          }
+        } else {
+          navigation.goBack();
+        }
       } else {
         showAlert(
           t("common.error"),

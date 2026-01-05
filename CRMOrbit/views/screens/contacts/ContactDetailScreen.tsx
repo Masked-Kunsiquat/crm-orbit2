@@ -115,7 +115,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     // Check if already linked
     const existingLink = Object.values(accountContactRelations).find(
       (relation) =>
-        relation.accountId === accountId && relation.contactId === contactId,
+        relation.accountId === accountId &&
+        relation.contactId === contactId &&
+        relation.role === role,
     );
 
     if (existingLink) {
@@ -129,7 +131,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
     // Check if account already has a primary contact
     const hasPrimary = Object.values(accountContactRelations).some(
-      (relation) => relation.accountId === accountId && relation.isPrimary,
+      (relation) =>
+        relation.accountId === accountId &&
+        relation.role === role &&
+        relation.isPrimary,
     );
 
     const result = linkContact(
