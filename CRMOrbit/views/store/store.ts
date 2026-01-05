@@ -37,6 +37,7 @@ const crmStore = create<CrmStoreState>((set) => ({
   doc: {
     organizations: {},
     accounts: {},
+    audits: {},
     contacts: {},
     notes: {},
     interactions: {},

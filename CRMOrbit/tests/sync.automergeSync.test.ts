@@ -69,7 +69,7 @@ beforeEach(() => {
 
 test("getChangesSinceLastSync returns full changes on first sync", async () => {
   const doc = createDocWithOrganization("org-1", "Acme");
-  const emptyDoc = Automerge.init<AutomergeDoc>();
+  const emptyDoc = Automerge.from(initAutomergeDoc());
 
   const changes = await getChangesSinceLastSync(doc, "peer-1");
   const merged = applyReceivedChanges(emptyDoc, changes);
@@ -102,7 +102,7 @@ test("getChangesSinceLastSync returns incremental changes after checkpoint", asy
 
 test("createSyncBundle and parseSyncBundle round-trip changes", async () => {
   const doc = createDocWithOrganization("org-3", "Orbit");
-  const emptyDoc = Automerge.init<AutomergeDoc>();
+  const emptyDoc = Automerge.from(initAutomergeDoc());
 
   const bundle = await createSyncBundle(doc, "qr-peer");
   const changes = parseSyncBundle(bundle);

@@ -2,6 +2,7 @@ import type { Reducer } from "../automerge/applyEvent";
 import type { EventType } from "../events/eventTypes";
 import { accountContactReducer } from "./accountContact.reducer";
 import { accountReducer } from "./account.reducer";
+import { auditReducer } from "./audit.reducer";
 import { contactReducer } from "./contact.reducer";
 import { interactionReducer } from "./interaction.reducer";
 import { entityLinkReducer } from "./entityLink.reducer";
@@ -20,6 +21,12 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "account.status.updated": accountReducer,
   "account.updated": accountReducer,
   "account.deleted": accountReducer,
+  "audit.created": auditReducer,
+  "audit.rescheduled": auditReducer,
+  "audit.completed": auditReducer,
+  "audit.notes.updated": auditReducer,
+  "audit.floorsVisited.updated": auditReducer,
+  "audit.account.reassigned": auditReducer,
   "contact.created": contactReducer,
   "contact.method.added": contactReducer,
   "contact.method.updated": contactReducer,
