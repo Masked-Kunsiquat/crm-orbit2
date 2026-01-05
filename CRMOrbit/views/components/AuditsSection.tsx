@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   iconButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
