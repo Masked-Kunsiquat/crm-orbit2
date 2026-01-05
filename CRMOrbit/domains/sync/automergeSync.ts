@@ -421,22 +421,18 @@ export const getChangesSinceLastSync = async (
     );
 
     const current = ensureAutomergeDoc(currentDoc);
-    const encodeChange = (
-      Automerge as unknown as {
-        encodeChange?: (change: Change) => Uint8Array;
-      }
-    ).encodeChange;
-    if (!encodeChange) {
+    const changes = lastSyncSnapshot
+      ? Automerge.getChanges(loadSnapshot(lastSyncSnapshot), current)
+      : Automerge.getAllChanges(current);
+
+    if (changes.length === 0) {
       const snapshotPayload = JSON.stringify({
         format: SNAPSHOT_FORMAT,
         snapshot: Automerge.save(current),
       });
-      logger.info("Syncing via snapshot payload", { peerId });
+      logger.warn("No changes detected, sending snapshot payload", { peerId });
       return getTextEncoder().encode(snapshotPayload);
     }
-    const changes = lastSyncSnapshot
-      ? Automerge.getChanges(loadSnapshot(lastSyncSnapshot), current)
-      : Automerge.getAllChanges(current);
 
     if (!lastSyncSnapshot) {
       logger.info("First sync with peer, sending all changes", { peerId });

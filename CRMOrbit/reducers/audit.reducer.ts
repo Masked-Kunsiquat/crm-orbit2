@@ -110,6 +110,10 @@ const applyAuditCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as AuditCreatedPayload;
   const id = resolveEntityId(event, payload);
 
+  if (payload.accountId == null) {
+    throw new Error("Audit accountId is required.");
+  }
+
   if (!payload.scheduledFor) {
     throw new Error("Audit scheduledFor is required.");
   }
