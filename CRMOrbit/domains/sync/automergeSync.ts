@@ -78,6 +78,11 @@ const encodeChanges = (changes: Change[]): Uint8Array => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
+  const allBinary = changes.every((change) => change instanceof Uint8Array);
+  if (!encodeChange && !allBinary) {
+    const payload = JSON.stringify(changes);
+    return getTextEncoder().encode(payload);
+  }
   const encoded = changes.map((change) => {
     if (change instanceof Uint8Array) {
       return change;
@@ -106,7 +111,7 @@ const decodeChangeFromBytes = (
   decodeChange?: (buffer: Uint8Array) => unknown,
 ): Change => {
   if (!decodeChange) {
-    return bytes as Change;
+    return bytes as unknown as Change;
   }
   const result = decodeChange(bytes);
   if (Array.isArray(result)) {
