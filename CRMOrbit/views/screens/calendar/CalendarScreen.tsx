@@ -405,6 +405,13 @@ export const CalendarScreen = ({ navigation }: Props) => {
         <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
           {t("calendar.sync.unsupported")}
         </Text>
+      ) : permission === null ? (
+        <View style={styles.syncStatusRow}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
+            {t("calendar.sync.permissionChecking")}
+          </Text>
+        </View>
       ) : permission?.granted ? (
         <>
           <FormField label={t("calendar.sync.nameLabel")}>

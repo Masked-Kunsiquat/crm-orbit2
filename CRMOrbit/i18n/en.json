@@ -146,6 +146,7 @@
   "calendar.event.audit": "Audit",
   "calendar.sync.title": "Device Calendar",
   "calendar.sync.permissionHint": "Allow calendar access to sync audits and interactions.",
+  "calendar.sync.permissionChecking": "Checking calendar permissions...",
   "calendar.sync.permissionButton": "Allow Calendar Access",
   "calendar.sync.openSettings": "Open Settings",
   "calendar.sync.nameLabel": "Calendar name",
