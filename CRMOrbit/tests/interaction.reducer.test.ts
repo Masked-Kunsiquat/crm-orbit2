@@ -110,7 +110,7 @@ test("interaction.rescheduled updates scheduledFor", () => {
   assert.equal(interaction.occurredAt, "2024-06-11T15:30:00.000Z");
 });
 
-test("interaction.status.updated requires occurredAt when completing", () => {
+test("interaction.status.updated uses existing occurredAt when completing", () => {
   const doc = initAutomergeDoc();
   const scheduled: Event = {
     id: "evt-interaction-2",
@@ -136,10 +136,11 @@ test("interaction.status.updated requires occurredAt when completing", () => {
   };
 
   const createdDoc = interactionReducer(doc, scheduled);
+  const updatedDoc = interactionReducer(createdDoc, statusUpdated);
+  const interaction = updatedDoc.interactions["interaction-2"];
 
-  assert.throws(() => interactionReducer(createdDoc, statusUpdated), {
-    message: "Interaction occurredAt is required when completing.",
-  });
+  assert.equal(interaction.status, "interaction.status.completed");
+  assert.equal(interaction.occurredAt, "2024-06-10T15:00:00.000Z");
 });
 
 test("interaction.status.updated stores completion details", () => {

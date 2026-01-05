@@ -62,18 +62,6 @@ const getTextDecoder = (): TextDecoderLike => {
   return new Decoder();
 };
 
-const concatenateUint8Arrays = (chunks: Uint8Array[]): Uint8Array => {
-  if (chunks.length === 0) return new Uint8Array();
-  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-  const merged = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return merged;
-};
-
 const parseJsonChanges = (changes: Uint8Array): Change[] => {
   const payload = getTextDecoder().decode(changes);
   const parsed = JSON.parse(payload) as unknown;
@@ -90,13 +78,135 @@ const encodeChanges = (changes: Change[]): Uint8Array => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
-  if (encodeChange) {
-    const encoded = changes.map((change) => encodeChange(change));
-    return concatenateUint8Arrays(encoded);
+  const encoded = changes.map((change) => {
+    if (change instanceof Uint8Array) {
+      return change;
+    }
+    if (!encodeChange) {
+      throw new Error("Automerge.encodeChange is unavailable.");
+    }
+    return encodeChange(change);
+  });
+
+  const total = encoded.reduce((sum, chunk) => sum + 4 + chunk.length, 0);
+  const buffer = new Uint8Array(total);
+  const view = new DataView(buffer.buffer);
+  let offset = 0;
+  for (const chunk of encoded) {
+    view.setUint32(offset, chunk.length, false);
+    offset += 4;
+    buffer.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return buffer;
+};
+
+const decodeChangeFromBytes = (
+  bytes: Uint8Array,
+  decodeChange?: (buffer: Uint8Array) => unknown,
+): Change => {
+  if (!decodeChange) {
+    return bytes as Change;
+  }
+  const result = decodeChange(bytes);
+  if (Array.isArray(result)) {
+    return (result as [Change, number])[0];
+  }
+  if (result && typeof result === "object" && "change" in result) {
+    return (result as { change: Change }).change;
+  }
+  return result as Change;
+};
+
+const decodeLengthPrefixedChanges = (
+  changes: Uint8Array,
+  decodeChange?: (buffer: Uint8Array) => unknown,
+): Change[] => {
+  const decoded: Change[] = [];
+  const view = new DataView(
+    changes.buffer,
+    changes.byteOffset,
+    changes.byteLength,
+  );
+  let offset = 0;
+  while (offset < changes.length) {
+    if (offset + 4 > changes.length) {
+      throw new Error("Invalid sync payload length prefix.");
+    }
+    const length = view.getUint32(offset, false);
+    offset += 4;
+    if (!Number.isFinite(length) || length <= 0) {
+      throw new Error("Invalid sync payload length prefix.");
+    }
+    if (offset + length > changes.length) {
+      throw new Error("Invalid sync payload length prefix.");
+    }
+    const slice = changes.subarray(offset, offset + length);
+    decoded.push(decodeChangeFromBytes(slice, decodeChange));
+    offset += length;
+  }
+  return decoded;
+};
+
+const decodeChangesLegacy = (
+  changes: Uint8Array,
+  decodeChange?: (buffer: Uint8Array) => unknown,
+  encodeChange?: (change: Change) => Uint8Array,
+): Change[] => {
+  if (!decodeChange) {
+    return parseJsonChanges(changes);
   }
 
-  const payload = JSON.stringify(changes);
-  return getTextEncoder().encode(payload);
+  const decoded: Change[] = [];
+  let offset = 0;
+
+  while (offset < changes.length) {
+    const slice = changes.subarray(offset);
+    const result = decodeChange(slice);
+
+    if (Array.isArray(result)) {
+      const [change, bytes] = result as [Change, number];
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(change);
+      offset += bytes;
+      continue;
+    }
+
+    if (result && typeof result === "object" && "change" in result) {
+      const changeResult = result as {
+        change: Change;
+        bytes?: number;
+        length?: number;
+        bytesRead?: number;
+      };
+      const bytes =
+        changeResult.bytes ??
+        changeResult.length ??
+        changeResult.bytesRead ??
+        0;
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(changeResult.change);
+      offset += bytes;
+      continue;
+    }
+
+    const change = result as Change;
+    if (!encodeChange) {
+      throw new Error("Automerge.encodeChange is unavailable.");
+    }
+    const encoded = encodeChange(change);
+    if (encoded.length <= 0) {
+      throw new Error("Invalid decoded change length.");
+    }
+    decoded.push(change);
+    offset += encoded.length;
+  }
+
+  return decoded;
 };
 
 const decodeChanges = (changes: Uint8Array): Change[] => {
@@ -111,62 +221,19 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
-  if (!decodeChange) {
-    return parseJsonChanges(changes);
+
+  try {
+    return decodeLengthPrefixedChanges(changes, decodeChange);
+  } catch (error) {
+    logger.warn(
+      "Failed to decode length-prefixed changes, falling back",
+      {},
+      error,
+    );
   }
 
   try {
-    const decoded: Change[] = [];
-    let offset = 0;
-
-    while (offset < changes.length) {
-      const slice = changes.subarray(offset);
-      const result = decodeChange(slice);
-
-      if (Array.isArray(result)) {
-        const [change, bytes] = result as [Change, number];
-        if (!Number.isFinite(bytes) || bytes <= 0) {
-          throw new Error("Invalid decoded change length.");
-        }
-        decoded.push(change);
-        offset += bytes;
-        continue;
-      }
-
-      if (result && typeof result === "object" && "change" in result) {
-        const changeResult = result as {
-          change: Change;
-          bytes?: number;
-          length?: number;
-          bytesRead?: number;
-        };
-        const bytes =
-          changeResult.bytes ??
-          changeResult.length ??
-          changeResult.bytesRead ??
-          0;
-        if (!Number.isFinite(bytes) || bytes <= 0) {
-          throw new Error("Invalid decoded change length.");
-        }
-        decoded.push(changeResult.change);
-        offset += bytes;
-        continue;
-      }
-
-      const change = result as Change;
-      if (!encodeChange) {
-        throw new Error("Automerge.encodeChange is unavailable.");
-      }
-      const encoded = encodeChange(change);
-      if (encoded.length <= 0) {
-        throw new Error("Invalid decoded change length.");
-      }
-      decoded.push(change);
-      offset += encoded.length;
-      continue;
-    }
-
-    return decoded;
+    return decodeChangesLegacy(changes, decodeChange, encodeChange);
   } catch (error) {
     logger.warn(
       "Failed to decode binary changes, falling back to JSON",
