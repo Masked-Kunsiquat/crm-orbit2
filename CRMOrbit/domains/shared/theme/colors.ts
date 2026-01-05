@@ -23,6 +23,8 @@ export type ColorScheme = {
   // Semantic colors
   success: string;
   successBg: string;
+  warning: string;
+  warningBg: string;
   error: string;
   errorBg: string;
   link: string;
@@ -68,6 +70,8 @@ export const lightColors: ColorScheme = {
   // Semantic colors
   success: "#4caf50",
   successBg: "#e8f5e9",
+  warning: "#f59e0b",
+  warningBg: "#fff4cc",
   error: "#b00020",
   errorBg: "#ffebee",
   link: "#1f5eff",
@@ -113,6 +117,8 @@ export const darkColors: ColorScheme = {
   // Semantic colors
   success: "#4ade80",
   successBg: "#1e3a1e",
+  warning: "#fbbf24",
+  warningBg: "#3a2a1a",
   error: "#f87171",
   errorBg: "#3a1e1e",
   link: "#4d7dff",

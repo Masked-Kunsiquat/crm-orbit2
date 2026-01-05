@@ -1,4 +1,4 @@
-import type { Audit } from "@domains/audit";
+import type { Audit, AuditStatus } from "@domains/audit";
 import type { Account } from "@domains/account";
 import type { AutomergeDoc } from "@automerge/schema";
 import type { Event } from "@events/event";
@@ -12,6 +12,7 @@ type AuditCreatedPayload = {
   id: EntityId;
   accountId: EntityId;
   scheduledFor: Timestamp;
+  durationMinutes?: number;
   notes?: string;
   floorsVisited?: number[];
 };
@@ -24,6 +25,7 @@ type AuditRescheduledPayload = {
 type AuditCompletedPayload = {
   id: EntityId;
   occurredAt: Timestamp;
+  durationMinutes?: number;
   score?: number;
   notes?: string;
   floorsVisited?: number[];
@@ -46,6 +48,15 @@ type AuditAccountReassignedPayload = {
 
 type AuditDeletedPayload = {
   id: EntityId;
+};
+
+type AuditCanceledPayload = {
+  id: EntityId;
+};
+
+type AuditDurationUpdatedPayload = {
+  id: EntityId;
+  durationMinutes: number;
 };
 
 const buildAllowedFloors = (account: Account): Set<number> | null => {
@@ -110,6 +121,40 @@ const getAccountOrThrow = (doc: AutomergeDoc, accountId: EntityId): Account => {
   return account;
 };
 
+const DEFAULT_MIGRATION_DURATION_MINUTES = 60;
+
+const resolveAuditDurationMinutes = (
+  durationMinutes: number | undefined,
+  auditId: EntityId,
+  options: { allowFallback?: boolean } = {},
+): number => {
+  if (durationMinutes == null) {
+    if (options.allowFallback) {
+      logger.warn("Audit duration missing, applying migration default", {
+        auditId,
+        durationMinutes: DEFAULT_MIGRATION_DURATION_MINUTES,
+      });
+      return DEFAULT_MIGRATION_DURATION_MINUTES;
+    }
+    throw new Error("Audit durationMinutes is required.");
+  }
+
+  if (!Number.isInteger(durationMinutes) || durationMinutes <= 0) {
+    throw new Error("Audit durationMinutes must be a positive integer.");
+  }
+
+  return durationMinutes;
+};
+
+const resolveAuditStatus = (audit: Audit): AuditStatus => {
+  if (audit.status) {
+    return audit.status;
+  }
+  return audit.occurredAt
+    ? "audits.status.completed"
+    : "audits.status.scheduled";
+};
+
 const applyAuditCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as AuditCreatedPayload;
   const id = resolveEntityId(event, payload);
@@ -122,6 +167,12 @@ const applyAuditCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     throw new Error("Audit scheduledFor is required.");
   }
 
+  const durationMinutes = resolveAuditDurationMinutes(
+    payload.durationMinutes,
+    id,
+    { allowFallback: true },
+  );
+
   if (doc.audits[id]) {
     throw new Error(`Audit already exists: ${id}`);
   }
@@ -133,6 +184,8 @@ const applyAuditCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     id,
     accountId: payload.accountId,
     scheduledFor: payload.scheduledFor,
+    durationMinutes,
+    status: "audits.status.scheduled",
     notes: payload.notes,
     floorsVisited: payload.floorsVisited,
     createdAt: event.timestamp,
@@ -166,6 +219,11 @@ const applyAuditRescheduled = (
     throw new Error("Audit scheduledFor is required.");
   }
 
+  const status = resolveAuditStatus(existing);
+  if (status === "audits.status.completed") {
+    throw new Error("Completed audits cannot be rescheduled.");
+  }
+
   return {
     ...doc,
     audits: {
@@ -173,6 +231,9 @@ const applyAuditRescheduled = (
       [id]: {
         ...existing,
         scheduledFor: payload.scheduledFor,
+        status: "audits.status.scheduled",
+        occurredAt:
+          status === "audits.status.canceled" ? undefined : existing.occurredAt,
         updatedAt: event.timestamp,
       },
     },
@@ -192,6 +253,11 @@ const applyAuditCompleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     throw new Error("Audit occurredAt is required.");
   }
 
+  const durationMinutes = resolveAuditDurationMinutes(
+    payload.durationMinutes ?? existing.durationMinutes,
+    id,
+  );
+
   const account = getAccountOrThrow(doc, existing.accountId);
   const nextFloors =
     payload.floorsVisited !== undefined
@@ -205,6 +271,8 @@ const applyAuditCompleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       ...doc.audits,
       [id]: {
         ...existing,
+        status: "audits.status.completed",
+        durationMinutes,
         occurredAt: payload.occurredAt,
         ...(payload.score !== undefined && { score: payload.score }),
         ...(payload.notes !== undefined && { notes: payload.notes }),
@@ -298,6 +366,66 @@ const applyAuditAccountReassigned = (
   };
 };
 
+const applyAuditCanceled = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as AuditCanceledPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.audits[id];
+
+  if (!existing) {
+    throw new Error(`Audit not found: ${id}`);
+  }
+
+  const status = resolveAuditStatus(existing);
+  if (status === "audits.status.completed") {
+    throw new Error("Completed audits cannot be canceled.");
+  }
+
+  return {
+    ...doc,
+    audits: {
+      ...doc.audits,
+      [id]: {
+        ...existing,
+        status: "audits.status.canceled",
+        occurredAt: undefined,
+        score: undefined,
+        floorsVisited: undefined,
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
+const applyAuditDurationUpdated = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  const payload = event.payload as AuditDurationUpdatedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.audits[id];
+
+  if (!existing) {
+    throw new Error(`Audit not found: ${id}`);
+  }
+
+  const durationMinutes = resolveAuditDurationMinutes(
+    payload.durationMinutes,
+    id,
+  );
+
+  return {
+    ...doc,
+    audits: {
+      ...doc.audits,
+      [id]: {
+        ...existing,
+        durationMinutes,
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
 const applyAuditDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as AuditDeletedPayload;
   const id = resolveEntityId(event, payload);
@@ -337,6 +465,10 @@ export const auditReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       return applyAuditFloorsVisitedUpdated(doc, event);
     case "audit.account.reassigned":
       return applyAuditAccountReassigned(doc, event);
+    case "audit.canceled":
+      return applyAuditCanceled(doc, event);
+    case "audit.duration.updated":
+      return applyAuditDurationUpdated(doc, event);
     case "audit.deleted":
       return applyAuditDeleted(doc, event);
     default:

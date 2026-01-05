@@ -4,7 +4,12 @@ import type { Audit } from "@domains/audit";
 import { t } from "@i18n/index";
 import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
 import { useAccounts, useAllAudits } from "../../store/store";
-import { sortAuditsByDescendingTime } from "../../utils/audits";
+import {
+  getAuditStartTimestamp,
+  getAuditStatusTone,
+  resolveAuditStatus,
+  sortAuditsByDescendingTime,
+} from "../../utils/audits";
 
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,13 +50,12 @@ export const AuditsListScreen = ({ navigation }: Props) => {
   const renderItem = ({ item }: { item: Audit }) => {
     const accountName =
       accountNames.get(item.accountId) ?? t("common.unknownEntity");
-    const isCompleted = Boolean(item.occurredAt);
-    const timestampLabel = isCompleted
-      ? t("audits.fields.occurredAt")
-      : t("audits.fields.scheduledFor");
-    const timestampValue = formatTimestamp(
-      item.occurredAt ?? item.scheduledFor,
-    );
+    const status = resolveAuditStatus(item);
+    const timestampLabel =
+      status === "audits.status.completed"
+        ? t("audits.fields.occurredAt")
+        : t("audits.fields.scheduledFor");
+    const timestampValue = formatTimestamp(getAuditStartTimestamp(item));
     const scoreLabel =
       item.score !== undefined
         ? `${t("audits.fields.score")}: ${item.score}`
@@ -73,11 +77,7 @@ export const AuditsListScreen = ({ navigation }: Props) => {
         footnoteNumberOfLines={2}
         subtitle={subtitle}
         titleAccessory={
-          <StatusBadge
-            isActive={isCompleted}
-            activeLabelKey="audits.status.completed"
-            inactiveLabelKey="audits.status.scheduled"
-          />
+          <StatusBadge tone={getAuditStatusTone(status)} labelKey={status} />
         }
       />
     );

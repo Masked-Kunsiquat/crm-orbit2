@@ -66,6 +66,7 @@ const createAudit = (): Event => ({
     id: "audit-1",
     accountId: "account-1",
     scheduledFor: "2024-05-05T09:00:00.000Z",
+    durationMinutes: 60,
   },
   timestamp: "2024-05-04T09:00:00.000Z",
   deviceId: "device-1",

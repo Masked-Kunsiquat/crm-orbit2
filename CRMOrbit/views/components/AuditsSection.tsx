@@ -16,7 +16,12 @@ import type { RootStackParamList } from "@views/navigation/types";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
 import { StatusBadge } from "./StatusBadge";
-import { sortAuditsByDescendingTime } from "../utils/audits";
+import {
+  getAuditStartTimestamp,
+  getAuditStatusTone,
+  resolveAuditStatus,
+  sortAuditsByDescendingTime,
+} from "../utils/audits";
 
 type AuditsSectionProps = {
   audits: Audit[];
@@ -84,13 +89,12 @@ export const AuditsSection = ({
         </Text>
       ) : (
         sortedAudits.map((audit) => {
-          const isCompleted = Boolean(audit.occurredAt);
-          const timestampLabel = isCompleted
-            ? t("audits.fields.occurredAt")
-            : t("audits.fields.scheduledFor");
-          const timestampValue = formatTimestamp(
-            audit.occurredAt ?? audit.scheduledFor,
-          );
+          const status = resolveAuditStatus(audit);
+          const timestampLabel =
+            status === "audits.status.completed"
+              ? t("audits.fields.occurredAt")
+              : t("audits.fields.scheduledFor");
+          const timestampValue = formatTimestamp(getAuditStartTimestamp(audit));
           const scoreLabel =
             audit.score !== undefined
               ? `${t("audits.fields.score")}: ${audit.score}`
@@ -123,9 +127,8 @@ export const AuditsSection = ({
                       {timestampLabel}: {timestampValue}
                     </Text>
                     <StatusBadge
-                      isActive={isCompleted}
-                      activeLabelKey="audits.status.completed"
-                      inactiveLabelKey="audits.status.scheduled"
+                      tone={getAuditStatusTone(status)}
+                      labelKey={status}
                     />
                   </View>
                   {scoreLabel ? (

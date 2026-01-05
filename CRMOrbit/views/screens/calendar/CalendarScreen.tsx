@@ -5,14 +5,21 @@ import { AntDesign, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import type { Audit } from "@domains/audit";
 import type { Interaction } from "@domains/interaction";
 import { t } from "@i18n/index";
-import {
-  ListRow,
-  ListScreenLayout,
-  StatusBadge,
-} from "../../components";
+import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
 import { useTheme } from "../../hooks";
-import { useAccounts, useAllAudits, useAllInteractions } from "../../store/store";
+import {
+  useAccounts,
+  useAllAudits,
+  useAllInteractions,
+} from "../../store/store";
 import type { MiscStackScreenProps } from "../../navigation/types";
+import {
+  getAuditEndTimestamp,
+  getAuditStartTimestamp,
+  getAuditStatusTone,
+  resolveAuditStatus,
+} from "../../utils/audits";
+import { addMinutesToTimestamp } from "../../utils/duration";
 
 type Props = MiscStackScreenProps<"Calendar">;
 
@@ -53,7 +60,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
   const items = useMemo<CalendarItem[]>(() => {
     const auditItems = audits.map((audit) => ({
       kind: "audit" as const,
-      timestamp: resolveTimestamp(audit.occurredAt ?? audit.scheduledFor),
+      timestamp: resolveTimestamp(getAuditStartTimestamp(audit)),
       audit,
     }));
     const interactionItems = interactions.map((interaction) => ({
@@ -99,13 +106,17 @@ export const CalendarScreen = ({ navigation }: Props) => {
       const audit = item.audit;
       const accountName =
         accountNames.get(audit.accountId) ?? t("common.unknownEntity");
-      const isCompleted = Boolean(audit.occurredAt);
-      const timestampLabel = isCompleted
-        ? t("audits.fields.occurredAt")
-        : t("audits.fields.scheduledFor");
-      const timestampValue = formatTimestamp(
-        audit.occurredAt ?? audit.scheduledFor,
-      );
+      const status = resolveAuditStatus(audit);
+      const timestampLabel =
+        status === "audits.status.completed"
+          ? t("audits.fields.occurredAt")
+          : t("audits.fields.scheduledFor");
+      const startTimestamp = getAuditStartTimestamp(audit);
+      const endTimestamp = getAuditEndTimestamp(audit);
+      const timestampValue = formatTimestamp(startTimestamp);
+      const endTimestampValue = endTimestamp
+        ? formatTimestamp(endTimestamp)
+        : undefined;
       const scoreLabel =
         audit.score !== undefined
           ? `${t("audits.fields.score")}: ${audit.score}`
@@ -118,6 +129,11 @@ export const CalendarScreen = ({ navigation }: Props) => {
           : undefined;
       const footnote = audit.notes?.trim() || floorsLabel;
       const subtitle = scoreLabel ?? (audit.notes ? floorsLabel : undefined);
+      const description = endTimestampValue
+        ? `${timestampLabel}: ${timestampValue} · ${t(
+            "audits.fields.endsAt",
+          )}: ${endTimestampValue}`
+        : `${timestampLabel}: ${timestampValue}`;
 
       return (
         <ListRow
@@ -125,18 +141,14 @@ export const CalendarScreen = ({ navigation }: Props) => {
             navigation.navigate("AuditDetail", { auditId: audit.id })
           }
           title={accountName}
-          description={`${timestampLabel}: ${timestampValue}`}
+          description={description}
           footnote={footnote}
           subtitle={subtitle}
           descriptionNumberOfLines={2}
           footnoteNumberOfLines={2}
           style={styles.listRow}
           titleAccessory={
-            <StatusBadge
-              isActive={isCompleted}
-              activeLabelKey="audits.status.completed"
-              inactiveLabelKey="audits.status.scheduled"
-            />
+            <StatusBadge tone={getAuditStatusTone(status)} labelKey={status} />
           }
         >
           <View style={styles.iconContainer}>
@@ -163,6 +175,16 @@ export const CalendarScreen = ({ navigation }: Props) => {
         : `${t("interactions.statusLabel")}: ${t(resolvedStatus)} · ${t(
             labelKey,
           )}: ${formattedTimestamp}`;
+    const endTimestamp = addMinutesToTimestamp(
+      timestampValue,
+      interaction.durationMinutes,
+    );
+    const endTimestampValue = endTimestamp
+      ? formatTimestamp(endTimestamp)
+      : undefined;
+    const interactionDescription = endTimestampValue
+      ? `${description} · ${t("interactions.fields.endsAt")}: ${endTimestampValue}`
+      : description;
 
     return (
       <ListRow
@@ -172,7 +194,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
           })
         }
         title={interaction.summary}
-        description={description}
+        description={interactionDescription}
         descriptionNumberOfLines={2}
         style={styles.listRow}
       >
@@ -188,7 +210,9 @@ export const CalendarScreen = ({ navigation }: Props) => {
       data={items}
       renderItem={renderItem}
       keyExtractor={(item) =>
-        item.kind === "audit" ? `audit-${item.audit.id}` : `interaction-${item.interaction.id}`
+        item.kind === "audit"
+          ? `audit-${item.audit.id}`
+          : `interaction-${item.interaction.id}`
       }
       emptyTitle={t("calendar.emptyTitle")}
       emptyHint={t("calendar.emptyHint")}

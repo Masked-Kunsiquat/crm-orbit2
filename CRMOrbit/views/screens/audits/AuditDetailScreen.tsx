@@ -15,6 +15,13 @@ import {
 } from "../../components";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useTheme } from "../../hooks";
+import {
+  getAuditEndTimestamp,
+  getAuditStartTimestamp,
+  getAuditStatusTone,
+  resolveAuditStatus,
+} from "../../utils/audits";
+import { formatDurationLabel } from "../../utils/duration";
 
 type Props = {
   route: { params: { auditId: string } };
@@ -82,7 +89,9 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
     audit.floorsVisited && audit.floorsVisited.length > 0
       ? audit.floorsVisited.join(", ")
       : null;
-  const isCompleted = Boolean(audit.occurredAt);
+  const status = resolveAuditStatus(audit);
+  const startTimestamp = getAuditStartTimestamp(audit);
+  const endTimestamp = getAuditEndTimestamp(audit);
 
   return (
     <DetailScreenLayout>
@@ -103,11 +112,7 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
                 {account?.name ?? t("common.unknownEntity")}
               </Text>
             </TouchableOpacity>
-            <StatusBadge
-              isActive={isCompleted}
-              activeLabelKey="audits.status.completed"
-              inactiveLabelKey="audits.status.scheduled"
-            />
+            <StatusBadge tone={getAuditStatusTone(status)} labelKey={status} />
           </View>
           <PrimaryActionButton
             label={t("common.edit")}
@@ -125,6 +130,16 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
         {audit.occurredAt ? (
           <DetailField label={t("audits.fields.occurredAt")}>
             {formatTimestamp(audit.occurredAt)}
+          </DetailField>
+        ) : null}
+
+        <DetailField label={t("audits.fields.duration")}>
+          {formatDurationLabel(audit.durationMinutes)}
+        </DetailField>
+
+        {startTimestamp && endTimestamp ? (
+          <DetailField label={t("audits.fields.endsAt")}>
+            {formatTimestamp(endTimestamp)}
           </DetailField>
         ) : null}
 

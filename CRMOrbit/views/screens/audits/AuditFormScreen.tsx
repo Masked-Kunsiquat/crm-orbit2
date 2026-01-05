@@ -27,6 +27,11 @@ import {
 } from "../../components";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useTheme } from "../../hooks";
+import {
+  formatDurationLabel,
+  parseDurationMinutes,
+  splitDurationMinutes,
+} from "../../utils/duration";
 
 type Props = {
   route: {
@@ -39,12 +44,20 @@ type Props = {
   navigation: any;
 };
 
-type AuditStatus = "scheduled" | "completed";
+type AuditStatus =
+  | "audits.status.scheduled"
+  | "audits.status.canceled"
+  | "audits.status.completed";
+
+type DurationPreset = "30" | "60" | "120" | "240" | "custom";
 
 const STATUS_OPTIONS: Array<{ label: string; value: AuditStatus }> = [
-  { label: "audits.status.scheduled", value: "scheduled" },
-  { label: "audits.status.completed", value: "completed" },
+  { label: "audits.status.scheduled", value: "audits.status.scheduled" },
+  { label: "audits.status.completed", value: "audits.status.completed" },
+  { label: "audits.status.canceled", value: "audits.status.canceled" },
 ];
+
+const DURATION_PRESETS = [30, 60, 120, 240];
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {
@@ -106,6 +119,8 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
     updateAuditNotes,
     updateAuditFloorsVisited,
     reassignAuditAccount,
+    cancelAudit,
+    updateAuditDuration,
   } = useAuditActions(deviceId);
   const { dialogProps, showAlert } = useConfirmDialog();
 
@@ -115,7 +130,11 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
   const [notes, setNotes] = useState("");
   const [score, setScore] = useState("");
   const [floorsVisitedInput, setFloorsVisitedInput] = useState("");
-  const [status, setStatus] = useState<AuditStatus>("scheduled");
+  const [status, setStatus] = useState<AuditStatus>("audits.status.scheduled");
+  const [durationPreset, setDurationPreset] =
+    useState<DurationPreset>("custom");
+  const [durationHours, setDurationHours] = useState("");
+  const [durationMinutesInput, setDurationMinutesInput] = useState("");
   const [activePicker, setActivePicker] = useState<
     "scheduled" | "occurred" | null
   >(null);
@@ -132,10 +151,22 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
       setAccountId(audit.accountId);
       setScheduledFor(audit.scheduledFor);
       setOccurredAt(audit.occurredAt ?? "");
-      setStatus(audit.occurredAt ? "completed" : "scheduled");
+      setStatus(
+        audit.status ??
+          (audit.occurredAt
+            ? "audits.status.completed"
+            : "audits.status.scheduled"),
+      );
       setNotes(audit.notes ?? "");
       setScore(audit.score !== undefined ? `${audit.score}` : "");
       setFloorsVisitedInput(audit.floorsVisited?.join(", ") ?? "");
+      const { hours, minutes } = splitDurationMinutes(audit.durationMinutes);
+      setDurationHours(hours ? `${hours}` : "");
+      setDurationMinutesInput(minutes ? `${minutes}` : "");
+      const preset = DURATION_PRESETS.find(
+        (value) => value === audit.durationMinutes,
+      );
+      setDurationPreset(preset ? `${preset}` : "custom");
       return;
     }
 
@@ -143,10 +174,13 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
     setAccountId(prefillAccountId ?? "");
     setScheduledFor(now);
     setOccurredAt("");
-    setStatus("scheduled");
+    setStatus("audits.status.scheduled");
     setNotes("");
     setScore("");
     setFloorsVisitedInput("");
+    setDurationPreset("custom");
+    setDurationHours("");
+    setDurationMinutesInput("");
   }, [audit, prefillAccountId]);
 
   const getResolvedDate = useCallback(
@@ -232,6 +266,17 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
     setActivePicker(field);
   };
 
+  const handleDurationPresetChange = (value: DurationPreset) => {
+    setDurationPreset(value);
+    if (value === "custom") {
+      return;
+    }
+    const minutes = Number(value);
+    const { hours, minutes: remainder } = splitDurationMinutes(minutes);
+    setDurationHours(hours ? `${hours}` : "");
+    setDurationMinutesInput(remainder ? `${remainder}` : "");
+  };
+
   const handleSave = () => {
     const trimmedAccountId = accountId.trim();
     if (!trimmedAccountId) {
@@ -247,6 +292,28 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
       showAlert(
         t("common.error"),
         t("audits.validation.scheduledForRequired"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    const durationValue = parseDurationMinutes(
+      durationHours,
+      durationMinutesInput,
+    );
+    if (durationValue === undefined) {
+      showAlert(
+        t("common.error"),
+        t("audits.validation.durationRequired"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    if (durationValue === null || durationValue <= 0) {
+      showAlert(
+        t("common.error"),
+        t("audits.validation.durationInvalid"),
         t("common.ok"),
       );
       return;
@@ -274,7 +341,7 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
 
     const notesValue = notes.trim() ? notes.trim() : undefined;
     const occurredAtValue =
-      status === "completed"
+      status === "audits.status.completed"
         ? occurredAt || scheduledFor || new Date().toISOString()
         : undefined;
 
@@ -283,6 +350,7 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
       const createResult = createAudit(
         trimmedAccountId,
         scheduledFor,
+        durationValue,
         notesValue,
         floorsVisited,
         newAuditId,
@@ -296,10 +364,11 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         return;
       }
 
-      if (status === "completed" && occurredAtValue) {
+      if (status === "audits.status.completed" && occurredAtValue) {
         const completeResult = completeAudit(
           newAuditId,
           occurredAtValue,
+          durationValue,
           scoreValue,
           notesValue,
           floorsVisited,
@@ -314,28 +383,61 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         }
       }
 
+      if (status === "audits.status.canceled") {
+        const cancelResult = cancelAudit(newAuditId);
+        if (!cancelResult.success) {
+          showAlert(
+            t("common.error"),
+            cancelResult.error || t("audits.updateError"),
+            t("common.ok"),
+          );
+          return;
+        }
+      }
+
       navigation.goBack();
       return;
     }
 
     const results = [];
+    const existingStatus =
+      audit.status ??
+      (audit.occurredAt
+        ? "audits.status.completed"
+        : "audits.status.scheduled");
     if (audit.accountId !== trimmedAccountId) {
       results.push(reassignAuditAccount(audit.id, trimmedAccountId));
     }
-    if (audit.scheduledFor !== scheduledFor) {
+    if (
+      audit.scheduledFor !== scheduledFor ||
+      (existingStatus === "audits.status.canceled" &&
+        status === "audits.status.scheduled")
+    ) {
       results.push(rescheduleAudit(audit.id, scheduledFor));
     }
+    if (audit.durationMinutes !== durationValue) {
+      results.push(updateAuditDuration(audit.id, durationValue));
+    }
 
-    if (status === "completed" && occurredAtValue) {
+    if (status === "audits.status.completed" && occurredAtValue) {
       results.push(
         completeAudit(
           audit.id,
           occurredAtValue,
+          durationValue,
           scoreValue,
           notesValue,
           floorsVisited,
         ),
       );
+    } else if (
+      status === "audits.status.canceled" &&
+      existingStatus !== "audits.status.canceled"
+    ) {
+      results.push(cancelAudit(audit.id));
+      if ((audit.notes ?? "") !== (notesValue ?? "")) {
+        results.push(updateAuditNotes(audit.id, notesValue));
+      }
     } else {
       if ((audit.notes ?? "") !== (notesValue ?? "")) {
         results.push(updateAuditNotes(audit.id, notesValue));
@@ -358,7 +460,24 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
     navigation.goBack();
   };
 
-  const canToggleStatus = !audit?.occurredAt;
+  const resolvedStatus =
+    audit?.status ??
+    (audit?.occurredAt ? "audits.status.completed" : "audits.status.scheduled");
+  const canToggleStatus = resolvedStatus !== "audits.status.completed";
+
+  const durationOptions: Array<{ label: string; value: DurationPreset }> = [
+    ...DURATION_PRESETS.map((value) => ({
+      label: formatDurationLabel(value),
+      value: `${value}` as DurationPreset,
+    })),
+    { label: t("common.custom"), value: "custom" },
+  ];
+
+  const statusOptions = audit
+    ? STATUS_OPTIONS
+    : STATUS_OPTIONS.filter(
+        (option) => option.value !== "audits.status.canceled",
+      );
 
   return (
     <FormScreenLayout>
@@ -401,10 +520,59 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         </TouchableOpacity>
       </FormField>
 
+      <FormField
+        label={`${t("audits.form.durationLabel")} *`}
+        hint={t("audits.form.durationHint")}
+      >
+        <SegmentedOptionGroup
+          options={durationOptions}
+          value={durationPreset}
+          onChange={handleDurationPresetChange}
+        />
+        <View style={styles.durationInputs}>
+          <View style={styles.durationField}>
+            <Text
+              style={[styles.durationLabel, { color: colors.textSecondary }]}
+            >
+              {t("common.duration.hoursLabel")}
+            </Text>
+            <TextField
+              value={durationHours}
+              onChangeText={(value) => {
+                setDurationHours(value);
+                setDurationPreset("custom");
+              }}
+              placeholder={t("common.duration.hoursPlaceholder")}
+              keyboardType="numeric"
+              autoCapitalize="none"
+              style={styles.durationInput}
+            />
+          </View>
+          <View style={styles.durationField}>
+            <Text
+              style={[styles.durationLabel, { color: colors.textSecondary }]}
+            >
+              {t("common.duration.minutesLabel")}
+            </Text>
+            <TextField
+              value={durationMinutesInput}
+              onChangeText={(value) => {
+                setDurationMinutesInput(value);
+                setDurationPreset("custom");
+              }}
+              placeholder={t("common.duration.minutesPlaceholder")}
+              keyboardType="numeric"
+              autoCapitalize="none"
+              style={styles.durationInput}
+            />
+          </View>
+        </View>
+      </FormField>
+
       {canToggleStatus ? (
         <FormField label={t("audits.form.statusLabel")}>
           <SegmentedOptionGroup
-            options={STATUS_OPTIONS.map((option) => ({
+            options={statusOptions.map((option) => ({
               ...option,
               label: t(option.label),
             }))}
@@ -415,12 +583,12 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
       ) : (
         <FormField label={t("audits.form.statusLabel")}>
           <Text style={{ color: colors.textSecondary }}>
-            {t("audits.status.completed")}
+            {t(resolvedStatus)}
           </Text>
         </FormField>
       )}
 
-      {status === "completed" ? (
+      {status === "audits.status.completed" ? (
         <FormField label={t("audits.form.occurredAtLabel")}>
           <TouchableOpacity
             style={[
@@ -443,7 +611,7 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         </FormField>
       ) : null}
 
-      {status === "completed" ? (
+      {status === "audits.status.completed" ? (
         <FormField label={t("audits.form.scoreLabel")}>
           <TextField
             value={score}
@@ -589,6 +757,21 @@ const styles = StyleSheet.create({
   },
   pickerChevron: {
     fontSize: 12,
+  },
+  durationInputs: {
+    marginTop: 12,
+    flexDirection: "row",
+    gap: 12,
+  },
+  durationField: {
+    flex: 1,
+  },
+  durationLabel: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  durationInput: {
+    minHeight: 44,
   },
   modalOverlay: {
     flex: 1,
