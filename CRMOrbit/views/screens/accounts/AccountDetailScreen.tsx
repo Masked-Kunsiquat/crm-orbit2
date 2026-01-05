@@ -10,12 +10,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useState, useMemo } from "react";
-import type { NavigationProp } from "@react-navigation/native";
 
-import type {
-  AccountsStackScreenProps,
-  RootStackParamList,
-} from "../../navigation/types";
+import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
   useAccount,
   useContacts,
@@ -530,7 +526,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <AuditsSection
             audits={audits}
             accountId={accountId}
-            navigation={navigation as NavigationProp<RootStackParamList>}
+            navigation={navigation}
           />
           <InteractionsSection
             interactions={interactions}
