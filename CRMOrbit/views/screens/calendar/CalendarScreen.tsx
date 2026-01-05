@@ -144,27 +144,47 @@ export const CalendarScreen = ({ navigation }: Props) => {
   );
 
   useEffect(() => {
+    let mounted = true;
     const loadSettings = async () => {
-      const [storedName, storedId, storedLastSync] = await Promise.all([
-        getStoredCalendarName(),
-        getStoredCalendarId(),
-        getLastCalendarSync(),
-      ]);
-      setCalendarName(storedName);
-      setCalendarId(storedId);
-      setLastSync(storedLastSync);
+      try {
+        const [storedName, storedId, storedLastSync] = await Promise.all([
+          getStoredCalendarName(),
+          getStoredCalendarId(),
+          getLastCalendarSync(),
+        ]);
+        if (mounted) {
+          setCalendarName(storedName);
+          setCalendarId(storedId);
+          setLastSync(storedLastSync);
+        }
+      } catch {
+        // Defaults are handled by state initialization.
+      }
     };
     void loadSettings();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
     if (!permission?.granted || calendarId) return;
+    let mounted = true;
     const ensureCalendar = async () => {
-      const nextName = calendarName.trim() || DEFAULT_DEVICE_CALENDAR_NAME;
-      const id = await ensureDeviceCalendar(nextName);
-      setCalendarId(id);
+      try {
+        const nextName = calendarName.trim() || DEFAULT_DEVICE_CALENDAR_NAME;
+        const id = await ensureDeviceCalendar(nextName);
+        if (mounted) {
+          setCalendarId(id);
+        }
+      } catch {
+        // Calendar creation will be retried on the next sync.
+      }
     };
     void ensureCalendar();
+    return () => {
+      mounted = false;
+    };
   }, [calendarId, calendarName, permission?.granted]);
 
   const items = useMemo<CalendarItem[]>(() => {
