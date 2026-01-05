@@ -180,10 +180,9 @@ export const TimelineSection = ({
         typeof payload.maxFloor === "number"
           ? payload.maxFloor
           : existing?.maxFloor,
-      excludedFloors:
-        Array.isArray(payload.excludedFloors)
-          ? (payload.excludedFloors as number[])
-          : existing?.excludedFloors,
+      excludedFloors: Array.isArray(payload.excludedFloors)
+        ? (payload.excludedFloors as number[])
+        : existing?.excludedFloors,
       addresses:
         payload.addresses !== undefined
           ? (payload.addresses as Account["addresses"])

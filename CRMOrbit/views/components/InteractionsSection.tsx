@@ -132,7 +132,7 @@ export const InteractionsSection = ({
             ? t("interactions.scheduledFor")
             : t("interactions.occurredAt");
           const timestampValue = usesScheduledTimestamp
-            ? interaction.scheduledFor ?? interaction.occurredAt
+            ? (interaction.scheduledFor ?? interaction.occurredAt)
             : interaction.occurredAt;
           const formattedTimestamp = (() => {
             const date = new Date(timestampValue);
@@ -196,13 +196,12 @@ export const InteractionsSection = ({
                   styles.unlinkButton,
                   { backgroundColor: colors.errorBg },
                 ]}
-                onPress={() => handleUnlink(interaction.id, interaction.summary)}
+                onPress={() =>
+                  handleUnlink(interaction.id, interaction.summary)
+                }
               >
                 <Text
-                  style={[
-                    styles.unlinkButtonText,
-                    { color: colors.error },
-                  ]}
+                  style={[styles.unlinkButtonText, { color: colors.error }]}
                 >
                   {t("interactions.unlinkButton")}
                 </Text>

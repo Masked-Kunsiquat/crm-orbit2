@@ -174,9 +174,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     }));
   };
 
-  const parseFloorValue = (
-    value: string,
-  ): number | undefined | null => {
+  const parseFloorValue = (value: string): number | undefined | null => {
     const trimmed = value.trim();
     if (!trimmed) {
       return undefined;
@@ -188,9 +186,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     return parsed;
   };
 
-  const parseExcludedFloors = (
-    value: string,
-  ): number[] | undefined | null => {
+  const parseExcludedFloors = (value: string): number[] | undefined | null => {
     const trimmed = value.trim();
     if (!trimmed) {
       return undefined;
@@ -294,11 +290,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
-    if (
-      hasMinFloor &&
-      hasMaxFloor &&
-      minFloorParsed > maxFloorParsed
-    ) {
+    if (hasMinFloor && hasMaxFloor && minFloorParsed > maxFloorParsed) {
       showAlert(
         t("common.validationError"),
         t("accounts.validation.floorRangeInvalid"),

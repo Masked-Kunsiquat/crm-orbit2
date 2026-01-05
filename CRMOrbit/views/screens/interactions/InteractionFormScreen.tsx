@@ -277,7 +277,12 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
               nextTimestamp,
               newInteractionId,
             )
-          : logInteraction(type, trimmedSummary, nextTimestamp, newInteractionId);
+          : logInteraction(
+              type,
+              trimmedSummary,
+              nextTimestamp,
+              newInteractionId,
+            );
       if (result.success) {
         if (entityToLink) {
           const linkResult = linkInteraction(
@@ -349,9 +354,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
                 : []),
             ]}
             value={status}
-            onChange={(value) =>
-              handleStatusChange(value as InteractionStatus)
-            }
+            onChange={(value) => handleStatusChange(value as InteractionStatus)}
           />
         </FormField>
 

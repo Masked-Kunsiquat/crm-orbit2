@@ -59,12 +59,11 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
   };
 
   const renderItem = ({ item }: { item: Interaction }) => {
-    const resolvedStatus =
-      item.status ?? "interaction.status.completed";
+    const resolvedStatus = item.status ?? "interaction.status.completed";
     const usesScheduledTimestamp =
       resolvedStatus !== "interaction.status.completed";
     const timestampValue = usesScheduledTimestamp
-      ? item.scheduledFor ?? item.occurredAt
+      ? (item.scheduledFor ?? item.occurredAt)
       : item.occurredAt;
     const labelKey = usesScheduledTimestamp
       ? "interactions.scheduledFor"

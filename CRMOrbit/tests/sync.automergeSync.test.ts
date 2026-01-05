@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import Automerge from "automerge";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { AutomergeDoc } from "@automerge/schema";
 import { initAutomergeDoc } from "@automerge/init";
 import {
   applyReceivedChanges,

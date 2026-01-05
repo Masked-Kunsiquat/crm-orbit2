@@ -140,15 +140,14 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
-  const resolvedStatus =
-    interaction.status ?? "interaction.status.completed";
+  const resolvedStatus = interaction.status ?? "interaction.status.completed";
   const usesScheduledTimestamp =
     resolvedStatus !== "interaction.status.completed";
   const timestampLabel = usesScheduledTimestamp
     ? t("interactions.scheduledFor")
     : t("interactions.occurredAt");
   const timestampValue = usesScheduledTimestamp
-    ? interaction.scheduledFor ?? interaction.occurredAt
+    ? (interaction.scheduledFor ?? interaction.occurredAt)
     : interaction.occurredAt;
   const formattedTimestamp = (() => {
     const date = new Date(timestampValue);
