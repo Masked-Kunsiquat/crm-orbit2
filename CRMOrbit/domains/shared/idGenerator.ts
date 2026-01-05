@@ -20,12 +20,41 @@ const generateUUID = (): string => {
     return crypto.randomUUID();
   }
 
-  // Fallback polyfill using Math.random (less secure but works everywhere)
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  // Fallback polyfill using a cryptographically secure RNG.
+  const getSecureRandomBytes = (length: number): Uint8Array => {
+    if (
+      typeof globalThis !== "undefined" &&
+      globalThis.crypto &&
+      typeof globalThis.crypto.getRandomValues === "function"
+    ) {
+      const bytes = new Uint8Array(length);
+      globalThis.crypto.getRandomValues(bytes);
+      return bytes;
+    }
+
+    // Node.js fallback using built-in crypto.randomBytes
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const nodeCrypto = require("crypto") as typeof import("crypto");
+    return nodeCrypto.randomBytes(length);
+  };
+
+  const bytes = getSecureRandomBytes(16);
+
+  // Per RFC 4122 section 4.4: set the version to 4 and the RFC 4122 variant.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  );
+
+  return [
+    hex.slice(0, 4).join(""),
+    hex.slice(4, 6).join(""),
+    hex.slice(6, 8).join(""),
+    hex.slice(8, 10).join(""),
+    hex.slice(10, 16).join(""),
+  ].join("-");
 };
 
 /**
