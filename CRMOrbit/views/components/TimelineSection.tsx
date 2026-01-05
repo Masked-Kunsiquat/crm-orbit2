@@ -20,7 +20,7 @@ import type { Contact, ContactMethod } from "@domains/contact";
 import type { Account } from "@domains/account";
 import type { Organization } from "@domains/organization";
 import type { Note } from "@domains/note";
-import type { Interaction } from "@domains/interaction";
+import type { Interaction, InteractionStatus } from "@domains/interaction";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -62,6 +62,11 @@ const isInteractionType = (value: unknown): value is Interaction["type"] =>
   value === "interaction.type.email" ||
   value === "interaction.type.meeting" ||
   value === "interaction.type.other";
+
+const isInteractionStatus = (value: unknown): value is InteractionStatus =>
+  value === "interaction.status.scheduled" ||
+  value === "interaction.status.completed" ||
+  value === "interaction.status.canceled";
 
 const tryResolveEntityId = (
   event: Event,
@@ -167,6 +172,17 @@ export const TimelineSection = ({
       status: isAccountStatus(payload.status)
         ? payload.status
         : (existing?.status ?? "account.status.active"),
+      minFloor:
+        typeof payload.minFloor === "number"
+          ? payload.minFloor
+          : existing?.minFloor,
+      maxFloor:
+        typeof payload.maxFloor === "number"
+          ? payload.maxFloor
+          : existing?.maxFloor,
+      excludedFloors: Array.isArray(payload.excludedFloors)
+        ? (payload.excludedFloors as number[])
+        : existing?.excludedFloors,
       addresses:
         payload.addresses !== undefined
           ? (payload.addresses as Account["addresses"])
@@ -253,10 +269,19 @@ export const TimelineSection = ({
       type: isInteractionType(payload.type)
         ? payload.type
         : (existing?.type ?? "interaction.type.call"),
+      status: isInteractionStatus(payload.status)
+        ? payload.status
+        : existing?.status,
+      scheduledFor:
+        typeof payload.scheduledFor === "string"
+          ? payload.scheduledFor
+          : existing?.scheduledFor,
       occurredAt:
         typeof payload.occurredAt === "string"
           ? payload.occurredAt
-          : (existing?.occurredAt ?? timestamp),
+          : typeof payload.scheduledFor === "string"
+            ? payload.scheduledFor
+            : (existing?.occurredAt ?? timestamp),
       summary:
         typeof payload.summary === "string"
           ? payload.summary
@@ -396,6 +421,9 @@ export const TimelineSection = ({
               website: next.website,
               addresses: next.addresses,
               socialMedia: next.socialMedia,
+              minFloor: next.minFloor,
+              maxFloor: next.maxFloor,
+              excludedFloors: next.excludedFloors,
             });
             if (diff.length > 0) {
               changes.set(event.id, diff);
@@ -496,6 +524,41 @@ export const TimelineSection = ({
           );
           break;
         }
+        case "interaction.scheduled": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          interactions.set(
+            id,
+            buildInteractionState(id, payload, event.timestamp),
+          );
+          break;
+        }
+        case "interaction.rescheduled": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = interactions.get(id);
+          const next = buildInteractionState(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
+          interactions.set(id, next);
+          break;
+        }
+        case "interaction.status.updated": {
+          const id = tryResolveEntityId(event, payload);
+          if (!id) break;
+          const existing = interactions.get(id);
+          const next = buildInteractionState(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
+          interactions.set(id, next);
+          break;
+        }
         case "interaction.updated": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
@@ -555,6 +618,10 @@ export const TimelineSection = ({
       } else if (entityType === "account") {
         const account = doc.accounts[entityId];
         entityName = account?.name || t("common.unknown");
+      } else if (entityType === "audit") {
+        const audit = doc.audits[entityId];
+        const stamp = audit?.occurredAt ?? audit?.scheduledFor ?? audit?.id;
+        entityName = stamp ? `Audit ${stamp}` : t("common.unknown");
       } else if (entityType === "contact") {
         const contact = doc.contacts[entityId];
         entityName = contact ? getContactName(contact) : t("common.unknown");
@@ -711,7 +778,10 @@ export const TimelineSection = ({
       return resolveLinkedEntity(entityType, entityId);
     }
 
-    if (item.event.type === "interaction.logged") {
+    if (
+      item.event.type === "interaction.logged" ||
+      item.event.type === "interaction.scheduled"
+    ) {
       if (typeof payload?.summary === "string" && payload.summary.trim()) {
         return payload.summary;
       }

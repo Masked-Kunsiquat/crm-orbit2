@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { AutomergeDoc } from "@automerge/schema";
 import type { Event } from "@events/event";
 import type { Account } from "@domains/account";
+import type { Audit } from "@domains/audit";
 import type { Code } from "@domains/code";
 import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
@@ -37,6 +38,7 @@ const crmStore = create<CrmStoreState>((set) => ({
   doc: {
     organizations: {},
     accounts: {},
+    audits: {},
     contacts: {},
     notes: {},
     interactions: {},
@@ -211,6 +213,14 @@ export const useInteractions = (
   return crmStore(useShallow(selector));
 };
 
+export const useAuditsByAccount = (accountId: EntityId): Audit[] => {
+  const selector = (state: CrmStoreState) =>
+    Object.values(state.doc.audits).filter(
+      (audit): audit is Audit => audit.accountId === accountId,
+    );
+  return crmStore(useShallow(selector));
+};
+
 export const useEntitiesForNote = (noteId: EntityId): LinkedEntityInfo[] => {
   const cacheRef = useRef<LinkedEntityInfo[] | null>(null);
   const selector = (state: CrmStoreState) => {
@@ -269,6 +279,9 @@ export const useOrganization = (id: EntityId): Organization | undefined =>
 export const useAccount = (id: EntityId): Account | undefined =>
   crmStore(useShallow((state) => state.doc.accounts[id]));
 
+export const useAudit = (id: EntityId): Audit | undefined =>
+  crmStore(useShallow((state) => state.doc.audits[id]));
+
 export const useContact = (id: EntityId): Contact | undefined =>
   crmStore(useShallow((state) => state.doc.contacts[id]));
 
@@ -319,6 +332,11 @@ export const useContactsByOrganization = (
 
 export const useAllNotes = (): Note[] => {
   const selector = (state: CrmStoreState) => Object.values(state.doc.notes);
+  return crmStore(useShallow(selector));
+};
+
+export const useAllAudits = (): Audit[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.audits);
   return crmStore(useShallow(selector));
 };
 

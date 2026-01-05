@@ -5,6 +5,8 @@ import {
   View,
   Pressable,
 } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useMemo, useState } from "react";
 
 import type { NotesStackScreenProps } from "../../navigation/types";
 import {
@@ -21,6 +23,7 @@ import {
   DangerActionButton,
   ConfirmDialog,
   TimelineSection,
+  LinkEntityToNoteModal,
 } from "../../components";
 import { useDeviceId, useTheme } from "../../hooks";
 import { t } from "@i18n/index";
@@ -38,6 +41,12 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
   const deviceId = useDeviceId();
   const { deleteNote, unlinkNote } = useNoteActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const [showLinkModal, setShowLinkModal] = useState(false);
+
+  const existingEntityIds = useMemo(
+    () => new Set(linkedEntities.map((entity) => entity.entityId)),
+    [linkedEntities],
+  );
 
   const handleEdit = () => {
     if (!note?.id) return;
@@ -150,9 +159,25 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
       </Section>
 
       <Section>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("notes.linkedToSection")}
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            {t("notes.linkedToSection")}
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.iconButton,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
+            onPress={() => setShowLinkModal(true)}
+            accessibilityLabel={t("notes.linkEntityButton")}
+          >
+            <MaterialCommunityIcons
+              name="link-variant-plus"
+              size={18}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+        </View>
         {linkedEntities.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
             {t("notes.noLinkedEntities")}
@@ -193,7 +218,7 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
                 </Pressable>
                 <TouchableOpacity
                   style={[
-                    styles.unlinkButton,
+                    styles.iconButton,
                     { backgroundColor: colors.errorBg },
                   ]}
                   onPress={() =>
@@ -204,12 +229,13 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
                       entity.entityId,
                     )
                   }
+                  accessibilityLabel={t("notes.unlinkButton")}
                 >
-                  <Text
-                    style={[styles.unlinkButtonText, { color: colors.error }]}
-                  >
-                    {t("notes.unlinkButton")}
-                  </Text>
+                  <MaterialCommunityIcons
+                    name="link-variant-minus"
+                    size={18}
+                    color={colors.error}
+                  />
                 </TouchableOpacity>
               </View>
             );
@@ -223,6 +249,13 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
         label={t("notes.deleteButton")}
         onPress={handleDelete}
         size="block"
+      />
+
+      <LinkEntityToNoteModal
+        visible={showLinkModal}
+        onClose={() => setShowLinkModal(false)}
+        noteId={noteId}
+        existingEntityIds={existingEntityIds}
       />
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
@@ -253,10 +286,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 12,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 14,
@@ -278,15 +323,6 @@ const styles = StyleSheet.create({
   },
   linkedItemName: {
     fontSize: 15,
-  },
-  unlinkButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  unlinkButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
   },
   errorText: {
     fontSize: 16,

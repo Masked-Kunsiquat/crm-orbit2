@@ -27,6 +27,9 @@ export interface Account extends Entity {
   name: string;
   status: AccountStatus;
   addresses?: AccountAddresses;
+  minFloor?: number;
+  maxFloor?: number;
+  excludedFloors?: number[];
   website?: string;
   socialMedia?: SocialMediaLinks;
   metadata?: Record<string, unknown>;

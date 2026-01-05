@@ -1,23 +1,38 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useState, useMemo } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
   useAccount,
   useContacts,
+  useAllContacts,
   useCodes,
   useNotes,
   useInteractions,
+  useAuditsByAccount,
   useTimeline,
   useDoc,
+  useAccountContactRelations,
 } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
 import { useDeviceId } from "../../hooks";
 import type { ContactType } from "@domains/contact";
+import { getContactDisplayName } from "@domains/contact.utils";
+import type { AccountContactRole } from "@domains/relations/accountContact";
 import {
   NotesSection,
   InteractionsSection,
+  AuditsSection,
   CodesSection,
   TimelineSection,
   DetailScreenLayout,
@@ -29,6 +44,7 @@ import {
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  SegmentedOptionGroup,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
@@ -46,13 +62,16 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params;
   const account = useAccount(accountId);
   const allContacts = useContacts(accountId);
+  const allContactsInCrm = useAllContacts();
+  const accountContactRelations = useAccountContactRelations();
   const codes = useCodes(accountId);
   const notes = useNotes("account", accountId);
   const interactions = useInteractions("account", accountId);
+  const audits = useAuditsByAccount(accountId);
   const timeline = useTimeline("account", accountId);
   const doc = useDoc();
   const deviceId = useDeviceId();
-  const { deleteAccount } = useAccountActions(deviceId);
+  const { deleteAccount, linkContact } = useAccountActions(deviceId);
   const { colors } = useTheme();
 
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
@@ -61,6 +80,50 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
     "all",
   );
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkRole, setLinkRole] = useState<AccountContactRole>(
+    "account.contact.role.primary",
+  );
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createRole, setCreateRole] = useState<AccountContactRole>(
+    "account.contact.role.primary",
+  );
+  const [createPrimary, setCreatePrimary] = useState(true);
+
+  const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
+    {
+      value: "account.contact.role.primary",
+      label: t("account.contact.role.primary"),
+    },
+    {
+      value: "account.contact.role.billing",
+      label: t("account.contact.role.billing"),
+    },
+    {
+      value: "account.contact.role.technical",
+      label: t("account.contact.role.technical"),
+    },
+  ];
+
+  const primaryRoles = useMemo(() => {
+    const roles = new Set<AccountContactRole>();
+    Object.values(accountContactRelations).forEach((relation) => {
+      if (relation.accountId === accountId && relation.isPrimary) {
+        roles.add(relation.role);
+      }
+    });
+    return roles;
+  }, [accountContactRelations, accountId]);
+
+  const hasPrimaryForRole = (role: AccountContactRole) =>
+    primaryRoles.has(role);
+
+  const handleOpenCreateModal = () => {
+    const defaultRole: AccountContactRole = "account.contact.role.primary";
+    setCreateRole(defaultRole);
+    setCreatePrimary(!hasPrimaryForRole(defaultRole));
+    setShowCreateModal(true);
+  };
 
   const contacts = useMemo(() => {
     if (contactFilter === "all") {
@@ -68,6 +131,27 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     }
     return allContacts.filter((contact) => contact.type === contactFilter);
   }, [allContacts, contactFilter]);
+
+  const linkedContactIds = useMemo(() => {
+    const relations = Object.values(accountContactRelations);
+    return new Set(
+      relations
+        .filter((relation) => relation.accountId === accountId)
+        .map((relation) => relation.contactId),
+    );
+  }, [accountContactRelations, accountId]);
+
+  const sortedLinkableContacts = useMemo(() => {
+    return [...allContactsInCrm]
+      .filter((contact) => !linkedContactIds.has(contact.id))
+      .sort((left, right) =>
+        getContactDisplayName(left).localeCompare(
+          getContactDisplayName(right),
+          undefined,
+          { sensitivity: "base" },
+        ),
+      );
+  }, [allContactsInCrm, linkedContactIds]);
 
   if (!account) {
     return (
@@ -116,6 +200,38 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
+  const handleLinkContact = (contactId: string, role: AccountContactRole) => {
+    const existingLink = Object.values(accountContactRelations).find(
+      (relation) =>
+        relation.accountId === accountId &&
+        relation.contactId === contactId &&
+        relation.role === role,
+    );
+
+    if (existingLink) {
+      showAlert(
+        t("contacts.linkedAccounts.alreadyLinkedTitle"),
+        t("contacts.linkedAccounts.alreadyLinkedMessage"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    const hasPrimary = hasPrimaryForRole(role);
+
+    const result = linkContact(accountId, contactId, role, !hasPrimary);
+
+    if (result.success) {
+      setShowLinkModal(false);
+    } else {
+      showAlert(
+        t("common.error"),
+        result.error ?? t("contacts.linkError"),
+        t("common.ok"),
+      );
+    }
+  };
+
   return (
     <DetailScreenLayout>
       <Section>
@@ -151,9 +267,39 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
       {activeTab === "overview" ? (
         <Section>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-            {t("accounts.sections.contacts")} ({allContacts.length})
-          </Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              {t("accounts.sections.contacts")} ({allContacts.length})
+            </Text>
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: colors.accent }]}
+                onPress={handleOpenCreateModal}
+                accessibilityLabel={t("contacts.form.createButton")}
+              >
+                <MaterialCommunityIcons
+                  name="plus"
+                  size={18}
+                  color={colors.onAccent}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.iconButton,
+                  styles.iconButtonSecondary,
+                  { backgroundColor: colors.surfaceElevated },
+                ]}
+                onPress={() => setShowLinkModal(true)}
+                accessibilityLabel={t("contacts.linkTitle")}
+              >
+                <MaterialCommunityIcons
+                  name="link-variant-plus"
+                  size={18}
+                  color={colors.textPrimary}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.filterButtons}>
             <TouchableOpacity
@@ -377,6 +523,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             accountId={accountId}
             navigation={navigation}
           />
+          <AuditsSection
+            audits={audits}
+            accountId={accountId}
+            navigation={navigation}
+          />
           <InteractionsSection
             interactions={interactions}
             entityId={accountId}
@@ -401,6 +552,184 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      <Modal
+        visible={showLinkModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLinkModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setShowLinkModal(false)}
+          />
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              {t("contacts.linkTitle")}
+            </Text>
+            {sortedLinkableContacts.length === 0 ? (
+              <Text
+                style={[styles.modalEmptyText, { color: colors.textMuted }]}
+              >
+                {t("contacts.linkEmpty")}
+              </Text>
+            ) : (
+              <>
+                <View style={styles.roleSection}>
+                  <Text
+                    style={[styles.roleLabel, { color: colors.textSecondary }]}
+                  >
+                    {t("accountContacts.roleLabel")}
+                  </Text>
+                  <SegmentedOptionGroup
+                    options={roleOptions}
+                    value={linkRole}
+                    onChange={setLinkRole}
+                  />
+                </View>
+                <FlatList
+                  data={sortedLinkableContacts}
+                  keyExtractor={(item) => item.id}
+                  style={styles.modalList}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.modalItem,
+                        { borderBottomColor: colors.borderLight },
+                      ]}
+                      onPress={() => handleLinkContact(item.id, linkRole)}
+                    >
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {getContactDisplayName(item)}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </>
+            )}
+            <TouchableOpacity
+              style={[styles.modalCancelButton, { borderColor: colors.border }]}
+              onPress={() => setShowLinkModal(false)}
+            >
+              <Text
+                style={[styles.modalCancelText, { color: colors.textPrimary }]}
+              >
+                {t("common.cancel")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCreateModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setShowCreateModal(false)}
+          />
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              {t("contacts.form.createButton")}
+            </Text>
+            <View style={styles.roleSection}>
+              <Text style={[styles.roleLabel, { color: colors.textSecondary }]}>
+                {t("accountContacts.roleLabel")}
+              </Text>
+              <SegmentedOptionGroup
+                options={roleOptions}
+                value={createRole}
+                onChange={(nextRole) => {
+                  setCreateRole(nextRole);
+                  setCreatePrimary(!hasPrimaryForRole(nextRole));
+                }}
+              />
+            </View>
+            {hasPrimaryForRole(createRole) ? (
+              <Text style={[styles.roleHint, { color: colors.textMuted }]}>
+                {t("accountContacts.primaryAlreadySet")}
+              </Text>
+            ) : (
+              <View style={styles.roleSection}>
+                <Text
+                  style={[styles.roleLabel, { color: colors.textSecondary }]}
+                >
+                  {t("accountContacts.primaryLabel")}
+                </Text>
+                <SegmentedOptionGroup
+                  options={[
+                    {
+                      value: "yes",
+                      label: t("accountContacts.primaryOption"),
+                    },
+                    {
+                      value: "no",
+                      label: t("accountContacts.notPrimaryOption"),
+                    },
+                  ]}
+                  value={createPrimary ? "yes" : "no"}
+                  onChange={(value) => setCreatePrimary(value === "yes")}
+                />
+              </View>
+            )}
+            <TouchableOpacity
+              style={[
+                styles.modalActionButton,
+                { backgroundColor: colors.accent },
+              ]}
+              onPress={() => {
+                setShowCreateModal(false);
+                navigation.navigate({
+                  name: "ContactForm",
+                  params: {
+                    accountLink: {
+                      accountId,
+                      role: createRole,
+                      setPrimary: createPrimary,
+                    },
+                  },
+                });
+              }}
+            >
+              <Text
+                style={[styles.modalActionText, { color: colors.onAccent }]}
+              >
+                {t("contacts.form.createButton")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalCancelButton, { borderColor: colors.border }]}
+              onPress={() => setShowCreateModal(false)}
+            >
+              <Text
+                style={[styles.modalCancelText, { color: colors.textPrimary }]}
+              >
+                {t("common.cancel")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
@@ -437,6 +766,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  actionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconButtonSecondary: {
+    marginLeft: 8,
   },
   filterButtons: {
     flexDirection: "row",
@@ -478,5 +827,71 @@ const styles = StyleSheet.create({
   },
   mapIconButton: {
     padding: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  modalContent: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    maxHeight: "70%",
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  roleSection: {
+    marginBottom: 12,
+  },
+  roleLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 8,
+    textTransform: "uppercase",
+  },
+  modalList: {
+    marginBottom: 12,
+  },
+  modalItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  modalItemText: {
+    fontSize: 15,
+  },
+  modalEmptyText: {
+    fontSize: 14,
+    fontStyle: "italic",
+    marginBottom: 12,
+  },
+  modalCancelButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  roleHint: {
+    fontSize: 13,
+    fontStyle: "italic",
+    marginBottom: 12,
+  },
+  modalActionButton: {
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  modalActionText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

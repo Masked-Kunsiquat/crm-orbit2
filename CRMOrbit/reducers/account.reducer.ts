@@ -18,6 +18,9 @@ type AccountCreatedPayload = {
   name: string;
   status: AccountStatus;
   addresses?: AccountAddresses;
+  minFloor?: number;
+  maxFloor?: number;
+  excludedFloors?: number[];
   website?: string;
   socialMedia?: SocialMediaLinks;
   metadata?: Record<string, unknown>;
@@ -34,8 +37,58 @@ type AccountUpdatedPayload = {
   status?: AccountStatus;
   organizationId?: EntityId;
   addresses?: AccountAddresses;
+  minFloor?: number;
+  maxFloor?: number;
+  excludedFloors?: number[];
   website?: string;
   socialMedia?: SocialMediaLinks;
+};
+
+const assertValidFloorConfig = (
+  minFloor: number | undefined,
+  maxFloor: number | undefined,
+  excludedFloors: number[] | undefined,
+): void => {
+  const hasMin = typeof minFloor === "number";
+  const hasMax = typeof maxFloor === "number";
+
+  if (hasMin !== hasMax) {
+    throw new Error("Account floor range requires both minFloor and maxFloor.");
+  }
+
+  if (!hasMin || !hasMax) {
+    if (excludedFloors && excludedFloors.length > 0) {
+      throw new Error(
+        "Account floor exclusions require minFloor and maxFloor.",
+      );
+    }
+    return;
+  }
+
+  if (!Number.isInteger(minFloor) || !Number.isInteger(maxFloor)) {
+    throw new Error("Account floor range must use integer values.");
+  }
+
+  if (minFloor > maxFloor) {
+    throw new Error("Account floor range is invalid: minFloor > maxFloor.");
+  }
+
+  if (excludedFloors && excludedFloors.length > 0) {
+    const unique = new Set(excludedFloors);
+    if (unique.size !== excludedFloors.length) {
+      throw new Error("Account excluded floors must be unique.");
+    }
+    for (const floor of excludedFloors) {
+      if (!Number.isInteger(floor)) {
+        throw new Error("Account excluded floors must be integers.");
+      }
+      if (floor < minFloor || floor > maxFloor) {
+        throw new Error(
+          `Account excluded floor ${floor} is outside the configured range.`,
+        );
+      }
+    }
+  }
 };
 
 const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
@@ -61,12 +114,21 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     );
   }
 
+  assertValidFloorConfig(
+    payload.minFloor,
+    payload.maxFloor,
+    payload.excludedFloors,
+  );
+
   const account: Account = {
     id,
     organizationId: payload.organizationId,
     name: payload.name,
     status: payload.status,
     addresses: payload.addresses,
+    minFloor: payload.minFloor,
+    maxFloor: payload.maxFloor,
+    excludedFloors: payload.excludedFloors,
     website: payload.website,
     socialMedia: payload.socialMedia,
     metadata: payload.metadata,
@@ -132,6 +194,17 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     throw new Error(`Organization not found: ${payload.organizationId}`);
   }
 
+  const nextMinFloor =
+    payload.minFloor !== undefined ? payload.minFloor : existing.minFloor;
+  const nextMaxFloor =
+    payload.maxFloor !== undefined ? payload.maxFloor : existing.maxFloor;
+  const nextExcludedFloors =
+    payload.excludedFloors !== undefined
+      ? payload.excludedFloors
+      : existing.excludedFloors;
+
+  assertValidFloorConfig(nextMinFloor, nextMaxFloor, nextExcludedFloors);
+
   logger.debug("Updating account", { id, updates: payload });
 
   return {
@@ -147,6 +220,11 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         }),
         ...(payload.addresses !== undefined && {
           addresses: payload.addresses,
+        }),
+        ...(payload.minFloor !== undefined && { minFloor: payload.minFloor }),
+        ...(payload.maxFloor !== undefined && { maxFloor: payload.maxFloor }),
+        ...(payload.excludedFloors !== undefined && {
+          excludedFloors: payload.excludedFloors,
         }),
         ...(payload.website !== undefined && { website: payload.website }),
         ...(payload.socialMedia !== undefined && {

@@ -13,6 +13,7 @@ const logger = createLogger("PersistenceLoader");
 const EMPTY_DOC: AutomergeDoc = {
   organizations: {},
   accounts: {},
+  audits: {},
   contacts: {},
   notes: {},
   interactions: {},
@@ -44,6 +45,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     doc.relations?.accountCodes ??
     ({} as AutomergeDoc["relations"]["accountCodes"]);
   const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
+  const existingAudits = doc.audits ?? ({} as AutomergeDoc["audits"]);
 
   const normalizedCodes = Object.fromEntries(
     Object.entries(existingCodes).map(([id, code]) => [
@@ -76,6 +78,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   return {
     ...doc,
     codes: normalizedCodes,
+    audits: existingAudits,
     settings: doc.settings ?? DEFAULT_SETTINGS,
     relations: {
       ...doc.relations,
@@ -133,7 +136,7 @@ export const loadPersistedState = async (
 
   // Log summary of what was loaded
   logger.info(
-    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes`,
+    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.audits).length} audits, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes`,
   );
 
   return { doc, events };

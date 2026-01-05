@@ -10,6 +10,13 @@ that makes future UI development boring and fast.
 
 You must follow this document exactly.
 
+### UI Agent Override (Explicit Only)
+
+If the user explicitly requests UI work and the `ui-agent` skill is active,
+follow the UI agent guide for UI changes. In that mode, keep backend invariants
+intact and avoid backend changes unless the user asks directly. For all other
+requests, this backend guide remains the source of truth.
+
 ---
 
 ## Non-Negotiable Principles

@@ -33,7 +33,8 @@ import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 type Props = AccountsStackScreenProps<"AccountForm">;
 
 export const AccountFormScreen = ({ route, navigation }: Props) => {
-  const { accountId } = route.params ?? {};
+  const { accountId, organizationId: prefillOrganizationId } =
+    route.params ?? {};
   const account = useAccount(accountId ?? "");
   const allOrganizations = useOrganizations();
   const deviceId = useDeviceId();
@@ -66,6 +67,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [useSameForParking, setUseSameForParking] = useState(false);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
+  const [minFloorInput, setMinFloorInput] = useState("");
+  const [maxFloorInput, setMaxFloorInput] = useState("");
+  const [excludedFloorsInput, setExcludedFloorsInput] = useState("");
   const [isOrganizationPickerOpen, setIsOrganizationPickerOpen] =
     useState(false);
   const lastAccountIdRef = useRef<string | undefined>(undefined);
@@ -73,6 +77,12 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     { value: "account.status.active", label: t("status.active") },
     { value: "account.status.inactive", label: t("status.inactive") },
   ] as const;
+
+  useEffect(() => {
+    if (!accountId && prefillOrganizationId) {
+      setOrganizationId(prefillOrganizationId);
+    }
+  }, [accountId, prefillOrganizationId]);
 
   // Only populate form fields on initial mount or when switching to a different account
   useEffect(() => {
@@ -105,6 +115,17 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setUseSameForParking(account.addresses?.useSameForParking ?? false);
         setWebsite(account.website || "");
         setSocialMedia(account.socialMedia || {});
+        setMinFloorInput(
+          account.minFloor !== undefined ? `${account.minFloor}` : "",
+        );
+        setMaxFloorInput(
+          account.maxFloor !== undefined ? `${account.maxFloor}` : "",
+        );
+        setExcludedFloorsInput(
+          account.excludedFloors?.length
+            ? account.excludedFloors.join(", ")
+            : "",
+        );
       } else {
         // New account - reset to defaults
         setName("");
@@ -115,6 +136,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setUseSameForParking(false);
         setWebsite("");
         setSocialMedia({});
+        setMinFloorInput("");
+        setMaxFloorInput("");
+        setExcludedFloorsInput("");
       }
     }
   }, [accountId, account, organizations]);
@@ -155,6 +179,39 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       ...prev,
       [platform]: value.trim() || undefined,
     }));
+  };
+
+  const parseFloorValue = (value: string): number | undefined | null => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isInteger(parsed)) {
+      return null;
+    }
+    return parsed;
+  };
+
+  const parseExcludedFloors = (value: string): number[] | undefined | null => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    const parts = trimmed.split(",");
+    const floors: number[] = [];
+    for (const part of parts) {
+      const entry = part.trim();
+      if (!entry) {
+        continue;
+      }
+      const parsed = Number(entry);
+      if (!Number.isInteger(parsed)) {
+        return null;
+      }
+      floors.push(parsed);
+    }
+    return floors.length > 0 ? floors : undefined;
   };
 
   const handleSave = () => {
@@ -201,6 +258,86 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     };
     const hasSocialMedia = Object.values(socialMediaData).some((v) => v);
 
+    const minFloorParsed = parseFloorValue(minFloorInput);
+    if (minFloorParsed === null) {
+      showAlert(
+        t("common.validationError"),
+        t("accounts.validation.floorValueInvalid"),
+        t("common.ok"),
+      );
+      return;
+    }
+    const maxFloorParsed = parseFloorValue(maxFloorInput);
+    if (maxFloorParsed === null) {
+      showAlert(
+        t("common.validationError"),
+        t("accounts.validation.floorValueInvalid"),
+        t("common.ok"),
+      );
+      return;
+    }
+    const excludedFloorsParsed = parseExcludedFloors(excludedFloorsInput);
+    if (excludedFloorsParsed === null) {
+      showAlert(
+        t("common.validationError"),
+        t("accounts.validation.excludedFloorsInvalid"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    const hasMinFloor = minFloorParsed !== undefined;
+    const hasMaxFloor = maxFloorParsed !== undefined;
+    if (hasMinFloor !== hasMaxFloor) {
+      showAlert(
+        t("common.validationError"),
+        t("accounts.validation.floorRangeRequired"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    if (hasMinFloor && hasMaxFloor && minFloorParsed > maxFloorParsed) {
+      showAlert(
+        t("common.validationError"),
+        t("accounts.validation.floorRangeInvalid"),
+        t("common.ok"),
+      );
+      return;
+    }
+
+    if (excludedFloorsParsed && excludedFloorsParsed.length > 0) {
+      if (!hasMinFloor || !hasMaxFloor) {
+        showAlert(
+          t("common.validationError"),
+          t("accounts.validation.excludedFloorsRequireRange"),
+          t("common.ok"),
+        );
+        return;
+      }
+
+      const unique = new Set(excludedFloorsParsed);
+      if (unique.size !== excludedFloorsParsed.length) {
+        showAlert(
+          t("common.validationError"),
+          t("accounts.validation.excludedFloorsUnique"),
+          t("common.ok"),
+        );
+        return;
+      }
+
+      for (const floor of excludedFloorsParsed) {
+        if (floor < minFloorParsed || floor > maxFloorParsed) {
+          showAlert(
+            t("common.validationError"),
+            t("accounts.validation.excludedFloorsOutOfRange"),
+            t("common.ok"),
+          );
+          return;
+        }
+      }
+    }
+
     if (accountId) {
       const result = updateAccount(
         accountId,
@@ -210,6 +347,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         addresses,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        minFloorParsed,
+        maxFloorParsed,
+        excludedFloorsParsed,
         account ?? undefined,
       );
       if (result.success) {
@@ -229,6 +369,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         addresses,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        minFloorParsed,
+        maxFloorParsed,
+        excludedFloorsParsed,
       );
       if (result.success) {
         navigation.goBack();
@@ -292,6 +435,36 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           options={statusOptions}
           value={status}
           onChange={handleStatusChange}
+        />
+      </FormField>
+
+      <FormField label={t("accounts.fields.minFloor")}>
+        <TextField
+          value={minFloorInput}
+          onChangeText={setMinFloorInput}
+          placeholder={t("accounts.form.minFloorPlaceholder")}
+          keyboardType="numbers-and-punctuation"
+        />
+      </FormField>
+
+      <FormField label={t("accounts.fields.maxFloor")}>
+        <TextField
+          value={maxFloorInput}
+          onChangeText={setMaxFloorInput}
+          placeholder={t("accounts.form.maxFloorPlaceholder")}
+          keyboardType="numbers-and-punctuation"
+        />
+      </FormField>
+
+      <FormField
+        label={t("accounts.fields.excludedFloors")}
+        hint={t("accounts.form.excludedFloorsHint")}
+      >
+        <TextField
+          value={excludedFloorsInput}
+          onChangeText={setExcludedFloorsInput}
+          placeholder={t("accounts.form.excludedFloorsPlaceholder")}
+          keyboardType="numbers-and-punctuation"
         />
       </FormField>
 

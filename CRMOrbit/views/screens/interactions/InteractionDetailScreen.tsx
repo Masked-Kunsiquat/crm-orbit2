@@ -140,6 +140,23 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
+  const resolvedStatus = interaction.status ?? "interaction.status.completed";
+  const usesScheduledTimestamp =
+    resolvedStatus !== "interaction.status.completed";
+  const timestampLabel = usesScheduledTimestamp
+    ? t("interactions.scheduledFor")
+    : t("interactions.occurredAt");
+  const timestampValue = usesScheduledTimestamp
+    ? (interaction.scheduledFor ?? interaction.occurredAt)
+    : interaction.occurredAt;
+  const formattedTimestamp = (() => {
+    const date = new Date(timestampValue);
+    if (Number.isNaN(date.getTime())) {
+      return t("common.unknown");
+    }
+    return date.toLocaleString();
+  })();
+
   return (
     <DetailScreenLayout>
       <Section>
@@ -152,8 +169,10 @@ export const InteractionDetailScreen = ({ route, navigation }: Props) => {
               {interaction.summary}
             </Text>
             <Text style={[styles.date, { color: colors.textSecondary }]}>
-              {t("interactions.occurredAt")}:{" "}
-              {new Date(interaction.occurredAt).toLocaleString()}
+              {t("interactions.statusLabel")}: {t(resolvedStatus)}
+            </Text>
+            <Text style={[styles.date, { color: colors.textSecondary }]}>
+              {timestampLabel}: {formattedTimestamp}
             </Text>
           </View>
           <PrimaryActionButton

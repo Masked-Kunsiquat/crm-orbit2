@@ -20,8 +20,9 @@ export const useContactActions = (deviceId: string) => {
         emails?: ContactMethod[];
         phones?: ContactMethod[];
       } = {},
+      idOverride?: EntityId,
     ): DispatchResult => {
-      const id = nextId("contact");
+      const id = idOverride ?? nextId("contact");
       const event = buildEvent({
         type: "contact.created",
         entityId: id,

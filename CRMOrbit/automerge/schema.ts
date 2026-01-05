@@ -1,4 +1,5 @@
 import type { Account } from "@domains/account";
+import type { Audit } from "@domains/audit";
 import type { Code } from "@domains/code";
 import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
@@ -13,6 +14,7 @@ import type { EntityId } from "@domains/shared/types";
 export interface AutomergeDoc {
   organizations: Record<EntityId, Organization>;
   accounts: Record<EntityId, Account>;
+  audits: Record<EntityId, Audit>;
   contacts: Record<EntityId, Contact>;
   notes: Record<EntityId, Note>;
   interactions: Record<EntityId, Interaction>;

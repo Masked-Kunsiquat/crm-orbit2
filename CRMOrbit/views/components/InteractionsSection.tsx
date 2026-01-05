@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Pressable,
 } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { Interaction } from "@domains/interaction";
 import type { EntityId } from "@domains/shared/types";
@@ -92,29 +93,34 @@ export const InteractionsSection = ({
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
+            style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={() =>
               navigation.navigate("InteractionForm", {
                 entityToLink: { entityId, entityType },
               })
             }
+            accessibilityLabel={t("interactions.form.logButton")}
           >
-            <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
-              {t("interactions.form.logButton")}
-            </Text>
+            <MaterialCommunityIcons
+              name="plus"
+              size={18}
+              color={colors.onAccent}
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.linkButton,
+              styles.iconButton,
+              styles.iconButtonSecondary,
               { backgroundColor: colors.surfaceElevated },
             ]}
             onPress={() => setShowLinkModal(true)}
+            accessibilityLabel={t("interactions.linkExisting")}
           >
-            <Text
-              style={[styles.linkButtonText, { color: colors.textPrimary }]}
-            >
-              {t("interactions.linkExisting")}
-            </Text>
+            <MaterialCommunityIcons
+              name="link-variant-plus"
+              size={18}
+              color={colors.textPrimary}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -123,57 +129,93 @@ export const InteractionsSection = ({
           {t("interactions.emptyTitle")}
         </Text>
       ) : (
-        interactions.map((interaction) => (
-          <View
-            key={interaction.id}
-            style={[
-              styles.interactionCard,
-              { backgroundColor: colors.surfaceElevated },
-            ]}
-          >
-            <Pressable
-              style={styles.interactionCardRow}
-              onPress={() => {
-                navigation.navigate("InteractionDetail", {
-                  interactionId: interaction.id,
-                });
-              }}
+        interactions.map((interaction) => {
+          const resolvedStatus =
+            interaction.status ?? "interaction.status.completed";
+          const usesScheduledTimestamp =
+            resolvedStatus !== "interaction.status.completed";
+          const timestampLabel = usesScheduledTimestamp
+            ? t("interactions.scheduledFor")
+            : t("interactions.occurredAt");
+          const timestampValue = usesScheduledTimestamp
+            ? (interaction.scheduledFor ?? interaction.occurredAt)
+            : interaction.occurredAt;
+          const formattedTimestamp = (() => {
+            const date = new Date(timestampValue);
+            if (Number.isNaN(date.getTime())) {
+              return t("common.unknown");
+            }
+            return date.toLocaleString();
+          })();
+          const metaText =
+            resolvedStatus === "interaction.status.completed"
+              ? `${timestampLabel}: ${formattedTimestamp}`
+              : `${t("interactions.statusLabel")}: ${t(
+                  resolvedStatus,
+                )} · ${timestampLabel}: ${formattedTimestamp}`;
+          return (
+            <View
+              key={interaction.id}
+              style={[
+                styles.interactionCard,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
             >
-              <View style={styles.interactionCardContent}>
-                <Text
-                  style={[
-                    styles.interactionType,
-                    { color: colors.textSecondary },
-                  ]}
-                >
-                  {t(interaction.type)}
-                </Text>
-                <Text
-                  style={[
-                    styles.interactionSummary,
-                    { color: colors.textPrimary },
-                  ]}
-                  numberOfLines={2}
-                >
-                  {interaction.summary}
-                </Text>
-                <Text
-                  style={[styles.interactionMeta, { color: colors.textMuted }]}
-                >
-                  {new Date(interaction.occurredAt).toLocaleString()}
-                </Text>
-              </View>
-            </Pressable>
-            <TouchableOpacity
-              style={[styles.unlinkButton, { backgroundColor: colors.errorBg }]}
-              onPress={() => handleUnlink(interaction.id, interaction.summary)}
-            >
-              <Text style={[styles.unlinkButtonText, { color: colors.error }]}>
-                {t("interactions.unlinkButton")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))
+              <Pressable
+                style={styles.interactionCardRow}
+                onPress={() => {
+                  navigation.navigate("InteractionDetail", {
+                    interactionId: interaction.id,
+                  });
+                }}
+              >
+                <View style={styles.interactionCardContent}>
+                  <Text
+                    style={[
+                      styles.interactionType,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t(interaction.type)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.interactionSummary,
+                      { color: colors.textPrimary },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {interaction.summary}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.interactionMeta,
+                      { color: colors.textMuted },
+                    ]}
+                  >
+                    {metaText}
+                  </Text>
+                </View>
+              </Pressable>
+              <TouchableOpacity
+                style={[
+                  styles.unlinkButton,
+                  { backgroundColor: colors.errorBg },
+                ]}
+                onPress={() =>
+                  handleUnlink(interaction.id, interaction.summary)
+                }
+                accessibilityLabel={t("interactions.unlinkButton")}
+              >
+                <MaterialCommunityIcons
+                  name="link-variant-minus"
+                  size={18}
+                  color={colors.error}
+                />
+              </TouchableOpacity>
+            </View>
+          );
+        })
       )}
       <LinkInteractionModal
         visible={showLinkModal}
@@ -202,24 +244,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  addButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  addButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  linkButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+  iconButtonSecondary: {
     marginLeft: 8,
-  },
-  linkButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
   },
   emptyText: {
     fontSize: 14,
@@ -253,13 +286,11 @@ const styles = StyleSheet.create({
   },
   unlinkButton: {
     marginTop: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignSelf: "flex-start",
-  },
-  unlinkButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

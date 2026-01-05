@@ -3,6 +3,7 @@ import type { EntityId } from "../shared/types";
 export type EntityLinkType =
   | "organization"
   | "account"
+  | "audit"
   | "contact"
   | "note"
   | "interaction";

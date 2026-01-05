@@ -26,6 +26,7 @@ import {
   formatPhoneNumber,
   getContactDisplayName,
 } from "@domains/contact.utils";
+import type { AccountContactRole } from "@domains/relations/accountContact";
 import {
   NotesSection,
   InteractionsSection,
@@ -37,6 +38,7 @@ import {
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  SegmentedOptionGroup,
 } from "@views/components";
 import { useDeviceId, useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
@@ -76,6 +78,24 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [activeTab, setActiveTab] = useState<ContactTab>("overview");
+  const [selectedRole, setSelectedRole] = useState<AccountContactRole>(
+    "account.contact.role.primary",
+  );
+
+  const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
+    {
+      value: "account.contact.role.primary",
+      label: t("account.contact.role.primary"),
+    },
+    {
+      value: "account.contact.role.billing",
+      label: t("account.contact.role.billing"),
+    },
+    {
+      value: "account.contact.role.technical",
+      label: t("account.contact.role.technical"),
+    },
+  ];
 
   const styles = createStyles(colors);
 
@@ -91,11 +111,13 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     navigation.navigate("ContactForm", { contactId: contact.id });
   };
 
-  const handleLinkAccount = (accountId: string) => {
+  const handleLinkAccount = (accountId: string, role: AccountContactRole) => {
     // Check if already linked
     const existingLink = Object.values(accountContactRelations).find(
       (relation) =>
-        relation.accountId === accountId && relation.contactId === contactId,
+        relation.accountId === accountId &&
+        relation.contactId === contactId &&
+        relation.role === role,
     );
 
     if (existingLink) {
@@ -109,15 +131,13 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
     // Check if account already has a primary contact
     const hasPrimary = Object.values(accountContactRelations).some(
-      (relation) => relation.accountId === accountId && relation.isPrimary,
+      (relation) =>
+        relation.accountId === accountId &&
+        relation.role === role &&
+        relation.isPrimary,
     );
 
-    const result = linkContact(
-      accountId,
-      contactId,
-      "account.contact.role.primary",
-      !hasPrimary,
-    );
+    const result = linkContact(accountId, contactId, role, !hasPrimary);
 
     if (result.success) {
       setShowLinkModal(false);
@@ -361,12 +381,19 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
             </Text>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
               onPress={() => setShowLinkModal(true)}
+              accessibilityLabel={t("contacts.linkedAccounts.linkButton")}
+              accessibilityRole="button"
             >
-              <Text style={styles.linkButtonText}>
-                {t("contacts.linkedAccounts.linkButton")}
-              </Text>
+              <MaterialCommunityIcons
+                name="link-variant-plus"
+                size={18}
+                color={colors.textPrimary}
+              />
             </TouchableOpacity>
           </View>
           {linkedAccounts.length === 0 ? (
@@ -391,14 +418,21 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                     )}
                   </View>
                   <TouchableOpacity
-                    style={styles.unlinkButton}
+                    style={[
+                      styles.iconButton,
+                      { backgroundColor: colors.errorBg },
+                    ]}
                     onPress={() =>
                       handleUnlinkAccount(account.id, account.name)
                     }
+                    accessibilityLabel={t("contacts.unlinkAction")}
+                    accessibilityRole="button"
                   >
-                    <Text style={styles.unlinkButtonText}>
-                      {t("contacts.unlinkAction")}
-                    </Text>
+                    <MaterialCommunityIcons
+                      name="link-variant-minus"
+                      size={18}
+                      color={colors.error}
+                    />
                   </TouchableOpacity>
                 </View>
               );
@@ -445,6 +479,16 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             <Text style={styles.modalTitle}>
               {t("contacts.linkedAccounts.modalTitle")}
             </Text>
+            <View style={styles.roleSection}>
+              <Text style={styles.roleLabel}>
+                {t("accountContacts.roleLabel")}
+              </Text>
+              <SegmentedOptionGroup
+                options={roleOptions}
+                value={selectedRole}
+                onChange={setSelectedRole}
+              />
+            </View>
             <FlatList
               data={sortedAccounts}
               keyExtractor={(item) => item.id}
@@ -456,7 +500,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       styles.modalItem,
                       isLinked && styles.modalItemDisabled,
                     ]}
-                    onPress={() => handleLinkAccount(item.id)}
+                    onPress={() => handleLinkAccount(item.id, selectedRole)}
                     disabled={isLinked}
                   >
                     <Text
@@ -554,16 +598,12 @@ const createStyles = (colors: ColorScheme) =>
       alignItems: "center",
       marginBottom: 12,
     },
-    linkButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 6,
-      backgroundColor: colors.accent,
-    },
-    linkButtonText: {
-      fontSize: 14,
-      color: colors.onAccent,
-      fontWeight: "600",
+    iconButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
     },
     accountItem: {
       flexDirection: "row",
@@ -581,17 +621,6 @@ const createStyles = (colors: ColorScheme) =>
     accountName: {
       fontSize: 15,
       color: colors.textPrimary,
-    },
-    unlinkButton: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 6,
-      backgroundColor: colors.errorBg,
-    },
-    unlinkButtonText: {
-      fontSize: 12,
-      color: colors.error,
-      fontWeight: "600",
     },
     primaryBadge: {
       backgroundColor: colors.successBg,
@@ -621,6 +650,16 @@ const createStyles = (colors: ColorScheme) =>
       fontWeight: "700",
       color: colors.textPrimary,
       marginBottom: 16,
+    },
+    roleSection: {
+      marginBottom: 16,
+    },
+    roleLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginBottom: 8,
+      textTransform: "uppercase",
     },
     modalItem: {
       padding: 16,

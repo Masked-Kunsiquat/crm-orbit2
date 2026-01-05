@@ -8,6 +8,7 @@ import { createLogger } from "@utils/logger";
 const logger = createLogger("AutomergeSync");
 
 const LAST_SYNC_VERSION_KEY = "last_sync_version";
+const SNAPSHOT_FORMAT = "crm-sync-snapshot-v1";
 
 const sanitizeDocForAutomerge = (doc: AutomergeDoc): AutomergeDoc => {
   try {
@@ -62,18 +63,6 @@ const getTextDecoder = (): TextDecoderLike => {
   return new Decoder();
 };
 
-const concatenateUint8Arrays = (chunks: Uint8Array[]): Uint8Array => {
-  if (chunks.length === 0) return new Uint8Array();
-  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-  const merged = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return merged;
-};
-
 const parseJsonChanges = (changes: Uint8Array): Change[] => {
   const payload = getTextDecoder().decode(changes);
   const parsed = JSON.parse(payload) as unknown;
@@ -83,6 +72,127 @@ const parseJsonChanges = (changes: Uint8Array): Change[] => {
   return parsed as Change[];
 };
 
+const BINARY_CHANGES_FORMAT = "crm-sync-binary-v1";
+
+const parseStructuredChangesFromParsed = (parsed: unknown): Change[] | null => {
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+  if (!("format" in parsed) || !("changes" in parsed)) {
+    return null;
+  }
+
+  const { format, changes: entries } = parsed as {
+    format?: unknown;
+    changes?: unknown;
+  };
+  if (format !== BINARY_CHANGES_FORMAT || !Array.isArray(entries)) {
+    return null;
+  }
+
+  const decoded: Change[] = [];
+  for (const entry of entries) {
+    if (
+      entry &&
+      typeof entry === "object" &&
+      "kind" in entry &&
+      "data" in entry
+    ) {
+      const { kind, data } = entry as { kind: string; data: unknown };
+      if (kind === "binary" && typeof data === "string") {
+        decoded.push(toByteArray(data) as unknown as Change);
+        continue;
+      }
+      if (kind === "json") {
+        decoded.push(data as Change);
+        continue;
+      }
+    }
+    if (typeof entry === "string") {
+      decoded.push(toByteArray(entry) as unknown as Change);
+      continue;
+    }
+    decoded.push(entry as Change);
+  }
+
+  return decoded;
+};
+
+const decodeJsonChanges = (changes: Uint8Array): Change[] | null => {
+  let payload = "";
+  try {
+    payload = getTextDecoder().decode(changes).trim();
+  } catch {
+    return null;
+  }
+
+  if (!payload) {
+    return [];
+  }
+
+  const firstChar = payload[0];
+  if (firstChar !== "[" && firstChar !== "{") {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed as Change[];
+  }
+
+  return parseStructuredChangesFromParsed(parsed);
+};
+
+type SnapshotPayload = {
+  snapshot: string;
+  encoding?: "base64" | "transit";
+};
+
+const parseSnapshotPayload = (changes: Uint8Array): SnapshotPayload | null => {
+  let payload = "";
+  try {
+    payload = getTextDecoder().decode(changes).trim();
+  } catch {
+    return null;
+  }
+
+  if (!payload || payload[0] !== "{") {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+
+  const { format, snapshot, encoding } = parsed as {
+    format?: unknown;
+    snapshot?: unknown;
+    encoding?: unknown;
+  };
+  if (format !== SNAPSHOT_FORMAT || typeof snapshot !== "string") {
+    return null;
+  }
+
+  return {
+    snapshot,
+    encoding:
+      encoding === "base64" || encoding === "transit" ? encoding : undefined,
+  };
+};
+
 const encodeChanges = (changes: Change[]): Uint8Array => {
   if (changes.length === 0) return new Uint8Array();
   const encodeChange = (
@@ -90,13 +200,152 @@ const encodeChanges = (changes: Change[]): Uint8Array => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
-  if (encodeChange) {
-    const encoded = changes.map((change) => encodeChange(change));
-    return concatenateUint8Arrays(encoded);
+  if (!encodeChange) {
+    const hasBinary = changes.some((change) => change instanceof Uint8Array);
+    if (!hasBinary) {
+      const payload = JSON.stringify(changes);
+      return getTextEncoder().encode(payload);
+    }
+
+    const payload = JSON.stringify({
+      format: BINARY_CHANGES_FORMAT,
+      changes: changes.map((change) =>
+        change instanceof Uint8Array
+          ? { kind: "binary", data: fromByteArray(change) }
+          : { kind: "json", data: change },
+      ),
+    });
+    return getTextEncoder().encode(payload);
+  }
+  const encoded = changes.map((change) => {
+    if (change instanceof Uint8Array) {
+      return change;
+    }
+    if (!encodeChange) {
+      throw new Error("Automerge.encodeChange is unavailable.");
+    }
+    return encodeChange(change);
+  });
+
+  const total = encoded.reduce((sum, chunk) => sum + 4 + chunk.length, 0);
+  const buffer = new Uint8Array(total);
+  const view = new DataView(buffer.buffer);
+  let offset = 0;
+  for (const chunk of encoded) {
+    view.setUint32(offset, chunk.length, false);
+    offset += 4;
+    buffer.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return buffer;
+};
+
+const decodeChangeFromBytes = (
+  bytes: Uint8Array,
+  decodeChange?: (buffer: Uint8Array) => unknown,
+): Change => {
+  if (!decodeChange) {
+    return bytes as unknown as Change;
+  }
+  const result = decodeChange(bytes);
+  if (Array.isArray(result)) {
+    return (result as [Change, number])[0];
+  }
+  if (result && typeof result === "object" && "change" in result) {
+    return (result as { change: Change }).change;
+  }
+  return result as Change;
+};
+
+const decodeLengthPrefixedChanges = (
+  changes: Uint8Array,
+  decodeChange?: (buffer: Uint8Array) => unknown,
+): Change[] => {
+  const decoded: Change[] = [];
+  const view = new DataView(
+    changes.buffer,
+    changes.byteOffset,
+    changes.byteLength,
+  );
+  let offset = 0;
+  while (offset < changes.length) {
+    if (offset + 4 > changes.length) {
+      throw new Error("Invalid sync payload length prefix.");
+    }
+    const length = view.getUint32(offset, false);
+    offset += 4;
+    if (!Number.isFinite(length) || length <= 0) {
+      throw new Error("Invalid sync payload length prefix.");
+    }
+    if (offset + length > changes.length) {
+      throw new Error("Invalid sync payload length prefix.");
+    }
+    const slice = changes.subarray(offset, offset + length);
+    decoded.push(decodeChangeFromBytes(slice, decodeChange));
+    offset += length;
+  }
+  return decoded;
+};
+
+const decodeChangesLegacy = (
+  changes: Uint8Array,
+  decodeChange?: (buffer: Uint8Array) => unknown,
+  encodeChange?: (change: Change) => Uint8Array,
+): Change[] => {
+  if (!decodeChange) {
+    return parseJsonChanges(changes);
   }
 
-  const payload = JSON.stringify(changes);
-  return getTextEncoder().encode(payload);
+  const decoded: Change[] = [];
+  let offset = 0;
+
+  while (offset < changes.length) {
+    const slice = changes.subarray(offset);
+    const result = decodeChange(slice);
+
+    if (Array.isArray(result)) {
+      const [change, bytes] = result as [Change, number];
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(change);
+      offset += bytes;
+      continue;
+    }
+
+    if (result && typeof result === "object" && "change" in result) {
+      const changeResult = result as {
+        change: Change;
+        bytes?: number;
+        length?: number;
+        bytesRead?: number;
+      };
+      const bytes =
+        changeResult.bytes ??
+        changeResult.length ??
+        changeResult.bytesRead ??
+        0;
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(changeResult.change);
+      offset += bytes;
+      continue;
+    }
+
+    const change = result as Change;
+    if (!encodeChange) {
+      throw new Error("Automerge.encodeChange is unavailable.");
+    }
+    const encoded = encodeChange(change);
+    if (encoded.length <= 0) {
+      throw new Error("Invalid decoded change length.");
+    }
+    decoded.push(change);
+    offset += encoded.length;
+  }
+
+  return decoded;
 };
 
 const decodeChanges = (changes: Uint8Array): Change[] => {
@@ -111,62 +360,24 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
-  if (!decodeChange) {
-    return parseJsonChanges(changes);
+
+  const jsonChanges = decodeJsonChanges(changes);
+  if (jsonChanges) {
+    return jsonChanges;
   }
 
   try {
-    const decoded: Change[] = [];
-    let offset = 0;
+    return decodeLengthPrefixedChanges(changes, decodeChange);
+  } catch (error) {
+    logger.warn(
+      "Failed to decode length-prefixed changes, falling back",
+      {},
+      error,
+    );
+  }
 
-    while (offset < changes.length) {
-      const slice = changes.subarray(offset);
-      const result = decodeChange(slice);
-
-      if (Array.isArray(result)) {
-        const [change, bytes] = result as [Change, number];
-        if (!Number.isFinite(bytes) || bytes <= 0) {
-          throw new Error("Invalid decoded change length.");
-        }
-        decoded.push(change);
-        offset += bytes;
-        continue;
-      }
-
-      if (result && typeof result === "object" && "change" in result) {
-        const changeResult = result as {
-          change: Change;
-          bytes?: number;
-          length?: number;
-          bytesRead?: number;
-        };
-        const bytes =
-          changeResult.bytes ??
-          changeResult.length ??
-          changeResult.bytesRead ??
-          0;
-        if (!Number.isFinite(bytes) || bytes <= 0) {
-          throw new Error("Invalid decoded change length.");
-        }
-        decoded.push(changeResult.change);
-        offset += bytes;
-        continue;
-      }
-
-      const change = result as Change;
-      if (!encodeChange) {
-        throw new Error("Automerge.encodeChange is unavailable.");
-      }
-      const encoded = encodeChange(change);
-      if (encoded.length <= 0) {
-        throw new Error("Invalid decoded change length.");
-      }
-      decoded.push(change);
-      offset += encoded.length;
-      continue;
-    }
-
-    return decoded;
+  try {
+    return decodeChangesLegacy(changes, decodeChange, encodeChange);
   } catch (error) {
     logger.warn(
       "Failed to decode binary changes, falling back to JSON",
@@ -183,21 +394,32 @@ const encodeSnapshot = (snapshot: Uint8Array | string): string => {
   return fromByteArray(bytes);
 };
 
-const loadSnapshot = (encoded: string): Doc<AutomergeDoc> => {
-  let bytes: Uint8Array | null = null;
-  try {
-    bytes = toByteArray(encoded);
-  } catch {
-    bytes = null;
+const isBase64String = (value: string): boolean => {
+  if (!value || value.length % 4 !== 0) {
+    return false;
+  }
+  return /^[A-Za-z0-9+/_-]+={0,2}$/.test(value);
+};
+
+const loadSnapshot = (
+  encoded: string,
+  encoding?: "base64" | "transit",
+): Doc<AutomergeDoc> => {
+  if (encoding === "transit") {
+    return Automerge.load<AutomergeDoc>(encoded);
   }
 
-  if (bytes) {
+  if (
+    encoding === "base64" ||
+    (encoding !== "transit" && isBase64String(encoded))
+  ) {
+    const bytes = toByteArray(encoded);
+    const decoded = getTextDecoder().decode(bytes);
     try {
-      return Automerge.load<AutomergeDoc>(bytes as unknown as string);
+      return Automerge.load<AutomergeDoc>(decoded);
     } catch (error) {
-      const decoded = getTextDecoder().decode(bytes);
       try {
-        return Automerge.load<AutomergeDoc>(decoded);
+        return Automerge.load<AutomergeDoc>(bytes as unknown as string);
       } catch {
         throw error;
       }
@@ -220,13 +442,20 @@ export const getChangesSinceLastSync = async (
     );
 
     const current = ensureAutomergeDoc(currentDoc);
-    const changes = lastSyncSnapshot
-      ? Automerge.getChanges(loadSnapshot(lastSyncSnapshot), current)
-      : Automerge.getAllChanges(current);
-
     if (!lastSyncSnapshot) {
-      logger.info("First sync with peer, sending all changes", { peerId });
+      const snapshotPayload = JSON.stringify({
+        format: SNAPSHOT_FORMAT,
+        snapshot: Automerge.save(current),
+        encoding: "transit",
+      });
+      logger.info("First sync with peer, sending snapshot payload", { peerId });
+      return getTextEncoder().encode(snapshotPayload);
     }
+
+    const changes = Automerge.getChanges(
+      loadSnapshot(lastSyncSnapshot),
+      current,
+    );
 
     logger.info("Generated changes for sync", {
       peerId,
@@ -251,6 +480,91 @@ export const applyReceivedChanges = (
     if (changes.length === 0) {
       logger.info("No incoming changes to apply");
       return currentDoc;
+    }
+
+    const snapshotPayload = parseSnapshotPayload(changes);
+    if (snapshotPayload) {
+      const remoteDoc = loadSnapshot(
+        snapshotPayload.snapshot,
+        snapshotPayload.encoding,
+      );
+      const localDoc = ensureAutomergeDoc(currentDoc);
+      try {
+        return Automerge.merge(localDoc, remoteDoc);
+      } catch {
+        return remoteDoc;
+      }
+    }
+
+    let decodedPayload: string | null = null;
+    try {
+      decodedPayload = getTextDecoder().decode(changes).trim();
+    } catch {
+      decodedPayload = null;
+    }
+
+    if (decodedPayload) {
+      const trimmedPayload = decodedPayload.trim();
+      if (trimmedPayload.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(trimmedPayload) as {
+            format?: unknown;
+            snapshot?: unknown;
+            encoding?: unknown;
+          };
+          if (
+            parsed &&
+            parsed.format === SNAPSHOT_FORMAT &&
+            typeof parsed.snapshot === "string"
+          ) {
+            const remoteDoc = loadSnapshot(
+              parsed.snapshot,
+              parsed.encoding === "base64" || parsed.encoding === "transit"
+                ? parsed.encoding
+                : undefined,
+            );
+            const localDoc = ensureAutomergeDoc(currentDoc);
+            try {
+              return Automerge.merge(localDoc, remoteDoc);
+            } catch {
+              return remoteDoc;
+            }
+          }
+        } catch {
+          // Fall through to other decode strategies.
+        }
+      }
+
+      let skipSnapshotLoad = false;
+      if (trimmedPayload.startsWith("[")) {
+        try {
+          const parsed = JSON.parse(trimmedPayload) as unknown;
+          if (Array.isArray(parsed)) {
+            skipSnapshotLoad = parsed.some(
+              (entry) =>
+                entry &&
+                typeof entry === "object" &&
+                ("ops" in entry || "actor" in entry),
+            );
+          }
+        } catch {
+          skipSnapshotLoad = false;
+        }
+      }
+
+      if (!skipSnapshotLoad) {
+        try {
+          const remoteDoc = Automerge.load<AutomergeDoc>(trimmedPayload);
+          const localDoc = ensureAutomergeDoc(currentDoc);
+          try {
+            return Automerge.merge(localDoc, remoteDoc);
+          } catch {
+            return remoteDoc;
+          }
+        } catch {
+          // Not a snapshot payload, fall through to change decoding.
+        }
+      }
     }
 
     const decodedChanges = decodeChanges(changes);
@@ -298,15 +612,26 @@ export const createSyncBundle = async (
   peerId: string = "qr-transfer",
 ): Promise<string> => {
   const changes = await getChangesSinceLastSync(currentDoc, peerId);
-  const base64 = fromByteArray(changes);
+  let decodedPayload: string | null = null;
+  try {
+    decodedPayload = getTextDecoder().decode(changes).trim();
+  } catch {
+    decodedPayload = null;
+  }
 
-  if (base64.length > 2000) {
+  if (decodedPayload?.startsWith("{") || decodedPayload?.startsWith("[")) {
+    return decodedPayload;
+  }
+
+  const bundle = fromByteArray(changes);
+
+  if (bundle.length > 2000) {
     logger.warn("Sync bundle large, may need multiple QR codes", {
-      size: base64.length,
+      size: bundle.length,
     });
   }
 
-  return base64;
+  return bundle;
 };
 
 /**
@@ -315,5 +640,8 @@ export const createSyncBundle = async (
 export const parseSyncBundle = (qrData: string): Uint8Array => {
   const trimmed = qrData.trim();
   if (!trimmed) return new Uint8Array();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    return getTextEncoder().encode(trimmed);
+  }
   return toByteArray(trimmed);
 };

@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "../../domains/shared/types";
+import type { AccountContactRole } from "../../domains/relations/accountContact";
 
 // Root stack navigator
 export type RootStackParamList = {
@@ -11,9 +12,16 @@ export type RootStackParamList = {
   OrganizationDetail: { organizationId: EntityId };
   OrganizationForm: { organizationId?: EntityId };
   AccountDetail: { accountId: EntityId };
-  AccountForm: { accountId?: EntityId };
+  AccountForm: { accountId?: EntityId; organizationId?: EntityId };
   ContactDetail: { contactId: EntityId };
-  ContactForm: { contactId?: EntityId };
+  ContactForm: {
+    contactId?: EntityId;
+    accountLink?: {
+      accountId: EntityId;
+      role: AccountContactRole;
+      setPrimary?: boolean;
+    };
+  };
   NoteDetail: { noteId: EntityId };
   NoteForm: {
     noteId?: EntityId;
@@ -32,6 +40,8 @@ export type RootStackParamList = {
   };
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
+  AuditForm: { auditId?: EntityId; accountId?: EntityId };
+  AuditDetail: { auditId: EntityId };
 };
 
 // Root tab navigator
@@ -54,14 +64,21 @@ export type OrganizationsStackParamList = {
 export type AccountsStackParamList = {
   AccountsList: undefined;
   AccountDetail: { accountId: EntityId };
-  AccountForm: { accountId?: EntityId };
+  AccountForm: { accountId?: EntityId; organizationId?: EntityId };
 };
 
 // Contacts stack navigator
 export type ContactsStackParamList = {
   ContactsList: undefined;
   ContactDetail: { contactId: EntityId };
-  ContactForm: { contactId?: EntityId };
+  ContactForm: {
+    contactId?: EntityId;
+    accountLink?: {
+      accountId: EntityId;
+      role: AccountContactRole;
+      setPrimary?: boolean;
+    };
+  };
 };
 
 // Notes stack navigator (now includes Interactions)
@@ -92,6 +109,8 @@ export type MiscStackParamList = {
   MiscLanding: undefined;
   Sync: undefined;
   CodesList: undefined;
+  AuditsList: undefined;
+  AuditDetail: { auditId: EntityId };
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
   SettingsList: undefined;

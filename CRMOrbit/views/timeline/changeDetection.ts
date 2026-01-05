@@ -153,6 +153,9 @@ export const detectAccountChanges = (
     website?: string;
     addresses?: AccountAddresses;
     socialMedia?: SocialMediaLinks;
+    minFloor?: number;
+    maxFloor?: number;
+    excludedFloors?: number[];
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -219,6 +222,36 @@ export const detectAccountChanges = (
           newValue,
         });
       }
+    });
+  }
+
+  const oldMin = oldAccount.minFloor ?? null;
+  const newMin = newData.minFloor ?? null;
+  if (oldMin !== newMin) {
+    changes.push({
+      field: "minFloor",
+      oldValue: oldMin === null ? "" : `${oldMin}`,
+      newValue: newMin === null ? "" : `${newMin}`,
+    });
+  }
+
+  const oldMax = oldAccount.maxFloor ?? null;
+  const newMax = newData.maxFloor ?? null;
+  if (oldMax !== newMax) {
+    changes.push({
+      field: "maxFloor",
+      oldValue: oldMax === null ? "" : `${oldMax}`,
+      newValue: newMax === null ? "" : `${newMax}`,
+    });
+  }
+
+  const oldExcluded = oldAccount.excludedFloors ?? [];
+  const newExcluded = newData.excludedFloors ?? [];
+  if (oldExcluded.join(",") !== newExcluded.join(",")) {
+    changes.push({
+      field: "excludedFloors",
+      oldValue: oldExcluded.join(", "),
+      newValue: newExcluded.join(", "),
     });
   }
 
