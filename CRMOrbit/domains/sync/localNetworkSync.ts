@@ -336,7 +336,8 @@ class LocalNetworkSyncService {
   };
 
   private handleError = (error: unknown) => {
-    logger.error("Zeroconf error", {}, error);
+    logger.warn("Zeroconf error", {}, error);
+    useSyncStore.getState().setStatus("error");
   };
 
   private setupListeners() {

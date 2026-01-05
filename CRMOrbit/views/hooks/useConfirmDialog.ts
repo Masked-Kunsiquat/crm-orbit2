@@ -23,23 +23,26 @@ export const useConfirmDialog = () => {
 
   const hideDialog = useCallback(() => setDialogConfig(null), []);
 
-  const showDialog = (config: ConfirmDialogConfig) => {
+  const showDialog = useCallback((config: ConfirmDialogConfig) => {
     setDialogConfig(config);
-  };
+  }, []);
 
-  const showAlert = (
-    title: string,
-    message: string,
-    confirmLabel: string,
-    onConfirm?: () => void,
-  ) => {
-    setDialogConfig({
-      title,
-      message,
-      confirmLabel,
-      onConfirm,
-    });
-  };
+  const showAlert = useCallback(
+    (
+      title: string,
+      message: string,
+      confirmLabel: string,
+      onConfirm?: () => void,
+    ) => {
+      setDialogConfig({
+        title,
+        message,
+        confirmLabel,
+        onConfirm,
+      });
+    },
+    [],
+  );
 
   const dialogProps: ConfirmDialogProps | null = dialogConfig
     ? {

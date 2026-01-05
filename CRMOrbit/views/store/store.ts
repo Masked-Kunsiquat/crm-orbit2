@@ -122,6 +122,11 @@ const areTimelineItemsEqual = (
  */
 export const __internal_getCrmStore = () => crmStore;
 
+// INTERNAL: for trusted sync hooks only, DO NOT export/use externally.
+export const __internal_updateCrmDoc = (doc: AutomergeDoc): void => {
+  crmStore.getState().setDoc(doc);
+};
+
 // ============================================================================
 // PUBLIC READ-ONLY SELECTOR HOOKS
 // These are the only way external components can access store state

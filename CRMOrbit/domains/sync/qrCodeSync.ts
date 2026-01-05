@@ -1,5 +1,3 @@
-import QRCode from "qrcode";
-
 import { createLogger } from "@utils/logger";
 import { createSyncBundle, parseSyncBundle } from "./automergeSync";
 import type { AutomergeDoc } from "@automerge/schema";
@@ -23,7 +21,7 @@ export type SyncQRCodeBatch = {
   chunks: Array<{
     index: number;
     total: number;
-    dataUrl: string;
+    payload: string;
   }>;
   bundleId?: string;
 };
@@ -100,35 +98,23 @@ const chunkBundle = (bundle: string): SyncQRCodeChunk[] => {
   return chunks;
 };
 
-const toQrDataUrls = async (
-  chunks: SyncQRCodeChunk[],
-): Promise<SyncQRCodeBatch> => {
+const toQrPayloads = (chunks: SyncQRCodeChunk[]): SyncQRCodeBatch => {
   const total = chunks[0]?.total ?? 0;
   const bundleId = chunks[0]?.bundleId;
 
-  const dataUrls = await Promise.all(
-    chunks.map(async (chunk) => {
-      const payload = `${buildChunkHeader(
-        chunk.bundleId,
-        chunk.index,
-        chunk.total,
-      )}${chunk.data}`;
-      const dataUrl = await QRCode.toDataURL(payload, {
-        errorCorrectionLevel: "L",
-        type: "image/png",
-        width: 512,
-      });
-      return {
-        index: chunk.index,
-        total: chunk.total,
-        dataUrl,
-      };
-    }),
-  );
+  const payloads = chunks.map((chunk) => ({
+    index: chunk.index,
+    total: chunk.total,
+    payload: `${buildChunkHeader(
+      chunk.bundleId,
+      chunk.index,
+      chunk.total,
+    )}${chunk.data}`,
+  }));
 
   return {
     kind: total > 1 ? "chunked" : "single",
-    chunks: dataUrls,
+    chunks: payloads,
     bundleId,
   };
 };
@@ -144,15 +130,10 @@ export const generateSyncQRCode = async (
     const syncBundle = await createSyncBundle(doc, peerId);
 
     if (syncBundle.length <= MAX_QR_SIZE) {
-      const dataUrl = await QRCode.toDataURL(syncBundle, {
-        errorCorrectionLevel: "L",
-        type: "image/png",
-        width: 512,
-      });
-      logger.info("Generated sync QR code", { dataSize: syncBundle.length });
+      logger.info("Generated sync QR payload", { dataSize: syncBundle.length });
       return {
         kind: "single",
-        chunks: [{ index: 1, total: 1, dataUrl }],
+        chunks: [{ index: 1, total: 1, payload: syncBundle }],
       };
     }
 
@@ -162,8 +143,8 @@ export const generateSyncQRCode = async (
     });
 
     const chunks = chunkBundle(syncBundle);
-    const batch = await toQrDataUrls(chunks);
-    logger.info("Generated chunked sync QR codes", {
+    const batch = toQrPayloads(chunks);
+    logger.info("Generated chunked sync QR payloads", {
       totalChunks: batch.chunks.length,
     });
     return batch;
@@ -245,16 +226,6 @@ export const assembleSyncChunks = (chunks: SyncQRCodeChunk[]): Uint8Array => {
 export const generateWebRTCOfferQR = async (
   offerSDP: string,
 ): Promise<string> => {
-  try {
-    const qrDataUrl = await QRCode.toDataURL(offerSDP, {
-      errorCorrectionLevel: "M",
-      width: 512,
-    });
-
-    logger.info("Generated WebRTC offer QR code");
-    return qrDataUrl;
-  } catch (error) {
-    logger.error("Failed to generate WebRTC offer QR", {}, error);
-    throw error;
-  }
+  logger.info("Generated WebRTC offer QR payload");
+  return offerSDP;
 };

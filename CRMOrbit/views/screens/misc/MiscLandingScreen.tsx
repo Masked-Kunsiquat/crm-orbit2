@@ -17,6 +17,10 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
     navigation.navigate("CodesList");
   };
 
+  const handleSyncPress = () => {
+    navigation.navigate("Sync");
+  };
+
   const handleSettingsPress = () => {
     navigation.navigate("SettingsList");
   };
@@ -43,6 +47,26 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
           <View style={styles.countBadge}>
             <Text style={[styles.countText, { color: colors.textSecondary }]}>
               {allCodes.length}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleSyncPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="sync"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("sync.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("sync.description")}
             </Text>
           </View>
         </View>

@@ -23,7 +23,14 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_MULTICAST_STATE",
+        "NEARBY_WIFI_DEVICES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,7 +40,8 @@
       "@react-native-community/datetimepicker",
       "./android-linking-plugin.js",
       "expo-secure-store",
-      "expo-barcode-scanner"
+      "expo-camera",
+      "expo-font"
     ],
     "extra": {
       "eas": {

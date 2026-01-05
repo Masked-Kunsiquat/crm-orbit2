@@ -38,7 +38,25 @@ declare module "qrcode" {
   ) => void;
   type QRCodeToStringCallback = (error: Error | null, string: string) => void;
 
+  type QRCodeModuleData = {
+    size: number;
+    data: ArrayLike<number | boolean>;
+  };
+
   const QRCode: {
+    create(
+      text: string,
+      options?: QRCodeOptionsBase,
+    ): {
+      modules: QRCodeModuleData;
+      version: number;
+      errorCorrectionLevel: "L" | "M" | "Q" | "H";
+      maskPattern: number;
+      segments: Array<{
+        data: string | Uint8Array | ArrayBuffer;
+        mode: "numeric" | "alphanumeric" | "byte" | "kanji";
+      }>;
+    };
     toDataURL(text: string, options?: QRCodeOptions): Promise<string>;
     toDataURL(text: string, callback: QRCodeToDataURLCallback): Promise<string>;
     toDataURL(

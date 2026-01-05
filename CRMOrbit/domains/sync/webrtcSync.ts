@@ -1,5 +1,3 @@
-import { RTCPeerConnection, RTCSessionDescription } from "react-native-webrtc";
-
 import { createLogger } from "@utils/logger";
 
 const logger = createLogger("WebRTCSync");
@@ -15,6 +13,55 @@ type EventTargetLike = {
     type: string,
     listener: (event: unknown) => void,
   ) => void;
+};
+
+type DataChannelLike = {
+  readyState: string;
+  send: (data: Uint8Array) => void;
+  close: () => void;
+};
+
+type PeerConnectionLike = {
+  createDataChannel: (
+    label: string,
+    options: { ordered: boolean },
+  ) => DataChannelLike;
+  createOffer: () => Promise<unknown>;
+  createAnswer: () => Promise<unknown>;
+  setLocalDescription: (description: unknown) => Promise<void>;
+  setRemoteDescription: (description: unknown) => Promise<void>;
+  localDescription: unknown;
+  iceGatheringState: string;
+  close: () => void;
+};
+
+type WebRTCModule = {
+  RTCPeerConnection: new (config: {
+    iceServers: { urls: string }[];
+  }) => PeerConnectionLike;
+  RTCSessionDescription: new (description: unknown) => unknown;
+};
+
+let cachedWebRTCModule: WebRTCModule | null = null;
+
+const loadWebRTCModule = (): WebRTCModule => {
+  if (cachedWebRTCModule) {
+    return cachedWebRTCModule;
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const module = require("react-native-webrtc") as WebRTCModule;
+    cachedWebRTCModule = module;
+    return module;
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "WebRTC native module unavailable.";
+    throw new Error(
+      `WebRTC native module not found. Use a dev client to enable WebRTC sync. (${message})`,
+    );
+  }
 };
 
 const encodeString = (value: string): Uint8Array => {
@@ -38,10 +85,8 @@ const toUint8Array = (data: unknown): Uint8Array => {
 };
 
 class WebRTCPeerConnection {
-  private peerConnection: RTCPeerConnection | null = null;
-  private dataChannel: ReturnType<
-    RTCPeerConnection["createDataChannel"]
-  > | null = null;
+  private peerConnection: PeerConnectionLike | null = null;
+  private dataChannel: DataChannelLike | null = null;
   private onDataReceived?: (data: Uint8Array) => void;
 
   async createOffer(
@@ -49,6 +94,7 @@ class WebRTCPeerConnection {
   ): Promise<string> {
     this.onDataReceived = onDataCallback;
 
+    const { RTCPeerConnection } = loadWebRTCModule();
     this.peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
     this.dataChannel = this.peerConnection.createDataChannel("sync", {
@@ -72,6 +118,7 @@ class WebRTCPeerConnection {
   ): Promise<string> {
     this.onDataReceived = onDataCallback;
 
+    const { RTCPeerConnection, RTCSessionDescription } = loadWebRTCModule();
     this.peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
     this.setupDataChannelReceiver();
@@ -93,6 +140,7 @@ class WebRTCPeerConnection {
       throw new Error("No peer connection");
     }
 
+    const { RTCSessionDescription } = loadWebRTCModule();
     const answer = new RTCSessionDescription(JSON.parse(answerSDP));
     await this.peerConnection.setRemoteDescription(answer);
 
@@ -148,7 +196,7 @@ class WebRTCPeerConnection {
     const peerEvents = peerConnection as unknown as EventTargetLike;
     peerEvents.addEventListener("datachannel", (event: unknown) => {
       const dataEvent = event as {
-        channel: ReturnType<RTCPeerConnection["createDataChannel"]>;
+        channel: DataChannelLike;
       };
       this.dataChannel = dataEvent.channel;
       this.setupDataChannel();
