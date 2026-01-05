@@ -306,7 +306,15 @@ export const SyncScreen = () => {
             <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>
               {t("sync.deviceId.label")}
             </Text>
-            <Text style={[styles.statusValue, { color: colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.statusValue,
+                styles.deviceIdValue,
+                { color: colors.textPrimary },
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="middle"
+            >
               {deviceId}
             </Text>
           </View>
@@ -528,6 +536,11 @@ const styles = StyleSheet.create({
   statusValue: {
     fontSize: 13,
     fontWeight: "600",
+  },
+  deviceIdValue: {
+    flexShrink: 1,
+    maxWidth: "60%",
+    textAlign: "right",
   },
   emptyState: {
     paddingVertical: 12,
