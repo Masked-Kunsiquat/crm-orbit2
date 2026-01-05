@@ -15,6 +15,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 
 import { nextId } from "@domains/shared/idGenerator";
+import type { AuditStatus } from "@domains/audit";
 import { t } from "@i18n/index";
 import { useAudit, useAccounts } from "../../store/store";
 import { useAuditActions, useDeviceId } from "../../hooks";
@@ -43,11 +44,6 @@ type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 };
-
-type AuditStatus =
-  | "audits.status.scheduled"
-  | "audits.status.canceled"
-  | "audits.status.completed";
 
 type DurationPreset = "30" | "60" | "120" | "240" | "custom";
 

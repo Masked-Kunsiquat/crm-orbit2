@@ -54,17 +54,12 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
         Number.isInteger(audit.durationMinutes) && audit.durationMinutes > 0
           ? audit.durationMinutes
           : DEFAULT_AUDIT_DURATION_MINUTES;
-      const status =
-        audit.status ??
-        (audit.occurredAt
-          ? "audits.status.completed"
-          : "audits.status.scheduled");
       return [
         id,
         {
           ...audit,
           durationMinutes,
-          status,
+          status: audit.status,
         },
       ];
     }),
