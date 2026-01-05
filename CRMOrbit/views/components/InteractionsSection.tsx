@@ -123,57 +123,93 @@ export const InteractionsSection = ({
           {t("interactions.emptyTitle")}
         </Text>
       ) : (
-        interactions.map((interaction) => (
-          <View
-            key={interaction.id}
-            style={[
-              styles.interactionCard,
-              { backgroundColor: colors.surfaceElevated },
-            ]}
-          >
-            <Pressable
-              style={styles.interactionCardRow}
-              onPress={() => {
-                navigation.navigate("InteractionDetail", {
-                  interactionId: interaction.id,
-                });
-              }}
+        interactions.map((interaction) => {
+          const resolvedStatus =
+            interaction.status ?? "interaction.status.completed";
+          const usesScheduledTimestamp =
+            resolvedStatus !== "interaction.status.completed";
+          const timestampLabel = usesScheduledTimestamp
+            ? t("interactions.scheduledFor")
+            : t("interactions.occurredAt");
+          const timestampValue = usesScheduledTimestamp
+            ? interaction.scheduledFor ?? interaction.occurredAt
+            : interaction.occurredAt;
+          const formattedTimestamp = (() => {
+            const date = new Date(timestampValue);
+            if (Number.isNaN(date.getTime())) {
+              return t("common.unknown");
+            }
+            return date.toLocaleString();
+          })();
+          const metaText =
+            resolvedStatus === "interaction.status.completed"
+              ? `${timestampLabel}: ${formattedTimestamp}`
+              : `${t("interactions.statusLabel")}: ${t(
+                  resolvedStatus,
+                )} · ${timestampLabel}: ${formattedTimestamp}`;
+          return (
+            <View
+              key={interaction.id}
+              style={[
+                styles.interactionCard,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
             >
-              <View style={styles.interactionCardContent}>
+              <Pressable
+                style={styles.interactionCardRow}
+                onPress={() => {
+                  navigation.navigate("InteractionDetail", {
+                    interactionId: interaction.id,
+                  });
+                }}
+              >
+                <View style={styles.interactionCardContent}>
+                  <Text
+                    style={[
+                      styles.interactionType,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {t(interaction.type)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.interactionSummary,
+                      { color: colors.textPrimary },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {interaction.summary}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.interactionMeta,
+                      { color: colors.textMuted },
+                    ]}
+                  >
+                    {metaText}
+                  </Text>
+                </View>
+              </Pressable>
+              <TouchableOpacity
+                style={[
+                  styles.unlinkButton,
+                  { backgroundColor: colors.errorBg },
+                ]}
+                onPress={() => handleUnlink(interaction.id, interaction.summary)}
+              >
                 <Text
                   style={[
-                    styles.interactionType,
-                    { color: colors.textSecondary },
+                    styles.unlinkButtonText,
+                    { color: colors.error },
                   ]}
                 >
-                  {t(interaction.type)}
+                  {t("interactions.unlinkButton")}
                 </Text>
-                <Text
-                  style={[
-                    styles.interactionSummary,
-                    { color: colors.textPrimary },
-                  ]}
-                  numberOfLines={2}
-                >
-                  {interaction.summary}
-                </Text>
-                <Text
-                  style={[styles.interactionMeta, { color: colors.textMuted }]}
-                >
-                  {new Date(interaction.occurredAt).toLocaleString()}
-                </Text>
-              </View>
-            </Pressable>
-            <TouchableOpacity
-              style={[styles.unlinkButton, { backgroundColor: colors.errorBg }]}
-              onPress={() => handleUnlink(interaction.id, interaction.summary)}
-            >
-              <Text style={[styles.unlinkButtonText, { color: colors.error }]}>
-                {t("interactions.unlinkButton")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))
+              </TouchableOpacity>
+            </View>
+          );
+        })
       )}
       <LinkInteractionModal
         visible={showLinkModal}

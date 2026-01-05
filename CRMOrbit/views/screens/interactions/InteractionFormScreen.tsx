@@ -18,7 +18,10 @@ import {
   useEntityLinkActions,
   useInteractionActions,
 } from "../../hooks";
-import type { InteractionType } from "../../../domains/interaction";
+import type {
+  InteractionStatus,
+  InteractionType,
+} from "../../../domains/interaction";
 import type { EntityLinkType } from "../../../domains/relations/entityLink";
 import { nextId } from "../../../domains/shared/idGenerator";
 import {
@@ -55,42 +58,62 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const deviceId = useDeviceId();
   const { interactionId, entityToLink } = route.params ?? {};
   const interaction = useInteraction(interactionId ?? "");
-  const { logInteraction, updateInteraction, deleteInteraction } =
-    useInteractionActions(deviceId);
+  const {
+    logInteraction,
+    updateInteraction,
+    scheduleInteraction,
+    rescheduleInteraction,
+    updateInteractionStatus,
+    deleteInteraction,
+  } = useInteractionActions(deviceId);
   const { linkInteraction } = useEntityLinkActions(deviceId);
   const { dialogProps, showAlert, showDialog } = useConfirmDialog();
 
   const [type, setType] = useState<InteractionType>("interaction.type.call");
+  const [status, setStatus] = useState<InteractionStatus>(
+    "interaction.status.completed",
+  );
   const [summary, setSummary] = useState("");
   const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString());
+  const [scheduledFor, setScheduledFor] = useState(() =>
+    new Date().toISOString(),
+  );
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (interaction) {
       setType(interaction.type);
+      setStatus(interaction.status ?? "interaction.status.completed");
       setSummary(interaction.summary);
       setOccurredAt(interaction.occurredAt);
+      setScheduledFor(interaction.scheduledFor ?? interaction.occurredAt);
     } else {
       // Set default to current date/time
-      setOccurredAt(new Date().toISOString());
+      const now = new Date().toISOString();
+      setOccurredAt(now);
+      setScheduledFor(now);
+      setStatus("interaction.status.completed");
     }
   }, [interaction]);
 
-  const occurredAtLabel = useMemo(() => {
-    const date = new Date(occurredAt);
+  const activeTimestamp =
+    status === "interaction.status.completed" ? occurredAt : scheduledFor;
+
+  const scheduledLabel = useMemo(() => {
+    const date = new Date(activeTimestamp);
     if (Number.isNaN(date.getTime())) {
       return t("common.unknown");
     }
     return date.toLocaleString();
-  }, [occurredAt]);
+  }, [activeTimestamp]);
 
   const getResolvedDate = useCallback(() => {
-    const date = new Date(occurredAt);
+    const date = new Date(activeTimestamp);
     if (Number.isNaN(date.getTime())) {
       return new Date();
     }
     return date;
-  }, [occurredAt]);
+  }, [activeTimestamp]);
 
   const handlePickerChange = (event: DateTimePickerEvent, date?: Date) => {
     if (event.type === "dismissed") {
@@ -98,7 +121,12 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
     }
 
     if (date) {
-      setOccurredAt(date.toISOString());
+      const nextTimestamp = date.toISOString();
+      if (status === "interaction.status.completed") {
+        setOccurredAt(nextTimestamp);
+      } else {
+        setScheduledFor(nextTimestamp);
+      }
     }
   };
 
@@ -134,12 +162,31 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
               time.getSeconds(),
               time.getMilliseconds(),
             );
-            setOccurredAt(finalDate.toISOString());
+            const nextTimestamp = finalDate.toISOString();
+            if (status === "interaction.status.completed") {
+              setOccurredAt(nextTimestamp);
+            } else {
+              setScheduledFor(nextTimestamp);
+            }
           },
         });
       },
     });
-  }, [getResolvedDate]);
+  }, [getResolvedDate, status]);
+
+  const handleStatusChange = (value: InteractionStatus) => {
+    setStatus(value);
+    if (value === "interaction.status.completed") {
+      if (!occurredAt) {
+        setOccurredAt(scheduledFor || new Date().toISOString());
+      }
+      return;
+    }
+
+    if (!scheduledFor) {
+      setScheduledFor(occurredAt || new Date().toISOString());
+    }
+  };
 
   const handleSave = () => {
     if (!summary.trim()) {
@@ -151,32 +198,86 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
-    const occurredAtISO = occurredAt || new Date().toISOString();
+    const nextTimestamp = activeTimestamp || new Date().toISOString();
+    const trimmedSummary = summary.trim();
 
     if (interactionId) {
-      const result = updateInteraction(
-        interactionId,
-        type,
-        summary.trim(),
-        occurredAtISO,
-      );
-      if (result.success) {
-        navigation.goBack();
-      } else {
-        showAlert(
-          t("common.error"),
-          result.error || t("interactions.updateError"),
-          t("common.ok"),
+      const previousStatus =
+        interaction?.status ?? "interaction.status.completed";
+      const previousScheduledFor =
+        interaction?.scheduledFor ??
+        (previousStatus !== "interaction.status.completed"
+          ? interaction?.occurredAt
+          : undefined);
+
+      const shouldUpdateDetails =
+        interaction?.type !== type ||
+        interaction?.summary !== trimmedSummary ||
+        (status === "interaction.status.completed" &&
+          interaction?.occurredAt !== nextTimestamp) ||
+        (status !== "interaction.status.completed" &&
+          previousScheduledFor !== nextTimestamp);
+
+      if (shouldUpdateDetails) {
+        const result = updateInteraction(
+          interactionId,
+          type,
+          trimmedSummary,
+          nextTimestamp,
         );
+        if (!result.success) {
+          showAlert(
+            t("common.error"),
+            result.error || t("interactions.updateError"),
+            t("common.ok"),
+          );
+          return;
+        }
       }
+
+      if (status !== previousStatus) {
+        const result = updateInteractionStatus(
+          interactionId,
+          status,
+          status === "interaction.status.completed" ? nextTimestamp : undefined,
+        );
+        if (!result.success) {
+          showAlert(
+            t("common.error"),
+            result.error || t("interactions.updateError"),
+            t("common.ok"),
+          );
+          return;
+        }
+      }
+
+      if (
+        status !== "interaction.status.completed" &&
+        previousScheduledFor !== nextTimestamp
+      ) {
+        const result = rescheduleInteraction(interactionId, nextTimestamp);
+        if (!result.success) {
+          showAlert(
+            t("common.error"),
+            result.error || t("interactions.updateError"),
+            t("common.ok"),
+          );
+          return;
+        }
+      }
+
+      navigation.goBack();
     } else {
       const newInteractionId = nextId("interaction");
-      const result = logInteraction(
-        type,
-        summary.trim(),
-        occurredAtISO,
-        newInteractionId,
-      );
+      const result =
+        status === "interaction.status.scheduled"
+          ? scheduleInteraction(
+              type,
+              trimmedSummary,
+              nextTimestamp,
+              newInteractionId,
+            )
+          : logInteraction(type, trimmedSummary, nextTimestamp, newInteractionId);
       if (result.success) {
         if (entityToLink) {
           const linkResult = linkInteraction(
@@ -227,7 +328,40 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
           />
         </FormField>
 
-        <FormField label={t("interactions.form.occurredAtLabel")}>
+        <FormField label={t("interactions.form.statusLabel")}>
+          <SegmentedOptionGroup
+            options={[
+              {
+                value: "interaction.status.completed",
+                label: t("interaction.status.completed"),
+              },
+              {
+                value: "interaction.status.scheduled",
+                label: t("interaction.status.scheduled"),
+              },
+              ...(interactionId
+                ? [
+                    {
+                      value: "interaction.status.canceled",
+                      label: t("interaction.status.canceled"),
+                    },
+                  ]
+                : []),
+            ]}
+            value={status}
+            onChange={(value) =>
+              handleStatusChange(value as InteractionStatus)
+            }
+          />
+        </FormField>
+
+        <FormField
+          label={
+            status === "interaction.status.completed"
+              ? t("interactions.form.occurredAtLabel")
+              : t("interactions.form.scheduledForLabel")
+          }
+        >
           <View style={styles.dateRow}>
             <TouchableOpacity
               style={[
@@ -246,7 +380,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
               }}
             >
               <Text style={[styles.dateText, { color: colors.textPrimary }]}>
-                {occurredAtLabel}
+                {scheduledLabel}
               </Text>
             </TouchableOpacity>
           </View>

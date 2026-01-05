@@ -59,22 +59,35 @@ export const InteractionsListScreen = ({ navigation }: Props) => {
   };
 
   const renderItem = ({ item }: { item: Interaction }) => {
-    const occurredDate = new Date(item.occurredAt);
-    const formattedDate = occurredDate.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-    const formattedTime = occurredDate.toLocaleTimeString(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    const resolvedStatus =
+      item.status ?? "interaction.status.completed";
+    const usesScheduledTimestamp =
+      resolvedStatus !== "interaction.status.completed";
+    const timestampValue = usesScheduledTimestamp
+      ? item.scheduledFor ?? item.occurredAt
+      : item.occurredAt;
+    const labelKey = usesScheduledTimestamp
+      ? "interactions.scheduledFor"
+      : "interactions.occurredAt";
+    const formattedTimestamp = (() => {
+      const date = new Date(timestampValue);
+      if (Number.isNaN(date.getTime())) {
+        return t("common.unknown");
+      }
+      return date.toLocaleString();
+    })();
+    const description =
+      resolvedStatus === "interaction.status.completed"
+        ? `${t(labelKey)}: ${formattedTimestamp}`
+        : `${t("interactions.statusLabel")}: ${t(resolvedStatus)} · ${t(
+            labelKey,
+          )}: ${formattedTimestamp}`;
 
     return (
       <ListRow
         onPress={() => handlePress(item)}
         title={item.summary}
-        description={`${formattedDate} at ${formattedTime}`}
+        description={description}
         style={styles.listRow}
       >
         <View style={styles.iconContainer}>
