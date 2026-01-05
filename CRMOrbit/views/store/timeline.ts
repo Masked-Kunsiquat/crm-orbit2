@@ -127,7 +127,10 @@ export const buildTimelineForEntity = (
 
       items.push({
         kind: "interaction",
-        timestamp: interaction.occurredAt,
+        timestamp:
+          interaction.occurredAt ??
+          interaction.scheduledFor ??
+          interaction.createdAt,
         interaction,
       });
     }

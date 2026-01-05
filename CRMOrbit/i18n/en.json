@@ -401,6 +401,9 @@
   "events.note.unlinked": "Unlinked note",
   "events.interaction.linked": "Linked interaction",
   "events.interaction.unlinked": "Unlinked interaction",
+  "events.interaction.scheduled": "Scheduled interaction",
+  "events.interaction.rescheduled": "Rescheduled interaction",
+  "events.interaction.status.updated": "Updated interaction status",
   "events.interaction.logged": "Created interaction",
   "events.interaction.updated": "Updated interaction",
   "events.interaction.deleted": "Deleted interaction",
@@ -448,5 +451,8 @@
   "interaction.type.call": "Call",
   "interaction.type.email": "Email",
   "interaction.type.meeting": "Meeting",
-  "interaction.type.other": "Other"
+  "interaction.type.other": "Other",
+  "interaction.status.scheduled": "Scheduled",
+  "interaction.status.completed": "Completed",
+  "interaction.status.canceled": "Canceled"
 }

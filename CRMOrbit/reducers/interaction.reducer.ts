@@ -1,4 +1,8 @@
-import type { Interaction, InteractionType } from "../domains/interaction";
+import type {
+  Interaction,
+  InteractionStatus,
+  InteractionType,
+} from "../domains/interaction";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import type { EntityId, Timestamp } from "../domains/shared/types";
@@ -12,6 +16,39 @@ type InteractionLoggedPayload = {
   type: InteractionType;
   occurredAt: Timestamp;
   summary: string;
+  status?: InteractionStatus;
+};
+
+type InteractionScheduledPayload = {
+  id: EntityId;
+  type: InteractionType;
+  scheduledFor: Timestamp;
+  summary: string;
+  status?: InteractionStatus;
+};
+
+type InteractionRescheduledPayload = {
+  id: EntityId;
+  scheduledFor: Timestamp;
+};
+
+type InteractionStatusUpdatedPayload = {
+  id: EntityId;
+  status: InteractionStatus;
+  occurredAt?: Timestamp;
+};
+
+const VALID_STATUSES: InteractionStatus[] = [
+  "interaction.status.scheduled",
+  "interaction.status.completed",
+  "interaction.status.canceled",
+];
+
+const assertStatusValid = (status: InteractionStatus | undefined): void => {
+  if (!status) return;
+  if (!VALID_STATUSES.includes(status)) {
+    throw new Error(`Invalid interaction status: ${status}`);
+  }
 };
 
 const applyInteractionLogged = (
@@ -28,11 +65,20 @@ const applyInteractionLogged = (
     throw new Error(`Interaction already exists: ${id}`);
   }
 
+  assertStatusValid(payload.status);
+  if (
+    payload.status &&
+    payload.status !== "interaction.status.completed"
+  ) {
+    throw new Error("Logged interactions must be completed.");
+  }
+
   const interaction: Interaction = {
     id,
     type: payload.type,
     occurredAt: payload.occurredAt,
     summary: payload.summary,
+    status: payload.status ?? "interaction.status.completed",
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
   };
@@ -52,11 +98,125 @@ const applyInteractionLogged = (
   };
 };
 
+const applyInteractionScheduled = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  const payload = event.payload as InteractionScheduledPayload;
+  const id = resolveEntityId(event, payload);
+
+  if (doc.interactions[id]) {
+    throw new Error(`Interaction already exists: ${id}`);
+  }
+
+  if (!payload.scheduledFor) {
+    throw new Error("Interaction scheduledFor is required.");
+  }
+
+  assertStatusValid(payload.status);
+
+  const interaction: Interaction = {
+    id,
+    type: payload.type,
+    scheduledFor: payload.scheduledFor,
+    occurredAt: payload.scheduledFor,
+    summary: payload.summary,
+    status: payload.status ?? "interaction.status.scheduled",
+    createdAt: event.timestamp,
+    updatedAt: event.timestamp,
+  };
+
+  return {
+    ...doc,
+    interactions: {
+      ...doc.interactions,
+      [id]: interaction,
+    },
+  };
+};
+
+const applyInteractionRescheduled = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  const payload = event.payload as InteractionRescheduledPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.interactions[id];
+
+  if (!existing) {
+    throw new Error(`Interaction not found: ${id}`);
+  }
+
+  if (!payload.scheduledFor) {
+    throw new Error("Interaction scheduledFor is required.");
+  }
+
+  return {
+    ...doc,
+    interactions: {
+      ...doc.interactions,
+      [id]: {
+        ...existing,
+        scheduledFor: payload.scheduledFor,
+        occurredAt: payload.scheduledFor,
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
+const applyInteractionStatusUpdated = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  const payload = event.payload as InteractionStatusUpdatedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.interactions[id];
+
+  if (!existing) {
+    throw new Error(`Interaction not found: ${id}`);
+  }
+
+  assertStatusValid(payload.status);
+
+  if (
+    payload.status === "interaction.status.completed" &&
+    !payload.occurredAt &&
+    !existing.occurredAt
+  ) {
+    throw new Error("Interaction occurredAt is required when completing.");
+  }
+
+  if (
+    payload.status === "interaction.status.scheduled" &&
+    !existing.scheduledFor
+  ) {
+    throw new Error(
+      "Interaction scheduledFor is required when marking scheduled.",
+    );
+  }
+
+  return {
+    ...doc,
+    interactions: {
+      ...doc.interactions,
+      [id]: {
+        ...existing,
+        status: payload.status,
+        ...(payload.occurredAt !== undefined && {
+          occurredAt: payload.occurredAt,
+        }),
+        updatedAt: event.timestamp,
+      },
+    },
+  };
+};
+
 type InteractionUpdatedPayload = {
   id?: EntityId;
-  type: InteractionType;
-  occurredAt: Timestamp;
-  summary: string;
+  type?: InteractionType;
+  occurredAt?: Timestamp;
+  summary?: string;
   changes?: Array<{ field: string; oldValue: string; newValue: string }>;
 };
 
@@ -82,9 +242,9 @@ const applyInteractionUpdated = (
 
   const updated: Interaction = {
     ...existing,
-    type: payload.type,
-    occurredAt: payload.occurredAt,
-    summary: payload.summary,
+    ...(payload.type !== undefined && { type: payload.type }),
+    ...(payload.occurredAt !== undefined && { occurredAt: payload.occurredAt }),
+    ...(payload.summary !== undefined && { summary: payload.summary }),
     updatedAt: event.timestamp,
   };
 
@@ -152,6 +312,12 @@ export const interactionReducer = (
   });
 
   switch (event.type) {
+    case "interaction.scheduled":
+      return applyInteractionScheduled(doc, event);
+    case "interaction.rescheduled":
+      return applyInteractionRescheduled(doc, event);
+    case "interaction.status.updated":
+      return applyInteractionStatusUpdated(doc, event);
     case "interaction.logged":
       return applyInteractionLogged(doc, event);
     case "interaction.updated":
