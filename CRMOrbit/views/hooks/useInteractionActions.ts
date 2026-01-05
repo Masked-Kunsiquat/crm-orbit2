@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import type { InteractionType } from "../../domains/interaction";
+import type { InteractionStatus, InteractionType } from "../../domains/interaction";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
@@ -58,6 +58,70 @@ export const useInteractionActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  const scheduleInteraction = useCallback(
+    (
+      type: InteractionType,
+      summary: string,
+      scheduledFor: string,
+      interactionId?: EntityId,
+    ): DispatchResult => {
+      const id = interactionId ?? nextId("interaction");
+      const event = buildEvent({
+        type: "interaction.scheduled",
+        entityId: id,
+        payload: {
+          id,
+          type,
+          scheduledFor,
+          summary,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
+  const rescheduleInteraction = useCallback(
+    (interactionId: EntityId, scheduledFor: string): DispatchResult => {
+      const event = buildEvent({
+        type: "interaction.rescheduled",
+        entityId: interactionId,
+        payload: {
+          id: interactionId,
+          scheduledFor,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
+  const updateInteractionStatus = useCallback(
+    (
+      interactionId: EntityId,
+      status: InteractionStatus,
+      occurredAt?: string,
+    ): DispatchResult => {
+      const event = buildEvent({
+        type: "interaction.status.updated",
+        entityId: interactionId,
+        payload: {
+          id: interactionId,
+          status,
+          ...(occurredAt !== undefined && { occurredAt }),
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
   const deleteInteraction = useCallback(
     (interactionId: EntityId): DispatchResult => {
       const event = buildEvent({
@@ -77,6 +141,9 @@ export const useInteractionActions = (deviceId: string) => {
   return {
     logInteraction,
     updateInteraction,
+    scheduleInteraction,
+    rescheduleInteraction,
+    updateInteractionStatus,
     deleteInteraction,
   };
 };
