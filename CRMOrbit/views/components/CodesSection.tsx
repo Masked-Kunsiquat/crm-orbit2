@@ -59,16 +59,19 @@ export const CodesSection = ({
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
+            style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={() =>
               navigation.navigate("CodeForm", {
                 accountId,
               })
             }
+            accessibilityLabel={t("codes.addButton")}
           >
-            <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
-              {t("codes.addButton")}
-            </Text>
+            <MaterialCommunityIcons
+              name="plus"
+              size={18}
+              color={colors.onAccent}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -138,14 +141,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  addButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
+  iconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 14,

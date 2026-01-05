@@ -278,6 +278,7 @@
   "contacts.linkedAccounts.alreadyLinkedTitle": "Already Linked",
   "contacts.linkedAccounts.alreadyLinkedMessage": "This contact is already linked to this account",
   "contacts.linkedAccounts.alreadyLinkedSuffix": " (Already linked)",
+  "contacts.linkEmpty": "No contacts available to link.",
   "contacts.linkError": "Failed to link contact",
   "contacts.unlinkTitle": "Unlink Contact",
   "contacts.unlinkConfirmation": "Unlink \"{contactName}\" from \"{accountName}\"?",

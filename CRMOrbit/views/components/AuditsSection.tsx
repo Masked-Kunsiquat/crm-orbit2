@@ -1,13 +1,17 @@
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { Audit } from "@domains/audit";
 import { t } from "@i18n/index";
 
-import { useDeviceId, useTheme } from "../hooks";
-import { useAuditActions } from "../hooks/useAuditActions";
-import { useConfirmDialog } from "../hooks/useConfirmDialog";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { useTheme } from "../hooks";
 import { Section } from "./Section";
 import { StatusBadge } from "./StatusBadge";
 
@@ -43,9 +47,6 @@ export const AuditsSection = ({
   navigation,
 }: AuditsSectionProps) => {
   const { colors } = useTheme();
-  const deviceId = useDeviceId();
-  const { deleteAudit } = useAuditActions(deviceId);
-  const { dialogProps, showDialog } = useConfirmDialog();
 
   const sortedAudits = useMemo(() => {
     return [...audits].sort((left, right) => {
@@ -55,19 +56,6 @@ export const AuditsSection = ({
     });
   }, [audits]);
 
-  const handleDelete = (audit: Audit) => {
-    showDialog({
-      title: t("audits.deleteTitle"),
-      message: t("audits.deleteConfirmation"),
-      confirmLabel: t("common.delete"),
-      confirmVariant: "danger",
-      cancelLabel: t("common.cancel"),
-      onConfirm: () => {
-        deleteAudit(audit.id);
-      },
-    });
-  };
-
   return (
     <Section>
       <View style={styles.sectionHeader}>
@@ -76,16 +64,19 @@ export const AuditsSection = ({
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
+            style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={() =>
               navigation.navigate("AuditForm", {
                 accountId,
               })
             }
+            accessibilityLabel={t("audits.addButton")}
           >
-            <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
-              {t("audits.addButton")}
-            </Text>
+            <MaterialCommunityIcons
+              name="plus"
+              size={18}
+              color={colors.onAccent}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -111,7 +102,10 @@ export const AuditsSection = ({
           return (
             <View
               key={audit.id}
-              style={[styles.auditCard, { backgroundColor: colors.surfaceElevated }]}
+              style={[
+                styles.auditCard,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
             >
               <Pressable
                 style={styles.auditCardRow}
@@ -124,7 +118,10 @@ export const AuditsSection = ({
                 <View style={styles.auditCardContent}>
                   <View style={styles.auditHeaderRow}>
                     <Text
-                      style={[styles.auditTimestamp, { color: colors.textPrimary }]}
+                      style={[
+                        styles.auditTimestamp,
+                        { color: colors.textPrimary },
+                      ]}
                     >
                       {timestampLabel}: {timestampValue}
                     </Text>
@@ -135,18 +132,31 @@ export const AuditsSection = ({
                     />
                   </View>
                   {scoreLabel ? (
-                    <Text style={[styles.auditMeta, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.auditMeta,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       {scoreLabel}
                     </Text>
                   ) : null}
                   {floorsLabel ? (
-                    <Text style={[styles.auditMeta, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.auditMeta,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       {t("audits.fields.floorsVisited")}: {floorsLabel}
                     </Text>
                   ) : null}
                   {audit.notes ? (
                     <Text
-                      style={[styles.auditNotes, { color: colors.textSecondary }]}
+                      style={[
+                        styles.auditNotes,
+                        { color: colors.textSecondary },
+                      ]}
                       numberOfLines={2}
                     >
                       {audit.notes}
@@ -154,20 +164,11 @@ export const AuditsSection = ({
                   ) : null}
                 </View>
               </Pressable>
-              <TouchableOpacity
-                style={[styles.deleteButton, { backgroundColor: colors.errorBg }]}
-                onPress={() => handleDelete(audit)}
-              >
-                <Text style={[styles.deleteButtonText, { color: colors.error }]}>
-                  {t("audits.deleteButton")}
-                </Text>
-              </TouchableOpacity>
             </View>
           );
         })
       )}
 
-      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </Section>
   );
 };
@@ -187,14 +188,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  addButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
+  iconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 14,
@@ -231,16 +230,5 @@ const styles = StyleSheet.create({
   auditNotes: {
     fontSize: 13,
     marginTop: 4,
-  },
-  deleteButton: {
-    marginTop: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    alignSelf: "flex-start",
-  },
-  deleteButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
   },
 });
