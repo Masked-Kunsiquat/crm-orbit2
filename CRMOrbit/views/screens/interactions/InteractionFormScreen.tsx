@@ -135,7 +135,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
       setDurationTouched(false);
     }
-  }, [applyDurationMinutes, interaction, type]);
+  }, [applyDurationMinutes, interaction]);
 
   useEffect(() => {
     if (interaction || durationTouched) {
