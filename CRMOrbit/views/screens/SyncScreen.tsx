@@ -32,7 +32,7 @@ import {
 } from "@views/components";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 import { useDeviceId, useTheme } from "@views/hooks";
-import { __internal_getCrmStore, useDoc } from "@views/store/store";
+import { updateCrmDoc, useDoc } from "@views/store/store";
 import { t } from "@i18n/index";
 
 type QrPayloadViewProps = {
@@ -177,8 +177,7 @@ export const SyncScreen = () => {
   }, [showQRScanner, permission?.granted, requestPermission]);
 
   const updateSyncedDoc = (updatedDoc: typeof doc) => {
-    const store = __internal_getCrmStore().getState();
-    store.setDoc(updatedDoc);
+    updateCrmDoc(updatedDoc);
   };
 
   const handleSyncWithPeer = async (peer: DeviceInfo) => {
