@@ -66,10 +66,7 @@ const applyInteractionLogged = (
   }
 
   assertStatusValid(payload.status);
-  if (
-    payload.status &&
-    payload.status !== "interaction.status.completed"
-  ) {
+  if (payload.status && payload.status !== "interaction.status.completed") {
     throw new Error("Logged interactions must be completed.");
   }
 

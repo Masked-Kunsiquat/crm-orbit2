@@ -270,7 +270,7 @@ export const TimelineSection = ({
           ? payload.occurredAt
           : typeof payload.scheduledFor === "string"
             ? payload.scheduledFor
-          : (existing?.occurredAt ?? timestamp),
+            : (existing?.occurredAt ?? timestamp),
       summary:
         typeof payload.summary === "string"
           ? payload.summary

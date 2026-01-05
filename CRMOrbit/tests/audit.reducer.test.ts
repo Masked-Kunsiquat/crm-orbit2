@@ -31,7 +31,10 @@ type AccountPayloadOverrides = Partial<{
   excludedFloors: number[];
 }>;
 
-const createAccount = (docId = "acct-1", overrides: AccountPayloadOverrides = {}) => {
+const createAccount = (
+  docId = "acct-1",
+  overrides: AccountPayloadOverrides = {},
+) => {
   const event: Event = {
     id: `evt-${docId}`,
     type: "account.created",

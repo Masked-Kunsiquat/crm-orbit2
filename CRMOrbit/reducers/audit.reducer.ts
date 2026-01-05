@@ -98,10 +98,7 @@ const assertFloorsVisitedValid = (
   }
 };
 
-const getAccountOrThrow = (
-  doc: AutomergeDoc,
-  accountId: EntityId,
-): Account => {
+const getAccountOrThrow = (doc: AutomergeDoc, accountId: EntityId): Account => {
   const account = doc.accounts[accountId];
   if (!account) {
     throw new Error(`Account not found: ${accountId}`);
@@ -174,10 +171,7 @@ const applyAuditRescheduled = (
   };
 };
 
-const applyAuditCompleted = (
-  doc: AutomergeDoc,
-  event: Event,
-): AutomergeDoc => {
+const applyAuditCompleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const payload = event.payload as AuditCompletedPayload;
   const id = resolveEntityId(event, payload);
   const existing = doc.audits[id];

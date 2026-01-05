@@ -1,7 +1,10 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import type { InteractionStatus, InteractionType } from "../../domains/interaction";
+import type {
+  InteractionStatus,
+  InteractionType,
+} from "../../domains/interaction";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
