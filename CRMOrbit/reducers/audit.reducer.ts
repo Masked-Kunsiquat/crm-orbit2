@@ -44,6 +44,10 @@ type AuditAccountReassignedPayload = {
   accountId: EntityId;
 };
 
+type AuditDeletedPayload = {
+  id: EntityId;
+};
+
 const buildAllowedFloors = (account: Account): Set<number> | null => {
   const minFloor = account.minFloor;
   const maxFloor = account.maxFloor;
@@ -294,6 +298,26 @@ const applyAuditAccountReassigned = (
   };
 };
 
+const applyAuditDeleted = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+  const payload = event.payload as AuditDeletedPayload;
+  const id = resolveEntityId(event, payload);
+  const existing = doc.audits[id];
+
+  if (!existing) {
+    throw new Error(`Audit not found: ${id}`);
+  }
+
+  logger.info("Audit deleted", { id });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [id]: _removed, ...remainingAudits } = doc.audits;
+
+  return {
+    ...doc,
+    audits: remainingAudits,
+  };
+};
+
 export const auditReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   logger.debug("Processing event", {
     type: event.type,
@@ -313,6 +337,8 @@ export const auditReducer = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
       return applyAuditFloorsVisitedUpdated(doc, event);
     case "audit.account.reassigned":
       return applyAuditAccountReassigned(doc, event);
+    case "audit.deleted":
+      return applyAuditDeleted(doc, event);
     default:
       logger.error("Unhandled event type", { type: event.type });
       throw new Error(

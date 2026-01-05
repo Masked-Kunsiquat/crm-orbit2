@@ -399,6 +399,7 @@
   "events.audit.notes.updated": "Updated audit notes",
   "events.audit.floorsVisited.updated": "Updated audit floors",
   "events.audit.account.reassigned": "Reassigned audit account",
+  "events.audit.deleted": "Deleted audit",
   "events.contact.created": "Created contact",
   "events.contact.method.added": "Added contact method",
   "events.contact.method.updated": "Updated contact method",

@@ -15,6 +15,7 @@ export const EVENT_I18N_KEYS: Record<EventType, string> = {
   "audit.notes.updated": "events.audit.notes.updated",
   "audit.floorsVisited.updated": "events.audit.floorsVisited.updated",
   "audit.account.reassigned": "events.audit.account.reassigned",
+  "audit.deleted": "events.audit.deleted",
   "contact.created": "events.contact.created",
   "contact.method.added": "events.contact.method.added",
   "contact.method.updated": "events.contact.method.updated",

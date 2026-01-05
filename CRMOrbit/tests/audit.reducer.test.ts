@@ -107,6 +107,24 @@ test("audit.created rejects missing account", () => {
   });
 });
 
+test("audit.created rejects missing accountId", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit accountId is required.",
+  });
+});
+
 test("audit.completed stores outcomes", () => {
   const doc = createDocWithAccount({
     minFloor: 1,
@@ -222,4 +240,36 @@ test("audit.account.reassigned validates floors against new account", () => {
   assert.throws(() => auditReducer(createdDoc, reassigned), {
     message: "Audit floor 1 is not allowed for this account.",
   });
+});
+
+test("audit.deleted removes audit", () => {
+  const doc = createDocWithAccount({
+    minFloor: -1,
+    maxFloor: 2,
+  });
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const deleted: Event = {
+    id: "evt-audit-2",
+    type: "audit.deleted",
+    payload: {
+      id: "audit-1",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const deletedDoc = auditReducer(createdDoc, deleted);
+
+  assert.equal(deletedDoc.audits["audit-1"], undefined);
 });

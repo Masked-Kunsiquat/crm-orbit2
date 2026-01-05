@@ -335,6 +335,11 @@ export const useAllNotes = (): Note[] => {
   return crmStore(useShallow(selector));
 };
 
+export const useAllAudits = (): Audit[] => {
+  const selector = (state: CrmStoreState) => Object.values(state.doc.audits);
+  return crmStore(useShallow(selector));
+};
+
 export const useAllCodes = (): Code[] => {
   const selector = (state: CrmStoreState) => Object.values(state.doc.codes);
   return crmStore(useShallow(selector));
