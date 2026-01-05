@@ -11,7 +11,7 @@ export type RootStackParamList = {
   OrganizationDetail: { organizationId: EntityId };
   OrganizationForm: { organizationId?: EntityId };
   AccountDetail: { accountId: EntityId };
-  AccountForm: { accountId?: EntityId };
+  AccountForm: { accountId?: EntityId; organizationId?: EntityId };
   ContactDetail: { contactId: EntityId };
   ContactForm: { contactId?: EntityId };
   NoteDetail: { noteId: EntityId };
@@ -56,7 +56,7 @@ export type OrganizationsStackParamList = {
 export type AccountsStackParamList = {
   AccountsList: undefined;
   AccountDetail: { accountId: EntityId };
-  AccountForm: { accountId?: EntityId };
+  AccountForm: { accountId?: EntityId; organizationId?: EntityId };
 };
 
 // Contacts stack navigator

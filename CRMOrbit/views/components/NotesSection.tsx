@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Pressable,
 } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Note } from "@domains/note";
 import type { EntityId } from "@domains/shared/types";
 import { t } from "@i18n/index";
@@ -98,29 +99,34 @@ export const NotesSection = ({
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
+            style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={() =>
               navigation.navigate("NoteForm", {
                 entityToLink: { entityId, entityType },
               })
             }
+            accessibilityLabel={t("notes.addButton")}
           >
-            <Text style={[styles.addButtonText, { color: colors.onAccent }]}>
-              {t("notes.addButton")}
-            </Text>
+            <MaterialCommunityIcons
+              name="plus"
+              size={18}
+              color={colors.onAccent}
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.linkButton,
+              styles.iconButton,
+              styles.iconButtonSecondary,
               { backgroundColor: colors.surfaceElevated },
             ]}
             onPress={() => setShowLinkModal(true)}
+            accessibilityLabel={t("notes.linkExisting")}
           >
-            <Text
-              style={[styles.linkButtonText, { color: colors.textPrimary }]}
-            >
-              {t("notes.linkExisting")}
-            </Text>
+            <MaterialCommunityIcons
+              name="link-variant-plus"
+              size={18}
+              color={colors.textPrimary}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -159,10 +165,13 @@ export const NotesSection = ({
             <TouchableOpacity
               style={[styles.unlinkButton, { backgroundColor: colors.errorBg }]}
               onPress={() => handleUnlink(note.id, note.title)}
+              accessibilityLabel={t("notes.unlinkButton")}
             >
-              <Text style={[styles.unlinkButtonText, { color: colors.error }]}>
-                {t("notes.unlinkButton")}
-              </Text>
+              <MaterialCommunityIcons
+                name="link-variant-minus"
+                size={18}
+                color={colors.error}
+              />
             </TouchableOpacity>
           </View>
         ))
@@ -194,24 +203,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  addButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+  iconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  addButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  linkButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+  iconButtonSecondary: {
     marginLeft: 8,
-  },
-  linkButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
   },
   emptyText: {
     fontSize: 14,
@@ -244,13 +244,11 @@ const styles = StyleSheet.create({
   },
   unlinkButton: {
     marginTop: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     alignSelf: "flex-start",
-  },
-  unlinkButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

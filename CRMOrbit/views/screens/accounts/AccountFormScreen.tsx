@@ -33,7 +33,8 @@ import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 type Props = AccountsStackScreenProps<"AccountForm">;
 
 export const AccountFormScreen = ({ route, navigation }: Props) => {
-  const { accountId } = route.params ?? {};
+  const { accountId, organizationId: prefillOrganizationId } =
+    route.params ?? {};
   const account = useAccount(accountId ?? "");
   const allOrganizations = useOrganizations();
   const deviceId = useDeviceId();
@@ -76,6 +77,12 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     { value: "account.status.active", label: t("status.active") },
     { value: "account.status.inactive", label: t("status.inactive") },
   ] as const;
+
+  useEffect(() => {
+    if (!accountId && prefillOrganizationId) {
+      setOrganizationId(prefillOrganizationId);
+    }
+  }, [accountId, prefillOrganizationId]);
 
   // Only populate form fields on initial mount or when switching to a different account
   useEffect(() => {
