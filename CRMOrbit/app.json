@@ -33,7 +33,7 @@
       "@react-native-community/datetimepicker",
       "./android-linking-plugin.js",
       "expo-secure-store",
-      "expo-barcode-scanner"
+      "expo-camera"
     ],
     "extra": {
       "eas": {

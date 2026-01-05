@@ -9,9 +9,11 @@ import {
   View,
 } from "react-native";
 import {
-  BarCodeScanner,
-  type BarCodeScannerResult,
-} from "expo-barcode-scanner";
+  CameraView,
+  type BarcodeScanningResult,
+  BarcodeType,
+  useCameraPermissions,
+} from "expo-camera";
 
 import type { DeviceInfo } from "@domains/sync/types";
 import type { SyncQRCodeBatch } from "@domains/sync/qrCodeSync";
@@ -30,8 +32,6 @@ import { useDeviceId, useTheme } from "@views/hooks";
 import { __internal_getCrmStore, useDoc } from "@views/store/store";
 import { t } from "@i18n/index";
 
-type CameraPermissionState = "unknown" | "granted" | "denied";
-
 export const SyncScreen = () => {
   const { colors } = useTheme();
   const { dialogProps, showAlert } = useConfirmDialog();
@@ -45,8 +45,7 @@ export const SyncScreen = () => {
     total: number;
   } | null>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
-  const [cameraPermission, setCameraPermission] =
-    useState<CameraPermissionState>("unknown");
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanBusy, setScanBusy] = useState(false);
   const [syncingPeerId, setSyncingPeerId] = useState<string | null>(null);
 
@@ -92,20 +91,13 @@ export const SyncScreen = () => {
 
   useEffect(() => {
     if (!showQRScanner) return;
-    let isActive = true;
-    setCameraPermission("unknown");
-
-    (async () => {
-      const { status: permission } =
-        await BarCodeScanner.requestPermissionsAsync();
-      if (!isActive) return;
-      setCameraPermission(permission === "granted" ? "granted" : "denied");
-    })();
-
-    return () => {
-      isActive = false;
+    const ensurePermission = async () => {
+      if (permission?.granted) return;
+      await requestPermission();
     };
-  }, [showQRScanner]);
+
+    void ensurePermission();
+  }, [showQRScanner, permission?.granted, requestPermission]);
 
   const updateSyncedDoc = (updatedDoc: typeof doc) => {
     const store = __internal_getCrmStore().getState();
@@ -180,7 +172,7 @@ export const SyncScreen = () => {
     }
   };
 
-  const handleBarCodeScanned = ({ data }: BarCodeScannerResult) => {
+  const handleBarCodeScanned = ({ data }: BarcodeScanningResult) => {
     if (scanBusy) return;
     void handleQRScanned(data);
   };
@@ -317,7 +309,7 @@ export const SyncScreen = () => {
             />
           </View>
 
-          {cameraPermission === "unknown" ? (
+          {!permission ? (
             <View style={styles.scannerStatus}>
               <ActivityIndicator size="large" color={colors.accent} />
               <Text
@@ -328,7 +320,7 @@ export const SyncScreen = () => {
             </View>
           ) : null}
 
-          {cameraPermission === "denied" ? (
+          {permission && !permission.granted ? (
             <View style={styles.scannerStatus}>
               <Text
                 style={[styles.scannerHint, { color: colors.textSecondary }]}
@@ -338,12 +330,12 @@ export const SyncScreen = () => {
             </View>
           ) : null}
 
-          {cameraPermission === "granted" ? (
+          {permission?.granted ? (
             <View style={styles.scannerBody}>
-              <BarCodeScanner
+              <CameraView
                 style={styles.scanner}
-                onBarCodeScanned={scanBusy ? undefined : handleBarCodeScanned}
-                barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
+                onBarcodeScanned={scanBusy ? undefined : handleBarCodeScanned}
+                barcodeScannerSettings={{ barcodeTypes: [BarcodeType.qr] }}
               />
               {scanBusy ? (
                 <View style={styles.scannerOverlay}>
