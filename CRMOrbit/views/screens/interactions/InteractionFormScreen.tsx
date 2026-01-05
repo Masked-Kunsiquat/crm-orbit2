@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -100,6 +100,7 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
     new Date().toISOString(),
   );
   const [showPicker, setShowPicker] = useState(false);
+  const didInitDefaults = useRef(false);
 
   const applyDurationMinutes = useCallback((durationMinutes?: number) => {
     if (!durationMinutes) {
@@ -126,16 +127,23 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       setScheduledFor(interaction.scheduledFor ?? interaction.occurredAt);
       applyDurationMinutes(interaction.durationMinutes);
       setDurationTouched(true);
-    } else {
-      // Set default to current date/time
-      const now = new Date().toISOString();
-      setOccurredAt(now);
-      setScheduledFor(now);
-      setStatus("interaction.status.completed");
-      applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
-      setDurationTouched(false);
+      didInitDefaults.current = true;
+      return;
     }
-  }, [applyDurationMinutes, interaction]);
+
+    if (didInitDefaults.current) {
+      return;
+    }
+
+    // Set default to current date/time on first load only.
+    const now = new Date().toISOString();
+    setOccurredAt(now);
+    setScheduledFor(now);
+    setStatus("interaction.status.completed");
+    applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
+    setDurationTouched(false);
+    didInitDefaults.current = true;
+  }, [applyDurationMinutes, interaction, type]);
 
   useEffect(() => {
     if (interaction || durationTouched) {
