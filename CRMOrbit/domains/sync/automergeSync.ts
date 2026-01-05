@@ -8,6 +8,7 @@ import { createLogger } from "@utils/logger";
 const logger = createLogger("AutomergeSync");
 
 const LAST_SYNC_VERSION_KEY = "last_sync_version";
+const SNAPSHOT_FORMAT = "crm-sync-snapshot-v1";
 
 const sanitizeDocForAutomerge = (doc: AutomergeDoc): AutomergeDoc => {
   try {
@@ -71,21 +72,21 @@ const parseJsonChanges = (changes: Uint8Array): Change[] => {
   return parsed as Change[];
 };
 
-const parseStructuredChanges = (changes: Uint8Array): Change[] | null => {
-  let parsed: unknown;
-  try {
-    const payload = getTextDecoder().decode(changes);
-    parsed = JSON.parse(payload) as unknown;
-  } catch {
+const BINARY_CHANGES_FORMAT = "crm-sync-binary-v1";
+
+const parseStructuredChangesFromParsed = (parsed: unknown): Change[] | null => {
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+  if (!("format" in parsed) || !("changes" in parsed)) {
     return null;
   }
 
-  const entries = Array.isArray(parsed)
-    ? parsed
-    : parsed && typeof parsed === "object" && "changes" in parsed
-      ? (parsed as { changes?: unknown }).changes
-      : null;
-  if (!Array.isArray(entries)) {
+  const { format, changes: entries } = parsed as {
+    format?: unknown;
+    changes?: unknown;
+  };
+  if (format !== BINARY_CHANGES_FORMAT || !Array.isArray(entries)) {
     return null;
   }
 
@@ -117,6 +118,71 @@ const parseStructuredChanges = (changes: Uint8Array): Change[] | null => {
   return decoded;
 };
 
+const decodeJsonChanges = (changes: Uint8Array): Change[] | null => {
+  let payload = "";
+  try {
+    payload = getTextDecoder().decode(changes).trim();
+  } catch {
+    return null;
+  }
+
+  if (!payload) {
+    return [];
+  }
+
+  const firstChar = payload[0];
+  if (firstChar !== "[" && firstChar !== "{") {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed as Change[];
+  }
+
+  return parseStructuredChangesFromParsed(parsed);
+};
+
+const parseSnapshotPayload = (changes: Uint8Array): string | null => {
+  let payload = "";
+  try {
+    payload = getTextDecoder().decode(changes).trim();
+  } catch {
+    return null;
+  }
+
+  if (!payload || payload[0] !== "{") {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+
+  const { format, snapshot } = parsed as {
+    format?: unknown;
+    snapshot?: unknown;
+  };
+  if (format !== SNAPSHOT_FORMAT || typeof snapshot !== "string") {
+    return null;
+  }
+
+  return snapshot;
+};
+
 const encodeChanges = (changes: Change[]): Uint8Array => {
   if (changes.length === 0) return new Uint8Array();
   const encodeChange = (
@@ -125,13 +191,20 @@ const encodeChanges = (changes: Change[]): Uint8Array => {
     }
   ).encodeChange;
   if (!encodeChange) {
-    const payload = JSON.stringify(
-      changes.map((change) =>
+    const hasBinary = changes.some((change) => change instanceof Uint8Array);
+    if (!hasBinary) {
+      const payload = JSON.stringify(changes);
+      return getTextEncoder().encode(payload);
+    }
+
+    const payload = JSON.stringify({
+      format: BINARY_CHANGES_FORMAT,
+      changes: changes.map((change) =>
         change instanceof Uint8Array
           ? { kind: "binary", data: fromByteArray(change) }
           : { kind: "json", data: change },
       ),
-    );
+    });
     return getTextEncoder().encode(payload);
   }
   const encoded = changes.map((change) => {
@@ -278,9 +351,9 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
     }
   ).encodeChange;
 
-  const structured = parseStructuredChanges(changes);
-  if (structured) {
-    return structured;
+  const jsonChanges = decodeJsonChanges(changes);
+  if (jsonChanges) {
+    return jsonChanges;
   }
 
   try {
@@ -348,6 +421,19 @@ export const getChangesSinceLastSync = async (
     );
 
     const current = ensureAutomergeDoc(currentDoc);
+    const encodeChange = (
+      Automerge as unknown as {
+        encodeChange?: (change: Change) => Uint8Array;
+      }
+    ).encodeChange;
+    if (!encodeChange) {
+      const snapshotPayload = JSON.stringify({
+        format: SNAPSHOT_FORMAT,
+        snapshot: Automerge.save(current),
+      });
+      logger.info("Syncing via snapshot payload", { peerId });
+      return getTextEncoder().encode(snapshotPayload);
+    }
     const changes = lastSyncSnapshot
       ? Automerge.getChanges(loadSnapshot(lastSyncSnapshot), current)
       : Automerge.getAllChanges(current);
@@ -379,6 +465,17 @@ export const applyReceivedChanges = (
     if (changes.length === 0) {
       logger.info("No incoming changes to apply");
       return currentDoc;
+    }
+
+    const snapshot = parseSnapshotPayload(changes);
+    if (snapshot) {
+      const remoteDoc = Automerge.load<AutomergeDoc>(snapshot);
+      const localDoc = ensureAutomergeDoc(currentDoc);
+      try {
+        return Automerge.merge(localDoc, remoteDoc);
+      } catch {
+        return remoteDoc;
+      }
     }
 
     const decodedChanges = decodeChanges(changes);
@@ -426,15 +523,15 @@ export const createSyncBundle = async (
   peerId: string = "qr-transfer",
 ): Promise<string> => {
   const changes = await getChangesSinceLastSync(currentDoc, peerId);
-  const base64 = fromByteArray(changes);
+  const bundle = fromByteArray(changes);
 
-  if (base64.length > 2000) {
+  if (bundle.length > 2000) {
     logger.warn("Sync bundle large, may need multiple QR codes", {
-      size: base64.length,
+      size: bundle.length,
     });
   }
 
-  return base64;
+  return bundle;
 };
 
 /**
