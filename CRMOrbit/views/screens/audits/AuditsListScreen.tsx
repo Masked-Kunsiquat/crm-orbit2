@@ -7,6 +7,7 @@ import { useAccounts, useAllAudits } from "../../store/store";
 import {
   getAuditStartTimestamp,
   getAuditStatusTone,
+  getAuditTimestampLabelKey,
   resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../../utils/audits";
@@ -51,10 +52,7 @@ export const AuditsListScreen = ({ navigation }: Props) => {
     const accountName =
       accountNames.get(item.accountId) ?? t("common.unknownEntity");
     const status = resolveAuditStatus(item);
-    const timestampLabel =
-      status === "audits.status.completed"
-        ? t("audits.fields.occurredAt")
-        : t("audits.fields.scheduledFor");
+    const timestampLabel = t(getAuditTimestampLabelKey(status));
     const timestampValue = formatTimestamp(getAuditStartTimestamp(item));
     const scoreLabel =
       item.score !== undefined

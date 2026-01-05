@@ -175,6 +175,7 @@
   "audits.fields.status": "Status",
   "audits.fields.scheduledFor": "Scheduled for",
   "audits.fields.occurredAt": "Occurred at",
+  "audits.fields.canceledAt": "Canceled at",
   "audits.fields.duration": "Duration",
   "audits.fields.endsAt": "Ends at",
   "audits.fields.score": "Score",

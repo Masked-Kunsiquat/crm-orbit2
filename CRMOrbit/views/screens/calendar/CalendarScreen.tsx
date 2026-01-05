@@ -35,6 +35,7 @@ import {
   getAuditEndTimestamp,
   getAuditStartTimestamp,
   getAuditStatusTone,
+  getAuditTimestampLabelKey,
   resolveAuditStatus,
 } from "../../utils/audits";
 import { addMinutesToTimestamp } from "../../utils/duration";
@@ -347,10 +348,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
       const accountName =
         accountNames.get(audit.accountId) ?? t("common.unknownEntity");
       const status = resolveAuditStatus(audit);
-      const timestampLabel =
-        status === "audits.status.completed"
-          ? t("audits.fields.occurredAt")
-          : t("audits.fields.scheduledFor");
+      const timestampLabel = t(getAuditTimestampLabelKey(status));
       const startTimestamp = getAuditStartTimestamp(audit);
       const endTimestamp = getAuditEndTimestamp(audit);
       const timestampValue = formatTimestamp(startTimestamp);

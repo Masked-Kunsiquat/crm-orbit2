@@ -23,6 +23,23 @@ export const getAuditStatusTone = (status: AuditStatus): AuditStatusTone => {
   }
 };
 
+export const getAuditTimestampLabelKey = (
+  status: AuditStatus,
+):
+  | "audits.fields.occurredAt"
+  | "audits.fields.scheduledFor"
+  | "audits.fields.canceledAt" => {
+  switch (status) {
+    case "audits.status.completed":
+      return "audits.fields.occurredAt";
+    case "audits.status.canceled":
+      return "audits.fields.canceledAt";
+    case "audits.status.scheduled":
+    default:
+      return "audits.fields.scheduledFor";
+  }
+};
+
 export const getAuditStartTimestamp = (audit: Audit): string | undefined => {
   const status = resolveAuditStatus(audit);
   if (status === "audits.status.completed") {
