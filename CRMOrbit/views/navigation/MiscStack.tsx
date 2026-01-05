@@ -11,6 +11,7 @@ import {
   SecuritySettingsScreen,
   SettingsListScreen,
 } from "../screens/settings";
+import { SyncScreen } from "../screens/SyncScreen";
 import { getStackScreenOptions } from "./stackOptions";
 import { useTheme } from "../hooks";
 import { t } from "@i18n/index";
@@ -31,6 +32,11 @@ export const MiscStack = () => {
         name="SettingsList"
         component={SettingsListScreen}
         options={{ title: t("settings.title") }}
+      />
+      <Stack.Screen
+        name="Sync"
+        component={SyncScreen}
+        options={{ title: t("sync.title") }}
       />
       <Stack.Screen
         name="SecuritySettings"

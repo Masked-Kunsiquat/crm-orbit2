@@ -90,6 +90,7 @@ export type NotesStackParamList = {
 // Misc stack navigator
 export type MiscStackParamList = {
   MiscLanding: undefined;
+  Sync: undefined;
   CodesList: undefined;
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
