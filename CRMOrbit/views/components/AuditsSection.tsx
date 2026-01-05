@@ -116,7 +116,7 @@ export const AuditsSection = ({
               <Pressable
                 style={styles.auditCardRow}
                 onPress={() =>
-                  navigation.navigate("AuditForm", {
+                  navigation.navigate("AuditDetail", {
                     auditId: audit.id,
                   })
                 }

@@ -38,7 +38,7 @@ export const AuditsListScreen = ({ navigation }: Props) => {
   }, [audits]);
 
   const handlePress = (audit: Audit) => {
-    navigation.navigate("AuditForm", { auditId: audit.id });
+    navigation.navigate("AuditDetail", { auditId: audit.id });
   };
 
   const handleAdd = () => {

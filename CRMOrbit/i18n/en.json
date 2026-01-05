@@ -422,6 +422,7 @@
   "screens.codeDetails": "Code Details",
   "screens.editCode": "Edit Code",
   "screens.newCode": "New Code",
+  "screens.auditDetails": "Audit Details",
   "screens.editAudit": "Edit Audit",
   "screens.newAudit": "New Audit",
   "timeline.title": "History",

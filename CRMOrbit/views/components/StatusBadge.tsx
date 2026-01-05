@@ -32,6 +32,7 @@ export const StatusBadge = ({
           styles.text,
           { color: isActive ? colors.success : colors.error },
         ]}
+        numberOfLines={1}
       >
         {isActive ? t(activeLabelKey) : t(inactiveLabelKey)}
       </Text>
@@ -44,9 +45,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    alignSelf: "flex-start",
   },
   text: {
-    fontSize: 12,
-    fontWeight: "500",
+    fontSize: 11,
+    fontWeight: "600",
   },
 });

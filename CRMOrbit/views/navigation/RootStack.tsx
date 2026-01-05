@@ -16,7 +16,7 @@ import {
   InteractionFormScreen,
 } from "../screens/interactions";
 import { CodeDetailScreen, CodeFormScreen } from "../screens/codes";
-import { AuditFormScreen } from "../screens/audits";
+import { AuditDetailScreen, AuditFormScreen } from "../screens/audits";
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 
@@ -124,6 +124,11 @@ export const RootStack = () => {
             ? t("screens.editAudit")
             : t("screens.newAudit"),
         })}
+      />
+      <Stack.Screen
+        name="AuditDetail"
+        component={AuditDetailScreen}
+        options={{ title: t("screens.auditDetails") }}
       />
     </Stack.Navigator>
   );
