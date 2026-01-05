@@ -1,6 +1,4 @@
 declare module "qrcode" {
-  interface HTMLCanvasElement {}
-
   interface QRCodeCanvas {
     getContext: (contextId: string) => unknown;
   }

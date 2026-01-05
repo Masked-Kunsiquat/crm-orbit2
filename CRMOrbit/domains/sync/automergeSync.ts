@@ -52,6 +52,15 @@ const concatenateUint8Arrays = (chunks: Uint8Array[]): Uint8Array => {
   return merged;
 };
 
+const parseJsonChanges = (changes: Uint8Array): Change[] => {
+  const payload = getTextDecoder().decode(changes);
+  const parsed = JSON.parse(payload) as unknown;
+  if (!Array.isArray(parsed)) {
+    throw new Error("Invalid sync payload: expected change array.");
+  }
+  return parsed as Change[];
+};
+
 const encodeChanges = (changes: Change[]): Uint8Array => {
   if (changes.length === 0) return new Uint8Array();
   const encodeChange = (
@@ -59,11 +68,13 @@ const encodeChanges = (changes: Change[]): Uint8Array => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
-  if (!encodeChange) {
-    throw new Error("Automerge.encodeChange is unavailable.");
+  if (encodeChange) {
+    const encoded = changes.map((change) => encodeChange(change));
+    return concatenateUint8Arrays(encoded);
   }
-  const encoded = changes.map((change) => encodeChange(change));
-  return concatenateUint8Arrays(encoded);
+
+  const payload = JSON.stringify(changes);
+  return getTextEncoder().encode(payload);
 };
 
 const decodeChanges = (changes: Uint8Array): Change[] => {
@@ -74,51 +85,60 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
     }
   ).decodeChange;
   if (!decodeChange) {
-    throw new Error("Automerge.decodeChange is unavailable.");
+    return parseJsonChanges(changes);
   }
 
-  const decoded: Change[] = [];
-  let offset = 0;
+  try {
+    const decoded: Change[] = [];
+    let offset = 0;
 
-  while (offset < changes.length) {
-    const slice = changes.subarray(offset);
-    const result = decodeChange(slice);
+    while (offset < changes.length) {
+      const slice = changes.subarray(offset);
+      const result = decodeChange(slice);
 
-    if (Array.isArray(result)) {
-      const [change, bytes] = result as [Change, number];
-      if (!Number.isFinite(bytes) || bytes <= 0) {
-        throw new Error("Invalid decoded change length.");
+      if (Array.isArray(result)) {
+        const [change, bytes] = result as [Change, number];
+        if (!Number.isFinite(bytes) || bytes <= 0) {
+          throw new Error("Invalid decoded change length.");
+        }
+        decoded.push(change);
+        offset += bytes;
+        continue;
       }
-      decoded.push(change);
-      offset += bytes;
-      continue;
+
+      if (result && typeof result === "object" && "change" in result) {
+        const changeResult = result as {
+          change: Change;
+          bytes?: number;
+          length?: number;
+          bytesRead?: number;
+        };
+        const bytes =
+          changeResult.bytes ??
+          changeResult.length ??
+          changeResult.bytesRead ??
+          0;
+        if (!Number.isFinite(bytes) || bytes <= 0) {
+          throw new Error("Invalid decoded change length.");
+        }
+        decoded.push(changeResult.change);
+        offset += bytes;
+        continue;
+      }
+
+      decoded.push(result as Change);
+      break;
     }
 
-    if (result && typeof result === "object" && "change" in result) {
-      const changeResult = result as {
-        change: Change;
-        bytes?: number;
-        length?: number;
-        bytesRead?: number;
-      };
-      const bytes =
-        changeResult.bytes ??
-        changeResult.length ??
-        changeResult.bytesRead ??
-        0;
-      if (!Number.isFinite(bytes) || bytes <= 0) {
-        throw new Error("Invalid decoded change length.");
-      }
-      decoded.push(changeResult.change);
-      offset += bytes;
-      continue;
-    }
-
-    decoded.push(result as Change);
-    break;
+    return decoded;
+  } catch (error) {
+    logger.warn(
+      "Failed to decode binary changes, falling back to JSON",
+      {},
+      error,
+    );
+    return parseJsonChanges(changes);
   }
-
-  return decoded;
 };
 
 const encodeSnapshot = (snapshot: Uint8Array | string): string => {
