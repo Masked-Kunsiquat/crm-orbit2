@@ -172,6 +172,18 @@ export const TimelineSection = ({
       status: isAccountStatus(payload.status)
         ? payload.status
         : (existing?.status ?? "account.status.active"),
+      minFloor:
+        typeof payload.minFloor === "number"
+          ? payload.minFloor
+          : existing?.minFloor,
+      maxFloor:
+        typeof payload.maxFloor === "number"
+          ? payload.maxFloor
+          : existing?.maxFloor,
+      excludedFloors:
+        Array.isArray(payload.excludedFloors)
+          ? (payload.excludedFloors as number[])
+          : existing?.excludedFloors,
       addresses:
         payload.addresses !== undefined
           ? (payload.addresses as Account["addresses"])
@@ -410,6 +422,9 @@ export const TimelineSection = ({
               website: next.website,
               addresses: next.addresses,
               socialMedia: next.socialMedia,
+              minFloor: next.minFloor,
+              maxFloor: next.maxFloor,
+              excludedFloors: next.excludedFloors,
             });
             if (diff.length > 0) {
               changes.set(event.id, diff);
