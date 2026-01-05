@@ -15,6 +15,7 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 import QRCode from "qrcode";
+import Svg, { Path, Rect } from "react-native-svg";
 
 import type { DeviceInfo } from "@domains/sync/types";
 import type { SyncQRCodeBatch } from "@domains/sync/qrCodeSync";
@@ -52,44 +53,29 @@ const QrPayloadView = ({
   );
   const moduleCount = qr.modules.size;
   const moduleData = qr.modules.data as ArrayLike<number | boolean>;
-  const cellSize = size / moduleCount;
-
-  const rows = [];
-  for (let row = 0; row < moduleCount; row += 1) {
-    const cells = [];
+  const path = useMemo(() => {
+    const commands: string[] = [];
+    for (let row = 0; row < moduleCount; row += 1) {
       for (let col = 0; col < moduleCount; col += 1) {
         const index = row * moduleCount + col;
-        const isDark = Boolean(moduleData[index]);
-        cells.push(
-        <View
-          key={`${row}-${col}`}
-          style={[
-            styles.qrCell,
-            {
-              width: cellSize,
-              height: cellSize,
-              backgroundColor: isDark ? darkColor : lightColor,
-            },
-          ]}
-        />,
-      );
+        if (!moduleData[index]) continue;
+        commands.push(`M${col} ${row}h1v1h-1z`);
+      }
     }
-    rows.push(
-      <View key={`row-${row}`} style={styles.qrRow}>
-        {cells}
-      </View>,
-    );
-  }
+    return commands.join("");
+  }, [moduleCount, moduleData]);
 
   return (
-    <View
-      style={[
-        styles.qrGrid,
-        { width: size, height: size, backgroundColor: lightColor },
-      ]}
-    >
-      {rows}
-    </View>
+    <Svg width={size} height={size} viewBox={`0 0 ${moduleCount} ${moduleCount}`}>
+      <Rect
+        x="0"
+        y="0"
+        width={moduleCount}
+        height={moduleCount}
+        fill={lightColor}
+      />
+      <Path d={path} fill={darkColor} />
+    </Svg>
   );
 };
 
@@ -105,6 +91,8 @@ export const SyncScreen = () => {
     received: number;
     total: number;
   } | null>(null);
+  const [qrIndex, setQrIndex] = useState(0);
+  const [showQrPreview, setShowQrPreview] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanBusy, setScanBusy] = useState(false);
@@ -216,6 +204,8 @@ export const SyncScreen = () => {
     setQrProgress(null);
     try {
       const batch = await syncOrchestrator.generateManualSyncQR();
+      setQrIndex(0);
+      setShowQrPreview(false);
       setQrBatch(batch);
     } catch (error) {
       const message =
@@ -259,6 +249,27 @@ export const SyncScreen = () => {
   const handleBarCodeScanned = ({ data }: BarcodeScanningResult) => {
     if (scanBusy) return;
     void handleQRScanned(data);
+  };
+
+  const handleShowQrPreview = () => {
+    if (!qrBatch) return;
+    setQrIndex(0);
+    setShowQrPreview(true);
+  };
+
+  const handleHideQrPreview = () => {
+    setShowQrPreview(false);
+  };
+
+  const handleNextQr = () => {
+    if (!qrBatch) return;
+    setQrIndex((current) =>
+      Math.min(current + 1, qrBatch.chunks.length - 1),
+    );
+  };
+
+  const handlePreviousQr = () => {
+    setQrIndex((current) => Math.max(0, current - 1));
   };
 
   return (
@@ -343,32 +354,69 @@ export const SyncScreen = () => {
 
           {qrBatch ? (
             <View style={styles.qrSection}>
-              <Text style={[styles.qrHint, { color: colors.textSecondary }]}>
-                {t("sync.manual.qrPrompt")}
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.qrScroll}
-              >
-                {qrBatch.chunks.map((chunk) => (
-                  <View key={chunk.index} style={styles.qrCard}>
-                    <Text
-                      style={[styles.qrLabel, { color: colors.textSecondary }]}
-                    >
-                      {t("sync.manual.qrChunk", {
-                        index: chunk.index,
-                        total: chunk.total,
-                      })}
-                    </Text>
-                    <QrPayloadView
-                      payload={chunk.payload}
-                      darkColor={colors.textPrimary}
-                      lightColor={colors.canvas}
-                    />
-                  </View>
-                ))}
-              </ScrollView>
+              <View style={styles.qrHeader}>
+                <Text style={[styles.qrHint, { color: colors.textSecondary }]}>
+                  {showQrPreview
+                    ? t("sync.manual.qrPrompt")
+                    : t("sync.manual.qrReady")}
+                </Text>
+                <ActionButton
+                  label={
+                    showQrPreview
+                      ? t("sync.manual.qrHide")
+                      : t("sync.manual.qrShow")
+                  }
+                  onPress={
+                    showQrPreview ? handleHideQrPreview : handleShowQrPreview
+                  }
+                  tone="link"
+                  size="compact"
+                />
+              </View>
+              {showQrPreview ? (
+                <View style={styles.qrPreview}>
+                  <Text
+                    style={[styles.qrLabel, { color: colors.textSecondary }]}
+                  >
+                    {t("sync.manual.qrChunk", {
+                      index: qrIndex + 1,
+                      total: qrBatch.chunks.length,
+                    })}
+                  </Text>
+                  <QrPayloadView
+                    payload={qrBatch.chunks[qrIndex]?.payload ?? ""}
+                    darkColor={colors.textPrimary}
+                    lightColor={colors.canvas}
+                  />
+                  {qrBatch.chunks.length > 1 ? (
+                    <View style={styles.qrNav}>
+                      <ActionButton
+                        label={t("sync.manual.qrPrevious")}
+                        onPress={handlePreviousQr}
+                        size="compact"
+                        disabled={qrIndex === 0}
+                      />
+                      <Text
+                        style={[
+                          styles.qrCounter,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        {t("sync.manual.qrCounter", {
+                          index: qrIndex + 1,
+                          total: qrBatch.chunks.length,
+                        })}
+                      </Text>
+                      <ActionButton
+                        label={t("sync.manual.qrNext")}
+                        onPress={handleNextQr}
+                        size="compact"
+                        disabled={qrIndex === qrBatch.chunks.length - 1}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
             </View>
           ) : null}
         </Section>
@@ -477,29 +525,33 @@ const styles = StyleSheet.create({
   qrSection: {
     marginTop: 8,
   },
+  qrHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
   qrHint: {
     fontSize: 13,
     marginBottom: 8,
   },
-  qrScroll: {
-    gap: 16,
-  },
-  qrCard: {
+  qrPreview: {
     alignItems: "center",
   },
   qrLabel: {
     fontSize: 12,
     marginBottom: 8,
   },
-  qrGrid: {
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  qrRow: {
+  qrNav: {
+    marginTop: 12,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
   },
-  qrCell: {
-    backgroundColor: "transparent",
+  qrCounter: {
+    fontSize: 12,
+    fontWeight: "500",
   },
   scannerContainer: {
     flex: 1,

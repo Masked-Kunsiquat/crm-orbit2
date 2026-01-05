@@ -9,13 +9,28 @@ const logger = createLogger("AutomergeSync");
 
 const LAST_SYNC_VERSION_KEY = "last_sync_version";
 
+const sanitizeDocForAutomerge = (doc: AutomergeDoc): AutomergeDoc => {
+  try {
+    return JSON.parse(JSON.stringify(doc)) as AutomergeDoc;
+  } catch (error) {
+    logger.error("Failed to sanitize doc for sync", {}, error);
+    throw error;
+  }
+};
+
 const ensureAutomergeDoc = (doc: AutomergeDoc): Doc<AutomergeDoc> => {
   const candidate = doc as Doc<AutomergeDoc>;
   try {
     Automerge.save(candidate);
     return candidate;
   } catch {
-    return Automerge.from(doc);
+    const sanitized = sanitizeDocForAutomerge(doc);
+    try {
+      return Automerge.from(sanitized);
+    } catch (error) {
+      logger.error("Failed to coerce doc into Automerge", {}, error);
+      throw error;
+    }
   }
 };
 
