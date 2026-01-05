@@ -44,33 +44,17 @@ const generateUUID = (): string => {
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
 
-  const byteToHex: string[] = [];
-  for (let i = 0; i < 256; i += 1) {
-    byteToHex.push((i + 0x100).toString(16).substring(1));
-  }
-
-  return (
-    byteToHex[bytes[0]] +
-    byteToHex[bytes[1]] +
-    byteToHex[bytes[2]] +
-    byteToHex[bytes[3]] +
-    "-" +
-    byteToHex[bytes[4]] +
-    byteToHex[bytes[5]] +
-    "-" +
-    byteToHex[bytes[6]] +
-    byteToHex[bytes[7]] +
-    "-" +
-    byteToHex[bytes[8]] +
-    byteToHex[bytes[9]] +
-    "-" +
-    byteToHex[bytes[10]] +
-    byteToHex[bytes[11]] +
-    byteToHex[bytes[12]] +
-    byteToHex[bytes[13]] +
-    byteToHex[bytes[14]] +
-    byteToHex[bytes[15]]
+  const hex = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, "0"),
   );
+
+  return [
+    hex.slice(0, 4).join(""),
+    hex.slice(4, 6).join(""),
+    hex.slice(6, 8).join(""),
+    hex.slice(8, 10).join(""),
+    hex.slice(10, 16).join(""),
+  ].join("-");
 };
 
 /**
