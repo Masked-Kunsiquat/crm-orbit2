@@ -534,7 +534,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               {t("contacts.linkTitle")}
             </Text>
             {sortedLinkableContacts.length === 0 ? (
-              <Text style={[styles.modalEmptyText, { color: colors.textMuted }]}>
+              <Text
+                style={[styles.modalEmptyText, { color: colors.textMuted }]}
+              >
                 {t("contacts.linkEmpty")}
               </Text>
             ) : (
@@ -566,7 +568,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               style={[styles.modalCancelButton, { borderColor: colors.border }]}
               onPress={() => setShowLinkModal(false)}
             >
-              <Text style={[styles.modalCancelText, { color: colors.textPrimary }]}>
+              <Text
+                style={[styles.modalCancelText, { color: colors.textPrimary }]}
+              >
                 {t("common.cancel")}
               </Text>
             </TouchableOpacity>

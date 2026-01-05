@@ -238,7 +238,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               </Text>
               <View style={styles.actionRow}>
                 <TouchableOpacity
-                  style={[styles.iconButton, { backgroundColor: colors.accent }]}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.accent },
+                  ]}
                   onPress={() =>
                     navigation.navigate("AccountForm", { organizationId })
                   }
@@ -419,7 +422,9 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               style={[styles.modalCancelButton, { borderColor: colors.border }]}
               onPress={() => setShowLinkModal(false)}
             >
-              <Text style={[styles.modalCancelText, { color: colors.textPrimary }]}>
+              <Text
+                style={[styles.modalCancelText, { color: colors.textPrimary }]}
+              >
                 {t("common.cancel")}
               </Text>
             </TouchableOpacity>

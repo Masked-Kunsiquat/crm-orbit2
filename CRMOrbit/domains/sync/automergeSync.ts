@@ -409,7 +409,10 @@ const loadSnapshot = (
     return Automerge.load<AutomergeDoc>(encoded);
   }
 
-  if (encoding === "base64" || (encoding !== "transit" && isBase64String(encoded))) {
+  if (
+    encoding === "base64" ||
+    (encoding !== "transit" && isBase64String(encoded))
+  ) {
     const bytes = toByteArray(encoded);
     const decoded = getTextDecoder().decode(bytes);
     try {

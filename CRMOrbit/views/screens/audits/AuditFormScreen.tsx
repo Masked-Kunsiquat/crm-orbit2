@@ -84,10 +84,7 @@ const parseFloorsVisited = (value: string): number[] | undefined => {
   return numbers;
 };
 
-const areFloorsEqual = (
-  left?: number[],
-  right?: number[],
-): boolean => {
+const areFloorsEqual = (left?: number[], right?: number[]): boolean => {
   const leftValue = left ?? [];
   const rightValue = right ?? [];
   if (leftValue.length !== rightValue.length) {
@@ -119,9 +116,9 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
   const [score, setScore] = useState("");
   const [floorsVisitedInput, setFloorsVisitedInput] = useState("");
   const [status, setStatus] = useState<AuditStatus>("scheduled");
-  const [activePicker, setActivePicker] = useState<"scheduled" | "occurred" | null>(
-    null,
-  );
+  const [activePicker, setActivePicker] = useState<
+    "scheduled" | "occurred" | null
+  >(null);
   const [isAccountPickerOpen, setIsAccountPickerOpen] = useState(false);
 
   const sortedAccounts = useMemo(() => {
@@ -199,7 +196,11 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         }
 
         const nextDate = new Date(currentDate);
-        nextDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+        nextDate.setFullYear(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        );
 
         DateTimePickerAndroid.open({
           mode: "time",
@@ -369,7 +370,9 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
           ]}
           onPress={() => setIsAccountPickerOpen(true)}
         >
-          <Text style={[styles.pickerButtonText, { color: colors.textPrimary }]}>
+          <Text
+            style={[styles.pickerButtonText, { color: colors.textPrimary }]}
+          >
             {sortedAccounts.find((account) => account.id === accountId)?.name ??
               t("audits.form.accountPlaceholder")}
           </Text>
@@ -387,7 +390,9 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
           ]}
           onPress={() => handleOpenPicker("scheduled")}
         >
-          <Text style={[styles.pickerButtonText, { color: colors.textPrimary }]}>
+          <Text
+            style={[styles.pickerButtonText, { color: colors.textPrimary }]}
+          >
             {formatTimestamp(scheduledFor)}
           </Text>
           <Text style={[styles.pickerChevron, { color: colors.textSecondary }]}>
@@ -479,7 +484,9 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         disabled={accounts.length === 0}
       >
         <Text style={[styles.saveButtonText, { color: colors.onAccent }]}>
-          {auditId ? t("audits.form.updateButton") : t("audits.form.createButton")}
+          {auditId
+            ? t("audits.form.updateButton")
+            : t("audits.form.createButton")}
         </Text>
       </TouchableOpacity>
 

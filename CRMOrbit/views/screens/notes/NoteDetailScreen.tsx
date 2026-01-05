@@ -164,7 +164,10 @@ export const NoteDetailScreen = ({ route, navigation }: Props) => {
             {t("notes.linkedToSection")}
           </Text>
           <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: colors.surfaceElevated }]}
+            style={[
+              styles.iconButton,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
             onPress={() => setShowLinkModal(true)}
             accessibilityLabel={t("notes.linkEntityButton")}
           >
