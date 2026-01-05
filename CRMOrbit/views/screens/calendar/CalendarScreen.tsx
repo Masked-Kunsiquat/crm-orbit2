@@ -101,9 +101,14 @@ const buildAuditNotes = (audit: Audit, status: string): string | undefined => {
   return lines.length > 0 ? lines.join("\n") : undefined;
 };
 
-const buildInteractionNotes = (interaction: Interaction): string | undefined => {
+const buildInteractionNotes = (
+  interaction: Interaction,
+): string | undefined => {
   const lines: string[] = [];
-  if (interaction.status && interaction.status !== "interaction.status.completed") {
+  if (
+    interaction.status &&
+    interaction.status !== "interaction.status.completed"
+  ) {
     lines.push(`${t("interactions.statusLabel")}: ${t(interaction.status)}`);
   }
   if (interaction.summary?.trim()) {
@@ -467,7 +472,10 @@ export const CalendarScreen = ({ navigation }: Props) => {
             <Text
               style={[
                 styles.syncHint,
-                { color: syncStatus === "error" ? colors.error : colors.textMuted },
+                {
+                  color:
+                    syncStatus === "error" ? colors.error : colors.textMuted,
+                },
               ]}
             >
               {syncMessage}
