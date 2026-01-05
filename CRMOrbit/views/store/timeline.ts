@@ -80,6 +80,13 @@ const isEventRelatedToEntity = (
     );
   }
 
+  if (entityType === "audit") {
+    return (
+      getPayloadId(event.payload, "auditId") === entityId ||
+      payloadId === entityId
+    );
+  }
+
   return false;
 };
 

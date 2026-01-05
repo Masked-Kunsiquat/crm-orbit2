@@ -5,6 +5,8 @@ import { entityLinkReducer } from "@reducers/entityLink.reducer";
 import { noteReducer } from "@reducers/note.reducer";
 import { interactionReducer } from "@reducers/interaction.reducer";
 import { organizationReducer } from "@reducers/organization.reducer";
+import { accountReducer } from "@reducers/account.reducer";
+import { auditReducer } from "@reducers/audit.reducer";
 import type { Event } from "@events/event";
 
 const createOrganization = (): Event => ({
@@ -41,6 +43,31 @@ const createInteraction = (): Event => ({
     summary: "Intro call",
   },
   timestamp: "2024-05-02T12:00:00.000Z",
+  deviceId: "device-1",
+});
+
+const createAccount = (): Event => ({
+  id: "evt-account-1",
+  type: "account.created",
+  payload: {
+    id: "account-1",
+    organizationId: "org-1",
+    name: "Acme Account",
+    status: "account.status.active",
+  },
+  timestamp: "2024-05-02T09:00:00.000Z",
+  deviceId: "device-1",
+});
+
+const createAudit = (): Event => ({
+  id: "evt-audit-1",
+  type: "audit.created",
+  payload: {
+    id: "audit-1",
+    accountId: "account-1",
+    scheduledFor: "2024-05-05T09:00:00.000Z",
+  },
+  timestamp: "2024-05-04T09:00:00.000Z",
   deviceId: "device-1",
 });
 
@@ -294,4 +321,32 @@ test("interaction.unlinked ignores missing entityType when entityId is present",
   const next = entityLinkReducer(withLink, unlinked);
 
   assert.equal(next.relations.entityLinks["link-7"], undefined);
+});
+
+test("note.linked supports audit entities", () => {
+  const doc = initAutomergeDoc();
+  const withOrg = organizationReducer(doc, createOrganization());
+  const withAccount = accountReducer(withOrg, createAccount());
+  const withAudit = auditReducer(withAccount, createAudit());
+  const withNote = noteReducer(withAudit, createNote());
+  const linked: Event = {
+    id: "evt-link-9",
+    type: "note.linked",
+    payload: {
+      id: "link-9",
+      noteId: "note-1",
+      entityType: "audit",
+      entityId: "audit-1",
+    },
+    timestamp: "2024-05-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = entityLinkReducer(withNote, linked);
+  const link = next.relations.entityLinks["link-9"];
+
+  assert.ok(link);
+  assert.equal(link.linkType, "note");
+  assert.equal(link.entityType, "audit");
+  assert.equal(link.entityId, "audit-1");
 });

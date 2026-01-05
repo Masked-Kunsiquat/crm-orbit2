@@ -604,6 +604,10 @@ export const TimelineSection = ({
       } else if (entityType === "account") {
         const account = doc.accounts[entityId];
         entityName = account?.name || t("common.unknown");
+      } else if (entityType === "audit") {
+        const audit = doc.audits[entityId];
+        const stamp = audit?.occurredAt ?? audit?.scheduledFor ?? audit?.id;
+        entityName = stamp ? `Audit ${stamp}` : t("common.unknown");
       } else if (entityType === "contact") {
         const contact = doc.contacts[entityId];
         entityName = contact ? getContactName(contact) : t("common.unknown");

@@ -35,6 +35,11 @@ const ensureEntityExists = (
         throw new Error(`Account not found: ${entityId}`);
       }
       return;
+    case "audit":
+      if (!doc.audits[entityId]) {
+        throw new Error(`Audit not found: ${entityId}`);
+      }
+      return;
     case "contact":
       if (!doc.contacts[entityId]) {
         throw new Error(`Contact not found: ${entityId}`);

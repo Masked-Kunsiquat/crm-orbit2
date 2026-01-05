@@ -1,5 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import { getContactDisplayName } from "@domains/contact.utils";
+import type { Audit } from "@domains/audit";
 import type { EntityLink, EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "@domains/shared/types";
 
@@ -76,6 +77,13 @@ export const getEntitiesForNote = (
           entity = doc.accounts[link.entityId];
           if (entity) name = entity.name;
           break;
+        case "audit":
+          entity = doc.audits[link.entityId] as Audit | undefined;
+          if (entity) {
+            const stamp = entity.occurredAt ?? entity.scheduledFor;
+            name = stamp ? `Audit ${stamp}` : `Audit ${entity.id}`;
+          }
+          break;
         case "contact":
           entity = doc.contacts[link.entityId];
           if (entity) name = getContactDisplayName(entity);
@@ -124,6 +132,13 @@ export const getEntitiesForInteraction = (
         case "account":
           entity = doc.accounts[link.entityId];
           if (entity) name = entity.name;
+          break;
+        case "audit":
+          entity = doc.audits[link.entityId] as Audit | undefined;
+          if (entity) {
+            const stamp = entity.occurredAt ?? entity.scheduledFor;
+            name = stamp ? `Audit ${stamp}` : `Audit ${entity.id}`;
+          }
           break;
         case "contact":
           entity = doc.contacts[link.entityId];
