@@ -234,7 +234,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             <View style={styles.actionRow}>
               <TouchableOpacity
                 style={[styles.iconButton, { backgroundColor: colors.accent }]}
-                onPress={() => navigation.navigate("ContactForm")}
+                onPress={() =>
+                  navigation.navigate({
+                    name: "ContactForm",
+                    params: {},
+                  })
+                }
                 accessibilityLabel={t("contacts.form.createButton")}
               >
                 <MaterialCommunityIcons

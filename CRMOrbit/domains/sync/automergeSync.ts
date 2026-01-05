@@ -505,9 +505,9 @@ export const applyReceivedChanges = (
 
     if (decodedPayload) {
       const trimmedPayload = decodedPayload.trim();
-      if (decodedPayload.startsWith("{")) {
+      if (trimmedPayload.startsWith("{")) {
         try {
-          const parsed = JSON.parse(decodedPayload) as {
+          const parsed = JSON.parse(trimmedPayload) as {
             format?: unknown;
             snapshot?: unknown;
             encoding?: unknown;
