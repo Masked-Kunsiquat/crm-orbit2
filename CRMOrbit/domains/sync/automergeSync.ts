@@ -71,6 +71,52 @@ const parseJsonChanges = (changes: Uint8Array): Change[] => {
   return parsed as Change[];
 };
 
+const parseStructuredChanges = (changes: Uint8Array): Change[] | null => {
+  let parsed: unknown;
+  try {
+    const payload = getTextDecoder().decode(changes);
+    parsed = JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+
+  const entries = Array.isArray(parsed)
+    ? parsed
+    : parsed && typeof parsed === "object" && "changes" in parsed
+      ? (parsed as { changes?: unknown }).changes
+      : null;
+  if (!Array.isArray(entries)) {
+    return null;
+  }
+
+  const decoded: Change[] = [];
+  for (const entry of entries) {
+    if (
+      entry &&
+      typeof entry === "object" &&
+      "kind" in entry &&
+      "data" in entry
+    ) {
+      const { kind, data } = entry as { kind: string; data: unknown };
+      if (kind === "binary" && typeof data === "string") {
+        decoded.push(toByteArray(data) as unknown as Change);
+        continue;
+      }
+      if (kind === "json") {
+        decoded.push(data as Change);
+        continue;
+      }
+    }
+    if (typeof entry === "string") {
+      decoded.push(toByteArray(entry) as unknown as Change);
+      continue;
+    }
+    decoded.push(entry as Change);
+  }
+
+  return decoded;
+};
+
 const encodeChanges = (changes: Change[]): Uint8Array => {
   if (changes.length === 0) return new Uint8Array();
   const encodeChange = (
@@ -78,9 +124,14 @@ const encodeChanges = (changes: Change[]): Uint8Array => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
-  const allBinary = changes.every((change) => change instanceof Uint8Array);
-  if (!encodeChange && !allBinary) {
-    const payload = JSON.stringify(changes);
+  if (!encodeChange) {
+    const payload = JSON.stringify(
+      changes.map((change) =>
+        change instanceof Uint8Array
+          ? { kind: "binary", data: fromByteArray(change) }
+          : { kind: "json", data: change },
+      ),
+    );
     return getTextEncoder().encode(payload);
   }
   const encoded = changes.map((change) => {
@@ -226,6 +277,11 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
       encodeChange?: (change: Change) => Uint8Array;
     }
   ).encodeChange;
+
+  const structured = parseStructuredChanges(changes);
+  if (structured) {
+    return structured;
+  }
 
   try {
     return decodeLengthPrefixedChanges(changes, decodeChange);
