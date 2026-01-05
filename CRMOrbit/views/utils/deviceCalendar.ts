@@ -25,17 +25,27 @@ export type CalendarSyncSummary = {
 
 type CalendarSourceInput = {
   id?: string;
-  name?: string;
+  name: string;
   isLocalAccount?: boolean;
+  type: Calendar.SourceType | string;
 };
 
 const getDefaultCalendarSource = async (): Promise<CalendarSourceInput> => {
   if (Platform.OS === "ios") {
     const defaultCalendar = await Calendar.getDefaultCalendarAsync();
-    return defaultCalendar.source ?? {};
+    const source = defaultCalendar.source;
+    return {
+      ...(source ?? {}),
+      name: source?.name ?? DEFAULT_DEVICE_CALENDAR_NAME,
+      type: source?.type ?? Calendar.SourceType.LOCAL,
+    };
   }
 
-  return { isLocalAccount: true, name: DEFAULT_DEVICE_CALENDAR_NAME };
+  return {
+    isLocalAccount: true,
+    name: DEFAULT_DEVICE_CALENDAR_NAME,
+    type: Calendar.SourceType.LOCAL,
+  };
 };
 
 export const getStoredCalendarName = async (): Promise<string> => {
@@ -100,7 +110,10 @@ export const ensureDeviceCalendar = async (
 
   if (storedId) {
     try {
-      const existing = await Calendar.getCalendarAsync(storedId);
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT,
+      );
+      const existing = calendars.find((calendar) => calendar.id === storedId);
       if (existing) {
         if (existing.title !== desiredName || existing.name !== desiredName) {
           await Calendar.updateCalendarAsync(storedId, {

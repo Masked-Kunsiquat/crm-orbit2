@@ -49,7 +49,7 @@ const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
 
 type DurationPreset = "30" | "60" | "120" | "240" | "custom";
 
-const DURATION_PRESETS = [30, 60, 120, 240];
+const DURATION_PRESETS: DurationPreset[] = ["30", "60", "120", "240"];
 
 const DEFAULT_DURATION_BY_TYPE: Record<InteractionType, number | undefined> = {
   "interaction.type.call": 15,
@@ -111,8 +111,10 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
     const { hours, minutes } = splitDurationMinutes(durationMinutes);
     setDurationHours(hours ? `${hours}` : "");
     setDurationMinutesInput(minutes ? `${minutes}` : "");
-    const preset = DURATION_PRESETS.find((value) => value === durationMinutes);
-    setDurationPreset(preset ? `${preset}` : "custom");
+    const preset = DURATION_PRESETS.find(
+      (value) => Number(value) === durationMinutes,
+    );
+    setDurationPreset(preset ?? "custom");
   }, []);
 
   useEffect(() => {
@@ -260,7 +262,10 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       durationHours,
       durationMinutesInput,
     );
-    if (durationValue === null || durationValue <= 0) {
+    if (
+      durationValue === null ||
+      (durationValue !== undefined && durationValue <= 0)
+    ) {
       showAlert(
         t("common.error"),
         t("interactions.validation.durationInvalid"),
@@ -396,8 +401,8 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
 
   const durationOptions: Array<{ label: string; value: DurationPreset }> = [
     ...DURATION_PRESETS.map((value) => ({
-      label: formatDurationLabel(value),
-      value: `${value}` as DurationPreset,
+      label: formatDurationLabel(Number(value)),
+      value,
     })),
     { label: t("common.custom"), value: "custom" },
   ];

@@ -53,7 +53,7 @@ const STATUS_OPTIONS: Array<{ label: string; value: AuditStatus }> = [
   { label: "audits.status.canceled", value: "audits.status.canceled" },
 ];
 
-const DURATION_PRESETS = [30, 60, 120, 240];
+const DURATION_PRESETS: DurationPreset[] = ["30", "60", "120", "240"];
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {
@@ -160,9 +160,9 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
       setDurationHours(hours ? `${hours}` : "");
       setDurationMinutesInput(minutes ? `${minutes}` : "");
       const preset = DURATION_PRESETS.find(
-        (value) => value === audit.durationMinutes,
+        (value) => Number(value) === audit.durationMinutes,
       );
-      setDurationPreset(preset ? `${preset}` : "custom");
+      setDurationPreset(preset ?? "custom");
       return;
     }
 
@@ -463,8 +463,8 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
 
   const durationOptions: Array<{ label: string; value: DurationPreset }> = [
     ...DURATION_PRESETS.map((value) => ({
-      label: formatDurationLabel(value),
-      value: `${value}` as DurationPreset,
+      label: formatDurationLabel(Number(value)),
+      value,
     })),
     { label: t("common.custom"), value: "custom" },
   ];
