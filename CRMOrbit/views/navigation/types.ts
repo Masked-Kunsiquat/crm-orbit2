@@ -109,10 +109,19 @@ export type MiscStackParamList = {
   MiscLanding: undefined;
   Sync: undefined;
   CodesList: undefined;
+  Calendar: undefined;
   AuditsList: undefined;
   AuditDetail: { auditId: EntityId };
+  InteractionDetail: { interactionId: EntityId };
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
+  InteractionForm: {
+    interactionId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+  };
   SettingsList: undefined;
   SecuritySettings: undefined;
 };

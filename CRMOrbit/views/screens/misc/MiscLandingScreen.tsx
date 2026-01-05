@@ -4,7 +4,11 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { MiscStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
-import { useAllAudits, useAllCodes } from "../../store/store";
+import {
+  useAllAudits,
+  useAllCodes,
+  useAllInteractions,
+} from "../../store/store";
 import { t } from "@i18n/index";
 
 type Props = MiscStackScreenProps<"MiscLanding">;
@@ -13,6 +17,7 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const allCodes = useAllCodes();
   const allAudits = useAllAudits();
+  const allInteractions = useAllInteractions();
 
   const handleCodesPress = () => {
     navigation.navigate("CodesList");
@@ -24,6 +29,10 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
 
   const handleAuditsPress = () => {
     navigation.navigate("AuditsList");
+  };
+
+  const handleCalendarPress = () => {
+    navigation.navigate("Calendar");
   };
 
   const handleSettingsPress = () => {
@@ -77,6 +86,31 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
           <View style={styles.countBadge}>
             <Text style={[styles.countText, { color: colors.textSecondary }]}>
               {allAudits.length}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleCalendarPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("calendar.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("calendar.description")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {allInteractions.length}
             </Text>
           </View>
         </View>
