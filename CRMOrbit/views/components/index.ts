@@ -16,6 +16,7 @@ export { StatusBadge } from "./StatusBadge";
 export { Tooltip } from "./Tooltip";
 export { NotesSection } from "./NotesSection";
 export { InteractionsSection } from "./InteractionsSection";
+export { AuditsSection } from "./AuditsSection";
 export { CodesSection } from "./CodesSection";
 export { TimelineSection } from "./TimelineSection";
 export { ConfirmDialog } from "./ConfirmDialog";

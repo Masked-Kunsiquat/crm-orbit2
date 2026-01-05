@@ -9,6 +9,7 @@ import {
   useCodes,
   useNotes,
   useInteractions,
+  useAuditsByAccount,
   useTimeline,
   useDoc,
 } from "../../store/store";
@@ -18,6 +19,7 @@ import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
   InteractionsSection,
+  AuditsSection,
   CodesSection,
   TimelineSection,
   DetailScreenLayout,
@@ -49,6 +51,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const codes = useCodes(accountId);
   const notes = useNotes("account", accountId);
   const interactions = useInteractions("account", accountId);
+  const audits = useAuditsByAccount(accountId);
   const timeline = useTimeline("account", accountId);
   const doc = useDoc();
   const deviceId = useDeviceId();
@@ -374,6 +377,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         <>
           <CodesSection
             codes={codes}
+            accountId={accountId}
+            navigation={navigation}
+          />
+          <AuditsSection
+            audits={audits}
             accountId={accountId}
             navigation={navigation}
           />

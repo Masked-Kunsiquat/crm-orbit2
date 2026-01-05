@@ -7,6 +7,7 @@ import {
   CodeFormScreen,
   CodesListScreen,
 } from "../screens/codes";
+import { AuditsListScreen } from "../screens/audits";
 import {
   SecuritySettingsScreen,
   SettingsListScreen,
@@ -47,6 +48,11 @@ export const MiscStack = () => {
         name="CodesList"
         component={CodesListScreen}
         options={{ title: t("codes.listTitle") }}
+      />
+      <Stack.Screen
+        name="AuditsList"
+        component={AuditsListScreen}
+        options={{ title: t("audits.listTitle") }}
       />
       <Stack.Screen
         name="CodeDetail"

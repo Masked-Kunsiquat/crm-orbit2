@@ -32,6 +32,7 @@ export type RootStackParamList = {
   };
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
+  AuditForm: { auditId?: EntityId; accountId?: EntityId };
 };
 
 // Root tab navigator
@@ -92,6 +93,7 @@ export type MiscStackParamList = {
   MiscLanding: undefined;
   Sync: undefined;
   CodesList: undefined;
+  AuditsList: undefined;
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
   SettingsList: undefined;

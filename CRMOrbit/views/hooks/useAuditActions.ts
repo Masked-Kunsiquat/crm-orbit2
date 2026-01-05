@@ -130,6 +130,22 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  const deleteAudit = useCallback(
+    (auditId: EntityId): DispatchResult => {
+      const event = buildEvent({
+        type: "audit.deleted",
+        entityId: auditId,
+        payload: {
+          id: auditId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
   return {
     createAudit,
     rescheduleAudit,
@@ -137,5 +153,6 @@ export const useAuditActions = (deviceId: string) => {
     updateAuditNotes,
     updateAuditFloorsVisited,
     reassignAuditAccount,
+    deleteAudit,
   };
 };
