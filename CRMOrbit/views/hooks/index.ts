@@ -1,6 +1,7 @@
 export { useDispatch, useEventBuilder } from "./useDispatch";
 export { useOrganizationActions } from "./useOrganizationActions";
 export { useAccountActions } from "./useAccountActions";
+export { useAuditActions } from "./useAuditActions";
 export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
 export { useEntityLinkActions } from "./useEntityLinkActions";

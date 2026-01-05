@@ -22,6 +22,9 @@ export const useAccountActions = (deviceId: string) => {
       addresses?: AccountAddresses,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      minFloor?: number,
+      maxFloor?: number,
+      excludedFloors?: number[],
     ): DispatchResult => {
       const id = nextId("account");
       const event = buildEvent({
@@ -35,6 +38,9 @@ export const useAccountActions = (deviceId: string) => {
           addresses,
           website,
           socialMedia,
+          ...(minFloor !== undefined && { minFloor }),
+          ...(maxFloor !== undefined && { maxFloor }),
+          ...(excludedFloors !== undefined && { excludedFloors }),
           metadata: {},
         },
         deviceId,
@@ -70,6 +76,9 @@ export const useAccountActions = (deviceId: string) => {
       addresses?: AccountAddresses,
       website?: string,
       socialMedia?: SocialMediaLinks,
+      minFloor?: number,
+      maxFloor?: number,
+      excludedFloors?: number[],
       _previousAccount?: Account, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
@@ -82,6 +91,9 @@ export const useAccountActions = (deviceId: string) => {
           addresses,
           website,
           socialMedia,
+          ...(minFloor !== undefined && { minFloor }),
+          ...(maxFloor !== undefined && { maxFloor }),
+          ...(excludedFloors !== undefined && { excludedFloors }),
         },
         deviceId,
       });
