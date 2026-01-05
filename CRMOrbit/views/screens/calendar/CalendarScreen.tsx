@@ -117,6 +117,11 @@ const buildInteractionNotes = (
   return lines.length > 0 ? lines.join("\n") : undefined;
 };
 
+const buildCalendarTitle = (title: string, isCanceled: boolean): string => {
+  if (!isCanceled) return title;
+  return `${t("calendar.event.canceledPrefix")} - ${title}`;
+};
+
 export const CalendarScreen = ({ navigation }: Props) => {
   const audits = useAllAudits();
   const interactions = useAllInteractions();
@@ -185,7 +190,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
 
     for (const audit of audits) {
       const status = resolveAuditStatus(audit);
-      if (status === "audits.status.canceled") continue;
+      const isCanceled = status === "audits.status.canceled";
       const accountName =
         accountNames.get(audit.accountId) ?? t("common.unknownEntity");
       const startTimestamp = getAuditStartTimestamp(audit);
@@ -195,7 +200,10 @@ export const CalendarScreen = ({ navigation }: Props) => {
       const endDate = toDateOrNull(endTimestamp) ?? startDate;
       events.push({
         key: `audit:${audit.id}`,
-        title: `${accountName} - ${t("calendar.event.audit")}`,
+        title: buildCalendarTitle(
+          `${accountName} - ${t("calendar.event.audit")}`,
+          isCanceled,
+        ),
         startDate,
         endDate,
         notes: buildAuditNotes(audit, status),
@@ -203,7 +211,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
     }
 
     for (const interaction of interactions) {
-      if (interaction.status === "interaction.status.canceled") continue;
+      const isCanceled = interaction.status === "interaction.status.canceled";
       const timestamp =
         interaction.scheduledFor ?? interaction.occurredAt ?? undefined;
       const startDate = toDateOrNull(timestamp);
@@ -220,7 +228,10 @@ export const CalendarScreen = ({ navigation }: Props) => {
       const accountName = accountEntity?.name ?? t("common.unknownEntity");
       events.push({
         key: `interaction:${interaction.id}`,
-        title: `${accountName} - ${t(interaction.type)}`,
+        title: buildCalendarTitle(
+          `${accountName} - ${t(interaction.type)}`,
+          isCanceled,
+        ),
         startDate,
         endDate,
         notes: buildInteractionNotes(interaction),

@@ -144,6 +144,7 @@
   "calendar.emptyTitle": "No calendar items yet",
   "calendar.emptyHint": "Schedule an interaction or audit to get started",
   "calendar.event.audit": "Audit",
+  "calendar.event.canceledPrefix": "CANCELLED",
   "calendar.sync.title": "Device Calendar",
   "calendar.sync.permissionHint": "Allow calendar access to sync audits and interactions.",
   "calendar.sync.permissionChecking": "Checking calendar permissions...",
