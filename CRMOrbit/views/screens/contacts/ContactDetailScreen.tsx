@@ -26,6 +26,7 @@ import {
   formatPhoneNumber,
   getContactDisplayName,
 } from "@domains/contact.utils";
+import type { AccountContactRole } from "@domains/relations/accountContact";
 import {
   NotesSection,
   InteractionsSection,
@@ -37,6 +38,7 @@ import {
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  SegmentedOptionGroup,
 } from "@views/components";
 import { useDeviceId, useTheme } from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
@@ -76,6 +78,24 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
 
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [activeTab, setActiveTab] = useState<ContactTab>("overview");
+  const [selectedRole, setSelectedRole] = useState<AccountContactRole>(
+    "account.contact.role.primary",
+  );
+
+  const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
+    {
+      value: "account.contact.role.primary",
+      label: t("account.contact.role.primary"),
+    },
+    {
+      value: "account.contact.role.billing",
+      label: t("account.contact.role.billing"),
+    },
+    {
+      value: "account.contact.role.technical",
+      label: t("account.contact.role.technical"),
+    },
+  ];
 
   const styles = createStyles(colors);
 
@@ -91,7 +111,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     navigation.navigate("ContactForm", { contactId: contact.id });
   };
 
-  const handleLinkAccount = (accountId: string) => {
+  const handleLinkAccount = (accountId: string, role: AccountContactRole) => {
     // Check if already linked
     const existingLink = Object.values(accountContactRelations).find(
       (relation) =>
@@ -115,7 +135,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     const result = linkContact(
       accountId,
       contactId,
-      "account.contact.role.primary",
+      role,
       !hasPrimary,
     );
 
@@ -459,6 +479,16 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             <Text style={styles.modalTitle}>
               {t("contacts.linkedAccounts.modalTitle")}
             </Text>
+            <View style={styles.roleSection}>
+              <Text style={styles.roleLabel}>
+                {t("accountContacts.roleLabel")}
+              </Text>
+              <SegmentedOptionGroup
+                options={roleOptions}
+                value={selectedRole}
+                onChange={setSelectedRole}
+              />
+            </View>
             <FlatList
               data={sortedAccounts}
               keyExtractor={(item) => item.id}
@@ -470,7 +500,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       styles.modalItem,
                       isLinked && styles.modalItemDisabled,
                     ]}
-                    onPress={() => handleLinkAccount(item.id)}
+                    onPress={() => handleLinkAccount(item.id, selectedRole)}
                     disabled={isLinked}
                   >
                     <Text
@@ -620,6 +650,16 @@ const createStyles = (colors: ColorScheme) =>
       fontWeight: "700",
       color: colors.textPrimary,
       marginBottom: 16,
+    },
+    roleSection: {
+      marginBottom: 16,
+    },
+    roleLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginBottom: 8,
+      textTransform: "uppercase",
     },
     modalItem: {
       padding: 16,

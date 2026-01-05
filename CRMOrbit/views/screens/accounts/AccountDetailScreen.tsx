@@ -28,6 +28,7 @@ import { useAccountActions } from "../../hooks/useAccountActions";
 import { useDeviceId } from "../../hooks";
 import type { ContactType } from "@domains/contact";
 import { getContactDisplayName } from "@domains/contact.utils";
+import type { AccountContactRole } from "@domains/relations/accountContact";
 import {
   NotesSection,
   InteractionsSection,
@@ -43,6 +44,7 @@ import {
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  SegmentedOptionGroup,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
@@ -79,6 +81,24 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     "all",
   );
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<AccountContactRole>(
+    "account.contact.role.primary",
+  );
+
+  const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
+    {
+      value: "account.contact.role.primary",
+      label: t("account.contact.role.primary"),
+    },
+    {
+      value: "account.contact.role.billing",
+      label: t("account.contact.role.billing"),
+    },
+    {
+      value: "account.contact.role.technical",
+      label: t("account.contact.role.technical"),
+    },
+  ];
 
   const contacts = useMemo(() => {
     if (contactFilter === "all") {
@@ -155,7 +175,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
-  const handleLinkContact = (contactId: string) => {
+  const handleLinkContact = (contactId: string, role: AccountContactRole) => {
     const existingLink = Object.values(accountContactRelations).find(
       (relation) =>
         relation.accountId === accountId && relation.contactId === contactId,
@@ -177,7 +197,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     const result = linkContact(
       accountId,
       contactId,
-      "account.contact.role.primary",
+      role,
       !hasPrimary,
     );
 
@@ -545,29 +565,43 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 {t("contacts.linkEmpty")}
               </Text>
             ) : (
-              <FlatList
-                data={sortedLinkableContacts}
-                keyExtractor={(item) => item.id}
-                style={styles.modalList}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      styles.modalItem,
-                      { borderBottomColor: colors.borderLight },
-                    ]}
-                    onPress={() => handleLinkContact(item.id)}
+              <>
+                <View style={styles.roleSection}>
+                  <Text
+                    style={[styles.roleLabel, { color: colors.textSecondary }]}
                   >
-                    <Text
+                    {t("accountContacts.roleLabel")}
+                  </Text>
+                  <SegmentedOptionGroup
+                    options={roleOptions}
+                    value={selectedRole}
+                    onChange={setSelectedRole}
+                  />
+                </View>
+                <FlatList
+                  data={sortedLinkableContacts}
+                  keyExtractor={(item) => item.id}
+                  style={styles.modalList}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
                       style={[
-                        styles.modalItemText,
-                        { color: colors.textPrimary },
+                        styles.modalItem,
+                        { borderBottomColor: colors.borderLight },
                       ]}
+                      onPress={() => handleLinkContact(item.id, selectedRole)}
                     >
-                      {getContactDisplayName(item)}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              />
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {getContactDisplayName(item)}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </>
             )}
             <TouchableOpacity
               style={[styles.modalCancelButton, { borderColor: colors.border }]}
@@ -696,6 +730,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 12,
+  },
+  roleSection: {
+    marginBottom: 12,
+  },
+  roleLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 8,
+    textTransform: "uppercase",
   },
   modalList: {
     marginBottom: 12,

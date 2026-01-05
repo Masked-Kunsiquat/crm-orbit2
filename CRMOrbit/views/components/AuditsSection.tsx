@@ -7,9 +7,11 @@ import {
   View,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import type { NavigationProp } from "@react-navigation/native";
 
 import type { Audit } from "@domains/audit";
 import { t } from "@i18n/index";
+import type { RootStackParamList } from "@views/navigation/types";
 
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
@@ -19,9 +21,7 @@ import { sortAuditsByDescendingTime } from "../utils/audits";
 type AuditsSectionProps = {
   audits: Audit[];
   accountId: string;
-  navigation: {
-    navigate: (screen: string, params?: Record<string, unknown>) => void;
-  };
+  navigation: NavigationProp<RootStackParamList>;
 };
 
 const formatTimestamp = (timestamp?: string): string => {
