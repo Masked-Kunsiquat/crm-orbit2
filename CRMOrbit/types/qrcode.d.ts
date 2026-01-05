@@ -53,7 +53,7 @@ declare module "qrcode" {
       errorCorrectionLevel: "L" | "M" | "Q" | "H";
       maskPattern: number;
       segments: Array<{
-        data: string | Buffer;
+        data: string | Uint8Array | ArrayBuffer;
         mode: "numeric" | "alphanumeric" | "byte" | "kanji";
       }>;
     };
