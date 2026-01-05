@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Modal,
+  PermissionsAndroid,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,9 +12,9 @@ import {
 import {
   CameraView,
   type BarcodeScanningResult,
-  BarcodeType,
   useCameraPermissions,
 } from "expo-camera";
+import QRCode from "qrcode";
 
 import type { DeviceInfo } from "@domains/sync/types";
 import type { SyncQRCodeBatch } from "@domains/sync/qrCodeSync";
@@ -31,6 +32,66 @@ import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 import { useDeviceId, useTheme } from "@views/hooks";
 import { __internal_getCrmStore, useDoc } from "@views/store/store";
 import { t } from "@i18n/index";
+
+type QrPayloadViewProps = {
+  payload: string;
+  size?: number;
+  darkColor: string;
+  lightColor: string;
+};
+
+const QrPayloadView = ({
+  payload,
+  size = 220,
+  darkColor,
+  lightColor,
+}: QrPayloadViewProps) => {
+  const qr = useMemo(
+    () => QRCode.create(payload, { errorCorrectionLevel: "L" }),
+    [payload],
+  );
+  const moduleCount = qr.modules.size;
+  const moduleData = qr.modules.data as ArrayLike<number | boolean>;
+  const cellSize = size / moduleCount;
+
+  const rows = [];
+  for (let row = 0; row < moduleCount; row += 1) {
+    const cells = [];
+      for (let col = 0; col < moduleCount; col += 1) {
+        const index = row * moduleCount + col;
+        const isDark = Boolean(moduleData[index]);
+        cells.push(
+        <View
+          key={`${row}-${col}`}
+          style={[
+            styles.qrCell,
+            {
+              width: cellSize,
+              height: cellSize,
+              backgroundColor: isDark ? darkColor : lightColor,
+            },
+          ]}
+        />,
+      );
+    }
+    rows.push(
+      <View key={`row-${row}`} style={styles.qrRow}>
+        {cells}
+      </View>,
+    );
+  }
+
+  return (
+    <View
+      style={[
+        styles.qrGrid,
+        { width: size, height: size, backgroundColor: lightColor },
+      ]}
+    >
+      {rows}
+    </View>
+  );
+};
 
 export const SyncScreen = () => {
   const { colors } = useTheme();
@@ -74,6 +135,29 @@ export const SyncScreen = () => {
 
     const startDiscovery = async () => {
       try {
+        if (Platform.OS === "android" && Platform.Version >= 33) {
+          const permission =
+            PermissionsAndroid.PERMISSIONS.NEARBY_WIFI_DEVICES;
+          const granted = await PermissionsAndroid.check(permission);
+          if (!granted) {
+            const result = await PermissionsAndroid.request(permission, {
+              title: t("sync.permissions.nearbyWifiTitle"),
+              message: t("sync.permissions.nearbyWifiMessage"),
+              buttonPositive: t("common.ok"),
+            });
+            if (
+              isActive &&
+              result !== PermissionsAndroid.RESULTS.GRANTED
+            ) {
+              showAlert(
+                t("common.error"),
+                t("sync.permissions.nearbyWifiDenied"),
+                t("common.ok"),
+              );
+              return;
+            }
+          }
+        }
         await syncOrchestrator.startAutoDiscovery();
       } catch (error) {
         if (!isActive) return;
@@ -277,9 +361,10 @@ export const SyncScreen = () => {
                         total: chunk.total,
                       })}
                     </Text>
-                    <Image
-                      source={{ uri: chunk.dataUrl }}
-                      style={styles.qrImage}
+                    <QrPayloadView
+                      payload={chunk.payload}
+                      darkColor={colors.textPrimary}
+                      lightColor={colors.canvas}
                     />
                   </View>
                 ))}
@@ -335,7 +420,7 @@ export const SyncScreen = () => {
               <CameraView
                 style={styles.scanner}
                 onBarcodeScanned={scanBusy ? undefined : handleBarCodeScanned}
-                barcodeScannerSettings={{ barcodeTypes: [BarcodeType.qr] }}
+                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
               />
               {scanBusy ? (
                 <View style={styles.scannerOverlay}>
@@ -406,10 +491,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 8,
   },
-  qrImage: {
-    width: 220,
-    height: 220,
+  qrGrid: {
     borderRadius: 12,
+    overflow: "hidden",
+  },
+  qrRow: {
+    flexDirection: "row",
+  },
+  qrCell: {
+    backgroundColor: "transparent",
   },
   scannerContainer: {
     flex: 1,

@@ -9,8 +9,15 @@ const logger = createLogger("AutomergeSync");
 
 const LAST_SYNC_VERSION_KEY = "last_sync_version";
 
-const asAutomergeDoc = (doc: AutomergeDoc): Doc<AutomergeDoc> =>
-  doc as Doc<AutomergeDoc>;
+const ensureAutomergeDoc = (doc: AutomergeDoc): Doc<AutomergeDoc> => {
+  const candidate = doc as Doc<AutomergeDoc>;
+  try {
+    Automerge.save(candidate);
+    return candidate;
+  } catch {
+    return Automerge.from(doc);
+  }
+};
 
 type TextEncoderLike = {
   encode: (input?: string) => Uint8Array;
@@ -197,7 +204,7 @@ export const getChangesSinceLastSync = async (
       `${LAST_SYNC_VERSION_KEY}_${peerId}`,
     );
 
-    const current = asAutomergeDoc(currentDoc);
+    const current = ensureAutomergeDoc(currentDoc);
     const changes = lastSyncSnapshot
       ? Automerge.getChanges(loadSnapshot(lastSyncSnapshot), current)
       : Automerge.getAllChanges(current);
@@ -233,7 +240,7 @@ export const applyReceivedChanges = (
 
     const decodedChanges = decodeChanges(changes);
     const newDoc = Automerge.applyChanges(
-      asAutomergeDoc(currentDoc),
+      ensureAutomergeDoc(currentDoc),
       decodedChanges,
     );
 
@@ -255,7 +262,7 @@ export const saveSyncCheckpoint = async (
   peerId: string,
 ): Promise<void> => {
   try {
-    const snapshot = Automerge.save(asAutomergeDoc(doc));
+    const snapshot = Automerge.save(ensureAutomergeDoc(doc));
     const encodedSnapshot = encodeSnapshot(snapshot);
     await AsyncStorage.setItem(
       `${LAST_SYNC_VERSION_KEY}_${peerId}`,

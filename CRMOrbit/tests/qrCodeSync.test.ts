@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
 
-import QRCode from "qrcode";
-
 const mockCreateSyncBundle = jest.fn();
 const mockParseSyncBundle = jest.fn();
 
@@ -9,15 +7,6 @@ jest.mock("@domains/sync/automergeSync", () => ({
   __esModule: true,
   createSyncBundle: (...args: unknown[]) => mockCreateSyncBundle(...args),
   parseSyncBundle: (...args: unknown[]) => mockParseSyncBundle(...args),
-}));
-
-jest.mock("qrcode", () => ({
-  __esModule: true,
-  default: {
-    toDataURL: jest.fn(async (payload: string) =>
-      Promise.resolve(`data:image/png;base64,${payload}`),
-    ),
-  },
 }));
 
 import {
@@ -32,7 +21,6 @@ const QR_PREFIX = "crmorbit-sync|1|";
 beforeEach(() => {
   mockCreateSyncBundle.mockReset();
   mockParseSyncBundle.mockReset();
-  (QRCode.toDataURL as jest.Mock).mockClear();
 });
 
 test("generateSyncQRCode returns a single QR for small bundles", async () => {
@@ -42,8 +30,7 @@ test("generateSyncQRCode returns a single QR for small bundles", async () => {
 
   assert.equal(batch.kind, "single");
   assert.equal(batch.chunks.length, 1);
-  assert.ok(batch.chunks[0]?.dataUrl.includes("hello"));
-  assert.equal((QRCode.toDataURL as jest.Mock).mock.calls.length, 1);
+  assert.equal(batch.chunks[0]?.payload, "hello");
 });
 
 test("generateSyncQRCode chunks large bundles", async () => {
@@ -54,12 +41,8 @@ test("generateSyncQRCode chunks large bundles", async () => {
   assert.equal(batch.kind, "chunked");
   assert.ok(batch.chunks.length > 1);
   for (const chunk of batch.chunks) {
-    assert.ok(chunk.dataUrl.includes(QR_PREFIX));
+    assert.ok(chunk.payload.includes(QR_PREFIX));
   }
-  assert.equal(
-    (QRCode.toDataURL as jest.Mock).mock.calls.length,
-    batch.chunks.length,
-  );
 });
 
 test("parseSyncQRCode returns chunk metadata for chunked payloads", () => {
