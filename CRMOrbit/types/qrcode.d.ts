@@ -49,6 +49,10 @@ declare module "qrcode" {
       options?: QRCodeOptionsBase,
     ): {
       modules: QRCodeModuleData;
+      version: number;
+      errorCorrectionLevel: string;
+      maskPattern: number;
+      segments: Array<string | { data: string; mode: string }>;
     };
     toDataURL(text: string, options?: QRCodeOptions): Promise<string>;
     toDataURL(text: string, callback: QRCodeToDataURLCallback): Promise<string>;
