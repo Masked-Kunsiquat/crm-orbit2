@@ -37,16 +37,128 @@ type ManualSyncResult =
       doc: AutomergeDoc;
     };
 
+const encodeUtf8Fallback = (value: string): Uint8Array => {
+  const bytes: number[] = [];
+  for (let i = 0; i < value.length; i += 1) {
+    const codePoint = value.codePointAt(i);
+    if (codePoint === undefined) {
+      continue;
+    }
+    if (codePoint > 0xffff) {
+      i += 1;
+    }
+    if (codePoint <= 0x7f) {
+      bytes.push(codePoint);
+    } else if (codePoint <= 0x7ff) {
+      bytes.push(0xc0 | (codePoint >> 6));
+      bytes.push(0x80 | (codePoint & 0x3f));
+    } else if (codePoint <= 0xffff) {
+      bytes.push(0xe0 | (codePoint >> 12));
+      bytes.push(0x80 | ((codePoint >> 6) & 0x3f));
+      bytes.push(0x80 | (codePoint & 0x3f));
+    } else if (codePoint <= 0x10ffff) {
+      bytes.push(0xf0 | (codePoint >> 18));
+      bytes.push(0x80 | ((codePoint >> 12) & 0x3f));
+      bytes.push(0x80 | ((codePoint >> 6) & 0x3f));
+      bytes.push(0x80 | (codePoint & 0x3f));
+    } else {
+      throw new Error("Invalid Unicode code point.");
+    }
+  }
+  return Uint8Array.from(bytes);
+};
+
+const decodeUtf8Fallback = (bytes: Uint8Array): string => {
+  let result = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    const byte1 = bytes[i];
+    if (byte1 <= 0x7f) {
+      result += String.fromCharCode(byte1);
+      continue;
+    }
+
+    if (byte1 >= 0xc2 && byte1 <= 0xdf) {
+      if (i + 1 >= bytes.length) {
+        throw new Error("Invalid UTF-8 sequence.");
+      }
+      const byte2 = bytes[++i];
+      if ((byte2 & 0xc0) !== 0x80) {
+        throw new Error("Invalid UTF-8 continuation byte.");
+      }
+      const codePoint = ((byte1 & 0x1f) << 6) | (byte2 & 0x3f);
+      result += String.fromCharCode(codePoint);
+      continue;
+    }
+
+    if (byte1 >= 0xe0 && byte1 <= 0xef) {
+      if (i + 2 >= bytes.length) {
+        throw new Error("Invalid UTF-8 sequence.");
+      }
+      const byte2 = bytes[++i];
+      const byte3 = bytes[++i];
+      if ((byte2 & 0xc0) !== 0x80 || (byte3 & 0xc0) !== 0x80) {
+        throw new Error("Invalid UTF-8 continuation byte.");
+      }
+      if (byte1 === 0xe0 && byte2 < 0xa0) {
+        throw new Error("Overlong UTF-8 sequence.");
+      }
+      if (byte1 === 0xed && byte2 >= 0xa0) {
+        throw new Error("UTF-8 sequence encodes surrogate.");
+      }
+      const codePoint =
+        ((byte1 & 0x0f) << 12) | ((byte2 & 0x3f) << 6) | (byte3 & 0x3f);
+      result += String.fromCharCode(codePoint);
+      continue;
+    }
+
+    if (byte1 >= 0xf0 && byte1 <= 0xf4) {
+      if (i + 3 >= bytes.length) {
+        throw new Error("Invalid UTF-8 sequence.");
+      }
+      const byte2 = bytes[++i];
+      const byte3 = bytes[++i];
+      const byte4 = bytes[++i];
+      if (
+        (byte2 & 0xc0) !== 0x80 ||
+        (byte3 & 0xc0) !== 0x80 ||
+        (byte4 & 0xc0) !== 0x80
+      ) {
+        throw new Error("Invalid UTF-8 continuation byte.");
+      }
+      if (byte1 === 0xf0 && byte2 < 0x90) {
+        throw new Error("Overlong UTF-8 sequence.");
+      }
+      if (byte1 === 0xf4 && byte2 > 0x8f) {
+        throw new Error("UTF-8 code point out of range.");
+      }
+      let codePoint =
+        ((byte1 & 0x07) << 18) |
+        ((byte2 & 0x3f) << 12) |
+        ((byte3 & 0x3f) << 6) |
+        (byte4 & 0x3f);
+      if (codePoint > 0x10ffff) {
+        throw new Error("UTF-8 code point out of range.");
+      }
+      codePoint -= 0x10000;
+      result += String.fromCharCode(
+        0xd800 + (codePoint >> 10),
+        0xdc00 + (codePoint & 0x3ff),
+      );
+      continue;
+    }
+
+    throw new Error("Invalid UTF-8 leading byte.");
+  }
+
+  return result;
+};
+
 const encodeString = (value: string): Uint8Array => {
   const Encoder = globalThis.TextEncoder;
   if (Encoder) {
     return new Encoder().encode(value);
   }
-  const bytes = new Uint8Array(value.length);
-  for (let i = 0; i < value.length; i += 1) {
-    bytes[i] = value.charCodeAt(i) & 0xff;
-  }
-  return bytes;
+  return encodeUtf8Fallback(value);
 };
 
 const decodeString = (value: Uint8Array): string => {
@@ -54,7 +166,7 @@ const decodeString = (value: Uint8Array): string => {
   if (Decoder) {
     return new Decoder().decode(value);
   }
-  return String.fromCharCode(...Array.from(value));
+  return decodeUtf8Fallback(value);
 };
 
 const encodeSyncMessage = (message: SyncMessage): Uint8Array => {

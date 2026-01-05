@@ -135,11 +135,7 @@ const encodeString = (value: string): Uint8Array => {
   if (Encoder) {
     return new Encoder().encode(value);
   }
-  const bytes = new Uint8Array(value.length);
-  for (let i = 0; i < value.length; i += 1) {
-    bytes[i] = value.charCodeAt(i) & 0xff;
-  }
-  return bytes;
+  throw new Error("TextEncoder unavailable: cannot encode UTF-8 characters.");
 };
 
 const decodeString = (value: Uint8Array): string => {
@@ -149,7 +145,7 @@ const decodeString = (value: Uint8Array): string => {
   if (Decoder) {
     return new Decoder().decode(value);
   }
-  return String.fromCharCode(...Array.from(value));
+  throw new Error("TextDecoder unavailable: cannot decode UTF-8 characters.");
 };
 
 const concatBuffers = (left: ByteArray, right: ByteArray): ByteArray => {
