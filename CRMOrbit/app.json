@@ -30,7 +30,9 @@
         "ACCESS_NETWORK_STATE",
         "ACCESS_WIFI_STATE",
         "CHANGE_WIFI_MULTICAST_STATE",
-        "NEARBY_WIFI_DEVICES"
+        "NEARBY_WIFI_DEVICES",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
       ]
     },
     "web": {
@@ -42,6 +44,12 @@
       "./android-linking-plugin.js",
       "expo-secure-store",
       "expo-camera",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow CRM Orbit to access your calendar."
+        }
+      ],
       "expo-font"
     ],
     "extra": {
