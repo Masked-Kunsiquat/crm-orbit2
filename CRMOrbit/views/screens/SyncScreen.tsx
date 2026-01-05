@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Modal,
   PermissionsAndroid,
   Platform,
@@ -81,7 +82,7 @@ const QrPayloadView = ({
 
 export const SyncScreen = () => {
   const { colors } = useTheme();
-  const { dialogProps, showAlert } = useConfirmDialog();
+  const { dialogProps, showAlert, showDialog } = useConfirmDialog();
   const deviceId = useDeviceId();
   const doc = useDoc();
   const { discoveredPeers, status, currentMethod, lastSyncTimestamp } =
@@ -137,11 +138,15 @@ export const SyncScreen = () => {
               isActive &&
               result !== PermissionsAndroid.RESULTS.GRANTED
             ) {
-              showAlert(
-                t("common.error"),
-                t("sync.permissions.nearbyWifiDenied"),
-                t("common.ok"),
-              );
+              showDialog({
+                title: t("common.error"),
+                message: t("sync.permissions.nearbyWifiDenied"),
+                confirmLabel: t("sync.permissions.openSettings"),
+                cancelLabel: t("common.cancel"),
+                onConfirm: () => {
+                  void Linking.openSettings();
+                },
+              });
               return;
             }
           }
@@ -460,6 +465,14 @@ export const SyncScreen = () => {
               >
                 {t("sync.permissions.cameraDenied")}
               </Text>
+              <ActionButton
+                label={t("sync.permissions.openSettings")}
+                onPress={() => {
+                  void Linking.openSettings();
+                }}
+                size="compact"
+                tone="link"
+              />
             </View>
           ) : null}
 
