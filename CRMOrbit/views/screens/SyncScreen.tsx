@@ -67,7 +67,11 @@ const QrPayloadView = ({
   }, [moduleCount, moduleData]);
 
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${moduleCount} ${moduleCount}`}>
+    <Svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${moduleCount} ${moduleCount}`}
+    >
       <Rect
         x="0"
         y="0"
@@ -125,8 +129,7 @@ export const SyncScreen = () => {
     const startDiscovery = async () => {
       try {
         if (Platform.OS === "android" && Platform.Version >= 33) {
-          const permission =
-            PermissionsAndroid.PERMISSIONS.NEARBY_WIFI_DEVICES;
+          const permission = PermissionsAndroid.PERMISSIONS.NEARBY_WIFI_DEVICES;
           const granted = await PermissionsAndroid.check(permission);
           if (!granted) {
             const result = await PermissionsAndroid.request(permission, {
@@ -134,10 +137,7 @@ export const SyncScreen = () => {
               message: t("sync.permissions.nearbyWifiMessage"),
               buttonPositive: t("common.ok"),
             });
-            if (
-              isActive &&
-              result !== PermissionsAndroid.RESULTS.GRANTED
-            ) {
+            if (isActive && result !== PermissionsAndroid.RESULTS.GRANTED) {
               showDialog({
                 title: t("common.error"),
                 message: t("sync.permissions.nearbyWifiDenied"),
@@ -164,7 +164,7 @@ export const SyncScreen = () => {
       isActive = false;
       syncOrchestrator.stopAutoDiscovery();
     };
-  }, []);
+  }, [showDialog]);
 
   useEffect(() => {
     if (!showQRScanner) return;
@@ -267,9 +267,7 @@ export const SyncScreen = () => {
 
   const handleNextQr = () => {
     if (!qrBatch) return;
-    setQrIndex((current) =>
-      Math.min(current + 1, qrBatch.chunks.length - 1),
-    );
+    setQrIndex((current) => Math.min(current + 1, qrBatch.chunks.length - 1));
   };
 
   const handlePreviousQr = () => {

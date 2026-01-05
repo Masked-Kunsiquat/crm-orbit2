@@ -44,7 +44,10 @@ declare module "qrcode" {
   };
 
   const QRCode: {
-    create(text: string, options?: QRCodeOptionsBase): {
+    create(
+      text: string,
+      options?: QRCodeOptionsBase,
+    ): {
       modules: QRCodeModuleData;
     };
     toDataURL(text: string, options?: QRCodeOptions): Promise<string>;

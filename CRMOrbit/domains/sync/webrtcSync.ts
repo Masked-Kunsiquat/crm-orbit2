@@ -36,7 +36,9 @@ type PeerConnectionLike = {
 };
 
 type WebRTCModule = {
-  RTCPeerConnection: new (config: { iceServers: { urls: string }[] }) => PeerConnectionLike;
+  RTCPeerConnection: new (config: {
+    iceServers: { urls: string }[];
+  }) => PeerConnectionLike;
   RTCSessionDescription: new (description: unknown) => unknown;
 };
 
@@ -47,7 +49,7 @@ const loadWebRTCModule = (): WebRTCModule => {
     return cachedWebRTCModule;
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const module = require("react-native-webrtc") as WebRTCModule;
     cachedWebRTCModule = module;
     return module;
@@ -194,7 +196,7 @@ class WebRTCPeerConnection {
     const peerEvents = peerConnection as unknown as EventTargetLike;
     peerEvents.addEventListener("datachannel", (event: unknown) => {
       const dataEvent = event as {
-        channel: ReturnType<RTCPeerConnection["createDataChannel"]>;
+        channel: DataChannelLike;
       };
       this.dataChannel = dataEvent.channel;
       this.setupDataChannel();
