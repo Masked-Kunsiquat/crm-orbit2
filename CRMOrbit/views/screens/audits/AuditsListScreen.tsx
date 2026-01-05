@@ -4,6 +4,7 @@ import type { Audit } from "@domains/audit";
 import { t } from "@i18n/index";
 import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
 import { useAccounts, useAllAudits } from "../../store/store";
+import { sortAuditsByDescendingTime } from "../../utils/audits";
 
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,11 +31,7 @@ export const AuditsListScreen = ({ navigation }: Props) => {
   }, [accounts]);
 
   const sortedAudits = useMemo(() => {
-    return [...audits].sort((left, right) => {
-      const leftTime = left.occurredAt ?? left.scheduledFor;
-      const rightTime = right.occurredAt ?? right.scheduledFor;
-      return new Date(rightTime).getTime() - new Date(leftTime).getTime();
-    });
+    return [...audits].sort(sortAuditsByDescendingTime);
   }, [audits]);
 
   const handlePress = (audit: Audit) => {

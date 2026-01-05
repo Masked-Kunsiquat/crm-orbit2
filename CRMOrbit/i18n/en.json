@@ -192,7 +192,7 @@
   "accounts.validation.organizationRequired": "Organization is required",
   "accounts.validation.floorValueInvalid": "Floor values must be whole numbers",
   "accounts.validation.floorRangeRequired": "Enter both min and max floors",
-  "accounts.validation.floorRangeInvalid": "Min floor must be less than max floor",
+  "accounts.validation.floorRangeInvalid": "Min floor must not exceed max floor",
   "accounts.validation.excludedFloorsInvalid": "Excluded floors must be numbers separated by commas",
   "accounts.validation.excludedFloorsRequireRange": "Add a min/max floor range before excluding floors",
   "accounts.validation.excludedFloorsUnique": "Excluded floors must be unique",

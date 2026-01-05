@@ -367,6 +367,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               ]}
               onPress={() => setShowLinkModal(true)}
               accessibilityLabel={t("contacts.linkedAccounts.linkButton")}
+              accessibilityRole="button"
             >
               <MaterialCommunityIcons
                 name="link-variant-plus"
@@ -405,6 +406,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       handleUnlinkAccount(account.id, account.name)
                     }
                     accessibilityLabel={t("contacts.unlinkAction")}
+                    accessibilityRole="button"
                   >
                     <MaterialCommunityIcons
                       name="link-variant-minus"
@@ -567,9 +569,9 @@ const createStyles = (colors: ColorScheme) =>
       marginBottom: 12,
     },
     iconButton: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
+      width: 44,
+      height: 44,
+      borderRadius: 12,
       alignItems: "center",
       justifyContent: "center",
     },

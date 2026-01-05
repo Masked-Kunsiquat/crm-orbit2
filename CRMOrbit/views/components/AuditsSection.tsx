@@ -14,6 +14,7 @@ import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
 import { StatusBadge } from "./StatusBadge";
+import { sortAuditsByDescendingTime } from "../utils/audits";
 
 type AuditsSectionProps = {
   audits: Audit[];
@@ -49,11 +50,7 @@ export const AuditsSection = ({
   const { colors } = useTheme();
 
   const sortedAudits = useMemo(() => {
-    return [...audits].sort((left, right) => {
-      const leftTime = left.occurredAt ?? left.scheduledFor;
-      const rightTime = right.occurredAt ?? right.scheduledFor;
-      return new Date(rightTime).getTime() - new Date(leftTime).getTime();
-    });
+    return [...audits].sort(sortAuditsByDescendingTime);
   }, [audits]);
 
   return (

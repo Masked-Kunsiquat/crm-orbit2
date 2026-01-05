@@ -66,6 +66,7 @@ export const CodesSection = ({
               })
             }
             accessibilityLabel={t("codes.addButton")}
+            accessibilityRole="button"
           >
             <MaterialCommunityIcons
               name="plus"
