@@ -122,7 +122,8 @@ const areTimelineItemsEqual = (
  */
 export const __internal_getCrmStore = () => crmStore;
 
-export const updateCrmDoc = (doc: AutomergeDoc): void => {
+// INTERNAL: for trusted sync hooks only, DO NOT export/use externally.
+export const __internal_updateCrmDoc = (doc: AutomergeDoc): void => {
   crmStore.getState().setDoc(doc);
 };
 

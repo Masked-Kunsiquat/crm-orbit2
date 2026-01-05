@@ -50,9 +50,12 @@ declare module "qrcode" {
     ): {
       modules: QRCodeModuleData;
       version: number;
-      errorCorrectionLevel: string;
+      errorCorrectionLevel: "L" | "M" | "Q" | "H";
       maskPattern: number;
-      segments: Array<string | { data: string; mode: string }>;
+      segments: Array<{
+        data: string | Buffer;
+        mode: "numeric" | "alphanumeric" | "byte" | "kanji";
+      }>;
     };
     toDataURL(text: string, options?: QRCodeOptions): Promise<string>;
     toDataURL(text: string, callback: QRCodeToDataURLCallback): Promise<string>;
