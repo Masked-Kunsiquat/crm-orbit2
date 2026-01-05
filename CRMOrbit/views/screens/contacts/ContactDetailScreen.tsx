@@ -361,12 +361,18 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
             </Text>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
               onPress={() => setShowLinkModal(true)}
+              accessibilityLabel={t("contacts.linkedAccounts.linkButton")}
             >
-              <Text style={styles.linkButtonText}>
-                {t("contacts.linkedAccounts.linkButton")}
-              </Text>
+              <MaterialCommunityIcons
+                name="link-variant-plus"
+                size={18}
+                color={colors.textPrimary}
+              />
             </TouchableOpacity>
           </View>
           {linkedAccounts.length === 0 ? (
@@ -391,14 +397,20 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                     )}
                   </View>
                   <TouchableOpacity
-                    style={styles.unlinkButton}
+                    style={[
+                      styles.iconButton,
+                      { backgroundColor: colors.errorBg },
+                    ]}
                     onPress={() =>
                       handleUnlinkAccount(account.id, account.name)
                     }
+                    accessibilityLabel={t("contacts.unlinkAction")}
                   >
-                    <Text style={styles.unlinkButtonText}>
-                      {t("contacts.unlinkAction")}
-                    </Text>
+                    <MaterialCommunityIcons
+                      name="link-variant-minus"
+                      size={18}
+                      color={colors.error}
+                    />
                   </TouchableOpacity>
                 </View>
               );
@@ -554,16 +566,12 @@ const createStyles = (colors: ColorScheme) =>
       alignItems: "center",
       marginBottom: 12,
     },
-    linkButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 6,
-      backgroundColor: colors.accent,
-    },
-    linkButtonText: {
-      fontSize: 14,
-      color: colors.onAccent,
-      fontWeight: "600",
+    iconButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
     },
     accountItem: {
       flexDirection: "row",
@@ -581,17 +589,6 @@ const createStyles = (colors: ColorScheme) =>
     accountName: {
       fontSize: 15,
       color: colors.textPrimary,
-    },
-    unlinkButton: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 6,
-      backgroundColor: colors.errorBg,
-    },
-    unlinkButtonText: {
-      fontSize: 12,
-      color: colors.error,
-      fontWeight: "600",
     },
     primaryBadge: {
       backgroundColor: colors.successBg,

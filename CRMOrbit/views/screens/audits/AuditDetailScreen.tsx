@@ -89,9 +89,20 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
       <Section>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("audits.title")}
-            </Text>
+            <TouchableOpacity
+              onPress={() =>
+                account
+                  ? navigation.navigate("AccountDetail", {
+                      accountId: account.id,
+                    })
+                  : undefined
+              }
+              disabled={!account}
+            >
+              <Text style={[styles.titleLink, { color: colors.link }]}>
+                {account?.name ?? t("common.unknownEntity")}
+              </Text>
+            </TouchableOpacity>
             <StatusBadge
               isActive={isCompleted}
               activeLabelKey="audits.status.completed"
@@ -107,23 +118,6 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
       </Section>
 
       <Section>
-        <DetailField label={t("audits.fields.account")}>
-          <TouchableOpacity
-            onPress={() =>
-              account
-                ? navigation.navigate("AccountDetail", {
-                    accountId: account.id,
-                  })
-                : undefined
-            }
-            disabled={!account}
-          >
-            <Text style={[styles.link, { color: colors.link }]}>
-              {account?.name ?? t("common.unknownEntity")}
-            </Text>
-          </TouchableOpacity>
-        </DetailField>
-
         <DetailField label={t("audits.fields.scheduledFor")}>
           {formatTimestamp(audit.scheduledFor)}
         </DetailField>
@@ -175,12 +169,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
     gap: 6,
   },
-  title: {
+  titleLink: {
     fontSize: 24,
     fontWeight: "700",
-  },
-  link: {
-    fontSize: 16,
     textDecorationLine: "underline",
   },
   errorText: {

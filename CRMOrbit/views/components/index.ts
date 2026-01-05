@@ -23,6 +23,7 @@ export { ConfirmDialog } from "./ConfirmDialog";
 export { LinkNoteModal } from "./LinkNoteModal";
 export { LinkInteractionModal } from "./LinkInteractionModal";
 export { LinkEntityToInteractionModal } from "./LinkEntityToInteractionModal";
+export { LinkEntityToNoteModal } from "./LinkEntityToNoteModal";
 export { SocialLinksSection } from "./SocialLinksSection";
 export { SocialMediaFields } from "./SocialMediaFields";
 export { AddressFields } from "./AddressFields";

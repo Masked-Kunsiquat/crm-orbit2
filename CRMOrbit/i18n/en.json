@@ -68,6 +68,8 @@
   "notes.linkFailureMessage": "The note was created but could not be linked. Would you like to keep it anyway?",
   "notes.linkFailureKeep": "Keep Note",
   "notes.linkFailureDelete": "Delete Note",
+  "notes.linkToEntity": "Link to Entity",
+  "notes.linkEntityButton": "Link Entity",
   "notes.form.titleLabel": "Title",
   "notes.form.titlePlaceholder": "Enter note title",
   "notes.form.bodyLabel": "Body",
