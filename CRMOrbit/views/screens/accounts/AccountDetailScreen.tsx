@@ -219,12 +219,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
     const hasPrimary = hasPrimaryForRole(role);
 
-    const result = linkContact(
-      accountId,
-      contactId,
-      role,
-      !hasPrimary,
-    );
+    const result = linkContact(accountId, contactId, role, !hasPrimary);
 
     if (result.success) {
       setShowLinkModal(false);
@@ -676,7 +671,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               </Text>
             ) : (
               <View style={styles.roleSection}>
-                <Text style={[styles.roleLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.roleLabel, { color: colors.textSecondary }]}
+                >
                   {t("accountContacts.primaryLabel")}
                 </Text>
                 <SegmentedOptionGroup
@@ -696,7 +693,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               </View>
             )}
             <TouchableOpacity
-              style={[styles.modalActionButton, { backgroundColor: colors.accent }]}
+              style={[
+                styles.modalActionButton,
+                { backgroundColor: colors.accent },
+              ]}
               onPress={() => {
                 setShowCreateModal(false);
                 navigation.navigate({
@@ -711,7 +711,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 });
               }}
             >
-              <Text style={[styles.modalActionText, { color: colors.onAccent }]}>
+              <Text
+                style={[styles.modalActionText, { color: colors.onAccent }]}
+              >
                 {t("contacts.form.createButton")}
               </Text>
             </TouchableOpacity>

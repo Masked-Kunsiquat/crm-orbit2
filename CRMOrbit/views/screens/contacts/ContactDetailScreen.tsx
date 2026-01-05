@@ -137,12 +137,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         relation.isPrimary,
     );
 
-    const result = linkContact(
-      accountId,
-      contactId,
-      role,
-      !hasPrimary,
-    );
+    const result = linkContact(accountId, contactId, role, !hasPrimary);
 
     if (result.success) {
       setShowLinkModal(false);
