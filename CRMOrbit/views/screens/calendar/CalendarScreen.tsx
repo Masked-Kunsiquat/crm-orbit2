@@ -147,6 +147,16 @@ export const CalendarScreen = ({ navigation }: Props) => {
     void loadSettings();
   }, []);
 
+  useEffect(() => {
+    if (!permission?.granted || calendarId) return;
+    const ensureCalendar = async () => {
+      const nextName = calendarName.trim() || DEFAULT_DEVICE_CALENDAR_NAME;
+      const id = await ensureDeviceCalendar(nextName);
+      setCalendarId(id);
+    };
+    void ensureCalendar();
+  }, [calendarId, calendarName, permission?.granted]);
+
   const items = useMemo<CalendarItem[]>(() => {
     const auditItems = audits.map((audit) => ({
       kind: "audit" as const,
