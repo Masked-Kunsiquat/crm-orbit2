@@ -84,6 +84,11 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
       decodeChange?: (buffer: Uint8Array) => unknown;
     }
   ).decodeChange;
+  const encodeChange = (
+    Automerge as unknown as {
+      encodeChange?: (change: Change) => Uint8Array;
+    }
+  ).encodeChange;
   if (!decodeChange) {
     return parseJsonChanges(changes);
   }
@@ -126,8 +131,17 @@ const decodeChanges = (changes: Uint8Array): Change[] => {
         continue;
       }
 
-      decoded.push(result as Change);
-      break;
+      const change = result as Change;
+      if (!encodeChange) {
+        throw new Error("Automerge.encodeChange is unavailable.");
+      }
+      const encoded = encodeChange(change);
+      if (encoded.length <= 0) {
+        throw new Error("Invalid decoded change length.");
+      }
+      decoded.push(change);
+      offset += encoded.length;
+      continue;
     }
 
     return decoded;

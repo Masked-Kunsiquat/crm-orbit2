@@ -39,68 +39,62 @@ declare module "qrcode" {
   type QRCodeToStringCallback = (error: Error | null, string: string) => void;
 
   const QRCode: {
-    toDataURL: (text: string, options?: QRCodeOptions) => Promise<string>;
-    toDataURL: (
-      text: string,
-      callback: QRCodeToDataURLCallback,
-    ) => Promise<string>;
-    toDataURL: (
+    toDataURL(text: string, options?: QRCodeOptions): Promise<string>;
+    toDataURL(text: string, callback: QRCodeToDataURLCallback): Promise<string>;
+    toDataURL(
       text: string,
       options: QRCodeOptions,
       callback: QRCodeToDataURLCallback,
-    ) => Promise<string>;
-    toDataURL: (
+    ): Promise<string>;
+    toDataURL(
       canvas: QRCodeCanvas,
       text: string,
       options?: QRCodeOptions,
-    ) => Promise<string>;
-    toDataURL: (
+    ): Promise<string>;
+    toDataURL(
       canvas: QRCodeCanvas,
       text: string,
       callback: QRCodeToDataURLCallback,
-    ) => Promise<string>;
-    toDataURL: (
+    ): Promise<string>;
+    toDataURL(
       canvas: QRCodeCanvas,
       text: string,
       options: QRCodeOptions,
       callback: QRCodeToDataURLCallback,
-    ) => Promise<string>;
-    toCanvas: (text: string, options?: QRCodeOptions) => Promise<QRCodeCanvas>;
-    toCanvas: (
+    ): Promise<string>;
+    toCanvas(text: string, options?: QRCodeOptions): Promise<QRCodeCanvas>;
+    toCanvas(
       text: string,
       callback: QRCodeToCanvasCallback,
-    ) => Promise<QRCodeCanvas>;
-    toCanvas: (
+    ): Promise<QRCodeCanvas>;
+    toCanvas(
       text: string,
       options: QRCodeOptions,
       callback: QRCodeToCanvasCallback,
-    ) => Promise<QRCodeCanvas>;
-    toCanvas: (
+    ): Promise<QRCodeCanvas>;
+    toCanvas(
       canvas: QRCodeCanvas,
       text: string,
       options?: QRCodeOptions,
-    ) => Promise<QRCodeCanvas>;
-    toCanvas: (
+    ): Promise<QRCodeCanvas>;
+    toCanvas(
       canvas: QRCodeCanvas,
       text: string,
       callback: QRCodeToCanvasCallback,
-    ) => Promise<QRCodeCanvas>;
-    toCanvas: (
+    ): Promise<QRCodeCanvas>;
+    toCanvas(
       canvas: QRCodeCanvas,
       text: string,
       options: QRCodeOptions,
       callback: QRCodeToCanvasCallback,
-    ) => Promise<QRCodeCanvas>;
-    toString: (text: string, options?: QRCodeStringOptions) => Promise<string>;
-    toString: (
-      text: string,
-      callback: QRCodeToStringCallback,
-    ) => Promise<string>;
-    toString: (
+    ): Promise<QRCodeCanvas>;
+    toString(text: string, options?: QRCodeStringOptions): Promise<string>;
+    toString(text: string, callback: QRCodeToStringCallback): Promise<string>;
+    toString(
       text: string,
       options: QRCodeStringOptions,
       callback: QRCodeToStringCallback,
-    ) => Promise<string>;
+    ): Promise<string>;
   };
 
   export default QRCode;

@@ -194,6 +194,8 @@ const decodeSyncMessage = (payload: Uint8Array): SyncMessage => {
   };
 };
 
+const WEBRTC_RESPONSE_TIMEOUT_MS = 30000;
+
 class SyncOrchestrator {
   private currentDoc: AutomergeDoc | null = null;
   private pendingQrBundles = new Map<string, Map<number, SyncQRCodeChunk>>();
@@ -203,6 +205,7 @@ class SyncOrchestrator {
     {
       resolve: (doc: AutomergeDoc) => void;
       reject: (error: unknown) => void;
+      timeoutId: ReturnType<typeof setTimeout>;
     }
   >();
 
@@ -383,7 +386,17 @@ class SyncOrchestrator {
     const sessionId = this.startSession(peer.deviceId, "webrtc");
     this.sessionByPeer.set(peer.deviceId, sessionId);
     const responsePromise = new Promise<AutomergeDoc>((resolve, reject) => {
-      this.pendingWebRTCResponses.set(peer.deviceId, { resolve, reject });
+      const timeoutId = setTimeout(() => {
+        this.rejectPendingWebRTCResponse(
+          peer.deviceId,
+          new Error("WebRTC sync response timed out."),
+        );
+      }, WEBRTC_RESPONSE_TIMEOUT_MS);
+      this.pendingWebRTCResponses.set(peer.deviceId, {
+        resolve,
+        reject,
+        timeoutId,
+      });
     });
     try {
       const connection = createWebRTCConnection();
@@ -414,7 +427,6 @@ class SyncOrchestrator {
       });
 
       const updatedDoc = await responsePromise;
-      this.pendingWebRTCResponses.delete(peer.deviceId);
       this.completeSession(sessionId);
       return updatedDoc;
     } catch (error) {
@@ -536,6 +548,7 @@ class SyncOrchestrator {
   ): void {
     const pending = this.pendingWebRTCResponses.get(peerId);
     if (pending) {
+      clearTimeout(pending.timeoutId);
       pending.resolve(doc);
       this.pendingWebRTCResponses.delete(peerId);
     }
@@ -544,6 +557,7 @@ class SyncOrchestrator {
   private rejectPendingWebRTCResponse(peerId: string, error: unknown): void {
     const pending = this.pendingWebRTCResponses.get(peerId);
     if (pending) {
+      clearTimeout(pending.timeoutId);
       pending.reject(error);
       this.pendingWebRTCResponses.delete(peerId);
     }
