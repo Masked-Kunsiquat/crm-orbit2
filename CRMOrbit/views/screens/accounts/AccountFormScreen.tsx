@@ -210,6 +210,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         addresses,
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
+        undefined,
+        undefined,
+        undefined,
         account ?? undefined,
       );
       if (result.success) {
