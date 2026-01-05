@@ -17,6 +17,11 @@ follow the UI agent guide for UI changes. In that mode, keep backend invariants
 intact and avoid backend changes unless the user asks directly. For all other
 requests, this backend guide remains the source of truth.
 
+### Companion Skills
+
+- `data-migration`: Use for Drizzle + Automerge migration planning, backfills, and compatibility handling.
+- `i18n-curator`: Use for i18n key audits/updates in `CRMOrbit/i18n/en.json` and mapping files.
+
 ---
 
 ## Non-Negotiable Principles
