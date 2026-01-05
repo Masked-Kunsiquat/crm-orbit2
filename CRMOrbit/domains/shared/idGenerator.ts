@@ -32,10 +32,9 @@ const generateUUID = (): string => {
       return bytes;
     }
 
-    // Node.js fallback using built-in crypto.randomBytes
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const nodeCrypto = require("crypto") as typeof import("crypto");
-    return nodeCrypto.randomBytes(length);
+    throw new Error(
+      "crypto.getRandomValues is unavailable. Ensure a secure random polyfill like react-native-get-random-values is loaded.",
+    );
   };
 
   const bytes = getSecureRandomBytes(16);
