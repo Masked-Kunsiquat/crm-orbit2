@@ -11,6 +11,7 @@ import * as Calendar from "expo-calendar";
 
 import type { Audit } from "@domains/audit";
 import type { Interaction } from "@domains/interaction";
+import { formatAddressForMaps } from "@domains/linking.utils";
 import { t } from "@i18n/index";
 import {
   ActionButton,
@@ -18,6 +19,7 @@ import {
   FormScreenLayout,
   PrimaryActionButton,
   Section,
+  SegmentedOptionGroup,
   TextField,
 } from "../../components";
 import { useTheme } from "../../hooks";
@@ -36,10 +38,13 @@ import {
 import { addMinutesToTimestamp } from "../../utils/duration";
 import {
   DEFAULT_DEVICE_CALENDAR_NAME,
+  DEFAULT_AUDIT_ALARM_OFFSET_MINUTES,
   ensureDeviceCalendar,
+  getStoredAuditAlarmOffsetMinutes,
   getLastCalendarSync,
   getStoredCalendarId,
   getStoredCalendarName,
+  setStoredAuditAlarmOffsetMinutes,
   setStoredCalendarName,
   syncDeviceCalendarEvents,
   type CalendarSyncEvent,
@@ -47,6 +52,7 @@ import {
 import { getEntitiesForInteraction } from "../../store/selectors";
 
 type SyncStatus = "idle" | "syncing" | "success" | "error";
+type AuditAlarmOption = "0" | "30" | "60" | "120" | "custom";
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {
@@ -73,9 +79,24 @@ const buildCalendarTitle = (title: string, isCanceled: boolean): string => {
   return `${t("calendar.event.canceledPrefix")} - ${title}`;
 };
 
-const buildAuditNotes = (audit: Audit, status: string): string | undefined => {
+const resolveAlarmPreset = (minutes: number): AuditAlarmOption => {
+  if (minutes === 0) return "0";
+  if (minutes === 30) return "30";
+  if (minutes === 60) return "60";
+  if (minutes === 120) return "120";
+  return "custom";
+};
+
+const buildAuditNotes = (
+  audit: Audit,
+  status: string,
+  parkingAddress?: string,
+): string | undefined => {
   const lines: string[] = [];
   lines.push(`${t("audits.fields.status")}: ${t(status)}`);
+  if (parkingAddress) {
+    lines.push(`${t("accounts.fields.parkingAddress")}: ${parkingAddress}`);
+  }
   const scoreValue = formatAuditScore(audit.score);
   if (scoreValue) {
     lines.push(`${t("audits.fields.score")}: ${scoreValue}`);
@@ -122,24 +143,87 @@ export const CalendarSettingsScreen = () => {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [isSavingName, setIsSavingName] = useState(false);
+  const [auditAlarmOffset, setAuditAlarmOffset] = useState(
+    `${DEFAULT_AUDIT_ALARM_OFFSET_MINUTES}`,
+  );
+  const [auditAlarmPreset, setAuditAlarmPreset] =
+    useState<AuditAlarmOption>(
+      resolveAlarmPreset(DEFAULT_AUDIT_ALARM_OFFSET_MINUTES),
+    );
+  const [auditAlarmMessage, setAuditAlarmMessage] = useState<string | null>(
+    null,
+  );
+  const [isSavingAlarm, setIsSavingAlarm] = useState(false);
+  const [auditAlarmStatus, setAuditAlarmStatus] = useState<
+    "idle" | "saved" | "error"
+  >("idle");
 
-  const accountNames = useMemo(() => {
-    return new Map(accounts.map((account) => [account.id, account.name]));
+  const alarmOptions: Array<{ value: AuditAlarmOption; label: string }> = [
+    {
+      value: "0",
+      label: t("calendar.sync.auditAlarmOption.none"),
+    },
+    {
+      value: "30",
+      label: t("calendar.sync.auditAlarmOption.30"),
+    },
+    {
+      value: "60",
+      label: t("calendar.sync.auditAlarmOption.60"),
+    },
+    {
+      value: "120",
+      label: t("calendar.sync.auditAlarmOption.120"),
+    },
+    {
+      value: "custom",
+      label: t("calendar.sync.auditAlarmOption.custom"),
+    },
+  ];
+
+  const accountMap = useMemo(() => {
+    return new Map(accounts.map((account) => [account.id, account]));
   }, [accounts]);
+
+  const resolvedAuditAlarmOffsetMinutes = useMemo(() => {
+    const parsed = Number(auditAlarmOffset.trim());
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return DEFAULT_AUDIT_ALARM_OFFSET_MINUTES;
+    }
+    return Math.round(parsed);
+  }, [auditAlarmOffset]);
 
   useEffect(() => {
     let mounted = true;
     const loadSettings = async () => {
       try {
-        const [storedName, storedId, storedLastSync] = await Promise.all([
+        const [
+          storedName,
+          storedId,
+          storedLastSync,
+          storedAlarmOffset,
+        ] = await Promise.all([
           getStoredCalendarName(),
           getStoredCalendarId(),
           getLastCalendarSync(),
+          getStoredAuditAlarmOffsetMinutes(),
         ]);
         if (mounted) {
           setCalendarName(storedName);
           setCalendarId(storedId);
           setLastSync(storedLastSync);
+          setAuditAlarmOffset(`${storedAlarmOffset}`);
+          const preset: AuditAlarmOption =
+            storedAlarmOffset === 0
+              ? "0"
+              : storedAlarmOffset === 30
+                ? "30"
+                : storedAlarmOffset === 60
+                  ? "60"
+                  : storedAlarmOffset === 120
+                    ? "120"
+                    : "custom";
+          setAuditAlarmPreset(preset);
         }
       } catch {
         // Settings fall back to defaults.
@@ -177,13 +261,32 @@ export const CalendarSettingsScreen = () => {
     for (const audit of audits) {
       const status = resolveAuditStatus(audit);
       const isCanceled = status === "audits.status.canceled";
-      const accountName =
-        accountNames.get(audit.accountId) ?? t("common.unknownEntity");
+      const account = accountMap.get(audit.accountId);
+      const accountName = account?.name ?? t("common.unknownEntity");
+      const siteAddress = account?.addresses?.site;
+      const parkingAddress = account?.addresses?.useSameForParking
+        ? account?.addresses?.site
+        : account?.addresses?.parking;
+      const siteAddressText = siteAddress
+        ? formatAddressForMaps(siteAddress)
+        : undefined;
+      const parkingAddressText = parkingAddress
+        ? formatAddressForMaps(parkingAddress)
+        : undefined;
+      const location = siteAddressText ?? parkingAddressText;
+      const parkingNote =
+        parkingAddressText && parkingAddressText !== location
+          ? parkingAddressText
+          : undefined;
       const startTimestamp = getAuditStartTimestamp(audit);
       const startDate = toDateOrNull(startTimestamp);
       if (!startDate) continue;
       const endTimestamp = getAuditEndTimestamp(audit) ?? startTimestamp;
       const endDate = toDateOrNull(endTimestamp) ?? startDate;
+      const alarmOffset =
+        !isCanceled && resolvedAuditAlarmOffsetMinutes > 0
+          ? [{ relativeOffset: -resolvedAuditAlarmOffsetMinutes }]
+          : [];
       events.push({
         key: `audit:${audit.id}`,
         title: buildCalendarTitle(
@@ -192,7 +295,9 @@ export const CalendarSettingsScreen = () => {
         ),
         startDate,
         endDate,
-        notes: buildAuditNotes(audit, status),
+        location,
+        notes: buildAuditNotes(audit, status, parkingNote),
+        alarms: alarmOffset,
       });
     }
 
@@ -225,7 +330,7 @@ export const CalendarSettingsScreen = () => {
     }
 
     return events;
-  }, [accountNames, audits, doc, interactions]);
+  }, [accountMap, audits, doc, interactions, resolvedAuditAlarmOffsetMinutes]);
 
   const handleSaveCalendarName = useCallback(async () => {
     if (isSavingName) return;
@@ -245,6 +350,56 @@ export const CalendarSettingsScreen = () => {
       setIsSavingName(false);
     }
   }, [calendarName, isSavingName, permission?.granted]);
+
+  const handleAlarmPresetChange = (value: AuditAlarmOption) => {
+    setAuditAlarmPreset(value);
+    setAuditAlarmMessage(null);
+    setAuditAlarmStatus("idle");
+    if (value === "custom") {
+      return;
+    }
+    setAuditAlarmOffset(value);
+  };
+
+  const handleAlarmOffsetChange = (value: string) => {
+    setAuditAlarmOffset(value);
+    setAuditAlarmMessage(null);
+    setAuditAlarmStatus("idle");
+    const parsed = Number(value.trim());
+    if (!Number.isFinite(parsed)) {
+      setAuditAlarmPreset("custom");
+      return;
+    }
+    setAuditAlarmPreset(resolveAlarmPreset(Math.round(parsed)));
+  };
+
+  const handleSaveAuditAlarm = async () => {
+    if (isSavingAlarm) return;
+    setIsSavingAlarm(true);
+    const trimmed = auditAlarmOffset.trim();
+    const parsed = trimmed
+      ? Number(trimmed)
+      : DEFAULT_AUDIT_ALARM_OFFSET_MINUTES;
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setAuditAlarmMessage(t("calendar.sync.auditAlarmInvalid"));
+      setAuditAlarmStatus("error");
+      setIsSavingAlarm(false);
+      return;
+    }
+    const rounded = Math.round(parsed);
+    try {
+      await setStoredAuditAlarmOffsetMinutes(rounded);
+      setAuditAlarmOffset(`${rounded}`);
+      setAuditAlarmPreset(resolveAlarmPreset(rounded));
+      setAuditAlarmMessage(t("calendar.sync.auditAlarmSaved"));
+      setAuditAlarmStatus("saved");
+    } catch {
+      setAuditAlarmMessage(t("calendar.sync.auditAlarmSaveError"));
+      setAuditAlarmStatus("error");
+    } finally {
+      setIsSavingAlarm(false);
+    }
+  };
 
   const handleSyncCalendar = useCallback(async () => {
     if (!permission?.granted || syncStatus === "syncing") return;
@@ -296,20 +451,70 @@ export const CalendarSettingsScreen = () => {
             </Text>
           </View>
         ) : permission?.granted ? (
-          <>
-            <FormField label={t("calendar.sync.nameLabel")}>
+        <>
+          <FormField label={t("calendar.sync.nameLabel")}>
+            <TextField
+              value={calendarName}
+              onChangeText={setCalendarName}
+              placeholder={DEFAULT_DEVICE_CALENDAR_NAME}
+              autoCapitalize="words"
+            />
+          </FormField>
+          <FormField
+            label={t("calendar.sync.auditAlarmLabel")}
+            hint={t("calendar.sync.auditAlarmHint")}
+          >
+            <SegmentedOptionGroup
+              options={alarmOptions}
+              value={auditAlarmPreset}
+              onChange={handleAlarmPresetChange}
+            />
+            <View style={styles.alarmInputRow}>
               <TextField
-                value={calendarName}
-                onChangeText={setCalendarName}
-                placeholder={DEFAULT_DEVICE_CALENDAR_NAME}
-                autoCapitalize="words"
+                value={auditAlarmOffset}
+                onChangeText={handleAlarmOffsetChange}
+                placeholder={t("calendar.sync.auditAlarmPlaceholder")}
+                keyboardType="number-pad"
+                style={styles.alarmInput}
               />
-            </FormField>
-            <View style={styles.syncActions}>
+              <Text style={[styles.alarmUnit, { color: colors.textSecondary }]}>
+                {t("common.duration.minutesLabel")}
+              </Text>
+            </View>
+            <View style={styles.alarmActions}>
               <ActionButton
                 label={
-                  isSavingName
-                    ? t("calendar.sync.savingName")
+                  isSavingAlarm
+                    ? t("calendar.sync.auditAlarmSaving")
+                    : t("calendar.sync.auditAlarmSave")
+                }
+                onPress={handleSaveAuditAlarm}
+                tone="link"
+                size="compact"
+                disabled={isSavingAlarm}
+              />
+            </View>
+            {auditAlarmMessage ? (
+              <Text
+                style={[
+                  styles.syncHint,
+                  {
+                    color:
+                      auditAlarmStatus === "error"
+                        ? colors.error
+                        : colors.textMuted,
+                  },
+                ]}
+              >
+                {auditAlarmMessage}
+              </Text>
+            ) : null}
+          </FormField>
+          <View style={styles.syncActions}>
+            <ActionButton
+              label={
+                isSavingName
+                  ? t("calendar.sync.savingName")
                     : t("calendar.sync.saveName")
                 }
                 onPress={handleSaveCalendarName}
@@ -390,6 +595,24 @@ export const CalendarSettingsScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  alarmInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
+  alarmInput: {
+    flex: 1,
+  },
+  alarmUnit: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  alarmActions: {
+    marginTop: 8,
+    alignItems: "flex-start",
+  },
   syncActions: {
     flexDirection: "row",
     justifyContent: "space-between",
