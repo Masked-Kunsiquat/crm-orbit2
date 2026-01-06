@@ -8,6 +8,7 @@ import {
   getAuditStartTimestamp,
   getAuditStatusTone,
   getAuditTimestampLabelKey,
+  formatAuditScore,
   resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../../utils/audits";
@@ -54,10 +55,10 @@ export const AuditsListScreen = ({ navigation }: Props) => {
     const status = resolveAuditStatus(item);
     const timestampLabel = t(getAuditTimestampLabelKey(status));
     const timestampValue = formatTimestamp(getAuditStartTimestamp(item));
-    const scoreLabel =
-      item.score !== undefined
-        ? `${t("audits.fields.score")}: ${item.score}`
-        : undefined;
+    const scoreValue = formatAuditScore(item.score);
+    const scoreLabel = scoreValue
+      ? `${t("audits.fields.score")}: ${scoreValue}`
+      : undefined;
     const floorsLabel =
       item.floorsVisited && item.floorsVisited.length > 0
         ? `${t("audits.fields.floorsVisited")}: ${item.floorsVisited.join(", ")}`

@@ -19,6 +19,7 @@ import {
   getAuditEndTimestamp,
   getAuditStartTimestamp,
   getAuditStatusTone,
+  formatAuditScore,
   resolveAuditStatus,
 } from "../../utils/audits";
 import { formatDurationLabel } from "../../utils/duration";
@@ -92,6 +93,7 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
   const status = resolveAuditStatus(audit);
   const startTimestamp = getAuditStartTimestamp(audit);
   const endTimestamp = getAuditEndTimestamp(audit);
+  const scoreLabel = formatAuditScore(audit.score);
 
   return (
     <DetailScreenLayout>
@@ -143,9 +145,9 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
           </DetailField>
         ) : null}
 
-        {audit.score !== undefined ? (
+        {scoreLabel ? (
           <DetailField label={t("audits.fields.score")}>
-            {audit.score}
+            {scoreLabel}
           </DetailField>
         ) : null}
 

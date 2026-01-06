@@ -17,6 +17,8 @@ import { StatusBadge } from "./StatusBadge";
 import {
   getAuditStartTimestamp,
   getAuditStatusTone,
+  getAuditTimestampLabelKey,
+  formatAuditScore,
   resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../utils/audits";
@@ -90,15 +92,12 @@ export const AuditsSection = ({
       ) : (
         sortedAudits.map((audit) => {
           const status = resolveAuditStatus(audit);
-          const timestampLabel =
-            status === "audits.status.completed"
-              ? t("audits.fields.occurredAt")
-              : t("audits.fields.scheduledFor");
+          const timestampLabel = t(getAuditTimestampLabelKey(status));
           const timestampValue = formatTimestamp(getAuditStartTimestamp(audit));
-          const scoreLabel =
-            audit.score !== undefined
-              ? `${t("audits.fields.score")}: ${audit.score}`
-              : null;
+          const scoreValue = formatAuditScore(audit.score);
+          const scoreLabel = scoreValue
+            ? `${t("audits.fields.score")}: ${scoreValue}`
+            : null;
           const floorsLabel = formatFloors(audit.floorsVisited);
           return (
             <View

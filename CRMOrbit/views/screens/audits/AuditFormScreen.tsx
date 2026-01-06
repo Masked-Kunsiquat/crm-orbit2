@@ -33,6 +33,7 @@ import {
   parseDurationMinutes,
   splitDurationMinutes,
 } from "../../utils/duration";
+import { formatAuditScoreInput } from "../../utils/audits";
 
 type Props = {
   route: {
@@ -71,11 +72,17 @@ const parseScore = (value: string): number | undefined => {
   if (!trimmed) {
     return undefined;
   }
-  const parsed = Number(trimmed);
-  if (Number.isNaN(parsed)) {
+  const normalized = trimmed.endsWith("%")
+    ? trimmed.slice(0, -1).trim()
+    : trimmed;
+  if (!/^-?\d+(\.\d{0,3})?$/.test(normalized)) {
     return undefined;
   }
-  return parsed;
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+  return Math.round(parsed * 100) / 100;
 };
 
 const parseFloorsVisited = (value: string): number[] | undefined => {
@@ -154,7 +161,7 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
             : "audits.status.scheduled"),
       );
       setNotes(audit.notes ?? "");
-      setScore(audit.score !== undefined ? `${audit.score}` : "");
+      setScore(formatAuditScoreInput(audit.score));
       setFloorsVisitedInput(audit.floorsVisited?.join(", ") ?? "");
       const { hours, minutes } = splitDurationMinutes(audit.durationMinutes);
       setDurationHours(hours ? `${hours}` : "");
@@ -613,7 +620,7 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
             value={score}
             onChangeText={setScore}
             placeholder={t("audits.form.scorePlaceholder")}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
           />
         </FormField>
       ) : null}

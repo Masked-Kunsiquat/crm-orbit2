@@ -36,6 +36,7 @@ import {
   getAuditStartTimestamp,
   getAuditStatusTone,
   getAuditTimestampLabelKey,
+  formatAuditScore,
   resolveAuditStatus,
 } from "../../utils/audits";
 import { addMinutesToTimestamp } from "../../utils/duration";
@@ -88,8 +89,9 @@ const toDateOrNull = (timestamp?: string): Date | null => {
 const buildAuditNotes = (audit: Audit, status: string): string | undefined => {
   const lines: string[] = [];
   lines.push(`${t("audits.fields.status")}: ${t(status)}`);
-  if (audit.score !== undefined) {
-    lines.push(`${t("audits.fields.score")}: ${audit.score}`);
+  const scoreValue = formatAuditScore(audit.score);
+  if (scoreValue) {
+    lines.push(`${t("audits.fields.score")}: ${scoreValue}`);
   }
   if (audit.floorsVisited && audit.floorsVisited.length > 0) {
     lines.push(
@@ -355,10 +357,10 @@ export const CalendarScreen = ({ navigation }: Props) => {
       const endTimestampValue = endTimestamp
         ? formatTimestamp(endTimestamp)
         : undefined;
-      const scoreLabel =
-        audit.score !== undefined
-          ? `${t("audits.fields.score")}: ${audit.score}`
-          : undefined;
+      const scoreValue = formatAuditScore(audit.score);
+      const scoreLabel = scoreValue
+        ? `${t("audits.fields.score")}: ${scoreValue}`
+        : undefined;
       const floorsLabel =
         audit.floorsVisited && audit.floorsVisited.length > 0
           ? `${t("audits.fields.floorsVisited")}: ${audit.floorsVisited.join(
