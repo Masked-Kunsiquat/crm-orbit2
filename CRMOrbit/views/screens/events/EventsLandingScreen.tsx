@@ -1,49 +1,80 @@
 import { StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import type { NotesStackScreenProps } from "../../navigation/types";
+import type { EventsStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
-import { useAllNotes, useAllInteractions } from "../../store/store";
+import { useAllAudits, useAllInteractions } from "../../store/store";
 import { t } from "@i18n/index";
 
-type Props = NotesStackScreenProps<"NotesAndInteractionsLanding">;
+type Props = EventsStackScreenProps<"EventsLanding">;
 
-export const NotesAndInteractionsLandingScreen = ({ navigation }: Props) => {
+export const EventsLandingScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
-  const allNotes = useAllNotes();
+  const allAudits = useAllAudits();
   const allInteractions = useAllInteractions();
 
-  const handleNotesPress = () => {
-    navigation.navigate("NotesList");
+  const handleAuditsPress = () => {
+    navigation.navigate("AuditsList");
+  };
+
+  const handleCalendarPress = () => {
+    navigation.navigate("Calendar");
   };
 
   const handleInteractionsPress = () => {
     navigation.navigate("InteractionsList");
   };
 
+  const calendarCount = allAudits.length + allInteractions.length;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <ListCard onPress={handleNotesPress}>
+      <ListCard onPress={handleAuditsPress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
-              name="notebook-outline"
+              name="clipboard-check-outline"
               size={32}
               color={colors.accent}
             />
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("notes.title")}
+              {t("audits.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("notes.view_and_manage_all")}
+              {t("audits.view_and_manage_all")}
             </Text>
           </View>
           <View style={styles.countBadge}>
             <Text style={[styles.countText, { color: colors.textSecondary }]}>
-              {allNotes.length}
+              {allAudits.length}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleCalendarPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("calendar.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("calendar.description")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {calendarCount}
             </Text>
           </View>
         </View>

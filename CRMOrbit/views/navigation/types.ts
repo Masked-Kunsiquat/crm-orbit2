@@ -47,7 +47,7 @@ export type RootStackParamList = {
 // Root tab navigator
 export type RootTabParamList = {
   OrganizationsTab: undefined;
-  AccountsTab: undefined;
+  EventsTab: undefined;
   ContactsTab: undefined;
   NotesTab: undefined;
   MiscTab: undefined;
@@ -55,6 +55,8 @@ export type RootTabParamList = {
 
 // Organizations stack navigator
 export type OrganizationsStackParamList = {
+  OrganizationsLanding: undefined;
+  AccountsList: undefined;
   OrganizationsList: undefined;
   OrganizationDetail: { organizationId: EntityId };
   OrganizationForm: { organizationId?: EntityId };
@@ -65,6 +67,24 @@ export type AccountsStackParamList = {
   AccountsList: undefined;
   AccountDetail: { accountId: EntityId };
   AccountForm: { accountId?: EntityId; organizationId?: EntityId };
+};
+
+// Events stack navigator
+export type EventsStackParamList = {
+  EventsLanding: undefined;
+  AuditsList: undefined;
+  AuditDetail: { auditId: EntityId };
+  AuditForm: { auditId?: EntityId; accountId?: EntityId };
+  Calendar: undefined;
+  InteractionsList: undefined;
+  InteractionDetail: { interactionId: EntityId };
+  InteractionForm: {
+    interactionId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+  };
 };
 
 // Contacts stack navigator
@@ -81,22 +101,16 @@ export type ContactsStackParamList = {
   };
 };
 
-// Notes stack navigator (now includes Interactions)
+// Notes stack navigator (now includes Codes)
 export type NotesStackParamList = {
-  NotesAndInteractionsLanding: undefined;
+  NotesAndCodesLanding: undefined;
+  CodesList: undefined;
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
   NotesList: undefined;
   NoteDetail: { noteId: EntityId };
   NoteForm: {
     noteId?: EntityId;
-    entityToLink?: {
-      entityId: EntityId;
-      entityType: EntityLinkType;
-    };
-  };
-  InteractionsList: undefined;
-  InteractionDetail: { interactionId: EntityId };
-  InteractionForm: {
-    interactionId?: EntityId;
     entityToLink?: {
       entityId: EntityId;
       entityType: EntityLinkType;
@@ -108,20 +122,6 @@ export type NotesStackParamList = {
 export type MiscStackParamList = {
   MiscLanding: undefined;
   Sync: undefined;
-  CodesList: undefined;
-  Calendar: undefined;
-  AuditsList: undefined;
-  AuditDetail: { auditId: EntityId };
-  InteractionDetail: { interactionId: EntityId };
-  CodeDetail: { codeId: EntityId };
-  CodeForm: { codeId?: EntityId; accountId?: EntityId };
-  InteractionForm: {
-    interactionId?: EntityId;
-    entityToLink?: {
-      entityId: EntityId;
-      entityType: EntityLinkType;
-    };
-  };
   SettingsList: undefined;
   SecuritySettings: undefined;
   CalendarSettings: undefined;
@@ -141,6 +141,15 @@ export type OrganizationsStackScreenProps<
 export type AccountsStackScreenProps<T extends keyof AccountsStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<AccountsStackParamList, T>,
+    CompositeScreenProps<
+      BottomTabScreenProps<RootTabParamList>,
+      NativeStackScreenProps<RootStackParamList>
+    >
+  >;
+
+export type EventsStackScreenProps<T extends keyof EventsStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<EventsStackParamList, T>,
     CompositeScreenProps<
       BottomTabScreenProps<RootTabParamList>,
       NativeStackScreenProps<RootStackParamList>

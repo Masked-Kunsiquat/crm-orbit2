@@ -12,7 +12,7 @@ import {
 } from "../../components";
 import { useTheme } from "../../hooks";
 import { useAccounts, useAllAudits, useAllInteractions } from "../../store/store";
-import type { MiscStackScreenProps } from "../../navigation/types";
+import type { EventsStackScreenProps } from "../../navigation/types";
 import {
   getAuditEndTimestamp,
   getAuditStartTimestamp,
@@ -23,7 +23,7 @@ import {
 } from "../../utils/audits";
 import { addMinutesToTimestamp } from "../../utils/duration";
 
-type Props = MiscStackScreenProps<"Calendar">;
+type Props = EventsStackScreenProps<"Calendar">;
 
 type CalendarItem =
   | { kind: "audit"; timestamp: number; audit: Audit }

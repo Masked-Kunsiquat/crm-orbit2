@@ -1,61 +1,74 @@
 import { StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import type { MiscStackScreenProps } from "../../navigation/types";
+import type { NotesStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
+import { useAllCodes, useAllNotes } from "../../store/store";
 import { t } from "@i18n/index";
 
-type Props = MiscStackScreenProps<"MiscLanding">;
+type Props = NotesStackScreenProps<"NotesAndCodesLanding">;
 
-export const MiscLandingScreen = ({ navigation }: Props) => {
+export const NotesAndCodesLandingScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
+  const allCodes = useAllCodes();
+  const allNotes = useAllNotes();
 
-  const handleSettingsPress = () => {
-    navigation.navigate("SettingsList");
+  const handleCodesPress = () => {
+    navigation.navigate("CodesList");
   };
 
-  const handleSyncPress = () => {
-    navigation.navigate("Sync");
+  const handleNotesPress = () => {
+    navigation.navigate("NotesList");
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <ListCard onPress={handleSettingsPress}>
+      <ListCard onPress={handleCodesPress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
-              name="cog-outline"
+              name="key-outline"
               size={32}
               color={colors.accent}
             />
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("settings.title")}
+              {t("codes.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("settings.description")}
+              {t("codes.view_and_manage_all")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {allCodes.length}
             </Text>
           </View>
         </View>
       </ListCard>
 
-      <ListCard onPress={handleSyncPress}>
+      <ListCard onPress={handleNotesPress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
-              name="sync"
+              name="notebook-outline"
               size={32}
               color={colors.accent}
             />
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("sync.title")}
+              {t("notes.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("sync.description")}
+              {t("notes.view_and_manage_all")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {allNotes.length}
             </Text>
           </View>
         </View>
@@ -72,10 +85,6 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  text: {
-    fontSize: 16,
-    textAlign: "center",
   },
   iconContainer: {
     marginRight: 16,

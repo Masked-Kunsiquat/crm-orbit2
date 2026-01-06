@@ -1,61 +1,74 @@
 import { StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import type { MiscStackScreenProps } from "../../navigation/types";
+import type { OrganizationsStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
+import { useAccounts, useOrganizations } from "../../store/store";
 import { t } from "@i18n/index";
 
-type Props = MiscStackScreenProps<"MiscLanding">;
+type Props = OrganizationsStackScreenProps<"OrganizationsLanding">;
 
-export const MiscLandingScreen = ({ navigation }: Props) => {
+export const OrganizationsLandingScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
+  const accounts = useAccounts();
+  const organizations = useOrganizations();
 
-  const handleSettingsPress = () => {
-    navigation.navigate("SettingsList");
+  const handleAccountsPress = () => {
+    navigation.navigate("AccountsList");
   };
 
-  const handleSyncPress = () => {
-    navigation.navigate("Sync");
+  const handleOrganizationsPress = () => {
+    navigation.navigate("OrganizationsList");
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <ListCard onPress={handleSettingsPress}>
+      <ListCard onPress={handleAccountsPress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
-              name="cog-outline"
+              name="home-city-outline"
               size={32}
               color={colors.accent}
             />
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("settings.title")}
+              {t("accounts.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("settings.description")}
+              {t("accounts.view_and_manage_all")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {accounts.length}
             </Text>
           </View>
         </View>
       </ListCard>
 
-      <ListCard onPress={handleSyncPress}>
+      <ListCard onPress={handleOrganizationsPress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
-              name="sync"
+              name="office-building-outline"
               size={32}
               color={colors.accent}
             />
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("sync.title")}
+              {t("organizations.title")}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("sync.description")}
+              {t("organizations.view_and_manage_all")}
+            </Text>
+          </View>
+          <View style={styles.countBadge}>
+            <Text style={[styles.countText, { color: colors.textSecondary }]}>
+              {organizations.length}
             </Text>
           </View>
         </View>
@@ -72,10 +85,6 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  text: {
-    fontSize: 16,
-    textAlign: "center",
   },
   iconContainer: {
     marginRight: 16,
