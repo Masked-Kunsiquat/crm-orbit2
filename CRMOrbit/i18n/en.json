@@ -211,6 +211,8 @@
   "settings.description": "Manage preferences and security",
   "settings.security.title": "Security",
   "settings.security.description": "Configure code protection",
+  "settings.calendar.title": "Calendar Sync",
+  "settings.calendar.description": "Manage CRMOrbit calendar sync",
   "settings.security.biometric.label": "Biometric authentication for codes",
   "settings.security.biometric.enabled": "Enabled",
   "settings.security.biometric.disabled": "Disabled",

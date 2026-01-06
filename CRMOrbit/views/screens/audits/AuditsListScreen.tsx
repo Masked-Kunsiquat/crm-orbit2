@@ -6,6 +6,7 @@ import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
 import { useAccounts, useAllAudits } from "../../store/store";
 import {
   getAuditStartTimestamp,
+  getAuditEndTimestamp,
   getAuditStatusTone,
   getAuditTimestampLabelKey,
   formatAuditScore,
@@ -55,6 +56,10 @@ export const AuditsListScreen = ({ navigation }: Props) => {
     const status = resolveAuditStatus(item);
     const timestampLabel = t(getAuditTimestampLabelKey(status));
     const timestampValue = formatTimestamp(getAuditStartTimestamp(item));
+    const endTimestamp = getAuditEndTimestamp(item);
+    const endTimestampValue = endTimestamp
+      ? formatTimestamp(endTimestamp)
+      : undefined;
     const scoreValue = formatAuditScore(item.score);
     const scoreLabel = scoreValue
       ? `${t("audits.fields.score")}: ${scoreValue}`
@@ -64,17 +69,26 @@ export const AuditsListScreen = ({ navigation }: Props) => {
         ? `${t("audits.fields.floorsVisited")}: ${item.floorsVisited.join(", ")}`
         : undefined;
     const footnote = item.notes?.trim() || floorsLabel;
-    const subtitle = scoreLabel ?? (item.notes ? floorsLabel : undefined);
+    const subtitle = `${timestampLabel}: ${timestampValue}`;
+    const descriptionLines = [
+      endTimestampValue
+        ? `${t("audits.fields.endsAt")}: ${endTimestampValue}`
+        : undefined,
+      scoreLabel,
+    ].filter(Boolean);
+    const description = descriptionLines.length
+      ? descriptionLines.join("\n")
+      : undefined;
 
     return (
       <ListRow
         onPress={() => handlePress(item)}
         title={accountName}
-        description={`${timestampLabel}: ${timestampValue}`}
-        footnote={footnote}
-        descriptionNumberOfLines={2}
-        footnoteNumberOfLines={2}
         subtitle={subtitle}
+        description={description}
+        footnote={footnote}
+        descriptionNumberOfLines={3}
+        footnoteNumberOfLines={2}
         titleAccessory={
           <StatusBadge tone={getAuditStatusTone(status)} labelKey={status} />
         }
