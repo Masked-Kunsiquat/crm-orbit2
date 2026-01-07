@@ -16,6 +16,7 @@ import { DEFAULT_SETTINGS } from "@domains/settings";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
+import { t } from "@i18n/index";
 import {
   getEntitiesForInteraction,
   getEntitiesForNote,

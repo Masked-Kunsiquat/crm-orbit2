@@ -195,8 +195,8 @@ export const detectAccountChanges = (
     });
   }
 
-  const oldFrequency = oldAccount.auditFrequency;
-  const newFrequency = newData.auditFrequency || "";
+  const oldFrequency = oldAccount.auditFrequency ?? "";
+  const newFrequency = newData.auditFrequency ?? "";
   if (oldFrequency !== newFrequency) {
     changes.push({
       field: "auditFrequency",

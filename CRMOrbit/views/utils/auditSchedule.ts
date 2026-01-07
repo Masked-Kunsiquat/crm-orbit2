@@ -33,9 +33,20 @@ const getLatestCompletedAuditTimestamp = (audits: Audit[]): string | null => {
 };
 
 const addMonths = (anchor: Date, months: number): Date => {
-  const next = new Date(anchor.getTime());
-  next.setMonth(next.getMonth() + months);
-  return next;
+  const targetYear = anchor.getFullYear();
+  const targetMonth = anchor.getMonth() + months;
+  const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+  const clampedDay = Math.min(anchor.getDate(), lastDay);
+
+  return new Date(
+    targetYear,
+    targetMonth,
+    clampedDay,
+    anchor.getHours(),
+    anchor.getMinutes(),
+    anchor.getSeconds(),
+    anchor.getMilliseconds(),
+  );
 };
 
 export const getAuditScheduleStatus = (
