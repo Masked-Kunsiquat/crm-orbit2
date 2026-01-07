@@ -75,17 +75,21 @@ export const AuditsSection = ({
     [account, audits],
   );
   const warningLabelKey =
-    scheduleStatus?.status === "overdue"
-      ? "audits.overdue"
-      : scheduleStatus?.status === "missing"
-        ? "audits.missing"
-        : null;
+    scheduleStatus?.status === "due"
+      ? "audits.due"
+      : scheduleStatus?.status === "overdue"
+        ? "audits.overdue"
+        : scheduleStatus?.status === "missing"
+          ? "audits.missing"
+          : null;
   const warningTone =
-    scheduleStatus?.status === "overdue"
-      ? "danger"
-      : scheduleStatus?.status === "missing"
-        ? "warning"
-        : null;
+    scheduleStatus?.status === "due"
+      ? "warning"
+      : scheduleStatus?.status === "overdue"
+        ? "danger"
+        : scheduleStatus?.status === "missing"
+          ? "danger"
+          : null;
 
   return (
     <Section>

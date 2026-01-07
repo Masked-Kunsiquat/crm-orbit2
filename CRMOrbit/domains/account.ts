@@ -6,6 +6,9 @@ export type AccountAuditFrequency =
   | "account.auditFrequency.bimonthly"
   | "account.auditFrequency.quarterly"
   | "account.auditFrequency.triannually";
+export type AccountAuditFrequencyChangeTiming =
+  | "account.auditFrequencyChange.immediate"
+  | "account.auditFrequencyChange.nextPeriod";
 
 export interface Address {
   street: string;
@@ -33,6 +36,9 @@ export interface Account extends Entity {
   status: AccountStatus;
   auditFrequency: AccountAuditFrequency;
   auditFrequencyUpdatedAt: Timestamp;
+  auditFrequencyAnchorAt: Timestamp;
+  auditFrequencyPending?: AccountAuditFrequency;
+  auditFrequencyPendingEffectiveAt?: Timestamp;
   addresses?: AccountAddresses;
   minFloor?: number;
   maxFloor?: number;

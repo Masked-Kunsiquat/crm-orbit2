@@ -3,6 +3,8 @@ import type { EntityLinkType } from "@domains/relations/entityLink";
 import { DEFAULT_SETTINGS } from "@domains/settings";
 import {
   DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+  getMonthStartTimestamp,
+  isAccountAuditFrequency,
   resolveAccountAuditFrequency,
 } from "@domains/account.utils";
 import { applyEvents } from "@events/dispatcher";
@@ -91,6 +93,19 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
         account.createdAt ??
         account.updatedAt ??
         "";
+      const auditFrequencyAnchorAt =
+        account.auditFrequencyAnchorAt ??
+        getMonthStartTimestamp(auditFrequencyUpdatedAt) ??
+        auditFrequencyUpdatedAt;
+      const auditFrequencyPending = isAccountAuditFrequency(
+        account.auditFrequencyPending,
+      )
+        ? account.auditFrequencyPending
+        : undefined;
+      const auditFrequencyPendingEffectiveAt =
+        auditFrequencyPending && account.auditFrequencyPendingEffectiveAt
+          ? account.auditFrequencyPendingEffectiveAt
+          : undefined;
 
       return [
         id,
@@ -98,6 +113,9 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
           ...account,
           auditFrequency,
           auditFrequencyUpdatedAt,
+          auditFrequencyAnchorAt,
+          auditFrequencyPending,
+          auditFrequencyPendingEffectiveAt,
         },
       ];
     }),

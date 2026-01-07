@@ -13,8 +13,10 @@ import type { EntityId } from "@domains/shared/types";
 import {
   getAuditStartTimestamp,
   getAuditSortTimestamp,
+  resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../utils/audits";
+import { getAuditPeriods, type AuditPeriodStatus } from "../utils/auditSchedule";
 import { useTheme } from "../hooks";
 
 type FloorsVisitedMatrixVisit = {
@@ -22,6 +24,7 @@ type FloorsVisitedMatrixVisit = {
   label: string;
   visited: ReadonlySet<number>;
   isCurrent: boolean;
+  status?: AuditPeriodStatus;
 };
 
 export type FloorsVisitedMatrixData = {
@@ -64,8 +67,7 @@ const normalizeFloor = (value: number): number | null => {
   return Math.round(value);
 };
 
-const formatAuditLabel = (audit: Audit): string => {
-  const timestamp = getAuditStartTimestamp(audit);
+const formatAuditLabel = (timestamp?: string): string => {
   if (!timestamp) return "--";
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return "--";
@@ -117,9 +119,100 @@ export const buildFloorsVisitedMatrix = ({
 }: BuildMatrixOptions): FloorsVisitedMatrixData | null => {
   const selectedAudits = selectAudits(audits, currentAuditId, maxVisits);
   if (selectedAudits.length === 0) return null;
-  const orderedAudits = [...selectedAudits].sort(
-    (left, right) => getAuditSortTimestamp(left) - getAuditSortTimestamp(right),
-  );
+  const currentAudit = currentAuditId
+    ? audits.find((audit) => audit.id === currentAuditId)
+    : undefined;
+  const referenceTimestamp = currentAudit
+    ? getAuditStartTimestamp(currentAudit)
+    : undefined;
+  const referenceDate = referenceTimestamp
+    ? new Date(referenceTimestamp)
+    : new Date();
+  const resolvedReference = Number.isNaN(referenceDate.getTime())
+    ? new Date()
+    : referenceDate;
+  const maxPeriodCount = maxVisits ?? Math.max(selectedAudits.length, 1);
+  const periods = account
+    ? getAuditPeriods(account, audits, resolvedReference, maxPeriodCount)
+    : null;
+  const orderedPeriods = periods ? [...periods].reverse() : null;
+
+  const visits: FloorsVisitedMatrixVisit[] = orderedPeriods
+    ? orderedPeriods.map((period) => {
+        const periodStartTime = Date.parse(period.start);
+        const periodEndTime = Date.parse(period.end);
+        const auditsInPeriod =
+          Number.isNaN(periodStartTime) || Number.isNaN(periodEndTime)
+            ? []
+            : audits.filter((audit) => {
+                const timestamp = getAuditStartTimestamp(audit);
+                if (!timestamp) return false;
+                const parsed = Date.parse(timestamp);
+                return (
+                  !Number.isNaN(parsed) &&
+                  parsed >= periodStartTime &&
+                  parsed < periodEndTime
+                );
+              });
+
+        const currentInPeriod = currentAuditId
+          ? auditsInPeriod.find((audit) => audit.id === currentAuditId)
+          : undefined;
+        const completedAudits = auditsInPeriod
+          .filter(
+            (audit) => resolveAuditStatus(audit) === "audits.status.completed",
+          )
+          .sort((left, right) => getAuditSortTimestamp(right) - getAuditSortTimestamp(left));
+        const scheduledAudits = auditsInPeriod
+          .filter(
+            (audit) => resolveAuditStatus(audit) === "audits.status.scheduled",
+          )
+          .sort((left, right) => getAuditSortTimestamp(left) - getAuditSortTimestamp(right));
+
+        const selectedAudit =
+          currentInPeriod ??
+          completedAudits[0] ??
+          (period.status !== "missing" ? scheduledAudits[0] : undefined);
+        const visited = new Set<number>();
+        selectedAudit?.floorsVisited?.forEach((floor) => {
+          const normalized = normalizeFloor(floor);
+          if (normalized !== null) {
+            visited.add(normalized);
+          }
+        });
+
+        const labelTimestamp = selectedAudit
+          ? getAuditStartTimestamp(selectedAudit)
+          : period.start;
+
+        return {
+          id: selectedAudit?.id ?? (`period-${period.start}` as EntityId),
+          label: formatAuditLabel(labelTimestamp),
+          visited,
+          isCurrent: selectedAudit?.id === currentAuditId,
+          status: period.status,
+        };
+      })
+    : [...selectedAudits]
+        .sort(
+          (left, right) =>
+            getAuditSortTimestamp(left) - getAuditSortTimestamp(right),
+        )
+        .map((audit) => {
+          const visited = new Set<number>();
+          audit.floorsVisited?.forEach((floor) => {
+            const normalized = normalizeFloor(floor);
+            if (normalized !== null) {
+              visited.add(normalized);
+            }
+          });
+          return {
+            id: audit.id,
+            label: formatAuditLabel(getAuditStartTimestamp(audit)),
+            visited,
+            isCurrent: audit.id === currentAuditId,
+          };
+        });
 
   const derivedFloors = new Set<number>();
   selectedAudits.forEach((audit) => {
@@ -164,22 +257,6 @@ export const buildFloorsVisitedMatrix = ({
     if (normalized !== null) {
       excludedFloors.add(normalized);
     }
-  });
-
-  const visits: FloorsVisitedMatrixVisit[] = orderedAudits.map((audit) => {
-    const visited = new Set<number>();
-    audit.floorsVisited?.forEach((floor) => {
-      const normalized = normalizeFloor(floor);
-      if (normalized !== null) {
-        visited.add(normalized);
-      }
-    });
-    return {
-      id: audit.id,
-      label: formatAuditLabel(audit),
-      visited,
-      isCurrent: audit.id === currentAuditId,
-    };
   });
 
   return { floors, visits, excludedFloors };
@@ -263,7 +340,11 @@ export const FloorsVisitedMatrix = ({
                   {
                     backgroundColor: visit.isCurrent
                       ? colors.accentMuted
-                      : colors.surfaceElevated,
+                      : visit.status === "missing"
+                        ? colors.errorBg
+                        : visit.status === "due"
+                          ? colors.warningBg
+                          : colors.surfaceElevated,
                     borderRightWidth:
                       index === visits.length - 1 ? 0 : GRID_LINE_WIDTH,
                     borderBottomWidth: GRID_LINE_WIDTH,
@@ -312,6 +393,12 @@ export const FloorsVisitedMatrix = ({
                         borderColor: colors.border,
                         width: layout.cellWidth,
                         height: layout.cellHeight,
+                      },
+                      visit.status === "missing" && {
+                        backgroundColor: colors.errorBg,
+                      },
+                      visit.status === "due" && {
+                        backgroundColor: colors.warningBg,
                       },
                       isExcluded && {
                         backgroundColor: colors.borderLight,

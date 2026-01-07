@@ -76,6 +76,19 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
 
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const pendingEffectiveAt = account?.auditFrequencyPendingEffectiveAt
+    ? Date.parse(account.auditFrequencyPendingEffectiveAt)
+    : Number.NaN;
+  const hasPendingFrequency =
+    account?.auditFrequencyPending && !Number.isNaN(pendingEffectiveAt);
+  const pendingFrequency =
+    hasPendingFrequency && Date.now() < pendingEffectiveAt
+      ? account.auditFrequencyPending
+      : null;
+  const activeFrequency =
+    hasPendingFrequency && Date.now() >= pendingEffectiveAt
+      ? account.auditFrequencyPending
+      : account?.auditFrequency;
 
   const [activeTab, setActiveTab] = useState<AccountTab>("overview");
   const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
@@ -435,7 +448,22 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       {activeTab === "details" ? (
         <Section>
           <DetailField label={t("accounts.fields.auditFrequency")}>
-            {t(account.auditFrequency)}
+            <View>
+              <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                {activeFrequency ? t(activeFrequency) : t(account.auditFrequency)}
+              </Text>
+              {pendingFrequency ? (
+                <Text
+                  style={[
+                    styles.detailSubvalue,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {t("accounts.auditFrequencyChange.nextPeriod")}:{" "}
+                  {t(pendingFrequency)}
+                </Text>
+              ) : null}
+            </View>
           </DetailField>
 
           {account.website && (
@@ -882,6 +910,13 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 13,
     fontWeight: "600",
+  },
+  detailValue: {
+    fontSize: 16,
+  },
+  detailSubvalue: {
+    fontSize: 13,
+    marginTop: 2,
   },
   link: {
     fontSize: 16,

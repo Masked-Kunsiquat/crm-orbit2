@@ -1,6 +1,7 @@
 import type {
   Account,
   AccountAuditFrequency,
+  AccountAuditFrequencyChangeTiming,
   AccountStatus,
   AccountAddresses,
   SocialMediaLinks,
@@ -13,6 +14,11 @@ import { createLogger } from "../utils/logger";
 import {
   DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
   isAccountAuditFrequency,
+  isAccountAuditFrequencyChangeTiming,
+  getAccountAuditFrequencyMonths,
+  getMonthStartTimestamp,
+  getPeriodStartFromAnchor,
+  addMonthsToPeriodStart,
   resolveAccountAuditFrequency,
 } from "../domains/account.utils";
 
@@ -43,6 +49,7 @@ type AccountUpdatedPayload = {
   name?: string;
   status?: AccountStatus;
   auditFrequency?: AccountAuditFrequency;
+  auditFrequencyChangeTiming?: AccountAuditFrequencyChangeTiming;
   organizationId?: EntityId;
   addresses?: AccountAddresses;
   minFloor?: number;
@@ -133,10 +140,18 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   ) {
     throw new Error("Invalid account audit frequency.");
   }
+  if (
+    payload.auditFrequencyChangeTiming !== undefined &&
+    !isAccountAuditFrequencyChangeTiming(payload.auditFrequencyChangeTiming)
+  ) {
+    throw new Error("Invalid account audit frequency change timing.");
+  }
 
   const auditFrequency =
     payload.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY;
   const frequencyUpdatedAt = event.timestamp;
+  const frequencyAnchorAt =
+    getMonthStartTimestamp(event.timestamp) ?? event.timestamp;
 
   const account: Account = {
     id,
@@ -145,6 +160,7 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     status: payload.status,
     auditFrequency,
     auditFrequencyUpdatedAt: frequencyUpdatedAt,
+    auditFrequencyAnchorAt: frequencyAnchorAt,
     addresses: payload.addresses,
     minFloor: payload.minFloor,
     maxFloor: payload.maxFloor,
@@ -235,21 +251,50 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const existingFrequency = resolveAccountAuditFrequency(
     existing.auditFrequency,
   );
-  const nextFrequency =
-    payload.auditFrequency !== undefined
-      ? payload.auditFrequency
-      : existingFrequency;
+  const existingFrequencyUpdatedAt =
+    existing.auditFrequencyUpdatedAt ?? existing.createdAt ?? event.timestamp;
+  const existingFrequencyAnchorAt =
+    existing.auditFrequencyAnchorAt ??
+    getMonthStartTimestamp(existingFrequencyUpdatedAt) ??
+    event.timestamp;
+
+  let nextFrequency = existingFrequency;
+  let nextFrequencyUpdatedAt = existingFrequencyUpdatedAt;
+  let nextFrequencyAnchorAt = existingFrequencyAnchorAt;
+  let nextFrequencyPending = existing.auditFrequencyPending;
+  let nextFrequencyPendingEffectiveAt = existing.auditFrequencyPendingEffectiveAt;
+
   const frequencyChanged =
     payload.auditFrequency !== undefined &&
     payload.auditFrequency !== existingFrequency;
-  const shouldSetFrequency =
-    payload.auditFrequency !== undefined ||
-    existing.auditFrequency === undefined;
-  const shouldSetFrequencyUpdatedAt =
-    frequencyChanged || existing.auditFrequencyUpdatedAt === undefined;
-  const nextFrequencyUpdatedAt = frequencyChanged
-    ? event.timestamp
-    : (existing.auditFrequencyUpdatedAt ?? existing.createdAt);
+
+  if (frequencyChanged) {
+    const changeTiming =
+      payload.auditFrequencyChangeTiming ??
+      "account.auditFrequencyChange.immediate";
+
+    if (changeTiming === "account.auditFrequencyChange.nextPeriod") {
+      const months = getAccountAuditFrequencyMonths(existingFrequency);
+      const currentPeriodStart =
+        getPeriodStartFromAnchor(
+          existingFrequencyAnchorAt,
+          months,
+          event.timestamp,
+        ) ?? existingFrequencyAnchorAt;
+      const pendingEffectiveAt =
+        addMonthsToPeriodStart(currentPeriodStart, months) ?? currentPeriodStart;
+
+      nextFrequencyPending = payload.auditFrequency;
+      nextFrequencyPendingEffectiveAt = pendingEffectiveAt;
+    } else {
+      nextFrequency = payload.auditFrequency;
+      nextFrequencyUpdatedAt = event.timestamp;
+      nextFrequencyAnchorAt =
+        getMonthStartTimestamp(event.timestamp) ?? existingFrequencyAnchorAt;
+      nextFrequencyPending = undefined;
+      nextFrequencyPendingEffectiveAt = undefined;
+    }
+  }
 
   logger.debug("Updating account", { id, updates: payload });
 
@@ -261,9 +306,18 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         ...existing,
         ...(payload.name !== undefined && { name: payload.name }),
         ...(payload.status !== undefined && { status: payload.status }),
-        ...(shouldSetFrequency && { auditFrequency: nextFrequency }),
-        ...(shouldSetFrequencyUpdatedAt && {
-          auditFrequencyUpdatedAt: nextFrequencyUpdatedAt,
+        auditFrequency: nextFrequency,
+        auditFrequencyUpdatedAt: nextFrequencyUpdatedAt,
+        auditFrequencyAnchorAt: nextFrequencyAnchorAt,
+        ...(nextFrequencyPending !== undefined && {
+          auditFrequencyPending: nextFrequencyPending,
+        }),
+        ...(nextFrequencyPendingEffectiveAt !== undefined && {
+          auditFrequencyPendingEffectiveAt: nextFrequencyPendingEffectiveAt,
+        }),
+        ...(nextFrequencyPending === undefined && {
+          auditFrequencyPending: undefined,
+          auditFrequencyPendingEffectiveAt: undefined,
         }),
         ...(payload.organizationId !== undefined && {
           organizationId: payload.organizationId,

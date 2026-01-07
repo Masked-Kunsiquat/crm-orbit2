@@ -19,7 +19,14 @@ import {
 import type { Contact, ContactMethod } from "@domains/contact";
 import { formatPhoneNumber } from "@domains/contact.utils";
 import type { Account } from "@domains/account";
-import { resolveAccountAuditFrequency } from "@domains/account.utils";
+import {
+  addMonthsToPeriodStart,
+  getAccountAuditFrequencyMonths,
+  getMonthStartTimestamp,
+  getPeriodStartFromAnchor,
+  isAccountAuditFrequencyChangeTiming,
+  resolveAccountAuditFrequency,
+} from "@domains/account.utils";
 import type { Organization } from "@domains/organization";
 import type { Note } from "@domains/note";
 import type { Interaction, InteractionStatus } from "@domains/interaction";
@@ -161,60 +168,113 @@ export const TimelineSection = ({
       payload: Record<string, unknown>,
       timestamp: string,
       existing?: Account,
-    ): Account => ({
-      id,
-      organizationId:
-        typeof payload.organizationId === "string"
-          ? payload.organizationId
-          : (existing?.organizationId ?? ""),
-      name:
-        typeof payload.name === "string"
-          ? payload.name
-          : (existing?.name ?? ""),
-      status: isAccountStatus(payload.status)
-        ? payload.status
-        : (existing?.status ?? "account.status.active"),
-      minFloor:
-        typeof payload.minFloor === "number"
-          ? payload.minFloor
-          : existing?.minFloor,
-      maxFloor:
-        typeof payload.maxFloor === "number"
-          ? payload.maxFloor
-          : existing?.maxFloor,
-      auditFrequency: resolveAccountAuditFrequency(
+    ): Account => {
+      const existingFrequency = resolveAccountAuditFrequency(
+        existing?.auditFrequency,
+      );
+      const existingUpdatedAt =
+        existing?.auditFrequencyUpdatedAt ?? existing?.createdAt ?? timestamp;
+      const existingAnchorAt =
+        existing?.auditFrequencyAnchorAt ??
+        getMonthStartTimestamp(existingUpdatedAt) ??
+        timestamp;
+      const payloadFrequency =
         typeof payload.auditFrequency === "string"
-          ? payload.auditFrequency
-          : existing?.auditFrequency,
-      ),
-      auditFrequencyUpdatedAt:
-        typeof payload.auditFrequency === "string"
-          ? timestamp
-          : (existing?.auditFrequencyUpdatedAt ??
-            existing?.createdAt ??
-            timestamp),
-      excludedFloors: Array.isArray(payload.excludedFloors)
-        ? (payload.excludedFloors as number[])
-        : existing?.excludedFloors,
-      addresses:
-        payload.addresses !== undefined
-          ? (payload.addresses as Account["addresses"])
-          : existing?.addresses,
-      website:
-        typeof payload.website === "string"
-          ? payload.website
-          : existing?.website,
-      socialMedia:
-        payload.socialMedia !== undefined
-          ? (payload.socialMedia as Account["socialMedia"])
-          : existing?.socialMedia,
-      metadata:
-        payload.metadata !== undefined
-          ? (payload.metadata as Record<string, unknown>)
-          : existing?.metadata,
-      createdAt: existing?.createdAt ?? timestamp,
-      updatedAt: timestamp,
-    });
+          ? resolveAccountAuditFrequency(payload.auditFrequency)
+          : undefined;
+      const frequencyChanged =
+        payloadFrequency !== undefined && payloadFrequency !== existingFrequency;
+      const changeTiming = isAccountAuditFrequencyChangeTiming(
+        payload.auditFrequencyChangeTiming,
+      )
+        ? payload.auditFrequencyChangeTiming
+        : "account.auditFrequencyChange.immediate";
+
+      let auditFrequency = existingFrequency;
+      let auditFrequencyUpdatedAt = existingUpdatedAt;
+      let auditFrequencyAnchorAt = existingAnchorAt;
+      let auditFrequencyPending = existing?.auditFrequencyPending;
+      let auditFrequencyPendingEffectiveAt =
+        existing?.auditFrequencyPendingEffectiveAt;
+
+      if (!existing) {
+        auditFrequency = payloadFrequency ?? existingFrequency;
+        auditFrequencyUpdatedAt = timestamp;
+        auditFrequencyAnchorAt = getMonthStartTimestamp(timestamp) ?? timestamp;
+        auditFrequencyPending = undefined;
+        auditFrequencyPendingEffectiveAt = undefined;
+      } else if (frequencyChanged && payloadFrequency) {
+        if (changeTiming === "account.auditFrequencyChange.nextPeriod") {
+          const months = getAccountAuditFrequencyMonths(existingFrequency);
+          const currentPeriodStart =
+            getPeriodStartFromAnchor(
+              existingAnchorAt,
+              months,
+              timestamp,
+            ) ?? existingAnchorAt;
+          auditFrequencyPending = payloadFrequency;
+          auditFrequencyPendingEffectiveAt =
+            addMonthsToPeriodStart(currentPeriodStart, months) ??
+            currentPeriodStart;
+        } else {
+          auditFrequency = payloadFrequency;
+          auditFrequencyUpdatedAt = timestamp;
+          auditFrequencyAnchorAt =
+            getMonthStartTimestamp(timestamp) ?? existingAnchorAt;
+          auditFrequencyPending = undefined;
+          auditFrequencyPendingEffectiveAt = undefined;
+        }
+      }
+
+      return {
+        id,
+        organizationId:
+          typeof payload.organizationId === "string"
+            ? payload.organizationId
+            : (existing?.organizationId ?? ""),
+        name:
+          typeof payload.name === "string"
+            ? payload.name
+            : (existing?.name ?? ""),
+        status: isAccountStatus(payload.status)
+          ? payload.status
+          : (existing?.status ?? "account.status.active"),
+        minFloor:
+          typeof payload.minFloor === "number"
+            ? payload.minFloor
+            : existing?.minFloor,
+        maxFloor:
+          typeof payload.maxFloor === "number"
+            ? payload.maxFloor
+            : existing?.maxFloor,
+        auditFrequency,
+        auditFrequencyUpdatedAt,
+        auditFrequencyAnchorAt,
+        auditFrequencyPending,
+        auditFrequencyPendingEffectiveAt,
+        excludedFloors: Array.isArray(payload.excludedFloors)
+          ? (payload.excludedFloors as number[])
+          : existing?.excludedFloors,
+        addresses:
+          payload.addresses !== undefined
+            ? (payload.addresses as Account["addresses"])
+            : existing?.addresses,
+        website:
+          typeof payload.website === "string"
+            ? payload.website
+            : existing?.website,
+        socialMedia:
+          payload.socialMedia !== undefined
+            ? (payload.socialMedia as Account["socialMedia"])
+            : existing?.socialMedia,
+        metadata:
+          payload.metadata !== undefined
+            ? (payload.metadata as Record<string, unknown>)
+            : existing?.metadata,
+        createdAt: existing?.createdAt ?? timestamp,
+        updatedAt: timestamp,
+      };
+    };
 
     const buildOrganizationState = (
       id: string,
@@ -437,6 +497,8 @@ export const TimelineSection = ({
               minFloor: next.minFloor,
               maxFloor: next.maxFloor,
               excludedFloors: next.excludedFloors,
+              auditFrequency: next.auditFrequency,
+              auditFrequencyPending: next.auditFrequencyPending,
             });
             if (diff.length > 0) {
               changes.set(event.id, diff);

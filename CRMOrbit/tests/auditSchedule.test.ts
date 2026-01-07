@@ -11,6 +11,7 @@ const baseAccount = (overrides: Partial<Account> = {}): Account => ({
   status: "account.status.active",
   auditFrequency: "account.auditFrequency.monthly",
   auditFrequencyUpdatedAt: "2024-01-01T00:00:00.000Z",
+  auditFrequencyAnchorAt: "2024-01-01T00:00:00.000Z",
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
   ...overrides,
@@ -40,7 +41,7 @@ test("audit schedule marks missing when no audits exist past due", () => {
   assert.equal(result.status, "missing");
 });
 
-test("audit schedule stays ok when last audit is within frequency", () => {
+test("audit schedule warns when current period has no audit scheduled", () => {
   const account = baseAccount();
   const audits = [completedAudit({ occurredAt: "2024-01-10T00:00:00.000Z" })];
   const result = getAuditScheduleStatus(
@@ -50,19 +51,20 @@ test("audit schedule stays ok when last audit is within frequency", () => {
   );
 
   assert.ok(result);
-  assert.equal(result.status, "ok");
+  assert.equal(result.status, "due");
 });
 
-test("audit schedule respects mid-cycle frequency changes", () => {
+test("audit schedule flags missing when a closed period has no audit", () => {
   const account = baseAccount({
     auditFrequency: "account.auditFrequency.quarterly",
-    auditFrequencyUpdatedAt: "2024-01-20T00:00:00.000Z",
+    auditFrequencyUpdatedAt: "2024-01-01T00:00:00.000Z",
+    auditFrequencyAnchorAt: "2024-01-01T00:00:00.000Z",
   });
   const audits = [completedAudit({ occurredAt: "2024-01-05T00:00:00.000Z" })];
   const result = getAuditScheduleStatus(
     account,
     audits,
-    new Date("2024-04-25T00:00:00.000Z"),
+    new Date("2024-05-10T00:00:00.000Z"),
   );
 
   assert.ok(result);
