@@ -14,62 +14,66 @@ import {
   InteractionFormScreen,
 } from "../screens/interactions";
 import { getStackScreenOptions } from "./stackOptions";
-import { useTheme } from "../hooks";
-import { t } from "@i18n/index";
+import { useScreenTitles, useTheme } from "../hooks";
 
 const Stack = createNativeStackNavigator<EventsStackParamList>();
 
 export const EventsStack = () => {
   const { colors } = useTheme();
+  const { getScreenTitle, screenTitleKeys } = useScreenTitles();
 
   return (
     <Stack.Navigator screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen
         name="EventsLanding"
         component={EventsLandingScreen}
-        options={{ title: t("screens.events") }}
+        options={{ title: getScreenTitle(screenTitleKeys.events) }}
       />
       <Stack.Screen
         name="AuditsList"
         component={AuditsListScreen}
-        options={{ title: t("audits.listTitle") }}
+        options={{ title: getScreenTitle(screenTitleKeys.auditsList) }}
       />
       <Stack.Screen
         name="AuditDetail"
         component={AuditDetailScreen}
-        options={{ title: t("screens.auditDetails") }}
+        options={{ title: getScreenTitle(screenTitleKeys.auditDetail) }}
       />
       <Stack.Screen
         name="AuditForm"
         component={AuditFormScreen}
         options={({ route }) => ({
-          title: route.params?.auditId
-            ? t("screens.editAudit")
-            : t("screens.newAudit"),
+          title: getScreenTitle(
+            route.params?.auditId
+              ? screenTitleKeys.auditFormEdit
+              : screenTitleKeys.auditFormNew,
+          ),
         })}
       />
       <Stack.Screen
         name="Calendar"
         component={CalendarScreen}
-        options={{ title: t("screens.calendar") }}
+        options={{ title: getScreenTitle(screenTitleKeys.calendar) }}
       />
       <Stack.Screen
         name="InteractionsList"
         component={InteractionsListScreen}
-        options={{ title: t("interactions.title") }}
+        options={{ title: getScreenTitle(screenTitleKeys.interactionsList) }}
       />
       <Stack.Screen
         name="InteractionDetail"
         component={InteractionDetailScreen}
-        options={{ title: t("screens.interactionDetails") }}
+        options={{ title: getScreenTitle(screenTitleKeys.interactionDetail) }}
       />
       <Stack.Screen
         name="InteractionForm"
         component={InteractionFormScreen}
         options={({ route }) => ({
-          title: route.params?.interactionId
-            ? t("screens.editInteraction")
-            : t("screens.newInteraction"),
+          title: getScreenTitle(
+            route.params?.interactionId
+              ? screenTitleKeys.interactionFormEdit
+              : screenTitleKeys.interactionFormNew,
+          ),
         })}
       />
     </Stack.Navigator>

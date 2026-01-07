@@ -13,4 +13,5 @@ export { useLocalAuth } from "./useLocalAuth";
 export { useSettingsActions } from "./useSettingsActions";
 export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";
+export { useScreenTitles } from "./useScreenTitles";
 export { useTheme } from "./useTheme";
