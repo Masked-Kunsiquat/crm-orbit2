@@ -58,7 +58,7 @@ const detectMethodChanges = (
       }
       if (oldMethod.extension !== newMethod.extension) {
         changes.push({
-          field: `${methodType}Extension`,
+          field: `${methodType}_extension`,
           oldValue: oldMethod.extension ?? "",
           newValue: newMethod.extension ?? "",
         });
