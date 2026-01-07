@@ -104,7 +104,6 @@ export const NoteFormScreen = ({ route, navigation }: Props) => {
           value={title}
           onChangeText={setTitle}
           placeholder={t("notes.form.titlePlaceholder")}
-          autoFocus
         />
       </FormField>
 

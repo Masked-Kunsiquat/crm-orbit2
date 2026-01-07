@@ -362,7 +362,6 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
             value={label}
             onChangeText={setLabel}
             placeholder={t("codes.form.labelPlaceholder")}
-            autoFocus
           />
         </FormField>
 

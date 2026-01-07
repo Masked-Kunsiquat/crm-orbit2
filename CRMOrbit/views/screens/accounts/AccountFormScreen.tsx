@@ -396,7 +396,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           value={name}
           onChangeText={handleNameChange}
           placeholder={t("accounts.form.namePlaceholder")}
-          autoFocus
         />
       </FormField>
 
