@@ -4,8 +4,11 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { OrganizationsStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
-import { useAccounts, useOrganizations } from "../../store/store";
-import { t } from "@i18n/index";
+import {
+  useAccounts,
+  useOrganizations,
+  useOrganizationsLandingLabels,
+} from "../../store/store";
 
 type Props = OrganizationsStackScreenProps<"OrganizationsLanding">;
 
@@ -13,6 +16,12 @@ export const OrganizationsLandingScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const accounts = useAccounts();
   const organizations = useOrganizations();
+  const {
+    accountsLabel,
+    accountsSubtitle,
+    organizationsLabel,
+    organizationsSubtitle,
+  } = useOrganizationsLandingLabels();
 
   const handleAccountsPress = () => {
     navigation.navigate("AccountsList");
@@ -35,10 +44,10 @@ export const OrganizationsLandingScreen = ({ navigation }: Props) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("accounts.title")}
+              {accountsLabel}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("accounts.view_and_manage_all")}
+              {accountsSubtitle}
             </Text>
           </View>
           <View style={styles.countBadge}>
@@ -60,10 +69,10 @@ export const OrganizationsLandingScreen = ({ navigation }: Props) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("organizations.title")}
+              {organizationsLabel}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("organizations.view_and_manage_all")}
+              {organizationsSubtitle}
             </Text>
           </View>
           <View style={styles.countBadge}>
