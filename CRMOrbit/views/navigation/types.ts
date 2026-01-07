@@ -12,6 +12,7 @@ export type RootStackParamList = {
   OrganizationDetail: { organizationId: EntityId };
   OrganizationForm: { organizationId?: EntityId };
   AccountDetail: { accountId: EntityId };
+  AccountFloorsVisited: { accountId: EntityId };
   AccountForm: { accountId?: EntityId; organizationId?: EntityId };
   ContactDetail: { contactId: EntityId };
   ContactForm: {
@@ -66,6 +67,7 @@ export type OrganizationsStackParamList = {
 export type AccountsStackParamList = {
   AccountsList: undefined;
   AccountDetail: { accountId: EntityId };
+  AccountFloorsVisited: { accountId: EntityId };
   AccountForm: { accountId?: EntityId; organizationId?: EntityId };
 };
 

@@ -36,3 +36,4 @@ export { MethodListEditor } from "./MethodListEditor";
 export { ContactCardRow } from "./ContactCardRow";
 export { ContactTypeBadge } from "./ContactTypeBadge";
 export { AlphabetScrollbar } from "./AlphabetScrollbar";
+export { FloorsVisitedMatrix, buildFloorsVisitedMatrix } from "./FloorsVisitedMatrix";

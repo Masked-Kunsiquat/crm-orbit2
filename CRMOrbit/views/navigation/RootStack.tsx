@@ -6,6 +6,7 @@ import { RootTabs } from "./RootTabs";
 import { OrganizationDetailScreen } from "../screens/organizations/OrganizationDetailScreen";
 import { OrganizationFormScreen } from "../screens/organizations/OrganizationFormScreen";
 import { AccountDetailScreen } from "../screens/accounts/AccountDetailScreen";
+import { AccountFloorsVisitedScreen } from "../screens/accounts/AccountFloorsVisitedScreen";
 import { AccountFormScreen } from "../screens/accounts/AccountFormScreen";
 import { ContactDetailScreen } from "../screens/contacts/ContactDetailScreen";
 import { ContactFormScreen } from "../screens/contacts/ContactFormScreen";
@@ -50,6 +51,11 @@ export const RootStack = () => {
         name="AccountDetail"
         component={AccountDetailScreen}
         options={{ title: t("screens.accountDetails") }}
+      />
+      <Stack.Screen
+        name="AccountFloorsVisited"
+        component={AccountFloorsVisitedScreen}
+        options={{ title: t("audits.fields.floorsVisited") }}
       />
       <Stack.Screen
         name="AccountForm"
