@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import {
+  FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -31,6 +33,8 @@ interface InteractionsSectionProps {
   };
 }
 
+const PREVIEW_LIMIT = 3;
+
 export const InteractionsSection = ({
   interactions,
   entityId,
@@ -43,6 +47,7 @@ export const InteractionsSection = ({
   const { unlinkInteraction } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
 
   const existingInteractionIds = useMemo(
     () => interactions.map((interaction) => interaction.id),
@@ -84,6 +89,9 @@ export const InteractionsSection = ({
       },
     });
   };
+
+  const visibleInteractions = interactions.slice(0, PREVIEW_LIMIT);
+  const hasMore = interactions.length > PREVIEW_LIMIT;
 
   return (
     <Section>
@@ -129,7 +137,7 @@ export const InteractionsSection = ({
           {t("interactions.emptyTitle")}
         </Text>
       ) : (
-        interactions.map((interaction) => {
+        visibleInteractions.map((interaction) => {
           const resolvedStatus =
             interaction.status ?? "interaction.status.completed";
           const usesScheduledTimestamp =
@@ -217,6 +225,114 @@ export const InteractionsSection = ({
           );
         })
       )}
+      {hasMore ? (
+        <TouchableOpacity
+          style={[styles.viewAllButton, { borderColor: colors.border }]}
+          onPress={() => setShowAllModal(true)}
+        >
+          <Text style={[styles.viewAllText, { color: colors.accent }]}>
+            {t("common.viewAll")}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+      <Modal
+        visible={showAllModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAllModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("interactions.title")} ({interactions.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAllModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={interactions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const resolvedStatus =
+                  item.status ?? "interaction.status.completed";
+                const usesScheduledTimestamp =
+                  resolvedStatus !== "interaction.status.completed";
+                const timestampLabel = usesScheduledTimestamp
+                  ? t("interactions.scheduledFor")
+                  : t("interactions.occurredAt");
+                const timestampValue = usesScheduledTimestamp
+                  ? (item.scheduledFor ?? item.occurredAt)
+                  : item.occurredAt;
+                const formattedTimestamp = (() => {
+                  const date = new Date(timestampValue);
+                  if (Number.isNaN(date.getTime())) {
+                    return t("common.unknown");
+                  }
+                  return date.toLocaleString();
+                })();
+                const metaText =
+                  resolvedStatus === "interaction.status.completed"
+                    ? `${timestampLabel}: ${formattedTimestamp}`
+                    : `${t("interactions.statusLabel")}: ${t(
+                        resolvedStatus,
+                      )} · ${timestampLabel}: ${formattedTimestamp}`;
+                return (
+                  <Pressable
+                    style={[
+                      styles.modalItem,
+                      { borderBottomColor: colors.borderLight },
+                    ]}
+                    onPress={() => {
+                      setShowAllModal(false);
+                      navigation.navigate("InteractionDetail", {
+                        interactionId: item.id,
+                      });
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modalItemType,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      {t(item.type)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.modalItemTitle,
+                        { color: colors.textPrimary },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {item.summary}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.modalItemMeta,
+                        { color: colors.textMuted },
+                      ]}
+                    >
+                      {metaText}
+                    </Text>
+                  </Pressable>
+                );
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
       <LinkInteractionModal
         visible={showLinkModal}
         onClose={() => setShowLinkModal(false)}
@@ -292,5 +408,60 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     alignItems: "center",
     justifyContent: "center",
+  },
+  viewAllButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  modalContent: {
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: "70%",
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalClose: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  modalItemType: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  modalItemTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  modalItemMeta: {
+    fontSize: 12,
   },
 });

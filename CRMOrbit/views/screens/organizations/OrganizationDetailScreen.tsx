@@ -48,6 +48,7 @@ import { openWebUrl } from "@domains/linking.utils";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 type OrganizationTab = "overview" | "details" | "notes" | "activity";
+const PREVIEW_LIMIT = 3;
 
 export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
@@ -66,6 +67,8 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState<OrganizationTab>("overview");
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showContactsModal, setShowContactsModal] = useState(false);
+  const [showAccountsModal, setShowAccountsModal] = useState(false);
 
   const sortedAccounts = useMemo(() => {
     return [...allAccounts].sort((a, b) =>
@@ -80,6 +83,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       ),
     [organizationId, sortedAccounts],
   );
+  const previewContacts = contacts.slice(0, PREVIEW_LIMIT);
+  const previewAccounts = accounts.slice(0, PREVIEW_LIMIT);
+  const hasMoreContacts = contacts.length > PREVIEW_LIMIT;
+  const hasMoreAccounts = accounts.length > PREVIEW_LIMIT;
 
   if (!organization) {
     return (
@@ -215,7 +222,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 {t("organizations.noContacts")}
               </Text>
             ) : (
-              contacts.map((contact) => (
+              previewContacts.map((contact) => (
                 <ContactCardRow
                   key={contact.id}
                   contact={contact}
@@ -227,6 +234,16 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 />
               ))
             )}
+            {hasMoreContacts ? (
+              <TouchableOpacity
+                style={[styles.viewAllButton, { borderColor: colors.border }]}
+                onPress={() => setShowContactsModal(true)}
+              >
+                <Text style={[styles.viewAllText, { color: colors.accent }]}>
+                  {t("common.viewAll")}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </Section>
 
           <Section>
@@ -275,7 +292,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 {t("organizations.noAccounts")}
               </Text>
             ) : (
-              accounts.map((account) => (
+              previewAccounts.map((account) => (
                 <TouchableOpacity
                   key={account.id}
                   style={[
@@ -305,6 +322,16 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 </TouchableOpacity>
               ))
             )}
+            {hasMoreAccounts ? (
+              <TouchableOpacity
+                style={[styles.viewAllButton, { borderColor: colors.border }]}
+                onPress={() => setShowAccountsModal(true)}
+              >
+                <Text style={[styles.viewAllText, { color: colors.accent }]}>
+                  {t("common.viewAll")}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </Section>
         </>
       ) : null}
@@ -366,6 +393,113 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      <Modal
+        visible={showContactsModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowContactsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("organizations.sections.contacts")} ({contacts.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowContactsModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={contacts}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <ContactCardRow
+                  contact={item}
+                  onPress={() => {
+                    setShowContactsModal(false);
+                    navigation.navigate("ContactDetail", {
+                      contactId: item.id,
+                    });
+                  }}
+                />
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showAccountsModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAccountsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("organizations.sections.accounts")} ({accounts.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAccountsModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={accounts}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    { borderBottomColor: colors.borderLight },
+                  ]}
+                  onPress={() => {
+                    setShowAccountsModal(false);
+                    navigation.navigate("AccountDetail", {
+                      accountId: item.id,
+                    });
+                  }}
+                >
+                  <View
+                    style={[
+                      styles.statusIndicator,
+                      item.status === "account.status.active"
+                        ? { backgroundColor: colors.success }
+                        : { backgroundColor: colors.error },
+                    ]}
+                  />
+                  <Text
+                    style={[styles.relatedName, { color: colors.textPrimary }]}
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showLinkModal}
@@ -518,6 +652,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: "italic",
   },
+  viewAllButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
   error: {
     fontSize: 16,
     textAlign: "center",
@@ -539,6 +684,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 12,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalClose: {
+    fontSize: 13,
+    fontWeight: "600",
   },
   modalList: {
     marginBottom: 12,

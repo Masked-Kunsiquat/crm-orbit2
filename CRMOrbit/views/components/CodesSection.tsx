@@ -1,5 +1,7 @@
-import { useMemo, type ComponentProps } from "react";
+import { useMemo, useState, type ComponentProps } from "react";
 import {
+  FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -39,17 +41,22 @@ type CodesSectionProps = {
   };
 };
 
+const PREVIEW_LIMIT = 3;
+
 export const CodesSection = ({
   codes,
   accountId,
   navigation,
 }: CodesSectionProps) => {
   const { colors } = useTheme();
+  const [showAllModal, setShowAllModal] = useState(false);
   const sortedCodes = useMemo(() => {
     return [...codes].sort((a, b) =>
       a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
     );
   }, [codes]);
+  const visibleCodes = sortedCodes.slice(0, PREVIEW_LIMIT);
+  const hasMore = sortedCodes.length > PREVIEW_LIMIT;
 
   return (
     <Section>
@@ -82,7 +89,7 @@ export const CodesSection = ({
           {t("codes.emptyAccountCodes")}
         </Text>
       ) : (
-        sortedCodes.map((code) => (
+        visibleCodes.map((code) => (
           <View
             key={code.id}
             style={[
@@ -123,6 +130,97 @@ export const CodesSection = ({
           </View>
         ))
       )}
+      {hasMore ? (
+        <TouchableOpacity
+          style={[styles.viewAllButton, { borderColor: colors.border }]}
+          onPress={() => setShowAllModal(true)}
+        >
+          <Text style={[styles.viewAllText, { color: colors.accent }]}>
+            {t("common.viewAll")}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+      <Modal
+        visible={showAllModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAllModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("codes.title")} ({codes.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAllModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={sortedCodes}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.modalItem,
+                    { borderBottomColor: colors.borderLight },
+                  ]}
+                  onPress={() => {
+                    setShowAllModal(false);
+                    navigation.navigate("CodeDetail", { codeId: item.id });
+                  }}
+                >
+                  <View style={styles.modalItemRow}>
+                    <View style={styles.modalItemContent}>
+                      <Text
+                        style={[
+                          styles.modalItemLabel,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.modalItemValue,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {item.isEncrypted ? MASKED_VALUE : item.codeValue}
+                      </Text>
+                    </View>
+                    <View style={styles.typeIconContainer}>
+                      {item.type === "code.type.other" ? (
+                        <FontAwesome6
+                          name={OTHER_CODE_ICON}
+                          size={20}
+                          color={colors.accent}
+                        />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name={CODE_TYPE_ICONS[item.type]}
+                          size={22}
+                          color={colors.accent}
+                        />
+                      )}
+                    </View>
+                  </View>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </Section>
   );
 };
@@ -180,5 +278,64 @@ const styles = StyleSheet.create({
     minWidth: 28,
     alignItems: "flex-end",
     marginLeft: 8,
+  },
+  viewAllButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  modalContent: {
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: "70%",
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalClose: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  modalItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalItemContent: {
+    flex: 1,
+  },
+  modalItemLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  modalItemValue: {
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
 });

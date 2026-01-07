@@ -57,6 +57,7 @@ import {
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
 type AccountTab = "overview" | "details" | "notes" | "activity";
+const PREVIEW_LIMIT = 3;
 
 export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params;
@@ -89,6 +90,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     "account.contact.role.primary",
   );
   const [createPrimary, setCreatePrimary] = useState(true);
+  const [showContactsModal, setShowContactsModal] = useState(false);
 
   const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
     {
@@ -131,6 +133,8 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     }
     return allContacts.filter((contact) => contact.type === contactFilter);
   }, [allContacts, contactFilter]);
+  const previewContacts = contacts.slice(0, PREVIEW_LIMIT);
+  const hasMoreContacts = contacts.length > PREVIEW_LIMIT;
 
   const linkedContactIds = useMemo(() => {
     const relations = Object.values(accountContactRelations);
@@ -403,7 +407,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                   )}
             </Text>
           ) : (
-            contacts.map((contact) => (
+            previewContacts.map((contact) => (
               <ContactCardRow
                 key={contact.id}
                 contact={contact}
@@ -415,6 +419,16 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               />
             ))
           )}
+          {hasMoreContacts ? (
+            <TouchableOpacity
+              style={[styles.viewAllButton, { borderColor: colors.border }]}
+              onPress={() => setShowContactsModal(true)}
+            >
+              <Text style={[styles.viewAllText, { color: colors.accent }]}>
+                {t("common.viewAll")}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </Section>
       ) : null}
 
@@ -552,6 +566,51 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      <Modal
+        visible={showContactsModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowContactsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("accounts.sections.contacts")} ({contacts.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowContactsModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={contacts}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <ContactCardRow
+                  contact={item}
+                  onPress={() => {
+                    setShowContactsModal(false);
+                    navigation.navigate("ContactDetail", {
+                      contactId: item.id,
+                    });
+                  }}
+                />
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showLinkModal}
@@ -808,6 +867,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: "italic",
   },
+  viewAllButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
   link: {
     fontSize: 16,
     textDecorationLine: "underline",
@@ -839,6 +909,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     maxHeight: "70%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalClose: {
+    fontSize: 13,
+    fontWeight: "600",
   },
   modalTitle: {
     fontSize: 16,

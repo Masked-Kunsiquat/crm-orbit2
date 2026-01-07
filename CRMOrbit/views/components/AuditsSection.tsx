@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
+  FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -31,6 +33,8 @@ type AuditsSectionProps = {
   };
 };
 
+const PREVIEW_LIMIT = 3;
+
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {
     return t("common.unknown");
@@ -55,10 +59,13 @@ export const AuditsSection = ({
   navigation,
 }: AuditsSectionProps) => {
   const { colors } = useTheme();
+  const [showAllModal, setShowAllModal] = useState(false);
 
   const sortedAudits = useMemo(() => {
     return [...audits].sort(sortAuditsByDescendingTime);
   }, [audits]);
+  const visibleAudits = sortedAudits.slice(0, PREVIEW_LIMIT);
+  const hasMore = sortedAudits.length > PREVIEW_LIMIT;
 
   return (
     <Section>
@@ -109,7 +116,7 @@ export const AuditsSection = ({
           {t("audits.emptyAccountAudits")}
         </Text>
       ) : (
-        sortedAudits.map((audit) => {
+        visibleAudits.map((audit) => {
           const status = resolveAuditStatus(audit);
           const timestampLabel = t(getAuditTimestampLabelKey(status));
           const timestampValue = formatTimestamp(getAuditStartTimestamp(audit));
@@ -186,6 +193,83 @@ export const AuditsSection = ({
           );
         })
       )}
+      {hasMore ? (
+        <TouchableOpacity
+          style={[styles.viewAllButton, { borderColor: colors.border }]}
+          onPress={() => setShowAllModal(true)}
+        >
+          <Text style={[styles.viewAllText, { color: colors.accent }]}>
+            {t("common.viewAll")}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+      <Modal
+        visible={showAllModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAllModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("audits.title")} ({sortedAudits.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAllModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={sortedAudits}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const status = resolveAuditStatus(item);
+                const timestampLabel = t(getAuditTimestampLabelKey(status));
+                const timestampValue = formatTimestamp(
+                  getAuditStartTimestamp(item),
+                );
+                return (
+                  <Pressable
+                    style={[
+                      styles.modalItem,
+                      { borderBottomColor: colors.borderLight },
+                    ]}
+                    onPress={() => {
+                      setShowAllModal(false);
+                      navigation.navigate("AuditDetail", { auditId: item.id });
+                    }}
+                  >
+                    <View style={styles.modalItemRow}>
+                      <Text
+                        style={[
+                          styles.modalItemTitle,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {timestampLabel}: {timestampValue}
+                      </Text>
+                      <StatusBadge
+                        tone={getAuditStatusTone(status)}
+                        labelKey={status}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </Section>
   );
 };
@@ -251,5 +335,57 @@ const styles = StyleSheet.create({
   auditNotes: {
     fontSize: 13,
     marginTop: 4,
+  },
+  viewAllButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  modalContent: {
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: "70%",
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalClose: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  modalItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  modalItemTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
   },
 });

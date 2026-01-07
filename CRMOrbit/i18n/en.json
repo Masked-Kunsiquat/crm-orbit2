@@ -458,6 +458,7 @@
   "common.ok": "Okay",
   "common.back": "Back",
   "common.custom": "Custom",
+  "common.viewAll": "View all",
   "common.alreadyLinked": "Already linked",
   "common.error": "Error",
   "common.validationError": "Validation Error",
