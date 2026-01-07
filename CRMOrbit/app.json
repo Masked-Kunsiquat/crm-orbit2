@@ -36,7 +36,22 @@
         "CHANGE_WIFI_MULTICAST_STATE",
         "NEARBY_WIFI_DEVICES",
         "READ_CALENDAR",
-        "WRITE_CALENDAR"
+        "WRITE_CALENDAR",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_MULTICAST_STATE",
+        "NEARBY_WIFI_DEVICES",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ]
     },
     "web": {
@@ -61,6 +76,12 @@
         "projectId": "d02faca1-6ed6-4dfd-988e-dafcf731376a"
       }
     },
-    "owner": "masked-kunsiquat"
+    "owner": "masked-kunsiquat",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d02faca1-6ed6-4dfd-988e-dafcf731376a"
+    }
   }
 }
