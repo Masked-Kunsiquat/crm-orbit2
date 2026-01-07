@@ -4,7 +4,11 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Audit } from "@domains/audit";
 import type { Account } from "@domains/account";
 import type { EntityId } from "@domains/shared/types";
-import { getAuditStartTimestamp, sortAuditsByDescendingTime } from "../utils/audits";
+import {
+  getAuditStartTimestamp,
+  getAuditSortTimestamp,
+  sortAuditsByDescendingTime,
+} from "../utils/audits";
 import { useTheme } from "../hooks";
 
 type FloorsVisitedMatrixVisit = {
@@ -51,20 +55,24 @@ const selectAudits = (
 ): Audit[] => {
   const sorted = [...audits].sort(sortAuditsByDescendingTime);
   if (sorted.length === 0) return [];
+  if (!maxVisits) return sorted;
 
-  if (currentAuditId) {
-    const index = sorted.findIndex((audit) => audit.id === currentAuditId);
-    if (index !== -1) {
-      const limit = maxVisits ?? sorted.length;
-      return sorted.slice(index, index + limit);
-    }
-  }
-
-  if (maxVisits) {
+  if (!currentAuditId) {
     return sorted.slice(0, maxVisits);
   }
 
-  return sorted;
+  const current = sorted.find((audit) => audit.id === currentAuditId);
+  if (!current) {
+    return sorted.slice(0, maxVisits);
+  }
+
+  const selected: Audit[] = [current];
+  for (const audit of sorted) {
+    if (selected.length >= maxVisits) break;
+    if (audit.id === currentAuditId) continue;
+    selected.push(audit);
+  }
+  return selected;
 };
 
 export const buildFloorsVisitedMatrix = ({
@@ -75,6 +83,10 @@ export const buildFloorsVisitedMatrix = ({
 }: BuildMatrixOptions): FloorsVisitedMatrixData | null => {
   const selectedAudits = selectAudits(audits, currentAuditId, maxVisits);
   if (selectedAudits.length === 0) return null;
+  const orderedAudits = [...selectedAudits].sort(
+    (left, right) =>
+      getAuditSortTimestamp(left) - getAuditSortTimestamp(right),
+  );
 
   const derivedFloors = new Set<number>();
   selectedAudits.forEach((audit) => {
@@ -121,7 +133,7 @@ export const buildFloorsVisitedMatrix = ({
     }
   });
 
-  const visits: FloorsVisitedMatrixVisit[] = selectedAudits.map((audit) => {
+  const visits: FloorsVisitedMatrixVisit[] = orderedAudits.map((audit) => {
     const visited = new Set<number>();
     audit.floorsVisited?.forEach((floor) => {
       const normalized = normalizeFloor(floor);
