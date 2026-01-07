@@ -23,6 +23,8 @@ const completedAudit = (overrides: Partial<Audit> = {}): Audit => ({
   durationMinutes: 60,
   status: "audits.status.completed",
   occurredAt: "2024-01-05T00:00:00.000Z",
+  createdAt: "2024-01-05T00:00:00.000Z",
+  updatedAt: "2024-01-05T00:00:00.000Z",
   ...overrides,
 });
 
