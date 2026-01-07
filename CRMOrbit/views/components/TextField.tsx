@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { StyleSheet, TextInput, type TextInputProps } from "react-native";
 
 import { useTheme } from "../hooks";
@@ -14,12 +14,10 @@ export const TextField = ({
 }: TextFieldProps) => {
   const { colors } = useTheme();
   const formScroll = useFormScrollContext();
+  const inputRef = useRef<TextInput>(null);
   const handleFocus = useCallback(
     (event: Parameters<NonNullable<TextInputProps["onFocus"]>>[0]) => {
-      const target = event.nativeEvent?.target;
-      if (formScroll && typeof target === "number") {
-        formScroll.scrollToInput(target);
-      }
+      formScroll?.scrollToInput(inputRef.current);
       onFocus?.(event);
     },
     [formScroll, onFocus],
@@ -29,6 +27,7 @@ export const TextField = ({
     <TextInput
       {...props}
       onFocus={handleFocus}
+      ref={inputRef}
       style={[
         styles.input,
         {

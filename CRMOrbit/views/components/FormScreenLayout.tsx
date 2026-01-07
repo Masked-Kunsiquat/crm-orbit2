@@ -1,15 +1,14 @@
 import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import {
-  findNodeHandle,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  UIManager,
   View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import type { TextInput } from "react-native";
 
 import { useTheme } from "../hooks";
 import { FormScrollProvider } from "./FormScrollContext";
@@ -26,25 +25,23 @@ export const FormScreenLayout = ({
   const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
 
-  const scrollToInput = useCallback((inputNode: number) => {
-    const scrollNode = scrollRef.current
-      ? findNodeHandle(scrollRef.current)
-      : null;
-    if (!scrollNode) return;
+  const scrollToInput = useCallback((inputRef: TextInput | null) => {
+    if (!scrollRef.current || !inputRef) return;
     const schedule =
       globalThis.requestAnimationFrame ??
       ((cb: () => void) => globalThis.setTimeout(cb, 0));
     schedule(() => {
-      UIManager.measureLayout(
-        inputNode,
-        scrollNode,
-        () => {},
+      const scrollTarget =
+        scrollRef.current?.getInnerViewNode?.() ?? scrollRef.current;
+      inputRef.measureLayout(
+        scrollTarget,
         (_x, y) => {
           scrollRef.current?.scrollTo({
             y: Math.max(0, y - 24),
             animated: true,
           });
         },
+        () => {},
       );
     });
   }, []);

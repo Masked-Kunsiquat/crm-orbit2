@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
+import type { TextInput } from "react-native";
 
 type FormScrollContextValue = {
-  scrollToInput: (inputNode: number) => void;
+  scrollToInput: (inputRef: TextInput | null) => void;
 };
 
 const FormScrollContext = createContext<FormScrollContextValue | null>(null);
