@@ -3,11 +3,13 @@ import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
 
 export const DEFAULT_DEVICE_CALENDAR_NAME = "CRMOrbit";
+export const DEFAULT_AUDIT_ALARM_OFFSET_MINUTES = 60;
 
 const CALENDAR_NAME_KEY = "calendar.sync.name";
 const CALENDAR_ID_KEY = "calendar.sync.id";
 const CALENDAR_EVENT_MAP_KEY = "calendar.sync.eventMap";
 const CALENDAR_LAST_SYNC_KEY = "calendar.sync.lastSync";
+const CALENDAR_AUDIT_ALARM_OFFSET_KEY = "calendar.sync.auditAlarmOffsetMinutes";
 
 export type CalendarSyncEvent = {
   key: string;
@@ -15,6 +17,8 @@ export type CalendarSyncEvent = {
   startDate: Date;
   endDate: Date;
   notes?: string;
+  location?: string;
+  alarms?: Calendar.Alarm[];
 };
 
 export type CalendarSyncSummary = {
@@ -88,6 +92,30 @@ const setStoredEventMap = async (
 
 export const getLastCalendarSync = async (): Promise<string | null> => {
   return AsyncStorage.getItem(CALENDAR_LAST_SYNC_KEY);
+};
+
+export const getStoredAuditAlarmOffsetMinutes = async (): Promise<number> => {
+  const stored = await AsyncStorage.getItem(CALENDAR_AUDIT_ALARM_OFFSET_KEY);
+  if (!stored) {
+    return DEFAULT_AUDIT_ALARM_OFFSET_MINUTES;
+  }
+  const parsed = Number(stored);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_AUDIT_ALARM_OFFSET_MINUTES;
+  }
+  return Math.round(parsed);
+};
+
+export const setStoredAuditAlarmOffsetMinutes = async (
+  minutes: number,
+): Promise<void> => {
+  const sanitized = Number.isFinite(minutes)
+    ? Math.max(0, Math.round(minutes))
+    : DEFAULT_AUDIT_ALARM_OFFSET_MINUTES;
+  await AsyncStorage.setItem(
+    CALENDAR_AUDIT_ALARM_OFFSET_KEY,
+    sanitized.toString(),
+  );
 };
 
 const setLastCalendarSync = async (timestamp: string): Promise<void> => {
@@ -164,7 +192,8 @@ export const syncDeviceCalendarEvents = async (
           startDate: event.startDate,
           endDate: event.endDate,
           notes: event.notes,
-          alarms: [],
+          location: event.location,
+          alarms: event.alarms ?? [],
         });
         nextMap[event.key] = existingId;
         updated += 1;
@@ -180,7 +209,8 @@ export const syncDeviceCalendarEvents = async (
         startDate: event.startDate,
         endDate: event.endDate,
         notes: event.notes,
-        alarms: [],
+        location: event.location,
+        alarms: event.alarms ?? [],
       });
       nextMap[event.key] = newId;
       created += 1;

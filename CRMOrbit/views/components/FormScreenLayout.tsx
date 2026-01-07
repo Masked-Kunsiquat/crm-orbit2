@@ -1,13 +1,17 @@
-import type { ReactNode } from "react";
+import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import type { TextInput } from "react-native";
 
 import { useTheme } from "../hooks";
+import { FormScrollProvider } from "./FormScrollContext";
 
 type FormScreenLayoutProps = {
   children: ReactNode;
@@ -19,11 +23,53 @@ export const FormScreenLayout = ({
   contentStyle,
 }: FormScreenLayoutProps) => {
   const { colors } = useTheme();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const scrollToInput = useCallback((inputRef: TextInput | null) => {
+    if (!scrollRef.current || !inputRef) return;
+    const schedule =
+      globalThis.requestAnimationFrame ??
+      ((cb: () => void) => globalThis.setTimeout(cb, 0));
+    schedule(() => {
+      const scrollTarget =
+        scrollRef.current?.getInnerViewNode?.() ?? scrollRef.current;
+      inputRef.measureLayout(
+        scrollTarget,
+        (_x, y) => {
+          scrollRef.current?.scrollTo({
+            y: Math.max(0, y - 24),
+            animated: true,
+          });
+        },
+        () => {},
+      );
+    });
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      scrollToInput,
+    }),
+    [scrollToInput],
+  );
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <View style={[styles.form, contentStyle]}>{children}</View>
-    </ScrollView>
+    <FormScrollProvider value={contextValue}>
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: colors.canvas }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          ref={scrollRef}
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={[styles.form, contentStyle]}>{children}</View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </FormScrollProvider>
   );
 };
 
@@ -33,5 +79,8 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: 16,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
 });

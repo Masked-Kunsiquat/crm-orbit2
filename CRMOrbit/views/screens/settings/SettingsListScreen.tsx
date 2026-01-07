@@ -15,6 +15,10 @@ export const SettingsListScreen = ({ navigation }: Props) => {
     navigation.navigate("SecuritySettings");
   };
 
+  const handleCalendarPress = () => {
+    navigation.navigate("CalendarSettings");
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       <ListCard onPress={handleSecurityPress}>
@@ -32,6 +36,26 @@ export const SettingsListScreen = ({ navigation }: Props) => {
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               {t("settings.security.description")}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleCalendarPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="calendar-sync"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("settings.calendar.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("settings.calendar.description")}
             </Text>
           </View>
         </View>

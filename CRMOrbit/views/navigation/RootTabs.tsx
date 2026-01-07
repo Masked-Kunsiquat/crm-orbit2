@@ -5,7 +5,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { RootTabParamList } from "./types";
 import { OrganizationsStack } from "./OrganizationsStack";
-import { AccountsStack } from "./AccountsStack";
+import { EventsStack } from "./EventsStack";
 import { ContactsStack } from "./ContactsStack";
 import { NotesStack } from "./NotesStack";
 import { MiscStack } from "./MiscStack";
@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const TAB_ICON_SIZES: Record<keyof RootTabParamList, number> = {
   OrganizationsTab: 24,
-  AccountsTab: 24,
+  EventsTab: 24,
   ContactsTab: 24,
   NotesTab: 24,
   MiscTab: 24,
@@ -46,10 +46,10 @@ export const RootTabs = () => {
                   color={color}
                 />
               );
-            case "AccountsTab":
+            case "EventsTab":
               return (
                 <MaterialCommunityIcons
-                  name="home-city-outline"
+                  name="calendar-month-outline"
                   size={iconSize}
                   color={color}
                 />
@@ -90,9 +90,9 @@ export const RootTabs = () => {
         options={{ tabBarLabel: "Organizations" }}
       />
       <Tab.Screen
-        name="AccountsTab"
-        component={AccountsStack}
-        options={{ tabBarLabel: "Accounts" }}
+        name="EventsTab"
+        component={EventsStack}
+        options={{ tabBarLabel: "Events" }}
       />
       <Tab.Screen
         name="ContactsTab"

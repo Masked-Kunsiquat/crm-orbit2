@@ -4,23 +4,27 @@
     "slug": "crm-orbit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icons/splash-light.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "dark": {
+        "image": "./assets/icons/splash-dark.png",
+        "backgroundColor": "#000000"
+      }
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "package": "com.crmorbit.app",
-      "icon": "./assets/icon.png",
+      "icon": "./assets/icons/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/crmorbit-fore.png",
-        "monochromeImage": "./assets/icons/crmorbit-mono.png",
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "monochromeImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -36,7 +40,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icons/favicon.png"
     },
     "plugins": [
       "expo-sqlite",

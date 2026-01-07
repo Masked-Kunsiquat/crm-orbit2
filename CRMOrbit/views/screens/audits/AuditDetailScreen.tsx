@@ -19,6 +19,8 @@ import {
   getAuditEndTimestamp,
   getAuditStartTimestamp,
   getAuditStatusTone,
+  getAuditTimestampLabelKey,
+  formatAuditScore,
   resolveAuditStatus,
 } from "../../utils/audits";
 import { formatDurationLabel } from "../../utils/duration";
@@ -92,6 +94,44 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
   const status = resolveAuditStatus(audit);
   const startTimestamp = getAuditStartTimestamp(audit);
   const endTimestamp = getAuditEndTimestamp(audit);
+  const scoreLabel = formatAuditScore(audit.score);
+  const primaryTimestampLabel = t(getAuditTimestampLabelKey(status));
+  const stats: Array<{ label: string; value: string }> = [
+    {
+      label: primaryTimestampLabel,
+      value: formatTimestamp(startTimestamp),
+    },
+  ];
+
+  if (
+    status === "audits.status.completed" &&
+    audit.scheduledFor &&
+    audit.scheduledFor !== audit.occurredAt
+  ) {
+    stats.push({
+      label: t("audits.fields.scheduledFor"),
+      value: formatTimestamp(audit.scheduledFor),
+    });
+  }
+
+  stats.push({
+    label: t("audits.fields.duration"),
+    value: formatDurationLabel(audit.durationMinutes),
+  });
+
+  if (endTimestamp) {
+    stats.push({
+      label: t("audits.fields.endsAt"),
+      value: formatTimestamp(endTimestamp),
+    });
+  }
+
+  if (scoreLabel) {
+    stats.push({
+      label: t("audits.fields.score"),
+      value: scoreLabel,
+    });
+  }
 
   return (
     <DetailScreenLayout>
@@ -112,7 +152,17 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
                 {account?.name ?? t("common.unknownEntity")}
               </Text>
             </TouchableOpacity>
-            <StatusBadge tone={getAuditStatusTone(status)} labelKey={status} />
+            <View style={styles.statusRow}>
+              <Text
+                style={[styles.statusLabel, { color: colors.textSecondary }]}
+              >
+                {t("audits.fields.status")}
+              </Text>
+              <StatusBadge
+                tone={getAuditStatusTone(status)}
+                labelKey={status}
+              />
+            </View>
           </View>
           <PrimaryActionButton
             label={t("common.edit")}
@@ -120,47 +170,45 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
             size="compact"
           />
         </View>
+
+        <View style={styles.statsGrid}>
+          {stats.map((stat) => (
+            <View
+              key={stat.label}
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                {stat.label}
+              </Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
+                {stat.value}
+              </Text>
+            </View>
+          ))}
+        </View>
       </Section>
 
-      <Section>
-        <DetailField label={t("audits.fields.scheduledFor")}>
-          {formatTimestamp(audit.scheduledFor)}
-        </DetailField>
+      {floorsVisited || audit.notes ? (
+        <Section>
+          {floorsVisited ? (
+            <DetailField label={t("audits.fields.floorsVisited")}>
+              {floorsVisited}
+            </DetailField>
+          ) : null}
 
-        {audit.occurredAt ? (
-          <DetailField label={t("audits.fields.occurredAt")}>
-            {formatTimestamp(audit.occurredAt)}
-          </DetailField>
-        ) : null}
-
-        <DetailField label={t("audits.fields.duration")}>
-          {formatDurationLabel(audit.durationMinutes)}
-        </DetailField>
-
-        {startTimestamp && endTimestamp ? (
-          <DetailField label={t("audits.fields.endsAt")}>
-            {formatTimestamp(endTimestamp)}
-          </DetailField>
-        ) : null}
-
-        {audit.score !== undefined ? (
-          <DetailField label={t("audits.fields.score")}>
-            {audit.score}
-          </DetailField>
-        ) : null}
-
-        {floorsVisited ? (
-          <DetailField label={t("audits.fields.floorsVisited")}>
-            {floorsVisited}
-          </DetailField>
-        ) : null}
-
-        {audit.notes ? (
-          <DetailField label={t("audits.fields.notes")}>
-            {audit.notes}
-          </DetailField>
-        ) : null}
-      </Section>
+          {audit.notes ? (
+            <DetailField label={t("audits.fields.notes")}>
+              {audit.notes}
+            </DetailField>
+          ) : null}
+        </Section>
+      ) : null}
 
       <DangerActionButton
         label={t("audits.deleteButton")}
@@ -184,10 +232,43 @@ const styles = StyleSheet.create({
     marginRight: 12,
     gap: 6,
   },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  statusLabel: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    fontWeight: "600",
+  },
   titleLink: {
     fontSize: 24,
     fontWeight: "700",
     textDecorationLine: "underline",
+  },
+  statsGrid: {
+    marginTop: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  statCard: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexBasis: "48%",
+  },
+  statLabel: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: "600",
   },
   errorText: {
     fontSize: 16,

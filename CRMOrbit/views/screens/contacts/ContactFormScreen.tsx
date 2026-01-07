@@ -296,7 +296,6 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
           value={firstName}
           onChangeText={handleFirstNameChange}
           placeholder={t("contacts.form.firstNamePlaceholder")}
-          autoFocus
         />
       </FormField>
 

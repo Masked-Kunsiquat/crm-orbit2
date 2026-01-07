@@ -251,7 +251,6 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
           value={name}
           onChangeText={handleNameChange}
           placeholder={t("organizations.form.namePlaceholder")}
-          autoFocus
         />
       </FormField>
 

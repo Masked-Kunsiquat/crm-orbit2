@@ -16,6 +16,7 @@ import { DEFAULT_SETTINGS } from "@domains/settings";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
+import { t } from "@i18n/index";
 import {
   getEntitiesForInteraction,
   getEntitiesForNote,
@@ -133,6 +134,23 @@ export const __internal_updateCrmDoc = (doc: AutomergeDoc): void => {
 // PUBLIC READ-ONLY SELECTOR HOOKS
 // These are the only way external components can access store state
 // ============================================================================
+
+export type OrganizationsLandingLabels = {
+  accountsLabel: string;
+  accountsSubtitle: string;
+  organizationsLabel: string;
+  organizationsSubtitle: string;
+};
+
+export const useOrganizationsLandingLabels = (): OrganizationsLandingLabels => {
+  const selector = (_state: CrmStoreState) => ({
+    accountsLabel: t("accounts.title"),
+    accountsSubtitle: t("accounts.view_and_manage_all"),
+    organizationsLabel: t("organizations.title"),
+    organizationsSubtitle: t("organizations.view_and_manage_all"),
+  });
+  return crmStore(useShallow(selector));
+};
 
 export const useOrganizations = (): Organization[] => {
   const selector = (state: CrmStoreState) =>

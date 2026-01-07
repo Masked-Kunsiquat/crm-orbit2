@@ -48,6 +48,31 @@ export const getAuditStartTimestamp = (audit: Audit): string | undefined => {
   return audit.scheduledFor ?? audit.occurredAt;
 };
 
+const formatScoreValue = (score: number): string => {
+  const fixed = score.toFixed(2);
+  if (fixed.endsWith(".00")) {
+    return fixed.slice(0, -3);
+  }
+  if (fixed.endsWith("0")) {
+    return fixed.slice(0, -1);
+  }
+  return fixed;
+};
+
+export const formatAuditScore = (score?: number): string | undefined => {
+  if (score === undefined || Number.isNaN(score)) {
+    return undefined;
+  }
+  return `${formatScoreValue(score)}%`;
+};
+
+export const formatAuditScoreInput = (score?: number): string => {
+  if (score === undefined || Number.isNaN(score)) {
+    return "";
+  }
+  return formatScoreValue(score);
+};
+
 export const getAuditEndTimestamp = (audit: Audit): string | undefined => {
   const start = getAuditStartTimestamp(audit);
   if (!start || !audit.durationMinutes) {
