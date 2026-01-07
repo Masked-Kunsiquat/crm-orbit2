@@ -4,6 +4,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { OrganizationsStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
 import { useTheme } from "../../hooks";
+import { t } from "@i18n/index";
 import {
   useAccounts,
   useOrganizations,
@@ -17,10 +18,10 @@ export const OrganizationsLandingScreen = ({ navigation }: Props) => {
   const accounts = useAccounts();
   const organizations = useOrganizations();
   const {
-    accountsLabel,
-    accountsSubtitle,
-    organizationsLabel,
-    organizationsSubtitle,
+    accountsLabelKey,
+    accountsSubtitleKey,
+    organizationsLabelKey,
+    organizationsSubtitleKey,
   } = useOrganizationsLandingLabels();
 
   const handleAccountsPress = () => {
@@ -44,10 +45,10 @@ export const OrganizationsLandingScreen = ({ navigation }: Props) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {accountsLabel}
+              {t(accountsLabelKey)}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {accountsSubtitle}
+              {t(accountsSubtitleKey)}
             </Text>
           </View>
           <View style={styles.countBadge}>
@@ -69,10 +70,10 @@ export const OrganizationsLandingScreen = ({ navigation }: Props) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {organizationsLabel}
+              {t(organizationsLabelKey)}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {organizationsSubtitle}
+              {t(organizationsSubtitleKey)}
             </Text>
           </View>
           <View style={styles.countBadge}>

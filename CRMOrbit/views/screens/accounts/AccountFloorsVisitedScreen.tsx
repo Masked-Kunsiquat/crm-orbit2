@@ -14,6 +14,7 @@ import {
   buildFloorsVisitedMatrix,
 } from "../../components";
 import { useTheme } from "../../hooks";
+import { t } from "@i18n/index";
 
 type Props = AccountsStackScreenProps<"AccountFloorsVisited">;
 
@@ -22,7 +23,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
   const account = useAccount(accountId);
   const audits = useAuditsByAccount(accountId);
   const { colors } = useTheme();
-  const { notFound, floorsVisitedTitle, emptyTitle } =
+  const { notFoundKey, floorsVisitedTitleKey, emptyTitleKey } =
     useAccountFloorsVisitedLabels();
 
   const floorsMatrix = useMemo(() => {
@@ -39,7 +40,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
     return (
       <DetailScreenLayout>
         <Text style={[styles.errorText, { color: colors.error }]}>
-          {notFound}
+          {t(notFoundKey)}
         </Text>
       </DetailScreenLayout>
     );
@@ -47,7 +48,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
 
   return (
     <DetailScreenLayout>
-      <Section title={floorsVisitedTitle}>
+      <Section title={t(floorsVisitedTitleKey)}>
         <Text style={[styles.accountName, { color: colors.textPrimary }]}>
           {account.name}
         </Text>
@@ -55,7 +56,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
           <FloorsVisitedMatrix data={floorsMatrix} variant="full" />
         ) : (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {emptyTitle}
+            {t(emptyTitleKey)}
           </Text>
         )}
       </Section>

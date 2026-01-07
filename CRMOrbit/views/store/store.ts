@@ -16,7 +16,6 @@ import { DEFAULT_SETTINGS } from "@domains/settings";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
-import { t } from "@i18n/index";
 import {
   getEntitiesForInteraction,
   getEntitiesForNote,
@@ -136,33 +135,33 @@ export const __internal_updateCrmDoc = (doc: AutomergeDoc): void => {
 // ============================================================================
 
 export type OrganizationsLandingLabels = {
-  accountsLabel: string;
-  accountsSubtitle: string;
-  organizationsLabel: string;
-  organizationsSubtitle: string;
+  accountsLabelKey: string;
+  accountsSubtitleKey: string;
+  organizationsLabelKey: string;
+  organizationsSubtitleKey: string;
 };
 
 export type AccountFloorsVisitedLabels = {
-  notFound: string;
-  floorsVisitedTitle: string;
-  emptyTitle: string;
+  notFoundKey: string;
+  floorsVisitedTitleKey: string;
+  emptyTitleKey: string;
 };
 
 export const useOrganizationsLandingLabels = (): OrganizationsLandingLabels => {
   const selector = (_state: CrmStoreState) => ({
-    accountsLabel: t("accounts.title"),
-    accountsSubtitle: t("accounts.view_and_manage_all"),
-    organizationsLabel: t("organizations.title"),
-    organizationsSubtitle: t("organizations.view_and_manage_all"),
+    accountsLabelKey: "accounts.title",
+    accountsSubtitleKey: "accounts.view_and_manage_all",
+    organizationsLabelKey: "organizations.title",
+    organizationsSubtitleKey: "organizations.view_and_manage_all",
   });
   return crmStore(useShallow(selector));
 };
 
 export const useAccountFloorsVisitedLabels = (): AccountFloorsVisitedLabels => {
   const selector = (_state: CrmStoreState) => ({
-    notFound: t("accounts.notFound"),
-    floorsVisitedTitle: t("audits.fields.floorsVisited"),
-    emptyTitle: t("audits.emptyTitle"),
+    notFoundKey: "accounts.notFound",
+    floorsVisitedTitleKey: "audits.fields.floorsVisited",
+    emptyTitleKey: "audits.emptyTitle",
   });
   return crmStore(useShallow(selector));
 };
