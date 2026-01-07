@@ -1,7 +1,7 @@
 import { FlatList, Pressable, StyleSheet, Text } from "react-native";
 import { useLayoutEffect, useMemo, useRef } from "react";
 
-import type { OrganizationsStackScreenProps } from "../../navigation/types";
+import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccounts, useOrganizations } from "../../store/store";
 import type { Account } from "../../../domains/account";
 import { t } from "@i18n/index";
@@ -14,7 +14,7 @@ import {
 } from "../../components";
 import { useHeaderMenu, useInactiveFilter, useTheme } from "../../hooks";
 
-type Props = OrganizationsStackScreenProps<"AccountsList">;
+type Props = AccountsStackScreenProps<"AccountsList">;
 
 export const AccountsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
