@@ -28,21 +28,31 @@ const normalizePhoneNumber = (
 const buildPhoneDialerUrl = (
   phoneNumber: string,
   extensionOverride?: string,
-): { url: string; fallbackUrl?: string } => {
+): {
+  url: string;
+  fallbackUrl?: string;
+  number: string;
+  extension?: string;
+} => {
   const { number, extension } = normalizePhoneNumber(
     phoneNumber,
     extensionOverride,
   );
   if (!number) {
-    return { url: "" };
+    return { url: "", number: "", extension };
   }
 
   const baseUrl = `tel:${number}`;
   if (extension) {
-    return { url: `${baseUrl};ext=${extension}`, fallbackUrl: baseUrl };
+    return {
+      url: `${baseUrl},${extension}`,
+      fallbackUrl: `${baseUrl};ext=${extension}`,
+      number,
+      extension,
+    };
   }
 
-  return { url: baseUrl };
+  return { url: baseUrl, number, extension };
 };
 
 export const normalizeWebUrl = (value: string): string | null => {
