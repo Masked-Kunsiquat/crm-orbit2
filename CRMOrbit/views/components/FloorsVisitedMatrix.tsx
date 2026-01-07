@@ -28,8 +28,8 @@ type BuildMatrixOptions = {
 };
 
 const CELL_SIZE = 18;
-const CELL_GAP = 6;
 const LABEL_WIDTH = 36;
+const GRID_LINE_WIDTH = 1;
 
 const normalizeFloor = (value: number): number | null => {
   if (!Number.isFinite(value)) return null;
@@ -159,20 +159,35 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
   return (
     <View style={styles.matrixContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View>
-          <View style={styles.headerRow}>
-            <View style={styles.labelSpacer} />
-            {visits.map((visit) => (
+        <View
+          style={[styles.grid, { borderColor: colors.border }]}
+        >
+          <View style={styles.row}>
+            <View
+              style={[
+                styles.headerCell,
+                styles.labelHeaderCell,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                  borderBottomWidth: GRID_LINE_WIDTH,
+                },
+              ]}
+            />
+            {visits.map((visit, index) => (
               <View
                 key={visit.id}
                 style={[
                   styles.headerCell,
                   {
-                    borderColor: visit.isCurrent
-                      ? colors.accent
-                      : colors.border,
+                    backgroundColor: visit.isCurrent
+                      ? colors.accentMuted
+                      : colors.surfaceElevated,
+                    borderRightWidth:
+                      index === visits.length - 1 ? 0 : GRID_LINE_WIDTH,
+                    borderBottomWidth: GRID_LINE_WIDTH,
+                    borderColor: colors.border,
                   },
-                  visit.isCurrent && { backgroundColor: colors.accentMuted },
                 ]}
               >
                 <Text style={headerTextStyle}>{visit.label}</Text>
@@ -180,12 +195,22 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
             ))}
           </View>
 
-          {floors.map((floor) => (
+          {floors.map((floor, rowIndex) => (
             <View key={floor} style={styles.row}>
-              <View style={styles.labelCell}>
+              <View
+                style={[
+                  styles.labelCell,
+                  {
+                    backgroundColor: colors.surfaceElevated,
+                    borderBottomWidth:
+                      rowIndex === floors.length - 1 ? 0 : GRID_LINE_WIDTH,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
                 <Text style={labelTextStyle}>{floor}</Text>
               </View>
-              {visits.map((visit) => {
+              {visits.map((visit, colIndex) => {
                 const isExcluded = excludedFloors.has(floor);
                 const isVisited = visit.visited.has(floor);
                 return (
@@ -194,16 +219,18 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
                     style={[
                       styles.cell,
                       {
-                        borderColor: colors.border,
                         backgroundColor: colors.surface,
+                        borderBottomWidth:
+                          rowIndex === floors.length - 1 ? 0 : GRID_LINE_WIDTH,
+                        borderRightWidth:
+                          colIndex === visits.length - 1 ? 0 : GRID_LINE_WIDTH,
+                        borderColor: colors.border,
                       },
                       isExcluded && {
                         backgroundColor: colors.borderLight,
-                        borderColor: colors.border,
                       },
                       isVisited && {
                         backgroundColor: colors.success,
-                        borderColor: colors.success,
                       },
                     ]}
                   />
@@ -221,23 +248,25 @@ const styles = StyleSheet.create({
   matrixContainer: {
     marginTop: 8,
   },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: CELL_GAP,
+  grid: {
+    borderWidth: GRID_LINE_WIDTH,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
   },
-  labelSpacer: {
+  labelHeaderCell: {
     width: LABEL_WIDTH,
-    marginRight: CELL_GAP,
+    height: CELL_SIZE,
+    borderRightWidth: GRID_LINE_WIDTH,
   },
   labelCell: {
     width: LABEL_WIDTH,
-    marginRight: CELL_GAP,
+    height: CELL_SIZE,
     alignItems: "flex-end",
+    justifyContent: "center",
+    paddingRight: 6,
+    borderRightWidth: GRID_LINE_WIDTH,
   },
   labelText: {
     fontSize: 12,
@@ -246,9 +275,6 @@ const styles = StyleSheet.create({
   headerCell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    marginRight: CELL_GAP,
-    borderRadius: 4,
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -259,9 +285,5 @@ const styles = StyleSheet.create({
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    marginRight: CELL_GAP,
-    marginBottom: CELL_GAP,
-    borderRadius: 4,
-    borderWidth: 1,
   },
 });
