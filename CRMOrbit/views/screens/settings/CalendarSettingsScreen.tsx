@@ -431,7 +431,15 @@ export const CalendarSettingsScreen = () => {
   }, [buildCalendarEvents, calendarName, permission?.granted, syncStatus]);
 
   const handleRequestPermission = useCallback(async () => {
-    await requestPermission();
+    try {
+      await requestPermission();
+    } catch (error) {
+      setSyncStatus("error");
+      setSyncMessage(t("calendar.sync.error"));
+      if (__DEV__) {
+        console.error("Failed to request calendar permission.", error);
+      }
+    }
   }, [requestPermission]);
 
   const handleOpenSettings = useCallback(() => {
