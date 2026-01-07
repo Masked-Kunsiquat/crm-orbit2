@@ -139,6 +139,7 @@ export const CalendarSettingsScreen = () => {
     DEFAULT_DEVICE_CALENDAR_NAME,
   );
   const [calendarId, setCalendarId] = useState<string | null>(null);
+  const [calendarError, setCalendarError] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<string | null>(null);
@@ -239,9 +240,15 @@ export const CalendarSettingsScreen = () => {
         const id = await ensureDeviceCalendar(nextName);
         if (mounted) {
           setCalendarId(id);
+          setCalendarError(null);
         }
-      } catch {
-        // Calendar creation failed silently.
+      } catch (error) {
+        if (mounted) {
+          setCalendarError(t("calendar.sync.error"));
+        }
+        if (__DEV__) {
+          console.error("Failed to ensure device calendar.", error);
+        }
       }
     };
     void ensureCalendar();
@@ -551,6 +558,11 @@ export const CalendarSettingsScreen = () => {
                 ]}
               >
                 {syncMessage}
+              </Text>
+            ) : null}
+            {calendarError ? (
+              <Text style={[styles.syncHint, { color: colors.error }]}>
+                {calendarError}
               </Text>
             ) : null}
             <Text style={[styles.syncHint, { color: colors.textMuted }]}>
