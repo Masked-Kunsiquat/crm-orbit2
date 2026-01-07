@@ -118,8 +118,7 @@ export const buildFloorsVisitedMatrix = ({
   const selectedAudits = selectAudits(audits, currentAuditId, maxVisits);
   if (selectedAudits.length === 0) return null;
   const orderedAudits = [...selectedAudits].sort(
-    (left, right) =>
-      getAuditSortTimestamp(left) - getAuditSortTimestamp(right),
+    (left, right) => getAuditSortTimestamp(left) - getAuditSortTimestamp(right),
   );
 
   const derivedFloors = new Set<number>();
@@ -370,6 +369,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  cell: {
-  },
+  cell: {},
 });

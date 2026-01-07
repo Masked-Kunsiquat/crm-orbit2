@@ -78,7 +78,10 @@ export const AuditsSection = ({
             style={[
               styles.iconButton,
               styles.iconButtonSecondary,
-              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+              {
+                backgroundColor: colors.surfaceElevated,
+                borderColor: colors.border,
+              },
             ]}
             onPress={() =>
               navigation.navigate("AccountFloorsVisited", {

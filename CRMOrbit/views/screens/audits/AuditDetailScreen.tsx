@@ -55,6 +55,18 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
+  const floorsMatrix = useMemo(() => {
+    if (!audit) {
+      return null;
+    }
+    return buildFloorsVisitedMatrix({
+      audits: auditsForAccount,
+      account: account,
+      currentAuditId: audit.id,
+      maxVisits: 3,
+    });
+  }, [account, audit, auditsForAccount]);
+
   if (!audit) {
     return (
       <DetailScreenLayout>
@@ -95,16 +107,6 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
     audit.floorsVisited && audit.floorsVisited.length > 0
       ? audit.floorsVisited.join(", ")
       : null;
-  const floorsMatrix = useMemo(
-    () =>
-      buildFloorsVisitedMatrix({
-        audits: auditsForAccount,
-        account: account,
-        currentAuditId: audit.id,
-        maxVisits: 3,
-      }),
-    [account, audit.id, auditsForAccount],
-  );
   const hasFloorsMatrix = Boolean(floorsMatrix);
   const status = resolveAuditStatus(audit);
   const startTimestamp = getAuditStartTimestamp(audit);

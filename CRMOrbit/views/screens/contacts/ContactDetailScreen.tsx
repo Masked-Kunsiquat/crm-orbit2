@@ -348,9 +348,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                             void openPhoneDialer(
                               phone.value,
                               phone.extension,
-                            ).catch(
-                              handleLinkingError,
-                            );
+                            ).catch(handleLinkingError);
                           }}
                           style={styles.actionIcon}
                         >
@@ -498,8 +496,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {t("contacts.sections.linkedAccounts")} (
-                {linkedAccounts.length})
+                {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length}
+                )
               </Text>
               <TouchableOpacity
                 onPress={() => setShowAccountsModal(false)}
@@ -513,8 +511,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => {
                 const relation = Object.values(accountContactRelations).find(
-                  (r) =>
-                    r.accountId === item.id && r.contactId === contactId,
+                  (r) => r.accountId === item.id && r.contactId === contactId,
                 );
                 return (
                   <TouchableOpacity

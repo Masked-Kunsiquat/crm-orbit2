@@ -39,10 +39,9 @@ export const ContactCardRow = ({ contact, onPress }: ContactCardRowProps) => {
   const handlePhoneCall = (e: React.BaseSyntheticEvent) => {
     e.stopPropagation();
     if (primaryPhone) {
-      void openPhoneDialer(
-        primaryPhone.value,
-        primaryPhone.extension,
-      ).catch(handleLinkingError);
+      void openPhoneDialer(primaryPhone.value, primaryPhone.extension).catch(
+        handleLinkingError,
+      );
     }
   };
 

@@ -46,9 +46,7 @@ export const MethodListEditor = ({
 }: MethodListEditorProps) => {
   const { colors } = useTheme();
   const showLabelEditor = Boolean(labelOptions && onLabelChange);
-  const showSecondaryInput = Boolean(
-    secondaryPlaceholder && onSecondaryChange,
-  );
+  const showSecondaryInput = Boolean(secondaryPlaceholder && onSecondaryChange);
 
   return (
     <FormField

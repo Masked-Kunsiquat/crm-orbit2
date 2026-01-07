@@ -20,6 +20,16 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
   const audits = useAuditsByAccount(accountId);
   const { colors } = useTheme();
 
+  const floorsMatrix = useMemo(() => {
+    if (!account) {
+      return null;
+    }
+    return buildFloorsVisitedMatrix({
+      audits,
+      account,
+    });
+  }, [account, audits]);
+
   if (!account) {
     return (
       <DetailScreenLayout>
@@ -29,15 +39,6 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
       </DetailScreenLayout>
     );
   }
-
-  const floorsMatrix = useMemo(
-    () =>
-      buildFloorsVisitedMatrix({
-        audits,
-        account,
-      }),
-    [account, audits],
-  );
 
   return (
     <DetailScreenLayout>

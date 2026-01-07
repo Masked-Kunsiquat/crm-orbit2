@@ -88,8 +88,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
     const formatPhoneMethods = (methods: ContactMethod[]) =>
       ensureMethodIds(methods).map((method) => {
         const parsed = parsePhoneNumber(method.value);
-        const extension =
-          method.extension?.trim() || parsed.extension || "";
+        const extension = method.extension?.trim() || parsed.extension || "";
         return {
           ...method,
           value: formatPhoneNumber(parsed.base),
