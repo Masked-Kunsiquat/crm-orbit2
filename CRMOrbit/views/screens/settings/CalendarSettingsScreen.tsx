@@ -146,10 +146,9 @@ export const CalendarSettingsScreen = () => {
   const [auditAlarmOffset, setAuditAlarmOffset] = useState(
     `${DEFAULT_AUDIT_ALARM_OFFSET_MINUTES}`,
   );
-  const [auditAlarmPreset, setAuditAlarmPreset] =
-    useState<AuditAlarmOption>(
-      resolveAlarmPreset(DEFAULT_AUDIT_ALARM_OFFSET_MINUTES),
-    );
+  const [auditAlarmPreset, setAuditAlarmPreset] = useState<AuditAlarmOption>(
+    resolveAlarmPreset(DEFAULT_AUDIT_ALARM_OFFSET_MINUTES),
+  );
   const [auditAlarmMessage, setAuditAlarmMessage] = useState<string | null>(
     null,
   );
@@ -197,17 +196,13 @@ export const CalendarSettingsScreen = () => {
     let mounted = true;
     const loadSettings = async () => {
       try {
-        const [
-          storedName,
-          storedId,
-          storedLastSync,
-          storedAlarmOffset,
-        ] = await Promise.all([
-          getStoredCalendarName(),
-          getStoredCalendarId(),
-          getLastCalendarSync(),
-          getStoredAuditAlarmOffsetMinutes(),
-        ]);
+        const [storedName, storedId, storedLastSync, storedAlarmOffset] =
+          await Promise.all([
+            getStoredCalendarName(),
+            getStoredCalendarId(),
+            getLastCalendarSync(),
+            getStoredAuditAlarmOffsetMinutes(),
+          ]);
         if (mounted) {
           setCalendarName(storedName);
           setCalendarId(storedId);
@@ -451,70 +446,72 @@ export const CalendarSettingsScreen = () => {
             </Text>
           </View>
         ) : permission?.granted ? (
-        <>
-          <FormField label={t("calendar.sync.nameLabel")}>
-            <TextField
-              value={calendarName}
-              onChangeText={setCalendarName}
-              placeholder={DEFAULT_DEVICE_CALENDAR_NAME}
-              autoCapitalize="words"
-            />
-          </FormField>
-          <FormField
-            label={t("calendar.sync.auditAlarmLabel")}
-            hint={t("calendar.sync.auditAlarmHint")}
-          >
-            <SegmentedOptionGroup
-              options={alarmOptions}
-              value={auditAlarmPreset}
-              onChange={handleAlarmPresetChange}
-            />
-            <View style={styles.alarmInputRow}>
+          <>
+            <FormField label={t("calendar.sync.nameLabel")}>
               <TextField
-                value={auditAlarmOffset}
-                onChangeText={handleAlarmOffsetChange}
-                placeholder={t("calendar.sync.auditAlarmPlaceholder")}
-                keyboardType="number-pad"
-                style={styles.alarmInput}
+                value={calendarName}
+                onChangeText={setCalendarName}
+                placeholder={DEFAULT_DEVICE_CALENDAR_NAME}
+                autoCapitalize="words"
               />
-              <Text style={[styles.alarmUnit, { color: colors.textSecondary }]}>
-                {t("common.duration.minutesLabel")}
-              </Text>
-            </View>
-            <View style={styles.alarmActions}>
+            </FormField>
+            <FormField
+              label={t("calendar.sync.auditAlarmLabel")}
+              hint={t("calendar.sync.auditAlarmHint")}
+            >
+              <SegmentedOptionGroup
+                options={alarmOptions}
+                value={auditAlarmPreset}
+                onChange={handleAlarmPresetChange}
+              />
+              <View style={styles.alarmInputRow}>
+                <TextField
+                  value={auditAlarmOffset}
+                  onChangeText={handleAlarmOffsetChange}
+                  placeholder={t("calendar.sync.auditAlarmPlaceholder")}
+                  keyboardType="number-pad"
+                  style={styles.alarmInput}
+                />
+                <Text
+                  style={[styles.alarmUnit, { color: colors.textSecondary }]}
+                >
+                  {t("common.duration.minutesLabel")}
+                </Text>
+              </View>
+              <View style={styles.alarmActions}>
+                <ActionButton
+                  label={
+                    isSavingAlarm
+                      ? t("calendar.sync.auditAlarmSaving")
+                      : t("calendar.sync.auditAlarmSave")
+                  }
+                  onPress={handleSaveAuditAlarm}
+                  tone="link"
+                  size="compact"
+                  disabled={isSavingAlarm}
+                />
+              </View>
+              {auditAlarmMessage ? (
+                <Text
+                  style={[
+                    styles.syncHint,
+                    {
+                      color:
+                        auditAlarmStatus === "error"
+                          ? colors.error
+                          : colors.textMuted,
+                    },
+                  ]}
+                >
+                  {auditAlarmMessage}
+                </Text>
+              ) : null}
+            </FormField>
+            <View style={styles.syncActions}>
               <ActionButton
                 label={
-                  isSavingAlarm
-                    ? t("calendar.sync.auditAlarmSaving")
-                    : t("calendar.sync.auditAlarmSave")
-                }
-                onPress={handleSaveAuditAlarm}
-                tone="link"
-                size="compact"
-                disabled={isSavingAlarm}
-              />
-            </View>
-            {auditAlarmMessage ? (
-              <Text
-                style={[
-                  styles.syncHint,
-                  {
-                    color:
-                      auditAlarmStatus === "error"
-                        ? colors.error
-                        : colors.textMuted,
-                  },
-                ]}
-              >
-                {auditAlarmMessage}
-              </Text>
-            ) : null}
-          </FormField>
-          <View style={styles.syncActions}>
-            <ActionButton
-              label={
-                isSavingName
-                  ? t("calendar.sync.savingName")
+                  isSavingName
+                    ? t("calendar.sync.savingName")
                     : t("calendar.sync.saveName")
                 }
                 onPress={handleSaveCalendarName}
@@ -536,7 +533,9 @@ export const CalendarSettingsScreen = () => {
             {syncStatus === "syncing" ? (
               <View style={styles.syncStatusRow}>
                 <ActivityIndicator size="small" color={colors.accent} />
-                <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.syncHint, { color: colors.textSecondary }]}
+                >
                   {t("calendar.sync.syncingHint")}
                 </Text>
               </View>

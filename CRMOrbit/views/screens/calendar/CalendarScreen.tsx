@@ -5,13 +5,13 @@ import { AntDesign, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import type { Audit } from "@domains/audit";
 import type { Interaction } from "@domains/interaction";
 import { t } from "@i18n/index";
-import {
-  ListRow,
-  ListScreenLayout,
-  StatusBadge,
-} from "../../components";
+import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
 import { useTheme } from "../../hooks";
-import { useAccounts, useAllAudits, useAllInteractions } from "../../store/store";
+import {
+  useAccounts,
+  useAllAudits,
+  useAllInteractions,
+} from "../../store/store";
 import type { EventsStackScreenProps } from "../../navigation/types";
 import {
   getAuditEndTimestamp,

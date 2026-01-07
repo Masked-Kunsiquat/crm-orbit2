@@ -142,16 +142,15 @@ export type OrganizationsLandingLabels = {
   organizationsSubtitle: string;
 };
 
-export const useOrganizationsLandingLabels =
-  (): OrganizationsLandingLabels => {
-    const selector = (_state: CrmStoreState) => ({
-      accountsLabel: t("accounts.title"),
-      accountsSubtitle: t("accounts.view_and_manage_all"),
-      organizationsLabel: t("organizations.title"),
-      organizationsSubtitle: t("organizations.view_and_manage_all"),
-    });
-    return crmStore(useShallow(selector));
-  };
+export const useOrganizationsLandingLabels = (): OrganizationsLandingLabels => {
+  const selector = (_state: CrmStoreState) => ({
+    accountsLabel: t("accounts.title"),
+    accountsSubtitle: t("accounts.view_and_manage_all"),
+    organizationsLabel: t("organizations.title"),
+    organizationsSubtitle: t("organizations.view_and_manage_all"),
+  });
+  return crmStore(useShallow(selector));
+};
 
 export const useOrganizations = (): Organization[] => {
   const selector = (state: CrmStoreState) =>

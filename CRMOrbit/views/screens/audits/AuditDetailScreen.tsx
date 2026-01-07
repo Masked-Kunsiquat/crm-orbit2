@@ -153,7 +153,9 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
               </Text>
             </TouchableOpacity>
             <View style={styles.statusRow}>
-              <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.statusLabel, { color: colors.textSecondary }]}
+              >
                 {t("audits.fields.status")}
               </Text>
               <StatusBadge
@@ -194,17 +196,17 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
 
       {floorsVisited || audit.notes ? (
         <Section>
-        {floorsVisited ? (
-          <DetailField label={t("audits.fields.floorsVisited")}>
-            {floorsVisited}
-          </DetailField>
-        ) : null}
+          {floorsVisited ? (
+            <DetailField label={t("audits.fields.floorsVisited")}>
+              {floorsVisited}
+            </DetailField>
+          ) : null}
 
-        {audit.notes ? (
-          <DetailField label={t("audits.fields.notes")}>
-            {audit.notes}
-          </DetailField>
-        ) : null}
+          {audit.notes ? (
+            <DetailField label={t("audits.fields.notes")}>
+              {audit.notes}
+            </DetailField>
+          ) : null}
         </Section>
       ) : null}
 
