@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type NativeMethods,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
@@ -32,8 +33,10 @@ export const FormScreenLayout = ({
       globalThis.requestAnimationFrame ??
       ((cb: () => void) => globalThis.setTimeout(cb, 0));
     schedule(() => {
+      const relativeTo =
+        contentRef.current as unknown as number | NativeMethods;
       inputRef.measureLayout(
-        contentRef.current,
+        relativeTo,
         (_x, y) => {
           scrollRef.current?.scrollTo({
             y: Math.max(0, y - 24),
