@@ -16,8 +16,10 @@ import { useAccountActions, useDeviceId } from "../../hooks";
 import type {
   Address,
   AccountAddresses,
+  AccountAuditFrequency,
   SocialMediaLinks,
 } from "@domains/account";
+import { DEFAULT_ACCOUNT_AUDIT_FREQUENCY } from "@domains/account.utils";
 import { useTheme } from "../../hooks/useTheme";
 import {
   AddressFields,
@@ -52,6 +54,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [status, setStatus] = useState<
     "account.status.active" | "account.status.inactive"
   >("account.status.active");
+  const [auditFrequency, setAuditFrequency] = useState<AccountAuditFrequency>(
+    DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+  );
   const [siteAddress, setSiteAddress] = useState<Address>({
     street: "",
     city: "",
@@ -77,6 +82,24 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     { value: "account.status.active", label: t("status.active") },
     { value: "account.status.inactive", label: t("status.inactive") },
   ] as const;
+  const auditFrequencyOptions = [
+    {
+      value: "account.auditFrequency.monthly",
+      label: t("account.auditFrequency.monthly"),
+    },
+    {
+      value: "account.auditFrequency.bimonthly",
+      label: t("account.auditFrequency.bimonthly"),
+    },
+    {
+      value: "account.auditFrequency.quarterly",
+      label: t("account.auditFrequency.quarterly"),
+    },
+    {
+      value: "account.auditFrequency.triannually",
+      label: t("account.auditFrequency.triannually"),
+    },
+  ] as const;
 
   useEffect(() => {
     if (!accountId && prefillOrganizationId) {
@@ -96,6 +119,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setName(account.name);
         setOrganizationId(account.organizationId);
         setStatus(account.status);
+        setAuditFrequency(
+          account.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+        );
         setSiteAddress(
           account.addresses?.site ?? {
             street: "",
@@ -131,6 +157,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setName("");
         setOrganizationId(organizations[0]?.id ?? "");
         setStatus("account.status.active");
+        setAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
         setSiteAddress({ street: "", city: "", state: "", zipCode: "" });
         setParkingAddress({ street: "", city: "", state: "", zipCode: "" });
         setUseSameForParking(false);
@@ -151,6 +178,10 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     value: "account.status.active" | "account.status.inactive",
   ) => {
     setStatus(value);
+  };
+
+  const handleAuditFrequencyChange = (value: AccountAuditFrequency) => {
+    setAuditFrequency(value);
   };
 
   const handleSiteAddressChange = (field: keyof Address, value: string) => {
@@ -350,6 +381,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         minFloorParsed,
         maxFloorParsed,
         excludedFloorsParsed,
+        auditFrequency,
         account ?? undefined,
       );
       if (result.success) {
@@ -372,6 +404,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         minFloorParsed,
         maxFloorParsed,
         excludedFloorsParsed,
+        auditFrequency,
       );
       if (result.success) {
         navigation.goBack();
@@ -434,6 +467,14 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           options={statusOptions}
           value={status}
           onChange={handleStatusChange}
+        />
+      </FormField>
+
+      <FormField label={t("accounts.fields.auditFrequency")}>
+        <SegmentedOptionGroup
+          options={auditFrequencyOptions}
+          value={auditFrequency}
+          onChange={handleAuditFrequencyChange}
         />
       </FormField>
 

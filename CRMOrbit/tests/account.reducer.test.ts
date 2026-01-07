@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { initAutomergeDoc } from "@automerge/init";
+import { DEFAULT_ACCOUNT_AUDIT_FREQUENCY } from "@domains/account.utils";
 import { accountReducer } from "@reducers/account.reducer";
 import { organizationReducer } from "@reducers/organization.reducer";
 import type { Event } from "@events/event";
@@ -47,6 +48,8 @@ test("account.created adds a new account linked to an organization", () => {
   assert.equal(account.organizationId, "org-1");
   assert.equal(account.name, "ACME Retail");
   assert.equal(account.status, "account.status.active");
+  assert.equal(account.auditFrequency, DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
+  assert.equal(account.auditFrequencyUpdatedAt, event.timestamp);
   assert.equal(account.createdAt, event.timestamp);
   assert.equal(account.updatedAt, event.timestamp);
 });
@@ -145,6 +148,40 @@ test("account.status.updated rejects missing accounts", () => {
   assert.throws(() => accountReducer(doc, updated), {
     message: "Account not found: acct-1",
   });
+});
+
+test("account.updated records audit frequency changes", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      auditFrequency: "account.auditFrequency.quarterly",
+    },
+    timestamp: "2024-02-15T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.auditFrequency, "account.auditFrequency.quarterly");
+  assert.equal(account.auditFrequencyUpdatedAt, updated.timestamp);
 });
 
 test("account.deleted removes the account when no contacts are linked", () => {

@@ -164,6 +164,7 @@ export const detectAccountChanges = (
     minFloor?: number;
     maxFloor?: number;
     excludedFloors?: number[];
+    auditFrequency?: string;
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -191,6 +192,16 @@ export const detectAccountChanges = (
       field: "website",
       oldValue: oldWebsite,
       newValue: newWebsite,
+    });
+  }
+
+  const oldFrequency = oldAccount.auditFrequency;
+  const newFrequency = newData.auditFrequency || "";
+  if (oldFrequency !== newFrequency) {
+    changes.push({
+      field: "auditFrequency",
+      oldValue: oldFrequency,
+      newValue: newFrequency,
     });
   }
 

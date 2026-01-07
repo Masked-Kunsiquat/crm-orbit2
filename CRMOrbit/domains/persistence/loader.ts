@@ -1,6 +1,10 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { DEFAULT_SETTINGS } from "@domains/settings";
+import {
+  DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+  resolveAccountAuditFrequency,
+} from "@domains/account.utils";
 import { applyEvents } from "@events/dispatcher";
 import type { Event } from "@events/event";
 import type { PersistenceDb, EventLogRecord } from "./store";
@@ -47,6 +51,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     ({} as AutomergeDoc["relations"]["accountCodes"]);
   const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
   const existingAudits = doc.audits ?? ({} as AutomergeDoc["audits"]);
+  const existingAccounts = doc.accounts ?? ({} as AutomergeDoc["accounts"]);
 
   const normalizedAudits = Object.fromEntries(
     Object.entries(existingAudits).map(([id, audit]) => {
@@ -76,6 +81,28 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     ]),
   ) as AutomergeDoc["codes"];
 
+  const normalizedAccounts = Object.fromEntries(
+    Object.entries(existingAccounts).map(([id, account]) => {
+      const auditFrequency = resolveAccountAuditFrequency(
+        account.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+      );
+      const auditFrequencyUpdatedAt =
+        account.auditFrequencyUpdatedAt ??
+        account.createdAt ??
+        account.updatedAt ??
+        "";
+
+      return [
+        id,
+        {
+          ...account,
+          auditFrequency,
+          auditFrequencyUpdatedAt,
+        },
+      ];
+    }),
+  ) as AutomergeDoc["accounts"];
+
   const mergedLinks = legacyLinks
     ? Object.entries(legacyLinks).reduce(
         (acc, [id, link]) => {
@@ -95,6 +122,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
 
   return {
     ...doc,
+    accounts: normalizedAccounts,
     codes: normalizedCodes,
     audits: normalizedAudits,
     settings: doc.settings ?? DEFAULT_SETTINGS,

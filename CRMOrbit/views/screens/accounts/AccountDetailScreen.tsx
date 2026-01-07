@@ -434,6 +434,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
       {activeTab === "details" ? (
         <Section>
+          <DetailField label={t("accounts.fields.auditFrequency")}>
+            {t(account.auditFrequency)}
+          </DetailField>
+
           {account.website && (
             <DetailField label={t("accounts.fields.website")}>
               <TouchableOpacity
@@ -539,6 +543,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           />
           <AuditsSection
             audits={audits}
+            account={account}
             accountId={accountId}
             navigation={navigation}
           />

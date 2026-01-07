@@ -1,5 +1,6 @@
 import type {
   Account,
+  AccountAuditFrequency,
   AccountStatus,
   AccountAddresses,
   SocialMediaLinks,
@@ -9,6 +10,11 @@ import type { Event } from "../events/event";
 import type { EntityId } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
 import { createLogger } from "../utils/logger";
+import {
+  DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+  isAccountAuditFrequency,
+  resolveAccountAuditFrequency,
+} from "../domains/account.utils";
 
 const logger = createLogger("AccountReducer");
 
@@ -17,6 +23,7 @@ type AccountCreatedPayload = {
   organizationId: EntityId;
   name: string;
   status: AccountStatus;
+  auditFrequency?: AccountAuditFrequency;
   addresses?: AccountAddresses;
   minFloor?: number;
   maxFloor?: number;
@@ -35,6 +42,7 @@ type AccountUpdatedPayload = {
   id?: EntityId;
   name?: string;
   status?: AccountStatus;
+  auditFrequency?: AccountAuditFrequency;
   organizationId?: EntityId;
   addresses?: AccountAddresses;
   minFloor?: number;
@@ -119,12 +127,24 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     payload.maxFloor,
     payload.excludedFloors,
   );
+  if (
+    payload.auditFrequency !== undefined &&
+    !isAccountAuditFrequency(payload.auditFrequency)
+  ) {
+    throw new Error("Invalid account audit frequency.");
+  }
+
+  const auditFrequency =
+    payload.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY;
+  const frequencyUpdatedAt = event.timestamp;
 
   const account: Account = {
     id,
     organizationId: payload.organizationId,
     name: payload.name,
     status: payload.status,
+    auditFrequency,
+    auditFrequencyUpdatedAt: frequencyUpdatedAt,
     addresses: payload.addresses,
     minFloor: payload.minFloor,
     maxFloor: payload.maxFloor,
@@ -205,6 +225,32 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
 
   assertValidFloorConfig(nextMinFloor, nextMaxFloor, nextExcludedFloors);
 
+  if (
+    payload.auditFrequency !== undefined &&
+    !isAccountAuditFrequency(payload.auditFrequency)
+  ) {
+    throw new Error("Invalid account audit frequency.");
+  }
+
+  const existingFrequency = resolveAccountAuditFrequency(
+    existing.auditFrequency,
+  );
+  const nextFrequency =
+    payload.auditFrequency !== undefined
+      ? payload.auditFrequency
+      : existingFrequency;
+  const frequencyChanged =
+    payload.auditFrequency !== undefined &&
+    payload.auditFrequency !== existingFrequency;
+  const shouldSetFrequency =
+    payload.auditFrequency !== undefined ||
+    existing.auditFrequency === undefined;
+  const shouldSetFrequencyUpdatedAt =
+    frequencyChanged || existing.auditFrequencyUpdatedAt === undefined;
+  const nextFrequencyUpdatedAt = frequencyChanged
+    ? event.timestamp
+    : (existing.auditFrequencyUpdatedAt ?? existing.createdAt);
+
   logger.debug("Updating account", { id, updates: payload });
 
   return {
@@ -215,6 +261,10 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         ...existing,
         ...(payload.name !== undefined && { name: payload.name }),
         ...(payload.status !== undefined && { status: payload.status }),
+        ...(shouldSetFrequency && { auditFrequency: nextFrequency }),
+        ...(shouldSetFrequencyUpdatedAt && {
+          auditFrequencyUpdatedAt: nextFrequencyUpdatedAt,
+        }),
         ...(payload.organizationId !== undefined && {
           organizationId: payload.organizationId,
         }),

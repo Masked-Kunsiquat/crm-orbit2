@@ -198,6 +198,8 @@ test("organization.deleted rejects deletion when dependent accounts exist", () =
         organizationId: "org-1" as const,
         name: "Acme Account",
         status: "account.status.active" as const,
+        auditFrequency: "account.auditFrequency.monthly" as const,
+        auditFrequencyUpdatedAt: "2024-01-15T00:00:00.000Z",
         createdAt: "2024-01-15T00:00:00.000Z",
         updatedAt: "2024-01-15T00:00:00.000Z",
       },

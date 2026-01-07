@@ -150,6 +150,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       account.minFloor,
       account.maxFloor,
       account.excludedFloors,
+      account.auditFrequency,
       account,
     );
 

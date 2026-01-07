@@ -1,6 +1,11 @@
-import type { Entity, EntityId } from "./shared/types";
+import type { Entity, EntityId, Timestamp } from "./shared/types";
 
 export type AccountStatus = "account.status.active" | "account.status.inactive";
+export type AccountAuditFrequency =
+  | "account.auditFrequency.monthly"
+  | "account.auditFrequency.bimonthly"
+  | "account.auditFrequency.quarterly"
+  | "account.auditFrequency.triannually";
 
 export interface Address {
   street: string;
@@ -26,6 +31,8 @@ export interface Account extends Entity {
   organizationId: EntityId;
   name: string;
   status: AccountStatus;
+  auditFrequency: AccountAuditFrequency;
+  auditFrequencyUpdatedAt: Timestamp;
   addresses?: AccountAddresses;
   minFloor?: number;
   maxFloor?: number;

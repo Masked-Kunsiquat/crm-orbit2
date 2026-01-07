@@ -19,6 +19,7 @@ import {
 import type { Contact, ContactMethod } from "@domains/contact";
 import { formatPhoneNumber } from "@domains/contact.utils";
 import type { Account } from "@domains/account";
+import { resolveAccountAuditFrequency } from "@domains/account.utils";
 import type { Organization } from "@domains/organization";
 import type { Note } from "@domains/note";
 import type { Interaction, InteractionStatus } from "@domains/interaction";
@@ -181,6 +182,17 @@ export const TimelineSection = ({
         typeof payload.maxFloor === "number"
           ? payload.maxFloor
           : existing?.maxFloor,
+      auditFrequency: resolveAccountAuditFrequency(
+        typeof payload.auditFrequency === "string"
+          ? payload.auditFrequency
+          : existing?.auditFrequency,
+      ),
+      auditFrequencyUpdatedAt:
+        typeof payload.auditFrequency === "string"
+          ? timestamp
+          : (existing?.auditFrequencyUpdatedAt ??
+            existing?.createdAt ??
+            timestamp),
       excludedFloors: Array.isArray(payload.excludedFloors)
         ? (payload.excludedFloors as number[])
         : existing?.excludedFloors,

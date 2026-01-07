@@ -11,6 +11,7 @@ import {
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { Audit } from "@domains/audit";
+import type { Account } from "@domains/account";
 import { t } from "@i18n/index";
 
 import { useTheme } from "../hooks";
@@ -24,9 +25,11 @@ import {
   resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../utils/audits";
+import { getAuditScheduleStatus } from "../utils/auditSchedule";
 
 type AuditsSectionProps = {
   audits: Audit[];
+  account: Account;
   accountId: string;
   navigation: {
     navigate: (screen: string, params?: Record<string, unknown>) => void;
@@ -55,6 +58,7 @@ const formatFloors = (floorsVisited?: number[]): string | null => {
 
 export const AuditsSection = ({
   audits,
+  account,
   accountId,
   navigation,
 }: AuditsSectionProps) => {
@@ -66,13 +70,34 @@ export const AuditsSection = ({
   }, [audits]);
   const visibleAudits = sortedAudits.slice(0, PREVIEW_LIMIT);
   const hasMore = sortedAudits.length > PREVIEW_LIMIT;
+  const scheduleStatus = useMemo(
+    () => getAuditScheduleStatus(account, audits),
+    [account, audits],
+  );
+  const warningLabelKey =
+    scheduleStatus?.status === "overdue"
+      ? "audits.overdue"
+      : scheduleStatus?.status === "missing"
+        ? "audits.missing"
+        : null;
+  const warningTone =
+    scheduleStatus?.status === "overdue"
+      ? "danger"
+      : scheduleStatus?.status === "missing"
+        ? "warning"
+        : null;
 
   return (
     <Section>
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("audits.title")} ({audits.length})
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            {t("audits.title")} ({audits.length})
+          </Text>
+          {warningLabelKey && warningTone ? (
+            <StatusBadge tone={warningTone} labelKey={warningLabelKey} />
+          ) : null}
+        </View>
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={[
@@ -283,6 +308,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
+  },
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+    marginRight: 8,
   },
   actionRow: {
     flexDirection: "row",
