@@ -1,7 +1,8 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { t } from "@i18n/index";
-import { useAudit, useAccount } from "../../store/store";
+import { useAudit, useAccount, useAuditsByAccount } from "../../store/store";
 import { useAuditActions } from "../../hooks/useAuditActions";
 import { useDeviceId } from "../../hooks";
 import {
@@ -9,9 +10,11 @@ import {
   DangerActionButton,
   DetailField,
   DetailScreenLayout,
+  FloorsVisitedMatrix,
   PrimaryActionButton,
   Section,
   StatusBadge,
+  buildFloorsVisitedMatrix,
 } from "../../components";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useTheme } from "../../hooks";
@@ -46,10 +49,23 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
   const { auditId } = route.params;
   const audit = useAudit(auditId);
   const account = useAccount(audit?.accountId ?? "");
+  const auditsForAccount = useAuditsByAccount(audit?.accountId ?? "");
   const deviceId = useDeviceId();
   const { deleteAudit } = useAuditActions(deviceId);
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+
+  const floorsMatrix = useMemo(() => {
+    if (!audit) {
+      return null;
+    }
+    return buildFloorsVisitedMatrix({
+      audits: auditsForAccount,
+      account: account,
+      currentAuditId: audit.id,
+      maxVisits: 3,
+    });
+  }, [account, audit, auditsForAccount]);
 
   if (!audit) {
     return (
@@ -91,6 +107,7 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
     audit.floorsVisited && audit.floorsVisited.length > 0
       ? audit.floorsVisited.join(", ")
       : null;
+  const hasFloorsMatrix = Boolean(floorsMatrix);
   const status = resolveAuditStatus(audit);
   const startTimestamp = getAuditStartTimestamp(audit);
   const endTimestamp = getAuditEndTimestamp(audit);
@@ -194,9 +211,13 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
         </View>
       </Section>
 
-      {floorsVisited || audit.notes ? (
+      {hasFloorsMatrix || floorsVisited || audit.notes ? (
         <Section>
-          {floorsVisited ? (
+          {floorsMatrix ? (
+            <DetailField label={t("audits.fields.floorsVisited")}>
+              <FloorsVisitedMatrix data={floorsMatrix} />
+            </DetailField>
+          ) : floorsVisited ? (
             <DetailField label={t("audits.fields.floorsVisited")}>
               {floorsVisited}
             </DetailField>

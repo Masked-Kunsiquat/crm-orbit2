@@ -433,6 +433,15 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
           floorsVisited,
         ),
       );
+      if ((audit.notes ?? "") !== (notesValue ?? "") && !notesValue) {
+        results.push(updateAuditNotes(audit.id, notesValue));
+      }
+      if (
+        floorsVisited === undefined &&
+        !areFloorsEqual(audit.floorsVisited, floorsVisited)
+      ) {
+        results.push(updateAuditFloorsVisited(audit.id, floorsVisited ?? []));
+      }
     } else if (
       status === "audits.status.canceled" &&
       existingStatus !== "audits.status.canceled"

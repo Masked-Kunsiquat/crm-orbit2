@@ -38,7 +38,8 @@ const detectMethodChanges = (
       });
     } else if (
       oldMethod.value !== newMethod.value ||
-      oldMethod.label !== newMethod.label
+      oldMethod.label !== newMethod.label ||
+      oldMethod.extension !== newMethod.extension
     ) {
       // Method was updated
       if (oldMethod.value !== newMethod.value) {
@@ -53,6 +54,13 @@ const detectMethodChanges = (
           field: `${methodType}_label`,
           oldValue: oldMethod.label,
           newValue: newMethod.label,
+        });
+      }
+      if (oldMethod.extension !== newMethod.extension) {
+        changes.push({
+          field: `${methodType}_extension`,
+          oldValue: oldMethod.extension ?? "",
+          newValue: newMethod.extension ?? "",
         });
       }
     }
@@ -156,6 +164,7 @@ export const detectAccountChanges = (
     minFloor?: number;
     maxFloor?: number;
     excludedFloors?: number[];
+    auditFrequency?: string;
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -183,6 +192,16 @@ export const detectAccountChanges = (
       field: "website",
       oldValue: oldWebsite,
       newValue: newWebsite,
+    });
+  }
+
+  const oldFrequency = oldAccount.auditFrequency ?? "";
+  const newFrequency = newData.auditFrequency ?? "";
+  if (oldFrequency !== newFrequency) {
+    changes.push({
+      field: "auditFrequency",
+      oldValue: oldFrequency,
+      newValue: newFrequency,
     });
   }
 

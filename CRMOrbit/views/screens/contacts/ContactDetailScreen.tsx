@@ -52,6 +52,7 @@ import {
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
 type ContactTab = "overview" | "details" | "notes" | "activity";
+const PREVIEW_LIMIT = 3;
 
 export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params;
@@ -81,6 +82,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const [selectedRole, setSelectedRole] = useState<AccountContactRole>(
     "account.contact.role.primary",
   );
+  const [showAccountsModal, setShowAccountsModal] = useState(false);
 
   const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
     {
@@ -98,6 +100,8 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   ];
 
   const styles = createStyles(colors);
+  const previewLinkedAccounts = linkedAccounts.slice(0, PREVIEW_LIMIT);
+  const hasMoreLinkedAccounts = linkedAccounts.length > PREVIEW_LIMIT;
 
   if (!contact) {
     return (
@@ -312,7 +316,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
             ) : (
               contact.methods.phones.map((phone, index) => {
-                const formattedPhone = formatPhoneNumber(phone.value);
+                const formattedPhone = formatPhoneNumber(
+                  phone.value,
+                  phone.extension,
+                );
                 const methodLabel = getMethodLabel(phone.label);
                 const callLabel = t("call_phone")
                   .replace("{label}", methodLabel)
@@ -338,9 +345,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                           accessibilityRole="button"
                           accessibilityLabel={callLabel}
                           onPress={() => {
-                            void openPhoneDialer(phone.value).catch(
-                              handleLinkingError,
-                            );
+                            void openPhoneDialer(
+                              phone.value,
+                              phone.extension,
+                            ).catch(handleLinkingError);
                           }}
                           style={styles.actionIcon}
                         >
@@ -401,7 +409,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               {t("contacts.linkedAccounts.empty")}
             </Text>
           ) : (
-            linkedAccounts.map((account) => {
+            previewLinkedAccounts.map((account) => {
               const relation = Object.values(accountContactRelations).find(
                 (r) => r.accountId === account.id && r.contactId === contactId,
               );
@@ -438,6 +446,16 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               );
             })
           )}
+          {hasMoreLinkedAccounts ? (
+            <TouchableOpacity
+              style={[styles.viewAllButton, { borderColor: colors.border }]}
+              onPress={() => setShowAccountsModal(true)}
+            >
+              <Text style={[styles.viewAllText, { color: colors.accent }]}>
+                {t("common.viewAll")}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </Section>
       ) : null}
 
@@ -467,6 +485,60 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
         onPress={handleDelete}
         size="block"
       />
+
+      <Modal
+        visible={showAccountsModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAccountsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length}
+                )
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAccountsModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={styles.modalClose}>{t("common.cancel")}</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={linkedAccounts}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const relation = Object.values(accountContactRelations).find(
+                  (r) => r.accountId === item.id && r.contactId === contactId,
+                );
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.modalItem,
+                      { borderBottomColor: colors.borderLight },
+                    ]}
+                    onPress={() => {
+                      setShowAccountsModal(false);
+                      navigation.navigate("AccountDetail", {
+                        accountId: item.id,
+                      });
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{item.name}</Text>
+                    {relation?.isPrimary && (
+                      <Text style={styles.modalItemBadge}>
+                        {t("contacts.linkedAccounts.primaryBadge")}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showLinkModal}
@@ -633,6 +705,19 @@ const createStyles = (colors: ColorScheme) =>
       color: colors.success,
       fontWeight: "600",
     },
+    viewAllButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingVertical: 8,
+      alignItems: "center",
+      marginTop: 8,
+    },
+    viewAllText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.accent,
+    },
     modalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -650,6 +735,17 @@ const createStyles = (colors: ColorScheme) =>
       fontWeight: "700",
       color: colors.textPrimary,
       marginBottom: 16,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+    modalClose: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.accent,
     },
     roleSection: {
       marginBottom: 16,
@@ -672,6 +768,12 @@ const createStyles = (colors: ColorScheme) =>
     modalItemText: {
       fontSize: 16,
       color: colors.textPrimary,
+    },
+    modalItemBadge: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.success,
+      marginTop: 4,
     },
     modalItemTextDisabled: {
       color: colors.textMuted,

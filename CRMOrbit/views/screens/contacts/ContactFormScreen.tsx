@@ -8,7 +8,11 @@ import { useContactActions } from "@views/hooks/useContactActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
 import { useDeviceId } from "@views/hooks";
 import type { ContactType, ContactMethod } from "@domains/contact";
-import { formatPhoneNumber, splitLegacyName } from "@domains/contact.utils";
+import {
+  formatPhoneNumber,
+  parsePhoneNumber,
+  splitLegacyName,
+} from "@domains/contact.utils";
 import { nextId } from "@domains/shared/idGenerator";
 import { useTheme } from "@views/hooks/useTheme";
 import {
@@ -79,12 +83,18 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       methods.map((method) => ({
         ...method,
         id: method.id || nextId("contact-method"),
+        extension: method.extension ?? "",
       }));
     const formatPhoneMethods = (methods: ContactMethod[]) =>
-      ensureMethodIds(methods).map((method) => ({
-        ...method,
-        value: formatPhoneNumber(method.value),
-      }));
+      ensureMethodIds(methods).map((method) => {
+        const parsed = parsePhoneNumber(method.value);
+        const extension = method.extension?.trim() || parsed.extension || "";
+        return {
+          ...method,
+          value: formatPhoneNumber(parsed.base),
+          extension,
+        };
+      });
 
     const currentContactId = contactId ?? undefined;
     const isContactChanged = currentContactId !== lastContactIdRef.current;
@@ -174,6 +184,7 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
       {
         id: nextId("contact-method"),
         value: "",
+        extension: "",
         label: "contact.method.label.work",
         status: "contact.method.status.active",
       },
@@ -181,8 +192,26 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
   };
 
   const handlePhoneChange = (index: number, value: string) => {
+    const parsed = parsePhoneNumber(value);
     const newPhones = [...phones];
-    newPhones[index] = { ...newPhones[index], value: formatPhoneNumber(value) };
+    const nextExtension =
+      parsed.extension !== undefined
+        ? parsed.extension
+        : (newPhones[index]?.extension ?? "");
+    newPhones[index] = {
+      ...newPhones[index],
+      value: formatPhoneNumber(parsed.base),
+      extension: nextExtension,
+    };
+    setPhones(newPhones);
+  };
+
+  const handlePhoneExtensionChange = (index: number, value: string) => {
+    const newPhones = [...phones];
+    newPhones[index] = {
+      ...newPhones[index],
+      extension: value.replace(/\D/g, ""),
+    };
     setPhones(newPhones);
   };
 
@@ -211,7 +240,12 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
 
     // Filter out empty email/phone values
     const validEmails = emails.filter((e) => e.value.trim() !== "");
-    const validPhones = phones.filter((p) => p.value.trim() !== "");
+    const validPhones = phones
+      .map((phone) => ({
+        ...phone,
+        extension: phone.extension?.trim() || undefined,
+      }))
+      .filter((p) => p.value.trim() !== "");
 
     if (contactId) {
       const result = updateContact(
@@ -345,12 +379,17 @@ export const ContactFormScreen = ({ route, navigation }: Props) => {
         methods={phones}
         onAdd={handleAddPhone}
         onChange={handlePhoneChange}
+        onSecondaryChange={handlePhoneExtensionChange}
         onLabelChange={handlePhoneLabelChange}
         onRemove={handleRemovePhone}
         placeholder={t("contacts.form.phonePlaceholder")}
+        secondaryPlaceholder={t("contacts.form.phoneExtensionPlaceholder")}
         addLabel={t("contacts.form.addAction")}
         labelOptions={phoneLabelOptions}
         keyboardType="phone-pad"
+        secondaryKeyboardType="number-pad"
+        autoCapitalize="none"
+        secondaryAutoCapitalize="none"
       />
 
       <TouchableOpacity

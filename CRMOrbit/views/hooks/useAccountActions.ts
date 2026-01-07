@@ -5,6 +5,7 @@ import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type {
   Account,
+  AccountAuditFrequency,
   AccountAddresses,
   SocialMediaLinks,
 } from "../../domains/account";
@@ -25,6 +26,7 @@ export const useAccountActions = (deviceId: string) => {
       minFloor?: number,
       maxFloor?: number,
       excludedFloors?: number[],
+      auditFrequency?: AccountAuditFrequency,
     ): DispatchResult => {
       const id = nextId("account");
       const event = buildEvent({
@@ -41,6 +43,7 @@ export const useAccountActions = (deviceId: string) => {
           ...(minFloor !== undefined && { minFloor }),
           ...(maxFloor !== undefined && { maxFloor }),
           ...(excludedFloors !== undefined && { excludedFloors }),
+          ...(auditFrequency !== undefined && { auditFrequency }),
           metadata: {},
         },
         deviceId,
@@ -79,6 +82,7 @@ export const useAccountActions = (deviceId: string) => {
       minFloor?: number,
       maxFloor?: number,
       excludedFloors?: number[],
+      auditFrequency?: AccountAuditFrequency,
       _previousAccount?: Account, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
@@ -94,6 +98,7 @@ export const useAccountActions = (deviceId: string) => {
           ...(minFloor !== undefined && { minFloor }),
           ...(maxFloor !== undefined && { maxFloor }),
           ...(excludedFloors !== undefined && { excludedFloors }),
+          ...(auditFrequency !== undefined && { auditFrequency }),
         },
         deviceId,
       });

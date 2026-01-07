@@ -1,9 +1,11 @@
+import { gcm } from "@noble/ciphers/aes.js";
 import * as SecureStore from "expo-secure-store";
 import { fromByteArray, toByteArray } from "base64-js";
 
 const KEY_STORAGE_KEY = "crmorbit.encryption.key.v1";
 const ALGORITHM = "AES-GCM";
 const KEY_LENGTH = 256;
+const KEY_BYTES = KEY_LENGTH / 8;
 const IV_LENGTH = 12;
 const PAYLOAD_VERSION = 1;
 
@@ -37,9 +39,12 @@ type SubtleCryptoLike = {
   ) => Promise<ArrayBuffer>;
 };
 
-type CryptoApi = {
-  subtle: SubtleCryptoLike;
+type CryptoRandomApi = {
   getRandomValues: (array: Uint8Array) => Uint8Array;
+};
+
+type WebCryptoApi = CryptoRandomApi & {
+  subtle: SubtleCryptoLike;
 };
 
 type TextEncoderLike = {
@@ -61,12 +66,27 @@ let cachedKeyMaterial: Uint8Array | null = null;
 let keyInitPromise: Promise<CryptoKeyLike> | null = null;
 let keyMaterialInitPromise: Promise<Uint8Array> | null = null;
 
-const getCrypto = (): CryptoApi => {
-  const cryptoApi = globalThis.crypto as CryptoApi | undefined;
-  if (!cryptoApi?.subtle || !cryptoApi.getRandomValues) {
+const getCryptoRandom = (): CryptoRandomApi => {
+  const cryptoApi = globalThis.crypto as CryptoRandomApi | undefined;
+  if (!cryptoApi?.getRandomValues) {
+    throw new Error(
+      "crypto.getRandomValues is unavailable. Ensure a secure random polyfill like react-native-get-random-values is loaded.",
+    );
+  }
+  return cryptoApi;
+};
+
+const getWebCrypto = (): WebCryptoApi => {
+  const cryptoApi = getCryptoRandom() as WebCryptoApi;
+  if (!cryptoApi.subtle) {
     throw new Error("Web Crypto API is not available.");
   }
   return cryptoApi;
+};
+
+const hasWebCrypto = (): boolean => {
+  const cryptoApi = globalThis.crypto as WebCryptoApi | undefined;
+  return Boolean(cryptoApi?.getRandomValues && cryptoApi.subtle);
 };
 
 const encodeBase64 = (value: Uint8Array): string => fromByteArray(value);
@@ -152,18 +172,14 @@ const getOrCreateKeyMaterial = async (): Promise<Uint8Array> => {
 };
 
 const generateKeyMaterial = async (): Promise<Uint8Array> => {
-  const cryptoApi = getCrypto();
-  const key = await cryptoApi.subtle.generateKey(
-    { name: ALGORITHM, length: KEY_LENGTH },
-    true,
-    ["encrypt", "decrypt"],
-  );
-  const raw = await cryptoApi.subtle.exportKey("raw", key);
-  return new Uint8Array(raw);
+  const cryptoApi = getCryptoRandom();
+  const material = new Uint8Array(KEY_BYTES);
+  cryptoApi.getRandomValues(material);
+  return material;
 };
 
 const importKey = async (keyMaterial: Uint8Array): Promise<CryptoKeyLike> => {
-  const cryptoApi = getCrypto();
+  const cryptoApi = getWebCrypto();
   const keyBuffer = toArrayBuffer(keyMaterial);
   return cryptoApi.subtle.importKey(
     "raw",
@@ -210,6 +226,14 @@ const getExistingKey = async (): Promise<CryptoKeyLike> => {
   return cachedKey;
 };
 
+const getExistingKeyMaterial = async (): Promise<Uint8Array> => {
+  const existing = await loadKeyMaterial();
+  if (!existing) {
+    throw new Error("Encryption key not found.");
+  }
+  return existing;
+};
+
 const ensurePayload = (value: unknown): EncryptedPayload => {
   if (typeof value !== "object" || value === null) {
     throw new Error("Invalid encrypted payload.");
@@ -237,48 +261,65 @@ export const importEncryptionKey = async (base64Key: string): Promise<void> => {
   cachedKey = null;
   keyMaterialInitPromise = null;
   const material = decodeBase64(base64Key.trim());
-  if (material.length !== KEY_LENGTH / 8) {
+  if (material.length !== KEY_BYTES) {
     throw new Error("Invalid encryption key length.");
   }
   await storeKeyMaterial(material);
-  cachedKey = await importKey(material);
+  if (hasWebCrypto()) {
+    cachedKey = await importKey(material);
+  }
 };
 
 export const encryptCode = async (plaintext: string): Promise<string> => {
-  const cryptoApi = getCrypto();
-  const key = await getOrCreateKey();
-  const iv = cryptoApi.getRandomValues(new Uint8Array(IV_LENGTH));
   const encoded = getTextEncoder().encode(plaintext);
-  const ivBuffer = toArrayBuffer(iv);
-  const dataBuffer = toArrayBuffer(encoded);
-  const cipherBuffer = await cryptoApi.subtle.encrypt(
-    { name: ALGORITHM, iv: ivBuffer },
-    key,
-    dataBuffer,
-  );
+  const cryptoApi = getCryptoRandom();
+  const iv = cryptoApi.getRandomValues(new Uint8Array(IV_LENGTH));
+  let cipherBytes: Uint8Array;
+
+  if (hasWebCrypto()) {
+    const key = await getOrCreateKey();
+    const ivBuffer = toArrayBuffer(iv);
+    const dataBuffer = toArrayBuffer(encoded);
+    const cipherBuffer = await getWebCrypto().subtle.encrypt(
+      { name: ALGORITHM, iv: ivBuffer },
+      key,
+      dataBuffer,
+    );
+    cipherBytes = new Uint8Array(cipherBuffer);
+  } else {
+    const keyMaterial = await getOrCreateKeyMaterial();
+    cipherBytes = gcm(keyMaterial, iv).encrypt(encoded);
+  }
 
   const payload: EncryptedPayload = {
     v: PAYLOAD_VERSION,
     iv: encodeBase64(iv),
-    data: encodeBase64(new Uint8Array(cipherBuffer)),
+    data: encodeBase64(cipherBytes),
   };
 
   return JSON.stringify(payload);
 };
 
 export const decryptCode = async (ciphertext: string): Promise<string> => {
-  const cryptoApi = getCrypto();
   const parsed = ensurePayload(JSON.parse(ciphertext));
-  const key = await getExistingKey();
   const iv = decodeBase64(parsed.iv);
   const data = decodeBase64(parsed.data);
-  const ivBuffer = toArrayBuffer(iv);
-  const dataBuffer = toArrayBuffer(data);
-  const plainBuffer = await cryptoApi.subtle.decrypt(
-    { name: ALGORITHM, iv: ivBuffer },
-    key,
-    dataBuffer,
-  );
+  let plainBytes: Uint8Array;
 
-  return getTextDecoder().decode(new Uint8Array(plainBuffer));
+  if (hasWebCrypto()) {
+    const key = await getExistingKey();
+    const ivBuffer = toArrayBuffer(iv);
+    const dataBuffer = toArrayBuffer(data);
+    const plainBuffer = await getWebCrypto().subtle.decrypt(
+      { name: ALGORITHM, iv: ivBuffer },
+      key,
+      dataBuffer,
+    );
+    plainBytes = new Uint8Array(plainBuffer);
+  } else {
+    const keyMaterial = await getExistingKeyMaterial();
+    plainBytes = gcm(keyMaterial, iv).decrypt(data);
+  }
+
+  return getTextDecoder().decode(plainBytes);
 };

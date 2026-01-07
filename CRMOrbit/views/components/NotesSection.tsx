@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import {
+  FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -29,6 +31,8 @@ interface NotesSectionProps {
   };
 }
 
+const PREVIEW_LIMIT = 3;
+
 export const NotesSection = ({
   notes,
   entityId,
@@ -41,6 +45,7 @@ export const NotesSection = ({
   const { unlinkNote } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
 
   const existingNoteIds = useMemo(() => notes.map((note) => note.id), [notes]);
   const linkIdsByNoteId = useMemo(() => {
@@ -91,6 +96,9 @@ export const NotesSection = ({
     });
   };
 
+  const visibleNotes = notes.slice(0, PREVIEW_LIMIT);
+  const hasMore = notes.length > PREVIEW_LIMIT;
+
   return (
     <Section>
       <View style={styles.sectionHeader}>
@@ -135,7 +143,7 @@ export const NotesSection = ({
           {t(getEmptyMessageKey())}
         </Text>
       ) : (
-        notes.map((note) => (
+        visibleNotes.map((note) => (
           <View
             key={note.id}
             style={[
@@ -176,6 +184,79 @@ export const NotesSection = ({
           </View>
         ))
       )}
+      {hasMore ? (
+        <TouchableOpacity
+          style={[styles.viewAllButton, { borderColor: colors.border }]}
+          onPress={() => setShowAllModal(true)}
+        >
+          <Text style={[styles.viewAllText, { color: colors.accent }]}>
+            {t("common.viewAll")}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+      <Modal
+        visible={showAllModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAllModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                {t("notes.title")} ({notes.length})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAllModal(false)}
+                accessibilityLabel={t("common.cancel")}
+              >
+                <Text style={[styles.modalClose, { color: colors.accent }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={notes}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.modalItem,
+                    { borderBottomColor: colors.borderLight },
+                  ]}
+                  onPress={() => {
+                    setShowAllModal(false);
+                    navigation.navigate("NoteDetail", { noteId: item.id });
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.modalItemTitle,
+                      { color: colors.textPrimary },
+                    ]}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.modalItemBody,
+                      { color: colors.textSecondary },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {item.body}
+                  </Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
       <LinkNoteModal
         visible={showLinkModal}
         onClose={() => setShowLinkModal(false)}
@@ -250,5 +331,54 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     alignItems: "center",
     justifyContent: "center",
+  },
+  viewAllButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  modalContent: {
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: "70%",
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalClose: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  modalItemTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  modalItemBody: {
+    fontSize: 14,
   },
 });

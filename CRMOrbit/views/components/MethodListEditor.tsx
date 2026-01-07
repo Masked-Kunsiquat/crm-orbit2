@@ -12,14 +12,18 @@ type MethodListEditorProps = {
   methods: ContactMethod[];
   onAdd: () => void;
   onChange: (index: number, value: string) => void;
+  onSecondaryChange?: (index: number, value: string) => void;
   onLabelChange?: (index: number, label: ContactMethodLabel) => void;
   onRemove: (index: number) => void;
   placeholder: string;
+  secondaryPlaceholder?: string;
   addLabel: string;
   labelOptions?: ReadonlyArray<{ value: ContactMethodLabel; label: string }>;
   removeLabel?: string;
   keyboardType?: TextInputProps["keyboardType"];
+  secondaryKeyboardType?: TextInputProps["keyboardType"];
   autoCapitalize?: TextInputProps["autoCapitalize"];
+  secondaryAutoCapitalize?: TextInputProps["autoCapitalize"];
 };
 
 export const MethodListEditor = ({
@@ -27,17 +31,22 @@ export const MethodListEditor = ({
   methods,
   onAdd,
   onChange,
+  onSecondaryChange,
   onLabelChange,
   onRemove,
   placeholder,
+  secondaryPlaceholder,
   addLabel,
   labelOptions,
   removeLabel = "x",
   keyboardType,
+  secondaryKeyboardType,
   autoCapitalize,
+  secondaryAutoCapitalize,
 }: MethodListEditorProps) => {
   const { colors } = useTheme();
   const showLabelEditor = Boolean(labelOptions && onLabelChange);
+  const showSecondaryInput = Boolean(secondaryPlaceholder && onSecondaryChange);
 
   return (
     <FormField
@@ -76,6 +85,16 @@ export const MethodListEditor = ({
               keyboardType={keyboardType}
               autoCapitalize={autoCapitalize}
             />
+            {showSecondaryInput ? (
+              <TextField
+                style={styles.secondaryInput}
+                value={method.extension ?? ""}
+                onChangeText={(value) => onSecondaryChange?.(index, value)}
+                placeholder={secondaryPlaceholder}
+                keyboardType={secondaryKeyboardType}
+                autoCapitalize={secondaryAutoCapitalize}
+              />
+            ) : null}
             <TouchableOpacity
               style={[styles.removeButton, { backgroundColor: colors.errorBg }]}
               onPress={() => onRemove(index)}
@@ -114,6 +133,9 @@ const styles = StyleSheet.create({
   },
   methodInput: {
     flex: 1,
+  },
+  secondaryInput: {
+    width: 80,
   },
   removeButton: {
     width: 44,

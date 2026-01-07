@@ -30,6 +30,7 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { decryptCode, encryptCode } from "../../../utils/encryption";
+import { createLogger } from "../../../utils/logger";
 import * as ScreenCapture from "expo-screen-capture";
 import { useFocusEffect } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
@@ -52,6 +53,8 @@ type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 };
+
+const logger = createLogger("CodeFormScreen");
 
 export const CodeFormScreen = ({ route, navigation }: Props) => {
   const { colors, isDark } = useTheme();
@@ -256,7 +259,8 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
 
     try {
       encryptedValue = await encryptCode(codeValue.trim());
-    } catch {
+    } catch (error) {
+      logger.error("Failed to encrypt code.", error);
       showAlert(t("common.error"), t("codes.encryptError"), t("common.ok"));
       return;
     }
@@ -273,6 +277,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
+        logger.error("Failed to update code.", result.error);
         showAlert(
           t("common.error"),
           result.error ?? t("codes.updateError"),
@@ -290,6 +295,7 @@ export const CodeFormScreen = ({ route, navigation }: Props) => {
       if (result.success) {
         navigation.goBack();
       } else {
+        logger.error("Failed to create code.", result.error);
         showAlert(
           t("common.error"),
           result.error ?? t("codes.createError"),
