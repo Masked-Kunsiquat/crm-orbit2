@@ -33,8 +33,9 @@ export const FormScreenLayout = ({
       globalThis.requestAnimationFrame ??
       ((cb: () => void) => globalThis.setTimeout(cb, 0));
     schedule(() => {
-      const relativeTo =
-        contentRef.current as unknown as number | NativeMethods;
+      const relativeTo = contentRef.current as unknown as
+        | number
+        | NativeMethods;
       inputRef.measureLayout(
         relativeTo,
         (_x, y) => {

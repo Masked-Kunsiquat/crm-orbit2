@@ -2,8 +2,11 @@ import { useMemo } from "react";
 import { StyleSheet, Text } from "react-native";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
-import { useAccount, useAuditsByAccount } from "../../store/store";
-import { t } from "@i18n/index";
+import {
+  useAccount,
+  useAccountFloorsVisitedLabels,
+  useAuditsByAccount,
+} from "../../store/store";
 import {
   DetailScreenLayout,
   FloorsVisitedMatrix,
@@ -19,6 +22,8 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
   const account = useAccount(accountId);
   const audits = useAuditsByAccount(accountId);
   const { colors } = useTheme();
+  const { notFound, floorsVisitedTitle, emptyTitle } =
+    useAccountFloorsVisitedLabels();
 
   const floorsMatrix = useMemo(() => {
     if (!account) {
@@ -34,7 +39,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
     return (
       <DetailScreenLayout>
         <Text style={[styles.errorText, { color: colors.error }]}>
-          {t("accounts.notFound")}
+          {notFound}
         </Text>
       </DetailScreenLayout>
     );
@@ -42,7 +47,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
 
   return (
     <DetailScreenLayout>
-      <Section title={t("audits.fields.floorsVisited")}>
+      <Section title={floorsVisitedTitle}>
         <Text style={[styles.accountName, { color: colors.textPrimary }]}>
           {account.name}
         </Text>
@@ -50,7 +55,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
           <FloorsVisitedMatrix data={floorsMatrix} variant="full" />
         ) : (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {t("audits.emptyTitle")}
+            {emptyTitle}
           </Text>
         )}
       </Section>

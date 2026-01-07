@@ -142,12 +142,27 @@ export type OrganizationsLandingLabels = {
   organizationsSubtitle: string;
 };
 
+export type AccountFloorsVisitedLabels = {
+  notFound: string;
+  floorsVisitedTitle: string;
+  emptyTitle: string;
+};
+
 export const useOrganizationsLandingLabels = (): OrganizationsLandingLabels => {
   const selector = (_state: CrmStoreState) => ({
     accountsLabel: t("accounts.title"),
     accountsSubtitle: t("accounts.view_and_manage_all"),
     organizationsLabel: t("organizations.title"),
     organizationsSubtitle: t("organizations.view_and_manage_all"),
+  });
+  return crmStore(useShallow(selector));
+};
+
+export const useAccountFloorsVisitedLabels = (): AccountFloorsVisitedLabels => {
+  const selector = (_state: CrmStoreState) => ({
+    notFound: t("accounts.notFound"),
+    floorsVisitedTitle: t("audits.fields.floorsVisited"),
+    emptyTitle: t("audits.emptyTitle"),
   });
   return crmStore(useShallow(selector));
 };
