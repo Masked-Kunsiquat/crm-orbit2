@@ -700,6 +700,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
   },

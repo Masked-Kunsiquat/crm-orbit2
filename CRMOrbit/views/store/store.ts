@@ -135,10 +135,10 @@ export const __internal_updateCrmDoc = (doc: AutomergeDoc): void => {
 // ============================================================================
 
 export type OrganizationsLandingLabels = {
-  accountsLabelKey: string;
-  accountsSubtitleKey: string;
-  organizationsLabelKey: string;
-  organizationsSubtitleKey: string;
+  accountsLabel: string;
+  accountsSubtitle: string;
+  organizationsLabel: string;
+  organizationsSubtitle: string;
 };
 
 export type AccountFloorsVisitedLabels = {
@@ -149,10 +149,10 @@ export type AccountFloorsVisitedLabels = {
 
 export const useOrganizationsLandingLabels = (): OrganizationsLandingLabels => {
   const selector = (_state: CrmStoreState) => ({
-    accountsLabelKey: "accounts.title",
-    accountsSubtitleKey: "accounts.view_and_manage_all",
-    organizationsLabelKey: "organizations.title",
-    organizationsSubtitleKey: "organizations.view_and_manage_all",
+    accountsLabel: t("accounts.title"),
+    accountsSubtitle: t("accounts.view_and_manage_all"),
+    organizationsLabel: t("organizations.title"),
+    organizationsSubtitle: t("organizations.view_and_manage_all"),
   });
   return crmStore(useShallow(selector));
 };

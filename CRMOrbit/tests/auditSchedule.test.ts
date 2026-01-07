@@ -42,7 +42,7 @@ test("audit schedule marks missing when no audits exist past due", () => {
 
 test("audit schedule stays ok when last audit is within frequency", () => {
   const account = baseAccount();
-  const audits = [completedAudit({ scheduledFor: "2024-01-10T00:00:00.000Z" })];
+  const audits = [completedAudit({ occurredAt: "2024-01-10T00:00:00.000Z" })];
   const result = getAuditScheduleStatus(
     account,
     audits,
