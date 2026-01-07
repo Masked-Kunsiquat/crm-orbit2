@@ -46,7 +46,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
           {account.name}
         </Text>
         {floorsMatrix ? (
-          <FloorsVisitedMatrix data={floorsMatrix} />
+          <FloorsVisitedMatrix data={floorsMatrix} variant="full" />
         ) : (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
             {t("audits.emptyTitle")}

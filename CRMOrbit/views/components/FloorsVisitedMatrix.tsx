@@ -1,5 +1,11 @@
-import { useMemo } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+} from "react-native";
 
 import type { Audit } from "@domains/audit";
 import type { Account } from "@domains/account";
@@ -31,10 +37,27 @@ type BuildMatrixOptions = {
   maxVisits?: number;
 };
 
-const CELL_SIZE = 20;
-const HEADER_HEIGHT = 40;
-const LABEL_WIDTH = 42;
 const GRID_LINE_WIDTH = 1;
+const MATRIX_LAYOUTS = {
+  detail: {
+    cellWidth: 28,
+    cellHeight: 16,
+    headerHeight: 36,
+    labelWidth: 30,
+    headerFontSize: 10,
+    headerLineHeight: 12,
+    labelFontSize: 12,
+  },
+  full: {
+    cellWidth: 22,
+    cellHeight: 16,
+    headerHeight: 34,
+    labelWidth: 30,
+    headerFontSize: 10,
+    headerLineHeight: 12,
+    labelFontSize: 12,
+  },
+} as const;
 
 const normalizeFloor = (value: number): number | null => {
   if (!Number.isFinite(value)) return null;
@@ -165,25 +188,59 @@ export const buildFloorsVisitedMatrix = ({
 
 type FloorsVisitedMatrixProps = {
   data: FloorsVisitedMatrixData;
+  variant?: keyof typeof MATRIX_LAYOUTS;
 };
 
-export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
+export const FloorsVisitedMatrix = ({
+  data,
+  variant = "detail",
+}: FloorsVisitedMatrixProps) => {
   const { colors } = useTheme();
   const { floors, visits, excludedFloors } = data;
+  const [containerWidth, setContainerWidth] = useState(0);
+  const layout = MATRIX_LAYOUTS[variant];
+  const gridWidth =
+    layout.labelWidth + visits.length * layout.cellWidth + GRID_LINE_WIDTH;
+  const shouldCenter = containerWidth > 0 && gridWidth < containerWidth;
+
   const headerTextStyle = useMemo(
-    () => [styles.headerText, { color: colors.textSecondary }],
-    [colors.textSecondary],
+    () => [
+      styles.headerText,
+      {
+        color: colors.textSecondary,
+        fontSize: layout.headerFontSize,
+        lineHeight: layout.headerLineHeight,
+      },
+    ],
+    [colors.textSecondary, layout.headerFontSize, layout.headerLineHeight],
   );
   const labelTextStyle = useMemo(
-    () => [styles.labelText, { color: colors.textSecondary }],
-    [colors.textSecondary],
+    () => [
+      styles.labelText,
+      { color: colors.textSecondary, fontSize: layout.labelFontSize },
+    ],
+    [colors.textSecondary, layout.labelFontSize],
   );
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setContainerWidth(event.nativeEvent.layout.width);
+  };
 
   return (
     <View style={styles.matrixContainer}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        onLayout={handleLayout}
+        contentContainerStyle={[
+          styles.scrollContent,
+          shouldCenter && styles.scrollContentCentered,
+        ]}
+      >
         <View
-          style={[styles.grid, { borderColor: colors.border }]}
+          style={[
+            styles.grid,
+            { borderColor: colors.border, width: gridWidth },
+          ]}
         >
           <View style={styles.row}>
             <View
@@ -194,6 +251,8 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
                   backgroundColor: colors.surfaceElevated,
                   borderColor: colors.border,
                   borderBottomWidth: GRID_LINE_WIDTH,
+                  width: layout.labelWidth,
+                  height: layout.headerHeight,
                 },
               ]}
             />
@@ -210,6 +269,8 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
                       index === visits.length - 1 ? 0 : GRID_LINE_WIDTH,
                     borderBottomWidth: GRID_LINE_WIDTH,
                     borderColor: colors.border,
+                    width: layout.cellWidth,
+                    height: layout.headerHeight,
                   },
                 ]}
               >
@@ -228,6 +289,8 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
                     borderBottomWidth:
                       rowIndex === floors.length - 1 ? 0 : GRID_LINE_WIDTH,
                     borderColor: colors.border,
+                    width: layout.labelWidth,
+                    height: layout.cellHeight,
                   },
                 ]}
               >
@@ -248,6 +311,8 @@ export const FloorsVisitedMatrix = ({ data }: FloorsVisitedMatrixProps) => {
                         borderRightWidth:
                           colIndex === visits.length - 1 ? 0 : GRID_LINE_WIDTH,
                         borderColor: colors.border,
+                        width: layout.cellWidth,
+                        height: layout.cellHeight,
                       },
                       isExcluded && {
                         backgroundColor: colors.borderLight,
@@ -271,6 +336,13 @@ const styles = StyleSheet.create({
   matrixContainer: {
     marginTop: 8,
   },
+  scrollContent: {
+    flexGrow: 1,
+    flexDirection: "row",
+  },
+  scrollContentCentered: {
+    justifyContent: "center",
+  },
   grid: {
     borderWidth: GRID_LINE_WIDTH,
   },
@@ -279,36 +351,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   labelHeaderCell: {
-    width: LABEL_WIDTH,
-    height: HEADER_HEIGHT,
     borderRightWidth: GRID_LINE_WIDTH,
   },
   labelCell: {
-    width: LABEL_WIDTH,
-    height: CELL_SIZE,
     alignItems: "flex-end",
     justifyContent: "center",
-    paddingRight: 6,
+    paddingRight: 2,
     borderRightWidth: GRID_LINE_WIDTH,
   },
   labelText: {
-    fontSize: 12,
     fontWeight: "600",
   },
   headerCell: {
-    width: CELL_SIZE,
-    height: HEADER_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
   },
   headerText: {
-    fontSize: 10,
     fontWeight: "600",
-    lineHeight: 12,
     textAlign: "center",
   },
   cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
   },
 });
