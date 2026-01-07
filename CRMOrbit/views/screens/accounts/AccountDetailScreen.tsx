@@ -38,7 +38,6 @@ import {
   DetailScreenLayout,
   Section,
   DetailField,
-  ListRow,
   DetailTabs,
   SocialLinksSection,
   ContactCardRow,
@@ -199,10 +198,6 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         }
       },
     });
-  };
-
-  const handleOpenFloorsVisited = () => {
-    navigation.navigate("AccountFloorsVisited", { accountId });
   };
 
   const handleLinkContact = (contactId: string, role: AccountContactRole) => {
@@ -424,26 +419,18 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       ) : null}
 
       {activeTab === "details" ? (
-        <>
-          <ListRow
-            title={t("audits.fields.floorsVisited")}
-            onPress={handleOpenFloorsVisited}
-            showChevron
-            variant="outlined"
-            style={styles.floorsCard}
-          />
-          <Section>
-            {account.website && (
-              <DetailField label={t("accounts.fields.website")}>
-                <TouchableOpacity
-                  onPress={() => void openWebUrl(account.website!)}
-                >
-                  <Text style={[styles.link, { color: colors.link }]}>
-                    {account.website}
-                  </Text>
-                </TouchableOpacity>
-              </DetailField>
-            )}
+        <Section>
+          {account.website && (
+            <DetailField label={t("accounts.fields.website")}>
+              <TouchableOpacity
+                onPress={() => void openWebUrl(account.website!)}
+              >
+                <Text style={[styles.link, { color: colors.link }]}>
+                  {account.website}
+                </Text>
+              </TouchableOpacity>
+            </DetailField>
+          )}
 
           {account.addresses?.site && (
             <DetailField label={t("accounts.fields.siteAddress")}>
@@ -514,20 +501,19 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             </DetailField>
           )}
 
-            {account.socialMedia &&
-              Object.values(account.socialMedia).some((v) => v) && (
-                <View style={styles.field}>
-                  <Text style={[styles.label, { color: colors.textSecondary }]}>
-                    {t("accounts.fields.socialMedia")}
-                  </Text>
-                  <SocialLinksSection
-                    socialMedia={account.socialMedia}
-                    translationPrefix="accounts"
-                  />
-                </View>
-              )}
-          </Section>
-        </>
+          {account.socialMedia &&
+            Object.values(account.socialMedia).some((v) => v) && (
+              <View style={styles.field}>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>
+                  {t("accounts.fields.socialMedia")}
+                </Text>
+                <SocialLinksSection
+                  socialMedia={account.socialMedia}
+                  translationPrefix="accounts"
+                />
+              </View>
+            )}
+        </Section>
       ) : null}
 
       {activeTab === "notes" ? (
@@ -821,9 +807,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     fontStyle: "italic",
-  },
-  floorsCard: {
-    marginBottom: 12,
   },
   link: {
     fontSize: 16,

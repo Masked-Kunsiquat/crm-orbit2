@@ -68,6 +68,25 @@ export const AuditsSection = ({
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
+            style={[
+              styles.iconButton,
+              styles.iconButtonSecondary,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+            ]}
+            onPress={() =>
+              navigation.navigate("AccountFloorsVisited", {
+                accountId,
+              })
+            }
+            accessibilityLabel={t("audits.fields.floorsVisited")}
+          >
+            <MaterialCommunityIcons
+              name="stairs-up"
+              size={18}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={() =>
               navigation.navigate("AuditForm", {
@@ -192,6 +211,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+  },
+  iconButtonSecondary: {
+    borderWidth: 1,
+    marginRight: 8,
   },
   emptyText: {
     fontSize: 14,

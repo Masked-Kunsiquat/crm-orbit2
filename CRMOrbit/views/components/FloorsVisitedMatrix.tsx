@@ -31,8 +31,9 @@ type BuildMatrixOptions = {
   maxVisits?: number;
 };
 
-const CELL_SIZE = 18;
-const LABEL_WIDTH = 36;
+const CELL_SIZE = 20;
+const HEADER_HEIGHT = 40;
+const LABEL_WIDTH = 42;
 const GRID_LINE_WIDTH = 1;
 
 const normalizeFloor = (value: number): number | null => {
@@ -45,7 +46,17 @@ const formatAuditLabel = (audit: Audit): string => {
   if (!timestamp) return "--";
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return "--";
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const formatter = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+  const parts = formatter.formatToParts(date);
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  if (month && day) {
+    return `${month}\n${day}`;
+  }
+  return formatter.format(date);
 };
 
 const selectAudits = (
@@ -269,7 +280,7 @@ const styles = StyleSheet.create({
   },
   labelHeaderCell: {
     width: LABEL_WIDTH,
-    height: CELL_SIZE,
+    height: HEADER_HEIGHT,
     borderRightWidth: GRID_LINE_WIDTH,
   },
   labelCell: {
@@ -286,13 +297,15 @@ const styles = StyleSheet.create({
   },
   headerCell: {
     width: CELL_SIZE,
-    height: CELL_SIZE,
+    height: HEADER_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
   },
   headerText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "600",
+    lineHeight: 12,
+    textAlign: "center",
   },
   cell: {
     width: CELL_SIZE,
