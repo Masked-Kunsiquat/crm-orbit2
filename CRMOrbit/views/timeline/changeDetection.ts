@@ -38,7 +38,8 @@ const detectMethodChanges = (
       });
     } else if (
       oldMethod.value !== newMethod.value ||
-      oldMethod.label !== newMethod.label
+      oldMethod.label !== newMethod.label ||
+      oldMethod.extension !== newMethod.extension
     ) {
       // Method was updated
       if (oldMethod.value !== newMethod.value) {
@@ -53,6 +54,13 @@ const detectMethodChanges = (
           field: `${methodType}_label`,
           oldValue: oldMethod.label,
           newValue: newMethod.label,
+        });
+      }
+      if (oldMethod.extension !== newMethod.extension) {
+        changes.push({
+          field: `${methodType}Extension`,
+          oldValue: oldMethod.extension ?? "",
+          newValue: newMethod.extension ?? "",
         });
       }
     }

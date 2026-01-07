@@ -1,5 +1,6 @@
 import { Alert, Linking, Platform } from "react-native";
 import { t } from "@i18n/index";
+import { parsePhoneNumber } from "./contact.utils";
 import { createLogger } from "../utils/logger";
 
 const logger = createLogger("Linking");
@@ -7,8 +8,41 @@ const logger = createLogger("Linking");
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_SCHEME_REGEX = /^[a-z][a-z0-9+.-]*:\/\//i;
 
-const normalizePhoneNumber = (phoneNumber: string): string => {
-  return phoneNumber.replace(/[^\d+]/g, "");
+const normalizePhoneNumber = (
+  phoneNumber: string,
+  extensionOverride?: string,
+): { number: string; extension?: string } => {
+  const parsed = extensionOverride
+    ? { base: phoneNumber, extension: extensionOverride }
+    : parsePhoneNumber(phoneNumber);
+  const extension = parsed.extension?.trim();
+  const cleanedNumber = parsed.base.replace(/[^\d+]/g, "");
+  const cleanedExtension = extension ? extension.replace(/\D/g, "") : undefined;
+
+  return {
+    number: cleanedNumber,
+    extension: cleanedExtension || undefined,
+  };
+};
+
+const buildPhoneDialerUrl = (
+  phoneNumber: string,
+  extensionOverride?: string,
+): { url: string; fallbackUrl?: string } => {
+  const { number, extension } = normalizePhoneNumber(
+    phoneNumber,
+    extensionOverride,
+  );
+  if (!number) {
+    return { url: "" };
+  }
+
+  const baseUrl = `tel:${number}`;
+  if (extension) {
+    return { url: `${baseUrl};ext=${extension}`, fallbackUrl: baseUrl };
+  }
+
+  return { url: baseUrl };
 };
 
 export const normalizeWebUrl = (value: string): string | null => {
@@ -68,14 +102,15 @@ const openMapsUrl = async (
  * Opens the native phone dialer with the phone number pre-filled
  * @param phoneNumber - The phone number to dial (can include formatting characters)
  */
-export const openPhoneDialer = async (phoneNumber: string): Promise<void> => {
-  const cleanNumber = normalizePhoneNumber(phoneNumber);
-  if (!cleanNumber) {
+export const openPhoneDialer = async (
+  phoneNumber: string,
+  extension?: string,
+): Promise<void> => {
+  const { url, fallbackUrl } = buildPhoneDialerUrl(phoneNumber, extension);
+  if (!url) {
     logger.warn("Phone number missing for dialer", { phoneNumber });
     throw createLinkingError("phone_number_invalid");
   }
-
-  const url = `tel:${cleanNumber}`;
 
   let supported = false;
   try {
@@ -83,6 +118,19 @@ export const openPhoneDialer = async (phoneNumber: string): Promise<void> => {
   } catch (error) {
     logger.error("Failed to check phone dialer support", { url }, error);
     throw createLinkingError("phone_dialer_failed");
+  }
+
+  if (!supported && fallbackUrl) {
+    try {
+      supported = await Linking.canOpenURL(fallbackUrl);
+    } catch (error) {
+      logger.error(
+        "Failed to check phone dialer support (fallback)",
+        { url: fallbackUrl },
+        error,
+      );
+      throw createLinkingError("phone_dialer_failed");
+    }
   }
 
   if (!supported) {
@@ -93,6 +141,18 @@ export const openPhoneDialer = async (phoneNumber: string): Promise<void> => {
   try {
     await Linking.openURL(url);
   } catch (error) {
+    if (fallbackUrl) {
+      try {
+        await Linking.openURL(fallbackUrl);
+        return;
+      } catch (fallbackError) {
+        logger.error(
+          "Failed to open phone dialer (fallback)",
+          { url: fallbackUrl },
+          fallbackError,
+        );
+      }
+    }
     logger.error("Failed to open phone dialer", { url }, error);
     throw createLinkingError("phone_dialer_failed");
   }
@@ -103,13 +163,13 @@ export const openPhoneDialer = async (phoneNumber: string): Promise<void> => {
  * @param phoneNumber - The phone number to send SMS to (can include formatting characters)
  */
 export const openSMS = async (phoneNumber: string): Promise<void> => {
-  const cleanNumber = normalizePhoneNumber(phoneNumber);
-  if (!cleanNumber) {
+  const { number } = normalizePhoneNumber(phoneNumber);
+  if (!number) {
     logger.warn("Phone number missing for SMS", { phoneNumber });
     throw createLinkingError("phone_number_invalid");
   }
 
-  const url = `sms:${cleanNumber}`;
+  const url = `sms:${number}`;
 
   let supported = false;
   try {

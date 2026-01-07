@@ -41,19 +41,73 @@ export const splitLegacyName = (
   };
 };
 
-/**
- * Format a phone number as XXX-XXX-XXXX when possible.
- */
-export const formatPhoneNumber = (value: string): string => {
-  const digits = value.replace(/\D/g, "");
+export type ParsedPhoneNumber = {
+  base: string;
+  extension?: string;
+  hasExtensionMarker: boolean;
+};
+
+const EXTENSION_REGEX = /^(.*?)(?:\s*(?:ext\.?|extension|x|#)\s*(\d*))$/i;
+
+export const parsePhoneNumber = (value: string): ParsedPhoneNumber => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { base: "", hasExtensionMarker: false };
+  }
+
+  const match = trimmed.match(EXTENSION_REGEX);
+  if (!match) {
+    return { base: trimmed, hasExtensionMarker: false };
+  }
+
+  const base = (match[1] ?? "").trim();
+  const extension = (match[2] ?? "").trim();
+  return {
+    base,
+    extension: extension ? extension : undefined,
+    hasExtensionMarker: true,
+  };
+};
+
+const formatBasePhoneNumber = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return value;
+  }
+
+  const digits = trimmed.replace(/\D/g, "");
   const normalized =
     digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
 
   if (normalized.length !== 10) {
-    return value;
+    return trimmed;
   }
 
   return `${normalized.slice(0, 3)}-${normalized.slice(3, 6)}-${normalized.slice(6)}`;
+};
+
+/**
+ * Format a phone number as XXX-XXX-XXXX when possible, preserving extensions.
+ */
+export const formatPhoneNumber = (
+  value: string,
+  extension?: string,
+): string => {
+  const trimmedExtension = extension?.trim();
+  const resolved = trimmedExtension
+    ? { base: value, extension: trimmedExtension, hasExtensionMarker: true }
+    : parsePhoneNumber(value);
+  const formattedBase = formatBasePhoneNumber(resolved.base);
+  if (!resolved.hasExtensionMarker) {
+    return formattedBase;
+  }
+
+  if (!formattedBase) {
+    return value.trim();
+  }
+
+  const suffix = resolved.extension ? ` x${resolved.extension}` : " x";
+  return `${formattedBase}${suffix}`;
 };
 
 /**

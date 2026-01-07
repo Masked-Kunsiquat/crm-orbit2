@@ -321,6 +321,7 @@
   "contacts.form.phonesLabel": "Phone Numbers",
   "contacts.form.emailPlaceholder": "email@example.com",
   "contacts.form.phonePlaceholder": "+1 (555) 123-4567",
+  "contacts.form.phoneExtensionPlaceholder": "Ext",
   "contacts.form.addAction": "Add",
   "contacts.form.updateButton": "Update Contact",
   "contacts.form.createButton": "Create Contact",

@@ -316,7 +316,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               <Text style={styles.emptyText}>{t("contacts.emptyPhones")}</Text>
             ) : (
               contact.methods.phones.map((phone, index) => {
-                const formattedPhone = formatPhoneNumber(phone.value);
+                const formattedPhone = formatPhoneNumber(
+                  phone.value,
+                  phone.extension,
+                );
                 const methodLabel = getMethodLabel(phone.label);
                 const callLabel = t("call_phone")
                   .replace("{label}", methodLabel)
@@ -342,7 +345,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                           accessibilityRole="button"
                           accessibilityLabel={callLabel}
                           onPress={() => {
-                            void openPhoneDialer(phone.value).catch(
+                            void openPhoneDialer(
+                              phone.value,
+                              phone.extension,
+                            ).catch(
                               handleLinkingError,
                             );
                           }}

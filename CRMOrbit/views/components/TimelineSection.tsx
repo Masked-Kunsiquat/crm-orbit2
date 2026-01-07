@@ -17,6 +17,7 @@ import {
   type FieldChange,
 } from "../timeline/changeDetection";
 import type { Contact, ContactMethod } from "@domains/contact";
+import { formatPhoneNumber } from "@domains/contact.utils";
 import type { Account } from "@domains/account";
 import type { Organization } from "@domains/organization";
 import type { Note } from "@domains/note";
@@ -639,8 +640,18 @@ export const TimelineSection = ({
     // For contact method added events
     if (item.event.type === "contact.method.added") {
       const method = payload?.method as Record<string, unknown> | undefined;
+      const methodType =
+        typeof payload?.methodType === "string" ? payload.methodType : null;
       if (method && typeof method.value === "string") {
-        const value = method.value;
+        const value =
+          methodType === "phones"
+            ? formatPhoneNumber(
+                method.value,
+                typeof method.extension === "string"
+                  ? method.extension
+                  : undefined,
+              )
+            : method.value;
         let label = "";
         if (typeof method.label === "string") {
           // Translate the label key (e.g., "contact.method.label.work" -> "Work")
@@ -656,9 +667,19 @@ export const TimelineSection = ({
       const previousMethod = payload?.previousMethod as
         | Record<string, unknown>
         | undefined;
+      const methodType =
+        typeof payload?.methodType === "string" ? payload.methodType : null;
 
       if (method && typeof method.value === "string") {
-        const newValue = method.value;
+        const newValue =
+          methodType === "phones"
+            ? formatPhoneNumber(
+                method.value,
+                typeof method.extension === "string"
+                  ? method.extension
+                  : undefined,
+              )
+            : method.value;
         let label = "";
         if (typeof method.label === "string") {
           label = t(method.label);
@@ -666,7 +687,15 @@ export const TimelineSection = ({
 
         // If we have previous method, show before -> after
         if (previousMethod && typeof previousMethod.value === "string") {
-          const oldValue = previousMethod.value;
+          const oldValue =
+            methodType === "phones"
+              ? formatPhoneNumber(
+                  previousMethod.value,
+                  typeof previousMethod.extension === "string"
+                    ? previousMethod.extension
+                    : undefined,
+                )
+              : previousMethod.value;
           return `${oldValue} → ${newValue}`;
         }
 

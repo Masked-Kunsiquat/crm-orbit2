@@ -18,6 +18,7 @@ export type ContactMethodLabel =
 export interface ContactMethod {
   id: string;
   value: string;
+  extension?: string;
   label: ContactMethodLabel;
   status: ContactMethodStatus;
 }
