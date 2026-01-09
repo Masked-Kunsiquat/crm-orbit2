@@ -147,9 +147,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setStatus(account.status);
         setAuditFrequency(resolvedAuditFrequency);
         setInitialAuditFrequency(resolvedAuditFrequency);
-        setAuditFrequencyChangeTiming(
-          "account.auditFrequencyChange.immediate",
-        );
+        setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
         setSiteAddress(
           account.addresses?.site ?? {
             street: "",
@@ -187,9 +185,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setStatus("account.status.active");
         setAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
         setInitialAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
-        setAuditFrequencyChangeTiming(
-          "account.auditFrequencyChange.immediate",
-        );
+        setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
         setSiteAddress({ street: "", city: "", state: "", zipCode: "" });
         setParkingAddress({ street: "", city: "", state: "", zipCode: "" });
         setUseSameForParking(false);

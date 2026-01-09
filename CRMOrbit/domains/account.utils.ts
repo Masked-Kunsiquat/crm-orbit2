@@ -41,7 +41,9 @@ export const isAccountAuditFrequencyChangeTiming = (
 const toMonthIndex = (date: Date): number =>
   date.getUTCFullYear() * 12 + date.getUTCMonth();
 
-const fromMonthIndex = (monthIndex: number): { year: number; month: number } => {
+const fromMonthIndex = (
+  monthIndex: number,
+): { year: number; month: number } => {
   const year = Math.floor(monthIndex / 12);
   const month = monthIndex % 12;
   return {
@@ -68,7 +70,10 @@ export const getPeriodStartFromAnchor = (
 ): string | null => {
   const anchorDate = new Date(anchorTimestamp);
   const targetDate = new Date(targetTimestamp);
-  if (Number.isNaN(anchorDate.getTime()) || Number.isNaN(targetDate.getTime())) {
+  if (
+    Number.isNaN(anchorDate.getTime()) ||
+    Number.isNaN(targetDate.getTime())
+  ) {
     return null;
   }
   const anchorIndex = toMonthIndex(anchorDate);

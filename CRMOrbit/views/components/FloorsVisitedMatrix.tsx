@@ -16,7 +16,10 @@ import {
   resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../utils/audits";
-import { getAuditPeriods, type AuditPeriodStatus } from "../utils/auditSchedule";
+import {
+  getAuditPeriods,
+  type AuditPeriodStatus,
+} from "../utils/auditSchedule";
 import { useTheme } from "../hooks";
 
 type FloorsVisitedMatrixVisit = {
@@ -162,12 +165,18 @@ export const buildFloorsVisitedMatrix = ({
           .filter(
             (audit) => resolveAuditStatus(audit) === "audits.status.completed",
           )
-          .sort((left, right) => getAuditSortTimestamp(right) - getAuditSortTimestamp(left));
+          .sort(
+            (left, right) =>
+              getAuditSortTimestamp(right) - getAuditSortTimestamp(left),
+          );
         const scheduledAudits = auditsInPeriod
           .filter(
             (audit) => resolveAuditStatus(audit) === "audits.status.scheduled",
           )
-          .sort((left, right) => getAuditSortTimestamp(left) - getAuditSortTimestamp(right));
+          .sort(
+            (left, right) =>
+              getAuditSortTimestamp(left) - getAuditSortTimestamp(right),
+          );
 
         const selectedAudit =
           currentInPeriod ??

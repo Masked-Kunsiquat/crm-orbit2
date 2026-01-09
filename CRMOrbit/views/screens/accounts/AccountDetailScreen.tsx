@@ -450,7 +450,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           <DetailField label={t("accounts.fields.auditFrequency")}>
             <View>
               <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
-                {activeFrequency ? t(activeFrequency) : t(account.auditFrequency)}
+                {activeFrequency
+                  ? t(activeFrequency)
+                  : t(account.auditFrequency)}
               </Text>
               {pendingFrequency ? (
                 <Text

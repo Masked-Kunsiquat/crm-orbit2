@@ -83,7 +83,9 @@ const selectActiveFrequency = (
     account.auditFrequencyPending &&
     account.auditFrequencyPendingEffectiveAt
   ) {
-    const pendingTime = parseTimestamp(account.auditFrequencyPendingEffectiveAt);
+    const pendingTime = parseTimestamp(
+      account.auditFrequencyPendingEffectiveAt,
+    );
     if (pendingTime !== null && reference.getTime() >= pendingTime) {
       return {
         frequency: account.auditFrequencyPending,

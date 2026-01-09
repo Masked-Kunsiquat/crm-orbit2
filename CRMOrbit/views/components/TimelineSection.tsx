@@ -183,7 +183,8 @@ export const TimelineSection = ({
           ? resolveAccountAuditFrequency(payload.auditFrequency)
           : undefined;
       const frequencyChanged =
-        payloadFrequency !== undefined && payloadFrequency !== existingFrequency;
+        payloadFrequency !== undefined &&
+        payloadFrequency !== existingFrequency;
       const changeTiming = isAccountAuditFrequencyChangeTiming(
         payload.auditFrequencyChangeTiming,
       )
@@ -207,11 +208,8 @@ export const TimelineSection = ({
         if (changeTiming === "account.auditFrequencyChange.nextPeriod") {
           const months = getAccountAuditFrequencyMonths(existingFrequency);
           const currentPeriodStart =
-            getPeriodStartFromAnchor(
-              existingAnchorAt,
-              months,
-              timestamp,
-            ) ?? existingAnchorAt;
+            getPeriodStartFromAnchor(existingAnchorAt, months, timestamp) ??
+            existingAnchorAt;
           auditFrequencyPending = payloadFrequency;
           auditFrequencyPendingEffectiveAt =
             addMonthsToPeriodStart(currentPeriodStart, months) ??
