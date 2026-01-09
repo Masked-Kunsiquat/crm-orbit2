@@ -18,7 +18,6 @@ import {
   ConfirmDialog,
   FormField,
   FormScreenLayout,
-  PrimaryActionButton,
   Section,
   SegmentedOptionGroup,
   TextField,
@@ -263,6 +262,69 @@ export const RandomizerScreen = (
 
   return (
     <FormScreenLayout>
+      <Section>
+        <View style={styles.resultsHeader}>
+          <View style={styles.resultsTitleRow}>
+            <MaterialCommunityIcons
+              name="dice-multiple"
+              size={18}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.resultsTitle, { color: colors.textPrimary }]}>
+              {t("randomizer.results.title")}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.resultsBadge,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.resultsBadgeText, { color: colors.textSecondary }]}>
+              {results.length}
+            </Text>
+          </View>
+        </View>
+        <View
+          style={[
+            styles.resultsPanel,
+            { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+          ]}
+        >
+          {results.length === 0 ? (
+            <Text style={[styles.resultsPlaceholder, { color: colors.textMuted }]}>
+              {t("randomizer.results.empty")}
+            </Text>
+          ) : (
+            <Text
+              selectable
+              style={[styles.resultsText, { color: colors.textPrimary }]}
+            >
+              {results.join(", ")}
+            </Text>
+          )}
+        </View>
+        <View style={styles.resultsActions}>
+          <ActionButton
+            variant="primary"
+            size="compact"
+            label={
+              results.length > 0
+                ? t("randomizer.actions.redraw")
+                : t("randomizer.actions.generate")
+            }
+            onPress={handleGenerate}
+          />
+          <ActionButton
+            size="compact"
+            tone="link"
+            label={t("randomizer.actions.copy")}
+            onPress={handleCopy}
+            disabled={results.length === 0}
+          />
+        </View>
+      </Section>
+
       <Section title={t("randomizer.sections.source")}>
         {eligibleAccounts.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
@@ -298,22 +360,28 @@ export const RandomizerScreen = (
       </Section>
 
       <Section title={t("randomizer.sections.inputs")}>
-        <FormField label={t("randomizer.fields.min")}>
-          <TextField
-            value={minInput}
-            onChangeText={setMinInput}
-            placeholder={t("randomizer.placeholders.min")}
-            keyboardType="number-pad"
-          />
-        </FormField>
-        <FormField label={t("randomizer.fields.max")}>
-          <TextField
-            value={maxInput}
-            onChangeText={setMaxInput}
-            placeholder={t("randomizer.placeholders.max")}
-            keyboardType="number-pad"
-          />
-        </FormField>
+        <View style={styles.inputRow}>
+          <View style={styles.inputColumn}>
+            <FormField label={t("randomizer.fields.min")}>
+              <TextField
+                value={minInput}
+                onChangeText={setMinInput}
+                placeholder={t("randomizer.placeholders.min")}
+                keyboardType="number-pad"
+              />
+            </FormField>
+          </View>
+          <View style={styles.inputColumn}>
+            <FormField label={t("randomizer.fields.max")}>
+              <TextField
+                value={maxInput}
+                onChangeText={setMaxInput}
+                placeholder={t("randomizer.placeholders.max")}
+                keyboardType="number-pad"
+              />
+            </FormField>
+          </View>
+        </View>
         <FormField
           label={t("randomizer.fields.excluded")}
           hint={t("randomizer.placeholders.excluded")}
@@ -324,61 +392,30 @@ export const RandomizerScreen = (
             placeholder={t("randomizer.placeholders.excluded")}
           />
         </FormField>
-        <FormField label={t("randomizer.fields.count")}>
-          <TextField
-            value={countInput}
-            onChangeText={setCountInput}
-            placeholder={t("randomizer.placeholders.count")}
-            keyboardType="number-pad"
-          />
-        </FormField>
-        <FormField label={t("randomizer.fields.order")}>
-          <SegmentedOptionGroup
-            options={[
-              { value: "asc", label: t("randomizer.order.asc") },
-              { value: "desc", label: t("randomizer.order.desc") },
-            ]}
-            value={order}
-            onChange={setOrder}
-          />
-        </FormField>
-      </Section>
-
-      <PrimaryActionButton
-        size="block"
-        label={
-          results.length > 0
-            ? t("randomizer.actions.redraw")
-            : t("randomizer.actions.generate")
-        }
-        onPress={handleGenerate}
-      />
-
-      <Section>
-        <View style={styles.resultsHeader}>
-          <Text style={[styles.resultsTitle, { color: colors.textPrimary }]}>
-            {t("randomizer.results.title")}
-          </Text>
-          <ActionButton
-            size="compact"
-            tone="link"
-            label={t("randomizer.actions.copy")}
-            onPress={handleCopy}
-            disabled={results.length === 0}
-          />
+        <View style={styles.inputRow}>
+          <View style={styles.inputColumn}>
+            <FormField label={t("randomizer.fields.count")}>
+              <TextField
+                value={countInput}
+                onChangeText={setCountInput}
+                placeholder={t("randomizer.placeholders.count")}
+                keyboardType="number-pad"
+              />
+            </FormField>
+          </View>
+          <View style={styles.inputColumn}>
+            <FormField label={t("randomizer.fields.order")}>
+              <SegmentedOptionGroup
+                options={[
+                  { value: "asc", label: t("randomizer.order.asc") },
+                  { value: "desc", label: t("randomizer.order.desc") },
+                ]}
+                value={order}
+                onChange={setOrder}
+              />
+            </FormField>
+          </View>
         </View>
-        {results.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {t("randomizer.results.empty")}
-          </Text>
-        ) : (
-          <Text
-            selectable
-            style={[styles.resultsText, { color: colors.textPrimary }]}
-          >
-            {results.join(", ")}
-          </Text>
-        )}
       </Section>
 
       <Modal
@@ -489,6 +526,55 @@ export const RandomizerScreen = (
 };
 
 const styles = StyleSheet.create({
+  resultsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  resultsTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  resultsTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  resultsBadge: {
+    minWidth: 32,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resultsBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  resultsPanel: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 14,
+    minHeight: 72,
+    justifyContent: "center",
+  },
+  resultsPlaceholder: {
+    fontSize: 14,
+  },
+  resultsText: {
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: "600",
+  },
+  resultsActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
   pickerButton: {
     borderRadius: 8,
     borderWidth: 1,
@@ -511,19 +597,14 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
   },
-  resultsHeader: {
+  inputRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
+    flexWrap: "wrap",
+    gap: 12,
   },
-  resultsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  resultsText: {
-    fontSize: 16,
-    lineHeight: 22,
+  inputColumn: {
+    flex: 1,
+    minWidth: 140,
   },
   modalOverlay: {
     flex: 1,
