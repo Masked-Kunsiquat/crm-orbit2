@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import type { MiscStackParamList } from "./types";
 import { MiscLandingScreen } from "../screens/misc/MiscLandingScreen";
+import { RandomizerScreen } from "../screens/misc/RandomizerScreen";
 import {
   CalendarSettingsScreen,
   SecuritySettingsScreen,
@@ -33,6 +34,11 @@ export const MiscStack = () => {
         name="Sync"
         component={SyncScreen}
         options={{ title: t("sync.title") }}
+      />
+      <Stack.Screen
+        name="Randomizer"
+        component={RandomizerScreen}
+        options={{ title: t("randomizer.title") }}
       />
       <Stack.Screen
         name="SecuritySettings"

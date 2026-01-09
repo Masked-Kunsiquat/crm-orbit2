@@ -124,6 +124,7 @@ export type NotesStackParamList = {
 export type MiscStackParamList = {
   MiscLanding: undefined;
   Sync: undefined;
+  Randomizer: undefined;
   SettingsList: undefined;
   SecuritySettings: undefined;
   CalendarSettings: undefined;
