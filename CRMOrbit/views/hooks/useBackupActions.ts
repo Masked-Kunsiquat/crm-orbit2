@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import type { DocumentPickerAsset } from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import { Directory, EncodingType, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
 import type {
@@ -43,25 +43,39 @@ const formatBackupTimestamp = (date: Date): string =>
 const buildBackupFileName = (date: Date): string =>
   `crmorbit-backup-${formatBackupTimestamp(date)}.crmbackup`;
 
-const resolveBackupDirectory = (): string => {
-  const directory = FileSystem.documentDirectory ?? FileSystem.cacheDirectory;
-  if (!directory) {
-    throw new Error("File storage is unavailable.");
+const resolveBackupDirectory = (): Directory => {
+  try {
+    const directory = Paths.document;
+    if (directory.uri && directory.uri !== ".") {
+      return directory;
+    }
+  } catch {
+    // Fall through to cache.
   }
-  return directory;
+
+  try {
+    const cache = Paths.cache;
+    if (cache.uri && cache.uri !== ".") {
+      return cache;
+    }
+  } catch {
+    // Fall through to error.
+  }
+
+  throw new Error("File storage is unavailable.");
 };
 
 const writeBackupFile = async (contents: string): Promise<BackupFileInfo> => {
   const name = buildBackupFileName(new Date());
-  const uri = `${resolveBackupDirectory()}${name}`;
-  await FileSystem.writeAsStringAsync(uri, contents, {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
-  return { uri, name };
+  const directory = resolveBackupDirectory();
+  const file = new File(directory, name);
+  file.create({ intermediates: true, overwrite: true });
+  file.write(contents, { encoding: EncodingType.UTF8 });
+  return { uri: file.uri, name };
 };
 
 const readBackupFile = async (uri: string): Promise<string> =>
-  FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.UTF8 });
+  new File(uri).text();
 
 const shareBackupFile = async (uri: string): Promise<boolean> => {
   const available = await Sharing.isAvailableAsync();

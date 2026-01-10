@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/legacy";
+import { Directory, File, Paths } from "expo-file-system";
 
 import { createLogger } from "./logger";
 
@@ -51,20 +51,16 @@ export const persistImage = async (
   entityId: string,
 ): Promise<string> => {
   try {
-    // Create directory if it doesn't exist
-    const dirUri = `${FileSystem.documentDirectory}${entityType}-logos/`;
-    const dirInfo = await FileSystem.getInfoAsync(dirUri);
-
-    if (!dirInfo.exists) {
-      await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-    }
+    const directory = new Directory(Paths.document, `${entityType}-logos`);
+    directory.create({ intermediates: true, idempotent: true });
 
     if (!tempUri.trim()) {
       throw new Error("Temporary image URI is required.");
     }
 
-    const tempInfo = await FileSystem.getInfoAsync(tempUri);
-    if (!tempInfo.exists) {
+    const sourceFile = new File(tempUri);
+    const sourceInfo = sourceFile.info();
+    if (!sourceInfo.exists) {
       throw new Error(`Temporary image not found at ${tempUri}`);
     }
 
@@ -73,15 +69,15 @@ export const persistImage = async (
 
     // Create permanent file path
     const fileName = `${safeEntityId}.${extension}`;
-    const permanentUri = `${dirUri}${fileName}`;
+    const destination = new File(directory, fileName);
+    if (destination.exists) {
+      destination.delete();
+    }
 
     // Copy file to permanent location
-    await FileSystem.copyAsync({
-      from: tempUri,
-      to: permanentUri,
-    });
+    sourceFile.copy(destination);
 
-    return permanentUri;
+    return destination.uri;
   } catch (error) {
     logger.error(
       "Failed to persist image",
@@ -97,9 +93,10 @@ export const persistImage = async (
  */
 export const deletePersistedImage = async (uri: string): Promise<void> => {
   try {
-    const fileInfo = await FileSystem.getInfoAsync(uri);
-    if (fileInfo.exists) {
-      await FileSystem.deleteAsync(uri);
+    const file = new File(uri);
+    const info = file.info();
+    if (info.exists) {
+      file.delete();
     }
   } catch (error) {
     logger.error("Failed to delete image", { uri }, error);
