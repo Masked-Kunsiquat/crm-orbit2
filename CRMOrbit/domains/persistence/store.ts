@@ -23,6 +23,7 @@ export type PersistenceDb = {
   insert: (table: unknown) => {
     values: (value: InsertValues) => { run: () => Promise<void> };
   };
+  delete: (table: unknown) => { run: () => Promise<void> };
   select: () => {
     from: <T = SnapshotRecord | EventLogRecord>(
       table: unknown,
@@ -66,6 +67,11 @@ export const appendEvents = async (
   }));
 
   await db.insert(eventLog).values(rows).run();
+};
+
+export const clearPersistence = async (db: PersistenceDb): Promise<void> => {
+  await db.delete(eventLog).run();
+  await db.delete(automergeSnapshots).run();
 };
 
 export const persistSnapshotAndEvents = async (

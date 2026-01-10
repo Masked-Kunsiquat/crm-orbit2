@@ -9,6 +9,7 @@ import {
 } from "@domains/account.utils";
 import { applyEvents } from "@events/dispatcher";
 import type { Event } from "@events/event";
+import { sortEvents } from "@events/ordering";
 import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
@@ -167,7 +168,7 @@ export const loadPersistedState = async (
   logger.info(`Loaded ${eventRecords.length} event records from database`);
 
   // Parse events from records
-  const events: Event[] = eventRecords.map((record) => ({
+  const parsedEvents: Event[] = eventRecords.map((record) => ({
     id: record.id,
     type: record.type as Event["type"],
     entityId: record.entityId ?? undefined,
@@ -175,6 +176,7 @@ export const loadPersistedState = async (
     timestamp: record.timestamp,
     deviceId: record.deviceId,
   }));
+  const events = sortEvents(parsedEvents);
 
   // Silence logs during event replay to avoid log spam
   silenceLogs();
