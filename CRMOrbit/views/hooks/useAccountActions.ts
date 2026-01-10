@@ -6,6 +6,7 @@ import type { EntityId } from "../../domains/shared/types";
 import type {
   Account,
   AccountAuditFrequency,
+  AccountAuditFrequencyChangeTiming,
   AccountAddresses,
   SocialMediaLinks,
 } from "../../domains/account";
@@ -83,6 +84,7 @@ export const useAccountActions = (deviceId: string) => {
       maxFloor?: number,
       excludedFloors?: number[],
       auditFrequency?: AccountAuditFrequency,
+      auditFrequencyChangeTiming?: AccountAuditFrequencyChangeTiming,
       _previousAccount?: Account, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
       const event = buildEvent({
@@ -99,6 +101,9 @@ export const useAccountActions = (deviceId: string) => {
           ...(maxFloor !== undefined && { maxFloor }),
           ...(excludedFloors !== undefined && { excludedFloors }),
           ...(auditFrequency !== undefined && { auditFrequency }),
+          ...(auditFrequencyChangeTiming !== undefined && {
+            auditFrequencyChangeTiming,
+          }),
         },
         deviceId,
       });

@@ -18,6 +18,9 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
   const handleSyncPress = () => {
     navigation.navigate("Sync");
   };
+  const handleRandomizerPress = () => {
+    navigation.navigate("Randomizer");
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
@@ -56,6 +59,26 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               {t("sync.description")}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleRandomizerPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="dice-multiple"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("randomizer.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("randomizer.description")}
             </Text>
           </View>
         </View>

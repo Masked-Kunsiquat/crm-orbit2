@@ -165,6 +165,7 @@ export const detectAccountChanges = (
     maxFloor?: number;
     excludedFloors?: number[];
     auditFrequency?: string;
+    auditFrequencyPending?: string;
   },
 ): FieldChange[] => {
   const changes: FieldChange[] = [];
@@ -202,6 +203,15 @@ export const detectAccountChanges = (
       field: "auditFrequency",
       oldValue: oldFrequency,
       newValue: newFrequency,
+    });
+  }
+  const oldPendingFrequency = oldAccount.auditFrequencyPending ?? "";
+  const newPendingFrequency = newData.auditFrequencyPending ?? "";
+  if (oldPendingFrequency !== newPendingFrequency) {
+    changes.push({
+      field: "auditFrequencyPending",
+      oldValue: oldPendingFrequency,
+      newValue: newPendingFrequency,
     });
   }
 

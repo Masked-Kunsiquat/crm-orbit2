@@ -17,6 +17,7 @@ import type {
   Address,
   AccountAddresses,
   AccountAuditFrequency,
+  AccountAuditFrequencyChangeTiming,
   SocialMediaLinks,
 } from "@domains/account";
 import { DEFAULT_ACCOUNT_AUDIT_FREQUENCY } from "@domains/account.utils";
@@ -57,6 +58,12 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
   const [auditFrequency, setAuditFrequency] = useState<AccountAuditFrequency>(
     DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
   );
+  const [auditFrequencyChangeTiming, setAuditFrequencyChangeTiming] =
+    useState<AccountAuditFrequencyChangeTiming>(
+      "account.auditFrequencyChange.immediate",
+    );
+  const [initialAuditFrequency, setInitialAuditFrequency] =
+    useState<AccountAuditFrequency>(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
   const [siteAddress, setSiteAddress] = useState<Address>({
     street: "",
     city: "",
@@ -100,6 +107,16 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       label: t("account.auditFrequency.triannually"),
     },
   ] as const;
+  const auditFrequencyTimingOptions = [
+    {
+      value: "account.auditFrequencyChange.immediate",
+      label: t("accounts.auditFrequencyChange.immediate"),
+    },
+    {
+      value: "account.auditFrequencyChange.nextPeriod",
+      label: t("accounts.auditFrequencyChange.nextPeriod"),
+    },
+  ] as const;
 
   useEffect(() => {
     if (!accountId && prefillOrganizationId) {
@@ -116,12 +133,21 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       lastAccountIdRef.current = currentAccountId;
 
       if (account) {
+        const pendingEffectiveAt = account.auditFrequencyPendingEffectiveAt
+          ? Date.parse(account.auditFrequencyPendingEffectiveAt)
+          : Number.NaN;
+        const resolvedAuditFrequency =
+          account.auditFrequencyPending &&
+          !Number.isNaN(pendingEffectiveAt) &&
+          Date.now() >= pendingEffectiveAt
+            ? account.auditFrequencyPending
+            : (account.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
         setName(account.name);
         setOrganizationId(account.organizationId);
         setStatus(account.status);
-        setAuditFrequency(
-          account.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
-        );
+        setAuditFrequency(resolvedAuditFrequency);
+        setInitialAuditFrequency(resolvedAuditFrequency);
+        setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
         setSiteAddress(
           account.addresses?.site ?? {
             street: "",
@@ -158,6 +184,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         setOrganizationId(organizations[0]?.id ?? "");
         setStatus("account.status.active");
         setAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
+        setInitialAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
+        setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
         setSiteAddress({ street: "", city: "", state: "", zipCode: "" });
         setParkingAddress({ street: "", city: "", state: "", zipCode: "" });
         setUseSameForParking(false);
@@ -182,6 +210,9 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
 
   const handleAuditFrequencyChange = (value: AccountAuditFrequency) => {
     setAuditFrequency(value);
+    if (value !== initialAuditFrequency) {
+      setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
+    }
   };
 
   const handleSiteAddressChange = (field: keyof Address, value: string) => {
@@ -369,6 +400,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       }
     }
 
+    const isFrequencyChanged = auditFrequency !== initialAuditFrequency;
+
     if (accountId) {
       const result = updateAccount(
         accountId,
@@ -382,6 +415,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         maxFloorParsed,
         excludedFloorsParsed,
         auditFrequency,
+        isFrequencyChanged ? auditFrequencyChangeTiming : undefined,
         account ?? undefined,
       );
       if (result.success) {
@@ -477,6 +511,15 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           onChange={handleAuditFrequencyChange}
         />
       </FormField>
+      {auditFrequency !== initialAuditFrequency ? (
+        <FormField label={t("accounts.fields.auditFrequencyChangeTiming")}>
+          <SegmentedOptionGroup
+            options={auditFrequencyTimingOptions}
+            value={auditFrequencyChangeTiming}
+            onChange={setAuditFrequencyChangeTiming}
+          />
+        </FormField>
+      ) : null}
 
       <FormField label={t("accounts.fields.minFloor")}>
         <TextField

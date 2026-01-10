@@ -64,6 +64,11 @@ export const createPersistenceDb = (
         },
       }),
     }),
+    delete: (table) => ({
+      run: async () => {
+        await db.delete(table as typeof eventLog | typeof automergeSnapshots);
+      },
+    }),
     select: () => ({
       from: <T>(table: unknown) => ({
         all: async (): Promise<T[]> => {

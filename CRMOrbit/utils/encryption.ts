@@ -270,7 +270,7 @@ export const importEncryptionKey = async (base64Key: string): Promise<void> => {
   }
 };
 
-export const encryptCode = async (plaintext: string): Promise<string> => {
+const encryptString = async (plaintext: string): Promise<string> => {
   const encoded = getTextEncoder().encode(plaintext);
   const cryptoApi = getCryptoRandom();
   const iv = cryptoApi.getRandomValues(new Uint8Array(IV_LENGTH));
@@ -300,7 +300,7 @@ export const encryptCode = async (plaintext: string): Promise<string> => {
   return JSON.stringify(payload);
 };
 
-export const decryptCode = async (ciphertext: string): Promise<string> => {
+const decryptString = async (ciphertext: string): Promise<string> => {
   const parsed = ensurePayload(JSON.parse(ciphertext));
   const iv = decodeBase64(parsed.iv);
   const data = decodeBase64(parsed.data);
@@ -323,3 +323,17 @@ export const decryptCode = async (ciphertext: string): Promise<string> => {
 
   return getTextDecoder().decode(plainBytes);
 };
+
+export const encryptPayload = async (payload: unknown): Promise<string> =>
+  encryptString(JSON.stringify(payload));
+
+export const decryptPayload = async <T>(ciphertext: string): Promise<T> => {
+  const plain = await decryptString(ciphertext);
+  return JSON.parse(plain) as T;
+};
+
+export const encryptCode = async (plaintext: string): Promise<string> =>
+  encryptString(plaintext);
+
+export const decryptCode = async (ciphertext: string): Promise<string> =>
+  decryptString(ciphertext);

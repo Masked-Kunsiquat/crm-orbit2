@@ -1,3 +1,4 @@
+import { Directory, File, Paths } from "expo-file-system";
 import * as FileSystem from "expo-file-system/legacy";
 
 import { createLogger } from "./logger";
@@ -41,6 +42,24 @@ const extractExtension = (tempUri: string): string => {
   return SAFE_EXTENSION_SET.has(extension) ? extension : "jpg";
 };
 
+const buildCacheFileName = (extension: string): string => {
+  const token = Math.random().toString(36).slice(2, 8);
+  return `image-${Date.now()}-${token}.${extension}`;
+};
+
+const resolveImageSourceUri = async (tempUri: string): Promise<string> => {
+  if (!tempUri.startsWith("content://")) {
+    return tempUri;
+  }
+
+  const extension = extractExtension(tempUri);
+  const cacheDirectory = new Directory(Paths.cache, "image-cache");
+  cacheDirectory.create({ intermediates: true, idempotent: true });
+  const cacheFile = new File(cacheDirectory, buildCacheFileName(extension));
+  await FileSystem.copyAsync({ from: tempUri, to: cacheFile.uri });
+  return cacheFile.uri;
+};
+
 /**
  * Copy an image from a temporary location to permanent storage
  * Returns the permanent file URI
@@ -51,37 +70,34 @@ export const persistImage = async (
   entityId: string,
 ): Promise<string> => {
   try {
-    // Create directory if it doesn't exist
-    const dirUri = `${FileSystem.documentDirectory}${entityType}-logos/`;
-    const dirInfo = await FileSystem.getInfoAsync(dirUri);
-
-    if (!dirInfo.exists) {
-      await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
-    }
+    const directory = new Directory(Paths.document, `${entityType}-logos`);
+    directory.create({ intermediates: true, idempotent: true });
 
     if (!tempUri.trim()) {
       throw new Error("Temporary image URI is required.");
     }
 
-    const tempInfo = await FileSystem.getInfoAsync(tempUri);
-    if (!tempInfo.exists) {
-      throw new Error(`Temporary image not found at ${tempUri}`);
+    const resolvedUri = await resolveImageSourceUri(tempUri);
+    const sourceFile = new File(resolvedUri);
+    const sourceInfo = sourceFile.info();
+    if (!sourceInfo.exists) {
+      throw new Error(`Temporary image not found at ${resolvedUri}`);
     }
 
     const safeEntityId = sanitizeEntityId(entityId);
-    const extension = extractExtension(tempUri);
+    const extension = extractExtension(resolvedUri);
 
     // Create permanent file path
     const fileName = `${safeEntityId}.${extension}`;
-    const permanentUri = `${dirUri}${fileName}`;
+    const destination = new File(directory, fileName);
+    if (destination.exists) {
+      destination.delete();
+    }
 
     // Copy file to permanent location
-    await FileSystem.copyAsync({
-      from: tempUri,
-      to: permanentUri,
-    });
+    sourceFile.copy(destination);
 
-    return permanentUri;
+    return destination.uri;
   } catch (error) {
     logger.error(
       "Failed to persist image",
@@ -97,9 +113,10 @@ export const persistImage = async (
  */
 export const deletePersistedImage = async (uri: string): Promise<void> => {
   try {
-    const fileInfo = await FileSystem.getInfoAsync(uri);
-    if (fileInfo.exists) {
-      await FileSystem.deleteAsync(uri);
+    const file = new File(uri);
+    const info = file.info();
+    if (info.exists) {
+      file.delete();
     }
   } catch (error) {
     logger.error("Failed to delete image", { uri }, error);

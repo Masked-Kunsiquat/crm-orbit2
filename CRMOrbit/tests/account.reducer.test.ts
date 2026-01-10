@@ -50,6 +50,7 @@ test("account.created adds a new account linked to an organization", () => {
   assert.equal(account.status, "account.status.active");
   assert.equal(account.auditFrequency, DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
   assert.equal(account.auditFrequencyUpdatedAt, event.timestamp);
+  assert.equal(account.auditFrequencyAnchorAt, "2024-01-01T00:00:00.000Z");
   assert.equal(account.createdAt, event.timestamp);
   assert.equal(account.updatedAt, event.timestamp);
 });
@@ -182,6 +183,7 @@ test("account.updated records audit frequency changes", () => {
 
   assert.equal(account.auditFrequency, "account.auditFrequency.quarterly");
   assert.equal(account.auditFrequencyUpdatedAt, updated.timestamp);
+  assert.equal(account.auditFrequencyAnchorAt, "2024-02-01T00:00:00.000Z");
 });
 
 test("account.deleted removes the account when no contacts are linked", () => {

@@ -101,6 +101,7 @@ export type ContactsStackParamList = {
       setPrimary?: boolean;
     };
   };
+  ContactsImport: undefined;
 };
 
 // Notes stack navigator (now includes Codes)
@@ -124,7 +125,9 @@ export type NotesStackParamList = {
 export type MiscStackParamList = {
   MiscLanding: undefined;
   Sync: undefined;
+  Randomizer: undefined;
   SettingsList: undefined;
+  BackupSettings: undefined;
   SecuritySettings: undefined;
   CalendarSettings: undefined;
 };

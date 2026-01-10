@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { ContactsStackScreenProps } from "@views/navigation/types";
@@ -12,20 +12,20 @@ import {
   ListRow,
   ListScreenLayout,
 } from "@views/components";
-import { useHeaderMenu, useTheme } from "@views/hooks";
-import { t } from "@i18n/index";
+import { useContactsListLabels, useHeaderMenu, useTheme } from "@views/hooks";
 
 type Props = ContactsStackScreenProps<"ContactsList">;
 type SortBy = "firstName" | "lastName";
 
 export const ContactsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
+  const labels = useContactsListLabels();
   const contacts = useAllContacts();
   const flatListRef = useRef<FlatList<Contact>>(null);
   const [sortBy, setSortBy] = useState<SortBy>("firstName");
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
-    accessibilityLabel: t("contacts.listOptions"),
+    accessibilityLabel: labels.listOptions,
   });
 
   const sortedContacts = useMemo(() => {
@@ -94,6 +94,11 @@ export const ContactsListScreen = ({ navigation }: Props) => {
     closeMenu();
   };
 
+  const handleImport = () => {
+    closeMenu();
+    navigation.navigate("ContactsImport");
+  };
+
   const handlePress = (contact: Contact) => {
     navigation.navigate("ContactDetail", { contactId: contact.id });
   };
@@ -129,8 +134,8 @@ export const ContactsListScreen = ({ navigation }: Props) => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         flatListRef={flatListRef}
-        emptyTitle={t("contacts.emptyTitle")}
-        emptyHint={t("contacts.emptyHint")}
+        emptyTitle={labels.emptyTitle}
+        emptyHint={labels.emptyHint}
         onAdd={handleAdd}
         rightAccessory={
           sortedContacts.length > 0 ? (
@@ -148,13 +153,25 @@ export const ContactsListScreen = ({ navigation }: Props) => {
       >
         <Pressable
           accessibilityRole="button"
+          onPress={handleImport}
+          style={styles.menuItem}
+        >
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+            {labels.importAction}
+          </Text>
+        </Pressable>
+        <View
+          style={[styles.menuDivider, { backgroundColor: colors.border }]}
+        />
+        <Pressable
+          accessibilityRole="button"
           onPress={toggleSortBy}
           style={styles.menuItem}
         >
           <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
             {sortBy === "firstName"
-              ? t("contacts.sortByLastName")
-              : t("contacts.sortByFirstName")}
+              ? labels.sortByLastName
+              : labels.sortByFirstName}
           </Text>
         </Pressable>
       </HeaderMenu>
@@ -169,6 +186,10 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 14,
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 8,
   },
   typeBadge: {
     alignSelf: "center",
