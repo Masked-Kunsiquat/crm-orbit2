@@ -74,11 +74,7 @@ export const RandomizerScreen = (
         t("common.ok"),
       );
     } catch {
-      showAlert(
-        t("common.error"),
-        t("randomizer.copyError"),
-        t("common.ok"),
-      );
+      showAlert(t("common.error"), t("randomizer.copyError"), t("common.ok"));
     }
   };
 
@@ -99,10 +95,15 @@ export const RandomizerScreen = (
           <View
             style={[
               styles.resultsBadge,
-              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+              {
+                backgroundColor: colors.surfaceElevated,
+                borderColor: colors.border,
+              },
             ]}
           >
-            <Text style={[styles.resultsBadgeText, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.resultsBadgeText, { color: colors.textSecondary }]}
+            >
               {results.length}
             </Text>
           </View>
@@ -110,11 +111,16 @@ export const RandomizerScreen = (
         <View
           style={[
             styles.resultsPanel,
-            { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+            {
+              backgroundColor: colors.surfaceElevated,
+              borderColor: colors.border,
+            },
           ]}
         >
           {results.length === 0 ? (
-            <Text style={[styles.resultsPlaceholder, { color: colors.textMuted }]}>
+            <Text
+              style={[styles.resultsPlaceholder, { color: colors.textMuted }]}
+            >
               {t("randomizer.results.empty")}
             </Text>
           ) : (
@@ -323,10 +329,7 @@ export const RandomizerScreen = (
                         {account.name}
                       </Text>
                       <Text
-                        style={[
-                          styles.pickerMeta,
-                          { color: colors.textMuted },
-                        ]}
+                        style={[styles.pickerMeta, { color: colors.textMuted }]}
                       >
                         {t("randomizer.accountFloors", {
                           min,

@@ -14,7 +14,6 @@ import { createLogger } from "../utils/logger";
 import {
   DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
   isAccountAuditFrequency,
-  isAccountAuditFrequencyChangeTiming,
   getAccountAuditFrequencyMonths,
   getMonthStartTimestamp,
   getPeriodStartFromAnchor,
