@@ -47,6 +47,21 @@ const createMemoryDb = () => {
         },
       }),
     }),
+    delete: (table) => ({
+      run: async () => {
+        if (table === automergeSnapshots) {
+          currentTables.snapshots = [];
+          return;
+        }
+
+        if (table === eventLog) {
+          currentTables.events = [];
+          return;
+        }
+
+        throw new Error("Unknown table.");
+      },
+    }),
     select: () => ({
       from: <T>(table: unknown) => ({
         all: async (): Promise<T[]> => {
