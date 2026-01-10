@@ -11,7 +11,7 @@ import {
   exportBackupToFile,
   importBackupFromFile,
   type BackupFileInfo,
-} from "@views/services/backupService";
+} from "@domains/persistence/backupService";
 import { createLogger } from "@utils/logger";
 import type { DispatchResult } from "./useDispatch";
 
