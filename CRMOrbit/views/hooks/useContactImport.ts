@@ -185,6 +185,9 @@ export const useContactImport = (): UseContactImportResult => {
   const updateEmail = useCallback(
     (index: number, value: string) =>
       updateCurrentDraft((draft) => {
+        if (index < 0 || index >= draft.emails.length) {
+          return draft;
+        }
         const emails = [...draft.emails];
         emails[index] = { ...emails[index], value };
         return { ...draft, emails };
@@ -195,6 +198,9 @@ export const useContactImport = (): UseContactImportResult => {
   const updateEmailLabel = useCallback(
     (index: number, label: ContactMethodLabel) =>
       updateCurrentDraft((draft) => {
+        if (index < 0 || index >= draft.emails.length) {
+          return draft;
+        }
         const emails = [...draft.emails];
         emails[index] = { ...emails[index], label };
         return { ...draft, emails };
@@ -226,6 +232,9 @@ export const useContactImport = (): UseContactImportResult => {
   const updatePhone = useCallback(
     (index: number, value: string) =>
       updateCurrentDraft((draft) => {
+        if (index < 0 || index >= draft.phones.length) {
+          return draft;
+        }
         const parsed = parsePhoneNumber(value);
         const phones = [...draft.phones];
         const existingExtension = phones[index]?.extension ?? "";
@@ -244,6 +253,9 @@ export const useContactImport = (): UseContactImportResult => {
   const updatePhoneExtension = useCallback(
     (index: number, value: string) =>
       updateCurrentDraft((draft) => {
+        if (index < 0 || index >= draft.phones.length) {
+          return draft;
+        }
         const phones = [...draft.phones];
         phones[index] = {
           ...phones[index],
@@ -257,6 +269,9 @@ export const useContactImport = (): UseContactImportResult => {
   const updatePhoneLabel = useCallback(
     (index: number, label: ContactMethodLabel) =>
       updateCurrentDraft((draft) => {
+        if (index < 0 || index >= draft.phones.length) {
+          return draft;
+        }
         const phones = [...draft.phones];
         phones[index] = { ...phones[index], label };
         return { ...draft, phones };
@@ -358,7 +373,10 @@ export const useContactImport = (): UseContactImportResult => {
       }
 
       const detailed =
-        (await Contacts.getContactByIdAsync(picked.id)) ?? picked;
+        (await Contacts.getContactByIdAsync(picked.id, [
+          Contacts.Fields.PhoneNumbers,
+          Contacts.Fields.Emails,
+        ])) ?? picked;
       if (!detailed) {
         return { ok: false, error: "loadFailed" };
       }

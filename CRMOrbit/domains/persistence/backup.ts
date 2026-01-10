@@ -220,7 +220,9 @@ export const importEncryptedBackup = async (
     payload = await decryptBackupPayload(ciphertext);
   } catch (error) {
     const message = error instanceof Error ? error.message.toLowerCase() : "";
-    const kind: BackupDecryptionErrorKind = message.includes("invalid ghash tag")
+    const kind: BackupDecryptionErrorKind = message.includes(
+      "invalid ghash tag",
+    )
       ? "invalidGhash"
       : "unknown";
     const label =

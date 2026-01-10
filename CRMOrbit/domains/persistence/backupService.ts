@@ -145,13 +145,8 @@ export const importBackupFromFile = async (
     await reloadStoreFromPersistence(deviceId);
     return { ok: true, result };
   } catch (error) {
-    logger.error(
-      "Failed to import backup",
-      { file: file.name, mode },
-      error,
-    );
-    const safeError =
-      error instanceof Error ? error : new Error(String(error));
+    logger.error("Failed to import backup", { file: file.name, mode }, error);
+    const safeError = error instanceof Error ? error : new Error(String(error));
     const kind =
       safeError instanceof BackupDecryptionError ? safeError.kind : "unknown";
     return { ok: false, kind, error: safeError };
