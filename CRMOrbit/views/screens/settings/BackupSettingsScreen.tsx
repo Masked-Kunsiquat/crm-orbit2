@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
+import * as Sharing from "expo-sharing";
 
 import type { BackupImportMode } from "@domains/persistence/backup";
 import {
@@ -32,6 +33,17 @@ import { useBackupLabels } from "../../hooks/useBackupLabels";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useSecuritySettings } from "../../store/store";
 
+const shareBackupFile = async (uri: string): Promise<boolean> => {
+  const available = await Sharing.isAvailableAsync();
+  if (!available) {
+    return false;
+  }
+  await Sharing.shareAsync(uri, {
+    mimeType: "application/octet-stream",
+  });
+  return true;
+};
+
 export const BackupSettingsScreen = () => {
   const { colors } = useTheme();
   const logger = createLogger("BackupSettingsScreen");
@@ -39,13 +51,17 @@ export const BackupSettingsScreen = () => {
   const securitySettings = useSecuritySettings();
   const deviceId = useDeviceId();
   const { authenticate, isAvailable } = useLocalAuth();
-  const { pickBackupFile, exportBackup, runImport, shouldConfirmImport } =
-    useBackupOperations(deviceId);
+  const {
+    pickBackupFile,
+    requestExport,
+    requestImport,
+    shouldConfirmImport,
+    isExporting,
+    isImporting,
+  } = useBackupOperations(deviceId);
   const { dialogProps, showAlert, showDialog } = useConfirmDialog();
   const [selectedFile, setSelectedFile] = useState<BackupFileInfo | null>(null);
   const [importMode, setImportMode] = useState<BackupImportMode>("merge");
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [keyValue, setKeyValue] = useState<string | null>(null);
   const [isKeyLoading, setIsKeyLoading] = useState(false);
@@ -65,19 +81,23 @@ export const BackupSettingsScreen = () => {
   };
 
   const handleExport = async () => {
-    setIsExporting(true);
-    const result = await exportBackup();
-    if (result.success && result.data) {
-      const message = result.data.shared
-        ? labels.exportSuccessMessage
-        : labels.exportShareUnavailable;
-      showAlert(labels.exportSuccessTitle, message, labels.okLabel);
-      setIsExporting(false);
-      return;
+    const outcome = await requestExport();
+    if (outcome.ok) {
+      try {
+        const shared = await shareBackupFile(outcome.file.uri);
+        const message = shared
+          ? labels.exportSuccessMessage
+          : labels.exportShareUnavailable;
+        showAlert(labels.exportSuccessTitle, message, labels.okLabel);
+        return;
+      } catch (error) {
+        logger.error("Failed to share backup", error);
+        showAlert(labels.errorTitle, labels.exportErrorMessage, labels.okLabel);
+        return;
+      }
     }
-    logger.error("Failed to export backup", result.error);
+    logger.error("Failed to export backup", outcome.error);
     showAlert(labels.errorTitle, labels.exportErrorMessage, labels.okLabel);
-    setIsExporting(false);
   };
 
   const handleRevealKey = async () => {
@@ -164,23 +184,20 @@ export const BackupSettingsScreen = () => {
       showAlert(labels.errorTitle, labels.importNoFile, labels.okLabel);
       return;
     }
-    setIsImporting(true);
-    const result = await runImport(selectedFile, importMode);
-    if (result.success) {
+    const outcome = await requestImport(selectedFile, importMode);
+    if (outcome.ok) {
       showAlert(
         labels.importSuccessTitle,
         labels.importSuccessMessage,
         labels.okLabel,
       );
-      setIsImporting(false);
       return;
     }
     const errorMessage =
-      result.errorKind === "invalidGhash"
+      outcome.kind === "invalidGhash"
         ? labels.importKeyMismatch
         : labels.importErrorMessage;
     showAlert(labels.errorTitle, errorMessage, labels.okLabel);
-    setIsImporting(false);
   };
 
   const handleImport = () => {

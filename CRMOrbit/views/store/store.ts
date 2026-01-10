@@ -13,6 +13,7 @@ import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
 import type { SecuritySettings } from "@domains/settings";
 import { DEFAULT_SETTINGS } from "@domains/settings";
+import { registerBackupRestoreHandler } from "@domains/persistence/backupOperations";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
@@ -67,6 +68,11 @@ const crmStore = create<CrmStoreState>((set) => ({
           : eventsOrUpdater,
     })),
 }));
+
+registerBackupRestoreHandler((state) => {
+  crmStore.getState().setDoc(state.doc);
+  crmStore.getState().setEvents(state.events);
+});
 
 const areLinkedEntitiesEqual = (
   left: LinkedEntityInfo[],
