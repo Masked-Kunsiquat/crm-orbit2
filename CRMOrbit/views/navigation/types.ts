@@ -101,6 +101,7 @@ export type ContactsStackParamList = {
       setPrimary?: boolean;
     };
   };
+  ContactsImport: undefined;
 };
 
 // Notes stack navigator (now includes Codes)

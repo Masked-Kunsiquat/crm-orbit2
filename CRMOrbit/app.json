@@ -37,6 +37,7 @@
         "NEARBY_WIFI_DEVICES",
         "READ_CALENDAR",
         "WRITE_CALENDAR",
+        "android.permission.READ_CONTACTS",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_CALENDAR",
@@ -48,6 +49,7 @@
         "NEARBY_WIFI_DEVICES",
         "READ_CALENDAR",
         "WRITE_CALENDAR",
+        "android.permission.READ_CONTACTS",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_CALENDAR",
@@ -63,6 +65,12 @@
       "./android-linking-plugin.js",
       "expo-secure-store",
       "expo-camera",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow CRM Orbit to access your contacts."
+        }
+      ],
       [
         "expo-calendar",
         {
