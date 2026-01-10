@@ -1,5 +1,6 @@
 import { Directory, File, Paths } from "expo-file-system";
 
+import type { AutomergeDoc } from "@automerge/schema";
 import type {
   BackupImportMode,
   BackupImportResult,
@@ -17,8 +18,8 @@ import { loadPersistedState } from "@domains/persistence/loader";
 import { appendEvents } from "@domains/persistence/store";
 import { buildCodeEncryptionEvents } from "@domains/migrations/codeEncryption";
 import { applyEvents } from "@events/dispatcher";
+import type { Event } from "@events/event";
 import { createLogger } from "@utils/logger";
-import { __internal_getCrmStore } from "@views/store/store";
 
 export type BackupFileInfo = {
   uri: string;
@@ -28,8 +29,13 @@ export type BackupFileInfo = {
 
 export type BackupImportErrorKind = "invalidGhash" | "tooLarge" | "unknown";
 
+export type BackupRestoreState = {
+  doc: AutomergeDoc;
+  events: Event[];
+};
+
 export type BackupImportOutcome =
-  | { ok: true; result: BackupImportResult }
+  | { ok: true; result: BackupImportResult; state: BackupRestoreState }
   | { ok: false; kind: BackupImportErrorKind; error: Error };
 
 const logger = createLogger("BackupService");
@@ -86,7 +92,9 @@ const resolveBackupFileSize = (file: BackupFileInfo): number | null => {
   return typeof info.size === "number" ? info.size : null;
 };
 
-const reloadStoreFromPersistence = async (deviceId: string): Promise<void> => {
+const loadStateFromPersistence = async (
+  deviceId: string,
+): Promise<BackupRestoreState> => {
   const db = createPersistenceDb(getDatabase());
   const { doc: loadedDoc, events: loadedEvents } = await loadPersistedState(db);
   const migrationEvents = await buildCodeEncryptionEvents(loadedDoc, deviceId);
@@ -100,9 +108,7 @@ const reloadStoreFromPersistence = async (deviceId: string): Promise<void> => {
     events = [...loadedEvents, ...migrationEvents];
   }
 
-  const store = __internal_getCrmStore();
-  store.getState().setDoc(doc);
-  store.getState().setEvents(events);
+  return { doc, events };
 };
 
 export const exportBackupToFile = async (
@@ -142,8 +148,8 @@ export const importBackupFromFile = async (
 
     const ciphertext = await readBackupFile(file.uri);
     const result = await importEncryptedBackup(db, ciphertext, mode);
-    await reloadStoreFromPersistence(deviceId);
-    return { ok: true, result };
+    const state = await loadStateFromPersistence(deviceId);
+    return { ok: true, result, state };
   } catch (error) {
     logger.error("Failed to import backup", { file: file.name, mode }, error);
     const safeError = error instanceof Error ? error : new Error(String(error));

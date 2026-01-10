@@ -14,6 +14,7 @@ import {
   type BackupFileInfo,
 } from "@domains/persistence/backupService";
 import { createLogger } from "@utils/logger";
+import { __internal_getCrmStore } from "@views/store/store";
 import type { DispatchResult } from "./useDispatch";
 
 const shareBackupFile = async (uri: string): Promise<boolean> => {
@@ -109,6 +110,9 @@ export const useBackupOperations = (deviceId: string) => {
       try {
         const outcome = await importBackupFromFile(deviceId, file, mode);
         if (outcome.ok) {
+          const store = __internal_getCrmStore().getState();
+          store.setDoc(outcome.state.doc);
+          store.setEvents(outcome.state.events);
           return { success: true, data: outcome.result };
         }
         logger.error(
