@@ -39,12 +39,8 @@ export const BackupSettingsScreen = () => {
   const securitySettings = useSecuritySettings();
   const deviceId = useDeviceId();
   const { authenticate, isAvailable } = useLocalAuth();
-  const {
-    pickBackupFile,
-    exportBackup,
-    runImport,
-    shouldConfirmImport,
-  } = useBackupOperations(deviceId);
+  const { pickBackupFile, exportBackup, runImport, shouldConfirmImport } =
+    useBackupOperations(deviceId);
   const { dialogProps, showAlert, showDialog } = useConfirmDialog();
   const [selectedFile, setSelectedFile] = useState<BackupFileInfo | null>(null);
   const [importMode, setImportMode] = useState<BackupImportMode>("merge");
@@ -163,7 +159,7 @@ export const BackupSettingsScreen = () => {
     }
   };
 
-  const runImport = async () => {
+  const handleRunImport = async () => {
     if (!selectedFile) {
       showAlert(labels.errorTitle, labels.importNoFile, labels.okLabel);
       return;
@@ -183,11 +179,7 @@ export const BackupSettingsScreen = () => {
       result.errorKind === "invalidGhash"
         ? labels.importKeyMismatch
         : labels.importErrorMessage;
-    showAlert(
-      labels.errorTitle,
-      errorMessage,
-      labels.okLabel,
-    );
+    showAlert(labels.errorTitle, errorMessage, labels.okLabel);
     setIsImporting(false);
   };
 
@@ -205,13 +197,13 @@ export const BackupSettingsScreen = () => {
         confirmVariant: "danger",
         cancelLabel: labels.cancelLabel,
         onConfirm: () => {
-          void runImport();
+          void handleRunImport();
         },
       });
       return;
     }
 
-    void runImport();
+    void handleRunImport();
   };
 
   const fileLabel = selectedFile

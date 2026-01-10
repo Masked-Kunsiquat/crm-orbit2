@@ -120,8 +120,7 @@ export const importBackupFromFile = async (
     return { ok: true, result };
   } catch (error) {
     logger.error("Failed to import backup", { file: file.name, mode }, error);
-    const safeError =
-      error instanceof Error ? error : new Error(String(error));
+    const safeError = error instanceof Error ? error : new Error(String(error));
     const kind = safeError.message.includes("invalid ghash tag")
       ? "invalidGhash"
       : "unknown";
