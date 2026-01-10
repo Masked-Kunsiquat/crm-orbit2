@@ -1,0 +1,112 @@
+import { t } from "./index";
+
+export type BackupLabels = {
+  title: string;
+  exportTitle: string;
+  exportDescription: string;
+  exportAction: string;
+  exportSuccessTitle: string;
+  exportSuccessMessage: string;
+  exportShareUnavailable: string;
+  exportErrorMessage: string;
+  keySectionTitle: string;
+  keySectionDescription: string;
+  keyRevealAction: string;
+  keyModalTitle: string;
+  keyModalMessage: string;
+  keyCopyAction: string;
+  keyCopySuccessTitle: string;
+  keyCopySuccessMessage: string;
+  keyCopyError: string;
+  keyImportLabel: string;
+  keyImportPlaceholder: string;
+  keyImportAction: string;
+  keyImportSuccessTitle: string;
+  keyImportSuccessMessage: string;
+  keyImportError: string;
+  keyImportEmpty: string;
+  keyBiometricUnavailable: string;
+  keyBiometricDisabled: string;
+  keyBiometricFailed: string;
+  keyLoadError: string;
+  keyAuthReason: string;
+  importTitle: string;
+  importDescription: string;
+  importKeyHint: string;
+  importFileLabel: string;
+  importFilePlaceholder: string;
+  importFileSelected: (name: string) => string;
+  importModeLabel: string;
+  importModeMerge: string;
+  importModeReplace: string;
+  importModeMergeHint: string;
+  importModeReplaceHint: string;
+  importAction: string;
+  importNoFile: string;
+  importKeyMismatch: string;
+  importSuccessTitle: string;
+  importSuccessMessage: string;
+  importErrorMessage: string;
+  importReplaceTitle: string;
+  importReplaceMessage: string;
+  importReplaceConfirm: string;
+  okLabel: string;
+  cancelLabel: string;
+  errorTitle: string;
+};
+
+export const getBackupLabels = (): BackupLabels => ({
+  title: t("backup.title"),
+  exportTitle: t("backup.export.title"),
+  exportDescription: t("backup.export.description"),
+  exportAction: t("backup.export.action"),
+  exportSuccessTitle: t("backup.export.successTitle"),
+  exportSuccessMessage: t("backup.export.successMessage"),
+  exportShareUnavailable: t("backup.export.shareUnavailable"),
+  exportErrorMessage: t("backup.export.error"),
+  keySectionTitle: t("backup.key.title"),
+  keySectionDescription: t("backup.key.description"),
+  keyRevealAction: t("backup.key.action"),
+  keyModalTitle: t("backup.key.modalTitle"),
+  keyModalMessage: t("backup.key.modalMessage"),
+  keyCopyAction: t("backup.key.copy"),
+  keyCopySuccessTitle: t("backup.key.copySuccessTitle"),
+  keyCopySuccessMessage: t("backup.key.copySuccessMessage"),
+  keyCopyError: t("backup.key.copyError"),
+  keyImportLabel: t("backup.key.importLabel"),
+  keyImportPlaceholder: t("backup.key.importPlaceholder"),
+  keyImportAction: t("backup.key.importAction"),
+  keyImportSuccessTitle: t("backup.key.importSuccessTitle"),
+  keyImportSuccessMessage: t("backup.key.importSuccessMessage"),
+  keyImportError: t("backup.key.importError"),
+  keyImportEmpty: t("backup.key.importEmpty"),
+  keyBiometricUnavailable: t("backup.key.biometricUnavailable"),
+  keyBiometricDisabled: t("backup.key.biometricDisabled"),
+  keyBiometricFailed: t("backup.key.biometricFailed"),
+  keyLoadError: t("backup.key.loadError"),
+  keyAuthReason: t("backup.key.authReason"),
+  importTitle: t("backup.import.title"),
+  importDescription: t("backup.import.description"),
+  importKeyHint: t("backup.import.keyHint"),
+  importFileLabel: t("backup.import.file.label"),
+  importFilePlaceholder: t("backup.import.file.placeholder"),
+  importFileSelected: (name: string) =>
+    t("backup.import.file.selected", { name }),
+  importModeLabel: t("backup.import.mode.label"),
+  importModeMerge: t("backup.import.mode.merge"),
+  importModeReplace: t("backup.import.mode.replace"),
+  importModeMergeHint: t("backup.import.mode.mergeHint"),
+  importModeReplaceHint: t("backup.import.mode.replaceHint"),
+  importAction: t("backup.import.action"),
+  importNoFile: t("backup.import.noFile"),
+  importKeyMismatch: t("backup.import.keyMismatch"),
+  importSuccessTitle: t("backup.import.successTitle"),
+  importSuccessMessage: t("backup.import.successMessage"),
+  importErrorMessage: t("backup.import.error"),
+  importReplaceTitle: t("backup.import.replace.title"),
+  importReplaceMessage: t("backup.import.replace.message"),
+  importReplaceConfirm: t("backup.import.replace.confirm"),
+  okLabel: t("common.ok"),
+  cancelLabel: t("common.cancel"),
+  errorTitle: t("common.error"),
+});

@@ -27,6 +27,7 @@ import {
   type BackupFileInfo,
   useBackupOperations,
 } from "../../hooks/useBackupOperations";
+import { getBackupLabels } from "@i18n/backupLabels";
 import { useBackupLabels } from "../../hooks/useBackupLabels";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useSecuritySettings } from "../../store/store";
@@ -34,7 +35,7 @@ import { useSecuritySettings } from "../../store/store";
 export const BackupSettingsScreen = () => {
   const { colors } = useTheme();
   const logger = createLogger("BackupSettingsScreen");
-  const labels = useBackupLabels();
+  const labels = useBackupLabels(getBackupLabels);
   const securitySettings = useSecuritySettings();
   const deviceId = useDeviceId();
   const { authenticate, isAvailable } = useLocalAuth();
