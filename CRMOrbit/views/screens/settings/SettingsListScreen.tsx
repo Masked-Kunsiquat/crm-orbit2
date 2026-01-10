@@ -3,13 +3,13 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
-import { useTheme } from "../../hooks";
-import { t } from "@i18n/index";
+import { useSettingsListLabels, useTheme } from "../../hooks";
 
 type Props = MiscStackScreenProps<"SettingsList">;
 
 export const SettingsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
+  const labels = useSettingsListLabels();
 
   const handleSecurityPress = () => {
     navigation.navigate("SecuritySettings");
@@ -17,6 +17,10 @@ export const SettingsListScreen = ({ navigation }: Props) => {
 
   const handleCalendarPress = () => {
     navigation.navigate("CalendarSettings");
+  };
+
+  const handleBackupPress = () => {
+    navigation.navigate("BackupSettings");
   };
 
   return (
@@ -32,10 +36,10 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("settings.security.title")}
+              {labels.securityTitle}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("settings.security.description")}
+              {labels.securityDescription}
             </Text>
           </View>
         </View>
@@ -52,10 +56,30 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("settings.calendar.title")}
+              {labels.calendarTitle}
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("settings.calendar.description")}
+              {labels.calendarDescription}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleBackupPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="database"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {labels.backupTitle}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {labels.backupDescription}
             </Text>
           </View>
         </View>

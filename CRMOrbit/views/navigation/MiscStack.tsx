@@ -5,50 +5,56 @@ import { MiscLandingScreen } from "../screens/misc/MiscLandingScreen";
 import { RandomizerScreen } from "../screens/misc/RandomizerScreen";
 import {
   CalendarSettingsScreen,
+  BackupSettingsScreen,
   SecuritySettingsScreen,
   SettingsListScreen,
 } from "../screens/settings";
 import { SyncScreen } from "../screens/SyncScreen";
 import { getStackScreenOptions } from "./stackOptions";
-import { useTheme } from "../hooks";
-import { t } from "@i18n/index";
+import { useMiscStackTitles, useTheme } from "../hooks";
 
 const Stack = createNativeStackNavigator<MiscStackParamList>();
 
 export const MiscStack = () => {
   const { colors } = useTheme();
+  const titles = useMiscStackTitles();
 
   return (
     <Stack.Navigator screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen
         name="MiscLanding"
         component={MiscLandingScreen}
-        options={{ title: t("screens.miscellaneous") }}
+        options={{ title: titles.misc }}
       />
       <Stack.Screen
         name="SettingsList"
         component={SettingsListScreen}
-        options={{ title: t("settings.title") }}
+        options={{ title: titles.settings }}
       />
       <Stack.Screen
         name="Sync"
         component={SyncScreen}
-        options={{ title: t("sync.title") }}
+        options={{ title: titles.sync }}
       />
       <Stack.Screen
         name="Randomizer"
         component={RandomizerScreen}
-        options={{ title: t("randomizer.title") }}
+        options={{ title: titles.randomizer }}
+      />
+      <Stack.Screen
+        name="BackupSettings"
+        component={BackupSettingsScreen}
+        options={{ title: titles.backup }}
       />
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettingsScreen}
-        options={{ title: t("settings.security.title") }}
+        options={{ title: titles.security }}
       />
       <Stack.Screen
         name="CalendarSettings"
         component={CalendarSettingsScreen}
-        options={{ title: t("settings.calendar.title") }}
+        options={{ title: titles.calendar }}
       />
     </Stack.Navigator>
   );

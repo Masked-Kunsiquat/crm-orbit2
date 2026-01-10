@@ -126,6 +126,7 @@ export type MiscStackParamList = {
   Sync: undefined;
   Randomizer: undefined;
   SettingsList: undefined;
+  BackupSettings: undefined;
   SecuritySettings: undefined;
   CalendarSettings: undefined;
 };
