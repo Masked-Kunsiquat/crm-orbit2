@@ -111,9 +111,12 @@ export const createBackupPayload = async (
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const details = `id=${record.id} type=${record.type} entityId=${record.entityId ?? "none"}`;
-        throw new Error(`Failed to parse event payload (${details}): ${message}`, {
-          cause: error,
-        });
+        throw new Error(
+          `Failed to parse event payload (${details}): ${message}`,
+          {
+            cause: error,
+          },
+        );
       }
     })(),
     timestamp: record.timestamp,
