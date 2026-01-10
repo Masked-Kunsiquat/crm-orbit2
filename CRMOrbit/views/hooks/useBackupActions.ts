@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import type { DocumentPickerAsset } from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
 import type {
@@ -44,7 +44,7 @@ const buildBackupFileName = (date: Date): string =>
   `crmorbit-backup-${formatBackupTimestamp(date)}.crmbackup`;
 
 const resolveBackupDirectory = (): string => {
-  const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  const directory = FileSystem.documentDirectory ?? FileSystem.cacheDirectory;
   if (!directory) {
     throw new Error("File storage is unavailable.");
   }
