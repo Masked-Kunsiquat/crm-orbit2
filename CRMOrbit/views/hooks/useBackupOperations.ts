@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import type { DocumentPickerAsset } from "expo-document-picker";
-import { Directory, EncodingType, File, Paths } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
 import type {
@@ -71,7 +71,7 @@ const writeBackupFile = async (contents: string): Promise<BackupFileInfo> => {
   const directory = resolveBackupDirectory();
   const file = new File(directory, name);
   file.create({ intermediates: true, overwrite: true });
-  file.write(contents, { encoding: EncodingType.UTF8 });
+  file.write(contents);
   return { uri: file.uri, name };
 };
 
