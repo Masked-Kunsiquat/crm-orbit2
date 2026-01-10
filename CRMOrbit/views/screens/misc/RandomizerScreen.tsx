@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -12,7 +11,6 @@ import * as Clipboard from "expo-clipboard";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
-import { useAccounts } from "../../store/store";
 import {
   ActionButton,
   ConfirmDialog,
@@ -24,221 +22,45 @@ import {
 } from "../../components";
 import { useTheme } from "../../hooks";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import { useRandomizer } from "../../hooks/useRandomizer";
+import { RANDOMIZER_ERROR_KEYS } from "../../utils/randomizer";
 import { t } from "@i18n/index";
-
-type OrderDirection = "asc" | "desc";
-
-type ParsedInputs = {
-  min: number;
-  max: number;
-  count: number;
-  excluded: number[];
-};
-
-const parseInteger = (value: string): number | null => {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
-    return null;
-  }
-  return parsed;
-};
-
-const parseExcludedFloors = (
-  value: string,
-  min: number,
-  max: number,
-): number[] | null => {
-  const trimmed = value.trim();
-  if (!trimmed) return [];
-  const parts = trimmed
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (parts.length === 0) return [];
-
-  const values: number[] = [];
-  for (const part of parts) {
-    const parsed = parseInteger(part);
-    if (parsed === null) {
-      return null;
-    }
-    if (parsed < min || parsed > max) {
-      return null;
-    }
-    values.push(parsed);
-  }
-
-  return Array.from(new Set(values));
-};
-
-const buildAvailableFloors = (
-  min: number,
-  max: number,
-  excluded: number[],
-): number[] => {
-  const excludedSet = new Set(excluded);
-  const result: number[] = [];
-  for (let floor = min; floor <= max; floor += 1) {
-    if (!excludedSet.has(floor)) {
-      result.push(floor);
-    }
-  }
-  return result;
-};
-
-const shuffle = (values: number[]): number[] => {
-  const result = [...values];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-};
-
-const sortValues = (values: number[], order: OrderDirection): number[] => {
-  const sorted = [...values];
-  sorted.sort((a, b) => (order === "asc" ? a - b : b - a));
-  return sorted;
-};
 
 export const RandomizerScreen = (
   _props: MiscStackScreenProps<"Randomizer">,
 ) => {
   const { colors } = useTheme();
   const { dialogProps, showAlert } = useConfirmDialog();
-  const accounts = useAccounts();
-  const eligibleAccounts = useMemo(() => {
-    return [...accounts]
-      .filter(
-        (account) =>
-          typeof account.minFloor === "number" &&
-          typeof account.maxFloor === "number",
-      )
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }, [accounts]);
-
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
-    null,
-  );
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [minInput, setMinInput] = useState("");
-  const [maxInput, setMaxInput] = useState("");
-  const [excludedInput, setExcludedInput] = useState("");
-  const [countInput, setCountInput] = useState("1");
-  const [order, setOrder] = useState<OrderDirection>("asc");
-  const [results, setResults] = useState<number[]>([]);
-
-  const selectedAccount = useMemo(
-    () => eligibleAccounts.find((account) => account.id === selectedAccountId),
-    [eligibleAccounts, selectedAccountId],
-  );
-
-  useEffect(() => {
-    setResults((current) =>
-      current.length > 0 ? sortValues(current, order) : current,
-    );
-  }, [order]);
-
-  const applyAccountValues = (accountId: string | null) => {
-    setSelectedAccountId(accountId);
-    if (!accountId) {
-      return;
-    }
-    const account = eligibleAccounts.find((item) => item.id === accountId);
-    if (!account) {
-      return;
-    }
-    const min = account.minFloor ?? "";
-    const max = account.maxFloor ?? "";
-    const excluded = account.excludedFloors?.join(", ") ?? "";
-    setMinInput(min !== "" ? `${min}` : "");
-    setMaxInput(max !== "" ? `${max}` : "");
-    setExcludedInput(excluded);
-  };
-
-  const parseInputs = (): ParsedInputs | null => {
-    const min = parseInteger(minInput);
-    if (min === null) {
-      showAlert(
-        t("common.validationError"),
-        t("randomizer.validation.minInvalid"),
-        t("common.ok"),
-      );
-      return null;
-    }
-
-    const max = parseInteger(maxInput);
-    if (max === null) {
-      showAlert(
-        t("common.validationError"),
-        t("randomizer.validation.maxInvalid"),
-        t("common.ok"),
-      );
-      return null;
-    }
-
-    if (min > max) {
-      showAlert(
-        t("common.validationError"),
-        t("randomizer.validation.rangeInvalid"),
-        t("common.ok"),
-      );
-      return null;
-    }
-
-    const count = parseInteger(countInput);
-    if (count === null || count <= 0) {
-      showAlert(
-        t("common.validationError"),
-        t("randomizer.validation.countInvalid"),
-        t("common.ok"),
-      );
-      return null;
-    }
-
-    const excluded = parseExcludedFloors(excludedInput, min, max);
-    if (excluded === null) {
-      showAlert(
-        t("common.validationError"),
-        t("randomizer.validation.excludedInvalid"),
-        t("common.ok"),
-      );
-      return null;
-    }
-
-    return { min, max, count, excluded };
-  };
+  const {
+    eligibleAccounts,
+    selectedAccount,
+    selectedAccountId,
+    isPickerOpen,
+    minInput,
+    maxInput,
+    excludedInput,
+    countInput,
+    order,
+    results,
+    setIsPickerOpen,
+    setMinInput,
+    setMaxInput,
+    setExcludedInput,
+    setCountInput,
+    setOrder,
+    applyAccountValues,
+    generate,
+  } = useRandomizer();
 
   const handleGenerate = () => {
-    const parsed = parseInputs();
-    if (!parsed) return;
-    const available = buildAvailableFloors(
-      parsed.min,
-      parsed.max,
-      parsed.excluded,
-    );
-    if (available.length === 0) {
+    const result = generate();
+    if (!result.ok) {
       showAlert(
         t("common.validationError"),
-        t("randomizer.validation.noAvailable"),
+        t(RANDOMIZER_ERROR_KEYS[result.error]),
         t("common.ok"),
       );
-      return;
     }
-    if (parsed.count > available.length) {
-      showAlert(
-        t("common.validationError"),
-        t("randomizer.validation.countTooHigh"),
-        t("common.ok"),
-      );
-      return;
-    }
-
-    const shuffled = shuffle(available);
-    const selection = shuffled.slice(0, parsed.count);
-    setResults(sortValues(selection, order));
   };
 
   const handleCopy = async () => {
