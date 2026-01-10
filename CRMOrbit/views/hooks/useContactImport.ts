@@ -361,7 +361,9 @@ export const useContactImport = (): UseContactImportResult => {
         return { ok: false, error: "loadFailed" };
       }
 
-      if (selectedContacts.some((contact) => contact.sourceId === detailed.id)) {
+      if (
+        selectedContacts.some((contact) => contact.sourceId === detailed.id)
+      ) {
         return { ok: false, error: "duplicate" };
       }
 

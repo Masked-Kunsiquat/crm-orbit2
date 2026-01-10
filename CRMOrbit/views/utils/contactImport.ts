@@ -1,4 +1,8 @@
-import type { ContactMethod, ContactMethodLabel, ContactType } from "@domains/contact";
+import type {
+  ContactMethod,
+  ContactMethodLabel,
+  ContactType,
+} from "@domains/contact";
 import {
   formatPhoneNumber,
   parsePhoneNumber,

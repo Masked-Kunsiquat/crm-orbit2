@@ -22,11 +22,11 @@ import {
 } from "../../components";
 import { importEncryptionKey, exportEncryptionKey } from "@utils/encryption";
 import { createLogger } from "@utils/logger";
-import { useLocalAuth, useTheme } from "../../hooks";
+import { useDeviceId, useLocalAuth, useTheme } from "../../hooks";
 import {
   type BackupFileInfo,
-  useBackupActions,
-} from "../../hooks/useBackupActions";
+  useBackupOperations,
+} from "../../hooks/useBackupOperations";
 import { useBackupLabels } from "../../hooks/useBackupLabels";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { useSecuritySettings } from "../../store/store";
@@ -36,8 +36,10 @@ export const BackupSettingsScreen = () => {
   const logger = createLogger("BackupSettingsScreen");
   const labels = useBackupLabels();
   const securitySettings = useSecuritySettings();
+  const deviceId = useDeviceId();
   const { authenticate, isAvailable } = useLocalAuth();
-  const { pickBackupFile, exportBackup, importBackup } = useBackupActions();
+  const { pickBackupFile, exportBackup, importBackup } =
+    useBackupOperations(deviceId);
   const { dialogProps, showAlert, showDialog } = useConfirmDialog();
   const [selectedFile, setSelectedFile] = useState<BackupFileInfo | null>(null);
   const [importMode, setImportMode] = useState<BackupImportMode>("merge");
@@ -50,30 +52,31 @@ export const BackupSettingsScreen = () => {
   const [isKeyImporting, setIsKeyImporting] = useState(false);
 
   const handlePickFile = async () => {
-    try {
-      const picked = await pickBackupFile();
-      if (picked) {
-        setSelectedFile(picked);
+    const result = await pickBackupFile();
+    if (result.success) {
+      if (result.data) {
+        setSelectedFile(result.data);
       }
-    } catch (error) {
-      logger.error("Failed to select backup file", error);
-      showAlert(labels.errorTitle, labels.importErrorMessage, labels.okLabel);
+      return;
     }
+    logger.error("Failed to select backup file", result.error);
+    showAlert(labels.errorTitle, labels.importErrorMessage, labels.okLabel);
   };
 
   const handleExport = async () => {
     setIsExporting(true);
-    try {
-      const result = await exportBackup();
-      const message = result.shared
+    const result = await exportBackup();
+    if (result.success && result.data) {
+      const message = result.data.shared
         ? labels.exportSuccessMessage
         : labels.exportShareUnavailable;
       showAlert(labels.exportSuccessTitle, message, labels.okLabel);
-    } catch (error) {
-      showAlert(labels.errorTitle, labels.exportErrorMessage, labels.okLabel);
-    } finally {
       setIsExporting(false);
+      return;
     }
+    logger.error("Failed to export backup", result.error);
+    showAlert(labels.errorTitle, labels.exportErrorMessage, labels.okLabel);
+    setIsExporting(false);
   };
 
   const handleRevealKey = async () => {
@@ -161,6 +164,11 @@ export const BackupSettingsScreen = () => {
         return labels.importKeyMismatch;
       }
     }
+    if (typeof error === "string") {
+      if (error.includes("invalid ghash tag")) {
+        return labels.importKeyMismatch;
+      }
+    }
     return labels.importErrorMessage;
   };
 
@@ -170,22 +178,22 @@ export const BackupSettingsScreen = () => {
       return;
     }
     setIsImporting(true);
-    try {
-      await importBackup(selectedFile, importMode);
+    const result = await importBackup(selectedFile, importMode);
+    if (result.success) {
       showAlert(
         labels.importSuccessTitle,
         labels.importSuccessMessage,
         labels.okLabel,
       );
-    } catch (error) {
-      showAlert(
-        labels.errorTitle,
-        resolveImportErrorMessage(error),
-        labels.okLabel,
-      );
-    } finally {
       setIsImporting(false);
+      return;
     }
+    showAlert(
+      labels.errorTitle,
+      resolveImportErrorMessage(result.error),
+      labels.okLabel,
+    );
+    setIsImporting(false);
   };
 
   const handleImport = () => {
@@ -326,7 +334,10 @@ export const BackupSettingsScreen = () => {
         onRequestClose={handleCloseKeyModal}
       >
         <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={handleCloseKeyModal} />
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={handleCloseKeyModal}
+          />
           <View
             style={[
               styles.keyModal,
@@ -351,7 +362,10 @@ export const BackupSettingsScreen = () => {
             <View
               style={[
                 styles.keyPanel,
-                { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                },
               ]}
             >
               <Text

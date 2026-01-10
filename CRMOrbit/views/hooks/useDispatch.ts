@@ -19,9 +19,10 @@ type DispatchState = {
   lastEventType: string | null;
 };
 
-export type DispatchResult = {
+export type DispatchResult<T = void> = {
   success: boolean;
   error?: string;
+  data?: T;
 };
 
 /**

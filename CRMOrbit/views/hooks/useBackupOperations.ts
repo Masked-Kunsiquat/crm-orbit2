@@ -22,7 +22,7 @@ import { buildCodeEncryptionEvents } from "@domains/migrations/codeEncryption";
 import { applyEvents } from "@events/dispatcher";
 import { createLogger } from "@utils/logger";
 import { __internal_getCrmStore } from "@views/store/store";
-import { useDeviceId } from "./useDeviceId";
+import type { DispatchResult } from "./useDispatch";
 
 export type BackupFileInfo = {
   uri: string;
@@ -98,7 +98,7 @@ const resolveAssetName = (asset: DocumentPickerAsset): string => {
   return fallback ?? "backup.crmbackup";
 };
 
-const logger = createLogger("BackupActions");
+const logger = createLogger("BackupOperations");
 
 const reloadStoreFromPersistence = async (deviceId: string): Promise<void> => {
   const db = createPersistenceDb(getDatabase());
@@ -119,10 +119,10 @@ const reloadStoreFromPersistence = async (deviceId: string): Promise<void> => {
   store.getState().setEvents(events);
 };
 
-export const useBackupActions = () => {
-  const deviceId = useDeviceId();
-
-  const pickBackupFile = useCallback(async (): Promise<BackupFileInfo | null> => {
+export const useBackupOperations = (deviceId: string) => {
+  const pickBackupFile = useCallback(async (): Promise<
+    DispatchResult<BackupFileInfo | null>
+  > => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
@@ -131,34 +131,46 @@ export const useBackupActions = () => {
       });
 
       if (result.canceled) {
-        return null;
+        return { success: true, data: null };
       }
 
       const asset = result.assets?.[0];
       if (!asset) {
-        return null;
+        return { success: true, data: null };
       }
 
       return {
-        uri: asset.uri,
-        name: resolveAssetName(asset),
+        success: true,
+        data: {
+          uri: asset.uri,
+          name: resolveAssetName(asset),
+        },
       };
     } catch (error) {
       logger.error("Failed to select backup file", error);
-      throw error;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to select file",
+      };
     }
   }, []);
 
-  const exportBackup = useCallback(async (): Promise<BackupExportResult> => {
+  const exportBackup = useCallback(async (): Promise<
+    DispatchResult<BackupExportResult>
+  > => {
     try {
       const db = createPersistenceDb(getDatabase());
       const encrypted = await exportEncryptedBackup(db, { deviceId });
       const file = await writeBackupFile(encrypted);
       const shared = await shareBackupFile(file.uri);
-      return { file, shared };
+      return { success: true, data: { file, shared } };
     } catch (error) {
       logger.error("Failed to export backup", error);
-      throw error;
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to export backup",
+      };
     }
   }, [deviceId]);
 
@@ -166,16 +178,24 @@ export const useBackupActions = () => {
     async (
       file: BackupFileInfo,
       mode: BackupImportMode,
-    ): Promise<BackupImportResult> => {
+    ): Promise<DispatchResult<BackupImportResult>> => {
       try {
         const db = createPersistenceDb(getDatabase());
         const ciphertext = await readBackupFile(file.uri);
         const result = await importEncryptedBackup(db, ciphertext, mode);
         await reloadStoreFromPersistence(deviceId);
-        return result;
+        return { success: true, data: result };
       } catch (error) {
-        logger.error("Failed to import backup", { file: file.name, mode }, error);
-        throw error;
+        logger.error(
+          "Failed to import backup",
+          { file: file.name, mode },
+          error,
+        );
+        return {
+          success: false,
+          error:
+            error instanceof Error ? error.message : "Failed to import backup",
+        };
       }
     },
     [deviceId],

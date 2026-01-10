@@ -39,7 +39,10 @@ type BackupPayloadInput = {
   createdAt?: Timestamp;
 };
 
-const ensureRecord = (value: unknown, label: string): Record<string, unknown> => {
+const ensureRecord = (
+  value: unknown,
+  label: string,
+): Record<string, unknown> => {
   if (!value || typeof value !== "object") {
     throw new Error(`Invalid ${label}.`);
   }

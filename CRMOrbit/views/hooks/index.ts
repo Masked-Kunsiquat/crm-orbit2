@@ -11,7 +11,7 @@ export { useCodeActions } from "./useCodeActions";
 export { useCodeAuthSession } from "./useCodeAuthSession";
 export { useLocalAuth } from "./useLocalAuth";
 export { useSettingsActions } from "./useSettingsActions";
-export { useBackupActions } from "./useBackupActions";
+export { useBackupOperations } from "./useBackupOperations";
 export { useBackupLabels } from "./useBackupLabels";
 export {
   useContactsListLabels,
