@@ -24,6 +24,12 @@ export type BackupFileInfo = {
   name: string;
 };
 
+export type BackupImportErrorKind = "invalidGhash" | "unknown";
+
+export type BackupImportOutcome =
+  | { ok: true; result: BackupImportResult }
+  | { ok: false; kind: BackupImportErrorKind; error: Error };
+
 const logger = createLogger("BackupService");
 
 const pad = (value: number): string => value.toString().padStart(2, "0");
@@ -105,15 +111,20 @@ export const importBackupFromFile = async (
   deviceId: string,
   file: BackupFileInfo,
   mode: BackupImportMode,
-): Promise<BackupImportResult> => {
+): Promise<BackupImportOutcome> => {
   try {
     const db = createPersistenceDb(getDatabase());
     const ciphertext = await readBackupFile(file.uri);
     const result = await importEncryptedBackup(db, ciphertext, mode);
     await reloadStoreFromPersistence(deviceId);
-    return result;
+    return { ok: true, result };
   } catch (error) {
     logger.error("Failed to import backup", { file: file.name, mode }, error);
-    throw error;
+    const safeError =
+      error instanceof Error ? error : new Error(String(error));
+    const kind = safeError.message.includes("invalid ghash tag")
+      ? "invalidGhash"
+      : "unknown";
+    return { ok: false, kind, error: safeError };
   }
 };

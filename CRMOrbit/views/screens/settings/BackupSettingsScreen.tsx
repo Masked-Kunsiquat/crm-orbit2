@@ -39,8 +39,12 @@ export const BackupSettingsScreen = () => {
   const securitySettings = useSecuritySettings();
   const deviceId = useDeviceId();
   const { authenticate, isAvailable } = useLocalAuth();
-  const { pickBackupFile, exportBackup, importBackup } =
-    useBackupOperations(deviceId);
+  const {
+    pickBackupFile,
+    exportBackup,
+    runImport,
+    shouldConfirmImport,
+  } = useBackupOperations(deviceId);
   const { dialogProps, showAlert, showDialog } = useConfirmDialog();
   const [selectedFile, setSelectedFile] = useState<BackupFileInfo | null>(null);
   const [importMode, setImportMode] = useState<BackupImportMode>("merge");
@@ -159,27 +163,13 @@ export const BackupSettingsScreen = () => {
     }
   };
 
-  const resolveImportErrorMessage = (error: unknown): string => {
-    if (error instanceof Error) {
-      if (error.message.includes("invalid ghash tag")) {
-        return labels.importKeyMismatch;
-      }
-    }
-    if (typeof error === "string") {
-      if (error.includes("invalid ghash tag")) {
-        return labels.importKeyMismatch;
-      }
-    }
-    return labels.importErrorMessage;
-  };
-
   const runImport = async () => {
     if (!selectedFile) {
       showAlert(labels.errorTitle, labels.importNoFile, labels.okLabel);
       return;
     }
     setIsImporting(true);
-    const result = await importBackup(selectedFile, importMode);
+    const result = await runImport(selectedFile, importMode);
     if (result.success) {
       showAlert(
         labels.importSuccessTitle,
@@ -189,9 +179,13 @@ export const BackupSettingsScreen = () => {
       setIsImporting(false);
       return;
     }
+    const errorMessage =
+      result.errorKind === "invalidGhash"
+        ? labels.importKeyMismatch
+        : labels.importErrorMessage;
     showAlert(
       labels.errorTitle,
-      resolveImportErrorMessage(result.error),
+      errorMessage,
       labels.okLabel,
     );
     setIsImporting(false);
@@ -203,7 +197,7 @@ export const BackupSettingsScreen = () => {
       return;
     }
 
-    if (importMode === "replace") {
+    if (shouldConfirmImport(importMode)) {
       showDialog({
         title: labels.importReplaceTitle,
         message: labels.importReplaceMessage,

@@ -10,6 +10,7 @@ import type {
 import {
   exportBackupToFile,
   importBackupFromFile,
+  type BackupImportErrorKind,
   type BackupFileInfo,
 } from "@domains/persistence/backupService";
 import { createLogger } from "@utils/logger";
@@ -37,7 +38,16 @@ const resolveAssetName = (asset: DocumentPickerAsset): string => {
 
 const logger = createLogger("BackupOperations");
 
+export type BackupImportDispatchResult = DispatchResult<BackupImportResult> & {
+  errorKind?: BackupImportErrorKind;
+};
+
 export const useBackupOperations = (deviceId: string) => {
+  const shouldConfirmImport = useCallback(
+    (mode: BackupImportMode) => mode === "replace",
+    [],
+  );
+
   const pickBackupFile = useCallback(async (): Promise<
     DispatchResult<BackupFileInfo | null>
   > => {
@@ -90,34 +100,45 @@ export const useBackupOperations = (deviceId: string) => {
     }
   }, [deviceId]);
 
-  const importBackup = useCallback(
+  const runImport = useCallback(
     async (
       file: BackupFileInfo,
       mode: BackupImportMode,
-    ): Promise<DispatchResult<BackupImportResult>> => {
+    ): Promise<BackupImportDispatchResult> => {
       try {
-        const result = await importBackupFromFile(deviceId, file, mode);
-        return { success: true, data: result };
+        const outcome = await importBackupFromFile(deviceId, file, mode);
+        if (outcome.ok) {
+          return { success: true, data: outcome.result };
+        }
+        logger.error(
+          "Failed to import backup",
+          { file: file.name, mode, kind: outcome.kind },
+          outcome.error,
+        );
+        return {
+          success: false,
+          error: outcome.error.message,
+          errorKind: outcome.kind,
+        };
       } catch (error) {
         logger.error(
           "Failed to import backup",
           { file: file.name, mode },
           error,
         );
-        return {
-          success: false,
-          error:
-            error instanceof Error ? error.message : "Failed to import backup",
-        };
+        const message =
+          error instanceof Error ? error.message : "Failed to import backup";
+        return { success: false, error: message, errorKind: "unknown" };
       }
     },
     [deviceId],
   );
 
   return {
+    shouldConfirmImport,
     pickBackupFile,
     exportBackup,
-    importBackup,
+    runImport,
   };
 };
 

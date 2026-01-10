@@ -113,24 +113,26 @@ export const useContactImport = (): UseContactImportResult => {
 
   const removeSelectedContact = useCallback(
     (sourceId: string) => {
-      setSelectedContacts((prev) => {
-        const indexToRemove = prev.findIndex(
-          (contact) => contact.sourceId === sourceId,
-        );
-        if (indexToRemove === -1) return prev;
-        const next = prev.filter((contact) => contact.sourceId !== sourceId);
-        setCurrentIndex((current) => {
-          if (next.length === 0) return 0;
-          if (indexToRemove < current) return current - 1;
-          if (indexToRemove === current && current >= next.length) {
-            return Math.max(0, next.length - 1);
-          }
-          return current;
-        });
-        return next;
+      const indexToRemove = selectedContacts.findIndex(
+        (contact) => contact.sourceId === sourceId,
+      );
+      if (indexToRemove === -1) {
+        return;
+      }
+      const next = selectedContacts.filter(
+        (contact) => contact.sourceId !== sourceId,
+      );
+      setSelectedContacts(next);
+      setCurrentIndex((current) => {
+        if (next.length === 0) return 0;
+        if (indexToRemove < current) return current - 1;
+        if (indexToRemove === current && current >= next.length) {
+          return Math.max(0, next.length - 1);
+        }
+        return current;
       });
     },
-    [setSelectedContacts],
+    [selectedContacts],
   );
 
   const updateCurrentDraft = useCallback(
