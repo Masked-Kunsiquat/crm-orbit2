@@ -105,7 +105,17 @@ export const createBackupPayload = async (
     id: record.id,
     type: record.type as Event["type"],
     entityId: record.entityId ?? undefined,
-    payload: JSON.parse(record.payload),
+    payload: (() => {
+      try {
+        return JSON.parse(record.payload);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const details = `id=${record.id} type=${record.type} entityId=${record.entityId ?? "none"}`;
+        throw new Error(`Failed to parse event payload (${details}): ${message}`, {
+          cause: error,
+        });
+      }
+    })(),
     timestamp: record.timestamp,
     deviceId: record.deviceId,
   }));

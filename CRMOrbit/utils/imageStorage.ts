@@ -1,4 +1,5 @@
 import { Directory, File, Paths } from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 import { createLogger } from "./logger";
 
@@ -41,6 +42,24 @@ const extractExtension = (tempUri: string): string => {
   return SAFE_EXTENSION_SET.has(extension) ? extension : "jpg";
 };
 
+const buildCacheFileName = (extension: string): string => {
+  const token = Math.random().toString(36).slice(2, 8);
+  return `image-${Date.now()}-${token}.${extension}`;
+};
+
+const resolveImageSourceUri = async (tempUri: string): Promise<string> => {
+  if (!tempUri.startsWith("content://")) {
+    return tempUri;
+  }
+
+  const extension = extractExtension(tempUri);
+  const cacheDirectory = new Directory(Paths.cache, "image-cache");
+  cacheDirectory.create({ intermediates: true, idempotent: true });
+  const cacheFile = new File(cacheDirectory, buildCacheFileName(extension));
+  await FileSystem.copyAsync({ from: tempUri, to: cacheFile.uri });
+  return cacheFile.uri;
+};
+
 /**
  * Copy an image from a temporary location to permanent storage
  * Returns the permanent file URI
@@ -58,14 +77,15 @@ export const persistImage = async (
       throw new Error("Temporary image URI is required.");
     }
 
-    const sourceFile = new File(tempUri);
+    const resolvedUri = await resolveImageSourceUri(tempUri);
+    const sourceFile = new File(resolvedUri);
     const sourceInfo = sourceFile.info();
     if (!sourceInfo.exists) {
-      throw new Error(`Temporary image not found at ${tempUri}`);
+      throw new Error(`Temporary image not found at ${resolvedUri}`);
     }
 
     const safeEntityId = sanitizeEntityId(entityId);
-    const extension = extractExtension(tempUri);
+    const extension = extractExtension(resolvedUri);
 
     // Create permanent file path
     const fileName = `${safeEntityId}.${extension}`;
