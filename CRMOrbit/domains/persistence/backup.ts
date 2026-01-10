@@ -33,6 +33,22 @@ export type BackupImportResult = {
   snapshotApplied: boolean;
 };
 
+export type BackupDecryptionErrorKind = "invalidGhash" | "unknown";
+
+export class BackupDecryptionError extends Error {
+  readonly kind: BackupDecryptionErrorKind;
+
+  constructor(
+    kind: BackupDecryptionErrorKind,
+    message = "Failed to decrypt backup.",
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
+    this.name = "BackupDecryptionError";
+    this.kind = kind;
+  }
+}
+
 type BackupPayloadInput = {
   deviceId: DeviceId;
   appVersion?: string;
@@ -199,7 +215,21 @@ export const importEncryptedBackup = async (
   ciphertext: string,
   mode: BackupImportMode,
 ): Promise<BackupImportResult> => {
-  const payload = await decryptBackupPayload(ciphertext);
+  let payload: BackupPayload;
+  try {
+    payload = await decryptBackupPayload(ciphertext);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+    const kind: BackupDecryptionErrorKind = message.includes("invalid ghash tag")
+      ? "invalidGhash"
+      : "unknown";
+    const label =
+      kind === "invalidGhash"
+        ? "Invalid encryption key."
+        : "Failed to decrypt backup.";
+    throw new BackupDecryptionError(kind, label, { cause: error });
+  }
+
   return importBackupPayload(db, payload, mode);
 };
 

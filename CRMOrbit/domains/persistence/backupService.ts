@@ -5,6 +5,7 @@ import type {
   BackupImportResult,
 } from "@domains/persistence/backup";
 import {
+  BackupDecryptionError,
   exportEncryptedBackup,
   importEncryptedBackup,
 } from "@domains/persistence/backup";
@@ -22,15 +23,17 @@ import { __internal_getCrmStore } from "@views/store/store";
 export type BackupFileInfo = {
   uri: string;
   name: string;
+  size?: number;
 };
 
-export type BackupImportErrorKind = "invalidGhash" | "unknown";
+export type BackupImportErrorKind = "invalidGhash" | "tooLarge" | "unknown";
 
 export type BackupImportOutcome =
   | { ok: true; result: BackupImportResult }
   | { ok: false; kind: BackupImportErrorKind; error: Error };
 
 const logger = createLogger("BackupService");
+const MAX_BACKUP_BYTES = 25 * 1024 * 1024;
 
 const pad = (value: number): string => value.toString().padStart(2, "0");
 
@@ -64,16 +67,24 @@ const resolveBackupDirectory = (): Directory => {
   throw new Error("File storage is unavailable.");
 };
 
-const writeBackupFile = (contents: string): BackupFileInfo => {
+const writeBackupFile = async (contents: string): Promise<BackupFileInfo> => {
   const name = buildBackupFileName(new Date());
   const directory = resolveBackupDirectory();
   const file = new File(directory, name);
-  file.create({ intermediates: true, overwrite: true });
-  file.write(contents);
+  await file.create({ intermediates: true, overwrite: true });
+  await file.write(contents);
   return { uri: file.uri, name };
 };
 
 const readBackupFile = (uri: string): Promise<string> => new File(uri).text();
+
+const resolveBackupFileSize = (file: BackupFileInfo): number | null => {
+  if (Number.isFinite(file.size)) {
+    return file.size ?? null;
+  }
+  const info = new File(file.uri).info();
+  return typeof info.size === "number" ? info.size : null;
+};
 
 const reloadStoreFromPersistence = async (deviceId: string): Promise<void> => {
   const db = createPersistenceDb(getDatabase());
@@ -100,7 +111,7 @@ export const exportBackupToFile = async (
   try {
     const db = createPersistenceDb(getDatabase());
     const encrypted = await exportEncryptedBackup(db, { deviceId });
-    return writeBackupFile(encrypted);
+    return await writeBackupFile(encrypted);
   } catch (error) {
     logger.error("Failed to export backup", error);
     throw error;
@@ -114,16 +125,35 @@ export const importBackupFromFile = async (
 ): Promise<BackupImportOutcome> => {
   try {
     const db = createPersistenceDb(getDatabase());
+    const fileSize = resolveBackupFileSize(file);
+    if (fileSize !== null && fileSize > MAX_BACKUP_BYTES) {
+      logger.warn("Backup file exceeds size limit", {
+        file: file.name,
+        size: file.size,
+        resolvedSize: fileSize,
+        maxBytes: MAX_BACKUP_BYTES,
+      });
+      return {
+        ok: false,
+        kind: "tooLarge",
+        error: new Error("Backup file exceeds size limit."),
+      };
+    }
+
     const ciphertext = await readBackupFile(file.uri);
     const result = await importEncryptedBackup(db, ciphertext, mode);
     await reloadStoreFromPersistence(deviceId);
     return { ok: true, result };
   } catch (error) {
-    logger.error("Failed to import backup", { file: file.name, mode }, error);
-    const safeError = error instanceof Error ? error : new Error(String(error));
-    const kind = safeError.message.includes("invalid ghash tag")
-      ? "invalidGhash"
-      : "unknown";
+    logger.error(
+      "Failed to import backup",
+      { file: file.name, mode },
+      error,
+    );
+    const safeError =
+      error instanceof Error ? error : new Error(String(error));
+    const kind =
+      safeError instanceof BackupDecryptionError ? safeError.kind : "unknown";
     return { ok: false, kind, error: safeError };
   }
 };

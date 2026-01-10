@@ -72,6 +72,7 @@ export const useBackupOperations = (deviceId: string) => {
         data: {
           uri: asset.uri,
           name: resolveAssetName(asset),
+          size: asset.size,
         },
       };
     } catch (error) {
