@@ -11,7 +11,6 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
 
 import type { BackupImportMode } from "@domains/persistence/backup";
-import { exportEncryptionKey } from "@utils/encryption";
 import {
   ActionButton,
   ConfirmDialog,
@@ -19,7 +18,10 @@ import {
   FormScreenLayout,
   Section,
   SegmentedOptionGroup,
+  TextField,
 } from "../../components";
+import { importEncryptionKey, exportEncryptionKey } from "@utils/encryption";
+import { createLogger } from "@utils/logger";
 import { useLocalAuth, useTheme } from "../../hooks";
 import {
   type BackupFileInfo,
@@ -31,6 +33,7 @@ import { useSecuritySettings } from "../../store/store";
 
 export const BackupSettingsScreen = () => {
   const { colors } = useTheme();
+  const logger = createLogger("BackupSettingsScreen");
   const labels = useBackupLabels();
   const securitySettings = useSecuritySettings();
   const { authenticate, isAvailable } = useLocalAuth();
@@ -43,6 +46,8 @@ export const BackupSettingsScreen = () => {
   const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [keyValue, setKeyValue] = useState<string | null>(null);
   const [isKeyLoading, setIsKeyLoading] = useState(false);
+  const [keyImportValue, setKeyImportValue] = useState("");
+  const [isKeyImporting, setIsKeyImporting] = useState(false);
 
   const handlePickFile = async () => {
     try {
@@ -51,7 +56,7 @@ export const BackupSettingsScreen = () => {
         setSelectedFile(picked);
       }
     } catch (error) {
-      console.error("Failed to select backup file", error);
+      logger.error("Failed to select backup file", error);
       showAlert(labels.errorTitle, labels.importErrorMessage, labels.okLabel);
     }
   };
@@ -65,7 +70,6 @@ export const BackupSettingsScreen = () => {
         : labels.exportShareUnavailable;
       showAlert(labels.exportSuccessTitle, message, labels.okLabel);
     } catch (error) {
-      console.error("Failed to export backup", error);
       showAlert(labels.errorTitle, labels.exportErrorMessage, labels.okLabel);
     } finally {
       setIsExporting(false);
@@ -100,7 +104,7 @@ export const BackupSettingsScreen = () => {
       setKeyValue(key);
       setIsKeyVisible(true);
     } catch (error) {
-      console.error("Failed to load security key", error);
+      logger.error("Failed to load security key", error);
       showAlert(labels.errorTitle, labels.keyLoadError, labels.okLabel);
     } finally {
       setIsKeyLoading(false);
@@ -117,7 +121,7 @@ export const BackupSettingsScreen = () => {
         labels.okLabel,
       );
     } catch (error) {
-      console.error("Failed to copy security key", error);
+      logger.error("Failed to copy security key", error);
       showAlert(labels.errorTitle, labels.keyCopyError, labels.okLabel);
     }
   };
@@ -125,6 +129,39 @@ export const BackupSettingsScreen = () => {
   const handleCloseKeyModal = () => {
     setIsKeyVisible(false);
     setKeyValue(null);
+  };
+
+  const handleImportKey = async () => {
+    const trimmed = keyImportValue.trim();
+    if (!trimmed) {
+      showAlert(labels.errorTitle, labels.keyImportEmpty, labels.okLabel);
+      return;
+    }
+
+    setIsKeyImporting(true);
+    try {
+      await importEncryptionKey(trimmed);
+      setKeyImportValue("");
+      showAlert(
+        labels.keyImportSuccessTitle,
+        labels.keyImportSuccessMessage,
+        labels.okLabel,
+      );
+    } catch (error) {
+      logger.error("Failed to import security key", error);
+      showAlert(labels.errorTitle, labels.keyImportError, labels.okLabel);
+    } finally {
+      setIsKeyImporting(false);
+    }
+  };
+
+  const resolveImportErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+      if (error.message.includes("invalid ghash tag")) {
+        return labels.importKeyMismatch;
+      }
+    }
+    return labels.importErrorMessage;
   };
 
   const runImport = async () => {
@@ -141,8 +178,11 @@ export const BackupSettingsScreen = () => {
         labels.okLabel,
       );
     } catch (error) {
-      console.error("Failed to import backup", error);
-      showAlert(labels.errorTitle, labels.importErrorMessage, labels.okLabel);
+      showAlert(
+        labels.errorTitle,
+        resolveImportErrorMessage(error),
+        labels.okLabel,
+      );
     } finally {
       setIsImporting(false);
     }
@@ -202,7 +242,9 @@ export const BackupSettingsScreen = () => {
           size="block"
           label={labels.keyRevealAction}
           onPress={handleRevealKey}
-          disabled={isExporting || isImporting || isKeyLoading}
+          disabled={
+            isExporting || isImporting || isKeyLoading || isKeyImporting
+          }
         />
       </Section>
 
@@ -210,6 +252,26 @@ export const BackupSettingsScreen = () => {
         <Text style={[styles.description, { color: colors.textSecondary }]}>
           {labels.importDescription}
         </Text>
+        <Text style={[styles.hintText, { color: colors.textMuted }]}>
+          {labels.importKeyHint}
+        </Text>
+        <FormField label={labels.keyImportLabel}>
+          <TextField
+            value={keyImportValue}
+            onChangeText={setKeyImportValue}
+            placeholder={labels.keyImportPlaceholder}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </FormField>
+        <ActionButton
+          size="block"
+          label={labels.keyImportAction}
+          onPress={handleImportKey}
+          disabled={
+            isExporting || isImporting || isKeyLoading || isKeyImporting
+          }
+        />
         <FormField label={labels.importFileLabel}>
           <TouchableOpacity
             style={[
@@ -339,6 +401,10 @@ const styles = StyleSheet.create({
   modeHint: {
     fontSize: 12,
     marginTop: 6,
+  },
+  hintText: {
+    fontSize: 12,
+    marginBottom: 12,
   },
   modalOverlay: {
     flex: 1,
