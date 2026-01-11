@@ -26,7 +26,11 @@ export interface BaseLinkModalProps<T> {
   emptyTitle: string;
   emptyHint: string;
   keyExtractor: (item: T) => string;
-  renderItem: (item: T, isLinked: boolean, colors: any) => ReactNode;
+  renderItem: (
+    item: T,
+    isLinked: boolean,
+    colors: ReturnType<typeof useTheme>["colors"],
+  ) => ReactNode;
   onItemPress: (item: T) => void;
   dialogProps?: ConfirmDialogProps;
 }

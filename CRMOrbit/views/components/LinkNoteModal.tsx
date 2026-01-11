@@ -6,7 +6,7 @@ import type { EntityId } from "@domains/shared/types";
 import type { Note } from "@domains/note";
 import { t } from "@i18n/index";
 
-import { useDeviceId } from "../hooks";
+import { useDeviceId, useTheme } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { useAllNotes } from "../store/store";
@@ -68,7 +68,11 @@ export const LinkNoteModal = ({
   );
 
   const renderItem = useCallback(
-    (note: Note, isLinked: boolean, colors: any) => (
+    (
+      note: Note,
+      isLinked: boolean,
+      colors: ReturnType<typeof useTheme>["colors"],
+    ) => (
       <>
         <Text
           style={[

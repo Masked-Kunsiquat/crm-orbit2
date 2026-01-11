@@ -17,7 +17,6 @@ import { t } from "@i18n/index";
 import { useDeviceId, useTheme, useEntityLinkMap } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
-import { useDoc } from "../store/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LinkInteractionModal } from "./LinkInteractionModal";
 import { Section } from "./Section";
@@ -43,7 +42,6 @@ export const InteractionsSection = ({
 }: InteractionsSectionProps) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const doc = useDoc();
   const { unlinkInteraction } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);

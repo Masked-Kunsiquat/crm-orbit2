@@ -15,7 +15,6 @@ import { t } from "@i18n/index";
 import { useDeviceId, useTheme, useEntityLinkMap } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
-import { useDoc } from "../store/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LinkNoteModal } from "./LinkNoteModal";
 import { Section } from "./Section";
@@ -41,7 +40,6 @@ export const NotesSection = ({
 }: NotesSectionProps) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const doc = useDoc();
   const { unlinkNote } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);

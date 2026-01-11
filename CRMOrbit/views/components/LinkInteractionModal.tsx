@@ -6,7 +6,7 @@ import type { EntityId } from "@domains/shared/types";
 import type { Interaction } from "@domains/interaction";
 import { t } from "@i18n/index";
 
-import { useDeviceId } from "../hooks";
+import { useDeviceId, useTheme } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { useAllInteractions } from "../store/store";
@@ -68,7 +68,11 @@ export const LinkInteractionModal = ({
   );
 
   const renderItem = useCallback(
-    (interaction: Interaction, isLinked: boolean, colors: any) => (
+    (
+      interaction: Interaction,
+      isLinked: boolean,
+      colors: ReturnType<typeof useTheme>["colors"],
+    ) => (
       <>
         <Text
           style={[
