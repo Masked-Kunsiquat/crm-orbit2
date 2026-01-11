@@ -15,6 +15,14 @@ import type { Organization } from "@domains/organization";
 import type { Account } from "@domains/account";
 import type { Contact } from "@domains/contact";
 import { getContactDisplayName } from "@domains/contact.utils";
+import {
+  getEntityLinkTitleKey,
+  getTargetLinkToEntityKey,
+  getEntityEmptyStateKeys,
+  getEntityTitleKey,
+  type EntityType,
+  type TargetType,
+} from "@domains/shared/entityI18nKeys";
 import { t } from "@i18n/index";
 
 import { useTheme } from "../hooks";
@@ -22,14 +30,13 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import type { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { ListEmptyState } from "./ListEmptyState";
 
-type LinkableEntityType = "organization" | "account" | "contact";
 type ConfirmDialogProps = ReturnType<typeof useConfirmDialog>["dialogProps"];
 
 interface TwoTierLinkModalProps {
   visible: boolean;
   onClose: () => void;
   targetId: EntityId;
-  targetType: "note" | "interaction";
+  targetType: TargetType;
   existingEntityIds: Set<EntityId>;
   organizations: Organization[];
   accounts: Account[];
@@ -56,20 +63,28 @@ export const TwoTierLinkModal = ({
 }: TwoTierLinkModalProps) => {
   const { colors } = useTheme();
   const [selectedEntityType, setSelectedEntityType] =
-    useState<LinkableEntityType | null>(null);
+    useState<EntityType | null>(null);
 
   const entityTypes: Array<{
-    type: LinkableEntityType;
+    type: EntityType;
     label: string;
     count: number;
   }> = [
     {
       type: "organization",
-      label: t("organizations.title"),
+      label: t(getEntityTitleKey("organization")),
       count: organizations.length,
     },
-    { type: "account", label: t("accounts.title"), count: accounts.length },
-    { type: "contact", label: t("contacts.title"), count: contacts.length },
+    {
+      type: "account",
+      label: t(getEntityTitleKey("account")),
+      count: accounts.length,
+    },
+    {
+      type: "contact",
+      label: t(getEntityTitleKey("contact")),
+      count: contacts.length,
+    },
   ];
 
   const currentEntities = useMemo(() => {
@@ -103,7 +118,7 @@ export const TwoTierLinkModal = ({
     );
   }, [selectedEntityType, organizations, accounts, contacts]);
 
-  const handleSelectEntityType = useCallback((type: LinkableEntityType) => {
+  const handleSelectEntityType = useCallback((type: EntityType) => {
     setSelectedEntityType(type);
   }, []);
 
@@ -170,8 +185,8 @@ export const TwoTierLinkModal = ({
               ) : null}
               <Text style={[styles.title, { color: colors.textPrimary }]}>
                 {selectedEntityType
-                  ? t(`${selectedEntityType}s.linkTitle`)
-                  : t(`${targetType}s.linkToEntity`)}
+                  ? t(getEntityLinkTitleKey(selectedEntityType))
+                  : t(getTargetLinkToEntityKey(targetType))}
               </Text>
             </View>
 
@@ -208,11 +223,17 @@ export const TwoTierLinkModal = ({
                 contentContainerStyle={styles.listContent}
               />
             ) : currentEntities.length === 0 ? (
-              <ListEmptyState
-                title={t(`${selectedEntityType}s.emptyTitle`)}
-                hint={t(`${selectedEntityType}s.emptyHint`)}
-                style={styles.emptyState}
-              />
+              (() => {
+                const emptyStateKeys =
+                  getEntityEmptyStateKeys(selectedEntityType);
+                return (
+                  <ListEmptyState
+                    title={t(emptyStateKeys.title)}
+                    hint={t(emptyStateKeys.hint)}
+                    style={styles.emptyState}
+                  />
+                );
+              })()
             ) : (
               <FlatList
                 data={currentEntities}
