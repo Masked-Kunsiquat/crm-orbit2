@@ -12,8 +12,12 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Note } from "@domains/note";
 import type { EntityId } from "@domains/shared/types";
 import { t } from "@i18n/index";
-import { useDeviceId, useTheme, useEntityLinkMap } from "../hooks";
-import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
+import {
+  useDeviceId,
+  useTheme,
+  useEntityLinkMap,
+  useNoteUnlink,
+} from "../hooks";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LinkNoteModal } from "./LinkNoteModal";
@@ -40,13 +44,18 @@ export const NotesSection = ({
 }: NotesSectionProps) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const { unlinkNote } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
 
   const existingNoteIds = useMemo(() => notes.map((note) => note.id), [notes]);
   const linkIdsByNoteId = useEntityLinkMap("note", entityType, entityId);
+  const unlinkController = useNoteUnlink({
+    entityType,
+    entityId,
+    linkIdsByNoteId,
+    deviceId,
+  });
 
   const getEmptyMessageKey = (): string => {
     switch (entityType) {
@@ -60,22 +69,17 @@ export const NotesSection = ({
   };
 
   const handleUnlink = (noteId: EntityId, title: string) => {
-    const linkId = linkIdsByNoteId.get(noteId);
-    if (!linkId) {
+    if (!unlinkController.canUnlink(noteId)) {
       return;
     }
     showDialog({
       title: t("notes.unlinkTitle"),
-      message: t("notes.unlinkConfirmation").replace("{name}", title),
+      message: unlinkController.getConfirmationMessage(title),
       confirmLabel: t("notes.unlinkAction"),
       confirmVariant: "danger",
       cancelLabel: t("notes.unlinkCancel"),
       onConfirm: () => {
-        unlinkNote(linkId, {
-          noteId,
-          entityType,
-          entityId,
-        });
+        unlinkController.executeUnlink(noteId);
       },
     });
   };

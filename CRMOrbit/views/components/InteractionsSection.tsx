@@ -14,8 +14,12 @@ import type { Interaction } from "@domains/interaction";
 import type { EntityId } from "@domains/shared/types";
 import { t } from "@i18n/index";
 
-import { useDeviceId, useTheme, useEntityLinkMap } from "../hooks";
-import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
+import {
+  useDeviceId,
+  useTheme,
+  useEntityLinkMap,
+  useInteractionUnlink,
+} from "../hooks";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LinkInteractionModal } from "./LinkInteractionModal";
@@ -42,7 +46,6 @@ export const InteractionsSection = ({
 }: InteractionsSectionProps) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const { unlinkInteraction } = useEntityLinkActions(deviceId);
   const { dialogProps, showDialog } = useConfirmDialog();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
@@ -56,24 +59,25 @@ export const InteractionsSection = ({
     entityType,
     entityId,
   );
+  const unlinkController = useInteractionUnlink({
+    entityType,
+    entityId,
+    linkIdsByInteractionId,
+    deviceId,
+  });
 
   const handleUnlink = (interactionId: EntityId, summary: string) => {
-    const linkId = linkIdsByInteractionId.get(interactionId);
-    if (!linkId) {
+    if (!unlinkController.canUnlink(interactionId)) {
       return;
     }
     showDialog({
       title: t("interactions.unlinkTitle"),
-      message: t("interactions.unlinkConfirmation").replace("{name}", summary),
+      message: unlinkController.getConfirmationMessage(summary),
       confirmLabel: t("interactions.unlinkAction"),
       confirmVariant: "danger",
       cancelLabel: t("common.cancel"),
       onConfirm: () => {
-        unlinkInteraction(linkId, {
-          interactionId,
-          entityType,
-          entityId,
-        });
+        unlinkController.executeUnlink(interactionId);
       },
     });
   };
