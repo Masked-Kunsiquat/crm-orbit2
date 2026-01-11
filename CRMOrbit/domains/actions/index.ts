@@ -23,3 +23,16 @@ export type {
   UnlinkInteractionRequest,
   UnlinkInteractionController,
 } from "./interactionUnlinkController";
+export {
+  createContact,
+  updateContact,
+  addContactMethod,
+  updateContactMethod,
+  deleteContact,
+} from "./contactActions";
+export type {
+  CreateContactParams,
+  UpdateContactParams,
+  AddContactMethodParams,
+  UpdateContactMethodParams,
+} from "./contactActions";
