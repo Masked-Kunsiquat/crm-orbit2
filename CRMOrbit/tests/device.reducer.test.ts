@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { initAutomergeDoc } from "@automerge/init";
+import { DEFAULT_ACCOUNT_AUDIT_FREQUENCY } from "@domains/account.utils";
 import { deviceReducer } from "@reducers/device.reducer";
 import type { Event } from "@events/event";
 
@@ -44,6 +45,7 @@ test("device.registered handles minimal payload", () => {
 
 test("device.registered preserves existing doc state", () => {
   const doc = initAutomergeDoc();
+  const timestamp = "2024-01-01T00:00:00.000Z";
   // Add some existing data to the doc
   doc.accounts["acct-1"] = {
     id: "acct-1",
@@ -51,7 +53,11 @@ test("device.registered preserves existing doc state", () => {
     name: "Test Account",
     status: "account.status.active",
     metadata: {},
-    auditFrequency: 30,
+    auditFrequency: DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
+    auditFrequencyUpdatedAt: timestamp,
+    auditFrequencyAnchorAt: timestamp,
+    createdAt: timestamp,
+    updatedAt: timestamp,
   };
 
   const event: Event = {
