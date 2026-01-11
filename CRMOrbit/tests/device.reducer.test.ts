@@ -82,13 +82,10 @@ test("unhandled event type throws error", () => {
     deviceId: "device-1",
   };
 
-  assert.throws(
-    () => deviceReducer(doc, event),
-    {
-      name: "Error",
-      message: "device.reducer does not handle event type: device.updated",
-    },
-  );
+  assert.throws(() => deviceReducer(doc, event), {
+    name: "Error",
+    message: "device.reducer does not handle event type: device.updated",
+  });
 });
 
 test("invalid event type throws error with correct message", () => {
@@ -101,11 +98,8 @@ test("invalid event type throws error with correct message", () => {
     deviceId: "device-1",
   };
 
-  assert.throws(
-    () => deviceReducer(doc, event),
-    {
-      name: "Error",
-      message: "device.reducer does not handle event type: device.deleted",
-    },
-  );
+  assert.throws(() => deviceReducer(doc, event), {
+    name: "Error",
+    message: "device.reducer does not handle event type: device.deleted",
+  });
 });
