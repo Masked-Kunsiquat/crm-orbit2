@@ -12,8 +12,10 @@ import {
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
+import type { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { ListEmptyState } from "./ListEmptyState";
-import type { ConfirmDialogProps } from "./ConfirmDialog";
+
+type ConfirmDialogProps = ReturnType<typeof useConfirmDialog>["dialogProps"];
 
 export interface BaseLinkModalProps<T> {
   visible: boolean;
@@ -26,7 +28,7 @@ export interface BaseLinkModalProps<T> {
   keyExtractor: (item: T) => string;
   renderItem: (item: T, isLinked: boolean, colors: any) => ReactNode;
   onItemPress: (item: T) => void;
-  dialogProps?: ConfirmDialogProps | null;
+  dialogProps?: ConfirmDialogProps;
 }
 
 export const BaseLinkModal = <T,>({

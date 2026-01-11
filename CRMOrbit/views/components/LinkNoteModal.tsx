@@ -1,24 +1,17 @@
 import { useMemo, useCallback } from "react";
-import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text } from "react-native";
 
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "@domains/shared/types";
+import type { Note } from "@domains/note";
 import { t } from "@i18n/index";
 
-import { useDeviceId, useTheme } from "../hooks";
+import { useDeviceId } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { useAllNotes } from "../store/store";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { ListEmptyState } from "./ListEmptyState";
+import { BaseLinkModal } from "./BaseLinkModal";
+import { linkModalItemStyles } from "./linkModalItemStyles";
 
 type LinkEntityType = Exclude<EntityLinkType, "note" | "interaction">;
 
@@ -37,7 +30,6 @@ export const LinkNoteModal = ({
   entityId,
   existingNoteIds,
 }: LinkNoteModalProps) => {
-  const { colors } = useTheme();
   const deviceId = useDeviceId();
   const { linkNote } = useEntityLinkActions(deviceId);
   const notes = useAllNotes();
@@ -56,12 +48,12 @@ export const LinkNoteModal = ({
     });
   }, [notes]);
 
-  const handleLink = useCallback(
-    (noteId: EntityId) => {
-      if (existingIds.has(noteId)) {
+  const handleItemPress = useCallback(
+    (note: Note) => {
+      if (existingIds.has(note.id)) {
         return;
       }
-      const result = linkNote(noteId, entityType, entityId);
+      const result = linkNote(note.id, entityType, entityId);
       if (result.success) {
         onClose();
         return;
@@ -75,151 +67,48 @@ export const LinkNoteModal = ({
     [entityId, entityType, existingIds, linkNote, onClose, showAlert],
   );
 
+  const renderItem = useCallback(
+    (note: Note, isLinked: boolean, colors: any) => (
+      <>
+        <Text
+          style={[
+            linkModalItemStyles.itemTitle,
+            {
+              color: isLinked ? colors.textMuted : colors.textPrimary,
+            },
+          ]}
+        >
+          {note.title}
+        </Text>
+        <Text
+          style={[
+            linkModalItemStyles.itemBody,
+            {
+              color: isLinked ? colors.textMuted : colors.textSecondary,
+            },
+          ]}
+          numberOfLines={2}
+        >
+          {note.body}
+        </Text>
+      </>
+    ),
+    [],
+  );
+
   return (
-    <>
-      <Modal
-        transparent
-        animationType="slide"
-        visible={visible}
-        onRequestClose={onClose}
-      >
-        <View style={styles.overlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-          <View
-            style={[
-              styles.modal,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-          >
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("notes.linkTitle")}
-            </Text>
-            {sortedNotes.length === 0 ? (
-              <ListEmptyState
-                title={t("notes.emptyTitle")}
-                hint={t("notes.emptyHint")}
-                style={styles.emptyState}
-              />
-            ) : (
-              <FlatList
-                data={sortedNotes}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => {
-                  const isLinked = existingIds.has(item.id);
-                  return (
-                    <TouchableOpacity
-                      style={[
-                        styles.item,
-                        {
-                          borderColor: colors.borderLight,
-                          backgroundColor: colors.surfaceElevated,
-                        },
-                        isLinked && styles.itemDisabled,
-                      ]}
-                      onPress={() => handleLink(item.id)}
-                      disabled={isLinked}
-                    >
-                      <Text
-                        style={[
-                          styles.itemTitle,
-                          {
-                            color: isLinked
-                              ? colors.textMuted
-                              : colors.textPrimary,
-                          },
-                        ]}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.itemBody,
-                          {
-                            color: isLinked
-                              ? colors.textMuted
-                              : colors.textSecondary,
-                          },
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {item.body}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }}
-                contentContainerStyle={styles.listContent}
-              />
-            )}
-            <TouchableOpacity
-              style={[
-                styles.cancelButton,
-                { backgroundColor: colors.surfaceElevated },
-              ]}
-              onPress={onClose}
-            >
-              <Text style={[styles.cancelText, { color: colors.textPrimary }]}>
-                {t("common.cancel")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
-    </>
+    <BaseLinkModal
+      visible={visible}
+      onClose={onClose}
+      title={t("notes.linkTitle")}
+      items={sortedNotes}
+      existingIds={existingIds}
+      emptyTitle={t("notes.emptyTitle")}
+      emptyHint={t("notes.emptyHint")}
+      keyExtractor={(note) => note.id}
+      renderItem={renderItem}
+      onItemPress={handleItemPress}
+      dialogProps={dialogProps}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-  },
-  modal: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderWidth: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 12,
-    maxHeight: "85%",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  listContent: {
-    paddingBottom: 8,
-  },
-  item: {
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-  },
-  itemDisabled: {
-    opacity: 0.5,
-  },
-  itemTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  itemBody: {
-    fontSize: 13,
-  },
-  emptyState: {
-    paddingVertical: 24,
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  cancelText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-});
