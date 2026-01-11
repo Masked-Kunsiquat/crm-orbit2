@@ -1,11 +1,16 @@
 import { useCallback } from "react";
 
-import { buildEvent } from "../../events/dispatcher";
 import type { Contact, ContactMethod } from "../../domains/contact";
-import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
+import {
+  createContact as createContactAction,
+  updateContact as updateContactAction,
+  addContactMethod as addContactMethodAction,
+  updateContactMethod as updateContactMethodAction,
+  deleteContact as deleteContactAction,
+} from "@domains/actions";
 
 export const useContactActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
@@ -22,25 +27,14 @@ export const useContactActions = (deviceId: string) => {
       } = {},
       idOverride?: EntityId,
     ): DispatchResult => {
-      const id = idOverride ?? nextId("contact");
-      const event = buildEvent({
-        type: "contact.created",
-        entityId: id,
-        payload: {
-          id,
-          type,
-          firstName,
-          lastName,
-          title,
-          methods: {
-            emails: methods.emails ?? [],
-            phones: methods.phones ?? [],
-          },
-        },
-        deviceId,
+      return createContactAction(dispatch, deviceId, {
+        firstName,
+        lastName,
+        type,
+        title,
+        methods,
+        idOverride,
       });
-
-      return dispatch([event]);
     },
     [deviceId, dispatch],
   );
@@ -51,17 +45,10 @@ export const useContactActions = (deviceId: string) => {
       methodType: "emails" | "phones",
       method: ContactMethod,
     ): DispatchResult => {
-      const event = buildEvent({
-        type: "contact.method.added",
-        entityId: contactId,
-        payload: {
-          methodType,
-          method,
-        },
-        deviceId,
+      return addContactMethodAction(dispatch, deviceId, contactId, {
+        methodType,
+        method,
       });
-
-      return dispatch([event]);
     },
     [deviceId, dispatch],
   );
@@ -74,19 +61,12 @@ export const useContactActions = (deviceId: string) => {
       method: ContactMethod,
       previousMethod?: ContactMethod,
     ): DispatchResult => {
-      const event = buildEvent({
-        type: "contact.method.updated",
-        entityId: contactId,
-        payload: {
-          methodType,
-          index,
-          method,
-          ...(previousMethod && { previousMethod }),
-        },
-        deviceId,
+      return updateContactMethodAction(dispatch, deviceId, contactId, {
+        methodType,
+        index,
+        method,
+        previousMethod,
       });
-
-      return dispatch([event]);
     },
     [deviceId, dispatch],
   );
@@ -104,39 +84,20 @@ export const useContactActions = (deviceId: string) => {
       } = {},
       _previousContact?: Contact, // Kept for backwards compatibility, unused since change detection moved to view layer
     ): DispatchResult => {
-      const event = buildEvent({
-        type: "contact.updated",
-        entityId: contactId,
-        payload: {
-          firstName,
-          lastName,
-          title,
-          type,
-          methods: {
-            emails: methods.emails ?? [],
-            phones: methods.phones ?? [],
-          },
-        },
-        deviceId,
+      return updateContactAction(dispatch, deviceId, contactId, {
+        firstName,
+        lastName,
+        type,
+        title,
+        methods,
       });
-
-      return dispatch([event]);
     },
     [deviceId, dispatch],
   );
 
   const deleteContact = useCallback(
     (contactId: EntityId): DispatchResult => {
-      const event = buildEvent({
-        type: "contact.deleted",
-        entityId: contactId,
-        payload: {
-          id: contactId,
-        },
-        deviceId,
-      });
-
-      return dispatch([event]);
+      return deleteContactAction(dispatch, deviceId, contactId);
     },
     [deviceId, dispatch],
   );

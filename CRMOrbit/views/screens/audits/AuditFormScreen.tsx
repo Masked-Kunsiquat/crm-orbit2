@@ -34,17 +34,9 @@ import {
   splitDurationMinutes,
 } from "../../utils/duration";
 import { formatAuditScoreInput } from "../../utils/audits";
+import type { EventsStackScreenProps } from "../../navigation/types";
 
-type Props = {
-  route: {
-    params?: {
-      auditId?: string;
-      accountId?: string;
-    };
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = EventsStackScreenProps<"AuditForm">;
 
 type DurationPreset = "30" | "60" | "120" | "240" | "custom";
 

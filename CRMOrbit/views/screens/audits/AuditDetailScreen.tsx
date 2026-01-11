@@ -27,12 +27,9 @@ import {
   resolveAuditStatus,
 } from "../../utils/audits";
 import { formatDurationLabel } from "../../utils/duration";
+import type { EventsStackScreenProps } from "../../navigation/types";
 
-type Props = {
-  route: { params: { auditId: string } };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = EventsStackScreenProps<"AuditDetail">;
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {

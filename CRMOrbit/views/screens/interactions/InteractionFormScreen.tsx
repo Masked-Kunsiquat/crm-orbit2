@@ -22,7 +22,6 @@ import type {
   InteractionStatus,
   InteractionType,
 } from "../../../domains/interaction";
-import type { EntityLinkType } from "../../../domains/relations/entityLink";
 import { nextId } from "../../../domains/shared/idGenerator";
 import {
   FormField,
@@ -39,6 +38,7 @@ import {
   parseDurationMinutes,
   splitDurationMinutes,
 } from "../../utils/duration";
+import type { EventsStackScreenProps } from "../../navigation/types";
 
 const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
   { label: "interaction.type.call", value: "interaction.type.call" },
@@ -58,16 +58,7 @@ const DEFAULT_DURATION_BY_TYPE: Record<InteractionType, number | undefined> = {
   "interaction.type.other": undefined,
 };
 
-type Props = {
-  route: {
-    params?: {
-      interactionId?: string;
-      entityToLink?: { entityId: string; entityType: EntityLinkType };
-    };
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = EventsStackScreenProps<"InteractionForm">;
 
 export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();

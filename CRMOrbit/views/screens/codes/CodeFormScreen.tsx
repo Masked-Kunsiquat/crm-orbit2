@@ -34,6 +34,7 @@ import { createLogger } from "../../../utils/logger";
 import * as ScreenCapture from "expo-screen-capture";
 import { useFocusEffect } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
+import type { NotesStackScreenProps } from "../../navigation/types";
 
 const CODE_TYPE_OPTIONS: Array<{ label: string; value: CodeType }> = [
   { label: "code.type.door", value: "code.type.door" },
@@ -43,16 +44,7 @@ const CODE_TYPE_OPTIONS: Array<{ label: string; value: CodeType }> = [
   { label: "code.type.other", value: "code.type.other" },
 ];
 
-type Props = {
-  route: {
-    params?: {
-      codeId?: string;
-      accountId?: string;
-    };
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = NotesStackScreenProps<"CodeForm">;
 
 const logger = createLogger("CodeFormScreen");
 

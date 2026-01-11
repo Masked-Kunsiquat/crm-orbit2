@@ -7,11 +7,9 @@ import type { Interaction } from "../../../domains/interaction";
 import { ListRow, ListScreenLayout } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks";
+import type { EventsStackScreenProps } from "../../navigation/types";
 
-type Props = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = EventsStackScreenProps<"InteractionsList">;
 
 export const InteractionsListScreen = ({ navigation }: Props) => {
   const interactions = useAllInteractions();

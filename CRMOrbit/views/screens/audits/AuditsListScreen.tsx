@@ -13,11 +13,9 @@ import {
   resolveAuditStatus,
   sortAuditsByDescendingTime,
 } from "../../utils/audits";
+import type { EventsStackScreenProps } from "../../navigation/types";
 
-type Props = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = EventsStackScreenProps<"AuditsList">;
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {
