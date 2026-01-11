@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { EntityId } from "@domains/shared/types";
-import { useCrmStore } from "../store/store";
+import type { EntityLink } from "@domains/relations/entityLink";
+import { useDoc } from "../store/store";
 
 /**
  * Build a map from linked entity IDs to their link IDs for a specific entity.
@@ -27,20 +28,21 @@ export const useEntityLinkMap = (
   entityType: string,
   entityId: EntityId,
 ): Map<EntityId, EntityId> => {
-  const { doc } = useCrmStore();
+  const doc = useDoc();
 
   return useMemo(() => {
     const map = new Map<EntityId, EntityId>();
     const idKey = `${linkType}Id` as const;
 
     for (const [linkId, link] of Object.entries(doc.relations.entityLinks)) {
+      const typedLink = link as EntityLink;
       if (
-        link.linkType === linkType &&
-        link[idKey] &&
-        link.entityType === entityType &&
-        link.entityId === entityId
+        typedLink.linkType === linkType &&
+        typedLink[idKey] &&
+        typedLink.entityType === entityType &&
+        typedLink.entityId === entityId
       ) {
-        map.set(link[idKey] as EntityId, linkId);
+        map.set(typedLink[idKey] as EntityId, linkId);
       }
     }
 

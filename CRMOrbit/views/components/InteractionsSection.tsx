@@ -14,7 +14,7 @@ import type { Interaction } from "@domains/interaction";
 import type { EntityId } from "@domains/shared/types";
 import { t } from "@i18n/index";
 
-import { useDeviceId, useTheme } from "../hooks";
+import { useDeviceId, useTheme, useEntityLinkMap } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { useDoc } from "../store/store";
@@ -53,21 +53,11 @@ export const InteractionsSection = ({
     () => interactions.map((interaction) => interaction.id),
     [interactions],
   );
-  const linkIdsByInteractionId = useMemo(() => {
-    const entries = Object.entries(doc.relations.entityLinks);
-    const map = new Map<EntityId, EntityId>();
-    for (const [linkId, link] of entries) {
-      if (
-        link.linkType === "interaction" &&
-        link.interactionId &&
-        link.entityType === entityType &&
-        link.entityId === entityId
-      ) {
-        map.set(link.interactionId, linkId);
-      }
-    }
-    return map;
-  }, [doc.relations.entityLinks, entityId, entityType]);
+  const linkIdsByInteractionId = useEntityLinkMap(
+    "interaction",
+    entityType,
+    entityId,
+  );
 
   const handleUnlink = (interactionId: EntityId, summary: string) => {
     const linkId = linkIdsByInteractionId.get(interactionId);

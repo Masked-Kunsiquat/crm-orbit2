@@ -12,7 +12,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Note } from "@domains/note";
 import type { EntityId } from "@domains/shared/types";
 import { t } from "@i18n/index";
-import { useDeviceId, useTheme } from "../hooks";
+import { useDeviceId, useTheme, useEntityLinkMap } from "../hooks";
 import { useEntityLinkActions } from "../hooks/useEntityLinkActions";
 import { useConfirmDialog } from "../hooks/useConfirmDialog";
 import { useDoc } from "../store/store";
@@ -48,21 +48,7 @@ export const NotesSection = ({
   const [showAllModal, setShowAllModal] = useState(false);
 
   const existingNoteIds = useMemo(() => notes.map((note) => note.id), [notes]);
-  const linkIdsByNoteId = useMemo(() => {
-    const entries = Object.entries(doc.relations.entityLinks);
-    const map = new Map<EntityId, EntityId>();
-    for (const [linkId, link] of entries) {
-      if (
-        link.linkType === "note" &&
-        link.noteId &&
-        link.entityType === entityType &&
-        link.entityId === entityId
-      ) {
-        map.set(link.noteId, linkId);
-      }
-    }
-    return map;
-  }, [doc.relations.entityLinks, entityId, entityType]);
+  const linkIdsByNoteId = useEntityLinkMap("note", entityType, entityId);
 
   const getEmptyMessageKey = (): string => {
     switch (entityType) {
