@@ -17,65 +17,21 @@ import {
   type FieldChange,
 } from "../timeline/changeDetection";
 import type { Contact, ContactMethod } from "@domains/contact";
-import { formatPhoneNumber } from "@domains/contact.utils";
-import type { Account } from "@domains/account";
 import {
-  addMonthsToPeriodStart,
-  getAccountAuditFrequencyMonths,
-  getMonthStartTimestamp,
-  getPeriodStartFromAnchor,
-  isAccountAuditFrequencyChangeTiming,
-  resolveAccountAuditFrequency,
-} from "@domains/account.utils";
+  formatPhoneNumber,
+  buildContactFromPayload,
+} from "@domains/contact.utils";
+import type { Account } from "@domains/account";
+import { buildAccountFromPayload } from "@domains/account.utils";
 import type { Organization } from "@domains/organization";
+import { buildOrganizationFromPayload } from "@domains/organization.utils";
 import type { Note } from "@domains/note";
-import type { Interaction, InteractionStatus } from "@domains/interaction";
+import { buildNoteFromPayload } from "@domains/note.utils";
+import type { Interaction } from "@domains/interaction";
+import { buildInteractionFromPayload } from "@domains/interaction.utils";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
-
-const resolveContactMethods = (
-  value: unknown,
-  fallback: Contact["methods"],
-): Contact["methods"] => {
-  if (isRecord(value)) {
-    const emails = value.emails;
-    const phones = value.phones;
-    if (Array.isArray(emails) && Array.isArray(phones)) {
-      return {
-        emails: emails as ContactMethod[],
-        phones: phones as ContactMethod[],
-      };
-    }
-  }
-
-  return fallback;
-};
-
-const isContactType = (value: unknown): value is Contact["type"] =>
-  value === "contact.type.internal" ||
-  value === "contact.type.external" ||
-  value === "contact.type.vendor";
-
-const isAccountStatus = (value: unknown): value is Account["status"] =>
-  value === "account.status.active" || value === "account.status.inactive";
-
-const isOrganizationStatus = (
-  value: unknown,
-): value is Organization["status"] =>
-  value === "organization.status.active" ||
-  value === "organization.status.inactive";
-
-const isInteractionType = (value: unknown): value is Interaction["type"] =>
-  value === "interaction.type.call" ||
-  value === "interaction.type.email" ||
-  value === "interaction.type.meeting" ||
-  value === "interaction.type.other";
-
-const isInteractionStatus = (value: unknown): value is InteractionStatus =>
-  value === "interaction.status.scheduled" ||
-  value === "interaction.status.completed" ||
-  value === "interaction.status.canceled";
 
 const tryResolveEntityId = (
   event: Event,
@@ -134,233 +90,6 @@ export const TimelineSection = ({
     const notes = new Map<string, Note>();
     const interactions = new Map<string, Interaction>();
 
-    const buildContactState = (
-      id: string,
-      payload: Record<string, unknown>,
-      timestamp: string,
-      existing?: Contact,
-    ): Contact => ({
-      id,
-      name: typeof payload.name === "string" ? payload.name : existing?.name,
-      firstName:
-        typeof payload.firstName === "string"
-          ? payload.firstName
-          : (existing?.firstName ?? ""),
-      lastName:
-        typeof payload.lastName === "string"
-          ? payload.lastName
-          : (existing?.lastName ?? ""),
-      type: isContactType(payload.type)
-        ? payload.type
-        : (existing?.type ?? "contact.type.internal"),
-      title:
-        typeof payload.title === "string" ? payload.title : existing?.title,
-      methods: resolveContactMethods(
-        payload.methods,
-        existing?.methods ?? { emails: [], phones: [] },
-      ),
-      createdAt: existing?.createdAt ?? timestamp,
-      updatedAt: timestamp,
-    });
-
-    const buildAccountState = (
-      id: string,
-      payload: Record<string, unknown>,
-      timestamp: string,
-      existing?: Account,
-    ): Account => {
-      const existingFrequency = resolveAccountAuditFrequency(
-        existing?.auditFrequency,
-      );
-      const existingUpdatedAt =
-        existing?.auditFrequencyUpdatedAt ?? existing?.createdAt ?? timestamp;
-      const existingAnchorAt =
-        existing?.auditFrequencyAnchorAt ??
-        getMonthStartTimestamp(existingUpdatedAt) ??
-        timestamp;
-      const payloadFrequency =
-        typeof payload.auditFrequency === "string"
-          ? resolveAccountAuditFrequency(payload.auditFrequency)
-          : undefined;
-      const frequencyChanged =
-        payloadFrequency !== undefined &&
-        payloadFrequency !== existingFrequency;
-      const changeTiming = isAccountAuditFrequencyChangeTiming(
-        payload.auditFrequencyChangeTiming,
-      )
-        ? payload.auditFrequencyChangeTiming
-        : "account.auditFrequencyChange.immediate";
-
-      let auditFrequency = existingFrequency;
-      let auditFrequencyUpdatedAt = existingUpdatedAt;
-      let auditFrequencyAnchorAt = existingAnchorAt;
-      let auditFrequencyPending = existing?.auditFrequencyPending;
-      let auditFrequencyPendingEffectiveAt =
-        existing?.auditFrequencyPendingEffectiveAt;
-
-      if (!existing) {
-        auditFrequency = payloadFrequency ?? existingFrequency;
-        auditFrequencyUpdatedAt = timestamp;
-        auditFrequencyAnchorAt = getMonthStartTimestamp(timestamp) ?? timestamp;
-        auditFrequencyPending = undefined;
-        auditFrequencyPendingEffectiveAt = undefined;
-      } else if (frequencyChanged && payloadFrequency) {
-        if (changeTiming === "account.auditFrequencyChange.nextPeriod") {
-          const months = getAccountAuditFrequencyMonths(existingFrequency);
-          const currentPeriodStart =
-            getPeriodStartFromAnchor(existingAnchorAt, months, timestamp) ??
-            existingAnchorAt;
-          auditFrequencyPending = payloadFrequency;
-          auditFrequencyPendingEffectiveAt =
-            addMonthsToPeriodStart(currentPeriodStart, months) ??
-            currentPeriodStart;
-        } else {
-          auditFrequency = payloadFrequency;
-          auditFrequencyUpdatedAt = timestamp;
-          auditFrequencyAnchorAt =
-            getMonthStartTimestamp(timestamp) ?? existingAnchorAt;
-          auditFrequencyPending = undefined;
-          auditFrequencyPendingEffectiveAt = undefined;
-        }
-      }
-
-      return {
-        id,
-        organizationId:
-          typeof payload.organizationId === "string"
-            ? payload.organizationId
-            : (existing?.organizationId ?? ""),
-        name:
-          typeof payload.name === "string"
-            ? payload.name
-            : (existing?.name ?? ""),
-        status: isAccountStatus(payload.status)
-          ? payload.status
-          : (existing?.status ?? "account.status.active"),
-        minFloor:
-          typeof payload.minFloor === "number"
-            ? payload.minFloor
-            : existing?.minFloor,
-        maxFloor:
-          typeof payload.maxFloor === "number"
-            ? payload.maxFloor
-            : existing?.maxFloor,
-        auditFrequency,
-        auditFrequencyUpdatedAt,
-        auditFrequencyAnchorAt,
-        auditFrequencyPending,
-        auditFrequencyPendingEffectiveAt,
-        excludedFloors: Array.isArray(payload.excludedFloors)
-          ? (payload.excludedFloors as number[])
-          : existing?.excludedFloors,
-        addresses:
-          payload.addresses !== undefined
-            ? (payload.addresses as Account["addresses"])
-            : existing?.addresses,
-        website:
-          typeof payload.website === "string"
-            ? payload.website
-            : existing?.website,
-        socialMedia:
-          payload.socialMedia !== undefined
-            ? (payload.socialMedia as Account["socialMedia"])
-            : existing?.socialMedia,
-        metadata:
-          payload.metadata !== undefined
-            ? (payload.metadata as Record<string, unknown>)
-            : existing?.metadata,
-        createdAt: existing?.createdAt ?? timestamp,
-        updatedAt: timestamp,
-      };
-    };
-
-    const buildOrganizationState = (
-      id: string,
-      payload: Record<string, unknown>,
-      timestamp: string,
-      existing?: Organization,
-    ): Organization => ({
-      id,
-      name:
-        typeof payload.name === "string"
-          ? payload.name
-          : (existing?.name ?? ""),
-      status: isOrganizationStatus(payload.status)
-        ? payload.status
-        : (existing?.status ?? "organization.status.active"),
-      logoUri:
-        typeof payload.logoUri === "string"
-          ? payload.logoUri
-          : existing?.logoUri,
-      website:
-        typeof payload.website === "string"
-          ? payload.website
-          : existing?.website,
-      socialMedia:
-        payload.socialMedia !== undefined
-          ? (payload.socialMedia as Organization["socialMedia"])
-          : existing?.socialMedia,
-      metadata:
-        payload.metadata !== undefined
-          ? (payload.metadata as Record<string, unknown>)
-          : existing?.metadata,
-      createdAt: existing?.createdAt ?? timestamp,
-      updatedAt: timestamp,
-    });
-
-    const buildNoteState = (
-      id: string,
-      payload: Record<string, unknown>,
-      timestamp: string,
-      existing?: Note,
-    ): Note => ({
-      id,
-      title:
-        typeof payload.title === "string"
-          ? payload.title
-          : (existing?.title ?? ""),
-      body:
-        typeof payload.body === "string"
-          ? payload.body
-          : (existing?.body ?? ""),
-      createdAt:
-        typeof payload.createdAt === "string"
-          ? payload.createdAt
-          : (existing?.createdAt ?? timestamp),
-      updatedAt: timestamp,
-    });
-
-    const buildInteractionState = (
-      id: string,
-      payload: Record<string, unknown>,
-      timestamp: string,
-      existing?: Interaction,
-    ): Interaction => ({
-      id,
-      type: isInteractionType(payload.type)
-        ? payload.type
-        : (existing?.type ?? "interaction.type.call"),
-      status: isInteractionStatus(payload.status)
-        ? payload.status
-        : existing?.status,
-      scheduledFor:
-        typeof payload.scheduledFor === "string"
-          ? payload.scheduledFor
-          : existing?.scheduledFor,
-      occurredAt:
-        typeof payload.occurredAt === "string"
-          ? payload.occurredAt
-          : typeof payload.scheduledFor === "string"
-            ? payload.scheduledFor
-            : (existing?.occurredAt ?? timestamp),
-      summary:
-        typeof payload.summary === "string"
-          ? payload.summary
-          : (existing?.summary ?? ""),
-      createdAt: existing?.createdAt ?? timestamp,
-      updatedAt: timestamp,
-    });
-
     for (const item of timeline) {
       if (item.kind !== "event") continue;
 
@@ -371,7 +100,10 @@ export const TimelineSection = ({
         case "contact.created": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
-          contacts.set(id, buildContactState(id, payload, event.timestamp));
+          contacts.set(
+            id,
+            buildContactFromPayload(id, payload, event.timestamp),
+          );
           break;
         }
         case "contact.method.added": {
@@ -431,7 +163,7 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = contacts.get(id);
-          const next = buildContactState(
+          const next = buildContactFromPayload(
             id,
             payload,
             event.timestamp,
@@ -460,17 +192,20 @@ export const TimelineSection = ({
         case "account.created": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
-          accounts.set(id, buildAccountState(id, payload, event.timestamp));
+          accounts.set(
+            id,
+            buildAccountFromPayload(id, payload, event.timestamp),
+          );
           break;
         }
         case "account.status.updated": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = id ? accounts.get(id) : undefined;
-          if (!existing || !isAccountStatus(payload.status)) break;
+          if (!existing || typeof payload.status !== "string") break;
           accounts.set(id, {
             ...existing,
-            status: payload.status,
+            status: payload.status as Account["status"],
             updatedAt: event.timestamp,
           });
           break;
@@ -479,7 +214,7 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = accounts.get(id);
-          const next = buildAccountState(
+          const next = buildAccountFromPayload(
             id,
             payload,
             event.timestamp,
@@ -515,7 +250,7 @@ export const TimelineSection = ({
           if (!id) break;
           organizations.set(
             id,
-            buildOrganizationState(id, payload, event.timestamp),
+            buildOrganizationFromPayload(id, payload, event.timestamp),
           );
           break;
         }
@@ -523,10 +258,10 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = id ? organizations.get(id) : undefined;
-          if (!existing || !isOrganizationStatus(payload.status)) break;
+          if (!existing || typeof payload.status !== "string") break;
           organizations.set(id, {
             ...existing,
-            status: payload.status,
+            status: payload.status as Organization["status"],
             updatedAt: event.timestamp,
           });
           break;
@@ -535,7 +270,7 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = organizations.get(id);
-          const next = buildOrganizationState(
+          const next = buildOrganizationFromPayload(
             id,
             payload,
             event.timestamp,
@@ -563,14 +298,19 @@ export const TimelineSection = ({
         case "note.created": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
-          notes.set(id, buildNoteState(id, payload, event.timestamp));
+          notes.set(id, buildNoteFromPayload(id, payload, event.timestamp));
           break;
         }
         case "note.updated": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = notes.get(id);
-          const next = buildNoteState(id, payload, event.timestamp, existing);
+          const next = buildNoteFromPayload(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
           if (existing) {
             const diff = detectNoteChanges(existing, {
               title: next.title,
@@ -593,7 +333,7 @@ export const TimelineSection = ({
           if (!id) break;
           interactions.set(
             id,
-            buildInteractionState(id, payload, event.timestamp),
+            buildInteractionFromPayload(id, payload, event.timestamp),
           );
           break;
         }
@@ -602,7 +342,7 @@ export const TimelineSection = ({
           if (!id) break;
           interactions.set(
             id,
-            buildInteractionState(id, payload, event.timestamp),
+            buildInteractionFromPayload(id, payload, event.timestamp),
           );
           break;
         }
@@ -610,7 +350,7 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = interactions.get(id);
-          const next = buildInteractionState(
+          const next = buildInteractionFromPayload(
             id,
             payload,
             event.timestamp,
@@ -623,7 +363,7 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = interactions.get(id);
-          const next = buildInteractionState(
+          const next = buildInteractionFromPayload(
             id,
             payload,
             event.timestamp,
@@ -636,7 +376,7 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = interactions.get(id);
-          const next = buildInteractionState(
+          const next = buildInteractionFromPayload(
             id,
             payload,
             event.timestamp,

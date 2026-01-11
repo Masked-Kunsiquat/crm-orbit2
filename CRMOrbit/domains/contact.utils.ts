@@ -139,3 +139,69 @@ export const getPrimaryPhone = (contact: Contact): string | undefined => {
 
   return activePhone?.value || contact.methods.phones[0]?.value;
 };
+
+/**
+ * Type guard for contact type
+ */
+const isContactType = (value: unknown): value is Contact["type"] => {
+  return (
+    typeof value === "string" &&
+    (value === "contact.type.internal" || value === "contact.type.external")
+  );
+};
+
+/**
+ * Resolve contact methods from payload, with fallback to existing or default
+ */
+const resolveContactMethods = (
+  payloadMethods: unknown,
+  fallback: Contact["methods"],
+): Contact["methods"] => {
+  if (
+    payloadMethods &&
+    typeof payloadMethods === "object" &&
+    "emails" in payloadMethods &&
+    "phones" in payloadMethods
+  ) {
+    return payloadMethods as Contact["methods"];
+  }
+  return fallback;
+};
+
+/**
+ * Build contact state from event payload.
+ * Used by both reducers and timeline rendering for consistent state derivation.
+ *
+ * @param id - Contact entity ID
+ * @param payload - Event payload (may be partial for updates)
+ * @param timestamp - Event timestamp
+ * @param existing - Existing contact state (for updates)
+ * @returns Complete contact state
+ */
+export const buildContactFromPayload = (
+  id: string,
+  payload: Record<string, unknown>,
+  timestamp: string,
+  existing?: Contact,
+): Contact => ({
+  id,
+  name: typeof payload.name === "string" ? payload.name : existing?.name,
+  firstName:
+    typeof payload.firstName === "string"
+      ? payload.firstName
+      : (existing?.firstName ?? ""),
+  lastName:
+    typeof payload.lastName === "string"
+      ? payload.lastName
+      : (existing?.lastName ?? ""),
+  type: isContactType(payload.type)
+    ? payload.type
+    : (existing?.type ?? "contact.type.internal"),
+  title: typeof payload.title === "string" ? payload.title : existing?.title,
+  methods: resolveContactMethods(
+    payload.methods,
+    existing?.methods ?? { emails: [], phones: [] },
+  ),
+  createdAt: existing?.createdAt ?? timestamp,
+  updatedAt: timestamp,
+});
