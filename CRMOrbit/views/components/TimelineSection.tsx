@@ -27,7 +27,7 @@ import type { Organization } from "@domains/organization";
 import { buildOrganizationFromPayload } from "@domains/organization.utils";
 import type { Note } from "@domains/note";
 import { buildNoteFromPayload } from "@domains/note.utils";
-import type { Interaction, InteractionStatus } from "@domains/interaction";
+import type { Interaction } from "@domains/interaction";
 import { buildInteractionFromPayload } from "@domains/interaction.utils";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -100,7 +100,10 @@ export const TimelineSection = ({
         case "contact.created": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
-          contacts.set(id, buildContactFromPayload(id, payload, event.timestamp));
+          contacts.set(
+            id,
+            buildContactFromPayload(id, payload, event.timestamp),
+          );
           break;
         }
         case "contact.method.added": {
@@ -189,7 +192,10 @@ export const TimelineSection = ({
         case "account.created": {
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
-          accounts.set(id, buildAccountFromPayload(id, payload, event.timestamp));
+          accounts.set(
+            id,
+            buildAccountFromPayload(id, payload, event.timestamp),
+          );
           break;
         }
         case "account.status.updated": {
@@ -299,7 +305,12 @@ export const TimelineSection = ({
           const id = tryResolveEntityId(event, payload);
           if (!id) break;
           const existing = notes.get(id);
-          const next = buildNoteFromPayload(id, payload, event.timestamp, existing);
+          const next = buildNoteFromPayload(
+            id,
+            payload,
+            event.timestamp,
+            existing,
+          );
           if (existing) {
             const diff = detectNoteChanges(existing, {
               title: next.title,

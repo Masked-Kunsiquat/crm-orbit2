@@ -194,9 +194,7 @@ export const buildAccountFromPayload = (
         ? payload.organizationId
         : (existing?.organizationId ?? ""),
     name:
-      typeof payload.name === "string"
-        ? payload.name
-        : (existing?.name ?? ""),
+      typeof payload.name === "string" ? payload.name : (existing?.name ?? ""),
     status: isAccountStatus(payload.status)
       ? payload.status
       : (existing?.status ?? "account.status.active"),
@@ -221,9 +219,7 @@ export const buildAccountFromPayload = (
         ? (payload.addresses as Account["addresses"])
         : existing?.addresses,
     website:
-      typeof payload.website === "string"
-        ? payload.website
-        : existing?.website,
+      typeof payload.website === "string" ? payload.website : existing?.website,
     socialMedia:
       payload.socialMedia !== undefined
         ? (payload.socialMedia as Account["socialMedia"])

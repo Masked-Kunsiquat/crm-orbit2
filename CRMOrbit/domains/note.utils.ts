@@ -19,7 +19,8 @@ export const buildNoteFromPayload = (
   id,
   title:
     typeof payload.title === "string" ? payload.title : (existing?.title ?? ""),
-  body: typeof payload.body === "string" ? payload.body : (existing?.body ?? ""),
+  body:
+    typeof payload.body === "string" ? payload.body : (existing?.body ?? ""),
   createdAt: existing?.createdAt ?? timestamp,
   updatedAt: timestamp,
 });

@@ -3,9 +3,7 @@ import type { Organization, OrganizationStatus } from "./organization";
 /**
  * Type guard for organization status
  */
-const isOrganizationStatus = (
-  value: unknown,
-): value is OrganizationStatus => {
+const isOrganizationStatus = (value: unknown): value is OrganizationStatus => {
   return (
     typeof value === "string" &&
     (value === "organization.status.active" ||
