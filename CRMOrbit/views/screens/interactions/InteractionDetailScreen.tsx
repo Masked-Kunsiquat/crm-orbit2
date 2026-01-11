@@ -31,12 +31,9 @@ import {
   addMinutesToTimestamp,
   formatDurationLabel,
 } from "../../utils/duration";
+import type { EventsStackScreenProps } from "../../navigation/types";
 
-type Props = {
-  route: { params: { interactionId: string } };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = EventsStackScreenProps<"InteractionDetail">;
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {

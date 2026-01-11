@@ -8,6 +8,7 @@ import { ListRow, ListScreenLayout } from "../../components";
 import { useAllCodes, useAccounts } from "../../store/store";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks";
+import type { NotesStackScreenProps } from "../../navigation/types";
 
 type MaterialIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 type FontAwesome6IconName = ComponentProps<typeof FontAwesome6>["name"];
@@ -24,10 +25,7 @@ const CODE_TYPE_ICONS: Record<
 
 const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
 
-type Props = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = NotesStackScreenProps<"CodesList">;
 
 export const CodesListScreen = ({ navigation }: Props) => {
   const codes = useAllCodes();

@@ -35,6 +35,7 @@ import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import type { CodeType } from "../../../domains/code";
 import { decryptCode } from "@utils/encryption";
+import type { NotesStackScreenProps } from "../../navigation/types";
 
 type MaterialIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 type FontAwesome6IconName = ComponentProps<typeof FontAwesome6>["name"];
@@ -53,11 +54,7 @@ const OTHER_CODE_ICON: FontAwesome6IconName = "lines-leaning";
 const DEFAULT_REVEAL_DURATION_MS = 30_000;
 const MASKED_VALUE = "********";
 
-type Props = {
-  route: { params: { codeId: string } };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-};
+type Props = NotesStackScreenProps<"CodeDetail">;
 
 export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const { codeId } = route.params;
