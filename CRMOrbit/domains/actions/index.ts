@@ -13,3 +13,13 @@ export type {
   UnlinkNotePayload,
   UnlinkInteractionPayload,
 } from "./entityLinkActions";
+export { createNoteUnlinkController } from "./noteUnlinkController";
+export type {
+  UnlinkNoteRequest,
+  UnlinkNoteController,
+} from "./noteUnlinkController";
+export { createInteractionUnlinkController } from "./interactionUnlinkController";
+export type {
+  UnlinkInteractionRequest,
+  UnlinkInteractionController,
+} from "./interactionUnlinkController";
