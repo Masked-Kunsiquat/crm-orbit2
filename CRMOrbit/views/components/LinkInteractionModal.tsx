@@ -4,6 +4,7 @@ import { Text } from "react-native";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "@domains/shared/types";
 import type { Interaction } from "@domains/interaction";
+import { formatTimestamp } from "@domains/shared/dateFormatting";
 import { t } from "@i18n/index";
 
 import { useDeviceId, useTheme } from "../hooks";
@@ -103,7 +104,7 @@ export const LinkInteractionModal = ({
             },
           ]}
         >
-          {new Date(interaction.occurredAt).toLocaleString()}
+          {formatTimestamp(interaction.occurredAt)}
         </Text>
       </>
     ),
