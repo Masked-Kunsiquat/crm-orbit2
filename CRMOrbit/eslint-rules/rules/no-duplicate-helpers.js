@@ -22,15 +22,17 @@ export default {
   create(context) {
     // Map of function names to their canonical shared module path
     const duplicateFunctions = {
-      resolveEntityId: "reducers/shared",
+      resolveEntityId: "domains/shared/entityUtils",
     };
 
     const filename = context.getFilename();
 
-    // Don't flag functions in the shared module itself
+    // Don't flag functions in the canonical shared modules
     if (
       filename.includes("reducers/shared") ||
-      filename.includes("reducers\\shared")
+      filename.includes("reducers\\shared") ||
+      filename.includes("domains/shared/entityUtils") ||
+      filename.includes("domains\\shared\\entityUtils")
     ) {
       return {};
     }

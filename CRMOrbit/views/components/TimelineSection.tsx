@@ -5,7 +5,7 @@ import type { AutomergeDoc } from "@automerge/schema";
 import { EVENT_I18N_KEYS } from "@i18n/events";
 import { t } from "@i18n/index";
 import type { Event } from "@events/event";
-import { resolveEntityId } from "@reducers/shared";
+import { resolveEntityId } from "@domains/shared/entityUtils";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
 import {
