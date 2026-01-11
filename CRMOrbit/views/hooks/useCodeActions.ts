@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
+import { buildDeleteEntityEvent } from "@domains/actions";
 import type { CodeType } from "../../domains/code";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
@@ -69,16 +70,7 @@ export const useCodeActions = (deviceId: string) => {
 
   const deleteCode = useCallback(
     (codeId: EntityId): DispatchResult => {
-      const event = buildEvent({
-        type: "code.deleted",
-        entityId: codeId,
-        payload: {
-          id: codeId,
-        },
-        deviceId,
-      });
-
-      return dispatch([event]);
+      return dispatch([buildDeleteEntityEvent("code", codeId, deviceId)]);
     },
     [deviceId, dispatch],
   );

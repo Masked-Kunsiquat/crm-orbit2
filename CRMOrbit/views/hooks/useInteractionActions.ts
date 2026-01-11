@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
+import { buildDeleteEntityEvent } from "@domains/actions";
 import type {
   InteractionStatus,
   InteractionType,
@@ -133,16 +134,7 @@ export const useInteractionActions = (deviceId: string) => {
 
   const deleteInteraction = useCallback(
     (interactionId: EntityId): DispatchResult => {
-      const event = buildEvent({
-        type: "interaction.deleted",
-        entityId: interactionId,
-        payload: {
-          id: interactionId,
-        },
-        deviceId,
-      });
-
-      return dispatch([event]);
+      return dispatch([buildDeleteEntityEvent("interaction", interactionId, deviceId)]);
     },
     [deviceId, dispatch],
   );
