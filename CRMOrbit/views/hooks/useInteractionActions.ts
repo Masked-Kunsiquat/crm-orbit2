@@ -134,7 +134,9 @@ export const useInteractionActions = (deviceId: string) => {
 
   const deleteInteraction = useCallback(
     (interactionId: EntityId): DispatchResult => {
-      return dispatch([buildDeleteEntityEvent("interaction", interactionId, deviceId)]);
+      return dispatch([
+        buildDeleteEntityEvent("interaction", interactionId, deviceId),
+      ]);
     },
     [deviceId, dispatch],
   );

@@ -131,13 +131,7 @@ export const TwoTierLinkModal = ({
 
       // Error handling is done by the parent via dialogProps
     },
-    [
-      selectedEntityType,
-      existingEntityIds,
-      onLink,
-      targetId,
-      onClose,
-    ],
+    [selectedEntityType, existingEntityIds, onLink, targetId, onClose],
   );
 
   const handleClose = useCallback(() => {
@@ -163,8 +157,13 @@ export const TwoTierLinkModal = ({
           >
             <View style={styles.header}>
               {selectedEntityType ? (
-                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                  <Text style={[styles.backText, { color: colors.textPrimary }]}>
+                <TouchableOpacity
+                  onPress={handleBack}
+                  style={styles.backButton}
+                >
+                  <Text
+                    style={[styles.backText, { color: colors.textPrimary }]}
+                  >
                     ‹ {t("common.back")}
                   </Text>
                 </TouchableOpacity>
@@ -192,15 +191,15 @@ export const TwoTierLinkModal = ({
                     onPress={() => handleSelectEntityType(item.type)}
                   >
                     <Text
-                      style={[
-                        styles.typeLabel,
-                        { color: colors.textPrimary },
-                      ]}
+                      style={[styles.typeLabel, { color: colors.textPrimary }]}
                     >
                       {item.label}
                     </Text>
                     <Text
-                      style={[styles.typeCount, { color: colors.textSecondary }]}
+                      style={[
+                        styles.typeCount,
+                        { color: colors.textSecondary },
+                      ]}
                     >
                       {item.count}
                     </Text>

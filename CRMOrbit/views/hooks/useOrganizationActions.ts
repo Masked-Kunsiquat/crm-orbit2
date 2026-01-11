@@ -90,7 +90,9 @@ export const useOrganizationActions = (deviceId: string) => {
 
   const deleteOrganization = useCallback(
     (organizationId: EntityId): DispatchResult => {
-      return dispatch([buildDeleteEntityEvent("organization", organizationId, deviceId)]);
+      return dispatch([
+        buildDeleteEntityEvent("organization", organizationId, deviceId),
+      ]);
     },
     [deviceId, dispatch],
   );
