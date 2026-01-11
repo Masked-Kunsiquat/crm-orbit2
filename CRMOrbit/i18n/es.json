@@ -14,7 +14,6 @@
     "contacts.emptyTitle": "Aún no hay contactos",
     "contacts.emptyHint": "Toca el botón + para crear uno",
     "contacts.listOptions": "Opciones de lista de contactos",
-    "contacts.moreOptionsSoon": "Más opciones próximamente",
     "compose_email": "Redactar correo a {email}",
     "email_invalid": "Introduce un correo electrónico válido.",
     "no_email_app": "No hay una app de correo disponible en este dispositivo.",
