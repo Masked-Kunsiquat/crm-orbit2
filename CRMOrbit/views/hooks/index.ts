@@ -5,6 +5,7 @@ export { useAuditActions } from "./useAuditActions";
 export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
 export { useEntityLinkActions } from "./useEntityLinkActions";
+export { useEntityLinkMap } from "./useEntityLinkMap";
 export { getDeviceIdFromEnv, setDeviceId, useDeviceId } from "./useDeviceId";
 export { useInteractionActions } from "./useInteractionActions";
 export { useCodeActions } from "./useCodeActions";
