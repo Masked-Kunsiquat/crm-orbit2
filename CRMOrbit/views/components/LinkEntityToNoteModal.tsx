@@ -14,6 +14,7 @@ import type { EntityId } from "@domains/shared/types";
 import type { Organization } from "@domains/organization";
 import type { Account } from "@domains/account";
 import type { Contact } from "@domains/contact";
+import { getContactDisplayName } from "@domains/contact.utils";
 import { t } from "@i18n/index";
 
 import { useDeviceId, useTheme } from "../hooks";
@@ -81,16 +82,10 @@ export const LinkEntityToNoteModal = ({
         }));
         break;
       case "contact":
-        entities = contacts.map((contact: Contact) => {
-          const fullName = `${contact.firstName} ${contact.lastName}`.trim();
-          const primaryEmail = contact.methods.emails[0]?.value;
-          const displayName =
-            fullName || primaryEmail || `Contact ${contact.id}`;
-          return {
-            id: contact.id,
-            name: displayName,
-          };
-        });
+        entities = contacts.map((contact: Contact) => ({
+          id: contact.id,
+          name: getContactDisplayName(contact),
+        }));
         break;
       default:
         return [];

@@ -22,6 +22,7 @@ import type { DeviceInfo } from "@domains/sync/types";
 import type { SyncQRCodeBatch } from "@domains/sync/qrCodeSync";
 import { syncOrchestrator } from "@domains/sync/syncOrchestrator";
 import { useSyncStore } from "@domains/sync/syncState";
+import { createLogger } from "@utils/logger";
 import {
   ActionButton,
   ConfirmDialog,
@@ -83,6 +84,8 @@ const QrPayloadView = ({
     </Svg>
   );
 };
+
+const logger = createLogger("SyncScreen");
 
 export const SyncScreen = () => {
   const { colors } = useTheme();
@@ -154,7 +157,7 @@ export const SyncScreen = () => {
         await syncOrchestrator.startAutoDiscovery();
       } catch (error) {
         if (!isActive) return;
-        console.error("Failed to start auto discovery", error);
+        logger.error("Failed to start auto discovery", error);
       }
     };
 
