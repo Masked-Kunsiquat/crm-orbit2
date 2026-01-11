@@ -6,6 +6,8 @@ export { useContactActions } from "./useContactActions";
 export { useNoteActions } from "./useNoteActions";
 export { useEntityLinkActions } from "./useEntityLinkActions";
 export { useEntityLinkMap } from "./useEntityLinkMap";
+export { useNoteUnlink } from "./useNoteUnlink";
+export { useInteractionUnlink } from "./useInteractionUnlink";
 export { getDeviceIdFromEnv, setDeviceId, useDeviceId } from "./useDeviceId";
 export { useInteractionActions } from "./useInteractionActions";
 export { useCodeActions } from "./useCodeActions";
