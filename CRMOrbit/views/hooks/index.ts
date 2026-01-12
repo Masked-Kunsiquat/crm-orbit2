@@ -28,3 +28,8 @@ export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";
 export { useScreenTitles } from "./useScreenTitles";
 export { useTheme } from "./useTheme";
+export { useCalendarSync } from "./useCalendarSync";
+export type {
+  CalendarSyncState,
+  UseCalendarSyncParams,
+} from "./useCalendarSync";
