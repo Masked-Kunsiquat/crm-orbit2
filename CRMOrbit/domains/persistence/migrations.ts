@@ -95,8 +95,12 @@ export const runMigrations = async (db: MigrationDb): Promise<void> => {
 
   const currentVersion = await getSchemaVersion(db);
 
+  const sortedMigrations = MIGRATIONS.slice().sort(
+    (a, b) => a.version - b.version,
+  );
+
   // Run all migrations that haven't been applied yet
-  for (const migration of MIGRATIONS) {
+  for (const migration of sortedMigrations) {
     if (migration.version > currentVersion) {
       await db.execute(migration.sql);
       await updateSchemaVersion(db, migration.version);
@@ -126,8 +130,12 @@ export const rollbackMigrations = async (
     );
   }
 
+  const sortedMigrations = migrations
+    .slice()
+    .sort((a, b) => a.version - b.version);
+
   // Find all migrations to rollback (in reverse order)
-  const migrationsToRollback = migrations
+  const migrationsToRollback = sortedMigrations
     .filter((m) => m.version > targetVersion && m.version <= currentVersion)
     .reverse();
 
