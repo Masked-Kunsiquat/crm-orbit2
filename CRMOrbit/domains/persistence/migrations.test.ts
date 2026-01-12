@@ -108,7 +108,9 @@ describe("runMigrations", () => {
     await runMigrations(db);
 
     // Should have tracked each migration version
-    expect(versions).toEqual(MIGRATIONS.map((m) => m.version).sort());
+    expect(versions.sort((a, b) => a - b)).toEqual(
+      MIGRATIONS.map((m) => m.version).sort((a, b) => a - b),
+    );
   });
 
   it("should maintain migration order", async () => {
@@ -217,15 +219,14 @@ describe("rollbackMigrations", () => {
   it("should throw error when migration has no rollback defined", async () => {
     const db = createMockDb();
 
-    // Temporarily remove rollback from a migration
-    const originalRollback = MIGRATIONS[1].rollback;
-    delete MIGRATIONS[1].rollback;
+    // Create a test migrations array with a migration that has no rollback
+    const testMigrations = [
+      MIGRATIONS[0],
+      { ...MIGRATIONS[1], rollback: undefined },
+    ];
 
-    await expect(rollbackMigrations(db, 1)).rejects.toThrow(
+    await expect(rollbackMigrations(db, 1, testMigrations)).rejects.toThrow(
       "does not have a rollback defined",
     );
-
-    // Restore rollback
-    MIGRATIONS[1].rollback = originalRollback;
   });
 });

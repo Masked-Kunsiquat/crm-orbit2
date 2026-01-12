@@ -91,10 +91,12 @@ export const runMigrations = async (db: MigrationDb): Promise<void> => {
  *
  * @param db - The database connection
  * @param targetVersion - The version to rollback to (0 means rollback all migrations)
+ * @param migrations - Optional migrations array (defaults to MIGRATIONS, primarily for testing)
  */
 export const rollbackMigrations = async (
   db: MigrationDb,
   targetVersion: number,
+  migrations: Migration[] = MIGRATIONS,
 ): Promise<void> => {
   const currentVersion = await getSchemaVersion(db);
 
@@ -105,9 +107,9 @@ export const rollbackMigrations = async (
   }
 
   // Find all migrations to rollback (in reverse order)
-  const migrationsToRollback = MIGRATIONS.filter(
-    (m) => m.version > targetVersion && m.version <= currentVersion,
-  ).reverse();
+  const migrationsToRollback = migrations
+    .filter((m) => m.version > targetVersion && m.version <= currentVersion)
+    .reverse();
 
   // Execute rollback for each migration
   for (const migration of migrationsToRollback) {
