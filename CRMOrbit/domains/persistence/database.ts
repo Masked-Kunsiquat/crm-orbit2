@@ -28,6 +28,10 @@ export const initializeDatabase = async (): Promise<
     execute: async (sql: string) => {
       await expoDb.execAsync(sql);
     },
+    getFirstRow: async <T>(sql: string): Promise<T | null> => {
+      const result = await expoDb.getFirstAsync<T>(sql);
+      return result ?? null;
+    },
   });
 
   return dbInstance;
