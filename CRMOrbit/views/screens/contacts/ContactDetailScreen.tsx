@@ -283,7 +283,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                         <Text style={styles.methodValue}>{email.value}</Text>
                         <TouchableOpacity
                           accessibilityRole="button"
-                          accessibilityLabel={t("compose_email", {
+                          accessibilityLabel={t("linking.email.compose", {
                             email: email.value,
                           })}
                           accessible={true}
@@ -322,10 +322,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                   phone.extension,
                 );
                 const methodLabel = getMethodLabel(phone.label);
-                const callLabel = t("call_phone")
+                const callLabel = t("linking.phone.call")
                   .replace("{label}", methodLabel)
                   .replace("{phone}", formattedPhone);
-                const smsLabel = t("send_sms")
+                const smsLabel = t("linking.sms.send")
                   .replace("{label}", methodLabel)
                   .replace("{phone}", formattedPhone);
 

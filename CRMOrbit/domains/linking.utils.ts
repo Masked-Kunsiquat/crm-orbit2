@@ -97,14 +97,14 @@ const openMapsUrl = async (
     }
 
     logger.warn("Maps app not available", { url: primaryUrl });
-    showLinkingAlert("no_maps_app");
+    showLinkingAlert("linking.maps.noApp");
   } catch (error) {
     logger.error(
       "Failed to open maps",
       { url: primaryUrl, fallbackUrl },
       error,
     );
-    showLinkingAlert("maps_open_failed");
+    showLinkingAlert("linking.maps.openFailed");
   }
 };
 
@@ -119,7 +119,7 @@ export const openPhoneDialer = async (
   const { url, fallbackUrl } = buildPhoneDialerUrl(phoneNumber, extension);
   if (!url) {
     logger.warn("Phone number missing for dialer", { phoneNumber });
-    throw createLinkingError("phone_number_invalid");
+    throw createLinkingError("linking.phone.invalid");
   }
 
   let supported = false;
@@ -127,7 +127,7 @@ export const openPhoneDialer = async (
     supported = await Linking.canOpenURL(url);
   } catch (error) {
     logger.error("Failed to check phone dialer support", { url }, error);
-    throw createLinkingError("phone_dialer_failed");
+    throw createLinkingError("linking.phone.dialerFailed");
   }
 
   if (!supported && fallbackUrl) {
@@ -139,13 +139,13 @@ export const openPhoneDialer = async (
         { url: fallbackUrl },
         error,
       );
-      throw createLinkingError("phone_dialer_failed");
+      throw createLinkingError("linking.phone.dialerFailed");
     }
   }
 
   if (!supported) {
     logger.warn("Phone dialer not available", { url });
-    throw createLinkingError("phone_dialer_unavailable");
+    throw createLinkingError("linking.phone.dialerUnavailable");
   }
 
   try {
@@ -164,7 +164,7 @@ export const openPhoneDialer = async (
       }
     }
     logger.error("Failed to open phone dialer", { url }, error);
-    throw createLinkingError("phone_dialer_failed");
+    throw createLinkingError("linking.phone.dialerFailed");
   }
 };
 
@@ -176,7 +176,7 @@ export const openSMS = async (phoneNumber: string): Promise<void> => {
   const { number } = normalizePhoneNumber(phoneNumber);
   if (!number) {
     logger.warn("Phone number missing for SMS", { phoneNumber });
-    throw createLinkingError("phone_number_invalid");
+    throw createLinkingError("linking.phone.invalid");
   }
 
   const url = `sms:${number}`;
@@ -186,19 +186,19 @@ export const openSMS = async (phoneNumber: string): Promise<void> => {
     supported = await Linking.canOpenURL(url);
   } catch (error) {
     logger.error("Failed to check SMS support", { url }, error);
-    throw createLinkingError("sms_open_failed");
+    throw createLinkingError("linking.sms.openFailed");
   }
 
   if (!supported) {
     logger.warn("Messaging app not available", { url });
-    throw createLinkingError("sms_app_unavailable");
+    throw createLinkingError("linking.sms.appUnavailable");
   }
 
   try {
     await Linking.openURL(url);
   } catch (error) {
     logger.error("Failed to open SMS app", { url }, error);
-    throw createLinkingError("sms_open_failed");
+    throw createLinkingError("linking.sms.openFailed");
   }
 };
 
@@ -210,7 +210,7 @@ export const openEmailComposer = async (email: string): Promise<void> => {
   const trimmedEmail = email.trim();
   if (!EMAIL_REGEX.test(trimmedEmail)) {
     logger.warn("Invalid email address for composer", { email });
-    showLinkingAlert("email_invalid");
+    showLinkingAlert("linking.email.invalid");
     return;
   }
 
@@ -220,7 +220,7 @@ export const openEmailComposer = async (email: string): Promise<void> => {
     const supported = await Linking.canOpenURL(url);
     if (!supported) {
       logger.warn("No email app available", { email: trimmedEmail });
-      showLinkingAlert("no_email_app");
+      showLinkingAlert("linking.email.noApp");
       return;
     }
 
@@ -231,7 +231,7 @@ export const openEmailComposer = async (email: string): Promise<void> => {
       { email: trimmedEmail },
       error,
     );
-    showLinkingAlert("email_send_failed");
+    showLinkingAlert("linking.email.sendFailed");
   }
 };
 
@@ -243,7 +243,7 @@ export const openWebUrl = async (url: string): Promise<void> => {
   const normalized = normalizeWebUrl(url);
   if (!normalized) {
     logger.warn("Invalid URL", { url });
-    showLinkingAlert("url_invalid");
+    showLinkingAlert("linking.url.invalid");
     return;
   }
 
@@ -251,14 +251,14 @@ export const openWebUrl = async (url: string): Promise<void> => {
     const supported = await Linking.canOpenURL(normalized);
     if (!supported) {
       logger.warn("URL not supported", { url: normalized });
-      showLinkingAlert("url_open_failed");
+      showLinkingAlert("linking.url.openFailed");
       return;
     }
 
     await Linking.openURL(normalized);
   } catch (error) {
     logger.error("Failed to open URL", { url: normalized }, error);
-    showLinkingAlert("url_open_failed");
+    showLinkingAlert("linking.url.openFailed");
   }
 };
 
