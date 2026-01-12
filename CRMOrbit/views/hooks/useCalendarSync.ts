@@ -220,10 +220,11 @@ export const useCalendarSync = ({
               ? interaction.status
               : null;
           return {
-            canceledPrefix: "calendar.event.canceledPrefix",
-            unknownEntityLabel: "common.unknownEntity",
-            statusLabel: "interactions.statusLabel",
-            statusValue,
+            canceledPrefix: baseLabels.canceledPrefix,
+            unknownEntityLabel: baseLabels.unknownEntityLabel,
+            statusLabel: baseLabels.interactionStatusLabel,
+            statusValue: statusValue ? t(statusValue) : null,
+            interactionTypeLabel: t(interaction.type),
           };
         },
       },

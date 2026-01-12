@@ -54,6 +54,7 @@ export type InteractionCalendarLabels = {
   unknownEntityLabel: string;
   statusLabel: string;
   statusValue?: string | null;
+  interactionTypeLabel?: string;
 };
 
 /**
@@ -206,7 +207,7 @@ export const buildInteractionCalendarEvent = (
   return {
     key: `interaction:${interaction.id}`,
     title: buildCalendarTitle(
-      `${accountName} - ${interaction.type}`,
+      `${accountName} - ${labels.interactionTypeLabel ?? interaction.type}`,
       isCanceled,
       labels.canceledPrefix,
     ),
