@@ -26,6 +26,7 @@ import { useAccountActions } from "../../hooks/useAccountActions";
 import { useDeviceId, useAccountContactManagement } from "../../hooks";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { AccountContactRole } from "@domains/relations/accountContact";
+import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
   InteractionsSection,
@@ -106,6 +107,26 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       label: t("account.contact.role.technical"),
     },
   ];
+  const contactFilterLabels: Record<"all" | ContactType, string> = {
+    all: t("accounts.filters.all"),
+    "contact.type.internal": t("contact.type.internal"),
+    "contact.type.external": t("contact.type.external"),
+  };
+  const accountContactsLabels = {
+    title: t("accounts.sections.contacts"),
+    createLabel: t("contacts.form.createButton"),
+    linkLabel: t("contacts.linkTitle"),
+    filterAllLabel: contactFilterLabels.all,
+    filterInternalLabel: contactFilterLabels["contact.type.internal"],
+    filterExternalLabel: contactFilterLabels["contact.type.external"],
+    emptyStateText:
+      contactManagement.contactFilter === "all"
+        ? t("accounts.noContacts")
+        : t("accounts.noContactsFiltered", {
+            type: contactFilterLabels[contactManagement.contactFilter],
+          }),
+    viewAllLabel: t("common.viewAll"),
+  };
   const addressLabels = {
     siteAddress: t("accounts.fields.siteAddress"),
     parkingAddress: t("accounts.fields.parkingAddress"),
@@ -227,6 +248,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       {activeTab === "overview" ? (
         <AccountContactsSection
           allContacts={allContacts}
+          labels={accountContactsLabels}
           contactFilter={contactManagement.contactFilter}
           onContactFilterChange={contactManagement.setContactFilter}
           onContactPress={(contactId) =>

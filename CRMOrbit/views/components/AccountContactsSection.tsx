@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Contact, ContactType } from "@domains/contact";
-import { t } from "@i18n/index";
 import { useTheme } from "../hooks/useTheme";
 import { Section } from "./Section";
 import { ContactCardRow } from "./ContactCardRow";
@@ -12,6 +11,16 @@ const PREVIEW_LIMIT = 3;
 export interface AccountContactsSectionProps {
   allContacts: Contact[];
   contactFilter: "all" | ContactType;
+  labels: {
+    title: string;
+    createLabel: string;
+    linkLabel: string;
+    filterAllLabel: string;
+    filterInternalLabel: string;
+    filterExternalLabel: string;
+    emptyStateText: string;
+    viewAllLabel: string;
+  };
   onContactFilterChange: (filter: "all" | ContactType) => void;
   onContactPress: (contactId: string) => void;
   onCreatePress: () => void;
@@ -26,6 +35,7 @@ export interface AccountContactsSectionProps {
 export const AccountContactsSection = ({
   allContacts,
   contactFilter,
+  labels,
   onContactFilterChange,
   onContactPress,
   onCreatePress,
@@ -55,13 +65,13 @@ export const AccountContactsSection = ({
     <Section>
       <View style={styles.sectionHeaderRow}>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("accounts.sections.contacts")} ({allContacts.length})
+          {labels.title} ({allContacts.length})
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={onCreatePress}
-            accessibilityLabel={t("contacts.form.createButton")}
+            accessibilityLabel={labels.createLabel}
           >
             <MaterialCommunityIcons
               name="plus"
@@ -76,7 +86,7 @@ export const AccountContactsSection = ({
               { backgroundColor: colors.surfaceElevated },
             ]}
             onPress={onLinkPress}
-            accessibilityLabel={t("contacts.linkTitle")}
+            accessibilityLabel={labels.linkLabel}
           >
             <MaterialCommunityIcons
               name="link-variant-plus"
@@ -110,7 +120,7 @@ export const AccountContactsSection = ({
               },
             ]}
           >
-            {t("accounts.filters.all")} ({allContacts.length})
+            {labels.filterAllLabel} ({allContacts.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -137,7 +147,7 @@ export const AccountContactsSection = ({
               },
             ]}
           >
-            {t("contact.type.internal")} ({internalCount})
+            {labels.filterInternalLabel} ({internalCount})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -164,18 +174,14 @@ export const AccountContactsSection = ({
               },
             ]}
           >
-            {t("contact.type.external")} ({externalCount})
+            {labels.filterExternalLabel} ({externalCount})
           </Text>
         </TouchableOpacity>
       </View>
 
       {contacts.length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-          {contactFilter === "all"
-            ? t("accounts.noContacts")
-            : t("accounts.noContactsFiltered", {
-                type: t(contactFilter as string),
-              })}
+          {labels.emptyStateText}
         </Text>
       ) : (
         previewContacts.map((contact) => (
@@ -192,7 +198,7 @@ export const AccountContactsSection = ({
           onPress={onViewAllPress}
         >
           <Text style={[styles.viewAllText, { color: colors.accent }]}>
-            {t("common.viewAll")}
+            {labels.viewAllLabel}
           </Text>
         </TouchableOpacity>
       ) : null}
