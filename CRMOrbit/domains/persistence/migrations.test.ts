@@ -6,16 +6,14 @@ describe("runMigrations", () => {
   let schemaVersion: number = 0;
 
   const createMockDb = (): MigrationDb => ({
-    execute: async (sql: string) => {
+    execute: async (sql: string, params?: unknown[]) => {
       executedStatements.push(sql);
 
-      // Simulate schema_version updates
-      if (sql.includes("delete from schema_version")) {
-        schemaVersion = 0;
-      } else if (sql.includes("insert into schema_version")) {
-        const match = sql.match(/values \((\d+)\)/);
-        if (match) {
-          schemaVersion = Number(match[1]);
+      // Simulate schema_version updates with parameterized queries
+      if (sql.includes("insert or replace into schema_version")) {
+        // params = [1, version]
+        if (params && params.length >= 2) {
+          schemaVersion = Number(params[1]);
         }
       }
     },
@@ -98,9 +96,9 @@ describe("runMigrations", () => {
 
     // Track version after each statement
     const originalExecute = db.execute;
-    db.execute = async (sql: string) => {
-      await originalExecute(sql);
-      if (sql.includes("insert into schema_version")) {
+    db.execute = async (sql: string, params?: unknown[]) => {
+      await originalExecute(sql, params);
+      if (sql.includes("insert or replace into schema_version")) {
         versions.push(schemaVersion);
       }
     };
@@ -132,6 +130,62 @@ describe("runMigrations", () => {
       [...migrationExecutionOrder].sort(),
     );
   });
+
+  it("should throw non-table-missing errors when checking version", async () => {
+    const dbWithPermissionError: MigrationDb = {
+      execute: async () => {
+        // execute succeeds for schema_version table creation
+      },
+      getFirstRow: async () => {
+        throw new Error("permission denied");
+      },
+    };
+
+    await expect(runMigrations(dbWithPermissionError)).rejects.toThrow(
+      "permission denied",
+    );
+  });
+
+  it("should throw connection errors when checking version", async () => {
+    const dbWithConnectionError: MigrationDb = {
+      execute: async () => {
+        // execute succeeds for schema_version table creation
+      },
+      getFirstRow: async () => {
+        throw new Error("connection timeout");
+      },
+    };
+
+    await expect(runMigrations(dbWithConnectionError)).rejects.toThrow(
+      "connection timeout",
+    );
+  });
+
+  it("should use parameterized queries to prevent SQL injection", async () => {
+    const db = createMockDb();
+    const executeCalls: Array<{ sql: string; params?: unknown[] }> = [];
+
+    // Spy on execute calls
+    const originalExecute = db.execute;
+    db.execute = async (sql: string, params?: unknown[]) => {
+      executeCalls.push({ sql, params });
+      return originalExecute(sql, params);
+    };
+
+    await runMigrations(db);
+
+    // Find all version update calls
+    const versionUpdates = executeCalls.filter((call) =>
+      call.sql.includes("insert or replace into schema_version"),
+    );
+
+    // Should have parameterized queries (not string interpolation)
+    for (const update of versionUpdates) {
+      expect(update.params).toBeDefined();
+      expect(update.params?.length).toBeGreaterThan(0);
+      expect(update.sql).not.toMatch(/values \(\d+\)/); // Should not have hardcoded numbers
+    }
+  });
 });
 
 describe("rollbackMigrations", () => {
@@ -139,16 +193,14 @@ describe("rollbackMigrations", () => {
   let schemaVersion: number = 0;
 
   const createMockDb = (): MigrationDb => ({
-    execute: async (sql: string) => {
+    execute: async (sql: string, params?: unknown[]) => {
       executedStatements.push(sql);
 
-      // Simulate schema_version updates
-      if (sql.includes("delete from schema_version")) {
-        schemaVersion = 0;
-      } else if (sql.includes("insert into schema_version")) {
-        const match = sql.match(/values \((\d+)\)/);
-        if (match) {
-          schemaVersion = Number(match[1]);
+      // Simulate schema_version updates with parameterized queries
+      if (sql.includes("insert or replace into schema_version")) {
+        // params = [1, version]
+        if (params && params.length >= 2) {
+          schemaVersion = Number(params[1]);
         }
       }
     },

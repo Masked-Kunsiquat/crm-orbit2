@@ -32,13 +32,14 @@ export const MIGRATIONS: Migration[] = [
 ];
 
 export type MigrationDb = {
-  execute: (sql: string) => Promise<void>;
-  getFirstRow: <T>(sql: string) => Promise<T | null>;
+  execute: (sql: string, params?: unknown[]) => Promise<void>;
+  getFirstRow: <T>(sql: string, params?: unknown[]) => Promise<T | null>;
 };
 
 /**
  * Get the current schema version from the database.
  * Returns 0 if the schema_version table doesn't exist yet.
+ * Throws for other errors (permissions, connection issues, etc.)
  */
 const getSchemaVersion = async (db: MigrationDb): Promise<number> => {
   try {
@@ -46,21 +47,39 @@ const getSchemaVersion = async (db: MigrationDb): Promise<number> => {
       "select version from schema_version limit 1",
     );
     return result?.version ?? 0;
-  } catch {
-    // Table doesn't exist yet, return 0
-    return 0;
+  } catch (error) {
+    // Only return 0 if the error is specifically about a missing table
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isMissingTableError =
+      errorMessage.includes("no such table") || // SQLite
+      errorMessage.includes("doesn't exist") || // MySQL
+      errorMessage.includes("does not exist") || // PostgreSQL
+      errorMessage.includes("42P01"); // PostgreSQL error code
+
+    if (isMissingTableError) {
+      // Table doesn't exist yet, return 0
+      return 0;
+    }
+
+    // For any other error (permissions, connection, corruption), rethrow
+    throw error;
   }
 };
 
 /**
- * Update the schema version in the database.
+ * Update the schema version in the database atomically.
+ * Uses INSERT OR REPLACE to ensure atomicity and prevent SQL injection.
  */
 const updateSchemaVersion = async (
   db: MigrationDb,
   version: number,
 ): Promise<void> => {
-  await db.execute("delete from schema_version");
-  await db.execute(`insert into schema_version (version) values (${version})`);
+  // Use INSERT OR REPLACE with parameterized query for atomicity and security
+  // The id=1 ensures we always update the same row
+  await db.execute(
+    "insert or replace into schema_version (id, version) values (?, ?)",
+    [1, version],
+  );
 };
 
 /**
@@ -69,8 +88,9 @@ const updateSchemaVersion = async (
  */
 export const runMigrations = async (db: MigrationDb): Promise<void> => {
   // Create schema_version table if it doesn't exist
+  // Include id as primary key to enable INSERT OR REPLACE for atomic updates
   await db.execute(
-    "create table if not exists schema_version (version integer not null)",
+    "create table if not exists schema_version (id integer primary key, version integer not null)",
   );
 
   const currentVersion = await getSchemaVersion(db);

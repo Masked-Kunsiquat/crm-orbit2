@@ -25,11 +25,21 @@ export const initializeDatabase = async (): Promise<
 
   // Run migrations
   await runMigrations({
-    execute: async (sql: string) => {
-      await expoDb.execAsync(sql);
+    execute: async (sql: string, params?: unknown[]) => {
+      if (params && params.length > 0) {
+        await expoDb.runAsync(sql, params);
+      } else {
+        await expoDb.execAsync(sql);
+      }
     },
-    getFirstRow: async <T>(sql: string): Promise<T | null> => {
-      const result = await expoDb.getFirstAsync<T>(sql);
+    getFirstRow: async <T>(
+      sql: string,
+      params?: unknown[],
+    ): Promise<T | null> => {
+      const result =
+        params && params.length > 0
+          ? await expoDb.getFirstAsync<T>(sql, params)
+          : await expoDb.getFirstAsync<T>(sql);
       return result ?? null;
     },
   });
