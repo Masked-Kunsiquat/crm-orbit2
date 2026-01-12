@@ -1,7 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Account } from "@domains/account";
-import { t } from "@i18n/index";
 import { useTheme } from "../hooks/useTheme";
 import { DetailField } from "./DetailField";
 import {
@@ -11,6 +10,11 @@ import {
 
 export interface AccountAddressFieldsProps {
   account: Account;
+  labels: {
+    siteAddress: string;
+    parkingAddress: string;
+    sameAsSiteAddress: string;
+  };
 }
 
 /**
@@ -19,13 +23,14 @@ export interface AccountAddressFieldsProps {
  */
 export const AccountAddressFields = ({
   account,
+  labels,
 }: AccountAddressFieldsProps) => {
   const { colors } = useTheme();
 
   return (
     <>
       {account.addresses?.site && (
-        <DetailField label={t("accounts.fields.siteAddress")}>
+        <DetailField label={labels.siteAddress}>
           <View style={styles.addressContainer}>
             <View style={styles.addressText}>
               <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
@@ -55,7 +60,7 @@ export const AccountAddressFields = ({
       )}
 
       {account.addresses?.parking && !account.addresses.useSameForParking && (
-        <DetailField label={t("accounts.fields.parkingAddress")}>
+        <DetailField label={labels.parkingAddress}>
           <View style={styles.addressContainer}>
             <View style={styles.addressText}>
               <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
@@ -86,8 +91,8 @@ export const AccountAddressFields = ({
       )}
 
       {account.addresses?.useSameForParking && (
-        <DetailField label={t("accounts.fields.parkingAddress")}>
-          {t("accounts.sameAsSiteAddress")}
+        <DetailField label={labels.parkingAddress}>
+          {labels.sameAsSiteAddress}
         </DetailField>
       )}
     </>

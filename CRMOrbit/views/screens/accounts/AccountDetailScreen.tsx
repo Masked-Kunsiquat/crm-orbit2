@@ -106,6 +106,11 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       label: t("account.contact.role.technical"),
     },
   ];
+  const addressLabels = {
+    siteAddress: t("accounts.fields.siteAddress"),
+    parkingAddress: t("accounts.fields.parkingAddress"),
+    sameAsSiteAddress: t("accounts.sameAsSiteAddress"),
+  };
 
   if (!account) {
     return (
@@ -268,7 +273,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             </DetailField>
           )}
 
-          <AccountAddressFields account={account} />
+          <AccountAddressFields account={account} labels={addressLabels} />
 
           {account.socialMedia &&
             Object.values(account.socialMedia).some((v) => v) && (
