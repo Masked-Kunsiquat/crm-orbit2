@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import type { Contact } from "@domains/contact";
-import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
 import { ContactCardRow } from "./ContactCardRow";
@@ -9,12 +8,18 @@ const PREVIEW_LIMIT = 3;
 
 export interface OrganizationContactsSectionProps {
   contacts: Contact[];
+  labels: {
+    title: string;
+    noContactsLabel: string;
+    viewAllLabel: string;
+  };
   onContactPress: (contactId: string) => void;
   onViewAllPress: () => void;
 }
 
 export const OrganizationContactsSection = ({
   contacts,
+  labels,
   onContactPress,
   onViewAllPress,
 }: OrganizationContactsSectionProps) => {
@@ -26,11 +31,11 @@ export const OrganizationContactsSection = ({
   return (
     <Section>
       <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-        {t("organizations.sections.contacts")} ({contacts.length})
+        {labels.title} ({contacts.length})
       </Text>
       {contacts.length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-          {t("organizations.noContacts")}
+          {labels.noContactsLabel}
         </Text>
       ) : (
         previewContacts.map((contact) => (
@@ -47,7 +52,7 @@ export const OrganizationContactsSection = ({
           onPress={onViewAllPress}
         >
           <Text style={[styles.viewAllText, { color: colors.accent }]}>
-            {t("common.viewAll")}
+            {labels.viewAllLabel}
           </Text>
         </TouchableOpacity>
       ) : null}

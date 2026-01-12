@@ -3,7 +3,6 @@ import type { Audit } from "@domains/audit";
 import type { Interaction } from "@domains/interaction";
 import type { Account } from "@domains/account";
 import { formatAddressForMaps } from "@domains/linking.utils";
-import { t } from "@i18n/index";
 import {
   formatAuditScore,
   getAuditEndTimestamp,
@@ -27,11 +26,34 @@ const toDateOrNull = (timestamp?: string): Date | null => {
 /**
  * Builds a calendar event title, prefixing with "Canceled" if applicable.
  */
-const buildCalendarTitle = (title: string, isCanceled: boolean): string => {
+const buildCalendarTitle = (
+  title: string,
+  isCanceled: boolean,
+  canceledPrefix: string,
+): string => {
   if (!isCanceled) {
     return title;
   }
-  return `${t("calendar.event.canceledPrefix")} - ${title}`;
+  return `${canceledPrefix} - ${title}`;
+};
+
+export type AuditCalendarLabels = {
+  canceledPrefix: string;
+  eventTypeLabel: string;
+  unknownEntityLabel: string;
+  statusLabel: string;
+  statusValue: string;
+  parkingAddressLabel: string;
+  scoreLabel: string;
+  floorsVisitedLabel: string;
+  notesLabel: string;
+};
+
+export type InteractionCalendarLabels = {
+  canceledPrefix: string;
+  unknownEntityLabel: string;
+  statusLabel: string;
+  statusValue?: string | null;
 };
 
 /**
@@ -40,25 +62,25 @@ const buildCalendarTitle = (title: string, isCanceled: boolean): string => {
  */
 const buildAuditNotes = (
   audit: Audit,
-  status: string,
+  labels: AuditCalendarLabels,
   parkingAddress?: string,
 ): string | undefined => {
   const lines: string[] = [];
-  lines.push(`${t("audits.fields.status")}: ${t(status)}`);
+  lines.push(`${labels.statusLabel}: ${labels.statusValue}`);
   if (parkingAddress) {
-    lines.push(`${t("accounts.fields.parkingAddress")}: ${parkingAddress}`);
+    lines.push(`${labels.parkingAddressLabel}: ${parkingAddress}`);
   }
   const scoreValue = formatAuditScore(audit.score);
   if (scoreValue) {
-    lines.push(`${t("audits.fields.score")}: ${scoreValue}`);
+    lines.push(`${labels.scoreLabel}: ${scoreValue}`);
   }
   if (audit.floorsVisited && audit.floorsVisited.length > 0) {
     lines.push(
-      `${t("audits.fields.floorsVisited")}: ${audit.floorsVisited.join(", ")}`,
+      `${labels.floorsVisitedLabel}: ${audit.floorsVisited.join(", ")}`,
     );
   }
   if (audit.notes?.trim()) {
-    lines.push(`${t("audits.fields.notes")}: ${audit.notes.trim()}`);
+    lines.push(`${labels.notesLabel}: ${audit.notes.trim()}`);
   }
   return lines.length > 0 ? lines.join("\n") : undefined;
 };
@@ -69,13 +91,11 @@ const buildAuditNotes = (
  */
 const buildInteractionNotes = (
   interaction: Interaction,
+  labels: InteractionCalendarLabels,
 ): string | undefined => {
   const lines: string[] = [];
-  if (
-    interaction.status &&
-    interaction.status !== "interaction.status.completed"
-  ) {
-    lines.push(`${t("interactions.statusLabel")}: ${t(interaction.status)}`);
+  if (labels.statusValue) {
+    lines.push(`${labels.statusLabel}: ${labels.statusValue}`);
   }
   if (interaction.summary?.trim()) {
     lines.push(interaction.summary.trim());
@@ -89,16 +109,18 @@ const buildInteractionNotes = (
  * @param audit - The audit entity
  * @param account - The associated account (optional, falls back to "Unknown")
  * @param alarmOffsetMinutes - Minutes before event to trigger alarm (0 = no alarm)
+ * @param labels - Pre-localized labels for calendar content
  * @returns CalendarSyncEvent or null if audit has no valid start date
  */
 export const buildAuditCalendarEvent = (
   audit: Audit,
   account: Account | undefined,
   alarmOffsetMinutes: number,
+  labels: AuditCalendarLabels,
 ): CalendarSyncEvent | null => {
   const status = resolveAuditStatus(audit);
   const isCanceled = status === "audits.status.canceled";
-  const accountName = account?.name ?? t("common.unknownEntity");
+  const accountName = account?.name ?? labels.unknownEntityLabel;
 
   // Determine location and parking note
   const siteAddress = account?.addresses?.site;
@@ -134,13 +156,14 @@ export const buildAuditCalendarEvent = (
   return {
     key: `audit:${audit.id}`,
     title: buildCalendarTitle(
-      `${accountName} - ${t("calendar.event.audit")}`,
+      `${accountName} - ${labels.eventTypeLabel}`,
       isCanceled,
+      labels.canceledPrefix,
     ),
     startDate,
     endDate,
     location,
-    notes: buildAuditNotes(audit, status, parkingNote),
+    notes: buildAuditNotes(audit, labels, parkingNote),
     alarms: alarmOffset,
   };
 };
@@ -150,11 +173,13 @@ export const buildAuditCalendarEvent = (
  *
  * @param interaction - The interaction entity
  * @param doc - The CRM document (used to resolve linked entities)
+ * @param labels - Pre-localized labels for calendar content
  * @returns CalendarSyncEvent or null if interaction has no valid start date
  */
 export const buildInteractionCalendarEvent = (
   interaction: Interaction,
   doc: AutomergeDoc,
+  labels: InteractionCalendarLabels,
 ): CalendarSyncEvent | null => {
   const isCanceled = interaction.status === "interaction.status.canceled";
 
@@ -176,17 +201,18 @@ export const buildInteractionCalendarEvent = (
   const accountEntity =
     linkedEntities.find((entity) => entity.entityType === "account") ??
     linkedEntities[0];
-  const accountName = accountEntity?.name ?? t("common.unknownEntity");
+  const accountName = accountEntity?.name ?? labels.unknownEntityLabel;
 
   return {
     key: `interaction:${interaction.id}`,
     title: buildCalendarTitle(
-      `${accountName} - ${t(interaction.type)}`,
+      `${accountName} - ${interaction.type}`,
       isCanceled,
+      labels.canceledPrefix,
     ),
     startDate,
     endDate,
-    notes: buildInteractionNotes(interaction),
+    notes: buildInteractionNotes(interaction, labels),
   };
 };
 
@@ -198,6 +224,7 @@ export const buildInteractionCalendarEvent = (
  * @param accountMap - Map of account IDs to accounts
  * @param doc - The CRM document
  * @param auditAlarmOffsetMinutes - Alarm offset for audit events
+ * @param labels - Label builders for calendar content
  * @returns Array of calendar sync events
  */
 export const buildAllCalendarEvents = (
@@ -206,16 +233,22 @@ export const buildAllCalendarEvents = (
   accountMap: Map<string, Account>,
   doc: AutomergeDoc,
   auditAlarmOffsetMinutes: number,
+  labels: {
+    audit: (audit: Audit) => AuditCalendarLabels;
+    interaction: (interaction: Interaction) => InteractionCalendarLabels;
+  },
 ): CalendarSyncEvent[] => {
   const events: CalendarSyncEvent[] = [];
 
   // Build audit events
   for (const audit of audits) {
     const account = accountMap.get(audit.accountId);
+    const auditLabels = labels.audit(audit);
     const event = buildAuditCalendarEvent(
       audit,
       account,
       auditAlarmOffsetMinutes,
+      auditLabels,
     );
     if (event) {
       events.push(event);
@@ -224,7 +257,12 @@ export const buildAllCalendarEvents = (
 
   // Build interaction events
   for (const interaction of interactions) {
-    const event = buildInteractionCalendarEvent(interaction, doc);
+    const interactionLabels = labels.interaction(interaction);
+    const event = buildInteractionCalendarEvent(
+      interaction,
+      doc,
+      interactionLabels,
+    );
     if (event) {
       events.push(event);
     }

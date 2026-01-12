@@ -17,6 +17,7 @@ import {
   syncDeviceCalendarEvents,
 } from "../utils/deviceCalendar";
 import { buildAllCalendarEvents } from "../utils/calendarEventBuilders";
+import { resolveAuditStatus } from "../utils/audits";
 
 type SyncStatus = "idle" | "syncing" | "success" | "error";
 type AuditAlarmOption = "0" | "30" | "60" | "120" | "custom";
@@ -179,12 +180,53 @@ export const useCalendarSync = ({
 
   // Build calendar events
   const buildCalendarEvents = useCallback(() => {
+    const baseLabels = {
+      canceledPrefix: t("calendar.event.canceledPrefix"),
+      unknownEntityLabel: t("common.unknownEntity"),
+      auditEventLabel: t("calendar.event.audit"),
+      auditStatusLabel: t("audits.fields.status"),
+      auditParkingAddressLabel: t("accounts.fields.parkingAddress"),
+      auditScoreLabel: t("audits.fields.score"),
+      auditFloorsVisitedLabel: t("audits.fields.floorsVisited"),
+      auditNotesLabel: t("audits.fields.notes"),
+      interactionStatusLabel: t("interactions.statusLabel"),
+    };
+
     return buildAllCalendarEvents(
       audits,
       interactions,
       accountMap,
       doc,
       resolvedAuditAlarmOffsetMinutes,
+      {
+        audit: (audit) => {
+          const statusKey = resolveAuditStatus(audit);
+          return {
+            canceledPrefix: baseLabels.canceledPrefix,
+            eventTypeLabel: baseLabels.auditEventLabel,
+            unknownEntityLabel: baseLabels.unknownEntityLabel,
+            statusLabel: baseLabels.auditStatusLabel,
+            statusValue: t(statusKey),
+            parkingAddressLabel: baseLabels.auditParkingAddressLabel,
+            scoreLabel: baseLabels.auditScoreLabel,
+            floorsVisitedLabel: baseLabels.auditFloorsVisitedLabel,
+            notesLabel: baseLabels.auditNotesLabel,
+          };
+        },
+        interaction: (interaction) => {
+          const statusValue =
+            interaction.status &&
+            interaction.status !== "interaction.status.completed"
+              ? interaction.status
+              : null;
+          return {
+            canceledPrefix: "calendar.event.canceledPrefix",
+            unknownEntityLabel: "common.unknownEntity",
+            statusLabel: "interactions.statusLabel",
+            statusValue,
+          };
+        },
+      },
     );
   }, [accountMap, audits, doc, interactions, resolvedAuditAlarmOffsetMinutes]);
 

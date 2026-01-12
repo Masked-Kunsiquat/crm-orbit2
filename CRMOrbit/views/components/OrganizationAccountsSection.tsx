@@ -1,7 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Account } from "@domains/account";
-import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
 
@@ -9,6 +8,13 @@ const PREVIEW_LIMIT = 3;
 
 export interface OrganizationAccountsSectionProps {
   accounts: Account[];
+  labels: {
+    title: string;
+    emptyStateText: string;
+    addAccountLabel: string;
+    manageAccountLabel: string;
+    viewAllLabel: string;
+  };
   onAccountPress: (accountId: string) => void;
   onCreatePress: () => void;
   onLinkPress: () => void;
@@ -17,6 +23,7 @@ export interface OrganizationAccountsSectionProps {
 
 export const OrganizationAccountsSection = ({
   accounts,
+  labels,
   onAccountPress,
   onCreatePress,
   onLinkPress,
@@ -31,13 +38,13 @@ export const OrganizationAccountsSection = ({
     <Section>
       <View style={styles.sectionHeaderRow}>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t("organizations.sections.accounts")} ({accounts.length})
+          {labels.title} ({accounts.length})
         </Text>
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.accent }]}
             onPress={onCreatePress}
-            accessibilityLabel={t("accounts.form.createButton")}
+            accessibilityLabel={labels.addAccountLabel}
           >
             <MaterialCommunityIcons
               name="plus"
@@ -52,7 +59,7 @@ export const OrganizationAccountsSection = ({
               { backgroundColor: colors.surfaceElevated },
             ]}
             onPress={onLinkPress}
-            accessibilityLabel={t("accounts.linkTitle")}
+            accessibilityLabel={labels.manageAccountLabel}
           >
             <MaterialCommunityIcons
               name="link-variant-plus"
@@ -64,7 +71,7 @@ export const OrganizationAccountsSection = ({
       </View>
       {accounts.length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-          {t("organizations.noAccounts")}
+          {labels.emptyStateText}
         </Text>
       ) : (
         previewAccounts.map((account) => (
@@ -94,7 +101,7 @@ export const OrganizationAccountsSection = ({
           onPress={onViewAllPress}
         >
           <Text style={[styles.viewAllText, { color: colors.accent }]}>
-            {t("common.viewAll")}
+            {labels.viewAllLabel}
           </Text>
         </TouchableOpacity>
       ) : null}

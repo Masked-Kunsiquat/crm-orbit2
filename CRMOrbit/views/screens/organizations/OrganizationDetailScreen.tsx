@@ -81,6 +81,18 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
     linkedAccountIds,
     allAccounts,
   });
+  const organizationContactLabels = {
+    title: t("organizations.sections.contacts"),
+    noContactsLabel: t("organizations.noContacts"),
+    viewAllLabel: t("common.viewAll"),
+  };
+  const organizationAccountLabels = {
+    title: t("organizations.sections.accounts"),
+    emptyStateText: t("organizations.noAccounts"),
+    addAccountLabel: t("accounts.form.createButton"),
+    manageAccountLabel: t("accounts.linkTitle"),
+    viewAllLabel: t("common.viewAll"),
+  };
 
   if (!organization) {
     return (
@@ -211,6 +223,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
         <>
           <OrganizationContactsSection
             contacts={contacts}
+            labels={organizationContactLabels}
             onContactPress={(contactId) =>
               navigation.navigate("ContactDetail", { contactId })
             }
@@ -219,6 +232,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
           <OrganizationAccountsSection
             accounts={accounts}
+            labels={organizationAccountLabels}
             onAccountPress={(accountId) =>
               navigation.navigate("AccountDetail", { accountId })
             }

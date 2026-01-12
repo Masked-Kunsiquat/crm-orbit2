@@ -173,10 +173,9 @@ export const AccountContactsSection = ({
         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
           {contactFilter === "all"
             ? t("accounts.noContacts")
-            : t("accounts.noContactsFiltered").replace(
-                "{type}",
-                t(contactFilter as string),
-              )}
+            : t("accounts.noContactsFiltered", {
+                type: t(contactFilter as string),
+              })}
         </Text>
       ) : (
         previewContacts.map((contact) => (
