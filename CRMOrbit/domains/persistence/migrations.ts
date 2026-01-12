@@ -131,23 +131,18 @@ export const rollbackMigrations = async (
     .filter((m) => m.version > targetVersion && m.version <= currentVersion)
     .reverse();
 
-  await db.execute("begin");
-  try {
-    // Execute rollback for each migration
-    for (const migration of migrationsToRollback) {
-      if (!migration.rollback) {
-        throw new Error(
-          `Migration ${migration.version} (${migration.name}) does not have a rollback defined`,
-        );
-      }
-      await db.execute(migration.rollback);
+  // Execute rollback for each migration, updating schema version incrementally
+  for (let index = 0; index < migrationsToRollback.length; index += 1) {
+    const migration = migrationsToRollback[index];
+    if (!migration.rollback) {
+      throw new Error(
+        `Migration ${migration.version} (${migration.name}) does not have a rollback defined`,
+      );
     }
+    await db.execute(migration.rollback);
 
-    // Update schema version to target version
-    await updateSchemaVersion(db, targetVersion);
-    await db.execute("commit");
-  } catch (error) {
-    await db.execute("rollback");
-    throw error;
+    const nextVersion =
+      migrationsToRollback[index + 1]?.version ?? targetVersion;
+    await updateSchemaVersion(db, nextVersion);
   }
 };
