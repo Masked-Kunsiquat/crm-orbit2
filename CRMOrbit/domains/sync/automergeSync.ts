@@ -490,7 +490,17 @@ export const applyReceivedChanges = (
       );
       const localDoc = ensureAutomergeDoc(currentDoc);
       try {
-        return Automerge.merge(localDoc, remoteDoc);
+        const merged = Automerge.merge(localDoc, remoteDoc);
+        if (
+          !Automerge.equals(localDoc, remoteDoc) &&
+          Automerge.equals(merged, localDoc)
+        ) {
+          const remoteChanges = Automerge.getAllChanges(remoteDoc);
+          if (remoteChanges.length > 0) {
+            return Automerge.applyChanges(localDoc, remoteChanges);
+          }
+        }
+        return merged;
       } catch {
         return remoteDoc;
       }

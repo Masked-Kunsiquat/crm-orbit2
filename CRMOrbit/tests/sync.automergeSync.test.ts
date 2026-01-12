@@ -11,10 +11,23 @@ import {
   saveSyncCheckpoint,
 } from "@domains/sync/automergeSync";
 
-const toPlain = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+const stableStringify = (value: unknown): string =>
+  JSON.stringify(value, (_key, current) => {
+    if (Array.isArray(current) || !current || typeof current !== "object") {
+      return current;
+    }
+
+    const record = current as Record<string, unknown>;
+    return Object.keys(record)
+      .sort()
+      .reduce<Record<string, unknown>>((sorted, key) => {
+        sorted[key] = record[key];
+        return sorted;
+      }, {});
+  });
 
 const assertDocsEqual = (left: unknown, right: unknown): void => {
-  assert.deepEqual(toPlain(left), toPlain(right));
+  assert.equal(stableStringify(left), stableStringify(right));
 };
 
 type AsyncStorageMock = {
