@@ -42,3 +42,4 @@ export {
 } from "./FloorsVisitedMatrix";
 export { AccountContactsSection } from "./AccountContactsSection";
 export { AccountAddressFields } from "./AccountAddressFields";
+export { ContactAccountsSection } from "./ContactAccountsSection";

@@ -39,8 +39,13 @@ import {
   DangerActionButton,
   ConfirmDialog,
   SegmentedOptionGroup,
+  ContactAccountsSection,
 } from "@views/components";
-import { useDeviceId, useTheme } from "@views/hooks";
+import {
+  useDeviceId,
+  useTheme,
+  useContactAccountManagement,
+} from "@views/hooks";
 import type { ColorScheme } from "@domains/shared/theme/colors";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
@@ -52,7 +57,6 @@ import {
 
 type Props = ContactsStackScreenProps<"ContactDetail">;
 type ContactTab = "overview" | "details" | "notes" | "activity";
-const PREVIEW_LIMIT = 3;
 
 export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { contactId } = route.params;
@@ -63,13 +67,6 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const timeline = useTimeline("contact", contactId);
   const doc = useDoc();
   const allAccounts = useAccounts();
-  const sortedAccounts = useMemo(
-    () =>
-      [...allAccounts].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-      ),
-    [allAccounts],
-  );
   const accountContactRelations = useAccountContactRelations();
   const deviceId = useDeviceId();
   const { deleteContact } = useContactActions(deviceId);
@@ -77,12 +74,18 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
 
-  const [showLinkModal, setShowLinkModal] = useState(false);
   const [activeTab, setActiveTab] = useState<ContactTab>("overview");
-  const [selectedRole, setSelectedRole] = useState<AccountContactRole>(
-    "account.contact.role.primary",
+
+  const linkedAccountIds = useMemo(
+    () => new Set(linkedAccounts.map((account) => account.id)),
+    [linkedAccounts],
   );
-  const [showAccountsModal, setShowAccountsModal] = useState(false);
+
+  const accountManagement = useContactAccountManagement({
+    contactId,
+    linkedAccountIds,
+    allAccounts,
+  });
 
   const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
     {
@@ -100,8 +103,6 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
   ];
 
   const styles = createStyles(colors);
-  const previewLinkedAccounts = linkedAccounts.slice(0, PREVIEW_LIMIT);
-  const hasMoreLinkedAccounts = linkedAccounts.length > PREVIEW_LIMIT;
 
   if (!contact) {
     return (
@@ -144,7 +145,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
     const result = linkContact(accountId, contactId, role, !hasPrimary);
 
     if (result.success) {
-      setShowLinkModal(false);
+      accountManagement.setShowLinkModal(false);
     } else {
       showAlert(
         t("common.error"),
@@ -383,80 +384,17 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       ) : null}
 
       {activeTab === "details" ? (
-        <Section>
-          <View style={styles.fieldHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("contacts.sections.linkedAccounts")} ({linkedAccounts.length})
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.iconButton,
-                { backgroundColor: colors.surfaceElevated },
-              ]}
-              onPress={() => setShowLinkModal(true)}
-              accessibilityLabel={t("contacts.linkedAccounts.linkButton")}
-              accessibilityRole="button"
-            >
-              <MaterialCommunityIcons
-                name="link-variant-plus"
-                size={18}
-                color={colors.textPrimary}
-              />
-            </TouchableOpacity>
-          </View>
-          {linkedAccounts.length === 0 ? (
-            <Text style={styles.emptyText}>
-              {t("contacts.linkedAccounts.empty")}
-            </Text>
-          ) : (
-            previewLinkedAccounts.map((account) => {
-              const relation = Object.values(accountContactRelations).find(
-                (r) => r.accountId === account.id && r.contactId === contactId,
-              );
-              return (
-                <View key={account.id} style={styles.accountItem}>
-                  <View style={styles.accountInfo}>
-                    <Text style={styles.accountName}>{account.name}</Text>
-                    {relation?.isPrimary && (
-                      <View style={styles.primaryBadge}>
-                        <Text style={styles.primaryText}>
-                          {t("contacts.linkedAccounts.primaryBadge")}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={[
-                      styles.iconButton,
-                      { backgroundColor: colors.errorBg },
-                    ]}
-                    onPress={() =>
-                      handleUnlinkAccount(account.id, account.name)
-                    }
-                    accessibilityLabel={t("contacts.unlinkAction")}
-                    accessibilityRole="button"
-                  >
-                    <MaterialCommunityIcons
-                      name="link-variant-minus"
-                      size={18}
-                      color={colors.error}
-                    />
-                  </TouchableOpacity>
-                </View>
-              );
-            })
-          )}
-          {hasMoreLinkedAccounts ? (
-            <TouchableOpacity
-              style={[styles.viewAllButton, { borderColor: colors.border }]}
-              onPress={() => setShowAccountsModal(true)}
-            >
-              <Text style={[styles.viewAllText, { color: colors.accent }]}>
-                {t("common.viewAll")}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-        </Section>
+        <ContactAccountsSection
+          linkedAccounts={linkedAccounts}
+          accountContactRelations={accountContactRelations}
+          contactId={contactId}
+          onAccountPress={(accountId) =>
+            navigation.navigate("AccountDetail", { accountId })
+          }
+          onLinkPress={() => accountManagement.setShowLinkModal(true)}
+          onUnlinkPress={handleUnlinkAccount}
+          onViewAllPress={() => accountManagement.setShowAccountsModal(true)}
+        />
       ) : null}
 
       {activeTab === "notes" ? (
@@ -487,10 +425,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       />
 
       <Modal
-        visible={showAccountsModal}
+        visible={accountManagement.showAccountsModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowAccountsModal(false)}
+        onRequestClose={() => accountManagement.setShowAccountsModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -500,7 +438,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                 )
               </Text>
               <TouchableOpacity
-                onPress={() => setShowAccountsModal(false)}
+                onPress={() => accountManagement.setShowAccountsModal(false)}
                 accessibilityLabel={t("common.cancel")}
               >
                 <Text style={styles.modalClose}>{t("common.cancel")}</Text>
@@ -520,7 +458,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       { borderBottomColor: colors.borderLight },
                     ]}
                     onPress={() => {
-                      setShowAccountsModal(false);
+                      accountManagement.setShowAccountsModal(false);
                       navigation.navigate("AccountDetail", {
                         accountId: item.id,
                       });
@@ -541,10 +479,10 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
       </Modal>
 
       <Modal
-        visible={showLinkModal}
+        visible={accountManagement.showLinkModal}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setShowLinkModal(false)}
+        onRequestClose={() => accountManagement.setShowLinkModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -557,12 +495,12 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
               </Text>
               <SegmentedOptionGroup
                 options={roleOptions}
-                value={selectedRole}
-                onChange={setSelectedRole}
+                value={accountManagement.selectedRole}
+                onChange={accountManagement.setSelectedRole}
               />
             </View>
             <FlatList
-              data={sortedAccounts}
+              data={accountManagement.linkableAccounts}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => {
                 const isLinked = linkedAccounts.some((a) => a.id === item.id);
@@ -572,7 +510,9 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
                       styles.modalItem,
                       isLinked && styles.modalItemDisabled,
                     ]}
-                    onPress={() => handleLinkAccount(item.id, selectedRole)}
+                    onPress={() =>
+                      handleLinkAccount(item.id, accountManagement.selectedRole)
+                    }
                     disabled={isLinked}
                   >
                     <Text
@@ -591,7 +531,7 @@ export const ContactDetailScreen = ({ route, navigation }: Props) => {
             />
             <TouchableOpacity
               style={styles.modalCancelButton}
-              onPress={() => setShowLinkModal(false)}
+              onPress={() => accountManagement.setShowLinkModal(false)}
             >
               <Text style={styles.modalCancelText}>{t("common.cancel")}</Text>
             </TouchableOpacity>
@@ -663,60 +603,6 @@ const createStyles = (colors: ColorScheme) =>
       color: colors.error,
       textAlign: "center",
       marginTop: 32,
-    },
-    fieldHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-    iconButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    accountItem: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: 8,
-      borderTopWidth: 1,
-      borderTopColor: colors.borderLight,
-    },
-    accountInfo: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-    },
-    accountName: {
-      fontSize: 15,
-      color: colors.textPrimary,
-    },
-    primaryBadge: {
-      backgroundColor: colors.successBg,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 4,
-    },
-    primaryText: {
-      fontSize: 12,
-      color: colors.success,
-      fontWeight: "600",
-    },
-    viewAllButton: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 8,
-      paddingVertical: 8,
-      alignItems: "center",
-      marginTop: 8,
-    },
-    viewAllText: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: colors.accent,
     },
     modalOverlay: {
       flex: 1,
