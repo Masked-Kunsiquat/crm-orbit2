@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Modal,
   Platform,
@@ -18,7 +18,12 @@ import { nextId } from "@domains/shared/idGenerator";
 import type { AuditStatus } from "@domains/audit";
 import { t } from "@i18n/index";
 import { useAudit, useAccounts } from "../../store/store";
-import { useAuditActions, useDeviceId } from "../../hooks";
+import {
+  useAuditActions,
+  useDeviceId,
+  useAuditFormState,
+  DURATION_PRESETS,
+} from "../../hooks";
 import {
   ConfirmDialog,
   FormField,
@@ -33,20 +38,21 @@ import {
   parseDurationMinutes,
   splitDurationMinutes,
 } from "../../utils/duration";
-import { formatAuditScoreInput } from "../../utils/audits";
+import {
+  parseScore,
+  parseFloorsVisited,
+  areFloorsEqual,
+} from "../../utils/auditFormValidation";
 import type { EventsStackScreenProps } from "../../navigation/types";
+import type { DurationPreset } from "../../hooks";
 
 type Props = EventsStackScreenProps<"AuditForm">;
-
-type DurationPreset = "30" | "60" | "120" | "240" | "custom";
 
 const STATUS_OPTIONS: Array<{ label: string; value: AuditStatus }> = [
   { label: "audits.status.scheduled", value: "audits.status.scheduled" },
   { label: "audits.status.completed", value: "audits.status.completed" },
   { label: "audits.status.canceled", value: "audits.status.canceled" },
 ];
-
-const DURATION_PRESETS: DurationPreset[] = ["30", "60", "120", "240"];
 
 const formatTimestamp = (timestamp?: string): string => {
   if (!timestamp) {
@@ -57,48 +63,6 @@ const formatTimestamp = (timestamp?: string): string => {
     return t("common.unknown");
   }
   return date.toLocaleString();
-};
-
-const parseScore = (value: string): number | undefined => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  const normalized = trimmed.endsWith("%")
-    ? trimmed.slice(0, -1).trim()
-    : trimmed;
-  if (!/^-?\d+(\.\d{0,3})?$/.test(normalized)) {
-    return undefined;
-  }
-  const parsed = Number(normalized);
-  if (!Number.isFinite(parsed)) {
-    return undefined;
-  }
-  return Math.round(parsed * 100) / 100;
-};
-
-const parseFloorsVisited = (value: string): number[] | undefined => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  const numbers = trimmed
-    .split(",")
-    .map((item) => Number(item.trim()))
-    .filter((entry) => Number.isFinite(entry));
-  if (numbers.length === 0) {
-    return undefined;
-  }
-  return numbers;
-};
-
-const areFloorsEqual = (left?: number[], right?: number[]): boolean => {
-  const leftValue = left ?? [];
-  const rightValue = right ?? [];
-  if (leftValue.length !== rightValue.length) {
-    return false;
-  }
-  return leftValue.every((value, index) => value === rightValue[index]);
 };
 
 export const AuditFormScreen = ({ route, navigation }: Props) => {
@@ -119,85 +83,43 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
   } = useAuditActions(deviceId);
   const { dialogProps, showAlert } = useConfirmDialog();
 
-  const [accountId, setAccountId] = useState("");
-  const [scheduledFor, setScheduledFor] = useState("");
-  const [occurredAt, setOccurredAt] = useState("");
-  const [notes, setNotes] = useState("");
-  const [score, setScore] = useState("");
-  const [floorsVisitedInput, setFloorsVisitedInput] = useState("");
-  const [status, setStatus] = useState<AuditStatus>("audits.status.scheduled");
-  const [durationPreset, setDurationPreset] =
-    useState<DurationPreset>("custom");
-  const [durationHours, setDurationHours] = useState("");
-  const [durationMinutesInput, setDurationMinutesInput] = useState("");
-  const [activePicker, setActivePicker] = useState<
-    "scheduled" | "occurred" | null
-  >(null);
-  const [isAccountPickerOpen, setIsAccountPickerOpen] = useState(false);
+  const formState = useAuditFormState({
+    audit,
+    prefillAccountId,
+  });
+
+  const {
+    accountId,
+    setAccountId,
+    isAccountPickerOpen,
+    setIsAccountPickerOpen,
+    scheduledFor,
+    occurredAt,
+    activePicker,
+    setActivePicker,
+    notes,
+    setNotes,
+    score,
+    setScore,
+    floorsVisitedInput,
+    setFloorsVisitedInput,
+    status,
+    setStatus,
+    durationPreset,
+    setDurationPreset,
+    durationHours,
+    setDurationHours,
+    durationMinutesInput,
+    setDurationMinutesInput,
+    getResolvedDate,
+    updateTimestamp,
+  } = formState;
 
   const sortedAccounts = useMemo(() => {
     return [...accounts].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
     );
   }, [accounts]);
-
-  useEffect(() => {
-    if (audit) {
-      setAccountId(audit.accountId);
-      setScheduledFor(audit.scheduledFor);
-      setOccurredAt(audit.occurredAt ?? "");
-      setStatus(
-        audit.status ??
-          (audit.occurredAt
-            ? "audits.status.completed"
-            : "audits.status.scheduled"),
-      );
-      setNotes(audit.notes ?? "");
-      setScore(formatAuditScoreInput(audit.score));
-      setFloorsVisitedInput(audit.floorsVisited?.join(", ") ?? "");
-      const { hours, minutes } = splitDurationMinutes(audit.durationMinutes);
-      setDurationHours(hours ? `${hours}` : "");
-      setDurationMinutesInput(minutes ? `${minutes}` : "");
-      const preset = DURATION_PRESETS.find(
-        (value) => Number(value) === audit.durationMinutes,
-      );
-      setDurationPreset(preset ?? "custom");
-      return;
-    }
-
-    const now = new Date().toISOString();
-    setAccountId(prefillAccountId ?? "");
-    setScheduledFor(now);
-    setOccurredAt("");
-    setStatus("audits.status.scheduled");
-    setNotes("");
-    setScore("");
-    setFloorsVisitedInput("");
-    setDurationPreset("custom");
-    setDurationHours("");
-    setDurationMinutesInput("");
-  }, [audit, prefillAccountId]);
-
-  const getResolvedDate = useCallback(
-    (field: "scheduled" | "occurred") => {
-      const timestamp = field === "scheduled" ? scheduledFor : occurredAt;
-      const date = new Date(timestamp || new Date().toISOString());
-      if (Number.isNaN(date.getTime())) {
-        return new Date();
-      }
-      return date;
-    },
-    [occurredAt, scheduledFor],
-  );
-
-  const updateTimestamp = (field: "scheduled" | "occurred", date: Date) => {
-    const nextTimestamp = date.toISOString();
-    if (field === "scheduled") {
-      setScheduledFor(nextTimestamp);
-    } else {
-      setOccurredAt(nextTimestamp);
-    }
-  };
 
   const handlePickerChange = (
     field: "scheduled" | "occurred",
