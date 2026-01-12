@@ -11,10 +11,23 @@ import {
   saveSyncCheckpoint,
 } from "@domains/sync/automergeSync";
 
-const toPlain = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+const stableStringify = (value: unknown): string =>
+  JSON.stringify(value, (_key, current) => {
+    if (Array.isArray(current) || !current || typeof current !== "object") {
+      return current;
+    }
+
+    const record = current as Record<string, unknown>;
+    return Object.keys(record)
+      .sort()
+      .reduce<Record<string, unknown>>((sorted, key) => {
+        sorted[key] = record[key];
+        return sorted;
+      }, {});
+  });
 
 const assertDocsEqual = (left: unknown, right: unknown): void => {
-  assert.deepEqual(toPlain(left), toPlain(right));
+  assert.equal(stableStringify(left), stableStringify(right));
 };
 
 type AsyncStorageMock = {
@@ -22,6 +35,24 @@ type AsyncStorageMock = {
   setItem: (key: string, value: string) => Promise<void>;
   removeItem: (key: string) => Promise<void>;
   __storage: Map<string, string>;
+};
+
+const encodePayload = (payload: string): Uint8Array => {
+  const Encoder = globalThis.TextEncoder;
+  if (Encoder) {
+    return new Encoder().encode(payload);
+  }
+  const nodeBuffer = (
+    globalThis as {
+      Buffer?: { from: (input: string, encoding: string) => Uint8Array };
+    }
+  ).Buffer;
+  if (nodeBuffer) {
+    return Uint8Array.from(nodeBuffer.from(payload, "utf8"));
+  }
+  throw new Error(
+    "No TextEncoder or Buffer available to encode UTF-8 in encodePayload",
+  );
 };
 
 jest.mock("@react-native-async-storage/async-storage", () => {
@@ -50,6 +81,25 @@ const storage = (AsyncStorage as unknown as AsyncStorageMock).__storage;
 const createDocWithOrganization = (id: string, name: string) => {
   const timestamp = "2025-01-01T00:00:00.000Z";
   let doc = Automerge.from(initAutomergeDoc());
+  doc = Automerge.change(doc, (draft) => {
+    draft.organizations[id] = {
+      id,
+      name,
+      status: "organization.status.active",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+  });
+  return doc;
+};
+
+const createDocWithOrganizationForActor = (
+  id: string,
+  name: string,
+  actorId: string,
+) => {
+  const timestamp = "2025-01-01T00:00:00.000Z";
+  let doc = Automerge.from(initAutomergeDoc(), { actorId });
   doc = Automerge.change(doc, (draft) => {
     draft.organizations[id] = {
       id,
@@ -116,4 +166,38 @@ test("applyReceivedChanges returns original doc for empty payload", () => {
   const merged = applyReceivedChanges(doc, new Uint8Array());
 
   assert.equal(merged, doc);
+});
+
+test("applyReceivedChanges applies snapshot changes when merge is a no-op", () => {
+  const localDoc = createDocWithOrganizationForActor("org-1", "Local", "local");
+  const remoteDoc = createDocWithOrganizationForActor(
+    "org-1",
+    "Remote",
+    "remote",
+  );
+  const snapshot = Automerge.save(remoteDoc);
+  const payload = JSON.stringify({
+    format: "crm-sync-snapshot-v1",
+    snapshot,
+    encoding: "transit",
+  });
+  const changes = encodePayload(payload);
+  const mergeSpy = jest
+    .spyOn(Automerge, "merge")
+    .mockImplementation(() => localDoc as typeof localDoc);
+
+  try {
+    const merged = applyReceivedChanges(localDoc, changes);
+    const resolvedName = merged.organizations["org-1"].name;
+    const conflicts = Automerge.getConflicts(merged.organizations, "org-1") as
+      | Record<string, { name?: string }>
+      | undefined;
+    const conflictValues = conflicts ? Object.values(conflicts) : [];
+    const hasRemoteValue =
+      resolvedName === "Remote" ||
+      conflictValues.some((value) => value.name === "Remote");
+    assert.ok(hasRemoteValue);
+  } finally {
+    mergeSpy.mockRestore();
+  }
 });

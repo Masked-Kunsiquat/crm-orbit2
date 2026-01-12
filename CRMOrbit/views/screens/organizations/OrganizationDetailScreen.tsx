@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { Image } from "expo-image";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import {
@@ -24,7 +23,11 @@ import {
 } from "@views/store/store";
 import { useOrganizationActions } from "@views/hooks/useOrganizationActions";
 import { useAccountActions } from "@views/hooks/useAccountActions";
-import { useDeviceId, useTheme } from "@views/hooks";
+import {
+  useDeviceId,
+  useTheme,
+  useOrganizationAccountManagement,
+} from "@views/hooks";
 import { getOrganizationLogoUrl } from "@domains/organization.utils";
 import type { Account } from "@domains/account";
 import {
@@ -36,11 +39,13 @@ import {
   DetailField,
   DetailTabs,
   SocialLinksSection,
-  ContactCardRow,
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
   StatusBadge,
+  OrganizationContactsSection,
+  OrganizationAccountsSection,
+  ContactCardRow,
 } from "@views/components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
@@ -48,7 +53,6 @@ import { openWebUrl } from "@domains/linking.utils";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 type OrganizationTab = "overview" | "details" | "notes" | "activity";
-const PREVIEW_LIMIT = 3;
 
 export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
@@ -66,27 +70,29 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
   const { updateAccount } = useAccountActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState<OrganizationTab>("overview");
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [showContactsModal, setShowContactsModal] = useState(false);
-  const [showAccountsModal, setShowAccountsModal] = useState(false);
 
-  const sortedAccounts = useMemo(() => {
-    return [...allAccounts].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    );
-  }, [allAccounts]);
-
-  const linkableAccounts = useMemo(
-    () =>
-      sortedAccounts.filter(
-        (account) => account.organizationId !== organizationId,
-      ),
-    [organizationId, sortedAccounts],
+  const linkedAccountIds = useMemo(
+    () => new Set(accounts.map((account) => account.id)),
+    [accounts],
   );
-  const previewContacts = contacts.slice(0, PREVIEW_LIMIT);
-  const previewAccounts = accounts.slice(0, PREVIEW_LIMIT);
-  const hasMoreContacts = contacts.length > PREVIEW_LIMIT;
-  const hasMoreAccounts = accounts.length > PREVIEW_LIMIT;
+
+  const accountManagement = useOrganizationAccountManagement({
+    organizationId,
+    linkedAccountIds,
+    allAccounts,
+  });
+  const organizationContactLabels = {
+    title: t("organizations.sections.contacts"),
+    noContactsLabel: t("organizations.noContacts"),
+    viewAllLabel: t("common.viewAll"),
+  };
+  const organizationAccountLabels = {
+    title: t("organizations.sections.accounts"),
+    emptyStateText: t("organizations.noAccounts"),
+    addAccountLabel: t("accounts.form.createButton"),
+    manageAccountLabel: t("accounts.linkTitle"),
+    viewAllLabel: t("common.viewAll"),
+  };
 
   if (!organization) {
     return (
@@ -156,7 +162,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
     );
 
     if (result.success) {
-      setShowLinkModal(false);
+      accountManagement.setShowLinkModal(false);
     } else {
       showAlert(
         t("common.error"),
@@ -215,126 +221,27 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
       {activeTab === "overview" ? (
         <>
-          <Section>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-              {t("organizations.sections.contacts")} ({contacts.length})
-            </Text>
-            {contacts.length === 0 ? (
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                {t("organizations.noContacts")}
-              </Text>
-            ) : (
-              previewContacts.map((contact) => (
-                <ContactCardRow
-                  key={contact.id}
-                  contact={contact}
-                  onPress={() =>
-                    navigation.navigate("ContactDetail", {
-                      contactId: contact.id,
-                    })
-                  }
-                />
-              ))
-            )}
-            {hasMoreContacts ? (
-              <TouchableOpacity
-                style={[styles.viewAllButton, { borderColor: colors.border }]}
-                onPress={() => setShowContactsModal(true)}
-              >
-                <Text style={[styles.viewAllText, { color: colors.accent }]}>
-                  {t("common.viewAll")}
-                </Text>
-              </TouchableOpacity>
-            ) : null}
-          </Section>
+          <OrganizationContactsSection
+            contacts={contacts}
+            labels={organizationContactLabels}
+            onContactPress={(contactId) =>
+              navigation.navigate("ContactDetail", { contactId })
+            }
+            onViewAllPress={() => accountManagement.setShowContactsModal(true)}
+          />
 
-          <Section>
-            <View style={styles.sectionHeaderRow}>
-              <Text
-                style={[styles.sectionTitle, { color: colors.textPrimary }]}
-              >
-                {t("organizations.sections.accounts")} ({accounts.length})
-              </Text>
-              <View style={styles.actionRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.iconButton,
-                    { backgroundColor: colors.accent },
-                  ]}
-                  onPress={() =>
-                    navigation.navigate("AccountForm", { organizationId })
-                  }
-                  accessibilityLabel={t("accounts.form.createButton")}
-                >
-                  <MaterialCommunityIcons
-                    name="plus"
-                    size={18}
-                    color={colors.onAccent}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.iconButton,
-                    styles.iconButtonSecondary,
-                    { backgroundColor: colors.surfaceElevated },
-                  ]}
-                  onPress={() => setShowLinkModal(true)}
-                  accessibilityLabel={t("accounts.linkTitle")}
-                >
-                  <MaterialCommunityIcons
-                    name="link-variant-plus"
-                    size={18}
-                    color={colors.textPrimary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-            {accounts.length === 0 ? (
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                {t("organizations.noAccounts")}
-              </Text>
-            ) : (
-              previewAccounts.map((account) => (
-                <TouchableOpacity
-                  key={account.id}
-                  style={[
-                    styles.relatedItem,
-                    { borderTopColor: colors.borderLight },
-                  ]}
-                  onPress={() =>
-                    navigation.navigate("AccountDetail", {
-                      accountId: account.id,
-                    })
-                  }
-                  accessibilityRole="button"
-                >
-                  <View
-                    style={[
-                      styles.statusIndicator,
-                      account.status === "account.status.active"
-                        ? { backgroundColor: colors.success }
-                        : { backgroundColor: colors.error },
-                    ]}
-                  />
-                  <Text
-                    style={[styles.relatedName, { color: colors.textPrimary }]}
-                  >
-                    {account.name}
-                  </Text>
-                </TouchableOpacity>
-              ))
-            )}
-            {hasMoreAccounts ? (
-              <TouchableOpacity
-                style={[styles.viewAllButton, { borderColor: colors.border }]}
-                onPress={() => setShowAccountsModal(true)}
-              >
-                <Text style={[styles.viewAllText, { color: colors.accent }]}>
-                  {t("common.viewAll")}
-                </Text>
-              </TouchableOpacity>
-            ) : null}
-          </Section>
+          <OrganizationAccountsSection
+            accounts={accounts}
+            labels={organizationAccountLabels}
+            onAccountPress={(accountId) =>
+              navigation.navigate("AccountDetail", { accountId })
+            }
+            onCreatePress={() =>
+              navigation.navigate("AccountForm", { organizationId })
+            }
+            onLinkPress={() => accountManagement.setShowLinkModal(true)}
+            onViewAllPress={() => accountManagement.setShowAccountsModal(true)}
+          />
         </>
       ) : null}
 
@@ -397,10 +304,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       />
 
       <Modal
-        visible={showContactsModal}
+        visible={accountManagement.showContactsModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowContactsModal(false)}
+        onRequestClose={() => accountManagement.setShowContactsModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View
@@ -414,7 +321,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 {t("organizations.sections.contacts")} ({contacts.length})
               </Text>
               <TouchableOpacity
-                onPress={() => setShowContactsModal(false)}
+                onPress={() => accountManagement.setShowContactsModal(false)}
                 accessibilityLabel={t("common.cancel")}
               >
                 <Text style={[styles.modalClose, { color: colors.accent }]}>
@@ -429,7 +336,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 <ContactCardRow
                   contact={item}
                   onPress={() => {
-                    setShowContactsModal(false);
+                    accountManagement.setShowContactsModal(false);
                     navigation.navigate("ContactDetail", {
                       contactId: item.id,
                     });
@@ -442,10 +349,10 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       </Modal>
 
       <Modal
-        visible={showAccountsModal}
+        visible={accountManagement.showAccountsModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowAccountsModal(false)}
+        onRequestClose={() => accountManagement.setShowAccountsModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View
@@ -459,7 +366,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                 {t("organizations.sections.accounts")} ({accounts.length})
               </Text>
               <TouchableOpacity
-                onPress={() => setShowAccountsModal(false)}
+                onPress={() => accountManagement.setShowAccountsModal(false)}
                 accessibilityLabel={t("common.cancel")}
               >
                 <Text style={[styles.modalClose, { color: colors.accent }]}>
@@ -477,7 +384,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
                     { borderBottomColor: colors.borderLight },
                   ]}
                   onPress={() => {
-                    setShowAccountsModal(false);
+                    accountManagement.setShowAccountsModal(false);
                     navigation.navigate("AccountDetail", {
                       accountId: item.id,
                     });
@@ -504,15 +411,15 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
       </Modal>
 
       <Modal
-        visible={showLinkModal}
+        visible={accountManagement.showLinkModal}
         animationType="fade"
         transparent
-        onRequestClose={() => setShowLinkModal(false)}
+        onRequestClose={() => accountManagement.setShowLinkModal(false)}
       >
         <View style={styles.modalOverlay}>
           <Pressable
             style={StyleSheet.absoluteFill}
-            onPress={() => setShowLinkModal(false)}
+            onPress={() => accountManagement.setShowLinkModal(false)}
           />
           <View
             style={[
@@ -523,7 +430,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
               {t("accounts.linkTitle")}
             </Text>
-            {linkableAccounts.length === 0 ? (
+            {accountManagement.linkableAccounts.length === 0 ? (
               <Text
                 style={[styles.modalEmptyText, { color: colors.textMuted }]}
               >
@@ -531,7 +438,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
               </Text>
             ) : (
               <FlatList
-                data={linkableAccounts}
+                data={accountManagement.linkableAccounts}
                 keyExtractor={(item) => item.id}
                 style={styles.modalList}
                 renderItem={({ item }) => (
@@ -556,7 +463,7 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
             )}
             <TouchableOpacity
               style={[styles.modalCancelButton, { borderColor: colors.border }]}
-              onPress={() => setShowLinkModal(false)}
+              onPress={() => accountManagement.setShowLinkModal(false)}
             >
               <Text
                 style={[styles.modalCancelText, { color: colors.textPrimary }]}

@@ -7,9 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
@@ -25,10 +23,10 @@ import {
   useAccountContactRelations,
 } from "../../store/store";
 import { useAccountActions } from "../../hooks/useAccountActions";
-import { useDeviceId } from "../../hooks";
-import type { ContactType } from "@domains/contact";
+import { useDeviceId, useAccountContactManagement } from "../../hooks";
 import { getContactDisplayName } from "@domains/contact.utils";
 import type { AccountContactRole } from "@domains/relations/accountContact";
+import type { ContactType } from "@domains/contact";
 import {
   NotesSection,
   InteractionsSection,
@@ -45,19 +43,16 @@ import {
   DangerActionButton,
   ConfirmDialog,
   SegmentedOptionGroup,
+  AccountContactsSection,
+  AccountAddressFields,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
-import {
-  openMapsWithAddress,
-  formatAddressForMaps,
-  openWebUrl,
-} from "@domains/linking.utils";
+import { openWebUrl } from "@domains/linking.utils";
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
 type AccountTab = "overview" | "details" | "notes" | "activity";
-const PREVIEW_LIMIT = 3;
 
 export const AccountDetailScreen = ({ route, navigation }: Props) => {
   const { accountId } = route.params;
@@ -91,19 +86,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       : account?.auditFrequency;
 
   const [activeTab, setActiveTab] = useState<AccountTab>("overview");
-  const [contactFilter, setContactFilter] = useState<"all" | ContactType>(
-    "all",
-  );
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [linkRole, setLinkRole] = useState<AccountContactRole>(
-    "account.contact.role.primary",
-  );
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createRole, setCreateRole] = useState<AccountContactRole>(
-    "account.contact.role.primary",
-  );
-  const [createPrimary, setCreatePrimary] = useState(true);
-  const [showContactsModal, setShowContactsModal] = useState(false);
+
+  const contactManagement = useAccountContactManagement({
+    accountId,
+    accountContactRelations,
+    allContactsInCrm,
+  });
 
   const roleOptions: Array<{ value: AccountContactRole; label: string }> = [
     {
@@ -119,56 +107,31 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       label: t("account.contact.role.technical"),
     },
   ];
-
-  const primaryRoles = useMemo(() => {
-    const roles = new Set<AccountContactRole>();
-    Object.values(accountContactRelations).forEach((relation) => {
-      if (relation.accountId === accountId && relation.isPrimary) {
-        roles.add(relation.role);
-      }
-    });
-    return roles;
-  }, [accountContactRelations, accountId]);
-
-  const hasPrimaryForRole = (role: AccountContactRole) =>
-    primaryRoles.has(role);
-
-  const handleOpenCreateModal = () => {
-    const defaultRole: AccountContactRole = "account.contact.role.primary";
-    setCreateRole(defaultRole);
-    setCreatePrimary(!hasPrimaryForRole(defaultRole));
-    setShowCreateModal(true);
+  const contactFilterLabels: Record<"all" | ContactType, string> = {
+    all: t("accounts.filters.all"),
+    "contact.type.internal": t("contact.type.internal"),
+    "contact.type.external": t("contact.type.external"),
   };
-
-  const contacts = useMemo(() => {
-    if (contactFilter === "all") {
-      return allContacts;
-    }
-    return allContacts.filter((contact) => contact.type === contactFilter);
-  }, [allContacts, contactFilter]);
-  const previewContacts = contacts.slice(0, PREVIEW_LIMIT);
-  const hasMoreContacts = contacts.length > PREVIEW_LIMIT;
-
-  const linkedContactIds = useMemo(() => {
-    const relations = Object.values(accountContactRelations);
-    return new Set(
-      relations
-        .filter((relation) => relation.accountId === accountId)
-        .map((relation) => relation.contactId),
-    );
-  }, [accountContactRelations, accountId]);
-
-  const sortedLinkableContacts = useMemo(() => {
-    return [...allContactsInCrm]
-      .filter((contact) => !linkedContactIds.has(contact.id))
-      .sort((left, right) =>
-        getContactDisplayName(left).localeCompare(
-          getContactDisplayName(right),
-          undefined,
-          { sensitivity: "base" },
-        ),
-      );
-  }, [allContactsInCrm, linkedContactIds]);
+  const accountContactsLabels = {
+    title: t("accounts.sections.contacts"),
+    createLabel: t("contacts.form.createButton"),
+    linkLabel: t("contacts.linkTitle"),
+    filterAllLabel: contactFilterLabels.all,
+    filterInternalLabel: contactFilterLabels["contact.type.internal"],
+    filterExternalLabel: contactFilterLabels["contact.type.external"],
+    emptyStateText:
+      contactManagement.contactFilter === "all"
+        ? t("accounts.noContacts")
+        : t("accounts.noContactsFiltered", {
+            type: contactFilterLabels[contactManagement.contactFilter],
+          }),
+    viewAllLabel: t("common.viewAll"),
+  };
+  const addressLabels = {
+    siteAddress: t("accounts.fields.siteAddress"),
+    parkingAddress: t("accounts.fields.parkingAddress"),
+    sameAsSiteAddress: t("accounts.sameAsSiteAddress"),
+  };
 
   if (!account) {
     return (
@@ -234,12 +197,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       return;
     }
 
-    const hasPrimary = hasPrimaryForRole(role);
+    const hasPrimary = contactManagement.hasPrimaryForRole(role);
 
     const result = linkContact(accountId, contactId, role, !hasPrimary);
 
     if (result.success) {
-      setShowLinkModal(false);
+      contactManagement.setShowLinkModal(false);
     } else {
       showAlert(
         t("common.error"),
@@ -283,166 +246,18 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       />
 
       {activeTab === "overview" ? (
-        <Section>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-              {t("accounts.sections.contacts")} ({allContacts.length})
-            </Text>
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={[styles.iconButton, { backgroundColor: colors.accent }]}
-                onPress={handleOpenCreateModal}
-                accessibilityLabel={t("contacts.form.createButton")}
-              >
-                <MaterialCommunityIcons
-                  name="plus"
-                  size={18}
-                  color={colors.onAccent}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.iconButton,
-                  styles.iconButtonSecondary,
-                  { backgroundColor: colors.surfaceElevated },
-                ]}
-                onPress={() => setShowLinkModal(true)}
-                accessibilityLabel={t("contacts.linkTitle")}
-              >
-                <MaterialCommunityIcons
-                  name="link-variant-plus"
-                  size={18}
-                  color={colors.textPrimary}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.filterButtons}>
-            <TouchableOpacity
-              style={[
-                styles.filterButton,
-                {
-                  borderColor: colors.border,
-                  backgroundColor:
-                    contactFilter === "all" ? colors.accent : colors.surface,
-                },
-              ]}
-              onPress={() => setContactFilter("all")}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  {
-                    color:
-                      contactFilter === "all"
-                        ? colors.onAccent
-                        : colors.textSecondary,
-                  },
-                ]}
-              >
-                {t("accounts.filters.all")} ({allContacts.length})
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.filterButton,
-                {
-                  borderColor: colors.border,
-                  backgroundColor:
-                    contactFilter === "contact.type.internal"
-                      ? colors.accent
-                      : colors.surface,
-                },
-              ]}
-              onPress={() => setContactFilter("contact.type.internal")}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  {
-                    color:
-                      contactFilter === "contact.type.internal"
-                        ? colors.onAccent
-                        : colors.textSecondary,
-                  },
-                ]}
-              >
-                {t("contact.type.internal")} (
-                {
-                  allContacts.filter((c) => c.type === "contact.type.internal")
-                    .length
-                }
-                )
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.filterButton,
-                {
-                  borderColor: colors.border,
-                  backgroundColor:
-                    contactFilter === "contact.type.external"
-                      ? colors.accent
-                      : colors.surface,
-                },
-              ]}
-              onPress={() => setContactFilter("contact.type.external")}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  {
-                    color:
-                      contactFilter === "contact.type.external"
-                        ? colors.onAccent
-                        : colors.textSecondary,
-                  },
-                ]}
-              >
-                {t("contact.type.external")} (
-                {
-                  allContacts.filter((c) => c.type === "contact.type.external")
-                    .length
-                }
-                )
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {contacts.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-              {contactFilter === "all"
-                ? t("accounts.noContacts")
-                : t("accounts.noContactsFiltered").replace(
-                    "{type}",
-                    t(contactFilter as string),
-                  )}
-            </Text>
-          ) : (
-            previewContacts.map((contact) => (
-              <ContactCardRow
-                key={contact.id}
-                contact={contact}
-                onPress={() =>
-                  navigation.navigate("ContactDetail", {
-                    contactId: contact.id,
-                  })
-                }
-              />
-            ))
-          )}
-          {hasMoreContacts ? (
-            <TouchableOpacity
-              style={[styles.viewAllButton, { borderColor: colors.border }]}
-              onPress={() => setShowContactsModal(true)}
-            >
-              <Text style={[styles.viewAllText, { color: colors.accent }]}>
-                {t("common.viewAll")}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-        </Section>
+        <AccountContactsSection
+          allContacts={allContacts}
+          labels={accountContactsLabels}
+          contactFilter={contactManagement.contactFilter}
+          onContactFilterChange={contactManagement.setContactFilter}
+          onContactPress={(contactId) =>
+            navigation.navigate("ContactDetail", { contactId })
+          }
+          onCreatePress={contactManagement.handleOpenCreateModal}
+          onLinkPress={() => contactManagement.setShowLinkModal(true)}
+          onViewAllPress={() => contactManagement.setShowContactsModal(true)}
+        />
       ) : null}
 
       {activeTab === "details" ? (
@@ -480,74 +295,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             </DetailField>
           )}
 
-          {account.addresses?.site && (
-            <DetailField label={t("accounts.fields.siteAddress")}>
-              <View style={styles.addressContainer}>
-                <View style={styles.addressText}>
-                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                    {account.addresses.site.street}
-                  </Text>
-                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                    {account.addresses.site.city},{" "}
-                    {account.addresses.site.state}{" "}
-                    {account.addresses.site.zipCode}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() =>
-                    void openMapsWithAddress(
-                      formatAddressForMaps(account.addresses!.site!),
-                    )
-                  }
-                  style={styles.mapIconButton}
-                >
-                  <Ionicons
-                    name="location-outline"
-                    size={24}
-                    color={colors.accent}
-                  />
-                </TouchableOpacity>
-              </View>
-            </DetailField>
-          )}
-
-          {account.addresses?.parking &&
-            !account.addresses.useSameForParking && (
-              <DetailField label={t("accounts.fields.parkingAddress")}>
-                <View style={styles.addressContainer}>
-                  <View style={styles.addressText}>
-                    <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                      {account.addresses.parking.street}
-                    </Text>
-                    <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                      {account.addresses.parking.city},{" "}
-                      {account.addresses.parking.state}{" "}
-                      {account.addresses.parking.zipCode}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() =>
-                      void openMapsWithAddress(
-                        formatAddressForMaps(account.addresses!.parking!),
-                      )
-                    }
-                    style={styles.mapIconButton}
-                  >
-                    <Ionicons
-                      name="location-outline"
-                      size={24}
-                      color={colors.accent}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </DetailField>
-            )}
-
-          {account.addresses?.useSameForParking && (
-            <DetailField label={t("accounts.fields.parkingAddress")}>
-              {t("accounts.sameAsSiteAddress")}
-            </DetailField>
-          )}
+          <AccountAddressFields account={account} labels={addressLabels} />
 
           {account.socialMedia &&
             Object.values(account.socialMedia).some((v) => v) && (
@@ -603,10 +351,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       />
 
       <Modal
-        visible={showContactsModal}
+        visible={contactManagement.showContactsModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowContactsModal(false)}
+        onRequestClose={() => contactManagement.setShowContactsModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View
@@ -617,10 +365,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
           >
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-                {t("accounts.sections.contacts")} ({contacts.length})
+                {t("accounts.sections.contacts")} ({allContacts.length})
               </Text>
               <TouchableOpacity
-                onPress={() => setShowContactsModal(false)}
+                onPress={() => contactManagement.setShowContactsModal(false)}
                 accessibilityLabel={t("common.cancel")}
               >
                 <Text style={[styles.modalClose, { color: colors.accent }]}>
@@ -629,13 +377,13 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               </TouchableOpacity>
             </View>
             <FlatList
-              data={contacts}
+              data={allContacts}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <ContactCardRow
                   contact={item}
                   onPress={() => {
-                    setShowContactsModal(false);
+                    contactManagement.setShowContactsModal(false);
                     navigation.navigate("ContactDetail", {
                       contactId: item.id,
                     });
@@ -648,15 +396,15 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       </Modal>
 
       <Modal
-        visible={showLinkModal}
+        visible={contactManagement.showLinkModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowLinkModal(false)}
+        onRequestClose={() => contactManagement.setShowLinkModal(false)}
       >
         <View style={styles.modalOverlay}>
           <Pressable
             style={StyleSheet.absoluteFill}
-            onPress={() => setShowLinkModal(false)}
+            onPress={() => contactManagement.setShowLinkModal(false)}
           />
           <View
             style={[
@@ -667,7 +415,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
               {t("contacts.linkTitle")}
             </Text>
-            {sortedLinkableContacts.length === 0 ? (
+            {contactManagement.sortedLinkableContacts.length === 0 ? (
               <Text
                 style={[styles.modalEmptyText, { color: colors.textMuted }]}
               >
@@ -683,12 +431,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                   </Text>
                   <SegmentedOptionGroup
                     options={roleOptions}
-                    value={linkRole}
-                    onChange={setLinkRole}
+                    value={contactManagement.linkRole}
+                    onChange={contactManagement.setLinkRole}
                   />
                 </View>
                 <FlatList
-                  data={sortedLinkableContacts}
+                  data={contactManagement.sortedLinkableContacts}
                   keyExtractor={(item) => item.id}
                   style={styles.modalList}
                   renderItem={({ item }) => (
@@ -697,7 +445,9 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                         styles.modalItem,
                         { borderBottomColor: colors.borderLight },
                       ]}
-                      onPress={() => handleLinkContact(item.id, linkRole)}
+                      onPress={() =>
+                        handleLinkContact(item.id, contactManagement.linkRole)
+                      }
                     >
                       <Text
                         style={[
@@ -714,7 +464,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             )}
             <TouchableOpacity
               style={[styles.modalCancelButton, { borderColor: colors.border }]}
-              onPress={() => setShowLinkModal(false)}
+              onPress={() => contactManagement.setShowLinkModal(false)}
             >
               <Text
                 style={[styles.modalCancelText, { color: colors.textPrimary }]}
@@ -727,15 +477,15 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
       </Modal>
 
       <Modal
-        visible={showCreateModal}
+        visible={contactManagement.showCreateModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowCreateModal(false)}
+        onRequestClose={() => contactManagement.setShowCreateModal(false)}
       >
         <View style={styles.modalOverlay}>
           <Pressable
             style={StyleSheet.absoluteFill}
-            onPress={() => setShowCreateModal(false)}
+            onPress={() => contactManagement.setShowCreateModal(false)}
           />
           <View
             style={[
@@ -752,14 +502,18 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
               </Text>
               <SegmentedOptionGroup
                 options={roleOptions}
-                value={createRole}
+                value={contactManagement.createRole}
                 onChange={(nextRole) => {
-                  setCreateRole(nextRole);
-                  setCreatePrimary(!hasPrimaryForRole(nextRole));
+                  contactManagement.setCreateRole(nextRole);
+                  contactManagement.setCreatePrimary(
+                    !contactManagement.hasPrimaryForRole(nextRole),
+                  );
                 }}
               />
             </View>
-            {hasPrimaryForRole(createRole) ? (
+            {contactManagement.hasPrimaryForRole(
+              contactManagement.createRole,
+            ) ? (
               <Text style={[styles.roleHint, { color: colors.textMuted }]}>
                 {t("accountContacts.primaryAlreadySet")}
               </Text>
@@ -781,8 +535,10 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                       label: t("accountContacts.notPrimaryOption"),
                     },
                   ]}
-                  value={createPrimary ? "yes" : "no"}
-                  onChange={(value) => setCreatePrimary(value === "yes")}
+                  value={contactManagement.createPrimary ? "yes" : "no"}
+                  onChange={(value) =>
+                    contactManagement.setCreatePrimary(value === "yes")
+                  }
                 />
               </View>
             )}
@@ -792,14 +548,14 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
                 { backgroundColor: colors.accent },
               ]}
               onPress={() => {
-                setShowCreateModal(false);
+                contactManagement.setShowCreateModal(false);
                 navigation.navigate({
                   name: "ContactForm",
                   params: {
                     accountLink: {
                       accountId,
-                      role: createRole,
-                      setPrimary: createPrimary,
+                      role: contactManagement.createRole,
+                      setPrimary: contactManagement.createPrimary,
                     },
                   },
                 });
@@ -813,7 +569,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalCancelButton, { borderColor: colors.border }]}
-              onPress={() => setShowCreateModal(false)}
+              onPress={() => contactManagement.setShowCreateModal(false)}
             >
               <Text
                 style={[styles.modalCancelText, { color: colors.textPrimary }]}
@@ -857,62 +613,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textTransform: "uppercase",
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  sectionHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  actionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconButtonSecondary: {
-    marginLeft: 8,
-  },
-  filterButtons: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 12,
-  },
-  filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: "center",
-    minWidth: 80,
-  },
-  filterButtonText: {
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  emptyText: {
-    fontSize: 14,
-    fontStyle: "italic",
-  },
-  viewAllButton: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
   detailValue: {
     fontSize: 16,
   },
@@ -928,17 +628,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 32,
-  },
-  addressContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  addressText: {
-    flex: 1,
-  },
-  mapIconButton: {
-    padding: 4,
   },
   modalOverlay: {
     flex: 1,

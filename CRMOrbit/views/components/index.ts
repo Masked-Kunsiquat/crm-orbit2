@@ -40,3 +40,8 @@ export {
   FloorsVisitedMatrix,
   buildFloorsVisitedMatrix,
 } from "./FloorsVisitedMatrix";
+export { AccountContactsSection } from "./AccountContactsSection";
+export { AccountAddressFields } from "./AccountAddressFields";
+export { ContactAccountsSection } from "./ContactAccountsSection";
+export { OrganizationContactsSection } from "./OrganizationContactsSection";
+export { OrganizationAccountsSection } from "./OrganizationAccountsSection";
