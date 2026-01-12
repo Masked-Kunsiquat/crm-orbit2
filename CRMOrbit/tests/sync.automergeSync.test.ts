@@ -50,7 +50,9 @@ const encodePayload = (payload: string): Uint8Array => {
   if (nodeBuffer) {
     return Uint8Array.from(nodeBuffer.from(payload, "utf8"));
   }
-  return Uint8Array.from(Array.from(payload).map((char) => char.charCodeAt(0)));
+  throw new Error(
+    "No TextEncoder or Buffer available to encode UTF-8 in encodePayload",
+  );
 };
 
 jest.mock("@react-native-async-storage/async-storage", () => {
