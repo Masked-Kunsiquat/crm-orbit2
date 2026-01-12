@@ -495,10 +495,32 @@ export const applyReceivedChanges = (
           !Automerge.equals(localDoc, remoteDoc) &&
           Automerge.equals(merged, localDoc)
         ) {
+          // Automerge can return a no-op merge for snapshot payloads with
+          // divergent histories; force remote updates so we never drop them.
           const remoteChanges = Automerge.getAllChanges(remoteDoc);
           if (remoteChanges.length > 0) {
-            return Automerge.applyChanges(localDoc, remoteChanges);
+            logger.warn(
+              "Automerge merge produced no changes; applying snapshot",
+              {
+                changeCount: remoteChanges.length,
+                localActorId: Automerge.getActorId(localDoc),
+                remoteActorId: Automerge.getActorId(remoteDoc),
+              },
+            );
+            const applied = Automerge.applyChanges(localDoc, remoteChanges);
+            if (!Automerge.equals(applied, localDoc)) {
+              return applied;
+            }
           }
+
+          logger.warn(
+            "Falling back to remote snapshot state after no-op merge",
+            {
+              localActorId: Automerge.getActorId(localDoc),
+              remoteActorId: Automerge.getActorId(remoteDoc),
+            },
+          );
+          return remoteDoc;
         }
         return merged;
       } catch {
