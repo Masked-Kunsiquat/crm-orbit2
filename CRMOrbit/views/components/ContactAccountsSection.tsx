@@ -65,13 +65,15 @@ export const ContactAccountsSection = ({
             (r) => r.accountId === account.id && r.contactId === contactId,
           );
           return (
-            <TouchableOpacity
+            <View
               key={account.id}
-              style={styles.accountItem}
-              onPress={() => onAccountPress(account.id)}
-              accessibilityRole="button"
+              style={[styles.accountItem, { borderBottomColor: colors.border }]}
             >
-              <View style={styles.accountInfo}>
+              <TouchableOpacity
+                style={styles.accountInfo}
+                onPress={() => onAccountPress(account.id)}
+                accessibilityRole="button"
+              >
                 <Text
                   style={[styles.accountName, { color: colors.textPrimary }]}
                 >
@@ -91,16 +93,13 @@ export const ContactAccountsSection = ({
                     </Text>
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.unlinkButton,
                   { backgroundColor: colors.errorBg },
                 ]}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  onUnlinkPress(account.id, account.name);
-                }}
+                onPress={() => onUnlinkPress(account.id, account.name)}
                 accessibilityLabel={t("contacts.unlinkAction")}
                 accessibilityRole="button"
               >
@@ -110,7 +109,7 @@ export const ContactAccountsSection = ({
                   color={colors.error}
                 />
               </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           );
         })
       )}
@@ -157,7 +156,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
   },
   accountInfo: {
     flex: 1,
