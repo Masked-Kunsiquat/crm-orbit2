@@ -64,7 +64,7 @@ test("audit schedule flags missing when a closed period has no audit", () => {
   const result = getAuditScheduleStatus(
     account,
     audits,
-    new Date("2024-05-10T00:00:00.000Z"),
+    new Date("2024-09-10T00:00:00.000Z"),
   );
 
   assert.ok(result);
