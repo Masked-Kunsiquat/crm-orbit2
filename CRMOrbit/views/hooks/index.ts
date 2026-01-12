@@ -38,3 +38,8 @@ export type {
   CalendarSyncState,
   UseCalendarSyncParams,
 } from "./useCalendarSync";
+export { useOrganizationAccountManagement } from "./useOrganizationAccountManagement";
+export type {
+  OrganizationAccountManagementState,
+  UseOrganizationAccountManagementParams,
+} from "./useOrganizationAccountManagement";
