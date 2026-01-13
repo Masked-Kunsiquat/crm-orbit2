@@ -31,6 +31,7 @@ export type RootStackParamList = {
       entityType: EntityLinkType;
     };
   };
+  // DEPRECATED - kept for backward compatibility during migration
   InteractionDetail: { interactionId: EntityId };
   InteractionForm: {
     interactionId?: EntityId;
@@ -40,10 +41,21 @@ export type RootStackParamList = {
     };
     prefillDate?: string;
   };
-  CodeDetail: { codeId: EntityId };
-  CodeForm: { codeId?: EntityId; accountId?: EntityId };
   AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
   AuditDetail: { auditId: EntityId };
+  // NEW - unified calendar event screens
+  CalendarEventDetail: { calendarEventId: EntityId };
+  CalendarEventForm: {
+    calendarEventId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+    accountId?: EntityId; // For audits
+    prefillDate?: string;
+  };
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
 };
 
 // Root tab navigator
@@ -75,10 +87,10 @@ export type AccountsStackParamList = {
 // Events stack navigator
 export type EventsStackParamList = {
   EventsLanding: undefined;
+  // DEPRECATED - kept for backward compatibility during migration
   AuditsList: undefined;
   AuditDetail: { auditId: EntityId };
   AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
-  Calendar: undefined;
   InteractionsList: undefined;
   InteractionDetail: { interactionId: EntityId };
   InteractionForm: {
@@ -87,6 +99,19 @@ export type EventsStackParamList = {
       entityId: EntityId;
       entityType: EntityLinkType;
     };
+    prefillDate?: string;
+  };
+  // NEW - unified calendar event screens
+  Calendar: undefined;
+  CalendarEventsList: undefined;
+  CalendarEventDetail: { calendarEventId: EntityId };
+  CalendarEventForm: {
+    calendarEventId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+    accountId?: EntityId; // For audits
     prefillDate?: string;
   };
 };
