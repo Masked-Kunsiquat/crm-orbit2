@@ -105,8 +105,15 @@ export const CalendarView = ({
 
   // Build marked dates
   const markedDates = useMemo(
-    () => buildMarkedDates(audits, interactions, calendarPalette, selectedDate),
-    [audits, interactions, selectedDate, calendarPalette],
+    () =>
+      buildMarkedDates(
+        audits,
+        interactions,
+        calendarPalette,
+        colors.accent,
+        selectedDate,
+      ),
+    [audits, interactions, selectedDate, calendarPalette, colors.accent],
   );
 
   const handleDayPress = useCallback(
@@ -269,10 +276,7 @@ export const CalendarView = ({
   }, []);
 
   return (
-    <CalendarProvider
-      date={selectedDate}
-      onDateChanged={(date) => onDateChange(date)}
-    >
+    <CalendarProvider date={selectedDate}>
       <ExpandableCalendar
         theme={calendarTheme}
         markedDates={markedDates}
@@ -290,6 +294,7 @@ export const CalendarView = ({
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
+          estimatedItemSize={120}
           drawDistance={500}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={

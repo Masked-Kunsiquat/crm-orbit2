@@ -58,8 +58,15 @@ export const TimelineView = ({
 
   // Build marked dates for calendar
   const markedDates = useMemo(
-    () => buildMarkedDates(audits, interactions, calendarPalette, selectedDate),
-    [audits, interactions, selectedDate, calendarPalette],
+    () =>
+      buildMarkedDates(
+        audits,
+        interactions,
+        calendarPalette,
+        colors.accent,
+        selectedDate,
+      ),
+    [audits, interactions, selectedDate, calendarPalette, colors.accent],
   );
 
   // Build timeline events grouped by date

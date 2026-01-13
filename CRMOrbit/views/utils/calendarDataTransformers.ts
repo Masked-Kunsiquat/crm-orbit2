@@ -184,6 +184,7 @@ export const buildMarkedDates = (
   audits: Audit[],
   interactions: Interaction[],
   palette: CalendarPaletteColors,
+  accentColor: string,
   selectedDate?: string,
 ): MarkedDates => {
   const marked: MarkedDates = {};
@@ -235,11 +236,11 @@ export const buildMarkedDates = (
   // Mark selected date
   if (selectedDate && marked[selectedDate]) {
     marked[selectedDate].selected = true;
-    marked[selectedDate].selectedColor = "#00adf5";
+    marked[selectedDate].selectedColor = accentColor;
   } else if (selectedDate) {
     marked[selectedDate] = {
       selected: true,
-      selectedColor: "#00adf5",
+      selectedColor: accentColor,
     };
   }
 
