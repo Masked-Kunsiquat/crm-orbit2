@@ -7,41 +7,40 @@ import {
 import type { TimelineEventProps } from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
 
-import type { Audit } from "@domains/audit";
-import type { Interaction } from "@domains/interaction";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
-import { getAuditEndTimestamp, getAuditStartTimestamp } from "../utils/audits";
 import { addMinutesToTimestamp } from "../utils/duration";
-import { buildMarkedDates, toISODate } from "../utils/calendarDataTransformers";
-import { resolveCalendarPalette } from "../utils/calendarColors";
+import {
+  buildMarkedDatesFromCalendarEvents,
+  toISODate,
+} from "../utils/calendarDataTransformers";
+import {
+  getCalendarEventDotColor,
+  resolveCalendarPalette,
+} from "../utils/calendarColors";
 import { useCalendarSettings } from "../store/store";
 
 export interface TimelineViewProps {
-  audits: Audit[];
-  interactions: Interaction[];
+  calendarEvents: CalendarEvent[];
   accountNames: Map<string, string>;
-  fallbackUnknownEntity: string;
-  entityNamesForInteraction: (interactionId: string) => string;
-  onAuditPress: (auditId: string) => void;
-  onInteractionPress: (interactionId: string) => void;
+  unknownEntityLabel: string;
+  entityNamesForEvent?: (eventId: string) => string;
+  onEventPress: (eventId: string) => void;
   selectedDate: string;
   onDateChange: (date: string) => void;
 }
 
 interface TimelineEvent extends TimelineEventProps {
   id: string;
-  kind: "audit" | "interaction";
 }
 
 export const TimelineView = ({
-  audits,
-  interactions,
+  calendarEvents,
   accountNames,
-  fallbackUnknownEntity,
-  entityNamesForInteraction,
-  onAuditPress,
-  onInteractionPress,
+  unknownEntityLabel,
+  entityNamesForEvent,
+  onEventPress,
   selectedDate,
   onDateChange,
 }: TimelineViewProps) => {
@@ -59,105 +58,90 @@ export const TimelineView = ({
   // Build marked dates for calendar
   const markedDates = useMemo(
     () =>
-      buildMarkedDates(
-        audits,
-        interactions,
+      buildMarkedDatesFromCalendarEvents(
+        calendarEvents,
         calendarPalette,
         colors.accent,
         selectedDate,
       ),
-    [audits, interactions, selectedDate, calendarPalette, colors.accent],
+    [calendarEvents, selectedDate, calendarPalette, colors.accent],
   );
 
   // Build timeline events grouped by date
   const timelineEventsByDate = useMemo<Record<string, TimelineEvent[]>>(() => {
     const eventsByDate: Record<string, TimelineEvent[]> = {};
 
-    // Add audit events
-    for (const audit of audits) {
-      const startTimestamp = getAuditStartTimestamp(audit);
+    for (const event of calendarEvents) {
+      const isCompleted = event.status === "calendarEvent.status.completed";
+      const startTimestamp = isCompleted
+        ? (event.occurredAt ?? event.scheduledFor)
+        : event.scheduledFor;
+
       if (!startTimestamp) continue;
 
-      const endTimestamp = getAuditEndTimestamp(audit) ?? startTimestamp;
       const dateKey = toISODate(startTimestamp);
       if (!dateKey) continue;
 
+      const endTimestamp =
+        addMinutesToTimestamp(startTimestamp, event.durationMinutes) ??
+        startTimestamp;
       const accountName =
-        accountNames.get(audit.accountId) ?? fallbackUnknownEntity;
+        event.type === "audit" && event.auditData?.accountId
+          ? (accountNames.get(event.auditData.accountId) ?? unknownEntityLabel)
+          : undefined;
+      const title =
+        event.type === "audit" && accountName ? accountName : event.summary;
+      const linkedNames = entityNamesForEvent?.(event.id)?.trim();
+      const summaryParts: string[] = [];
 
-      if (!eventsByDate[dateKey]) {
-        eventsByDate[dateKey] = [];
+      if (event.type === "audit") {
+        if (event.summary?.trim()) summaryParts.push(event.summary.trim());
+      } else if (linkedNames) {
+        summaryParts.push(linkedNames);
       }
 
-      eventsByDate[dateKey].push({
-        id: audit.id,
-        kind: "audit",
-        start: startTimestamp,
-        end: endTimestamp,
-        title: accountName,
-        summary: audit.notes ?? "",
-        color: calendarPalette.timeline.audit,
-      });
-    }
+      if (event.location?.trim()) summaryParts.push(event.location.trim());
+      if (event.description?.trim())
+        summaryParts.push(event.description.trim());
 
-    // Add interaction events
-    for (const interaction of interactions) {
-      const resolvedStatus =
-        interaction.status ?? "interaction.status.completed";
-      const usesScheduledTimestamp =
-        resolvedStatus !== "interaction.status.completed";
-      const startTimestamp = usesScheduledTimestamp
-        ? (interaction.scheduledFor ?? interaction.occurredAt)
-        : interaction.occurredAt;
-
-      if (!startTimestamp) continue;
-
-      const endTimestamp = addMinutesToTimestamp(
-        startTimestamp,
-        interaction.durationMinutes,
+      const summary = summaryParts.join(" · ");
+      const color = getCalendarEventDotColor(
+        calendarPalette,
+        event.status,
+        event.type,
       );
 
-      const dateKey = toISODate(startTimestamp);
-      if (!dateKey) continue;
-
-      const entityName = entityNamesForInteraction(interaction.id);
-
       if (!eventsByDate[dateKey]) {
         eventsByDate[dateKey] = [];
       }
 
       eventsByDate[dateKey].push({
-        id: interaction.id,
-        kind: "interaction",
+        id: event.id,
         start: startTimestamp,
-        end: endTimestamp ?? startTimestamp,
-        title: interaction.summary,
-        summary: entityName,
-        color: calendarPalette.timeline.interaction,
+        end: endTimestamp,
+        title,
+        summary,
+        color,
       });
     }
 
     return eventsByDate;
   }, [
-    audits,
-    interactions,
+    calendarEvents,
     accountNames,
-    entityNamesForInteraction,
-    fallbackUnknownEntity,
-    calendarPalette.timeline.audit,
-    calendarPalette.timeline.interaction,
+    unknownEntityLabel,
+    entityNamesForEvent,
+    calendarPalette,
   ]);
 
   const handleEventPress = useCallback(
     (event: TimelineEventProps) => {
       const timelineEvent = event as TimelineEvent;
-      if (timelineEvent.kind === "audit") {
-        onAuditPress(timelineEvent.id);
-      } else {
-        onInteractionPress(timelineEvent.id);
+      if (timelineEvent.id) {
+        onEventPress(timelineEvent.id);
       }
     },
-    [onAuditPress, onInteractionPress],
+    [onEventPress],
   );
 
   const handleDayPress = useCallback(

@@ -7,16 +7,11 @@ import {
   TimelineView,
 } from "../../components";
 import type { CalendarViewLabels } from "../../components/CalendarView";
-import {
-  useAccounts,
-  useAllAudits,
-  useAllInteractions,
-  useDoc,
-} from "../../store/store";
+import { useAccounts, useAllCalendarEvents, useDoc } from "../../store/store";
 import type { EventsStackScreenProps } from "../../navigation/types";
-import { getEntitiesForInteraction } from "../../store/selectors";
+import { getEntitiesForCalendarEvent } from "../../store/selectors";
 import { useHeaderMenu, useTheme } from "../../hooks";
-import { getInitialCalendarDate } from "../../utils/calendarDataTransformers";
+import { getInitialCalendarDateFromEvents } from "../../utils/calendarDataTransformers";
 
 type CalendarViewMode = "agenda" | "timeline";
 
@@ -47,13 +42,12 @@ export const CalendarScreen = ({
   const { colors } = useTheme();
   const [viewMode, setViewMode] = useState<CalendarViewMode>("agenda");
   const [quickAddVisible, setQuickAddVisible] = useState(false);
-  const audits = useAllAudits();
-  const interactions = useAllInteractions();
+  const calendarEvents = useAllCalendarEvents();
   const accounts = useAccounts();
   const doc = useDoc();
   const initialDate = useMemo(
-    () => getInitialCalendarDate(audits, interactions),
-    [audits, interactions],
+    () => getInitialCalendarDateFromEvents(calendarEvents),
+    [calendarEvents],
   );
   const [selectedDate, setSelectedDate] = useState<string>(initialDate);
 
@@ -73,39 +67,35 @@ export const CalendarScreen = ({
   const viewModeLabel =
     viewMode === "agenda" ? switchToTimelineLabel : switchToAgendaLabel;
 
-  const getEntityNamesForInteraction = useCallback(
-    (interactionId: string): string => {
-      const linkedEntities = getEntitiesForInteraction(doc, interactionId);
-      const accountEntity =
-        linkedEntities.find((entity) => entity.entityType === "account") ??
-        linkedEntities[0];
-      return accountEntity?.name ?? unknownEntityLabel;
+  const getEntityNamesForEvent = useCallback(
+    (eventId: string): string => {
+      const linkedEntities = getEntitiesForCalendarEvent(doc, eventId);
+      const names = linkedEntities
+        .map((entity) => entity.name)
+        .filter((name): name is string => Boolean(name));
+      return names.join(", ");
     },
-    [doc, unknownEntityLabel],
+    [doc],
   );
 
-  const handleAuditPress = useCallback(
-    (auditId: string) => {
-      navigation.navigate("AuditDetail", { auditId });
-    },
-    [navigation],
-  );
-
-  const handleInteractionPress = useCallback(
-    (interactionId: string) => {
-      navigation.navigate("InteractionDetail", { interactionId });
+  const handleEventPress = useCallback(
+    (calendarEventId: string) => {
+      navigation.navigate("CalendarEventDetail", { calendarEventId });
     },
     [navigation],
   );
 
   const handleCreateInteraction = useCallback(() => {
     setQuickAddVisible(false);
-    navigation.navigate("InteractionForm", { prefillDate: selectedDate });
+    navigation.navigate("CalendarEventForm", { prefillDate: selectedDate });
   }, [navigation, selectedDate]);
 
   const handleCreateAudit = useCallback(() => {
     setQuickAddVisible(false);
-    navigation.navigate("AuditForm", { prefillDate: selectedDate });
+    navigation.navigate("CalendarEventForm", {
+      prefillDate: selectedDate,
+      prefillType: "audit",
+    });
   }, [navigation, selectedDate]);
 
   useLayoutEffect(() => {
@@ -119,26 +109,22 @@ export const CalendarScreen = ({
       <View style={styles.container}>
         {viewMode === "agenda" ? (
           <CalendarView
-            audits={audits}
-            interactions={interactions}
+            calendarEvents={calendarEvents}
             accountNames={accountNames}
             unknownEntityLabel={unknownEntityLabel}
             labels={calendarViewLabels}
-            entityNamesForInteraction={getEntityNamesForInteraction}
-            onAuditPress={handleAuditPress}
-            onInteractionPress={handleInteractionPress}
+            entityNamesForEvent={getEntityNamesForEvent}
+            onEventPress={handleEventPress}
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
           />
         ) : (
           <TimelineView
-            audits={audits}
-            interactions={interactions}
+            calendarEvents={calendarEvents}
             accountNames={accountNames}
-            fallbackUnknownEntity={unknownEntityLabel}
-            entityNamesForInteraction={getEntityNamesForInteraction}
-            onAuditPress={handleAuditPress}
-            onInteractionPress={handleInteractionPress}
+            unknownEntityLabel={unknownEntityLabel}
+            entityNamesForEvent={getEntityNamesForEvent}
+            onEventPress={handleEventPress}
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
           />

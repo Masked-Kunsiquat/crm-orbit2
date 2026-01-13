@@ -3,66 +3,53 @@ import { StyleSheet, View, Text } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { CalendarProvider, ExpandableCalendar } from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
-import { AntDesign, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { FontAwesome6, Ionicons } from "@expo/vector-icons";
 
-import type { Audit } from "@domains/audit";
-import type { Interaction, InteractionStatus } from "@domains/interaction";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import { ListRow, StatusBadge } from "./index";
 import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
-import type { AgendaItem } from "../utils/calendarDataTransformers";
+import type { CalendarEventAgendaItem } from "../utils/calendarDataTransformers";
 import {
-  buildAuditAgendaItem,
-  buildInteractionAgendaItem,
-  buildMarkedDates,
+  buildCalendarEventAgendaItem,
+  buildMarkedDatesFromCalendarEvents,
 } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
 import { useCalendarSettings } from "../store/store";
 
 export interface CalendarViewProps {
-  audits: Audit[];
-  interactions: Interaction[];
+  calendarEvents: CalendarEvent[];
   accountNames: Map<string, string>;
   unknownEntityLabel: string;
   labels: CalendarViewLabels;
-  entityNamesForInteraction: (interactionId: string) => string;
-  onAuditPress: (auditId: string) => void;
-  onInteractionPress: (interactionId: string) => void;
+  entityNamesForEvent: (eventId: string) => string;
+  onEventPress: (eventId: string) => void;
   selectedDate: string;
   onDateChange: (date: string) => void;
 }
-
-type InteractionSubtitleKey =
-  | "interactions.scheduledFor"
-  | "interactions.occurredAt";
 
 export type CalendarViewLabels = {
   emptyTitle: string;
   emptyHint: string;
   unknownValue: string;
-  audit: {
+  event: {
     scheduledForLabel: string;
+    occurredAtLabel: string;
     endsAtLabel: string;
     scoreLabel: string;
     floorsVisitedLabel: string;
-  };
-  interaction: {
+    durationLabel: string;
     statusLabel: string;
-    endsAtLabel: string;
-    subtitleLabels: Record<InteractionSubtitleKey, string>;
-    statusLabels: Record<InteractionStatus, string>;
   };
 };
 
 export const CalendarView = ({
-  audits,
-  interactions,
+  calendarEvents,
   accountNames,
   unknownEntityLabel,
   labels,
-  entityNamesForInteraction,
-  onAuditPress,
-  onInteractionPress,
+  entityNamesForEvent,
+  onEventPress,
   selectedDate,
   onDateChange,
 }: CalendarViewProps) => {
@@ -78,42 +65,36 @@ export const CalendarView = ({
   );
 
   // Build agenda items
-  const agendaItems = useMemo<AgendaItem[]>(() => {
-    const items: AgendaItem[] = [];
+  const agendaItems = useMemo<CalendarEventAgendaItem[]>(() => {
+    const items: CalendarEventAgendaItem[] = [];
 
-    for (const audit of audits) {
+    for (const event of calendarEvents) {
       const accountName =
-        accountNames.get(audit.accountId) ?? unknownEntityLabel;
-      const item = buildAuditAgendaItem(audit, accountName);
-      if (item) items.push(item);
-    }
-
-    for (const interaction of interactions) {
-      const entityName = entityNamesForInteraction(interaction.id);
-      const item = buildInteractionAgendaItem(interaction, entityName);
+        event.type === "audit" && event.auditData?.accountId
+          ? (accountNames.get(event.auditData.accountId) ?? unknownEntityLabel)
+          : undefined;
+      const entityNames = entityNamesForEvent(event.id);
+      const item = buildCalendarEventAgendaItem(
+        event,
+        accountName,
+        entityNames,
+      );
       if (item) items.push(item);
     }
 
     return items;
-  }, [
-    audits,
-    interactions,
-    accountNames,
-    entityNamesForInteraction,
-    unknownEntityLabel,
-  ]);
+  }, [calendarEvents, accountNames, entityNamesForEvent, unknownEntityLabel]);
 
   // Build marked dates
   const markedDates = useMemo(
     () =>
-      buildMarkedDates(
-        audits,
-        interactions,
+      buildMarkedDatesFromCalendarEvents(
+        calendarEvents,
         calendarPalette,
         colors.accent,
         selectedDate,
       ),
-    [audits, interactions, selectedDate, calendarPalette, colors.accent],
+    [calendarEvents, selectedDate, calendarPalette, colors.accent],
   );
 
   const handleDayPress = useCallback(
@@ -123,18 +104,18 @@ export const CalendarView = ({
     [onDateChange],
   );
 
-  const getInteractionIcon = useCallback(
+  const getEventIcon = useCallback(
     (type: string) => {
       switch (type) {
-        case "interaction.type.email":
+        case "email":
           return (
             <Ionicons name="mail-outline" size={20} color={colors.accent} />
           );
-        case "interaction.type.call":
+        case "call":
           return (
             <Ionicons name="call-outline" size={20} color={colors.accent} />
           );
-        case "interaction.type.meeting":
+        case "meeting":
           return (
             <Ionicons
               name="people-circle-outline"
@@ -142,7 +123,27 @@ export const CalendarView = ({
               color={colors.accent}
             />
           );
-        case "interaction.type.other":
+        case "audit":
+          return (
+            <Ionicons
+              name="clipboard-outline"
+              size={20}
+              color={colors.accent}
+            />
+          );
+        case "task":
+          return (
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={20}
+              color={colors.accent}
+            />
+          );
+        case "reminder":
+          return (
+            <Ionicons name="alarm-outline" size={20} color={colors.accent} />
+          );
+        case "other":
         default:
           return (
             <FontAwesome6
@@ -167,111 +168,70 @@ export const CalendarView = ({
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: AgendaItem }) => {
-      if (item.kind === "audit") {
-        const subtitle = `${labels.audit.scheduledForLabel}: ${formatTimestamp(
-          item.startTimestamp,
-        )}`;
-        const descriptionLines = [
-          item.endTimestamp
-            ? `${labels.audit.endsAtLabel}: ${formatTimestamp(
-                item.endTimestamp,
-              )}`
-            : undefined,
-          item.scoreValue
-            ? `${labels.audit.scoreLabel}: ${item.scoreValue}`
-            : undefined,
-        ].filter(Boolean);
-        const description = descriptionLines.length
-          ? descriptionLines.join("\n")
-          : undefined;
-        const footnote = item.notes
-          ? item.notes
-          : item.floorsVisited && item.floorsVisited.length > 0
-            ? `${labels.audit.floorsVisitedLabel}: ${item.floorsVisited.join(", ")}`
-            : undefined;
-
-        return (
-          <ListRow
-            onPress={() => onAuditPress(item.audit.id)}
-            title={item.accountName}
-            subtitle={subtitle}
-            description={description}
-            footnote={footnote}
-            descriptionNumberOfLines={3}
-            footnoteNumberOfLines={2}
-            style={styles.listRow}
-            titleAccessory={
-              <StatusBadge tone={item.statusTone} labelKey={item.statusKey} />
-            }
-          >
-            <View style={styles.iconContainer}>
-              <AntDesign name="audit" size={20} color={colors.accent} />
-            </View>
-          </ListRow>
-        );
-      }
-
+    ({ item }: { item: CalendarEventAgendaItem }) => {
       const subtitleLabel =
-        labels.interaction.subtitleLabels[item.subtitleKey] ?? item.subtitleKey;
-      const subtitle = `${subtitleLabel}: ${formatTimestamp(
-        item.startTimestamp,
-      )}`;
-      const statusLabel =
-        labels.interaction.statusLabels[item.statusKey] ?? item.statusKey;
+        item.subtitleKey === "calendarEvents.scheduledFor"
+          ? labels.event.scheduledForLabel
+          : labels.event.occurredAtLabel;
+      const subtitle = `${subtitleLabel}: ${formatTimestamp(item.startTimestamp)}`;
+
       const descriptionLines = [
-        item.statusKey !== "interaction.status.completed"
-          ? `${labels.interaction.statusLabel}: ${statusLabel}`
-          : undefined,
         item.endTimestamp
-          ? `${labels.interaction.endsAtLabel}: ${formatTimestamp(
-              item.endTimestamp,
-            )}`
+          ? `${labels.event.endsAtLabel}: ${formatTimestamp(item.endTimestamp)}`
+          : undefined,
+        item.scoreValue
+          ? `${labels.event.scoreLabel}: ${item.scoreValue}`
           : undefined,
       ].filter(Boolean);
-      const description = descriptionLines.length
-        ? descriptionLines.join("\n")
-        : undefined;
+      const description =
+        descriptionLines.length > 0 ? descriptionLines.join("\n") : undefined;
+
+      // For audits: use floors visited as footnote; for others: use description
+      const footnote =
+        item.event.type === "audit"
+          ? item.floorsVisited && item.floorsVisited.length > 0
+            ? `${labels.event.floorsVisitedLabel}: ${item.floorsVisited.join(", ")}`
+            : undefined
+          : item.description?.trim();
 
       return (
         <ListRow
-          onPress={() => onInteractionPress(item.interaction.id)}
-          title={item.interaction.summary}
+          onPress={() => onEventPress(item.event.id)}
+          title={item.displayName}
           subtitle={subtitle}
           description={description}
+          footnote={footnote}
           descriptionNumberOfLines={3}
+          footnoteNumberOfLines={2}
           style={styles.listRow}
+          titleAccessory={
+            <StatusBadge tone={item.statusTone} labelKey={item.statusKey} />
+          }
         >
           <View style={styles.iconContainer}>
-            {getInteractionIcon(item.interaction.type)}
+            {getEventIcon(item.event.type)}
           </View>
         </ListRow>
       );
     },
     [
-      onAuditPress,
-      onInteractionPress,
-      colors.accent,
-      getInteractionIcon,
+      onEventPress,
+      getEventIcon,
       formatTimestamp,
-      labels.audit.endsAtLabel,
-      labels.audit.floorsVisitedLabel,
-      labels.audit.scheduledForLabel,
-      labels.audit.scoreLabel,
-      labels.interaction.endsAtLabel,
-      labels.interaction.statusLabel,
-      labels.interaction.statusLabels,
-      labels.interaction.subtitleLabels,
+      labels.event.endsAtLabel,
+      labels.event.floorsVisitedLabel,
+      labels.event.scheduledForLabel,
+      labels.event.occurredAtLabel,
+      labels.event.scoreLabel,
     ],
   );
 
   const keyExtractor = useCallback(
-    (item: AgendaItem) =>
-      item.kind === "audit" ? `audit-${item.id}` : `interaction-${item.id}`,
+    (item: CalendarEventAgendaItem) => `calendarEvent-${item.id}`,
     [],
   );
 
-  const getItemType = useCallback((item: AgendaItem) => {
+  const getItemType = useCallback((item: CalendarEventAgendaItem) => {
     return item.kind;
   }, []);
 

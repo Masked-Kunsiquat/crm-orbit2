@@ -81,6 +81,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     entityToLink,
     accountId: prefillAccountId,
     prefillDate,
+    prefillType,
   } = route.params ?? {};
   const initialTimestamp = useMemo(
     () => buildTimestampFromDate(prefillDate),
@@ -98,7 +99,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
   const { dialogProps, showAlert } = useConfirmDialog();
 
   // Form state
-  const [type, setType] = useState<CalendarEventType>("meeting");
+  const [type, setType] = useState<CalendarEventType>(prefillType ?? "meeting");
   const [status, setStatus] = useState<CalendarEventStatus>(
     "calendarEvent.status.scheduled",
   );

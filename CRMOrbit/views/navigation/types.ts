@@ -2,6 +2,7 @@ import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import type { CalendarEventType } from "@domains/calendarEvent";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "../../domains/shared/types";
 import type { AccountContactRole } from "../../domains/relations/accountContact";
@@ -53,6 +54,7 @@ export type RootStackParamList = {
     };
     accountId?: EntityId; // For audits
     prefillDate?: string;
+    prefillType?: CalendarEventType;
   };
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
@@ -113,6 +115,7 @@ export type EventsStackParamList = {
     };
     accountId?: EntityId; // For audits
     prefillDate?: string;
+    prefillType?: CalendarEventType;
   };
 };
 
