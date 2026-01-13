@@ -6,8 +6,7 @@ import type { DateData } from "react-native-calendars";
 import { AntDesign, FontAwesome6, Ionicons } from "@expo/vector-icons";
 
 import type { Audit } from "@domains/audit";
-import type { Interaction } from "@domains/interaction";
-import { t } from "@i18n/index";
+import type { Interaction, InteractionStatus } from "@domains/interaction";
 import { ListRow, StatusBadge } from "./index";
 import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
@@ -24,6 +23,8 @@ export interface CalendarViewProps {
   audits: Audit[];
   interactions: Interaction[];
   accountNames: Map<string, string>;
+  unknownEntityLabel: string;
+  labels: CalendarViewLabels;
   entityNamesForInteraction: (interactionId: string) => string;
   onAuditPress: (auditId: string) => void;
   onInteractionPress: (interactionId: string) => void;
@@ -31,10 +32,34 @@ export interface CalendarViewProps {
   onDateChange: (date: string) => void;
 }
 
+type InteractionSubtitleKey =
+  | "interactions.scheduledFor"
+  | "interactions.occurredAt";
+
+export type CalendarViewLabels = {
+  emptyTitle: string;
+  emptyHint: string;
+  unknownValue: string;
+  audit: {
+    scheduledForLabel: string;
+    endsAtLabel: string;
+    scoreLabel: string;
+    floorsVisitedLabel: string;
+  };
+  interaction: {
+    statusLabel: string;
+    endsAtLabel: string;
+    subtitleLabels: Record<InteractionSubtitleKey, string>;
+    statusLabels: Record<InteractionStatus, string>;
+  };
+};
+
 export const CalendarView = ({
   audits,
   interactions,
   accountNames,
+  unknownEntityLabel,
+  labels,
   entityNamesForInteraction,
   onAuditPress,
   onInteractionPress,
@@ -58,7 +83,7 @@ export const CalendarView = ({
 
     for (const audit of audits) {
       const accountName =
-        accountNames.get(audit.accountId) ?? t("common.unknownEntity");
+        accountNames.get(audit.accountId) ?? unknownEntityLabel;
       const item = buildAuditAgendaItem(audit, accountName);
       if (item) items.push(item);
     }
@@ -70,7 +95,13 @@ export const CalendarView = ({
     }
 
     return items;
-  }, [audits, interactions, accountNames, entityNamesForInteraction]);
+  }, [
+    audits,
+    interactions,
+    accountNames,
+    entityNamesForInteraction,
+    unknownEntityLabel,
+  ]);
 
   // Build marked dates
   const markedDates = useMemo(
@@ -118,27 +149,30 @@ export const CalendarView = ({
     [colors.accent],
   );
 
-  const formatTimestamp = useCallback((timestamp?: string): string => {
-    if (!timestamp) return t("common.unknown");
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) return t("common.unknown");
-    return date.toLocaleString();
-  }, []);
+  const formatTimestamp = useCallback(
+    (timestamp?: string): string => {
+      if (!timestamp) return labels.unknownValue;
+      const date = new Date(timestamp);
+      if (Number.isNaN(date.getTime())) return labels.unknownValue;
+      return date.toLocaleString();
+    },
+    [labels.unknownValue],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: AgendaItem }) => {
       if (item.kind === "audit") {
-        const subtitle = `${t("audits.fields.scheduledFor")}: ${formatTimestamp(
+        const subtitle = `${labels.audit.scheduledForLabel}: ${formatTimestamp(
           item.startTimestamp,
         )}`;
         const descriptionLines = [
           item.endTimestamp
-            ? `${t("audits.fields.endsAt")}: ${formatTimestamp(
+            ? `${labels.audit.endsAtLabel}: ${formatTimestamp(
                 item.endTimestamp,
               )}`
             : undefined,
           item.scoreValue
-            ? `${t("audits.fields.score")}: ${item.scoreValue}`
+            ? `${labels.audit.scoreLabel}: ${item.scoreValue}`
             : undefined,
         ].filter(Boolean);
         const description = descriptionLines.length
@@ -147,7 +181,7 @@ export const CalendarView = ({
         const footnote = item.notes
           ? item.notes
           : item.floorsVisited && item.floorsVisited.length > 0
-            ? `${t("audits.fields.floorsVisited")}: ${item.floorsVisited.join(", ")}`
+            ? `${labels.audit.floorsVisitedLabel}: ${item.floorsVisited.join(", ")}`
             : undefined;
 
         return (
@@ -171,15 +205,20 @@ export const CalendarView = ({
         );
       }
 
-      const subtitle = `${t(item.subtitleKey)}: ${formatTimestamp(
+      const subtitleLabel =
+        labels.interaction.subtitleLabels[item.subtitleKey] ??
+        item.subtitleKey;
+      const subtitle = `${subtitleLabel}: ${formatTimestamp(
         item.startTimestamp,
       )}`;
+      const statusLabel =
+        labels.interaction.statusLabels[item.statusKey] ?? item.statusKey;
       const descriptionLines = [
         item.statusKey !== "interaction.status.completed"
-          ? `${t("interactions.statusLabel")}: ${t(item.statusKey)}`
+          ? `${labels.interaction.statusLabel}: ${statusLabel}`
           : undefined,
         item.endTimestamp
-          ? `${t("interactions.fields.endsAt")}: ${formatTimestamp(
+          ? `${labels.interaction.endsAtLabel}: ${formatTimestamp(
               item.endTimestamp,
             )}`
           : undefined,
@@ -209,6 +248,14 @@ export const CalendarView = ({
       colors.accent,
       getInteractionIcon,
       formatTimestamp,
+      labels.audit.endsAtLabel,
+      labels.audit.floorsVisitedLabel,
+      labels.audit.scheduledForLabel,
+      labels.audit.scoreLabel,
+      labels.interaction.endsAtLabel,
+      labels.interaction.statusLabel,
+      labels.interaction.statusLabels,
+      labels.interaction.subtitleLabels,
     ],
   );
 
@@ -250,10 +297,10 @@ export const CalendarView = ({
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                {t("calendar.emptyTitle")}
+                {labels.emptyTitle}
               </Text>
               <Text style={[styles.emptyHint, { color: colors.textFaint }]}>
-                {t("calendar.emptyHint")}
+                {labels.emptyHint}
               </Text>
             </View>
           }

@@ -15,6 +15,7 @@ import {
 } from "../screens/interactions";
 import { getStackScreenOptions } from "./stackOptions";
 import { useScreenTitles, useTheme } from "../hooks";
+import { t } from "@i18n/index";
 
 const Stack = createNativeStackNavigator<EventsStackParamList>();
 
@@ -52,9 +53,51 @@ export const EventsStack = () => {
       />
       <Stack.Screen
         name="Calendar"
-        component={CalendarScreen}
         options={{ title: getScreenTitle(screenTitleKeys.calendar) }}
-      />
+      >
+        {(props) => (
+          <CalendarScreen
+            {...props}
+            viewOptionsLabel={t("calendar.viewOptions")}
+            switchToTimelineLabel={t("calendar.switchToTimeline")}
+            switchToAgendaLabel={t("calendar.switchToAgenda")}
+            unknownEntityLabel={t("common.unknownEntity")}
+            quickAddButtonLabel={t("calendar.quickAdd.button")}
+            quickAddInteractionLabel={t("calendar.quickAdd.interaction")}
+            quickAddAuditLabel={t("calendar.quickAdd.audit")}
+            calendarViewLabels={{
+              emptyTitle: t("calendar.emptyTitle"),
+              emptyHint: t("calendar.emptyHint"),
+              unknownValue: t("common.unknown"),
+              audit: {
+                scheduledForLabel: t("audits.fields.scheduledFor"),
+                endsAtLabel: t("audits.fields.endsAt"),
+                scoreLabel: t("audits.fields.score"),
+                floorsVisitedLabel: t("audits.fields.floorsVisited"),
+              },
+              interaction: {
+                statusLabel: t("interactions.statusLabel"),
+                endsAtLabel: t("interactions.fields.endsAt"),
+                subtitleLabels: {
+                  "interactions.scheduledFor": t("interactions.scheduledFor"),
+                  "interactions.occurredAt": t("interactions.occurredAt"),
+                },
+                statusLabels: {
+                  "interaction.status.scheduled": t(
+                    "interaction.status.scheduled",
+                  ),
+                  "interaction.status.completed": t(
+                    "interaction.status.completed",
+                  ),
+                  "interaction.status.canceled": t(
+                    "interaction.status.canceled",
+                  ),
+                },
+              },
+            }}
+          />
+        )}
+      </Stack.Screen>
       <Stack.Screen
         name="InteractionsList"
         component={InteractionsListScreen}

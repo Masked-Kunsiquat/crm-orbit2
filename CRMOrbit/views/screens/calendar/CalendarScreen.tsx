@@ -1,12 +1,12 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { t } from "@i18n/index";
 import {
   CalendarView,
   FloatingActionButton,
   HeaderMenu,
   TimelineView,
 } from "../../components";
+import type { CalendarViewLabels } from "../../components/CalendarView";
 import {
   useAccounts,
   useAllAudits,
@@ -20,9 +20,30 @@ import { getInitialCalendarDate } from "../../utils/calendarDataTransformers";
 
 type CalendarViewMode = "agenda" | "timeline";
 
-type Props = EventsStackScreenProps<"Calendar">;
+type CalendarScreenLabels = {
+  viewOptionsLabel: string;
+  switchToTimelineLabel: string;
+  switchToAgendaLabel: string;
+  unknownEntityLabel: string;
+  quickAddButtonLabel: string;
+  quickAddInteractionLabel: string;
+  quickAddAuditLabel: string;
+  calendarViewLabels: CalendarViewLabels;
+};
 
-export const CalendarScreen = ({ navigation }: Props) => {
+type Props = EventsStackScreenProps<"Calendar"> & CalendarScreenLabels;
+
+export const CalendarScreen = ({
+  navigation,
+  viewOptionsLabel,
+  switchToTimelineLabel,
+  switchToAgendaLabel,
+  unknownEntityLabel,
+  quickAddButtonLabel,
+  quickAddInteractionLabel,
+  quickAddAuditLabel,
+  calendarViewLabels,
+}: Props) => {
   const { colors } = useTheme();
   const [viewMode, setViewMode] = useState<CalendarViewMode>("agenda");
   const [quickAddVisible, setQuickAddVisible] = useState(false);
@@ -37,7 +58,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
   const [selectedDate, setSelectedDate] = useState<string>(initialDate);
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
-    accessibilityLabel: t("calendar.viewOptions"),
+    accessibilityLabel: viewOptionsLabel,
   });
 
   const accountNames = useMemo(
@@ -51,8 +72,8 @@ export const CalendarScreen = ({ navigation }: Props) => {
 
   const viewModeLabel =
     viewMode === "agenda"
-      ? t("calendar.switchToTimeline")
-      : t("calendar.switchToAgenda");
+      ? switchToTimelineLabel
+      : switchToAgendaLabel;
 
   const getEntityNamesForInteraction = useCallback(
     (interactionId: string): string => {
@@ -60,9 +81,9 @@ export const CalendarScreen = ({ navigation }: Props) => {
       const accountEntity =
         linkedEntities.find((entity) => entity.entityType === "account") ??
         linkedEntities[0];
-      return accountEntity?.name ?? t("common.unknownEntity");
+      return accountEntity?.name ?? unknownEntityLabel;
     },
-    [doc],
+    [doc, unknownEntityLabel],
   );
 
   const handleAuditPress = useCallback(
@@ -103,6 +124,8 @@ export const CalendarScreen = ({ navigation }: Props) => {
             audits={audits}
             interactions={interactions}
             accountNames={accountNames}
+            unknownEntityLabel={unknownEntityLabel}
+            labels={calendarViewLabels}
             entityNamesForInteraction={getEntityNamesForInteraction}
             onAuditPress={handleAuditPress}
             onInteractionPress={handleInteractionPress}
@@ -114,7 +137,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
             audits={audits}
             interactions={interactions}
             accountNames={accountNames}
-            fallbackUnknownEntity={t("common.unknownEntity")}
+            fallbackUnknownEntity={unknownEntityLabel}
             entityNamesForInteraction={getEntityNamesForInteraction}
             onAuditPress={handleAuditPress}
             onInteractionPress={handleInteractionPress}
@@ -124,7 +147,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
         )}
         <FloatingActionButton
           label="+"
-          accessibilityLabel={t("calendar.quickAdd.button")}
+          accessibilityLabel={quickAddButtonLabel}
           onPress={() => setQuickAddVisible(true)}
         />
       </View>
@@ -156,7 +179,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
               <Text
                 style={[styles.quickAddText, { color: colors.textPrimary }]}
               >
-                {t("calendar.quickAdd.interaction")}
+                {quickAddInteractionLabel}
               </Text>
             </Pressable>
             <Pressable
@@ -170,7 +193,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
               <Text
                 style={[styles.quickAddText, { color: colors.textPrimary }]}
               >
-                {t("calendar.quickAdd.audit")}
+                {quickAddAuditLabel}
               </Text>
             </Pressable>
           </View>
