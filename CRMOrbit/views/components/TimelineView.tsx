@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { CalendarProvider, TimelineList } from "react-native-calendars";
+import {
+  CalendarProvider,
+  ExpandableCalendar,
+  TimelineList,
+} from "react-native-calendars";
 import type { TimelineEventProps } from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
 
@@ -10,6 +13,10 @@ import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
 import { getAuditEndTimestamp, getAuditStartTimestamp } from "../utils/audits";
 import { addMinutesToTimestamp } from "../utils/duration";
+import {
+  buildMarkedDates,
+  getInitialCalendarDate,
+} from "../utils/calendarDataTransformers";
 
 export interface TimelineViewProps {
   audits: Audit[];
@@ -47,13 +54,19 @@ export const TimelineView = ({
     [colors, isDark],
   );
 
-  // Get today's date as initial date
-  const initialDate = useMemo(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  }, []);
+  // Initial date (most recent event date or today)
+  const initialDate = useMemo(
+    () => getInitialCalendarDate(audits, interactions),
+    [audits, interactions],
+  );
 
   const [selectedDate, setSelectedDate] = useState<string>(initialDate);
+
+  // Build marked dates for calendar
+  const markedDates = useMemo(
+    () => buildMarkedDates(audits, interactions, selectedDate),
+    [audits, interactions, selectedDate],
+  );
 
   // Build timeline events grouped by date
   const timelineEventsByDate = useMemo<Record<string, TimelineEvent[]>>(() => {
@@ -149,33 +162,33 @@ export const TimelineView = ({
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
-        <TimelineList
-          events={timelineEventsByDate}
-          timelineProps={{
-            format24h: true,
-            onEventPress: handleEventPress,
-            start: 6,
-            end: 22,
-            unavailableHours: [
-              { start: 0, end: 6 },
-              { start: 22, end: 24 },
-            ],
-            overlapEventsSpacing: 8,
-            theme: calendarTheme,
-          }}
-          showNowIndicator
-          scrollToFirst
-          onDayPress={handleDayPress}
-        />
-      </CalendarProvider>
-    </View>
+    <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
+      <ExpandableCalendar
+        theme={calendarTheme}
+        markedDates={markedDates}
+        markingType="multi-dot"
+        onDayPress={handleDayPress}
+        firstDay={0}
+        allowShadow={true}
+        closeOnDayPress={true}
+      />
+      <TimelineList
+        events={timelineEventsByDate}
+        timelineProps={{
+          format24h: true,
+          onEventPress: handleEventPress,
+          start: 6,
+          end: 22,
+          unavailableHours: [
+            { start: 0, end: 6 },
+            { start: 22, end: 24 },
+          ],
+          overlapEventsSpacing: 8,
+          theme: calendarTheme,
+        }}
+        showNowIndicator
+        scrollToFirst
+      />
+    </CalendarProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
