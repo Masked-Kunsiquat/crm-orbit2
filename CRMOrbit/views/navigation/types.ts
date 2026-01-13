@@ -45,7 +45,10 @@ export type RootStackParamList = {
   AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
   AuditDetail: { auditId: EntityId };
   // NEW - unified calendar event screens
-  CalendarEventDetail: { calendarEventId: EntityId };
+  CalendarEventDetail: {
+    calendarEventId: EntityId;
+    occurrenceTimestamp?: string;
+  };
   CalendarEventForm: {
     calendarEventId?: EntityId;
     entityToLink?: {
@@ -106,7 +109,10 @@ export type EventsStackParamList = {
   // NEW - unified calendar event screens
   Calendar: undefined;
   CalendarEventsList: undefined;
-  CalendarEventDetail: { calendarEventId: EntityId };
+  CalendarEventDetail: {
+    calendarEventId: EntityId;
+    occurrenceTimestamp?: string;
+  };
   CalendarEventForm: {
     calendarEventId?: EntityId;
     entityToLink?: {

@@ -15,6 +15,10 @@ import {
   buildMarkedDatesFromCalendarEvents,
 } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
+import {
+  expandCalendarEventsInRange,
+  getCalendarMonthRange,
+} from "../utils/recurrence";
 import { useCalendarSettings } from "../store/store";
 
 export interface CalendarViewProps {
@@ -23,7 +27,7 @@ export interface CalendarViewProps {
   unknownEntityLabel: string;
   labels: CalendarViewLabels;
   entityNamesForEvent: (eventId: string) => string;
-  onEventPress: (eventId: string) => void;
+  onEventPress: (eventId: string, occurrenceTimestamp?: string) => void;
   selectedDate: string;
   onDateChange: (date: string) => void;
 }
@@ -63,17 +67,31 @@ export const CalendarView = ({
     () => resolveCalendarPalette(colors, calendarSettings.palette),
     [colors, calendarSettings.palette],
   );
+  const calendarRange = useMemo(
+    () => getCalendarMonthRange(selectedDate),
+    [selectedDate],
+  );
+  const expandedEvents = useMemo(
+    () =>
+      expandCalendarEventsInRange(
+        calendarEvents,
+        calendarRange.start,
+        calendarRange.end,
+      ),
+    [calendarEvents, calendarRange],
+  );
 
   // Build agenda items
   const agendaItems = useMemo<CalendarEventAgendaItem[]>(() => {
     const items: CalendarEventAgendaItem[] = [];
 
-    for (const event of calendarEvents) {
+    for (const event of expandedEvents) {
+      const sourceEventId = event.recurrenceId ?? event.id;
       const accountName =
         event.type === "audit" && event.auditData?.accountId
           ? (accountNames.get(event.auditData.accountId) ?? unknownEntityLabel)
           : undefined;
-      const entityNames = entityNamesForEvent(event.id);
+      const entityNames = entityNamesForEvent(sourceEventId);
       const item = buildCalendarEventAgendaItem(
         event,
         accountName,
@@ -83,18 +101,18 @@ export const CalendarView = ({
     }
 
     return items;
-  }, [calendarEvents, accountNames, entityNamesForEvent, unknownEntityLabel]);
+  }, [expandedEvents, accountNames, entityNamesForEvent, unknownEntityLabel]);
 
   // Build marked dates
   const markedDates = useMemo(
     () =>
       buildMarkedDatesFromCalendarEvents(
-        calendarEvents,
+        expandedEvents,
         calendarPalette,
         colors.accent,
         selectedDate,
       ),
-    [calendarEvents, selectedDate, calendarPalette, colors.accent],
+    [expandedEvents, selectedDate, calendarPalette, colors.accent],
   );
 
   const handleDayPress = useCallback(
@@ -169,6 +187,13 @@ export const CalendarView = ({
 
   const renderItem = useCallback(
     ({ item }: { item: CalendarEventAgendaItem }) => {
+      const sourceEventId = item.event.recurrenceId ?? item.event.id;
+      const occurrenceTimestamp = item.event.recurrenceId
+        ? item.event.scheduledFor
+        : undefined;
+      const isRecurring = Boolean(
+        item.event.recurrenceRule || item.event.recurrenceId,
+      );
       const subtitleLabel =
         item.subtitleKey === "calendarEvents.scheduledFor"
           ? labels.event.scheduledForLabel
@@ -196,7 +221,7 @@ export const CalendarView = ({
 
       return (
         <ListRow
-          onPress={() => onEventPress(item.event.id)}
+          onPress={() => onEventPress(sourceEventId, occurrenceTimestamp)}
           title={item.displayName}
           subtitle={subtitle}
           description={description}
@@ -209,7 +234,17 @@ export const CalendarView = ({
           }
         >
           <View style={styles.iconContainer}>
-            {getEventIcon(item.event.type)}
+            <View style={styles.iconStack}>
+              {getEventIcon(item.event.type)}
+              {isRecurring ? (
+                <Ionicons
+                  name="repeat-outline"
+                  size={14}
+                  color={colors.textSecondary}
+                  style={styles.recurrenceIcon}
+                />
+              ) : null}
+            </View>
           </View>
         </ListRow>
       );
@@ -223,6 +258,7 @@ export const CalendarView = ({
       labels.event.scheduledForLabel,
       labels.event.occurredAtLabel,
       labels.event.scoreLabel,
+      colors.textSecondary,
     ],
   );
 
@@ -287,6 +323,13 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginLeft: 8,
+  },
+  iconStack: {
+    alignItems: "center",
+    gap: 4,
+  },
+  recurrenceIcon: {
+    marginTop: -2,
   },
   emptyContainer: {
     flex: 1,

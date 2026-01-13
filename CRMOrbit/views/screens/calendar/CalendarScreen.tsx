@@ -79,8 +79,11 @@ export const CalendarScreen = ({
   );
 
   const handleEventPress = useCallback(
-    (calendarEventId: string) => {
-      navigation.navigate("CalendarEventDetail", { calendarEventId });
+    (calendarEventId: string, occurrenceTimestamp?: string) => {
+      navigation.navigate("CalendarEventDetail", {
+        calendarEventId,
+        ...(occurrenceTimestamp && { occurrenceTimestamp }),
+      });
     },
     [navigation],
   );

@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import {
   useCalendarEvent,
@@ -62,7 +63,7 @@ const getStatusTone = (status: string): "success" | "warning" | "default" => {
 export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const { calendarEventId } = route.params;
+  const { calendarEventId, occurrenceTimestamp } = route.params;
   const calendarEvent = useCalendarEvent(calendarEventId);
   const linkedEntities = useEntitiesForCalendarEvent(calendarEventId);
   const timeline = useTimeline("calendarEvent", calendarEventId);
@@ -172,12 +173,17 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
 
   const isAudit = calendarEvent.type === "audit";
   const isCompleted = calendarEvent.status === "calendarEvent.status.completed";
+  const isRecurring = Boolean(
+    calendarEvent.recurrenceRule || calendarEvent.recurrenceId,
+  );
+  const resolvedScheduledFor =
+    occurrenceTimestamp ?? calendarEvent.scheduledFor;
   const timestampLabel = isCompleted
     ? t("calendarEvents.occurredAt")
     : t("calendarEvents.scheduledFor");
   const timestampValue = isCompleted
-    ? (calendarEvent.occurredAt ?? calendarEvent.scheduledFor)
-    : calendarEvent.scheduledFor;
+    ? (calendarEvent.occurredAt ?? resolvedScheduledFor)
+    : resolvedScheduledFor;
   const formattedTimestamp = formatTimestamp(timestampValue);
   const endTimestamp = addMinutesToTimestamp(
     timestampValue,
@@ -227,6 +233,31 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
                 labelKey={calendarEvent.status}
               />
             </View>
+            {isRecurring ? (
+              <View
+                style={[
+                  styles.recurrenceBadge,
+                  {
+                    backgroundColor: colors.surfaceElevated,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="repeat-outline"
+                  size={14}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.recurrenceBadgeText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {t("calendarEvents.recurrence.badge")}
+                </Text>
+              </View>
+            ) : null}
             <Text style={[styles.date, { color: colors.textSecondary }]}>
               {timestampLabel}: {formattedTimestamp}
             </Text>
@@ -421,6 +452,21 @@ const styles = StyleSheet.create({
   statusLabel: {
     fontSize: 12,
     textTransform: "uppercase",
+    fontWeight: "600",
+  },
+  recurrenceBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginBottom: 8,
+  },
+  recurrenceBadgeText: {
+    fontSize: 12,
     fontWeight: "600",
   },
   date: {

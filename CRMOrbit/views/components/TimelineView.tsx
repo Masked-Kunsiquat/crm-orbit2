@@ -19,6 +19,10 @@ import {
   getCalendarEventDotColor,
   resolveCalendarPalette,
 } from "../utils/calendarColors";
+import {
+  expandCalendarEventsInRange,
+  getCalendarMonthRange,
+} from "../utils/recurrence";
 import { useCalendarSettings } from "../store/store";
 
 export interface TimelineViewProps {
@@ -26,13 +30,15 @@ export interface TimelineViewProps {
   accountNames: Map<string, string>;
   unknownEntityLabel: string;
   entityNamesForEvent?: (eventId: string) => string;
-  onEventPress: (eventId: string) => void;
+  onEventPress: (eventId: string, occurrenceTimestamp?: string) => void;
   selectedDate: string;
   onDateChange: (date: string) => void;
 }
 
 interface TimelineEvent extends TimelineEventProps {
   id: string;
+  calendarEventId: string;
+  occurrenceTimestamp?: string;
 }
 
 export const TimelineView = ({
@@ -54,24 +60,41 @@ export const TimelineView = ({
     () => resolveCalendarPalette(colors, calendarSettings.palette),
     [colors, calendarSettings.palette],
   );
+  const calendarRange = useMemo(
+    () => getCalendarMonthRange(selectedDate),
+    [selectedDate],
+  );
+  const expandedEvents = useMemo(
+    () =>
+      expandCalendarEventsInRange(
+        calendarEvents,
+        calendarRange.start,
+        calendarRange.end,
+      ),
+    [calendarEvents, calendarRange],
+  );
 
   // Build marked dates for calendar
   const markedDates = useMemo(
     () =>
       buildMarkedDatesFromCalendarEvents(
-        calendarEvents,
+        expandedEvents,
         calendarPalette,
         colors.accent,
         selectedDate,
       ),
-    [calendarEvents, selectedDate, calendarPalette, colors.accent],
+    [expandedEvents, selectedDate, calendarPalette, colors.accent],
   );
 
   // Build timeline events grouped by date
   const timelineEventsByDate = useMemo<Record<string, TimelineEvent[]>>(() => {
     const eventsByDate: Record<string, TimelineEvent[]> = {};
 
-    for (const event of calendarEvents) {
+    for (const event of expandedEvents) {
+      const sourceEventId = event.recurrenceId ?? event.id;
+      const occurrenceTimestamp = event.recurrenceId
+        ? event.scheduledFor
+        : undefined;
       const isCompleted = event.status === "calendarEvent.status.completed";
       const startTimestamp = isCompleted
         ? (event.occurredAt ?? event.scheduledFor)
@@ -91,7 +114,7 @@ export const TimelineView = ({
           : undefined;
       const title =
         event.type === "audit" && accountName ? accountName : event.summary;
-      const linkedNames = entityNamesForEvent?.(event.id)?.trim();
+      const linkedNames = entityNamesForEvent?.(sourceEventId)?.trim();
       const summaryParts: string[] = [];
 
       if (event.type === "audit") {
@@ -117,6 +140,8 @@ export const TimelineView = ({
 
       eventsByDate[dateKey].push({
         id: event.id,
+        calendarEventId: sourceEventId,
+        occurrenceTimestamp,
         start: startTimestamp,
         end: endTimestamp,
         title,
@@ -127,7 +152,7 @@ export const TimelineView = ({
 
     return eventsByDate;
   }, [
-    calendarEvents,
+    expandedEvents,
     accountNames,
     unknownEntityLabel,
     entityNamesForEvent,
@@ -137,8 +162,11 @@ export const TimelineView = ({
   const handleEventPress = useCallback(
     (event: TimelineEventProps) => {
       const timelineEvent = event as TimelineEvent;
-      if (timelineEvent.id) {
-        onEventPress(timelineEvent.id);
+      if (timelineEvent.calendarEventId) {
+        onEventPress(
+          timelineEvent.calendarEventId,
+          timelineEvent.occurrenceTimestamp,
+        );
       }
     },
     [onEventPress],
