@@ -32,6 +32,7 @@ export { AddressFields } from "./AddressFields";
 export { FormScreenLayout } from "./FormScreenLayout";
 export { FormField } from "./FormField";
 export { TextField } from "./TextField";
+export { RecurrenceRulePicker } from "./RecurrenceRulePicker";
 export { SegmentedOptionGroup } from "./SegmentedOptionGroup";
 export { DetailTabs } from "./DetailTabs";
 export { MethodListEditor } from "./MethodListEditor";

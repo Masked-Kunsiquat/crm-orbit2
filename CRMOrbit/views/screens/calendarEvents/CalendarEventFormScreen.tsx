@@ -19,6 +19,7 @@ import { useDeviceId, useCalendarEventActions } from "../../hooks";
 import type {
   CalendarEventType,
   CalendarEventStatus,
+  RecurrenceRule,
 } from "../../../domains/calendarEvent";
 import { nextId } from "../../../domains/shared/idGenerator";
 import {
@@ -27,6 +28,7 @@ import {
   TextField,
   ConfirmDialog,
   SegmentedOptionGroup,
+  RecurrenceRulePicker,
 } from "../../components";
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
@@ -71,6 +73,56 @@ const DEFAULT_DURATION_BY_TYPE: Record<CalendarEventType, number | undefined> =
     other: undefined,
   };
 
+const normalizeRecurrenceRule = (
+  rule?: RecurrenceRule | null,
+): RecurrenceRule | null => {
+  if (!rule) return null;
+
+  const interval =
+    Number.isFinite(rule.interval) && rule.interval > 0
+      ? Math.floor(rule.interval)
+      : 1;
+
+  const normalized: RecurrenceRule = {
+    frequency: rule.frequency,
+    interval,
+  };
+
+  if (rule.until) {
+    const parsed = new Date(rule.until);
+    if (!Number.isNaN(parsed.getTime())) {
+      normalized.until = parsed.toISOString();
+    }
+  }
+
+  if (rule.count && rule.count > 0) {
+    normalized.count = Math.floor(rule.count);
+  }
+
+  if (rule.byWeekDay && rule.byWeekDay.length > 0) {
+    normalized.byWeekDay = Array.from(
+      new Set(rule.byWeekDay.filter((day) => day >= 0 && day <= 6)),
+    ).sort((a, b) => a - b);
+  }
+
+  if (rule.byMonthDay && rule.byMonthDay.length > 0) {
+    normalized.byMonthDay = Array.from(
+      new Set(rule.byMonthDay.filter((day) => day >= 1 && day <= 31)),
+    ).sort((a, b) => a - b);
+  }
+
+  return normalized;
+};
+
+const areRecurrenceRulesEqual = (
+  left?: RecurrenceRule | null,
+  right?: RecurrenceRule | null,
+): boolean => {
+  const normalizedLeft = normalizeRecurrenceRule(left);
+  const normalizedRight = normalizeRecurrenceRule(right);
+  return JSON.stringify(normalizedLeft) === JSON.stringify(normalizedRight);
+};
+
 type Props = EventsStackScreenProps<"CalendarEventForm">;
 
 export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
@@ -95,6 +147,9 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     completeCalendarEvent,
     cancelCalendarEvent,
     rescheduleCalendarEvent,
+    addRecurrenceRule,
+    updateRecurrenceRule,
+    deleteRecurrenceRule,
   } = useCalendarEventActions(deviceId);
   const { dialogProps, showAlert } = useConfirmDialog();
 
@@ -114,6 +169,9 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
   const [scheduledFor, setScheduledFor] = useState(() => initialTimestamp);
   const [occurredAt, setOccurredAt] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+  const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(
+    null,
+  );
 
   // Audit-specific fields
   const [accountId, setAccountId] = useState(prefillAccountId ?? "");
@@ -155,6 +213,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
       setLocation(calendarEvent.location ?? "");
       setScheduledFor(calendarEvent.scheduledFor);
       setOccurredAt(calendarEvent.occurredAt ?? "");
+      setRecurrenceRule(calendarEvent.recurrenceRule ?? null);
       applyDurationMinutes(calendarEvent.durationMinutes);
       setDurationTouched(true);
 
@@ -184,6 +243,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     setStatus("calendarEvent.status.scheduled");
     applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
     setDurationTouched(false);
+    setRecurrenceRule(null);
     didInitDefaults.current = true;
   }, [applyDurationMinutes, calendarEvent, type, initialTimestamp]);
 
@@ -379,6 +439,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     const trimmedSummary = summary.trim();
     const trimmedDescription = description.trim() || undefined;
     const trimmedLocation = location.trim() || undefined;
+    const normalizedRecurrenceRule = normalizeRecurrenceRule(recurrenceRule);
 
     if (calendarEventId) {
       // Update existing event
@@ -474,6 +535,33 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         }
       }
 
+      const existingRecurrenceRule = normalizeRecurrenceRule(
+        calendarEvent?.recurrenceRule,
+      );
+      if (
+        !areRecurrenceRulesEqual(
+          existingRecurrenceRule,
+          normalizedRecurrenceRule,
+        )
+      ) {
+        const recurrenceResult = existingRecurrenceRule
+          ? normalizedRecurrenceRule
+            ? updateRecurrenceRule(calendarEventId, normalizedRecurrenceRule)
+            : deleteRecurrenceRule(calendarEventId)
+          : normalizedRecurrenceRule
+            ? addRecurrenceRule(calendarEventId, normalizedRecurrenceRule)
+            : undefined;
+
+        if (recurrenceResult && !recurrenceResult.success) {
+          showAlert(
+            t("common.error"),
+            recurrenceResult.error || t("calendarEvents.updateError"),
+            t("common.ok"),
+          );
+          return;
+        }
+      }
+
       navigation.goBack();
     } else {
       // Create new event
@@ -493,6 +581,9 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         location: trimmedLocation,
         ...(type === "audit" && { accountId: accountId as EntityId }),
         linkedEntities,
+        ...(normalizedRecurrenceRule && {
+          recurrenceRule: normalizedRecurrenceRule,
+        }),
         calendarEventId: newCalendarEventId,
       });
 
@@ -702,6 +793,12 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             </View>
           </View>
         </FormField>
+
+        <RecurrenceRulePicker
+          value={recurrenceRule}
+          onChange={setRecurrenceRule}
+          startDate={scheduledFor}
+        />
 
         <FormField label={t("calendarEvents.form.summaryLabel")}>
           <TextField
