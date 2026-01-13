@@ -1,5 +1,29 @@
 # Backend Agents Guide — Offline-First CRM
 
+## Scope and layout
+- **This AGENTS.md applies to:** repo root and all subdirectories.
+- **Key directories:** `CRMOrbit/` (Expo app + backend core), `standardization/` (audit and contract references).
+- **Module instructions:** `CRMOrbit/AGENTS.md`, `CRMOrbit/eslint-rules/AGENTS.md`.
+
+## Modules / subprojects
+
+| Module | Type | Path | What it owns | How to run | Tests | Docs | AGENTS |
+|--------|------|------|--------------|------------|-------|------|--------|
+| CRMOrbit | expo app | `CRMOrbit/` | App runtime, domains, reducers, views, tests | `cd CRMOrbit && npm run start` | `cd CRMOrbit && npm run test`, `npx tsc -p CRMOrbit/tsconfig.json --noEmit` | `README.md` | `CRMOrbit/AGENTS.md` |
+| eslint-rules | eslint plugin | `CRMOrbit/eslint-rules/` | Custom lint rules for repo conventions | `cd CRMOrbit && npm run lint` | `-` | `CRMOrbit/eslint.config.mjs` | `CRMOrbit/eslint-rules/AGENTS.md` |
+
+## Cross-domain workflows
+- **Event -> reducer -> Automerge:** events are emitted before reducers; reducers are the only mutation path.
+- **i18n mapping:** persisted values are keys; update `CRMOrbit/i18n/enums.ts` and `CRMOrbit/i18n/events.ts` with any new enums/events.
+- **Conventions enforcement:** custom ESLint rules live in `CRMOrbit/eslint-rules/` and are configured in `CRMOrbit/eslint.config.mjs`.
+
+## Verification (preferred commands)
+- Default: run quiet first; re-run narrowed failures with verbose logs only when debugging.
+- From `CRMOrbit/`: `npm run lint`, `npm run test`, `npx tsc -p tsconfig.json --noEmit`.
+
+## Docs usage
+- Do not open/read docs unless the task requires it or the user asks.
+
 ## Role of the Agent
 
 You are acting as a **backend implementation agent** for an offline-first CRM.
@@ -132,15 +156,15 @@ Zustand must **never**:
 
 ## Repository Structure (Must Match)
 
-/crm-core
-/domains
-/relations
-/events
-/reducers
-/automerge
-/views
-/tests
-/i18n
+Inside `CRMOrbit/`:
+- `automerge/`
+- `domains/`
+- `relations/`
+- `events/`
+- `reducers/`
+- `views/`
+- `tests/`
+- `i18n/`
 
 Do not collapse folders.  
 Do not cross-import improperly.
