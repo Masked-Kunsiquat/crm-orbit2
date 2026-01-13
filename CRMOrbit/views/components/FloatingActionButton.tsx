@@ -6,18 +6,22 @@ type FloatingActionButtonProps = {
   label?: string;
   onPress: () => void;
   color?: string;
+  accessibilityLabel?: string;
 };
 
 export const FloatingActionButton = ({
   label = "+",
   onPress,
   color,
+  accessibilityLabel,
 }: FloatingActionButtonProps) => {
   const { colors } = useTheme();
   const buttonColor = color ?? colors.accent;
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
       style={[styles.fab, { backgroundColor: buttonColor }]}
     >

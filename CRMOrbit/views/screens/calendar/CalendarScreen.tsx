@@ -1,7 +1,12 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { t } from "@i18n/index";
-import { CalendarView, HeaderMenu, TimelineView } from "../../components";
+import {
+  CalendarView,
+  FloatingActionButton,
+  HeaderMenu,
+  TimelineView,
+} from "../../components";
 import {
   useAccounts,
   useAllAudits,
@@ -19,6 +24,7 @@ type Props = EventsStackScreenProps<"Calendar">;
 export const CalendarScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const [viewMode, setViewMode] = useState<CalendarViewMode>("agenda");
+  const [quickAddVisible, setQuickAddVisible] = useState(false);
   const audits = useAllAudits();
   const interactions = useAllInteractions();
   const accounts = useAccounts();
@@ -67,6 +73,16 @@ export const CalendarScreen = ({ navigation }: Props) => {
     [navigation],
   );
 
+  const handleCreateInteraction = useCallback(() => {
+    setQuickAddVisible(false);
+    navigation.navigate("InteractionForm", {});
+  }, [navigation]);
+
+  const handleCreateAudit = useCallback(() => {
+    setQuickAddVisible(false);
+    navigation.navigate("AuditForm", {});
+  }, [navigation]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight,
@@ -75,25 +91,80 @@ export const CalendarScreen = ({ navigation }: Props) => {
 
   return (
     <>
-      {viewMode === "agenda" ? (
-        <CalendarView
-          audits={audits}
-          interactions={interactions}
-          accountNames={accountNames}
-          entityNamesForInteraction={getEntityNamesForInteraction}
-          onAuditPress={handleAuditPress}
-          onInteractionPress={handleInteractionPress}
+      <View style={styles.container}>
+        {viewMode === "agenda" ? (
+          <CalendarView
+            audits={audits}
+            interactions={interactions}
+            accountNames={accountNames}
+            entityNamesForInteraction={getEntityNamesForInteraction}
+            onAuditPress={handleAuditPress}
+            onInteractionPress={handleInteractionPress}
+          />
+        ) : (
+          <TimelineView
+            audits={audits}
+            interactions={interactions}
+            accountNames={accountNames}
+            entityNamesForInteraction={getEntityNamesForInteraction}
+            onAuditPress={handleAuditPress}
+            onInteractionPress={handleInteractionPress}
+          />
+        )}
+        <FloatingActionButton
+          label="+"
+          accessibilityLabel={t("calendar.quickAdd.button")}
+          onPress={() => setQuickAddVisible(true)}
         />
-      ) : (
-        <TimelineView
-          audits={audits}
-          interactions={interactions}
-          accountNames={accountNames}
-          entityNamesForInteraction={getEntityNamesForInteraction}
-          onAuditPress={handleAuditPress}
-          onInteractionPress={handleInteractionPress}
-        />
-      )}
+      </View>
+      <Modal
+        transparent
+        visible={quickAddVisible}
+        animationType="fade"
+        onRequestClose={() => setQuickAddVisible(false)}
+      >
+        <View style={styles.quickAddOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setQuickAddVisible(false)}
+          />
+          <View
+            style={[
+              styles.quickAddMenu,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleCreateInteraction}
+              style={({ pressed }) => [
+                styles.quickAddItem,
+                pressed && styles.quickAddItemPressed,
+              ]}
+            >
+              <Text
+                style={[styles.quickAddText, { color: colors.textPrimary }]}
+              >
+                {t("calendar.quickAdd.interaction")}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleCreateAudit}
+              style={({ pressed }) => [
+                styles.quickAddItem,
+                pressed && styles.quickAddItemPressed,
+              ]}
+            >
+              <Text
+                style={[styles.quickAddText, { color: colors.textPrimary }]}
+              >
+                {t("calendar.quickAdd.audit")}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}
@@ -124,11 +195,42 @@ export const CalendarScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   menuItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
   menuItemText: {
+    fontSize: 16,
+  },
+  quickAddOverlay: {
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+  quickAddMenu: {
+    minWidth: 180,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 6,
+    marginBottom: 72,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  quickAddItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  quickAddItemPressed: {
+    opacity: 0.8,
+  },
+  quickAddText: {
     fontSize: 16,
   },
 });
