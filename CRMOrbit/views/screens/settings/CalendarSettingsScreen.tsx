@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -19,19 +20,32 @@ import {
   SegmentedOptionGroup,
   TextField,
 } from "../../components";
-import { useTheme, useCalendarSync } from "../../hooks";
+import {
+  useDeviceId,
+  useTheme,
+  useCalendarSync,
+  useSettingsActions,
+} from "../../hooks";
 import {
   useAccounts,
   useAllAudits,
   useAllInteractions,
+  useCalendarSettings,
   useDoc,
 } from "../../store/store";
 import { formatTimestamp } from "@domains/shared/dateFormatting";
+import {
+  CALENDAR_PALETTES,
+  resolveCalendarPalette,
+} from "../../utils/calendarColors";
 
 type AuditAlarmOption = "0" | "30" | "60" | "120" | "custom";
 
 export const CalendarSettingsScreen = () => {
   const { colors } = useTheme();
+  const deviceId = useDeviceId();
+  const calendarSettings = useCalendarSettings();
+  const { updateCalendarSettings } = useSettingsActions(deviceId);
   const audits = useAllAudits();
   const interactions = useAllInteractions();
   const accounts = useAccounts();
@@ -83,8 +97,103 @@ export const CalendarSettingsScreen = () => {
     void Linking.openSettings();
   }, []);
 
+  const paletteOptions = CALENDAR_PALETTES.map((palette) => ({
+    id: palette.id,
+    label: t(palette.labelKey),
+    preview: resolveCalendarPalette(colors, palette.id),
+  }));
+
   return (
     <FormScreenLayout>
+      <Section title={t("calendar.colors.title")}>
+        <FormField
+          label={t("calendar.colors.paletteLabel")}
+          hint={t("calendar.colors.paletteHint")}
+        >
+          <View style={styles.paletteList}>
+            {paletteOptions.map((palette) => {
+              const isSelected = palette.id === calendarSettings.palette;
+              return (
+                <Pressable
+                  key={palette.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  onPress={() => {
+                    if (!isSelected) {
+                      updateCalendarSettings({ palette: palette.id });
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.paletteCardRow,
+                    {
+                      backgroundColor: colors.surfaceElevated,
+                      borderColor: isSelected
+                        ? colors.accent
+                        : colors.borderLight,
+                    },
+                    pressed && styles.paletteCardPressed,
+                  ]}
+                >
+                  <Text
+                    style={[styles.paletteLabel, { color: colors.textPrimary }]}
+                  >
+                    {palette.label}
+                  </Text>
+                  <View style={styles.swatchRow}>
+                    <View
+                      style={[
+                        styles.swatch,
+                        {
+                          backgroundColor: palette.preview.audit.scheduled,
+                          borderColor: colors.borderLight,
+                        },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.swatch,
+                        {
+                          backgroundColor: palette.preview.audit.completed,
+                          borderColor: colors.borderLight,
+                        },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.swatch,
+                        {
+                          backgroundColor:
+                            palette.preview.interaction.scheduled,
+                          borderColor: colors.borderLight,
+                        },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.swatch,
+                        {
+                          backgroundColor:
+                            palette.preview.interaction.completed,
+                          borderColor: colors.borderLight,
+                        },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.swatch,
+                        {
+                          backgroundColor: palette.preview.audit.canceled,
+                          borderColor: colors.borderLight,
+                        },
+                      ]}
+                    />
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </FormField>
+      </Section>
       <Section title={t("calendar.sync.title")}>
         {Platform.OS === "web" ? (
           <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
@@ -253,6 +362,38 @@ export const CalendarSettingsScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  paletteList: {
+    gap: 12,
+  },
+  paletteCardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  paletteCardPressed: {
+    opacity: 0.85,
+  },
+  paletteLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  swatchRow: {
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+  },
+  swatch: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   alarmInputRow: {
     flexDirection: "row",
     alignItems: "center",

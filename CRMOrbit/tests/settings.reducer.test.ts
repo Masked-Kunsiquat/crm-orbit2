@@ -60,3 +60,38 @@ test("settings.security.updated rejects invalid values", () => {
     message: "Invalid blurTimeout setting: 999",
   });
 });
+
+test("settings.calendar.updated updates calendar palette", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-settings-4",
+    type: "settings.calendar.updated",
+    payload: {
+      palette: "meadow",
+    },
+    timestamp: "2024-03-04T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = settingsReducer(doc, event);
+
+  assert.equal(next.settings.calendar.palette, "meadow");
+  assert.equal(next.settings.security.biometricAuth, "enabled");
+});
+
+test("settings.calendar.updated rejects invalid palette", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-settings-5",
+    type: "settings.calendar.updated",
+    payload: {
+      palette: "neon",
+    },
+    timestamp: "2024-03-05T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => settingsReducer(doc, event), {
+    message: "Invalid calendar palette: neon",
+  });
+});

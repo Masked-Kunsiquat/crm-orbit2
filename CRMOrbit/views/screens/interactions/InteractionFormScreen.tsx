@@ -38,6 +38,7 @@ import {
   parseDurationMinutes,
   splitDurationMinutes,
 } from "../../utils/duration";
+import { buildTimestampFromDate } from "../../utils/date";
 import type { EventsStackScreenProps } from "../../navigation/types";
 
 const INTERACTION_TYPES: Array<{ label: string; value: InteractionType }> = [
@@ -63,7 +64,11 @@ type Props = EventsStackScreenProps<"InteractionForm">;
 export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const { interactionId, entityToLink } = route.params ?? {};
+  const { interactionId, entityToLink, prefillDate } = route.params ?? {};
+  const initialTimestamp = useMemo(
+    () => buildTimestampFromDate(prefillDate),
+    [prefillDate],
+  );
   const interaction = useInteraction(interactionId ?? "");
   const {
     logInteraction,
@@ -86,10 +91,8 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
   const [durationHours, setDurationHours] = useState("");
   const [durationMinutesInput, setDurationMinutesInput] = useState("");
   const [durationTouched, setDurationTouched] = useState(false);
-  const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString());
-  const [scheduledFor, setScheduledFor] = useState(() =>
-    new Date().toISOString(),
-  );
+  const [occurredAt, setOccurredAt] = useState(() => initialTimestamp);
+  const [scheduledFor, setScheduledFor] = useState(() => initialTimestamp);
   const [showPicker, setShowPicker] = useState(false);
   const didInitDefaults = useRef(false);
 
@@ -126,15 +129,14 @@ export const InteractionFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
-    // Set default to current date/time on first load only.
-    const now = new Date().toISOString();
-    setOccurredAt(now);
-    setScheduledFor(now);
+    // Set default to prefilled date on first load only.
+    setOccurredAt(initialTimestamp);
+    setScheduledFor(initialTimestamp);
     setStatus("interaction.status.completed");
     applyDurationMinutes(DEFAULT_DURATION_BY_TYPE[type]);
     setDurationTouched(false);
     didInitDefaults.current = true;
-  }, [applyDurationMinutes, interaction, type]);
+  }, [applyDurationMinutes, interaction, type, initialTimestamp]);
 
   useEffect(() => {
     if (interaction || durationTouched) {

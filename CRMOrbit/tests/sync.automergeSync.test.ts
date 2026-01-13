@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import Automerge from "automerge";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initAutomergeDoc } from "@automerge/init";
+import type { Organization } from "@domains/organization";
 import {
   applyReceivedChanges,
   createSyncBundle,
@@ -189,9 +190,10 @@ test("applyReceivedChanges applies snapshot changes when merge is a no-op", () =
   try {
     const merged = applyReceivedChanges(localDoc, changes);
     const resolvedName = merged.organizations["org-1"].name;
-    const conflicts = Automerge.getConflicts(merged.organizations, "org-1") as
-      | Record<string, { name?: string }>
-      | undefined;
+    const conflicts = Automerge.getConflicts(
+      merged.organizations as Automerge.Doc<Record<string, Organization>>,
+      "org-1",
+    ) as Record<string, { name?: string }> | undefined;
     const conflictValues = conflicts ? Object.values(conflicts) : [];
     const hasRemoteValue =
       resolvedName === "Remote" ||

@@ -8,8 +8,15 @@ export type SecuritySettings = {
   authFrequency: SecurityAuthFrequency;
 };
 
+export type CalendarPaletteId = "orbit" | "meadow" | "ember";
+
+export type CalendarSettings = {
+  palette: CalendarPaletteId;
+};
+
 export type Settings = {
   security: SecuritySettings;
+  calendar: CalendarSettings;
 };
 
 export const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
@@ -18,8 +25,13 @@ export const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
   authFrequency: "each",
 };
 
+export const DEFAULT_CALENDAR_SETTINGS: CalendarSettings = {
+  palette: "orbit",
+};
+
 export const DEFAULT_SETTINGS: Settings = {
   security: DEFAULT_SECURITY_SETTINGS,
+  calendar: DEFAULT_CALENDAR_SETTINGS,
 };
 
 const BIOMETRIC_VALUES = new Set<SecurityBiometricSetting>([
@@ -35,6 +47,11 @@ const BLUR_TIMEOUT_VALUES = new Set<SecurityBlurTimeout>([
 const AUTH_FREQUENCY_VALUES = new Set<SecurityAuthFrequency>([
   "each",
   "session",
+]);
+const CALENDAR_PALETTE_VALUES = new Set<CalendarPaletteId>([
+  "orbit",
+  "meadow",
+  "ember",
 ]);
 
 export const isSecurityBiometricSetting = (
@@ -54,3 +71,9 @@ export const isSecurityAuthFrequency = (
 ): value is SecurityAuthFrequency =>
   typeof value === "string" &&
   AUTH_FREQUENCY_VALUES.has(value as SecurityAuthFrequency);
+
+export const isCalendarPaletteId = (
+  value: unknown,
+): value is CalendarPaletteId =>
+  typeof value === "string" &&
+  CALENDAR_PALETTE_VALUES.has(value as CalendarPaletteId);

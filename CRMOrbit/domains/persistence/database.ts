@@ -25,8 +25,8 @@ export const initializeDatabase = async (): Promise<
 
   // Run migrations
   await runMigrations({
-    execute: async (sql: string, params?: unknown[]) => {
-      if (params && params.length > 0) {
+    execute: async (sql: string, params?: SQLite.SQLiteBindParams) => {
+      if (params !== undefined) {
         await expoDb.runAsync(sql, params);
       } else {
         await expoDb.execAsync(sql);
@@ -34,10 +34,10 @@ export const initializeDatabase = async (): Promise<
     },
     getFirstRow: async <T>(
       sql: string,
-      params?: unknown[],
+      params?: SQLite.SQLiteBindParams,
     ): Promise<T | null> => {
       const result =
-        params && params.length > 0
+        params !== undefined
           ? await expoDb.getFirstAsync<T>(sql, params)
           : await expoDb.getFirstAsync<T>(sql);
       return result ?? null;

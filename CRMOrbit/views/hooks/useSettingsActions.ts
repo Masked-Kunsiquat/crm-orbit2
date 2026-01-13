@@ -2,6 +2,7 @@ import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
 import type {
+  CalendarPaletteId,
   SecurityAuthFrequency,
   SecurityBiometricSetting,
   SecurityBlurTimeout,
@@ -13,6 +14,10 @@ type SecuritySettingsUpdate = {
   biometricAuth?: SecurityBiometricSetting;
   blurTimeout?: SecurityBlurTimeout;
   authFrequency?: SecurityAuthFrequency;
+};
+
+type CalendarSettingsUpdate = {
+  palette?: CalendarPaletteId;
 };
 
 export const useSettingsActions = (deviceId: string) => {
@@ -31,7 +36,21 @@ export const useSettingsActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  const updateCalendarSettings = useCallback(
+    (updates: CalendarSettingsUpdate): DispatchResult => {
+      const event = buildEvent({
+        type: "settings.calendar.updated",
+        payload: updates,
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
   return {
     updateSecuritySettings,
+    updateCalendarSettings,
   };
 };

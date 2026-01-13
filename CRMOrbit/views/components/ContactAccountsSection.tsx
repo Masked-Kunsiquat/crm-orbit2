@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Account } from "@domains/account";
-import type { AccountContactRelation } from "@domains/relations/accountContact";
+import type { AccountContact } from "@domains/relations/accountContact";
 import { t } from "@i18n/index";
 import { useTheme } from "../hooks";
 import { Section } from "./Section";
@@ -10,7 +10,7 @@ const PREVIEW_LIMIT = 3;
 
 export interface ContactAccountsSectionProps {
   linkedAccounts: Account[];
-  accountContactRelations: Record<string, AccountContactRelation>;
+  accountContactRelations: Record<string, AccountContact>;
   contactId: string;
   onAccountPress: (accountId: string) => void;
   onLinkPress: () => void;
@@ -83,7 +83,7 @@ export const ContactAccountsSection = ({
                   <View
                     style={[
                       styles.primaryBadge,
-                      { backgroundColor: colors.accentBg },
+                      { backgroundColor: colors.accentMuted },
                     ]}
                   >
                     <Text

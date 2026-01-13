@@ -68,7 +68,11 @@ const formatTimestamp = (timestamp?: string): string => {
 export const AuditFormScreen = ({ route, navigation }: Props) => {
   const { colors } = useTheme();
   const deviceId = useDeviceId();
-  const { auditId, accountId: prefillAccountId } = route.params ?? {};
+  const {
+    auditId,
+    accountId: prefillAccountId,
+    prefillDate,
+  } = route.params ?? {};
   const audit = useAudit(auditId ?? "");
   const accounts = useAccounts();
   const {
@@ -86,6 +90,7 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
   const formState = useAuditFormState({
     audit,
     prefillAccountId,
+    prefillDate,
   });
 
   const {

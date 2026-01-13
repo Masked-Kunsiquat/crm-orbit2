@@ -1,240 +1,268 @@
-import { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
-import { AntDesign, FontAwesome6, Ionicons } from "@expo/vector-icons";
-
-import type { Audit } from "@domains/audit";
-import type { Interaction } from "@domains/interaction";
-import { t } from "@i18n/index";
-import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
-import { useTheme } from "../../hooks";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  CalendarView,
+  FloatingActionButton,
+  HeaderMenu,
+  TimelineView,
+} from "../../components";
+import type { CalendarViewLabels } from "../../components/CalendarView";
 import {
   useAccounts,
   useAllAudits,
   useAllInteractions,
+  useDoc,
 } from "../../store/store";
 import type { EventsStackScreenProps } from "../../navigation/types";
-import {
-  getAuditEndTimestamp,
-  getAuditStartTimestamp,
-  getAuditStatusTone,
-  getAuditTimestampLabelKey,
-  formatAuditScore,
-  resolveAuditStatus,
-} from "../../utils/audits";
-import { addMinutesToTimestamp } from "../../utils/duration";
+import { getEntitiesForInteraction } from "../../store/selectors";
+import { useHeaderMenu, useTheme } from "../../hooks";
+import { getInitialCalendarDate } from "../../utils/calendarDataTransformers";
 
-type Props = EventsStackScreenProps<"Calendar">;
+type CalendarViewMode = "agenda" | "timeline";
 
-type CalendarItem =
-  | { kind: "audit"; timestamp: number; audit: Audit }
-  | { kind: "interaction"; timestamp: number; interaction: Interaction };
-
-const formatTimestamp = (timestamp?: string): string => {
-  if (!timestamp) {
-    return t("common.unknown");
-  }
-  const date = new Date(timestamp);
-  if (Number.isNaN(date.getTime())) {
-    return t("common.unknown");
-  }
-  return date.toLocaleString();
+type CalendarScreenLabels = {
+  viewOptionsLabel: string;
+  switchToTimelineLabel: string;
+  switchToAgendaLabel: string;
+  unknownEntityLabel: string;
+  quickAddButtonLabel: string;
+  quickAddInteractionLabel: string;
+  quickAddAuditLabel: string;
+  calendarViewLabels: CalendarViewLabels;
 };
 
-const resolveTimestamp = (timestamp?: string): number => {
-  if (!timestamp) {
-    return Number.NEGATIVE_INFINITY;
-  }
-  const parsed = Date.parse(timestamp);
-  return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
-};
+type Props = EventsStackScreenProps<"Calendar"> & CalendarScreenLabels;
 
-export const CalendarScreen = ({ navigation }: Props) => {
+export const CalendarScreen = ({
+  navigation,
+  viewOptionsLabel,
+  switchToTimelineLabel,
+  switchToAgendaLabel,
+  unknownEntityLabel,
+  quickAddButtonLabel,
+  quickAddInteractionLabel,
+  quickAddAuditLabel,
+  calendarViewLabels,
+}: Props) => {
+  const { colors } = useTheme();
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("agenda");
+  const [quickAddVisible, setQuickAddVisible] = useState(false);
   const audits = useAllAudits();
   const interactions = useAllInteractions();
   const accounts = useAccounts();
-  const { colors } = useTheme();
+  const doc = useDoc();
+  const initialDate = useMemo(
+    () => getInitialCalendarDate(audits, interactions),
+    [audits, interactions],
+  );
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
+
+  const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
+    accessibilityLabel: viewOptionsLabel,
+  });
 
   const accountNames = useMemo(
     () => new Map(accounts.map((account) => [account.id, account.name])),
     [accounts],
   );
 
-  const items = useMemo<CalendarItem[]>(() => {
-    const auditItems = audits.map((audit) => ({
-      kind: "audit" as const,
-      timestamp: resolveTimestamp(getAuditStartTimestamp(audit)),
-      audit,
-    }));
-    const interactionItems = interactions.map((interaction) => ({
-      kind: "interaction" as const,
-      timestamp: resolveTimestamp(
-        interaction.scheduledFor ?? interaction.occurredAt,
-      ),
-      interaction,
-    }));
-    return [...auditItems, ...interactionItems].sort(
-      (left, right) => right.timestamp - left.timestamp,
-    );
-  }, [audits, interactions]);
+  const toggleViewMode = useCallback(() => {
+    setViewMode((current) => (current === "agenda" ? "timeline" : "agenda"));
+  }, []);
 
-  const handleAdd = () => {
-    navigation.navigate("InteractionForm", {});
-  };
+  const viewModeLabel =
+    viewMode === "agenda" ? switchToTimelineLabel : switchToAgendaLabel;
 
-  const getInteractionIcon = (type: string) => {
-    switch (type) {
-      case "interaction.type.email":
-        return <Ionicons name="mail-outline" size={20} color={colors.accent} />;
-      case "interaction.type.call":
-        return <Ionicons name="call-outline" size={20} color={colors.accent} />;
-      case "interaction.type.meeting":
-        return (
-          <Ionicons
-            name="people-circle-outline"
-            size={20}
-            color={colors.accent}
-          />
-        );
-      case "interaction.type.other":
-      default:
-        return (
-          <FontAwesome6 name="lines-leaning" size={20} color={colors.accent} />
-        );
-    }
-  };
+  const getEntityNamesForInteraction = useCallback(
+    (interactionId: string): string => {
+      const linkedEntities = getEntitiesForInteraction(doc, interactionId);
+      const accountEntity =
+        linkedEntities.find((entity) => entity.entityType === "account") ??
+        linkedEntities[0];
+      return accountEntity?.name ?? unknownEntityLabel;
+    },
+    [doc, unknownEntityLabel],
+  );
 
-  const renderItem = ({ item }: { item: CalendarItem }) => {
-    if (item.kind === "audit") {
-      const audit = item.audit;
-      const accountName =
-        accountNames.get(audit.accountId) ?? t("common.unknownEntity");
-      const status = resolveAuditStatus(audit);
-      const timestampLabel = t(getAuditTimestampLabelKey(status));
-      const startTimestamp = getAuditStartTimestamp(audit);
-      const endTimestamp = getAuditEndTimestamp(audit);
-      const timestampValue = formatTimestamp(startTimestamp);
-      const endTimestampValue = endTimestamp
-        ? formatTimestamp(endTimestamp)
-        : undefined;
-      const scoreValue = formatAuditScore(audit.score);
-      const scoreLabel = scoreValue
-        ? `${t("audits.fields.score")}: ${scoreValue}`
-        : undefined;
-      const floorsLabel =
-        audit.floorsVisited && audit.floorsVisited.length > 0
-          ? `${t("audits.fields.floorsVisited")}: ${audit.floorsVisited.join(
-              ", ",
-            )}`
-          : undefined;
-      const footnote = audit.notes?.trim() || floorsLabel;
-      const subtitle = `${timestampLabel}: ${timestampValue}`;
-      const descriptionLines = [
-        endTimestampValue
-          ? `${t("audits.fields.endsAt")}: ${endTimestampValue}`
-          : undefined,
-        scoreLabel,
-      ].filter(Boolean);
-      const description = descriptionLines.length
-        ? descriptionLines.join("\n")
-        : undefined;
+  const handleAuditPress = useCallback(
+    (auditId: string) => {
+      navigation.navigate("AuditDetail", { auditId });
+    },
+    [navigation],
+  );
 
-      return (
-        <ListRow
-          onPress={() =>
-            navigation.navigate("AuditDetail", { auditId: audit.id })
-          }
-          title={accountName}
-          subtitle={subtitle}
-          description={description}
-          footnote={footnote}
-          descriptionNumberOfLines={3}
-          footnoteNumberOfLines={2}
-          style={styles.listRow}
-          titleAccessory={
-            <StatusBadge tone={getAuditStatusTone(status)} labelKey={status} />
-          }
-        >
-          <View style={styles.iconContainer}>
-            <AntDesign name="audit" size={20} color={colors.accent} />
-          </View>
-        </ListRow>
-      );
-    }
+  const handleInteractionPress = useCallback(
+    (interactionId: string) => {
+      navigation.navigate("InteractionDetail", { interactionId });
+    },
+    [navigation],
+  );
 
-    const interaction = item.interaction;
-    const resolvedStatus = interaction.status ?? "interaction.status.completed";
-    const usesScheduledTimestamp =
-      resolvedStatus !== "interaction.status.completed";
-    const timestampValue = usesScheduledTimestamp
-      ? (interaction.scheduledFor ?? interaction.occurredAt)
-      : interaction.occurredAt;
-    const labelKey = usesScheduledTimestamp
-      ? "interactions.scheduledFor"
-      : "interactions.occurredAt";
-    const formattedTimestamp = formatTimestamp(timestampValue);
-    const subtitle = `${t(labelKey)}: ${formattedTimestamp}`;
-    const endTimestamp = addMinutesToTimestamp(
-      timestampValue,
-      interaction.durationMinutes,
-    );
-    const endTimestampValue = endTimestamp
-      ? formatTimestamp(endTimestamp)
-      : undefined;
-    const descriptionLines = [
-      resolvedStatus !== "interaction.status.completed"
-        ? `${t("interactions.statusLabel")}: ${t(resolvedStatus)}`
-        : undefined,
-      endTimestampValue
-        ? `${t("interactions.fields.endsAt")}: ${endTimestampValue}`
-        : undefined,
-    ].filter(Boolean);
-    const interactionDescription = descriptionLines.length
-      ? descriptionLines.join("\n")
-      : undefined;
+  const handleCreateInteraction = useCallback(() => {
+    setQuickAddVisible(false);
+    navigation.navigate("InteractionForm", { prefillDate: selectedDate });
+  }, [navigation, selectedDate]);
 
-    return (
-      <ListRow
-        onPress={() =>
-          navigation.navigate("InteractionDetail", {
-            interactionId: interaction.id,
-          })
-        }
-        title={interaction.summary}
-        subtitle={subtitle}
-        description={interactionDescription}
-        descriptionNumberOfLines={3}
-        style={styles.listRow}
-      >
-        <View style={styles.iconContainer}>
-          {getInteractionIcon(interaction.type)}
-        </View>
-      </ListRow>
-    );
-  };
+  const handleCreateAudit = useCallback(() => {
+    setQuickAddVisible(false);
+    navigation.navigate("AuditForm", { prefillDate: selectedDate });
+  }, [navigation, selectedDate]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight,
+    });
+  }, [navigation, headerRight]);
 
   return (
-    <ListScreenLayout
-      data={items}
-      renderItem={renderItem}
-      keyExtractor={(item) =>
-        item.kind === "audit"
-          ? `audit-${item.audit.id}`
-          : `interaction-${item.interaction.id}`
-      }
-      emptyTitle={t("calendar.emptyTitle")}
-      emptyHint={t("calendar.emptyHint")}
-      onAdd={handleAdd}
-    />
+    <>
+      <View style={styles.container}>
+        {viewMode === "agenda" ? (
+          <CalendarView
+            audits={audits}
+            interactions={interactions}
+            accountNames={accountNames}
+            unknownEntityLabel={unknownEntityLabel}
+            labels={calendarViewLabels}
+            entityNamesForInteraction={getEntityNamesForInteraction}
+            onAuditPress={handleAuditPress}
+            onInteractionPress={handleInteractionPress}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+          />
+        ) : (
+          <TimelineView
+            audits={audits}
+            interactions={interactions}
+            accountNames={accountNames}
+            fallbackUnknownEntity={unknownEntityLabel}
+            entityNamesForInteraction={getEntityNamesForInteraction}
+            onAuditPress={handleAuditPress}
+            onInteractionPress={handleInteractionPress}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+          />
+        )}
+        <FloatingActionButton
+          label="+"
+          accessibilityLabel={quickAddButtonLabel}
+          onPress={() => setQuickAddVisible(true)}
+        />
+      </View>
+      <Modal
+        transparent
+        visible={quickAddVisible}
+        animationType="fade"
+        onRequestClose={() => setQuickAddVisible(false)}
+      >
+        <View style={styles.quickAddOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setQuickAddVisible(false)}
+          />
+          <View
+            style={[
+              styles.quickAddMenu,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleCreateInteraction}
+              style={({ pressed }) => [
+                styles.quickAddItem,
+                pressed && styles.quickAddItemPressed,
+              ]}
+            >
+              <Text
+                style={[styles.quickAddText, { color: colors.textPrimary }]}
+              >
+                {quickAddInteractionLabel}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleCreateAudit}
+              style={({ pressed }) => [
+                styles.quickAddItem,
+                pressed && styles.quickAddItemPressed,
+              ]}
+            >
+              <Text
+                style={[styles.quickAddText, { color: colors.textPrimary }]}
+              >
+                {quickAddAuditLabel}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+      <HeaderMenu
+        anchorRef={menuAnchorRef}
+        visible={menuVisible}
+        onRequestClose={closeMenu}
+      >
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            toggleViewMode();
+            closeMenu();
+          }}
+          style={({ pressed }) => [
+            styles.menuItem,
+            {
+              backgroundColor: pressed
+                ? colors.surfaceElevated
+                : colors.surface,
+            },
+          ]}
+        >
+          <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
+            {viewModeLabel}
+          </Text>
+        </Pressable>
+      </HeaderMenu>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  listRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  container: {
+    flex: 1,
   },
-  iconContainer: {
-    marginLeft: 8,
+  menuItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  menuItemText: {
+    fontSize: 16,
+  },
+  quickAddOverlay: {
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+  quickAddMenu: {
+    minWidth: 180,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 6,
+    marginBottom: 72,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  quickAddItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  quickAddItemPressed: {
+    opacity: 0.8,
+  },
+  quickAddText: {
+    fontSize: 16,
   },
 });

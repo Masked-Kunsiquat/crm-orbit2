@@ -57,5 +57,6 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "code.encrypted": codeReducer,
   "code.deleted": codeReducer,
   "settings.security.updated": settingsReducer,
+  "settings.calendar.updated": settingsReducer,
   "device.registered": deviceReducer,
 };

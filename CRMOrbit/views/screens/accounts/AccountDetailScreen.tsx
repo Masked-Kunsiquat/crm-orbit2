@@ -111,6 +111,7 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
     all: t("accounts.filters.all"),
     "contact.type.internal": t("contact.type.internal"),
     "contact.type.external": t("contact.type.external"),
+    "contact.type.vendor": t("contact.type.vendor"),
   };
   const accountContactsLabels = {
     title: t("accounts.sections.contacts"),
