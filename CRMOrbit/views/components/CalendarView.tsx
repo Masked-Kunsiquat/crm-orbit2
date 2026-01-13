@@ -18,6 +18,8 @@ import {
   buildMarkedDates,
   getInitialCalendarDate,
 } from "../utils/calendarDataTransformers";
+import { resolveCalendarPalette } from "../utils/calendarColors";
+import { useCalendarSettings } from "../store/store";
 
 export interface CalendarViewProps {
   audits: Audit[];
@@ -37,9 +39,14 @@ export const CalendarView = ({
   onInteractionPress,
 }: CalendarViewProps) => {
   const { colors, isDark } = useTheme();
+  const calendarSettings = useCalendarSettings();
   const calendarTheme = useMemo(
     () => buildCalendarTheme(colors, isDark),
     [colors, isDark],
+  );
+  const calendarPalette = useMemo(
+    () => resolveCalendarPalette(colors, calendarSettings.palette),
+    [colors, calendarSettings.palette],
   );
 
   // Build agenda items
@@ -72,8 +79,8 @@ export const CalendarView = ({
 
   // Build marked dates
   const markedDates = useMemo(
-    () => buildMarkedDates(audits, interactions, selectedDate),
-    [audits, interactions, selectedDate],
+    () => buildMarkedDates(audits, interactions, selectedDate, calendarPalette),
+    [audits, interactions, selectedDate, calendarPalette],
   );
 
   const handleDayPress = useCallback((day: DateData) => {

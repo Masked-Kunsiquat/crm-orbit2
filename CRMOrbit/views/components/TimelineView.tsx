@@ -17,7 +17,8 @@ import {
   buildMarkedDates,
   getInitialCalendarDate,
 } from "../utils/calendarDataTransformers";
-import { CALENDAR_COLORS } from "../utils/calendarColors";
+import { resolveCalendarPalette } from "../utils/calendarColors";
+import { useCalendarSettings } from "../store/store";
 
 export interface TimelineViewProps {
   audits: Audit[];
@@ -50,9 +51,14 @@ export const TimelineView = ({
   onInteractionPress,
 }: TimelineViewProps) => {
   const { colors, isDark } = useTheme();
+  const calendarSettings = useCalendarSettings();
   const calendarTheme = useMemo(
     () => buildCalendarTheme(colors, isDark),
     [colors, isDark],
+  );
+  const calendarPalette = useMemo(
+    () => resolveCalendarPalette(colors, calendarSettings.palette),
+    [colors, calendarSettings.palette],
   );
 
   // Initial date (most recent event date or today)
@@ -65,8 +71,8 @@ export const TimelineView = ({
 
   // Build marked dates for calendar
   const markedDates = useMemo(
-    () => buildMarkedDates(audits, interactions, selectedDate),
-    [audits, interactions, selectedDate],
+    () => buildMarkedDates(audits, interactions, selectedDate, calendarPalette),
+    [audits, interactions, selectedDate, calendarPalette],
   );
 
   // Build timeline events grouped by date
@@ -97,7 +103,7 @@ export const TimelineView = ({
         end: endTimestamp,
         title: accountName,
         summary: audit.notes ?? "",
-        color: CALENDAR_COLORS.timeline.audit,
+        color: calendarPalette.timeline.audit,
       });
     }
 
@@ -134,12 +140,19 @@ export const TimelineView = ({
         end: endTimestamp ?? startTimestamp,
         title: interaction.summary,
         summary: entityName,
-        color: CALENDAR_COLORS.timeline.interaction,
+        color: calendarPalette.timeline.interaction,
       });
     }
 
     return eventsByDate;
-  }, [audits, interactions, accountNames, entityNamesForInteraction]);
+  }, [
+    audits,
+    interactions,
+    accountNames,
+    entityNamesForInteraction,
+    calendarPalette.timeline.audit,
+    calendarPalette.timeline.interaction,
+  ]);
 
   const handleEventPress = useCallback(
     (event: TimelineEvent) => {

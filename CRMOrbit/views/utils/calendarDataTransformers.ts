@@ -10,6 +10,7 @@ import {
   resolveAuditStatus,
 } from "./audits";
 import { addMinutesToTimestamp } from "./duration";
+import type { CalendarPaletteColors } from "./calendarColors";
 import { getAuditDotColor, getInteractionDotColor } from "./calendarColors";
 
 /**
@@ -217,6 +218,7 @@ export const buildMarkedDates = (
   audits: Audit[],
   interactions: Interaction[],
   selectedDate?: string,
+  palette: CalendarPaletteColors,
 ): MarkedDates => {
   const marked: MarkedDates = {};
 
@@ -227,7 +229,7 @@ export const buildMarkedDates = (
     if (!dateKey) continue;
 
     const status = resolveAuditStatus(audit);
-    const color = getAuditDotColor(status);
+    const color = getAuditDotColor(palette, status);
 
     if (!marked[dateKey]) {
       marked[dateKey] = { dots: [] };
@@ -251,7 +253,7 @@ export const buildMarkedDates = (
     const dateKey = toISODate(timestamp);
     if (!dateKey) continue;
 
-    const color = getInteractionDotColor(resolvedStatus);
+    const color = getInteractionDotColor(palette, resolvedStatus);
 
     if (!marked[dateKey]) {
       marked[dateKey] = { dots: [] };

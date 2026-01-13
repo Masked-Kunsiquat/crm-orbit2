@@ -11,7 +11,7 @@ import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
-import type { SecuritySettings } from "@domains/settings";
+import type { CalendarSettings, SecuritySettings } from "@domains/settings";
 import { DEFAULT_SETTINGS } from "@domains/settings";
 import { registerBackupRestoreHandler } from "@domains/persistence/backupOperations";
 import type { EntityLinkType } from "@domains/relations/entityLink";
@@ -332,6 +332,9 @@ export const useInteraction = (id: EntityId): Interaction | undefined =>
 
 export const useSecuritySettings = (): SecuritySettings =>
   crmStore(useShallow((state) => state.doc.settings.security));
+
+export const useCalendarSettings = (): CalendarSettings =>
+  crmStore(useShallow((state) => state.doc.settings.calendar));
 
 export const useCode = (id: EntityId): Code | undefined =>
   crmStore(useShallow((state) => state.doc.codes[id]));
