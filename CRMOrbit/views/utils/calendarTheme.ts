@@ -45,82 +45,92 @@ export const buildCalendarTheme = (
     agendaKnobColor: colors.border,
 
     // Additional styling
-    "stylesheet.calendar.header": {
-      header: {
-        backgroundColor: colors.surface,
-        flexDirection: "row" as const,
-        justifyContent: "space-between" as const,
-        paddingLeft: 10,
-        paddingRight: 10,
-        marginTop: 6,
-        alignItems: "center" as const,
+    stylesheet: {
+      calendar: {
+        header: {
+          header: {
+            backgroundColor: colors.surface,
+            flexDirection: "row" as const,
+            justifyContent: "space-between" as const,
+            paddingLeft: 10,
+            paddingRight: 10,
+            marginTop: 6,
+            alignItems: "center" as const,
+          },
+          monthText: {
+            fontSize: 16,
+            fontWeight: "600" as const,
+            color: colors.textPrimary,
+            margin: 10,
+          },
+          arrow: {
+            padding: 10,
+          },
+          week: {
+            marginTop: 7,
+            flexDirection: "row" as const,
+            justifyContent: "space-around" as const,
+          },
+        },
       },
-      monthText: {
-        fontSize: 16,
-        fontWeight: "600" as const,
-        color: colors.textPrimary,
-        margin: 10,
+      day: {
+        basic: {
+          base: {
+            width: 32,
+            height: 32,
+            alignItems: "center" as const,
+            justifyContent: "center" as const,
+          },
+          text: {
+            fontSize: 16,
+            color: colors.textPrimary,
+          },
+          today: {
+            backgroundColor: isDark
+              ? colors.surfaceElevated
+              : colors.borderLight,
+            borderRadius: 16,
+          },
+          todayText: {
+            color: colors.accent,
+            fontWeight: "600" as const,
+          },
+          selected: {
+            backgroundColor: colors.accent,
+            borderRadius: 16,
+          },
+          selectedText: {
+            color: colors.onAccent,
+            fontWeight: "600" as const,
+          },
+          disabled: {
+            opacity: 0.3,
+          },
+          disabledText: {
+            color: colors.textFaint,
+          },
+        },
       },
-      arrow: {
-        padding: 10,
-      },
-      week: {
-        marginTop: 7,
-        flexDirection: "row" as const,
-        justifyContent: "space-around" as const,
-      },
-    },
-    "stylesheet.day.basic": {
-      base: {
-        width: 32,
-        height: 32,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-      },
-      text: {
-        fontSize: 16,
-        color: colors.textPrimary,
-      },
-      today: {
-        backgroundColor: isDark ? colors.surfaceElevated : colors.borderLight,
-        borderRadius: 16,
-      },
-      todayText: {
-        color: colors.accent,
-        fontWeight: "600" as const,
-      },
-      selected: {
-        backgroundColor: colors.accent,
-        borderRadius: 16,
-      },
-      selectedText: {
-        color: colors.onAccent,
-        fontWeight: "600" as const,
-      },
-      disabled: {
-        opacity: 0.3,
-      },
-      disabledText: {
-        color: colors.textFaint,
-      },
-    },
-    "stylesheet.agenda.main": {
-      knobContainer: {
-        flex: 1,
-        position: "absolute" as const,
-        left: 0,
-        right: 0,
-        height: 24,
-        bottom: 0,
-        alignItems: "center" as const,
-        backgroundColor: colors.surface,
-      },
-      knob: {
-        width: 38,
-        height: 7,
-        marginTop: 10,
-        borderRadius: 3,
-        backgroundColor: colors.border,
+      agenda: {
+        main: {
+          knobContainer: {
+            flex: 1,
+            position: "absolute" as const,
+            left: 0,
+            right: 0,
+            height: 24,
+            bottom: 0,
+            alignItems: "center" as const,
+            backgroundColor: colors.surface,
+          },
+          knob: {
+            width: 38,
+            height: 7,
+            marginTop: 10,
+            borderRadius: 3,
+            backgroundColor: colors.border,
+          },
+        },
       },
     },
   };

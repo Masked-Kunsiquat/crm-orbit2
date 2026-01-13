@@ -1,18 +1,19 @@
 import { runMigrations, rollbackMigrations, MIGRATIONS } from "./migrations";
 import type { MigrationDb } from "./migrations";
+import type { SQLiteBindParams } from "expo-sqlite";
 
 describe("runMigrations", () => {
   let executedStatements: string[] = [];
   let schemaVersion: number = 0;
 
   const createMockDb = (): MigrationDb => ({
-    execute: async (sql: string, params?: unknown[]) => {
+    execute: async (sql: string, params?: SQLiteBindParams) => {
       executedStatements.push(sql);
 
       // Simulate schema_version updates with parameterized queries
       if (sql.includes("insert or replace into schema_version")) {
         // params = [1, version]
-        if (params && params.length >= 2) {
+        if (Array.isArray(params) && params.length >= 2) {
           schemaVersion = Number(params[1]);
         }
       }
@@ -96,7 +97,7 @@ describe("runMigrations", () => {
 
     // Track version after each statement
     const originalExecute = db.execute;
-    db.execute = async (sql: string, params?: unknown[]) => {
+    db.execute = async (sql: string, params?: SQLiteBindParams) => {
       await originalExecute(sql, params);
       if (sql.includes("insert or replace into schema_version")) {
         versions.push(schemaVersion);
@@ -163,11 +164,11 @@ describe("runMigrations", () => {
 
   it("should use parameterized queries to prevent SQL injection", async () => {
     const db = createMockDb();
-    const executeCalls: Array<{ sql: string; params?: unknown[] }> = [];
+    const executeCalls: Array<{ sql: string; params?: SQLiteBindParams }> = [];
 
     // Spy on execute calls
     const originalExecute = db.execute;
-    db.execute = async (sql: string, params?: unknown[]) => {
+    db.execute = async (sql: string, params?: SQLiteBindParams) => {
       executeCalls.push({ sql, params });
       return originalExecute(sql, params);
     };
@@ -182,7 +183,9 @@ describe("runMigrations", () => {
     // Should have parameterized queries (not string interpolation)
     for (const update of versionUpdates) {
       expect(update.params).toBeDefined();
-      expect(update.params?.length).toBeGreaterThan(0);
+      if (Array.isArray(update.params)) {
+        expect(update.params.length).toBeGreaterThan(0);
+      }
       expect(update.sql).not.toMatch(/values \(\d+\)/); // Should not have hardcoded numbers
     }
   });
@@ -193,13 +196,13 @@ describe("rollbackMigrations", () => {
   let schemaVersion: number = 0;
 
   const createMockDb = (): MigrationDb => ({
-    execute: async (sql: string, params?: unknown[]) => {
+    execute: async (sql: string, params?: SQLiteBindParams) => {
       executedStatements.push(sql);
 
       // Simulate schema_version updates with parameterized queries
       if (sql.includes("insert or replace into schema_version")) {
         // params = [1, version]
-        if (params && params.length >= 2) {
+        if (Array.isArray(params) && params.length >= 2) {
           schemaVersion = Number(params[1]);
         }
       }

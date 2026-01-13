@@ -1,3 +1,5 @@
+import type { SQLiteBindParams } from "expo-sqlite";
+
 export type Migration = {
   version: number;
   name: string;
@@ -32,8 +34,8 @@ export const MIGRATIONS: Migration[] = [
 ];
 
 export type MigrationDb = {
-  execute: (sql: string, params?: unknown[]) => Promise<void>;
-  getFirstRow: <T>(sql: string, params?: unknown[]) => Promise<T | null>;
+  execute: (sql: string, params?: SQLiteBindParams) => Promise<void>;
+  getFirstRow: <T>(sql: string, params?: SQLiteBindParams) => Promise<T | null>;
 };
 
 /**

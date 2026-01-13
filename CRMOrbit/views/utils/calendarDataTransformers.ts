@@ -1,5 +1,5 @@
 import type { Audit } from "@domains/audit";
-import type { Interaction } from "@domains/interaction";
+import type { Interaction, InteractionStatus } from "@domains/interaction";
 import type { MarkedDates } from "react-native-calendars/src/types";
 import {
   formatAuditScore,
@@ -7,6 +7,7 @@ import {
   getAuditStartTimestamp,
   getAuditStatusTone,
   resolveAuditStatus,
+  type AuditStatusTone,
 } from "./audits";
 import { addMinutesToTimestamp } from "./duration";
 import type { CalendarPaletteColors } from "./calendarColors";
@@ -36,7 +37,7 @@ export interface AuditAgendaItem {
   scoreValue?: string;
   floorsVisited?: number[];
   notes?: string;
-  statusTone: "positive" | "neutral" | "warning" | "destructive";
+  statusTone: AuditStatusTone;
   statusKey: string;
 }
 
@@ -50,7 +51,7 @@ export interface InteractionAgendaItem {
   entityName: string;
   startTimestamp: string;
   endTimestamp?: string;
-  statusKey: string;
+  statusKey: InteractionStatus;
   subtitleKey: "interactions.scheduledFor" | "interactions.occurredAt";
 }
 
@@ -182,8 +183,8 @@ export const groupAgendaItemsByDate = (
 export const buildMarkedDates = (
   audits: Audit[],
   interactions: Interaction[],
-  selectedDate?: string,
   palette: CalendarPaletteColors,
+  selectedDate?: string,
 ): MarkedDates => {
   const marked: MarkedDates = {};
 

@@ -58,7 +58,7 @@ export const TimelineView = ({
 
   // Build marked dates for calendar
   const markedDates = useMemo(
-    () => buildMarkedDates(audits, interactions, selectedDate, calendarPalette),
+    () => buildMarkedDates(audits, interactions, calendarPalette, selectedDate),
     [audits, interactions, selectedDate, calendarPalette],
   );
 
@@ -69,10 +69,9 @@ export const TimelineView = ({
     // Add audit events
     for (const audit of audits) {
       const startTimestamp = getAuditStartTimestamp(audit);
-      const endTimestamp = getAuditEndTimestamp(audit) ?? startTimestamp;
-
       if (!startTimestamp) continue;
 
+      const endTimestamp = getAuditEndTimestamp(audit) ?? startTimestamp;
       const dateKey = toISODate(startTimestamp);
       if (!dateKey) continue;
 
@@ -143,11 +142,12 @@ export const TimelineView = ({
   ]);
 
   const handleEventPress = useCallback(
-    (event: TimelineEvent) => {
-      if (event.kind === "audit") {
-        onAuditPress(event.id);
+    (event: TimelineEventProps) => {
+      const timelineEvent = event as TimelineEvent;
+      if (timelineEvent.kind === "audit") {
+        onAuditPress(timelineEvent.id);
       } else {
-        onInteractionPress(event.id);
+        onInteractionPress(timelineEvent.id);
       }
     },
     [onAuditPress, onInteractionPress],

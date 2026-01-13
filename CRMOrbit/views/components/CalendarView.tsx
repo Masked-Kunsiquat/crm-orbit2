@@ -105,7 +105,7 @@ export const CalendarView = ({
 
   // Build marked dates
   const markedDates = useMemo(
-    () => buildMarkedDates(audits, interactions, selectedDate, calendarPalette),
+    () => buildMarkedDates(audits, interactions, calendarPalette, selectedDate),
     [audits, interactions, selectedDate, calendarPalette],
   );
 
@@ -290,7 +290,6 @@ export const CalendarView = ({
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
-          estimatedItemSize={100}
           drawDistance={500}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
