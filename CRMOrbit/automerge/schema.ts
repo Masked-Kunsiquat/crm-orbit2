@@ -1,5 +1,6 @@
 import type { Account } from "@domains/account";
 import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Code } from "@domains/code";
 import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
@@ -14,12 +15,16 @@ import type { EntityId } from "@domains/shared/types";
 export interface AutomergeDoc {
   organizations: Record<EntityId, Organization>;
   accounts: Record<EntityId, Account>;
-  audits: Record<EntityId, Audit>;
+  audits: Record<EntityId, Audit>; // DEPRECATED - migrating to calendarEvents
   contacts: Record<EntityId, Contact>;
   notes: Record<EntityId, Note>;
-  interactions: Record<EntityId, Interaction>;
+  interactions: Record<EntityId, Interaction>; // DEPRECATED - migrating to calendarEvents
   codes: Record<EntityId, Code>;
   settings: Settings;
+
+  // NEW unified calendar events (replaces interactions + audits)
+  calendarEvents: Record<EntityId, CalendarEvent>;
+
   relations: {
     accountContacts: Record<EntityId, AccountContact>;
     accountCodes: Record<EntityId, AccountCode>;
