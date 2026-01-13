@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { CalendarProvider, ExpandableCalendar } from "react-native-calendars";
@@ -16,7 +16,6 @@ import {
   buildAuditAgendaItem,
   buildInteractionAgendaItem,
   buildMarkedDates,
-  getInitialCalendarDate,
 } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
 import { useCalendarSettings } from "../store/store";
@@ -28,6 +27,8 @@ export interface CalendarViewProps {
   entityNamesForInteraction: (interactionId: string) => string;
   onAuditPress: (auditId: string) => void;
   onInteractionPress: (interactionId: string) => void;
+  selectedDate: string;
+  onDateChange: (date: string) => void;
 }
 
 export const CalendarView = ({
@@ -37,6 +38,8 @@ export const CalendarView = ({
   entityNamesForInteraction,
   onAuditPress,
   onInteractionPress,
+  selectedDate,
+  onDateChange,
 }: CalendarViewProps) => {
   const { colors, isDark } = useTheme();
   const calendarSettings = useCalendarSettings();
@@ -69,23 +72,18 @@ export const CalendarView = ({
     return items;
   }, [audits, interactions, accountNames, entityNamesForInteraction]);
 
-  // Initial date (most recent event date or today)
-  const initialDate = useMemo(
-    () => getInitialCalendarDate(audits, interactions),
-    [audits, interactions],
-  );
-
-  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
-
   // Build marked dates
   const markedDates = useMemo(
     () => buildMarkedDates(audits, interactions, selectedDate, calendarPalette),
     [audits, interactions, selectedDate, calendarPalette],
   );
 
-  const handleDayPress = useCallback((day: DateData) => {
-    setSelectedDate(day.dateString);
-  }, []);
+  const handleDayPress = useCallback(
+    (day: DateData) => {
+      onDateChange(day.dateString);
+    },
+    [onDateChange],
+  );
 
   const getInteractionIcon = useCallback(
     (type: string) => {
@@ -173,7 +171,10 @@ export const CalendarView = ({
   }, []);
 
   return (
-    <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
+    <CalendarProvider
+      date={selectedDate}
+      onDateChanged={(date) => onDateChange(date)}
+    >
       <ExpandableCalendar
         theme={calendarTheme}
         markedDates={markedDates}

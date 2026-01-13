@@ -16,6 +16,7 @@ import {
 import type { EventsStackScreenProps } from "../../navigation/types";
 import { getEntitiesForInteraction } from "../../store/selectors";
 import { useHeaderMenu, useTheme } from "../../hooks";
+import { getInitialCalendarDate } from "../../utils/calendarDataTransformers";
 
 type CalendarViewMode = "agenda" | "timeline";
 
@@ -29,6 +30,11 @@ export const CalendarScreen = ({ navigation }: Props) => {
   const interactions = useAllInteractions();
   const accounts = useAccounts();
   const doc = useDoc();
+  const initialDate = useMemo(
+    () => getInitialCalendarDate(audits, interactions),
+    [audits, interactions],
+  );
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
     accessibilityLabel: t("calendar.viewOptions"),
@@ -75,13 +81,13 @@ export const CalendarScreen = ({ navigation }: Props) => {
 
   const handleCreateInteraction = useCallback(() => {
     setQuickAddVisible(false);
-    navigation.navigate("InteractionForm", {});
-  }, [navigation]);
+    navigation.navigate("InteractionForm", { prefillDate: selectedDate });
+  }, [navigation, selectedDate]);
 
   const handleCreateAudit = useCallback(() => {
     setQuickAddVisible(false);
-    navigation.navigate("AuditForm", {});
-  }, [navigation]);
+    navigation.navigate("AuditForm", { prefillDate: selectedDate });
+  }, [navigation, selectedDate]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -100,6 +106,8 @@ export const CalendarScreen = ({ navigation }: Props) => {
             entityNamesForInteraction={getEntityNamesForInteraction}
             onAuditPress={handleAuditPress}
             onInteractionPress={handleInteractionPress}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
           />
         ) : (
           <TimelineView
@@ -109,6 +117,8 @@ export const CalendarScreen = ({ navigation }: Props) => {
             entityNamesForInteraction={getEntityNamesForInteraction}
             onAuditPress={handleAuditPress}
             onInteractionPress={handleInteractionPress}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
           />
         )}
         <FloatingActionButton

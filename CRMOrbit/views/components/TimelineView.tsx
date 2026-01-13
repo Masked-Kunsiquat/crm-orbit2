@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   CalendarProvider,
   ExpandableCalendar,
@@ -13,10 +13,7 @@ import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
 import { getAuditEndTimestamp, getAuditStartTimestamp } from "../utils/audits";
 import { addMinutesToTimestamp } from "../utils/duration";
-import {
-  buildMarkedDates,
-  getInitialCalendarDate,
-} from "../utils/calendarDataTransformers";
+import { buildMarkedDates } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
 import { useCalendarSettings } from "../store/store";
 
@@ -27,6 +24,8 @@ export interface TimelineViewProps {
   entityNamesForInteraction: (interactionId: string) => string;
   onAuditPress: (auditId: string) => void;
   onInteractionPress: (interactionId: string) => void;
+  selectedDate: string;
+  onDateChange: (date: string) => void;
 }
 
 interface TimelineEvent extends TimelineEventProps {
@@ -49,6 +48,8 @@ export const TimelineView = ({
   entityNamesForInteraction,
   onAuditPress,
   onInteractionPress,
+  selectedDate,
+  onDateChange,
 }: TimelineViewProps) => {
   const { colors, isDark } = useTheme();
   const calendarSettings = useCalendarSettings();
@@ -60,14 +61,6 @@ export const TimelineView = ({
     () => resolveCalendarPalette(colors, calendarSettings.palette),
     [colors, calendarSettings.palette],
   );
-
-  // Initial date (most recent event date or today)
-  const initialDate = useMemo(
-    () => getInitialCalendarDate(audits, interactions),
-    [audits, interactions],
-  );
-
-  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
 
   // Build marked dates for calendar
   const markedDates = useMemo(
@@ -165,12 +158,18 @@ export const TimelineView = ({
     [onAuditPress, onInteractionPress],
   );
 
-  const handleDayPress = useCallback((day: DateData) => {
-    setSelectedDate(day.dateString);
-  }, []);
+  const handleDayPress = useCallback(
+    (day: DateData) => {
+      onDateChange(day.dateString);
+    },
+    [onDateChange],
+  );
 
   return (
-    <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
+    <CalendarProvider
+      date={selectedDate}
+      onDateChanged={(date) => onDateChange(date)}
+    >
       <ExpandableCalendar
         theme={calendarTheme}
         markedDates={markedDates}

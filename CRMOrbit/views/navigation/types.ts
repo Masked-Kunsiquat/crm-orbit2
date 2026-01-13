@@ -38,10 +38,11 @@ export type RootStackParamList = {
       entityId: EntityId;
       entityType: EntityLinkType;
     };
+    prefillDate?: string;
   };
   CodeDetail: { codeId: EntityId };
   CodeForm: { codeId?: EntityId; accountId?: EntityId };
-  AuditForm: { auditId?: EntityId; accountId?: EntityId };
+  AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
   AuditDetail: { auditId: EntityId };
 };
 
@@ -76,7 +77,7 @@ export type EventsStackParamList = {
   EventsLanding: undefined;
   AuditsList: undefined;
   AuditDetail: { auditId: EntityId };
-  AuditForm: { auditId?: EntityId; accountId?: EntityId };
+  AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
   Calendar: undefined;
   InteractionsList: undefined;
   InteractionDetail: { interactionId: EntityId };
@@ -86,6 +87,7 @@ export type EventsStackParamList = {
       entityId: EntityId;
       entityType: EntityLinkType;
     };
+    prefillDate?: string;
   };
 };
 

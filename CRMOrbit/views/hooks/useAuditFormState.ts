@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Audit, AuditStatus } from "@domains/audit";
 import { formatAuditScoreInput } from "@views/utils/audits";
 import { splitDurationMinutes } from "@views/utils/duration";
+import { buildTimestampFromDate } from "@views/utils/date";
 
 export type DurationPreset = "30" | "60" | "120" | "240" | "custom";
 
@@ -48,6 +49,7 @@ export type AuditFormState = {
 export type UseAuditFormStateParams = {
   audit?: Audit;
   prefillAccountId?: string;
+  prefillDate?: string;
 };
 
 /**
@@ -57,6 +59,7 @@ export type UseAuditFormStateParams = {
 export const useAuditFormState = ({
   audit,
   prefillAccountId,
+  prefillDate,
 }: UseAuditFormStateParams): AuditFormState => {
   const [accountId, setAccountId] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
@@ -99,9 +102,7 @@ export const useAuditFormState = ({
       return;
     }
 
-    const now = new Date().toISOString();
     setAccountId(prefillAccountId ?? "");
-    setScheduledFor(now);
     setOccurredAt("");
     setStatus("audits.status.scheduled");
     setNotes("");
@@ -110,7 +111,9 @@ export const useAuditFormState = ({
     setDurationPreset("custom");
     setDurationHours("");
     setDurationMinutesInput("");
-  }, [audit, prefillAccountId]);
+    const baseTimestamp = buildTimestampFromDate(prefillDate);
+    setScheduledFor(baseTimestamp);
+  }, [audit, prefillAccountId, prefillDate]);
 
   const getResolvedDate = useCallback(
     (field: "scheduled" | "occurred") => {
