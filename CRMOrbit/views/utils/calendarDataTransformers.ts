@@ -1,5 +1,6 @@
 import type { Audit } from "@domains/audit";
 import type { Interaction, InteractionStatus } from "@domains/interaction";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { MarkedDates } from "react-native-calendars/src/types";
 import {
   formatAuditScore,
@@ -11,7 +12,11 @@ import {
 } from "./audits";
 import { addMinutesToTimestamp } from "./duration";
 import type { CalendarPaletteColors } from "./calendarColors";
-import { getAuditDotColor, getInteractionDotColor } from "./calendarColors";
+import {
+  getAuditDotColor,
+  getInteractionDotColor,
+  getCalendarEventDotColor,
+} from "./calendarColors";
 
 /**
  * Converts a timestamp string to ISO date format (YYYY-MM-DD)
@@ -273,6 +278,177 @@ export const getInitialCalendarDate = (
     const timestamp = usesScheduledTimestamp
       ? (interaction.scheduledFor ?? interaction.occurredAt)
       : interaction.occurredAt;
+    const dateKey = toISODate(timestamp);
+    if (dateKey) dates.push(dateKey);
+  }
+
+  if (dates.length === 0) return todayISO;
+
+  let closestDate = dates[0];
+  let smallestDifference = Number.POSITIVE_INFINITY;
+
+  for (const dateKey of dates) {
+    const dateValue = new Date(dateKey);
+    const difference = Math.abs(dateValue.getTime() - todayMidnight.getTime());
+    if (difference < smallestDifference) {
+      smallestDifference = difference;
+      closestDate = dateKey;
+    }
+  }
+
+  return closestDate;
+};
+
+/**
+ * UNIFIED CALENDAR EVENT SUPPORT
+ * New agenda item type for unified calendar events
+ */
+
+export interface CalendarEventAgendaItem {
+  kind: "calendarEvent";
+  id: string;
+  event: CalendarEvent;
+  displayName: string; // Account name for audits, summary for others
+  entityNames?: string; // Linked entities
+  startTimestamp: string;
+  endTimestamp?: string;
+  statusKey: string;
+  statusTone: "success" | "warning" | "default" | "muted";
+  subtitleKey: "calendarEvents.scheduledFor" | "calendarEvents.occurredAt";
+  scoreValue?: string;
+  floorsVisited?: number[];
+  description?: string;
+  location?: string;
+}
+
+/**
+ * Builds an agenda item for a unified calendar event
+ */
+export const buildCalendarEventAgendaItem = (
+  event: CalendarEvent,
+  accountName: string | undefined,
+  entityNames: string | undefined,
+): CalendarEventAgendaItem | null => {
+  const isCompleted = event.status === "calendarEvent.status.completed";
+  const startTimestamp = isCompleted
+    ? (event.occurredAt ?? event.scheduledFor)
+    : event.scheduledFor;
+
+  if (!startTimestamp) return null;
+
+  const endTimestamp = addMinutesToTimestamp(
+    startTimestamp,
+    event.durationMinutes,
+  );
+
+  const statusTone: "success" | "warning" | "default" | "muted" =
+    event.status === "calendarEvent.status.completed"
+      ? "success"
+      : event.status === "calendarEvent.status.canceled"
+        ? "muted"
+        : "default";
+
+  const subtitleKey = isCompleted
+    ? "calendarEvents.occurredAt"
+    : "calendarEvents.scheduledFor";
+
+  // For audits, use account name; for others, use summary
+  const displayName =
+    event.type === "audit" && accountName ? accountName : event.summary;
+
+  const scoreValue =
+    event.type === "audit" && event.auditData?.score !== undefined
+      ? `${event.auditData.score}%`
+      : undefined;
+
+  const floorsVisited =
+    event.type === "audit" &&
+    event.auditData?.floorsVisited &&
+    event.auditData.floorsVisited.length > 0
+      ? event.auditData.floorsVisited
+      : undefined;
+
+  return {
+    kind: "calendarEvent",
+    id: event.id,
+    event,
+    displayName,
+    entityNames,
+    startTimestamp,
+    endTimestamp: endTimestamp ?? undefined,
+    statusKey: event.status,
+    statusTone,
+    subtitleKey,
+    scoreValue,
+    floorsVisited,
+    description: event.description,
+    location: event.location,
+  };
+};
+
+/**
+ * Builds marked dates for unified calendar events
+ */
+export const buildMarkedDatesFromCalendarEvents = (
+  calendarEvents: CalendarEvent[],
+  palette: CalendarPaletteColors,
+  accentColor: string,
+  selectedDate?: string,
+): MarkedDates => {
+  const marked: MarkedDates = {};
+
+  for (const event of calendarEvents) {
+    const isCompleted = event.status === "calendarEvent.status.completed";
+    const timestamp = isCompleted
+      ? (event.occurredAt ?? event.scheduledFor)
+      : event.scheduledFor;
+    const dateKey = toISODate(timestamp);
+    if (!dateKey) continue;
+
+    const color = getCalendarEventDotColor(palette, event.status, event.type);
+
+    if (!marked[dateKey]) {
+      marked[dateKey] = { dots: [] };
+    }
+
+    marked[dateKey].dots = marked[dateKey].dots || [];
+    marked[dateKey].dots!.push({
+      key: `calendarEvent-${event.id}`,
+      color,
+    });
+  }
+
+  // Mark selected date
+  if (selectedDate && marked[selectedDate]) {
+    marked[selectedDate].selected = true;
+    marked[selectedDate].selectedColor = accentColor;
+  } else if (selectedDate) {
+    marked[selectedDate] = {
+      selected: true,
+      selectedColor: accentColor,
+    };
+  }
+
+  return marked;
+};
+
+/**
+ * Gets the initial calendar date from calendar events
+ */
+export const getInitialCalendarDateFromEvents = (
+  calendarEvents: CalendarEvent[],
+): string => {
+  const today = new Date();
+  const todayISO = today.toISOString().split("T")[0];
+  const todayMidnight = new Date(todayISO);
+
+  const dates: string[] = [];
+
+  for (const event of calendarEvents) {
+    const isCompleted = event.status === "calendarEvent.status.completed";
+    const timestamp = isCompleted
+      ? (event.occurredAt ?? event.scheduledFor)
+      : event.scheduledFor;
     const dateKey = toISODate(timestamp);
     if (dateKey) dates.push(dateKey);
   }
