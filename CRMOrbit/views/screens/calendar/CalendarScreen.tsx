@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { t } from "@i18n/index";
-import { CalendarView, HeaderMenu } from "../../components";
+import { CalendarView, HeaderMenu, TimelineView } from "../../components";
 import {
   useAccounts,
   useAllAudits,
@@ -75,14 +75,25 @@ export const CalendarScreen = ({ navigation }: Props) => {
 
   return (
     <>
-      <CalendarView
-        audits={audits}
-        interactions={interactions}
-        accountNames={accountNames}
-        entityNamesForInteraction={getEntityNamesForInteraction}
-        onAuditPress={handleAuditPress}
-        onInteractionPress={handleInteractionPress}
-      />
+      {viewMode === "agenda" ? (
+        <CalendarView
+          audits={audits}
+          interactions={interactions}
+          accountNames={accountNames}
+          entityNamesForInteraction={getEntityNamesForInteraction}
+          onAuditPress={handleAuditPress}
+          onInteractionPress={handleInteractionPress}
+        />
+      ) : (
+        <TimelineView
+          audits={audits}
+          interactions={interactions}
+          accountNames={accountNames}
+          entityNamesForInteraction={getEntityNamesForInteraction}
+          onAuditPress={handleAuditPress}
+          onInteractionPress={handleInteractionPress}
+        />
+      )}
       <HeaderMenu
         anchorRef={menuAnchorRef}
         visible={menuVisible}

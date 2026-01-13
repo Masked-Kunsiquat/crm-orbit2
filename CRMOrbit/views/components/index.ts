@@ -47,3 +47,5 @@ export { OrganizationContactsSection } from "./OrganizationContactsSection";
 export { OrganizationAccountsSection } from "./OrganizationAccountsSection";
 export { CalendarView } from "./CalendarView";
 export type { CalendarViewProps } from "./CalendarView";
+export { TimelineView } from "./TimelineView";
+export type { TimelineViewProps } from "./TimelineView";
