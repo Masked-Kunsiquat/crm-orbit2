@@ -165,3 +165,82 @@ export const getEntitiesForInteraction = (
     })
     .filter((e): e is LinkedEntityInfo => e !== null);
 };
+
+/**
+ * Calendar Event Selectors
+ * Unified selectors for calendar events (replaces interactions + audits)
+ */
+
+export const getCalendarEventsForEntity = (
+  doc: AutomergeDoc,
+  entityType: EntityLinkType,
+  entityId: EntityId,
+): EntityId[] => {
+  return getLinkedEntities(doc, entityType, entityId)
+    .filter(
+      ({ link }) => link.linkType === "calendarEvent" && link.calendarEventId,
+    )
+    .map(({ link }) => link.calendarEventId as EntityId);
+};
+
+export const getEntitiesForCalendarEvent = (
+  doc: AutomergeDoc,
+  calendarEventId: EntityId,
+): LinkedEntityInfo[] => {
+  const links = Object.entries(doc.relations.entityLinks).filter(
+    ([, link]) =>
+      link.linkType === "calendarEvent" &&
+      link.calendarEventId === calendarEventId,
+  );
+
+  return links
+    .map(([linkId, link]): LinkedEntityInfo | null => {
+      let name: string | undefined;
+      let entity;
+
+      switch (link.entityType) {
+        case "organization":
+          entity = doc.organizations[link.entityId];
+          if (entity) name = entity.name;
+          break;
+        case "account":
+          entity = doc.accounts[link.entityId];
+          if (entity) name = entity.name;
+          break;
+        case "contact":
+          entity = doc.contacts[link.entityId];
+          if (entity) name = getContactDisplayName(entity);
+          break;
+        case "note":
+          entity = doc.notes[link.entityId];
+          if (entity) name = entity.title;
+          break;
+        case "calendarEvent":
+          entity = doc.calendarEvents[link.entityId];
+          if (entity) name = entity.summary;
+          break;
+        // Legacy support during migration
+        case "audit":
+          entity = doc.audits[link.entityId] as Audit | undefined;
+          if (entity) {
+            const stamp = entity.occurredAt ?? entity.scheduledFor;
+            name = stamp ? `Audit ${stamp}` : `Audit ${entity.id}`;
+          }
+          break;
+        case "interaction":
+          entity = doc.interactions[link.entityId];
+          if (entity) name = entity.summary;
+          break;
+      }
+
+      if (!entity) return null;
+
+      return {
+        name,
+        entityId: link.entityId,
+        entityType: link.entityType,
+        linkId,
+      };
+    })
+    .filter((e): e is LinkedEntityInfo => e !== null);
+};
