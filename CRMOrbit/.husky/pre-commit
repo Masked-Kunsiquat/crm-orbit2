@@ -1,2 +1,2 @@
-cd CRMOrbit
+cd "$(dirname "$0")/.."
 npx lint-staged
