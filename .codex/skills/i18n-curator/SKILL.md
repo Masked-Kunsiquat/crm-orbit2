@@ -35,3 +35,4 @@ data locale-neutral.
 - Keys are stable once released.
 - No translated strings in Automerge, events, reducers, persistence.
 - If other locales must be updated, ask before editing.
+- Per the coding guidelines, files in **/views/**/*.{ts,tsx} must be "read-only projections that subscribe to Automerge changes — never mutate domain state, apply business logic, emit events, or localize strings directly."
