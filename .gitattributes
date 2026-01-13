@@ -11,6 +11,8 @@
 *.md text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+CRMOrbit/.husky/* text eol=lf
+CRMOrbit/.husky/_/* text eol=lf
 
 # Declare files that will always have CRLF line endings on checkout
 *.bat text eol=crlf
