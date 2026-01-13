@@ -118,16 +118,45 @@ export const CalendarView = ({
     [colors.accent],
   );
 
+  const formatTimestamp = useCallback((timestamp?: string): string => {
+    if (!timestamp) return t("common.unknown");
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return t("common.unknown");
+    return date.toLocaleString();
+  }, []);
+
   const renderItem = useCallback(
     ({ item }: { item: AgendaItem }) => {
       if (item.kind === "audit") {
+        const subtitle = `${t("audits.fields.scheduledFor")}: ${formatTimestamp(
+          item.startTimestamp,
+        )}`;
+        const descriptionLines = [
+          item.endTimestamp
+            ? `${t("audits.fields.endsAt")}: ${formatTimestamp(
+                item.endTimestamp,
+              )}`
+            : undefined,
+          item.scoreValue
+            ? `${t("audits.fields.score")}: ${item.scoreValue}`
+            : undefined,
+        ].filter(Boolean);
+        const description = descriptionLines.length
+          ? descriptionLines.join("\n")
+          : undefined;
+        const footnote = item.notes
+          ? item.notes
+          : item.floorsVisited && item.floorsVisited.length > 0
+            ? `${t("audits.fields.floorsVisited")}: ${item.floorsVisited.join(", ")}`
+            : undefined;
+
         return (
           <ListRow
             onPress={() => onAuditPress(item.audit.id)}
             title={item.accountName}
-            subtitle={item.subtitle}
-            description={item.description}
-            footnote={item.footnote}
+            subtitle={subtitle}
+            description={description}
+            footnote={footnote}
             descriptionNumberOfLines={3}
             footnoteNumberOfLines={2}
             style={styles.listRow}
@@ -142,12 +171,29 @@ export const CalendarView = ({
         );
       }
 
+      const subtitle = `${t(item.subtitleKey)}: ${formatTimestamp(
+        item.startTimestamp,
+      )}`;
+      const descriptionLines = [
+        item.statusKey !== "interaction.status.completed"
+          ? `${t("interactions.statusLabel")}: ${t(item.statusKey)}`
+          : undefined,
+        item.endTimestamp
+          ? `${t("interactions.fields.endsAt")}: ${formatTimestamp(
+              item.endTimestamp,
+            )}`
+          : undefined,
+      ].filter(Boolean);
+      const description = descriptionLines.length
+        ? descriptionLines.join("\n")
+        : undefined;
+
       return (
         <ListRow
           onPress={() => onInteractionPress(item.interaction.id)}
           title={item.interaction.summary}
-          subtitle={item.subtitle}
-          description={item.description}
+          subtitle={subtitle}
+          description={description}
           descriptionNumberOfLines={3}
           style={styles.listRow}
         >
@@ -157,7 +203,13 @@ export const CalendarView = ({
         </ListRow>
       );
     },
-    [onAuditPress, onInteractionPress, colors.accent, getInteractionIcon],
+    [
+      onAuditPress,
+      onInteractionPress,
+      colors.accent,
+      getInteractionIcon,
+      formatTimestamp,
+    ],
   );
 
   const keyExtractor = useCallback(

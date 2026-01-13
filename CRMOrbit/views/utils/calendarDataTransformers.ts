@@ -1,7 +1,6 @@
 import type { Audit } from "@domains/audit";
 import type { Interaction } from "@domains/interaction";
 import type { MarkedDates } from "react-native-calendars/src/types";
-import { t } from "@i18n/index";
 import {
   formatAuditScore,
   getAuditEndTimestamp,
@@ -25,16 +24,6 @@ export const toISODate = (timestamp?: string): string | null => {
 };
 
 /**
- * Formats timestamp for display in agenda items
- */
-const formatTimestamp = (timestamp?: string): string => {
-  if (!timestamp) return t("common.unknown");
-  const date = new Date(timestamp);
-  if (Number.isNaN(date.getTime())) return t("common.unknown");
-  return date.toLocaleString();
-};
-
-/**
  * AgendaList section item for an audit
  */
 export interface AuditAgendaItem {
@@ -42,11 +31,11 @@ export interface AuditAgendaItem {
   id: string;
   audit: Audit;
   accountName: string;
-  startTime: string;
-  endTime?: string;
-  subtitle: string;
-  description?: string;
-  footnote?: string;
+  startTimestamp: string;
+  endTimestamp?: string;
+  scoreValue?: string;
+  floorsVisited?: string[];
+  notes?: string;
   statusTone: "positive" | "neutral" | "warning" | "destructive";
   statusKey: string;
 }
@@ -59,10 +48,10 @@ export interface InteractionAgendaItem {
   id: string;
   interaction: Interaction;
   entityName: string;
-  startTime: string;
-  endTime?: string;
-  subtitle: string;
-  description?: string;
+  startTimestamp: string;
+  endTimestamp?: string;
+  statusKey: string;
+  subtitleKey: "interactions.scheduledFor" | "interactions.occurredAt";
 }
 
 /**
@@ -91,34 +80,22 @@ export const buildAuditAgendaItem = (
 
   const endTimestamp = getAuditEndTimestamp(audit);
   const scoreValue = formatAuditScore(audit.score);
-  const scoreLabel = scoreValue
-    ? `${t("audits.fields.score")}: ${scoreValue}`
-    : undefined;
-  const floorsLabel =
+  const floorsVisited =
     audit.floorsVisited && audit.floorsVisited.length > 0
-      ? `${t("audits.fields.floorsVisited")}: ${audit.floorsVisited.join(", ")}`
+      ? audit.floorsVisited
       : undefined;
-  const footnote = audit.notes?.trim() || floorsLabel;
-
-  const descriptionLines = [
-    endTimestamp
-      ? `${t("audits.fields.endsAt")}: ${formatTimestamp(endTimestamp)}`
-      : undefined,
-    scoreLabel,
-  ].filter(Boolean);
+  const notes = audit.notes?.trim() || undefined;
 
   return {
     kind: "audit",
     id: audit.id,
     audit,
     accountName,
-    startTime: formatTimestamp(startTimestamp),
-    endTime: endTimestamp ? formatTimestamp(endTimestamp) : undefined,
-    subtitle: `${t("audits.fields.scheduledFor")}: ${formatTimestamp(startTimestamp)}`,
-    description: descriptionLines.length
-      ? descriptionLines.join("\n")
-      : undefined,
-    footnote,
+    startTimestamp,
+    endTimestamp: endTimestamp ?? undefined,
+    scoreValue,
+    floorsVisited,
+    notes,
     statusTone: getAuditStatusTone(status),
     statusKey: status,
   };
@@ -143,32 +120,20 @@ export const buildInteractionAgendaItem = (
   const labelKey = usesScheduledTimestamp
     ? "interactions.scheduledFor"
     : "interactions.occurredAt";
-  const formattedTimestamp = formatTimestamp(timestampValue);
   const endTimestamp = addMinutesToTimestamp(
     timestampValue,
     interaction.durationMinutes,
   );
-
-  const descriptionLines = [
-    resolvedStatus !== "interaction.status.completed"
-      ? `${t("interactions.statusLabel")}: ${t(resolvedStatus)}`
-      : undefined,
-    endTimestamp
-      ? `${t("interactions.fields.endsAt")}: ${formatTimestamp(endTimestamp)}`
-      : undefined,
-  ].filter(Boolean);
 
   return {
     kind: "interaction",
     id: interaction.id,
     interaction,
     entityName,
-    startTime: formattedTimestamp,
-    endTime: endTimestamp ? formatTimestamp(endTimestamp) : undefined,
-    subtitle: `${t(labelKey)}: ${formattedTimestamp}`,
-    description: descriptionLines.length
-      ? descriptionLines.join("\n")
-      : undefined,
+    startTimestamp: timestampValue,
+    endTimestamp: endTimestamp ?? undefined,
+    statusKey: resolvedStatus,
+    subtitleKey: labelKey,
   };
 };
 
