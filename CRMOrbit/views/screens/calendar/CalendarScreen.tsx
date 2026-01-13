@@ -71,9 +71,7 @@ export const CalendarScreen = ({
   }, []);
 
   const viewModeLabel =
-    viewMode === "agenda"
-      ? switchToTimelineLabel
-      : switchToAgendaLabel;
+    viewMode === "agenda" ? switchToTimelineLabel : switchToAgendaLabel;
 
   const getEntityNamesForInteraction = useCallback(
     (interactionId: string): string => {

@@ -115,5 +115,8 @@ test("loadPersistedState defaults calendar settings", async () => {
 
   const { doc } = await loadPersistedState(db);
 
-  assert.equal(doc.settings.calendar.palette, DEFAULT_CALENDAR_SETTINGS.palette);
+  assert.equal(
+    doc.settings.calendar.palette,
+    DEFAULT_CALENDAR_SETTINGS.palette,
+  );
 });

@@ -137,6 +137,7 @@ export const TimelineView = ({
     interactions,
     accountNames,
     entityNamesForInteraction,
+    fallbackUnknownEntity,
     calendarPalette.timeline.audit,
     calendarPalette.timeline.interaction,
   ]);

@@ -105,8 +105,7 @@ const applyCalendarSettingsUpdated = (
   }
 
   const nextCalendar = {
-    palette:
-      payload.palette !== undefined ? payload.palette : current.palette,
+    palette: payload.palette !== undefined ? payload.palette : current.palette,
   };
 
   logger.info("Calendar settings updated", nextCalendar);

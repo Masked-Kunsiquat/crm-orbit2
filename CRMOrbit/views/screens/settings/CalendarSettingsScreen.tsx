@@ -162,7 +162,8 @@ export const CalendarSettingsScreen = () => {
                       style={[
                         styles.swatch,
                         {
-                          backgroundColor: palette.preview.interaction.scheduled,
+                          backgroundColor:
+                            palette.preview.interaction.scheduled,
                           borderColor: colors.borderLight,
                         },
                       ]}
@@ -171,7 +172,8 @@ export const CalendarSettingsScreen = () => {
                       style={[
                         styles.swatch,
                         {
-                          backgroundColor: palette.preview.interaction.completed,
+                          backgroundColor:
+                            palette.preview.interaction.completed,
                           borderColor: colors.borderLight,
                         },
                       ]}

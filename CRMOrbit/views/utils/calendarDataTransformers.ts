@@ -34,7 +34,7 @@ export interface AuditAgendaItem {
   startTimestamp: string;
   endTimestamp?: string;
   scoreValue?: string;
-  floorsVisited?: string[];
+  floorsVisited?: number[];
   notes?: string;
   statusTone: "positive" | "neutral" | "warning" | "destructive";
   statusKey: string;
@@ -282,9 +282,7 @@ export const getInitialCalendarDate = (
 
   for (const dateKey of dates) {
     const dateValue = new Date(dateKey);
-    const difference = Math.abs(
-      dateValue.getTime() - todayMidnight.getTime(),
-    );
+    const difference = Math.abs(dateValue.getTime() - todayMidnight.getTime());
     if (difference < smallestDifference) {
       smallestDifference = difference;
       closestDate = dateKey;

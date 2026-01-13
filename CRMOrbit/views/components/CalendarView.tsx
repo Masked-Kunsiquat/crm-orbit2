@@ -206,8 +206,7 @@ export const CalendarView = ({
       }
 
       const subtitleLabel =
-        labels.interaction.subtitleLabels[item.subtitleKey] ??
-        item.subtitleKey;
+        labels.interaction.subtitleLabels[item.subtitleKey] ?? item.subtitleKey;
       const subtitle = `${subtitleLabel}: ${formatTimestamp(
         item.startTimestamp,
       )}`;
