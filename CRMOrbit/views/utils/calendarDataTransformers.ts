@@ -10,6 +10,7 @@ import {
   resolveAuditStatus,
 } from "./audits";
 import { addMinutesToTimestamp } from "./duration";
+import { getAuditDotColor, getInteractionDotColor } from "./calendarColors";
 
 /**
  * Converts a timestamp string to ISO date format (YYYY-MM-DD)
@@ -219,22 +220,19 @@ export const buildMarkedDates = (
 ): MarkedDates => {
   const marked: MarkedDates = {};
 
-  // Mark dates with audits (blue dot)
+  // Mark dates with audits
   for (const audit of audits) {
     const timestamp = getAuditStartTimestamp(audit);
     const dateKey = toISODate(timestamp);
     if (!dateKey) continue;
 
     const status = resolveAuditStatus(audit);
-    const isCanceled = status === "audits.status.canceled";
-    const isCompleted = status === "audits.status.completed";
+    const color = getAuditDotColor(status);
 
     if (!marked[dateKey]) {
       marked[dateKey] = { dots: [] };
     }
 
-    // Use different colors based on status
-    const color = isCanceled ? "#999" : isCompleted ? "#4CAF50" : "#2196F3";
     marked[dateKey].dots = marked[dateKey].dots || [];
     marked[dateKey].dots!.push({
       key: `audit-${audit.id}`,
@@ -242,7 +240,7 @@ export const buildMarkedDates = (
     });
   }
 
-  // Mark dates with interactions (orange dot)
+  // Mark dates with interactions
   for (const interaction of interactions) {
     const resolvedStatus = interaction.status ?? "interaction.status.completed";
     const usesScheduledTimestamp =
@@ -253,15 +251,12 @@ export const buildMarkedDates = (
     const dateKey = toISODate(timestamp);
     if (!dateKey) continue;
 
-    const isCanceled = resolvedStatus === "interaction.status.canceled";
-    const isCompleted = resolvedStatus === "interaction.status.completed";
+    const color = getInteractionDotColor(resolvedStatus);
 
     if (!marked[dateKey]) {
       marked[dateKey] = { dots: [] };
     }
 
-    // Use different colors based on status
-    const color = isCanceled ? "#999" : isCompleted ? "#4CAF50" : "#FF9800";
     marked[dateKey].dots = marked[dateKey].dots || [];
     marked[dateKey].dots!.push({
       key: `interaction-${interaction.id}`,

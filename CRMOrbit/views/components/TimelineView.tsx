@@ -17,6 +17,7 @@ import {
   buildMarkedDates,
   getInitialCalendarDate,
 } from "../utils/calendarDataTransformers";
+import { CALENDAR_COLORS } from "../utils/calendarColors";
 
 export interface TimelineViewProps {
   audits: Audit[];
@@ -96,7 +97,7 @@ export const TimelineView = ({
         end: endTimestamp,
         title: accountName,
         summary: audit.notes ?? "",
-        color: colors.accent,
+        color: CALENDAR_COLORS.timeline.audit,
       });
     }
 
@@ -133,18 +134,12 @@ export const TimelineView = ({
         end: endTimestamp ?? startTimestamp,
         title: interaction.summary,
         summary: entityName,
-        color: "#FF9800", // Orange for interactions
+        color: CALENDAR_COLORS.timeline.interaction,
       });
     }
 
     return eventsByDate;
-  }, [
-    audits,
-    interactions,
-    accountNames,
-    entityNamesForInteraction,
-    colors.accent,
-  ]);
+  }, [audits, interactions, accountNames, entityNamesForInteraction]);
 
   const handleEventPress = useCallback(
     (event: TimelineEvent) => {
