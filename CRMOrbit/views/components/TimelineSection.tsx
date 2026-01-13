@@ -435,6 +435,9 @@ export const TimelineSection = ({
         const audit = doc.audits[entityId];
         const stamp = audit?.occurredAt ?? audit?.scheduledFor ?? audit?.id;
         entityName = stamp ? `Audit ${stamp}` : t("common.unknown");
+      } else if (entityType === "calendarEvent") {
+        const calendarEvent = doc.calendarEvents[entityId];
+        entityName = calendarEvent?.summary || t("common.unknown");
       } else if (entityType === "contact") {
         const contact = doc.contacts[entityId];
         entityName = contact ? getContactName(contact) : t("common.unknown");
@@ -447,6 +450,26 @@ export const TimelineSection = ({
       const displayType =
         entityType.charAt(0).toUpperCase() + entityType.slice(1);
       return `${displayType}: ${entityName}`;
+    };
+
+    const resolveCalendarEventSummary = (
+      calendarEventId: string | null,
+      summaryOverride?: string | null,
+    ): string | null => {
+      if (summaryOverride && summaryOverride.trim()) {
+        return summaryOverride.trim();
+      }
+
+      if (!calendarEventId) {
+        return null;
+      }
+
+      const calendarEvent = doc.calendarEvents[calendarEventId];
+      if (calendarEvent?.summary) {
+        return calendarEvent.summary;
+      }
+
+      return null;
     };
 
     // For contact method added events
@@ -657,6 +680,51 @@ export const TimelineSection = ({
       }
 
       return entityContext ?? interactionSummary;
+    }
+
+    // For calendar event link events
+    if (
+      item.event.type === "calendarEvent.linked" ||
+      item.event.type === "calendarEvent.unlinked"
+    ) {
+      const calendarEventId =
+        typeof payload?.calendarEventId === "string"
+          ? payload.calendarEventId
+          : (item.event.entityId ?? null);
+      const entityType =
+        typeof payload?.entityType === "string" ? payload.entityType : null;
+      const entityId =
+        typeof payload?.entityId === "string" ? payload.entityId : null;
+
+      const entityContext = resolveLinkedEntity(entityType, entityId);
+      const summary = resolveCalendarEventSummary(calendarEventId);
+
+      if (entityContext && summary) {
+        return `${entityContext} • ${summary}`;
+      }
+
+      return entityContext ?? summary;
+    }
+
+    // For other calendar event events, prefer summary from payload or doc
+    if (item.event.type.startsWith("calendarEvent.")) {
+      const summaryOverride =
+        typeof payload?.summary === "string" ? payload.summary : null;
+      const calendarEventId =
+        typeof payload?.id === "string"
+          ? payload.id
+          : typeof payload?.calendarEventId === "string"
+            ? payload.calendarEventId
+            : (item.event.entityId ?? null);
+
+      const summary = resolveCalendarEventSummary(
+        calendarEventId,
+        summaryOverride,
+      );
+
+      if (summary) {
+        return summary;
+      }
     }
 
     // Extract name from payload if available (fallback)

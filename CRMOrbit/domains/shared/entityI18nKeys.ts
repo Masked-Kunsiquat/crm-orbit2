@@ -4,7 +4,7 @@
  */
 
 export type EntityType = "organization" | "account" | "contact";
-export type TargetType = "note" | "interaction";
+export type TargetType = "note" | "interaction" | "calendarEvent";
 
 /**
  * Maps entity types to their i18n keys for various contexts
@@ -44,6 +44,7 @@ export const ENTITY_I18N_KEYS: Record<
 export const TARGET_LINK_TO_ENTITY_KEYS: Record<TargetType, string> = {
   note: "notes.linkToEntity",
   interaction: "interactions.linkToEntity",
+  calendarEvent: "calendarEvents.linkToEntity",
 };
 
 /**

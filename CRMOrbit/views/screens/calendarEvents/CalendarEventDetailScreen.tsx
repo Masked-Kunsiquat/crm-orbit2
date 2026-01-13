@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,13 +15,13 @@ import {
   useDoc,
 } from "../../store/store";
 import { useCalendarEventActions } from "../../hooks/useCalendarEventActions";
-import { useEntityLinkActions } from "../../hooks/useEntityLinkActions";
 import {
   DetailScreenLayout,
   Section,
   PrimaryActionButton,
   DangerActionButton,
   ConfirmDialog,
+  LinkEntityToCalendarEventModal,
   TimelineSection,
   StatusBadge,
   DetailField,
@@ -66,9 +67,14 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
   const linkedEntities = useEntitiesForCalendarEvent(calendarEventId);
   const timeline = useTimeline("calendarEvent", calendarEventId);
   const doc = useDoc();
-  const { deleteCalendarEvent } = useCalendarEventActions(deviceId);
-  const { unlinkCalendarEvent } = useEntityLinkActions(deviceId);
+  const { deleteCalendarEvent, unlinkCalendarEvent } =
+    useCalendarEventActions(deviceId);
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const [showLinkModal, setShowLinkModal] = useState(false);
+
+  const existingEntityIds = useMemo(() => {
+    return new Set(linkedEntities.map((entity) => entity.entityId));
+  }, [linkedEntities]);
 
   // Audit-specific data
   const account = useAccount(calendarEvent?.auditData?.accountId ?? "");
@@ -279,7 +285,19 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
             {t("calendarEvents.linkedTo")} ({linkedEntities.length})
           </Text>
-          {/* TODO: Add link button when LinkEntityToCalendarEventModal is implemented */}
+          <TouchableOpacity
+            style={[
+              styles.linkButton,
+              {
+                backgroundColor: colors.surfaceElevated,
+              },
+            ]}
+            onPress={() => setShowLinkModal(true)}
+          >
+            <Text style={[styles.linkButtonText, { color: colors.accent }]}>
+              {t("calendarEvents.linkEntityButton")}
+            </Text>
+          </TouchableOpacity>
         </View>
         {linkedEntities.length === 0 ? (
           <Text style={[styles.emptyText, { color: colors.textMuted }]}>
@@ -353,13 +371,12 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
         size="block"
       />
 
-      {/* TODO: Add LinkEntityToCalendarEventModal when implemented */}
-      {/* <LinkEntityToCalendarEventModal
+      <LinkEntityToCalendarEventModal
         visible={showLinkModal}
         onClose={() => setShowLinkModal(false)}
         calendarEventId={calendarEventId}
         existingEntityIds={existingEntityIds}
-      /> */}
+      />
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </DetailScreenLayout>
