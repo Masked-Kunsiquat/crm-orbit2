@@ -3,6 +3,7 @@ import type { EventType } from "../events/eventTypes";
 import { accountContactReducer } from "./accountContact.reducer";
 import { accountReducer } from "./account.reducer";
 import { auditReducer } from "./audit.reducer";
+import { calendarEventReducer } from "./calendarEvent.reducer";
 import { contactReducer } from "./contact.reducer";
 import { interactionReducer } from "./interaction.reducer";
 import { entityLinkReducer } from "./entityLink.reducer";
@@ -52,6 +53,17 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "interaction.logged": interactionReducer,
   "interaction.updated": interactionReducer,
   "interaction.deleted": interactionReducer,
+  "calendarEvent.scheduled": calendarEventReducer,
+  "calendarEvent.updated": calendarEventReducer,
+  "calendarEvent.completed": calendarEventReducer,
+  "calendarEvent.canceled": calendarEventReducer,
+  "calendarEvent.rescheduled": calendarEventReducer,
+  "calendarEvent.deleted": calendarEventReducer,
+  "calendarEvent.linked": calendarEventReducer,
+  "calendarEvent.unlinked": calendarEventReducer,
+  "calendarEvent.recurrence.created": calendarEventReducer,
+  "calendarEvent.recurrence.updated": calendarEventReducer,
+  "calendarEvent.recurrence.deleted": calendarEventReducer,
   "code.created": codeReducer,
   "code.updated": codeReducer,
   "code.encrypted": codeReducer,
