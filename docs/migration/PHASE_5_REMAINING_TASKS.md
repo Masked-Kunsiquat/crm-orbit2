@@ -10,11 +10,23 @@
 
 **Total**: ~1,800 lines of new unified UI code
 
+### ✅ Completed (local updates)
+1. **Task 5.5**: CalendarView updated for unified CalendarEvent agenda
+2. **Task 5.6**: TimelineView updated for unified CalendarEvent timeline
+3. **Task 5.7**: CalendarScreen updated to use unified calendar events
+4. **Task 5.8**: CalendarEventsSection component created
+5. **Task 5.9**: LinkEntityToCalendarEventModal created + wired to detail screen
+6. **Task 5.10**: EventsLandingScreen updated to Calendar + Events cards
+7. **Task 5.11**: EventsStack navigation updated for CalendarEvent screens
+8. **Task 5.12**: TimelineSection updated for calendar event context
+
 ### 🔄 Remaining Tasks
 
 ## Task 5.5: Update CalendarView Component
 
 **File**: `CRMOrbit/views/components/CalendarView.tsx`
+
+**Status**: ✅ Completed (CalendarView now consumes `calendarEvents` and unified agenda items/icons)
 
 **Current State**:
 - Accepts separate `audits` and `interactions` arrays
@@ -87,6 +99,8 @@ export type CalendarViewLabels = {
 
 **File**: `CRMOrbit/views/components/TimelineView.tsx`
 
+**Status**: ✅ Completed (TimelineView now consumes unified `calendarEvents` and status-based colors)
+
 **Current State**:
 - Uses `react-native-calendars` TimelineList
 - Accepts separate audits/interactions
@@ -123,6 +137,8 @@ export interface TimelineViewProps {
 
 **File**: `CRMOrbit/views/screens/calendar/CalendarScreen.tsx`
 
+**Status**: ✅ Completed (Calendar screen now uses `useAllCalendarEvents` and unified navigation)
+
 **Current State**:
 ```typescript
 const audits = useAllAudits();
@@ -143,15 +159,15 @@ const handleEventPress = (eventId: string) => {
 ```
 
 **Quick Add Modal Updates**:
-- Change "Add Audit" → "Add Audit Event"
-- Change "Add Interaction" → "Add Event"
-- Or unify to single "Add Event" button with type selector
+- Quick add now routes to `CalendarEventForm`, with audit prefill for audit quick add.
 
 ---
 
 ## Task 5.8: Create CalendarEventsSection Component
 
 **File**: `CRMOrbit/views/components/CalendarEventsSection.tsx` (new)
+
+**Status**: ✅ Completed (new unified section component with add/link/unlink, modal, and status badges)
 
 **Purpose**:
 Unified section component for displaying calendar events linked to entities (replaces AuditsSection + InteractionsSection)
@@ -211,6 +227,8 @@ export interface CalendarEventsSectionProps {
 
 **File**: `CRMOrbit/views/components/LinkEntityToInteractionModal.tsx`
 
+**Status**: ✅ Completed (added `LinkEntityToCalendarEventModal` and wired it into CalendarEventDetailScreen)
+
 **Action**: Duplicate and adapt to `LinkEntityToCalendarEventModal.tsx`
 
 **Changes**:
@@ -229,10 +247,14 @@ export const LinkEntityToCalendarEventModal = ({
   existingEntityIds,
 }: LinkEntityToCalendarEventModalProps) => {
   const deviceId = useDeviceId();
-  const { linkCalendarEvent } = useEntityLinkActions(deviceId);
+  const { linkCalendarEvent } = useCalendarEventActions(deviceId);
 
-  const handleLink = (entityType: EntityLinkType, entityId: EntityId) => {
-    const result = linkCalendarEvent(calendarEventId, entityType, entityId);
+  const handleLink = (
+    targetId: EntityId,
+    entityType: EntityLinkType,
+    entityId: EntityId,
+  ) => {
+    const result = linkCalendarEvent(targetId, entityType, entityId);
     if (result.success) {
       onClose();
     } else {
@@ -244,6 +266,7 @@ export const LinkEntityToCalendarEventModal = ({
     <TwoTierLinkModal
       visible={visible}
       onClose={onClose}
+      targetType="calendarEvent"
       onLink={handleLink}
       existingEntityIds={existingEntityIds}
       // ... other props
@@ -262,6 +285,8 @@ export const LinkEntityToCalendarEventModal = ({
 ## Task 5.10: Update EventsLandingScreen
 
 **File**: `CRMOrbit/views/screens/events/EventsLandingScreen.tsx`
+
+**Status**: ✅ Completed (reduced to Calendar + Events cards using unified calendar events)
 
 **Current State**:
 Shows 3 cards: Audits, Calendar, Interactions
@@ -299,6 +324,8 @@ const otherEvents = calendarEvents.filter(e => e.type !== 'audit');
 
 **File**: `CRMOrbit/views/navigation/EventsStack.tsx`
 
+**Status**: ✅ Completed (CalendarEvent list/detail/form screens registered in EventsStack)
+
 **Changes Needed**:
 ```typescript
 import { CalendarEventFormScreen } from "../screens/calendarEvents/CalendarEventFormScreen";
@@ -335,6 +362,8 @@ import { CalendarEventsListScreen } from "../screens/calendarEvents/CalendarEven
 ## Task 5.12: Update TimelineSection Component
 
 **File**: `CRMOrbit/views/components/TimelineSection.tsx`
+
+**Status**: ✅ Completed (calendar event types now resolve context and event labels)
 
 **Current State**:
 - Tracks changes for: contact, account, organization, note, interaction
