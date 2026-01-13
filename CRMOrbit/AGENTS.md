@@ -24,9 +24,13 @@
 - Do not bypass ESLint restrictions; update `eslint-rules/` if the rule set needs to change.
 
 ## Links to scoped instructions
+- `CRMOrbit/automerge/AGENTS.md`
 - `CRMOrbit/domains/AGENTS.md`
 - `CRMOrbit/events/AGENTS.md`
 - `CRMOrbit/reducers/AGENTS.md`
+- `CRMOrbit/tests/AGENTS.md`
+- `CRMOrbit/types/AGENTS.md`
+- `CRMOrbit/utils/AGENTS.md`
 - `CRMOrbit/views/AGENTS.md`
 - `CRMOrbit/i18n/AGENTS.md`
 - `CRMOrbit/eslint-rules/AGENTS.md`
