@@ -1,7 +1,9 @@
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import {
+  DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_SECURITY_SETTINGS,
+  isCalendarPaletteId,
   isSecurityAuthFrequency,
   isSecurityBiometricSetting,
   isSecurityBlurTimeout,
@@ -14,6 +16,10 @@ type SecuritySettingsUpdatedPayload = {
   biometricAuth?: string;
   blurTimeout?: string;
   authFrequency?: string;
+};
+
+type CalendarSettingsUpdatedPayload = {
+  palette?: string;
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -80,6 +86,40 @@ const applySecuritySettingsUpdated = (
   };
 };
 
+const applyCalendarSettingsUpdated = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  if (!isObject(event.payload)) {
+    logger.error("Invalid settings.calendar.updated payload", {
+      payload: event.payload,
+    });
+    throw new Error("settings.calendar.updated payload must be an object");
+  }
+
+  const payload = event.payload as CalendarSettingsUpdatedPayload;
+  const current = doc.settings?.calendar ?? DEFAULT_CALENDAR_SETTINGS;
+
+  if (payload.palette !== undefined && !isCalendarPaletteId(payload.palette)) {
+    throw new Error(`Invalid calendar palette: ${payload.palette}`);
+  }
+
+  const nextCalendar = {
+    palette:
+      payload.palette !== undefined ? payload.palette : current.palette,
+  };
+
+  logger.info("Calendar settings updated", nextCalendar);
+
+  return {
+    ...doc,
+    settings: {
+      ...doc.settings,
+      calendar: nextCalendar,
+    },
+  };
+};
+
 export const settingsReducer = (
   doc: AutomergeDoc,
   event: Event,
@@ -92,6 +132,8 @@ export const settingsReducer = (
   switch (event.type) {
     case "settings.security.updated":
       return applySecuritySettingsUpdated(doc, event);
+    case "settings.calendar.updated":
+      return applyCalendarSettingsUpdated(doc, event);
     default:
       logger.error("Unhandled event type", { type: event.type });
       throw new Error(

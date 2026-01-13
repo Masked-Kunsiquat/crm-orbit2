@@ -1,6 +1,11 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
-import { DEFAULT_SETTINGS } from "@domains/settings";
+import {
+  DEFAULT_CALENDAR_SETTINGS,
+  DEFAULT_SECURITY_SETTINGS,
+  DEFAULT_SETTINGS,
+  isCalendarPaletteId,
+} from "@domains/settings";
 import {
   DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
   getMonthStartTimestamp,
@@ -139,12 +144,24 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
       )
     : existingLinks;
 
+  const paletteValue = doc.settings?.calendar?.palette;
+  const resolvedPalette = isCalendarPaletteId(paletteValue)
+    ? paletteValue
+    : DEFAULT_CALENDAR_SETTINGS.palette;
+  const normalizedSettings = {
+    security: doc.settings?.security ?? DEFAULT_SECURITY_SETTINGS,
+    calendar: {
+      ...DEFAULT_CALENDAR_SETTINGS,
+      palette: resolvedPalette,
+    },
+  };
+
   return {
     ...doc,
     accounts: normalizedAccounts,
     codes: normalizedCodes,
     audits: normalizedAudits,
-    settings: doc.settings ?? DEFAULT_SETTINGS,
+    settings: normalizedSettings,
     relations: {
       ...doc.relations,
       entityLinks: mergedLinks,

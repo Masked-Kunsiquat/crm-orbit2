@@ -678,6 +678,7 @@
   "events.code.encrypted": "Encrypted code",
   "events.code.deleted": "Deleted code",
   "events.settings.security.updated": "Updated security settings",
+  "events.settings.calendar.updated": "Updated calendar colors",
   "events.device.registered": "Registered device",
   "interactions.title": "Interactions",
   "interactions.view_and_log_all": "View and log all interactions",
