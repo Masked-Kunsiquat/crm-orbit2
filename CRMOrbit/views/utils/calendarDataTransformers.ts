@@ -16,7 +16,7 @@ import { getAuditDotColor, getInteractionDotColor } from "./calendarColors";
 /**
  * Converts a timestamp string to ISO date format (YYYY-MM-DD)
  */
-const toISODate = (timestamp?: string): string | null => {
+export const toISODate = (timestamp?: string): string | null => {
   if (!timestamp) return null;
   const parsed = Date.parse(timestamp);
   if (Number.isNaN(parsed)) return null;
@@ -289,6 +289,7 @@ export const getInitialCalendarDate = (
 ): string => {
   const today = new Date();
   const todayISO = today.toISOString().split("T")[0];
+  const todayMidnight = new Date(todayISO);
 
   const dates: string[] = [];
 
@@ -311,7 +312,19 @@ export const getInitialCalendarDate = (
 
   if (dates.length === 0) return todayISO;
 
-  // Find the most recent date (closest to today)
-  dates.sort((a, b) => b.localeCompare(a));
-  return dates[0];
+  let closestDate = dates[0];
+  let smallestDifference = Number.POSITIVE_INFINITY;
+
+  for (const dateKey of dates) {
+    const dateValue = new Date(dateKey);
+    const difference = Math.abs(
+      dateValue.getTime() - todayMidnight.getTime(),
+    );
+    if (difference < smallestDifference) {
+      smallestDifference = difference;
+      closestDate = dateKey;
+    }
+  }
+
+  return closestDate;
 };

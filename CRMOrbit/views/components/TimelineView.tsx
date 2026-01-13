@@ -13,7 +13,7 @@ import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
 import { getAuditEndTimestamp, getAuditStartTimestamp } from "../utils/audits";
 import { addMinutesToTimestamp } from "../utils/duration";
-import { buildMarkedDates } from "../utils/calendarDataTransformers";
+import { buildMarkedDates, toISODate } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
 import { useCalendarSettings } from "../store/store";
 
@@ -21,6 +21,7 @@ export interface TimelineViewProps {
   audits: Audit[];
   interactions: Interaction[];
   accountNames: Map<string, string>;
+  fallbackUnknownEntity: string;
   entityNamesForInteraction: (interactionId: string) => string;
   onAuditPress: (auditId: string) => void;
   onInteractionPress: (interactionId: string) => void;
@@ -33,18 +34,11 @@ interface TimelineEvent extends TimelineEventProps {
   kind: "audit" | "interaction";
 }
 
-const toISODate = (timestamp?: string): string | null => {
-  if (!timestamp) return null;
-  const parsed = Date.parse(timestamp);
-  if (Number.isNaN(parsed)) return null;
-  const date = new Date(parsed);
-  return date.toISOString().split("T")[0];
-};
-
 export const TimelineView = ({
   audits,
   interactions,
   accountNames,
+  fallbackUnknownEntity,
   entityNamesForInteraction,
   onAuditPress,
   onInteractionPress,
@@ -83,7 +77,7 @@ export const TimelineView = ({
       if (!dateKey) continue;
 
       const accountName =
-        accountNames.get(audit.accountId) ?? "Unknown Account";
+        accountNames.get(audit.accountId) ?? fallbackUnknownEntity;
 
       if (!eventsByDate[dateKey]) {
         eventsByDate[dateKey] = [];

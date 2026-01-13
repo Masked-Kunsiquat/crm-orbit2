@@ -114,6 +114,7 @@ export const CalendarScreen = ({ navigation }: Props) => {
             audits={audits}
             interactions={interactions}
             accountNames={accountNames}
+            fallbackUnknownEntity={t("common.unknownEntity")}
             entityNamesForInteraction={getEntityNamesForInteraction}
             onAuditPress={handleAuditPress}
             onInteractionPress={handleInteractionPress}
