@@ -2,9 +2,13 @@ import React, { useCallback, useMemo } from "react";
 import {
   CalendarProvider,
   ExpandableCalendar,
+  Timeline,
   TimelineList,
 } from "react-native-calendars";
-import type { TimelineEventProps } from "react-native-calendars";
+import type {
+  TimelineEventProps,
+  TimelineListRenderItemInfo,
+} from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
@@ -181,6 +185,17 @@ export const TimelineView = ({
     [onDateChange],
   );
 
+  const renderTimelineItem = useCallback(
+    (timelineProps: TimelineEventProps, info: TimelineListRenderItemInfo) => {
+      const rest = { ...timelineProps } as TimelineEventProps & {
+        key?: string;
+      };
+      delete rest.key;
+      return <Timeline key={info.item} {...rest} />;
+    },
+    [],
+  );
+
   return (
     <CalendarProvider
       date={selectedDate}
@@ -197,6 +212,7 @@ export const TimelineView = ({
       />
       <TimelineList
         events={timelineEventsByDate}
+        renderItem={renderTimelineItem}
         timelineProps={{
           format24h: true,
           onEventPress: handleEventPress,
