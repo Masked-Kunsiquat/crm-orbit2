@@ -56,7 +56,125 @@ export const migrateToCalendarEvents = (
 ): { doc: AutomergeDoc; report: MigrationReport } => {
   let report: MigrationReport | null = null;
   const updatedDoc = Automerge.change(ensureAutomergeDoc(doc), (draft) => {
-    report = migrateToCalendarEventsDraft(draft as AutomergeDoc, deviceId);
+    const result: MigrationReport = {
+      success: true,
+      migratedInteractions: 0,
+      migratedAudits: 0,
+      migratedLinks: 0,
+      errors: [],
+      interactionIds: [],
+      auditIds: [],
+      linkIds: [],
+      events: [],
+    };
+    const migrationDoc = draft as AutomergeDoc;
+
+    try {
+      // Step 1: Migrate interactions to calendar events
+      for (const [id, interaction] of Object.entries(
+        migrationDoc.interactions || {},
+      )) {
+        try {
+          // Skip if already migrated
+          if (migrationDoc.calendarEvents[id]) {
+            continue;
+          }
+
+          const calendarEvent = migrateInteractionToCalendarEvent(interaction);
+          migrationDoc.calendarEvents[id] = calendarEvent;
+          result.migratedInteractions++;
+          result.interactionIds.push(id);
+
+          // Generate event for persistence
+          const scheduledEvent = createCalendarEventScheduledEvent(
+            calendarEvent,
+            deviceId,
+            interaction.createdAt,
+          );
+          result.events.push(scheduledEvent);
+          result.events.push(
+            ...createCalendarEventStatusEvents(calendarEvent, deviceId),
+          );
+        } catch (error) {
+          const errorMsg = `Failed to migrate interaction ${id}: ${(error as Error).message}`;
+          console.error(errorMsg);
+          result.errors.push(errorMsg);
+        }
+      }
+
+      // Step 2: Migrate audits to calendar events
+      for (const [id, audit] of Object.entries(migrationDoc.audits || {})) {
+        try {
+          // Skip if already migrated
+          if (migrationDoc.calendarEvents[id]) {
+            continue;
+          }
+
+          const calendarEvent = migrateAuditToCalendarEvent(audit);
+          migrationDoc.calendarEvents[id] = calendarEvent;
+          result.migratedAudits++;
+          result.auditIds.push(id);
+
+          // Generate event for persistence
+          const scheduledEvent = createCalendarEventScheduledEvent(
+            calendarEvent,
+            deviceId,
+            audit.createdAt,
+          );
+          result.events.push(scheduledEvent);
+          result.events.push(
+            ...createCalendarEventStatusEvents(calendarEvent, deviceId),
+          );
+        } catch (error) {
+          const errorMsg = `Failed to migrate audit ${id}: ${(error as Error).message}`;
+          console.error(errorMsg);
+          result.errors.push(errorMsg);
+        }
+      }
+
+      // Step 3: Migrate entity links
+      for (const [linkId, link] of Object.entries(
+        migrationDoc.relations.entityLinks || {},
+      )) {
+        try {
+          // Skip if not an interaction link
+          if (link.linkType !== "interaction" || !link.interactionId) {
+            continue;
+          }
+
+          // Skip if already migrated
+          if (link.calendarEventId) {
+            continue;
+          }
+
+          // Verify the calendar event exists
+          const calendarEventId = link.interactionId;
+          if (!migrationDoc.calendarEvents[calendarEventId]) {
+            const errorMsg = `Link ${linkId} references non-existent calendar event ${calendarEventId}`;
+            console.warn(errorMsg);
+            result.errors.push(errorMsg);
+            continue;
+          }
+
+          // Update link to use calendarEventId
+          link.linkType = "calendarEvent";
+          link.calendarEventId = calendarEventId;
+          result.migratedLinks++;
+          result.linkIds.push(linkId);
+        } catch (error) {
+          const errorMsg = `Failed to migrate link ${linkId}: ${(error as Error).message}`;
+          console.error(errorMsg);
+          result.errors.push(errorMsg);
+        }
+      }
+    } catch (error) {
+      result.success = false;
+      const errorMsg = `Migration failed: ${(error as Error).message}`;
+      console.error(errorMsg);
+      result.errors.push(errorMsg);
+    }
+
+    report = result;
   });
 
   if (!report) {
@@ -67,122 +185,6 @@ export const migrateToCalendarEvents = (
     doc: updatedDoc as AutomergeDoc,
     report,
   };
-};
-
-const migrateToCalendarEventsDraft = (
-  doc: AutomergeDoc,
-  deviceId: string,
-): MigrationReport => {
-  const result: MigrationReport = {
-    success: true,
-    migratedInteractions: 0,
-    migratedAudits: 0,
-    migratedLinks: 0,
-    errors: [],
-    interactionIds: [],
-    auditIds: [],
-    linkIds: [],
-    events: [],
-  };
-
-  try {
-    // Step 1: Migrate interactions to calendar events
-    for (const [id, interaction] of Object.entries(doc.interactions || {})) {
-      try {
-        // Skip if already migrated
-        if (doc.calendarEvents[id]) {
-          continue;
-        }
-
-        const calendarEvent = migrateInteractionToCalendarEvent(interaction);
-        doc.calendarEvents[id] = calendarEvent;
-        result.migratedInteractions++;
-        result.interactionIds.push(id);
-
-        // Generate event for persistence
-        const event = createCalendarEventScheduledEvent(
-          calendarEvent,
-          deviceId,
-          interaction.createdAt,
-        );
-        result.events.push(event);
-      } catch (error) {
-        const errorMsg = `Failed to migrate interaction ${id}: ${(error as Error).message}`;
-        console.error(errorMsg);
-        result.errors.push(errorMsg);
-      }
-    }
-
-    // Step 2: Migrate audits to calendar events
-    for (const [id, audit] of Object.entries(doc.audits || {})) {
-      try {
-        // Skip if already migrated
-        if (doc.calendarEvents[id]) {
-          continue;
-        }
-
-        const calendarEvent = migrateAuditToCalendarEvent(audit);
-        doc.calendarEvents[id] = calendarEvent;
-        result.migratedAudits++;
-        result.auditIds.push(id);
-
-        // Generate event for persistence
-        const event = createCalendarEventScheduledEvent(
-          calendarEvent,
-          deviceId,
-          audit.createdAt,
-        );
-        result.events.push(event);
-      } catch (error) {
-        const errorMsg = `Failed to migrate audit ${id}: ${(error as Error).message}`;
-        console.error(errorMsg);
-        result.errors.push(errorMsg);
-      }
-    }
-
-    // Step 3: Migrate entity links
-    for (const [linkId, link] of Object.entries(
-      doc.relations.entityLinks || {},
-    )) {
-      try {
-        // Skip if not an interaction link
-        if (link.linkType !== "interaction" || !link.interactionId) {
-          continue;
-        }
-
-        // Skip if already migrated
-        if (link.calendarEventId) {
-          continue;
-        }
-
-        // Verify the calendar event exists
-        const calendarEventId = link.interactionId;
-        if (!doc.calendarEvents[calendarEventId]) {
-          const errorMsg = `Link ${linkId} references non-existent calendar event ${calendarEventId}`;
-          console.warn(errorMsg);
-          result.errors.push(errorMsg);
-          continue;
-        }
-
-        // Update link to use calendarEventId
-        link.linkType = "calendarEvent";
-        link.calendarEventId = calendarEventId;
-        result.migratedLinks++;
-        result.linkIds.push(linkId);
-      } catch (error) {
-        const errorMsg = `Failed to migrate link ${linkId}: ${(error as Error).message}`;
-        console.error(errorMsg);
-        result.errors.push(errorMsg);
-      }
-    }
-  } catch (error) {
-    result.success = false;
-    const errorMsg = `Migration failed: ${(error as Error).message}`;
-    console.error(errorMsg);
-    result.errors.push(errorMsg);
-  }
-
-  return result;
 };
 
 /**
@@ -227,12 +229,13 @@ export const migrateInteractionToCalendarEvent = (
 export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
   // Determine status based on audit state
   const status = resolveAuditStatus(audit);
+  const summary = resolveAuditSummary(audit);
 
   return {
     id: audit.id,
     type: "audit",
     status,
-    summary: audit.summary ?? "",
+    summary,
     description: audit.notes,
     scheduledFor: audit.scheduledFor,
     occurredAt:
@@ -252,6 +255,14 @@ export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
     createdAt: audit.createdAt,
     updatedAt: audit.updatedAt,
   };
+};
+
+const resolveAuditSummary = (audit: Audit): string => {
+  const summary = audit.summary?.trim();
+  if (summary) {
+    return summary;
+  }
+  return "";
 };
 
 const resolveInteractionStatus = (
@@ -396,9 +407,6 @@ const createCalendarEventScheduledEvent = (
   deviceId: string,
   originalTimestamp: string,
 ): Event => {
-  // Status is already in full enum format from migration
-  const fullStatus = calendarEvent.status;
-
   const payload: CalendarEventScheduledPayload = {
     id: calendarEvent.id,
     type: calendarEvent.type,
@@ -406,7 +414,7 @@ const createCalendarEventScheduledEvent = (
     scheduledFor: calendarEvent.scheduledFor,
     description: calendarEvent.description,
     durationMinutes: calendarEvent.durationMinutes,
-    status: fullStatus,
+    status: "calendarEvent.status.scheduled",
     location: calendarEvent.location,
     recurrenceRule: calendarEvent.recurrenceRule,
     accountId: calendarEvent.auditData?.accountId,
@@ -420,4 +428,64 @@ const createCalendarEventScheduledEvent = (
     timestamp: originalTimestamp, // Use original timestamp to maintain event order
     deviceId,
   };
+};
+
+const createCalendarEventStatusEvents = (
+  calendarEvent: CalendarEvent,
+  deviceId: string,
+): Event[] => {
+  if (calendarEvent.status === "calendarEvent.status.completed") {
+    const occurredAt = calendarEvent.occurredAt ?? calendarEvent.scheduledFor;
+    return [
+      {
+        id: `migration:${calendarEvent.id}:completed`,
+        type: "calendarEvent.completed",
+        entityId: calendarEvent.id,
+        payload: {
+          id: calendarEvent.id,
+          occurredAt,
+          ...(calendarEvent.auditData?.accountId && {
+            accountId: calendarEvent.auditData.accountId,
+          }),
+          ...(calendarEvent.auditData?.score !== undefined && {
+            score: calendarEvent.auditData.score,
+          }),
+          ...(calendarEvent.auditData?.floorsVisited !== undefined && {
+            floorsVisited: calendarEvent.auditData.floorsVisited,
+          }),
+        },
+        timestamp:
+          calendarEvent.occurredAt ??
+          calendarEvent.updatedAt ??
+          calendarEvent.createdAt,
+        deviceId,
+      },
+    ];
+  }
+
+  if (calendarEvent.status === "calendarEvent.status.canceled") {
+    return [
+      {
+        id: `migration:${calendarEvent.id}:canceled`,
+        type: "calendarEvent.canceled",
+        entityId: calendarEvent.id,
+        payload: {
+          id: calendarEvent.id,
+          ...(calendarEvent.auditData?.accountId && {
+            accountId: calendarEvent.auditData.accountId,
+          }),
+          ...(calendarEvent.auditData?.score !== undefined && {
+            score: calendarEvent.auditData.score,
+          }),
+          ...(calendarEvent.auditData?.floorsVisited !== undefined && {
+            floorsVisited: calendarEvent.auditData.floorsVisited,
+          }),
+        },
+        timestamp: calendarEvent.updatedAt ?? calendarEvent.createdAt,
+        deviceId,
+      },
+    ];
+  }
+
+  return [];
 };
