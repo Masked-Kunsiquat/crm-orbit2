@@ -68,10 +68,21 @@ export const CalendarView = ({
     () => resolveCalendarPalette(colors, calendarSettings.palette),
     [colors, calendarSettings.palette],
   );
-  const calendarRange = useMemo(
-    () => getCalendarMonthRange(selectedDate),
-    [selectedDate],
-  );
+  const calendarRange = useMemo(() => {
+    try {
+      return getCalendarMonthRange(selectedDate);
+    } catch {
+      const now = new Date();
+      const year = now.getUTCFullYear();
+      const month = now.getUTCMonth();
+      const start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+      const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+      return {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      };
+    }
+  }, [selectedDate]);
   const expandedEvents = useMemo(
     () =>
       expandCalendarEventsInRange(

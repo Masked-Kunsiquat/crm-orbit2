@@ -229,6 +229,7 @@ export const RecurrenceRulePicker = ({
           ]}
           value={enabled ? "on" : "off"}
           onChange={(next) => setEnabled(next === "on")}
+          layout="wrap"
         />
       </FormField>
 
@@ -258,6 +259,7 @@ export const RecurrenceRulePicker = ({
               onChange={(next) =>
                 setFrequency(next as RecurrenceRule["frequency"])
               }
+              layout="wrap"
             />
           </FormField>
 
@@ -349,6 +351,7 @@ export const RecurrenceRulePicker = ({
               ]}
               value={endMode}
               onChange={(next) => setEndMode(next as EndMode)}
+              layout="wrap"
             />
           </FormField>
 

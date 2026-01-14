@@ -11,17 +11,23 @@ type SegmentedOptionGroupProps<T extends string> = {
   options: ReadonlyArray<SegmentedOption<T>>;
   value: T;
   onChange: (value: T) => void;
+  layout?: "row" | "wrap";
+  maxLabelLines?: number;
 };
 
 export const SegmentedOptionGroup = <T extends string>({
   options,
   value,
   onChange,
+  layout = "row",
+  maxLabelLines,
 }: SegmentedOptionGroupProps<T>) => {
   const { colors } = useTheme();
+  const isWrap = layout === "wrap";
+  const labelLines = maxLabelLines ?? (isWrap ? 2 : 1);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isWrap ? styles.containerWrap : null]}>
       {options.map((option) => {
         const isSelected = option.value === value;
         return (
@@ -30,6 +36,7 @@ export const SegmentedOptionGroup = <T extends string>({
             onPress={() => onChange(option.value)}
             style={({ pressed }) => [
               styles.option,
+              !isWrap ? styles.optionFill : styles.optionWrap,
               { backgroundColor: colors.surface, borderColor: colors.border },
               isSelected && {
                 backgroundColor: colors.accent,
@@ -44,7 +51,7 @@ export const SegmentedOptionGroup = <T extends string>({
                 { color: colors.textSecondary },
                 isSelected && { color: colors.onAccent },
               ]}
-              numberOfLines={1}
+              numberOfLines={labelLines}
               ellipsizeMode="tail"
             >
               {option.label}
@@ -61,13 +68,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 6,
   },
+  containerWrap: {
+    flexWrap: "wrap",
+  },
   option: {
-    flex: 1,
     paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 6,
     borderWidth: 1,
     alignItems: "center",
+  },
+  optionFill: {
+    flex: 1,
+  },
+  optionWrap: {
+    flexBasis: "48%",
+    flexGrow: 1,
   },
   optionPressed: {
     opacity: 0.85,
@@ -75,5 +91,6 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 13,
     fontWeight: "500",
+    textAlign: "center",
   },
 });

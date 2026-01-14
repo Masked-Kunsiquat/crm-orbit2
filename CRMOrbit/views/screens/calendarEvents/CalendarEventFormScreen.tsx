@@ -411,7 +411,11 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
-    const trimmedAccountId = accountId.trim();
+    const normalizeAccountId = (value: string): EntityId | undefined => {
+      const trimmed = value.trim();
+      return trimmed ? (trimmed as EntityId) : undefined;
+    };
+    const normalizedAccountId = normalizeAccountId(accountId);
     const scoreValue =
       type === "calendarEvent.type.audit" ? parseScore(score) : undefined;
     const floorsVisited =
@@ -421,7 +425,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
 
     // Audit-specific validation
     if (type === "calendarEvent.type.audit") {
-      if (!trimmedAccountId) {
+      if (!normalizedAccountId) {
         showAlert(
           t("common.error"),
           t("calendarEvents.validation.accountRequired"),
@@ -453,6 +457,10 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     const trimmedDescription = description.trim() || undefined;
     const trimmedLocation = location.trim() || undefined;
     const normalizedRecurrenceRule = normalizeRecurrenceRule(recurrenceRule);
+    const filterUndefined = <T extends Record<string, unknown>>(value: T): T =>
+      Object.fromEntries(
+        Object.entries(value).filter(([, entry]) => entry !== undefined),
+      ) as T;
 
     if (calendarEventId) {
       // Update existing event
@@ -486,8 +494,11 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         > = {};
         let hasAuditChanges = false;
 
-        if (calendarEvent?.auditData?.accountId !== trimmedAccountId) {
-          auditUpdates.accountId = trimmedAccountId as EntityId;
+        if (
+          normalizedAccountId &&
+          calendarEvent?.auditData?.accountId !== normalizedAccountId
+        ) {
+          auditUpdates.accountId = normalizedAccountId;
           hasAuditChanges = true;
         }
 
@@ -533,14 +544,14 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
           const result = completeCalendarEvent(
             calendarEventId,
             occurredAtValue,
-            {
+            filterUndefined({
               description: trimmedDescription,
               ...(type === "calendarEvent.type.audit" && {
-                accountId: trimmedAccountId as EntityId,
+                accountId: normalizedAccountId,
               }),
-              ...(scoreValue !== undefined && { score: scoreValue }),
-              ...(floorsVisited !== undefined && { floorsVisited }),
-            },
+              score: scoreValue,
+              floorsVisited,
+            }),
           );
           if (!result.success) {
             showAlert(
@@ -551,13 +562,16 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             return;
           }
         } else if (status === "calendarEvent.status.canceled") {
-          const result = cancelCalendarEvent(calendarEventId, {
-            ...(type === "calendarEvent.type.audit" && {
-              accountId: trimmedAccountId as EntityId,
+          const result = cancelCalendarEvent(
+            calendarEventId,
+            filterUndefined({
+              ...(type === "calendarEvent.type.audit" && {
+                accountId: normalizedAccountId,
+              }),
+              score: scoreValue,
+              floorsVisited,
             }),
-            ...(scoreValue !== undefined && { score: scoreValue }),
-            ...(floorsVisited !== undefined && { floorsVisited }),
-          });
+          );
           if (!result.success) {
             showAlert(
               t("common.error"),
@@ -626,19 +640,22 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
           ]
         : undefined;
 
-      const result = scheduleCalendarEvent(type, trimmedSummary, scheduledFor, {
-        durationMinutes: durationValue,
-        description: trimmedDescription,
-        location: trimmedLocation,
-        ...(type === "calendarEvent.type.audit" && {
-          accountId: trimmedAccountId as EntityId,
+      const result = scheduleCalendarEvent(
+        type,
+        trimmedSummary,
+        scheduledFor,
+        filterUndefined({
+          durationMinutes: durationValue,
+          description: trimmedDescription,
+          location: trimmedLocation,
+          ...(type === "calendarEvent.type.audit" && {
+            accountId: normalizedAccountId,
+          }),
+          linkedEntities,
+          recurrenceRule: normalizedRecurrenceRule ?? undefined,
+          calendarEventId: newCalendarEventId,
         }),
-        linkedEntities,
-        ...(normalizedRecurrenceRule && {
-          recurrenceRule: normalizedRecurrenceRule,
-        }),
-        calendarEventId: newCalendarEventId,
-      });
+      );
 
       if (result.success) {
         // If status is completed, complete the event
@@ -648,14 +665,14 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
           const completeResult = completeCalendarEvent(
             newCalendarEventId,
             occurredAtValue,
-            {
+            filterUndefined({
               description: trimmedDescription,
               ...(type === "calendarEvent.type.audit" && {
-                accountId: trimmedAccountId as EntityId,
+                accountId: normalizedAccountId,
               }),
-              ...(scoreValue !== undefined && { score: scoreValue }),
-              ...(floorsVisited !== undefined && { floorsVisited }),
-            },
+              score: scoreValue,
+              floorsVisited,
+            }),
           );
           if (!completeResult.success) {
             showAlert(
@@ -699,6 +716,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             }))}
             value={type}
             onChange={(value) => setType(value as CalendarEventType)}
+            layout="wrap"
           />
         </FormField>
 
@@ -753,6 +771,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             onChange={(value) =>
               handleStatusChange(value as CalendarEventStatus)
             }
+            layout="wrap"
           />
         </FormField>
 
@@ -802,6 +821,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             options={durationOptions}
             value={durationPreset}
             onChange={handleDurationPresetChange}
+            layout="wrap"
           />
           <View style={styles.durationInputs}>
             <View style={styles.durationField}>
