@@ -44,6 +44,41 @@ export const buildCalendarTheme = (
     agendaTodayColor: colors.accent,
     agendaKnobColor: colors.border,
 
+    // Timeline styling
+    timelineContainer: {
+      backgroundColor: colors.surface,
+    },
+    contentStyle: {
+      backgroundColor: colors.surface,
+    },
+    line: {
+      backgroundColor: colors.border,
+    },
+    verticalLine: {
+      backgroundColor: colors.border,
+    },
+    timeLabel: {
+      color: colors.textMuted,
+    },
+    event: {
+      borderColor: colors.border,
+    },
+    eventTitle: {
+      color: colors.textPrimary,
+    },
+    eventSummary: {
+      color: colors.textSecondary,
+    },
+    eventTimes: {
+      color: colors.textSecondary,
+    },
+    nowIndicatorLine: {
+      backgroundColor: colors.accent,
+    },
+    nowIndicatorKnob: {
+      backgroundColor: colors.accent,
+    },
+
     // Additional styling
     stylesheet: {
       calendar: {

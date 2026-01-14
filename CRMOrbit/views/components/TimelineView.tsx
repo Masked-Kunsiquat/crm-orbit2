@@ -8,6 +8,7 @@ import {
 import type {
   TimelineEventProps,
   TimelineListRenderItemInfo,
+  TimelineProps,
 } from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
 
@@ -33,8 +34,8 @@ export interface TimelineViewProps {
   calendarEvents: CalendarEvent[];
   accountNames: Map<string, string>;
   unknownEntityLabel: string;
-  entityNamesForEvent?: (eventId: string) => string;
-  onEventPress: (eventId: string, occurrenceTimestamp?: string) => void;
+  entityNamesForEvent?: (calendarEventId: string) => string;
+  onEventPress: (calendarEventId: string, occurrenceTimestamp?: string) => void;
   selectedDate: string;
   onDateChange: (date: string) => void;
 }
@@ -184,7 +185,10 @@ export const TimelineView = ({
     (event: TimelineEventProps) => {
       if (!event) return;
       const timelineEvent = event as TimelineEvent;
-      const calendarEventId = timelineEvent.calendarEventId ?? timelineEvent.id;
+      const rawId =
+        typeof timelineEvent.id === "string" ? timelineEvent.id : "";
+      const baseId = rawId.split("::")[0];
+      const calendarEventId = timelineEvent.calendarEventId ?? baseId;
       if (calendarEventId) {
         onEventPress(calendarEventId, timelineEvent.occurrenceTimestamp);
       }
@@ -200,14 +204,19 @@ export const TimelineView = ({
   );
 
   const renderTimelineItem = useCallback(
-    (timelineProps: TimelineEventProps, info: TimelineListRenderItemInfo) => {
-      const rest = { ...timelineProps } as TimelineEventProps & {
-        key?: string;
-      };
+    (timelineProps: TimelineProps, info: TimelineListRenderItemInfo) => {
+      const rest = { ...timelineProps } as TimelineProps & { key?: string };
       delete rest.key;
-      return <Timeline key={info.item} {...rest} />;
+      return (
+        <Timeline
+          key={info.item}
+          {...rest}
+          onEventPress={handleEventPress}
+          eventTapped={handleEventPress}
+        />
+      );
     },
-    [],
+    [handleEventPress],
   );
 
   return (
@@ -230,12 +239,14 @@ export const TimelineView = ({
         timelineProps={{
           format24h: true,
           onEventPress: handleEventPress,
+          eventTapped: handleEventPress,
           start: 6,
           end: 22,
           unavailableHours: [
             { start: 0, end: 6 },
             { start: 22, end: 24 },
           ],
+          unavailableHoursColor: colors.surfaceElevated,
           overlapEventsSpacing: 8,
           theme: calendarTheme,
         }}
