@@ -3,13 +3,8 @@ import {
   CalendarProvider,
   ExpandableCalendar,
   Timeline,
-  TimelineList,
 } from "react-native-calendars";
-import type {
-  TimelineEventProps,
-  TimelineListRenderItemInfo,
-  TimelineProps,
-} from "react-native-calendars";
+import type { TimelineEventProps } from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
@@ -174,11 +169,14 @@ export const TimelineView = ({
     calendarPalette,
   ]);
 
-  const visibleTimelineEvents = useMemo(
-    () => ({
-      [selectedDate]: timelineEventsByDate[selectedDate] ?? [],
-    }),
+  const timelineEventsForDate = useMemo(
+    () => timelineEventsByDate[selectedDate] ?? [],
     [selectedDate, timelineEventsByDate],
+  );
+
+  const isToday = useMemo(
+    () => toISODate(new Date().toISOString()) === selectedDate,
+    [selectedDate],
   );
 
   const handleEventPress = useCallback(
@@ -203,22 +201,6 @@ export const TimelineView = ({
     [onDateChange],
   );
 
-  const renderTimelineItem = useCallback(
-    (timelineProps: TimelineProps, info: TimelineListRenderItemInfo) => {
-      const rest = { ...timelineProps } as TimelineProps & { key?: string };
-      delete rest.key;
-      return (
-        <Timeline
-          key={info.item}
-          {...rest}
-          onEventPress={handleEventPress}
-          eventTapped={handleEventPress}
-        />
-      );
-    },
-    [handleEventPress],
-  );
-
   return (
     <CalendarProvider
       date={selectedDate}
@@ -233,25 +215,24 @@ export const TimelineView = ({
         allowShadow={true}
         closeOnDayPress={true}
       />
-      <TimelineList
-        events={visibleTimelineEvents}
-        renderItem={renderTimelineItem}
-        timelineProps={{
-          format24h: true,
-          onEventPress: handleEventPress,
-          eventTapped: handleEventPress,
-          start: 6,
-          end: 22,
-          unavailableHours: [
-            { start: 0, end: 6 },
-            { start: 22, end: 24 },
-          ],
-          unavailableHoursColor: colors.surfaceElevated,
-          overlapEventsSpacing: 8,
-          theme: calendarTheme,
-        }}
-        showNowIndicator
-        scrollToFirst
+      <Timeline
+        date={selectedDate}
+        events={timelineEventsForDate}
+        format24h={true}
+        onEventPress={handleEventPress}
+        eventTapped={handleEventPress}
+        start={6}
+        end={22}
+        unavailableHours={[
+          { start: 0, end: 6 },
+          { start: 22, end: 24 },
+        ]}
+        unavailableHoursColor={colors.surfaceElevated}
+        overlapEventsSpacing={8}
+        theme={calendarTheme}
+        showNowIndicator={isToday}
+        scrollToNow={isToday}
+        scrollToFirst={!isToday}
       />
     </CalendarProvider>
   );
