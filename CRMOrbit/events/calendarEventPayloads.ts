@@ -138,7 +138,7 @@ export const buildCalendarEventFromScheduledPayload = (
   };
 
   // Add audit-specific data if this is an audit event
-  if (payload.type === "audit" && payload.accountId) {
+  if (payload.type === "calendarEvent.type.audit" && payload.accountId) {
     baseEvent.auditData = {
       accountId: payload.accountId,
     };

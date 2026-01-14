@@ -121,7 +121,10 @@ export const CalendarEventsSection = ({
   const hasMore = sortedEvents.length > visibleLimit;
 
   const getDisplayName = (event: CalendarEvent): string => {
-    if (event.type === "audit" && event.auditData?.accountId) {
+    if (
+      event.type === "calendarEvent.type.audit" &&
+      event.auditData?.accountId
+    ) {
       return (
         accountNames.get(event.auditData.accountId) ?? t("common.unknownEntity")
       );
@@ -155,7 +158,10 @@ export const CalendarEventsSection = ({
         )}`,
       );
     }
-    if (event.type === "audit" && event.auditData?.score !== undefined) {
+    if (
+      event.type === "calendarEvent.type.audit" &&
+      event.auditData?.score !== undefined
+    ) {
       lines.push(
         `${t("calendarEvents.fields.score")}: ${event.auditData.score}%`,
       );
@@ -167,7 +173,7 @@ export const CalendarEventsSection = ({
   };
 
   const getFootnote = (event: CalendarEvent): string | undefined => {
-    if (event.type === "audit") {
+    if (event.type === "calendarEvent.type.audit") {
       const floors = event.auditData?.floorsVisited;
       if (floors && floors.length > 0) {
         return `${t("calendarEvents.fields.floorsVisited")}: ${floors.join(", ")}`;
@@ -217,7 +223,7 @@ export const CalendarEventsSection = ({
           <View style={styles.eventCardContent}>
             <View style={styles.eventHeaderRow}>
               <Text style={[styles.eventType, { color: colors.textSecondary }]}>
-                {t(`calendarEvent.type.${event.type}`)}
+                {t(event.type)}
               </Text>
               <StatusBadge tone={statusTone} labelKey={event.status} />
             </View>
@@ -369,7 +375,7 @@ export const CalendarEventsSection = ({
                           { color: colors.textSecondary },
                         ]}
                       >
-                        {t(`calendarEvent.type.${item.type}`)}
+                        {t(item.type)}
                       </Text>
                       <StatusBadge
                         tone={getStatusTone(item.status)}

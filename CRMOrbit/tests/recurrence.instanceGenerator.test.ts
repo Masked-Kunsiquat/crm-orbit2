@@ -5,7 +5,7 @@ import { generateRecurrenceInstances } from "@domains/recurrence/instanceGenerat
 
 const baseEvent = (overrides: Partial<CalendarEvent> = {}): CalendarEvent => ({
   id: "event-1",
-  type: "meeting",
+  type: "calendarEvent.type.meeting",
   status: "calendarEvent.status.scheduled",
   summary: "Weekly sync",
   scheduledFor: "2024-01-01T10:00:00.000Z",

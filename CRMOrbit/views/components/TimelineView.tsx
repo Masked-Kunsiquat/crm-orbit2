@@ -109,15 +109,17 @@ export const TimelineView = ({
         addMinutesToTimestamp(startTimestamp, event.durationMinutes) ??
         startTimestamp;
       const accountName =
-        event.type === "audit" && event.auditData?.accountId
+        event.type === "calendarEvent.type.audit" && event.auditData?.accountId
           ? (accountNames.get(event.auditData.accountId) ?? unknownEntityLabel)
           : undefined;
       const title =
-        event.type === "audit" && accountName ? accountName : event.summary;
+        event.type === "calendarEvent.type.audit" && accountName
+          ? accountName
+          : event.summary;
       const linkedNames = entityNamesForEvent?.(sourceEventId)?.trim();
       const summaryParts: string[] = [];
 
-      if (event.type === "audit") {
+      if (event.type === "calendarEvent.type.audit") {
         if (event.summary?.trim()) summaryParts.push(event.summary.trim());
       } else if (linkedNames) {
         summaryParts.push(linkedNames);

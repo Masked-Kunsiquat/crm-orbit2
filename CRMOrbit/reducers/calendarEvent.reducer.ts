@@ -4,6 +4,7 @@ import type {
   CalendarEvent,
   CalendarEventStatus,
 } from "../domains/calendarEvent";
+import { normalizeCalendarEventType } from "../domains/calendarEvent";
 import {
   buildCalendarEventFromScheduledPayload,
   type CalendarEventScheduledPayload,
@@ -87,6 +88,11 @@ const applyCalendarEventScheduled = (
 
   logger.debug("Creating calendar event", { id, type: payload.type });
 
+  const normalizedType = normalizeCalendarEventType(payload.type);
+  if (!normalizedType) {
+    throw new Error(`Invalid calendar event type: ${payload.type}`);
+  }
+
   if (doc.calendarEvents[id]) {
     logger.error("Calendar event already exists", { id });
     throw new Error(`Calendar event already exists: ${id}`);
@@ -97,7 +103,7 @@ const applyCalendarEventScheduled = (
   }
 
   // Validate audit-specific requirements
-  if (payload.type === "audit" && !payload.accountId) {
+  if (normalizedType === "calendarEvent.type.audit" && !payload.accountId) {
     throw new Error("Audit events require accountId.");
   }
 
@@ -107,6 +113,7 @@ const applyCalendarEventScheduled = (
   const calendarEvent = buildCalendarEventFromScheduledPayload(
     {
       ...payload,
+      type: normalizedType,
       durationMinutes,
       ...(normalizedStatus && { status: normalizedStatus }),
     },
@@ -181,10 +188,17 @@ const applyCalendarEventUpdated = (
 
   const durationMinutes = resolveDurationMinutes(payload.durationMinutes);
 
-  const nextType = payload.type ?? existing.type;
+  const normalizedType =
+    payload.type !== undefined
+      ? normalizeCalendarEventType(payload.type)
+      : undefined;
+  if (payload.type !== undefined && !normalizedType) {
+    throw new Error(`Invalid calendar event type: ${payload.type}`);
+  }
+  const nextType = normalizedType ?? existing.type;
   const updated: CalendarEvent = {
     ...existing,
-    ...(payload.type !== undefined && { type: payload.type }),
+    ...(normalizedType && { type: normalizedType }),
     ...(payload.summary !== undefined && { summary: payload.summary }),
     ...(payload.description !== undefined && {
       description: payload.description,
@@ -194,7 +208,7 @@ const applyCalendarEventUpdated = (
     updatedAt: event.timestamp,
   };
 
-  if (nextType === "audit") {
+  if (nextType === "calendarEvent.type.audit") {
     const accountId = payload.accountId ?? existing.auditData?.accountId;
     if (!accountId) {
       throw new Error("Audit events require accountId for updates.");
@@ -265,7 +279,7 @@ const applyCalendarEventCompleted = (
   }
 
   // Update audit-specific data if this is an audit
-  if (existing.type === "audit") {
+  if (existing.type === "calendarEvent.type.audit") {
     const accountId = payload.accountId ?? existing.auditData?.accountId;
     if (!accountId) {
       throw new Error("Audit events require accountId when completing.");
@@ -318,7 +332,7 @@ const applyCalendarEventCanceled = (
     updatedAt: event.timestamp,
   };
 
-  if (existing.type === "audit") {
+  if (existing.type === "calendarEvent.type.audit") {
     const accountId = payload.accountId ?? existing.auditData?.accountId;
     if (!accountId) {
       throw new Error("Audit events require accountId when canceling.");

@@ -95,10 +95,15 @@ export const CalendarScreen = ({
     [navigation],
   );
 
-  const handleDateChange = useCallback((nextDate: string) => {
-    setSelectedDateTouched(true);
-    setSelectedDate(nextDate);
-  }, []);
+  const handleDateChange = useCallback(
+    (nextDate: string) => {
+      if (!selectedDateTouched && nextDate !== initialDate) {
+        setSelectedDateTouched(true);
+      }
+      setSelectedDate(nextDate);
+    },
+    [initialDate, selectedDateTouched],
+  );
 
   const handleCreateInteraction = useCallback(() => {
     setQuickAddVisible(false);
@@ -109,7 +114,7 @@ export const CalendarScreen = ({
     setQuickAddVisible(false);
     navigation.navigate("CalendarEventForm", {
       prefillDate: selectedDate,
-      prefillType: "audit",
+      prefillType: "calendarEvent.type.audit",
     });
   }, [navigation, selectedDate]);
 
@@ -123,8 +128,11 @@ export const CalendarScreen = ({
     if (selectedDateTouched) {
       return;
     }
-    setSelectedDate(initialDate);
-  }, [initialDate, selectedDateTouched]);
+    const newInitial = getInitialCalendarDateFromEvents(calendarEvents);
+    if (newInitial !== selectedDate) {
+      setSelectedDate(newInitial);
+    }
+  }, [calendarEvents, initialDate, selectedDate, selectedDateTouched]);
 
   return (
     <>

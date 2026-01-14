@@ -171,7 +171,7 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
-  const isAudit = calendarEvent.type === "audit";
+  const isAudit = calendarEvent.type === "calendarEvent.type.audit";
   const isCompleted = calendarEvent.status === "calendarEvent.status.completed";
   const isRecurring = Boolean(
     calendarEvent.recurrenceRule || calendarEvent.recurrenceId,
@@ -203,7 +203,7 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
         <View style={styles.header}>
           <View style={styles.headerText}>
             <Text style={[styles.typeLabel, { color: colors.textSecondary }]}>
-              {t(`calendarEvent.type.${calendarEvent.type}`)}
+              {t(calendarEvent.type)}
             </Text>
             {isAudit && account ? (
               <TouchableOpacity

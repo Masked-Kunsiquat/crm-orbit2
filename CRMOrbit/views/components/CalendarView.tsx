@@ -88,7 +88,7 @@ export const CalendarView = ({
     for (const event of expandedEvents) {
       const sourceEventId = event.recurrenceId ?? event.id;
       const accountName =
-        event.type === "audit" && event.auditData?.accountId
+        event.type === "calendarEvent.type.audit" && event.auditData?.accountId
           ? (accountNames.get(event.auditData.accountId) ?? unknownEntityLabel)
           : undefined;
       const entityNames = entityNamesForEvent(sourceEventId);
@@ -125,15 +125,15 @@ export const CalendarView = ({
   const getEventIcon = useCallback(
     (type: string) => {
       switch (type) {
-        case "email":
+        case "calendarEvent.type.email":
           return (
             <Ionicons name="mail-outline" size={20} color={colors.accent} />
           );
-        case "call":
+        case "calendarEvent.type.call":
           return (
             <Ionicons name="call-outline" size={20} color={colors.accent} />
           );
-        case "meeting":
+        case "calendarEvent.type.meeting":
           return (
             <Ionicons
               name="people-circle-outline"
@@ -141,7 +141,7 @@ export const CalendarView = ({
               color={colors.accent}
             />
           );
-        case "audit":
+        case "calendarEvent.type.audit":
           return (
             <Ionicons
               name="clipboard-outline"
@@ -149,7 +149,7 @@ export const CalendarView = ({
               color={colors.accent}
             />
           );
-        case "task":
+        case "calendarEvent.type.task":
           return (
             <Ionicons
               name="checkmark-circle-outline"
@@ -157,11 +157,11 @@ export const CalendarView = ({
               color={colors.accent}
             />
           );
-        case "reminder":
+        case "calendarEvent.type.reminder":
           return (
             <Ionicons name="alarm-outline" size={20} color={colors.accent} />
           );
-        case "other":
+        case "calendarEvent.type.other":
         default:
           return (
             <FontAwesome6
@@ -214,7 +214,7 @@ export const CalendarView = ({
       // For audits: use floors visited as footnote; for others: use description
       const trimmedDescription = item.description?.trim();
       const footnote =
-        item.event.type === "audit"
+        item.event.type === "calendarEvent.type.audit"
           ? item.floorsVisited && item.floorsVisited.length > 0
             ? `${labels.event.floorsVisitedLabel}: ${item.floorsVisited.join(", ")}`
             : undefined

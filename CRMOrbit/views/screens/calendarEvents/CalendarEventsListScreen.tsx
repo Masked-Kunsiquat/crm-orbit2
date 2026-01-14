@@ -63,11 +63,11 @@ export const CalendarEventsListScreen = ({ navigation }: Props) => {
 
   const getEventIcon = (type: string) => {
     switch (type) {
-      case "email":
+      case "calendarEvent.type.email":
         return <Ionicons name="mail-outline" size={20} color={colors.accent} />;
-      case "call":
+      case "calendarEvent.type.call":
         return <Ionicons name="call-outline" size={20} color={colors.accent} />;
-      case "meeting":
+      case "calendarEvent.type.meeting":
         return (
           <Ionicons
             name="people-circle-outline"
@@ -75,11 +75,11 @@ export const CalendarEventsListScreen = ({ navigation }: Props) => {
             color={colors.accent}
           />
         );
-      case "audit":
+      case "calendarEvent.type.audit":
         return (
           <Ionicons name="clipboard-outline" size={20} color={colors.accent} />
         );
-      case "task":
+      case "calendarEvent.type.task":
         return (
           <Ionicons
             name="checkmark-circle-outline"
@@ -87,11 +87,11 @@ export const CalendarEventsListScreen = ({ navigation }: Props) => {
             color={colors.accent}
           />
         );
-      case "reminder":
+      case "calendarEvent.type.reminder":
         return (
           <Ionicons name="alarm-outline" size={20} color={colors.accent} />
         );
-      case "other":
+      case "calendarEvent.type.other":
       default:
         return (
           <FontAwesome6 name="lines-leaning" size={20} color={colors.accent} />
@@ -111,14 +111,14 @@ export const CalendarEventsListScreen = ({ navigation }: Props) => {
 
     // Build title based on type
     let title = item.summary;
-    if (item.type === "audit" && item.auditData?.accountId) {
+    if (item.type === "calendarEvent.type.audit" && item.auditData?.accountId) {
       const accountName =
         accountNames.get(item.auditData.accountId) ?? t("common.unknownEntity");
       title = accountName;
     }
 
     // Build subtitle
-    const subtitle = `${t(`calendarEvent.type.${item.type}`)} · ${timestampLabel}: ${formattedTimestamp}`;
+    const subtitle = `${t(item.type)} · ${timestampLabel}: ${formattedTimestamp}`;
 
     // Build description lines
     const descriptionLines: string[] = [];
@@ -127,7 +127,10 @@ export const CalendarEventsListScreen = ({ navigation }: Props) => {
         `${t("calendarEvents.fields.duration")}: ${formatDurationLabel(item.durationMinutes)}`,
       );
     }
-    if (item.type === "audit" && item.auditData?.score !== undefined) {
+    if (
+      item.type === "calendarEvent.type.audit" &&
+      item.auditData?.score !== undefined
+    ) {
       descriptionLines.push(
         `${t("calendarEvents.fields.score")}: ${item.auditData.score}%`,
       );
@@ -142,7 +145,7 @@ export const CalendarEventsListScreen = ({ navigation }: Props) => {
 
     // Footnote: description or floors visited
     let footnote: string | undefined;
-    if (item.type !== "audit") {
+    if (item.type !== "calendarEvent.type.audit") {
       footnote = item.description?.trim();
     } else if (
       item.auditData?.floorsVisited &&

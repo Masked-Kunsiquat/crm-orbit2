@@ -51,12 +51,12 @@ const CALENDAR_EVENT_TYPES: Array<{
   label: string;
   value: CalendarEventType;
 }> = [
-  { label: "calendarEvent.type.meeting", value: "meeting" },
-  { label: "calendarEvent.type.call", value: "call" },
-  { label: "calendarEvent.type.email", value: "email" },
-  { label: "calendarEvent.type.audit", value: "audit" },
-  { label: "calendarEvent.type.task", value: "task" },
-  { label: "calendarEvent.type.other", value: "other" },
+  { label: "calendarEvent.type.meeting", value: "calendarEvent.type.meeting" },
+  { label: "calendarEvent.type.call", value: "calendarEvent.type.call" },
+  { label: "calendarEvent.type.email", value: "calendarEvent.type.email" },
+  { label: "calendarEvent.type.audit", value: "calendarEvent.type.audit" },
+  { label: "calendarEvent.type.task", value: "calendarEvent.type.task" },
+  { label: "calendarEvent.type.other", value: "calendarEvent.type.other" },
 ];
 
 type DurationPreset = "30" | "60" | "120" | "240" | "custom";
@@ -65,13 +65,13 @@ const DURATION_PRESETS: DurationPreset[] = ["30", "60", "120", "240"];
 
 const DEFAULT_DURATION_BY_TYPE: Record<CalendarEventType, number | undefined> =
   {
-    call: 15,
-    meeting: 30,
-    email: undefined,
-    audit: 60,
-    task: 30,
-    reminder: undefined,
-    other: undefined,
+    "calendarEvent.type.call": 15,
+    "calendarEvent.type.meeting": 30,
+    "calendarEvent.type.email": undefined,
+    "calendarEvent.type.audit": 60,
+    "calendarEvent.type.task": 30,
+    "calendarEvent.type.reminder": undefined,
+    "calendarEvent.type.other": undefined,
   };
 
 const normalizeRecurrenceRule = (
@@ -155,7 +155,9 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
   const { dialogProps, showAlert } = useConfirmDialog();
 
   // Form state
-  const [type, setType] = useState<CalendarEventType>(prefillType ?? "meeting");
+  const [type, setType] = useState<CalendarEventType>(
+    prefillType ?? "calendarEvent.type.meeting",
+  );
   const [status, setStatus] = useState<CalendarEventStatus>(
     "calendarEvent.status.scheduled",
   );
@@ -406,12 +408,15 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     }
 
     const trimmedAccountId = accountId.trim();
-    const scoreValue = type === "audit" ? parseScore(score) : undefined;
+    const scoreValue =
+      type === "calendarEvent.type.audit" ? parseScore(score) : undefined;
     const floorsVisited =
-      type === "audit" ? parseFloorsVisited(floorsVisitedInput) : undefined;
+      type === "calendarEvent.type.audit"
+        ? parseFloorsVisited(floorsVisitedInput)
+        : undefined;
 
     // Audit-specific validation
-    if (type === "audit") {
+    if (type === "calendarEvent.type.audit") {
       if (!trimmedAccountId) {
         showAlert(
           t("common.error"),
@@ -471,7 +476,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         hasChanges = true;
       }
 
-      if (type === "audit") {
+      if (type === "calendarEvent.type.audit") {
         const auditUpdates: NonNullable<
           Parameters<typeof updateCalendarEvent>[1]["auditData"]
         > = {};
@@ -526,7 +531,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             occurredAtValue,
             {
               description: trimmedDescription,
-              ...(type === "audit" && {
+              ...(type === "calendarEvent.type.audit" && {
                 accountId: trimmedAccountId as EntityId,
               }),
               ...(scoreValue !== undefined && { score: scoreValue }),
@@ -543,7 +548,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
           }
         } else if (status === "calendarEvent.status.canceled") {
           const result = cancelCalendarEvent(calendarEventId, {
-            ...(type === "audit" && {
+            ...(type === "calendarEvent.type.audit" && {
               accountId: trimmedAccountId as EntityId,
             }),
             ...(scoreValue !== undefined && { score: scoreValue }),
@@ -621,7 +626,9 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         durationMinutes: durationValue,
         description: trimmedDescription,
         location: trimmedLocation,
-        ...(type === "audit" && { accountId: trimmedAccountId as EntityId }),
+        ...(type === "calendarEvent.type.audit" && {
+          accountId: trimmedAccountId as EntityId,
+        }),
         linkedEntities,
         ...(normalizedRecurrenceRule && {
           recurrenceRule: normalizedRecurrenceRule,
@@ -639,7 +646,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             occurredAtValue,
             {
               description: trimmedDescription,
-              ...(type === "audit" && {
+              ...(type === "calendarEvent.type.audit" && {
                 accountId: trimmedAccountId as EntityId,
               }),
               ...(scoreValue !== undefined && { score: scoreValue }),
@@ -675,7 +682,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     { label: t("common.custom"), value: "custom" },
   ];
 
-  const isAudit = type === "audit";
+  const isAudit = type === "calendarEvent.type.audit";
 
   return (
     <FormScreenLayout>

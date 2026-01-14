@@ -68,7 +68,7 @@ describe("migrateInteractionToCalendarEvent", () => {
     const calendarEvent = migrateInteractionToCalendarEvent(interaction);
 
     expect(calendarEvent.id).toBe(interaction.id);
-    expect(calendarEvent.type).toBe("meeting");
+    expect(calendarEvent.type).toBe("calendarEvent.type.meeting");
     expect(calendarEvent.status).toBe("calendarEvent.status.completed");
     expect(calendarEvent.summary).toBe(interaction.summary);
     expect(calendarEvent.description).toBeUndefined();
@@ -111,15 +111,21 @@ describe("migrateInteractionToCalendarEvent", () => {
 
   it("should map interaction types correctly", () => {
     const types: Array<{ input: string; expected: string }> = [
-      { input: "interaction.type.meeting", expected: "meeting" },
-      { input: "interaction.type.call", expected: "call" },
-      { input: "interaction.type.email", expected: "email" },
-      { input: "interaction.type.other", expected: "other" },
-      { input: "meeting", expected: "meeting" },
-      { input: "call", expected: "call" },
-      { input: "email", expected: "email" },
-      { input: "interaction", expected: "other" },
-      { input: "other", expected: "other" },
+      {
+        input: "interaction.type.meeting",
+        expected: "calendarEvent.type.meeting",
+      },
+      { input: "interaction.type.call", expected: "calendarEvent.type.call" },
+      { input: "interaction.type.email", expected: "calendarEvent.type.email" },
+      {
+        input: "interaction.type.other",
+        expected: "calendarEvent.type.other",
+      },
+      { input: "meeting", expected: "calendarEvent.type.meeting" },
+      { input: "call", expected: "calendarEvent.type.call" },
+      { input: "email", expected: "calendarEvent.type.email" },
+      { input: "interaction", expected: "calendarEvent.type.other" },
+      { input: "other", expected: "calendarEvent.type.other" },
     ];
 
     types.forEach(({ input, expected }) => {
@@ -138,7 +144,7 @@ describe("migrateAuditToCalendarEvent", () => {
     const calendarEvent = migrateAuditToCalendarEvent(audit);
 
     expect(calendarEvent.id).toBe(audit.id);
-    expect(calendarEvent.type).toBe("audit");
+    expect(calendarEvent.type).toBe("calendarEvent.type.audit");
     expect(calendarEvent.status).toBe("calendarEvent.status.completed");
     expect(calendarEvent.scheduledFor).toBe(audit.scheduledFor);
     expect(calendarEvent.occurredAt).toBe(audit.occurredAt);
@@ -234,7 +240,9 @@ describe("migrateToCalendarEvents", () => {
     expect(report.events).toHaveLength(4); // scheduled + completed for each audit
     expect(migratedDoc.calendarEvents[audit1.id]).toBeDefined();
     expect(migratedDoc.calendarEvents[audit2.id]).toBeDefined();
-    expect(migratedDoc.calendarEvents[audit1.id].type).toBe("audit");
+    expect(migratedDoc.calendarEvents[audit1.id].type).toBe(
+      "calendarEvent.type.audit",
+    );
   });
 
   it("should migrate both interactions and audits", () => {

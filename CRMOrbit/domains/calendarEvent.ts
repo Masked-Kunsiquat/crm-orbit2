@@ -6,15 +6,59 @@ import type { Entity, EntityId, Timestamp } from "./shared/types";
  */
 export type CalendarEventType =
   // Interaction types (migrated from Interaction.type)
+  | "calendarEvent.type.meeting"
+  | "calendarEvent.type.call"
+  | "calendarEvent.type.email"
+  | "calendarEvent.type.other"
+  // Audit type (migrated from Audit entity)
+  | "calendarEvent.type.audit"
+  // Future extensibility
+  | "calendarEvent.type.task"
+  | "calendarEvent.type.reminder";
+
+type LegacyCalendarEventType =
   | "meeting"
   | "call"
   | "email"
-  | "other"
-  // Audit type (migrated from Audit entity)
   | "audit"
-  // Future extensibility
   | "task"
-  | "reminder";
+  | "reminder"
+  | "other";
+
+const CALENDAR_EVENT_TYPE_KEYS: CalendarEventType[] = [
+  "calendarEvent.type.meeting",
+  "calendarEvent.type.call",
+  "calendarEvent.type.email",
+  "calendarEvent.type.other",
+  "calendarEvent.type.audit",
+  "calendarEvent.type.task",
+  "calendarEvent.type.reminder",
+];
+
+const LEGACY_CALENDAR_EVENT_TYPES: Record<
+  LegacyCalendarEventType,
+  CalendarEventType
+> = {
+  meeting: "calendarEvent.type.meeting",
+  call: "calendarEvent.type.call",
+  email: "calendarEvent.type.email",
+  other: "calendarEvent.type.other",
+  audit: "calendarEvent.type.audit",
+  task: "calendarEvent.type.task",
+  reminder: "calendarEvent.type.reminder",
+};
+
+export const normalizeCalendarEventType = (
+  value: unknown,
+): CalendarEventType | undefined => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  if (CALENDAR_EVENT_TYPE_KEYS.includes(value as CalendarEventType)) {
+    return value as CalendarEventType;
+  }
+  return LEGACY_CALENDAR_EVENT_TYPES[value as LegacyCalendarEventType];
+};
 
 /**
  * Calendar event status

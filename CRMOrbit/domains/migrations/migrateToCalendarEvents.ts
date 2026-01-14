@@ -233,7 +233,7 @@ export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
 
   return {
     id: audit.id,
-    type: "audit",
+    type: "calendarEvent.type.audit",
     status,
     summary,
     description: audit.notes,
@@ -313,22 +313,22 @@ const mapInteractionType = (interactionType: string): CalendarEventType => {
   switch (interactionType) {
     case "interaction.type.meeting":
     case "meeting":
-      return "meeting";
+      return "calendarEvent.type.meeting";
     case "interaction.type.call":
     case "call":
-      return "call";
+      return "calendarEvent.type.call";
     case "interaction.type.email":
     case "email":
-      return "email";
+      return "calendarEvent.type.email";
     case "interaction.type.other":
     case "interaction":
     case "other":
-      return "other";
+      return "calendarEvent.type.other";
     default:
       console.warn(
         `Unknown interaction type: ${interactionType}, defaulting to 'other'`,
       );
-      return "other";
+      return "calendarEvent.type.other";
   }
 };
 

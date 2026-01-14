@@ -13,7 +13,7 @@ test("calendarEvent.scheduled uses provided linkId for linked entities", () => {
     entityId: "calendar-1",
     payload: {
       id: "calendar-1",
-      type: "meeting",
+      type: "calendarEvent.type.meeting",
       summary: "Roadmap review",
       scheduledFor: "2026-01-02T10:00:00.000Z",
       linkedEntities: [
@@ -46,7 +46,7 @@ test("calendarEvent.scheduled normalizes legacy status values", () => {
     entityId: "calendar-legacy",
     payload: {
       id: "calendar-legacy",
-      type: "meeting",
+      type: "calendarEvent.type.meeting",
       summary: "Legacy status",
       scheduledFor: "2026-01-02T10:00:00.000Z",
       status: "scheduled" as CalendarEventStatus,
@@ -70,7 +70,7 @@ test("calendarEvent.linked stores link at payload linkId", () => {
     entityId: "calendar-2",
     payload: {
       id: "calendar-2",
-      type: "call",
+      type: "calendarEvent.type.call",
       summary: "Follow-up",
       scheduledFor: "2026-01-02T12:00:00.000Z",
     },
@@ -106,7 +106,7 @@ test("calendarEvent.completed rejects audits without accountId", () => {
   const doc = initAutomergeDoc();
   doc.calendarEvents["audit-1"] = {
     id: "audit-1",
-    type: "audit",
+    type: "calendarEvent.type.audit",
     status: "calendarEvent.status.scheduled",
     summary: "Audit",
     scheduledFor: "2026-01-03T09:00:00.000Z",

@@ -148,4 +148,5 @@ test("loadPersistedState normalizes legacy calendar event statuses", async () =>
 
   assert.ok(event);
   assert.equal(event.status, "calendarEvent.status.scheduled");
+  assert.equal(event.type, "calendarEvent.type.meeting");
 });

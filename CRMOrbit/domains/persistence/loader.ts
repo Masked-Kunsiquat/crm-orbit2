@@ -1,5 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
+import { normalizeCalendarEventType } from "@domains/calendarEvent";
 import {
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_SECURITY_SETTINGS,
@@ -64,6 +65,22 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   const existingAccounts = doc.accounts ?? ({} as AutomergeDoc["accounts"]);
   const existingCalendarEvents =
     doc.calendarEvents ?? ({} as AutomergeDoc["calendarEvents"]);
+
+  const normalizedCalendarEvents = Object.fromEntries(
+    Object.entries(existingCalendarEvents).map(([id, event]) => {
+      const normalizedType = normalizeCalendarEventType(event.type);
+      if (!normalizedType || normalizedType === event.type) {
+        return [id, event];
+      }
+      return [
+        id,
+        {
+          ...event,
+          type: normalizedType,
+        },
+      ];
+    }),
+  ) as AutomergeDoc["calendarEvents"];
 
   const normalizedAudits = Object.fromEntries(
     Object.entries(existingAudits).map(([id, audit]) => {
@@ -165,7 +182,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     accounts: normalizedAccounts,
     codes: normalizedCodes,
     audits: normalizedAudits,
-    calendarEvents: existingCalendarEvents,
+    calendarEvents: normalizedCalendarEvents,
     settings: normalizedSettings,
     relations: {
       ...doc.relations,
@@ -211,19 +228,30 @@ const normalizeLegacyEventPayload = (event: Event): Event => {
     return event;
   }
 
+  const normalizedType = normalizeCalendarEventType(payload.type);
   if (!("status" in payload)) {
-    return event;
+    return normalizedType
+      ? { ...event, payload: { ...payload, type: normalizedType } }
+      : event;
   }
 
   const normalizedStatus = normalizeCalendarEventStatus(payload.status);
+  const nextPayload = {
+    ...payload,
+    ...(normalizedType &&
+      normalizedType !== payload.type && { type: normalizedType }),
+  };
+
   if (!normalizedStatus || normalizedStatus === payload.status) {
-    return event;
+    return normalizedType && normalizedType !== payload.type
+      ? { ...event, payload: nextPayload }
+      : event;
   }
 
   return {
     ...event,
     payload: {
-      ...payload,
+      ...nextPayload,
       status: normalizedStatus,
     },
   };

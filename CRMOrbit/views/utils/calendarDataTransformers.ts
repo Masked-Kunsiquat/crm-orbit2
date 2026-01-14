@@ -354,15 +354,18 @@ export const buildCalendarEventAgendaItem = (
 
   // For audits, use account name; for others, use summary
   const displayName =
-    event.type === "audit" && accountName ? accountName : event.summary;
+    event.type === "calendarEvent.type.audit" && accountName
+      ? accountName
+      : event.summary;
 
   const scoreValue =
-    event.type === "audit" && event.auditData?.score !== undefined
+    event.type === "calendarEvent.type.audit" &&
+    event.auditData?.score !== undefined
       ? `${event.auditData.score}%`
       : undefined;
 
   const floorsVisited =
-    event.type === "audit" &&
+    event.type === "calendarEvent.type.audit" &&
     event.auditData?.floorsVisited &&
     event.auditData.floorsVisited.length > 0
       ? event.auditData.floorsVisited

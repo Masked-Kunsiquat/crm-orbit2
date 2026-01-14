@@ -189,10 +189,18 @@ export const getCalendarEventDotColor = (
     | "calendarEvent.status.scheduled"
     | "calendarEvent.status.completed"
     | "calendarEvent.status.canceled",
-  type: "meeting" | "call" | "email" | "audit" | "task" | "reminder" | "other",
+  type:
+    | "calendarEvent.type.meeting"
+    | "calendarEvent.type.call"
+    | "calendarEvent.type.email"
+    | "calendarEvent.type.audit"
+    | "calendarEvent.type.task"
+    | "calendarEvent.type.reminder"
+    | "calendarEvent.type.other",
 ): string => {
   // Use audit colors for audit events, interaction colors for others
-  const colorSet = type === "audit" ? palette.audit : palette.interaction;
+  const colorSet =
+    type === "calendarEvent.type.audit" ? palette.audit : palette.interaction;
 
   switch (status) {
     case "calendarEvent.status.scheduled":
