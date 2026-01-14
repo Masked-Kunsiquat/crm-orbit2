@@ -55,9 +55,9 @@ export type CalendarEventType =
   | 'reminder';
 
 export type CalendarEventStatus =
-  | 'scheduled'
-  | 'completed'
-  | 'canceled';
+  | 'calendarEvent.status.scheduled'
+  | 'calendarEvent.status.completed'
+  | 'calendarEvent.status.canceled';
 
 export interface RecurrenceRule {
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -101,7 +101,7 @@ export interface CalendarEvent extends Entity {
 
 **Key Design Decisions**:
 - `scheduledFor` is ALWAYS set (even for completed events, represents original schedule)
-- `occurredAt` is ONLY set when status = 'completed' (when it actually happened)
+- `occurredAt` is ONLY set when status = 'calendarEvent.status.completed' (when it actually happened)
 - Audit-specific fields nested in `auditData` to keep model clean
 - Recurrence support via `recurrenceRule` + `recurrenceId` for instances
 - Type can be extended without breaking changes
@@ -374,7 +374,7 @@ function applyCalendarEventCompleted(
 
   if (!calendarEvent) return doc;
 
-  calendarEvent.status = 'completed';
+  calendarEvent.status = 'calendarEvent.status.completed';
   calendarEvent.occurredAt = payload.occurredAt;
 
   // Update audit-specific data if applicable
@@ -596,7 +596,7 @@ export const useCalendarEventActions = () => {
     const calendarEvent: CalendarEvent = {
       id: generateEntityId(),
       type,
-      status: 'scheduled',
+      status: 'calendarEvent.status.scheduled',
       summary,
       scheduledFor,
       durationMinutes,
@@ -846,8 +846,8 @@ const getEventColor = (
   type: CalendarEventType,
   status: CalendarEventStatus
 ): string => {
-  if (status === 'canceled') return '#999';
-  if (status === 'completed') return '#4CAF50';
+  if (status === 'calendarEvent.status.canceled') return '#999';
+  if (status === 'calendarEvent.status.completed') return '#4CAF50';
 
   switch (type) {
     case 'audit': return '#2196F3';
@@ -1085,11 +1085,11 @@ const migrateInteractionToCalendarEvent = (
   return {
     id: interaction.id,
     type: interaction.type, // meeting, call, email, other
-    status: interaction.status || 'completed',
+    status: interaction.status || 'calendarEvent.status.completed',
     summary: interaction.summary,
     description: undefined,
     scheduledFor: interaction.scheduledFor || interaction.occurredAt,
-    occurredAt: interaction.status === 'completed'
+    occurredAt: interaction.status === 'interaction.status.completed'
       ? interaction.occurredAt
       : undefined,
     durationMinutes: interaction.durationMinutes,
@@ -1288,7 +1288,7 @@ export const buildDeviceCalendarEvent = (
     : addMinutes(startDate, 60); // Default 1 hour
 
   let title = `${getEventTypeLabel(calendarEvent.type, labels)} - ${linkedEntityName}`;
-  if (calendarEvent.status === 'canceled') {
+  if (calendarEvent.status === 'calendarEvent.status.canceled') {
     title = `Canceled: ${title}`;
   }
 
@@ -1313,7 +1313,7 @@ export const buildDeviceCalendarEvent = (
     endDate,
     notes,
     location: calendarEvent.location,
-    alarms: calendarEvent.status === 'canceled'
+    alarms: calendarEvent.status === 'calendarEvent.status.canceled'
       ? []
       : getDefaultAlarms(calendarEvent.type),
   };

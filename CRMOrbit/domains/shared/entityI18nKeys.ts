@@ -39,7 +39,7 @@ export const ENTITY_I18N_KEYS: Record<
 };
 
 /**
- * Maps target types (note/interaction) to their "link to entity" i18n keys
+ * Maps target types (note/interaction, calendarEvent) to their "link to entity" i18n keys
  */
 export const TARGET_LINK_TO_ENTITY_KEYS: Record<TargetType, string> = {
   note: "notes.linkToEntity",
