@@ -1,15 +1,9 @@
-import { AutomergeDoc } from "../../automerge/schema";
-import {
-  CalendarEvent,
-  CalendarEventType,
-  CalendarEventStatus,
-} from "../calendarEvent";
-import { Interaction } from "../interaction";
-import { Audit } from "../audit";
-import { EntityId } from "../shared/types";
-import { Event } from "../../events/event";
-import { CalendarEventScheduledPayload } from "../../events/calendarEventPayloads";
-import { generateEntityId } from "../shared/idGenerator";
+import { AutomergeDoc } from '../../automerge/schema';
+import { CalendarEvent, CalendarEventType, CalendarEventStatus } from '../calendarEvent';
+import { Interaction } from '../interaction';
+import { Audit } from '../audit';
+import { EntityId } from '../shared/types';
+import { generateEntityId } from '../shared/idGenerator';
 
 export interface MigrationResult {
   success: boolean;
@@ -23,7 +17,6 @@ export interface MigrationReport extends MigrationResult {
   interactionIds: EntityId[];
   auditIds: EntityId[];
   linkIds: string[];
-  events: Event[]; // Events generated during migration for persistence
 }
 
 /**
@@ -39,8 +32,7 @@ export interface MigrationReport extends MigrationResult {
  * @returns Migration result with counts and errors
  */
 export const migrateToCalendarEvents = (
-  doc: AutomergeDoc,
-  deviceId: string = "migration",
+  doc: AutomergeDoc
 ): MigrationReport => {
   const result: MigrationReport = {
     success: true,
@@ -51,15 +43,16 @@ export const migrateToCalendarEvents = (
     interactionIds: [],
     auditIds: [],
     linkIds: [],
-    events: [],
   };
 
   try {
     // Step 1: Migrate interactions to calendar events
+    console.log('Migrating interactions to calendar events...');
     for (const [id, interaction] of Object.entries(doc.interactions || {})) {
       try {
         // Skip if already migrated
         if (doc.calendarEvents[id]) {
+          console.log(`Skipping interaction ${id} - already migrated`);
           continue;
         }
 
@@ -67,14 +60,6 @@ export const migrateToCalendarEvents = (
         doc.calendarEvents[id] = calendarEvent;
         result.migratedInteractions++;
         result.interactionIds.push(id);
-
-        // Generate event for persistence
-        const event = createCalendarEventScheduledEvent(
-          calendarEvent,
-          deviceId,
-          interaction.createdAt,
-        );
-        result.events.push(event);
       } catch (error) {
         const errorMsg = `Failed to migrate interaction ${id}: ${(error as Error).message}`;
         console.error(errorMsg);
@@ -83,10 +68,12 @@ export const migrateToCalendarEvents = (
     }
 
     // Step 2: Migrate audits to calendar events
+    console.log('Migrating audits to calendar events...');
     for (const [id, audit] of Object.entries(doc.audits || {})) {
       try {
         // Skip if already migrated
         if (doc.calendarEvents[id]) {
+          console.log(`Skipping audit ${id} - already migrated`);
           continue;
         }
 
@@ -94,14 +81,6 @@ export const migrateToCalendarEvents = (
         doc.calendarEvents[id] = calendarEvent;
         result.migratedAudits++;
         result.auditIds.push(id);
-
-        // Generate event for persistence
-        const event = createCalendarEventScheduledEvent(
-          calendarEvent,
-          deviceId,
-          audit.createdAt,
-        );
-        result.events.push(event);
       } catch (error) {
         const errorMsg = `Failed to migrate audit ${id}: ${(error as Error).message}`;
         console.error(errorMsg);
@@ -110,17 +89,17 @@ export const migrateToCalendarEvents = (
     }
 
     // Step 3: Migrate entity links
-    for (const [linkId, link] of Object.entries(
-      doc.relations.entityLinks || {},
-    )) {
+    console.log('Migrating entity links...');
+    for (const [linkId, link] of Object.entries(doc.relations.entityLinks || {})) {
       try {
         // Skip if not an interaction link
-        if (link.linkType !== "interaction" || !link.interactionId) {
+        if (link.linkType !== 'interaction' || !link.interactionId) {
           continue;
         }
 
         // Skip if already migrated
         if (link.calendarEventId) {
+          console.log(`Skipping link ${linkId} - already migrated`);
           continue;
         }
 
@@ -134,7 +113,7 @@ export const migrateToCalendarEvents = (
         }
 
         // Update link to use calendarEventId
-        link.linkType = "calendarEvent";
+        link.linkType = 'calendarEvent';
         link.calendarEventId = calendarEventId;
         result.migratedLinks++;
         result.linkIds.push(linkId);
@@ -144,6 +123,14 @@ export const migrateToCalendarEvents = (
         result.errors.push(errorMsg);
       }
     }
+
+    console.log('Migration complete:', {
+      interactions: result.migratedInteractions,
+      audits: result.migratedAudits,
+      links: result.migratedLinks,
+      errors: result.errors.length,
+    });
+
   } catch (error) {
     result.success = false;
     const errorMsg = `Migration failed: ${(error as Error).message}`;
@@ -159,16 +146,16 @@ export const migrateToCalendarEvents = (
  * Preserves the original entity ID for reference integrity.
  */
 export const migrateInteractionToCalendarEvent = (
-  interaction: Interaction,
+  interaction: Interaction
 ): CalendarEvent => {
   // Determine status based on interaction state
   let status: CalendarEventStatus;
-  if (interaction.status === "canceled") {
-    status = "canceled";
+  if (interaction.status === 'canceled') {
+    status = 'canceled';
   } else if (interaction.occurredAt) {
-    status = "completed";
+    status = 'completed';
   } else {
-    status = "scheduled";
+    status = 'scheduled';
   }
 
   // Map interaction type to calendar event type
@@ -181,7 +168,7 @@ export const migrateInteractionToCalendarEvent = (
     summary: interaction.summary,
     description: interaction.notes,
     scheduledFor: interaction.scheduledFor || interaction.occurredAt,
-    occurredAt: status === "completed" ? interaction.occurredAt : undefined,
+    occurredAt: status === 'completed' ? interaction.occurredAt : undefined,
     durationMinutes: interaction.durationMinutes,
     location: undefined, // Interactions don't have location field
     recurrenceRule: undefined, // Legacy interactions don't have recurrence
@@ -197,25 +184,27 @@ export const migrateInteractionToCalendarEvent = (
  * Transforms an Audit entity to a CalendarEvent.
  * Preserves the original entity ID for reference integrity.
  */
-export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
+export const migrateAuditToCalendarEvent = (
+  audit: Audit
+): CalendarEvent => {
   // Determine status based on audit state
   let status: CalendarEventStatus;
-  if (audit.status === "canceled") {
-    status = "canceled";
+  if (audit.status === 'canceled') {
+    status = 'canceled';
   } else if (audit.occurredAt) {
-    status = "completed";
+    status = 'completed';
   } else {
-    status = "scheduled";
+    status = 'scheduled';
   }
 
   return {
     id: audit.id,
-    type: "audit",
+    type: 'audit',
     status,
     summary: audit.summary || `Audit for account ${audit.accountId}`,
     description: audit.notes,
     scheduledFor: audit.scheduledFor,
-    occurredAt: status === "completed" ? audit.occurredAt : undefined,
+    occurredAt: status === 'completed' ? audit.occurredAt : undefined,
     durationMinutes: audit.durationMinutes,
     location: undefined, // Audits don't have location field
     recurrenceRule: undefined, // Legacy audits don't have recurrence
@@ -237,20 +226,18 @@ export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
  */
 const mapInteractionType = (interactionType: string): CalendarEventType => {
   switch (interactionType) {
-    case "meeting":
-      return "meeting";
-    case "call":
-      return "call";
-    case "email":
-      return "email";
-    case "interaction":
-    case "other":
-      return "other";
+    case 'meeting':
+      return 'meeting';
+    case 'call':
+      return 'call';
+    case 'email':
+      return 'email';
+    case 'interaction':
+    case 'other':
+      return 'other';
     default:
-      console.warn(
-        `Unknown interaction type: ${interactionType}, defaulting to 'other'`,
-      );
-      return "other";
+      console.warn(`Unknown interaction type: ${interactionType}, defaulting to 'other'`);
+      return 'other';
   }
 };
 
@@ -261,9 +248,7 @@ const mapInteractionType = (interactionType: string): CalendarEventType => {
  * 3. All interaction entity links were updated
  * 4. No data loss occurred
  */
-export const validateMigration = (
-  doc: AutomergeDoc,
-): {
+export const validateMigration = (doc: AutomergeDoc): {
   valid: boolean;
   issues: string[];
 } => {
@@ -271,83 +256,51 @@ export const validateMigration = (
 
   // Check for unmigrated interactions
   const unmigratedInteractions = Object.entries(doc.interactions || {}).filter(
-    ([id]) => !doc.calendarEvents[id],
+    ([id]) => !doc.calendarEvents[id]
   );
   if (unmigratedInteractions.length > 0) {
     issues.push(
-      `Found ${unmigratedInteractions.length} unmigrated interactions: ${unmigratedInteractions.map(([id]) => id).join(", ")}`,
+      `Found ${unmigratedInteractions.length} unmigrated interactions: ${unmigratedInteractions.map(([id]) => id).join(', ')}`
     );
   }
 
   // Check for unmigrated audits
   const unmigratedAudits = Object.entries(doc.audits || {}).filter(
-    ([id]) => !doc.calendarEvents[id],
+    ([id]) => !doc.calendarEvents[id]
   );
   if (unmigratedAudits.length > 0) {
     issues.push(
-      `Found ${unmigratedAudits.length} unmigrated audits: ${unmigratedAudits.map(([id]) => id).join(", ")}`,
+      `Found ${unmigratedAudits.length} unmigrated audits: ${unmigratedAudits.map(([id]) => id).join(', ')}`
     );
   }
 
   // Check for unmigrated entity links
-  const unmigratedLinks = Object.entries(
-    doc.relations.entityLinks || {},
-  ).filter(
-    ([_, link]) => link.linkType === "interaction" && !link.calendarEventId,
+  const unmigratedLinks = Object.entries(doc.relations.entityLinks || {}).filter(
+    ([_, link]) => link.linkType === 'interaction' && !link.calendarEventId
   );
   if (unmigratedLinks.length > 0) {
-    issues.push(`Found ${unmigratedLinks.length} unmigrated interaction links`);
+    issues.push(
+      `Found ${unmigratedLinks.length} unmigrated interaction links`
+    );
   }
 
   // Check for orphaned calendar event links
   const orphanedLinks = Object.entries(doc.relations.entityLinks || {}).filter(
     ([_, link]) => {
-      if (link.linkType !== "calendarEvent" || !link.calendarEventId) {
+      if (link.linkType !== 'calendarEvent' || !link.calendarEventId) {
         return false;
       }
       return !doc.calendarEvents[link.calendarEventId];
-    },
+    }
   );
   if (orphanedLinks.length > 0) {
     issues.push(
-      `Found ${orphanedLinks.length} calendar event links referencing non-existent events`,
+      `Found ${orphanedLinks.length} calendar event links referencing non-existent events`
     );
   }
 
   return {
     valid: issues.length === 0,
     issues,
-  };
-};
-
-/**
- * Creates a calendarEvent.scheduled event for a migrated calendar event.
- * Uses the original entity's createdAt timestamp to maintain chronological order.
- */
-const createCalendarEventScheduledEvent = (
-  calendarEvent: CalendarEvent,
-  deviceId: string,
-  originalTimestamp: string,
-): Event => {
-  const payload: CalendarEventScheduledPayload = {
-    id: calendarEvent.id,
-    type: calendarEvent.type,
-    summary: calendarEvent.summary,
-    scheduledFor: calendarEvent.scheduledFor,
-    description: calendarEvent.description,
-    durationMinutes: calendarEvent.durationMinutes,
-    status: calendarEvent.status,
-    location: calendarEvent.location,
-    recurrenceRule: calendarEvent.recurrenceRule,
-    accountId: calendarEvent.auditData?.accountId,
-  };
-
-  return {
-    id: generateEntityId(),
-    type: "calendarEvent.scheduled",
-    entityId: calendarEvent.id,
-    payload,
-    timestamp: originalTimestamp, // Use original timestamp to maintain event order
-    deviceId,
   };
 };

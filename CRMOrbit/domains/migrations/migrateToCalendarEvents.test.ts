@@ -201,6 +201,7 @@ describe("migrateToCalendarEvents", () => {
     expect(result.migratedInteractions).toBe(2);
     expect(result.migratedAudits).toBe(0);
     expect(result.errors).toHaveLength(0);
+    expect(result.events).toHaveLength(2); // Should generate 2 events
     expect(doc.calendarEvents[interaction1.id]).toBeDefined();
     expect(doc.calendarEvents[interaction2.id]).toBeDefined();
   });
@@ -219,6 +220,7 @@ describe("migrateToCalendarEvents", () => {
     expect(result.migratedInteractions).toBe(0);
     expect(result.migratedAudits).toBe(2);
     expect(result.errors).toHaveLength(0);
+    expect(result.events).toHaveLength(2); // Should generate 2 events
     expect(doc.calendarEvents[audit1.id]).toBeDefined();
     expect(doc.calendarEvents[audit2.id]).toBeDefined();
     expect(doc.calendarEvents[audit1.id].type).toBe("audit");
