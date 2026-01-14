@@ -138,6 +138,7 @@ CalendarEventExternalLink {
 ### Storage rules
 - Link records are persisted via Drizzle and mirrored in Automerge as needed for app views.
 - `calendarId` and `externalEventId` are device-local; merging across devices should be handled by conflict-aware sync logic.
+- External identifiers stay in the local link table (not the event log) to avoid cross-device leakage.
 
 ---
 
@@ -145,13 +146,13 @@ CalendarEventExternalLink {
 Events must remain semantic and locale-neutral. Example new event types:
 
 - `calendarEvent.externalLinked`
-  - payload: `{ calendarEventId, externalEventId, calendarId, provider }`
+  - payload: `{ linkId, calendarEventId, provider }`
 - `calendarEvent.externalImported`
-  - payload: `{ calendarEventId, externalEventId, calendarId, provider }`
+  - payload: `{ linkId, calendarEventId, provider }`
 - `calendarEvent.externalUpdated`
-  - payload: `{ calendarEventId, fields: { scheduledFor?, occurredAt?, summary?, description?, location? } }`
+  - payload: `{ calendarEventId, provider }`
 - `calendarEvent.externalUnlinked` (optional)
-  - payload: `{ calendarEventId, externalEventId, calendarId, provider }`
+  - payload: `{ linkId, calendarEventId?, provider? }`
 
 Add to `CRMOrbit/i18n/events.ts` for display mapping.
 

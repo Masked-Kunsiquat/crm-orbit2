@@ -6,6 +6,7 @@ import type {
 } from "@domains/calendarEvent";
 import type { EntityId, Timestamp } from "@domains/shared/types";
 import type { EntityLinkType } from "@domains/relations/entityLink";
+import type { ExternalCalendarProvider } from "@domains/relations/calendarEventExternalLink";
 
 /**
  * Payload types for unified calendar event system
@@ -96,6 +97,33 @@ export type CalendarEventUnlinkedPayload = {
   calendarEventId?: EntityId; // Optional for validation
   entityType?: EntityLinkType; // Optional for validation
   entityId?: EntityId; // Optional for validation
+};
+
+// calendarEvent.externalLinked
+export type CalendarEventExternalLinkedPayload = {
+  linkId: EntityId;
+  calendarEventId: EntityId;
+  provider: ExternalCalendarProvider;
+};
+
+// calendarEvent.externalImported
+export type CalendarEventExternalImportedPayload = {
+  linkId: EntityId;
+  calendarEventId: EntityId;
+  provider: ExternalCalendarProvider;
+};
+
+// calendarEvent.externalUpdated
+export type CalendarEventExternalUpdatedPayload = {
+  calendarEventId: EntityId;
+  provider: ExternalCalendarProvider;
+};
+
+// calendarEvent.externalUnlinked
+export type CalendarEventExternalUnlinkedPayload = {
+  linkId: EntityId;
+  calendarEventId?: EntityId;
+  provider?: ExternalCalendarProvider;
 };
 
 // calendarEvent.recurrence.created
