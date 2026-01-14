@@ -24,6 +24,7 @@ import {
   useDeviceId,
   useTheme,
   useCalendarSync,
+  useExternalCalendarSelection,
   useSettingsActions,
 } from "../../hooks";
 import {
@@ -58,6 +59,9 @@ export const CalendarSettingsScreen = () => {
     interactions,
     accounts,
     doc,
+  });
+  const externalCalendarSelection = useExternalCalendarSelection({
+    permissionGranted: permission?.granted ?? false,
   });
 
   const alarmOptions: Array<{ value: AuditAlarmOption; label: string }> = [
@@ -194,6 +198,109 @@ export const CalendarSettingsScreen = () => {
           </View>
         </FormField>
       </Section>
+      {Platform.OS !== "web" && permission?.granted ? (
+        <Section title={t("calendar.external.title")}>
+          <FormField
+            label={t("calendar.external.label")}
+            hint={t("calendar.external.hint")}
+            accessory={
+              <ActionButton
+                label={t("calendar.external.refresh")}
+                onPress={() => {
+                  void externalCalendarSelection.refreshCalendars();
+                }}
+                tone="link"
+                size="compact"
+                disabled={externalCalendarSelection.isLoading}
+              />
+            }
+          >
+            {externalCalendarSelection.isLoading ? (
+              <View style={styles.syncStatusRow}>
+                <ActivityIndicator size="small" color={colors.accent} />
+                <Text
+                  style={[styles.syncHint, { color: colors.textSecondary }]}
+                >
+                  {t("calendar.external.loading")}
+                </Text>
+              </View>
+            ) : externalCalendarSelection.hasError ? (
+              <Text style={[styles.syncHint, { color: colors.error }]}>
+                {t("calendar.external.error")}
+              </Text>
+            ) : externalCalendarSelection.calendars.length === 0 ? (
+              <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
+                {t("calendar.external.empty")}
+              </Text>
+            ) : (
+              <View style={styles.externalCalendarList}>
+                {externalCalendarSelection.calendars.map((calendar) => {
+                  const isSelected =
+                    calendar.id ===
+                    externalCalendarSelection.selectedCalendarId;
+                  return (
+                    <Pressable
+                      key={calendar.id}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isSelected }}
+                      onPress={() => {
+                        if (!isSelected) {
+                          void externalCalendarSelection.selectCalendar(
+                            calendar.id,
+                          );
+                        }
+                      }}
+                      style={({ pressed }) => [
+                        styles.externalCalendarCard,
+                        {
+                          borderColor: isSelected
+                            ? colors.accent
+                            : colors.borderLight,
+                          backgroundColor: colors.surfaceElevated,
+                        },
+                        pressed && styles.paletteCardPressed,
+                      ]}
+                    >
+                      <View style={styles.externalCalendarRow}>
+                        <View style={styles.externalCalendarText}>
+                          <Text
+                            style={[
+                              styles.externalCalendarTitle,
+                              { color: colors.textPrimary },
+                            ]}
+                          >
+                            {calendar.title}
+                          </Text>
+                          {calendar.source ? (
+                            <Text
+                              style={[
+                                styles.externalCalendarSubtitle,
+                                { color: colors.textSecondary },
+                              ]}
+                            >
+                              {calendar.source}
+                            </Text>
+                          ) : null}
+                        </View>
+                        {isSelected ? (
+                          <Text
+                            style={[
+                              styles.externalCalendarBadge,
+                              { color: colors.accent },
+                            ]}
+                          >
+                            {t("calendar.external.selected")}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </FormField>
+        </Section>
+      ) : null}
       <Section title={t("calendar.sync.title")}>
         {Platform.OS === "web" ? (
           <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
@@ -378,6 +485,37 @@ const styles = StyleSheet.create({
   },
   paletteCardPressed: {
     opacity: 0.85,
+  },
+  externalCalendarList: {
+    gap: 10,
+  },
+  externalCalendarCard: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  externalCalendarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  externalCalendarText: {
+    flex: 1,
+  },
+  externalCalendarTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  externalCalendarSubtitle: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  externalCalendarBadge: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   paletteLabel: {
     fontSize: 14,

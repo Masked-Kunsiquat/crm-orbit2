@@ -10,6 +10,7 @@ const CALENDAR_ID_KEY = "calendar.sync.id";
 const CALENDAR_EVENT_MAP_KEY = "calendar.sync.eventMap";
 const CALENDAR_LAST_SYNC_KEY = "calendar.sync.lastSync";
 const CALENDAR_AUDIT_ALARM_OFFSET_KEY = "calendar.sync.auditAlarmOffsetMinutes";
+const EXTERNAL_CALENDAR_ID_KEY = "calendar.external.selectedId";
 
 export type CalendarSyncEvent = {
   key: string;
@@ -71,6 +72,20 @@ export const getStoredCalendarId = async (): Promise<string | null> => {
 
 const setStoredCalendarId = async (calendarId: string): Promise<void> => {
   await AsyncStorage.setItem(CALENDAR_ID_KEY, calendarId);
+};
+
+export const getStoredExternalCalendarId = async (): Promise<string | null> => {
+  return AsyncStorage.getItem(EXTERNAL_CALENDAR_ID_KEY);
+};
+
+export const setStoredExternalCalendarId = async (
+  calendarId: string | null,
+): Promise<void> => {
+  if (!calendarId) {
+    await AsyncStorage.removeItem(EXTERNAL_CALENDAR_ID_KEY);
+    return;
+  }
+  await AsyncStorage.setItem(EXTERNAL_CALENDAR_ID_KEY, calendarId);
 };
 
 const getStoredEventMap = async (): Promise<Record<string, string>> => {

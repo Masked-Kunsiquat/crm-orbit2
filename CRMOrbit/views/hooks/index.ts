@@ -38,6 +38,11 @@ export type {
   CalendarSyncState,
   UseCalendarSyncParams,
 } from "./useCalendarSync";
+export { useExternalCalendarSelection } from "./useExternalCalendarSelection";
+export type {
+  ExternalCalendarSelectionState,
+  UseExternalCalendarSelectionParams,
+} from "./useExternalCalendarSelection";
 export { useOrganizationAccountManagement } from "./useOrganizationAccountManagement";
 export type {
   OrganizationAccountManagementState,

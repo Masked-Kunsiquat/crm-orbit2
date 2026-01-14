@@ -26,32 +26,38 @@ Backend and app engineers working on Phase 7 calendar sync, plus reviewers who n
 - Request calendar permissions and enforce a single selected calendar.
 - Store `selectedExternalCalendarId` in device-local settings (not Automerge).
 - UI: selection screen + state restore on app start.
+ - Code: `views/utils` AsyncStorage helpers, `views/hooks` selection hook, settings UI wiring.
 
 ### Phase 7.2 — Account Match Schema + Migration (Option B)
 - Add `Account.calendarMatch` typed field.
 - Migration: default to undefined, optionally backfill aliases from account name.
 - Reducers + events to update match aliases (if exposed in UI).
+ - Code: Automerge schema + reducer updates + migration tests.
 
 ### Phase 7.3 — External Link Model + Events
 - Add `CalendarEventExternalLink` persistence + (optional) Automerge mirror.
 - Introduce new semantic events: `calendarEvent.externalLinked`, `externalImported`, `externalUpdated`, `externalUnlinked` (optional).
 - Update i18n mappings for new events.
+ - Code: Drizzle schema + event builders + reducers + i18n mapping.
 
 ### Phase 7.4 — Import Scan + Audit Matching Flow
 - Scan selected calendar for candidates (60 past / 180 future).
 - Exact-title match against account aliases; infer and prefill repeat audits.
 - Batch import UI with confirmation; append `crmOrbitId:<calendarEventId>` marker on import.
+ - Code: import service + review UI + alias inference helper.
 
 ### Phase 7.5 — Two-Way Sync for Linked Events
 - External → CRM: translate edits to semantic events (reschedule/update).
 - CRM → External: update title/time/notes and append audit completion details.
 - Sync only for linked events; avoid touching unrelated external events.
+ - Code: sync worker + external event diffing + audit completion formatter.
 
 ### Phase 7.6 — Test + Verification
 - Reducer tests for new events + link behaviors.
 - Import mapping tests (exact match, alias inference).
 - Sync tests for external edits → CRM updates.
 - Snapshot tests for migration compatibility.
+ - Code: tests in `CRMOrbit/tests` + migration fixture updates.
 
 ---
 
