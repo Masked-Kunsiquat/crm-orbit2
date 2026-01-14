@@ -200,24 +200,27 @@ export const CalendarView = ({
           : labels.event.occurredAtLabel;
       const subtitle = `${subtitleLabel}: ${formatTimestamp(item.startTimestamp)}`;
 
+      const hasScore =
+        item.scoreValue !== undefined && item.scoreValue !== null;
       const descriptionLines = [
         item.endTimestamp
           ? `${labels.event.endsAtLabel}: ${formatTimestamp(item.endTimestamp)}`
           : undefined,
-        item.scoreValue
-          ? `${labels.event.scoreLabel}: ${item.scoreValue}`
-          : undefined,
+        hasScore ? `${labels.event.scoreLabel}: ${item.scoreValue}` : undefined,
       ].filter(Boolean);
       const description =
         descriptionLines.length > 0 ? descriptionLines.join("\n") : undefined;
 
       // For audits: use floors visited as footnote; for others: use description
+      const trimmedDescription = item.description?.trim();
       const footnote =
         item.event.type === "audit"
           ? item.floorsVisited && item.floorsVisited.length > 0
             ? `${labels.event.floorsVisitedLabel}: ${item.floorsVisited.join(", ")}`
             : undefined
-          : item.description?.trim();
+          : trimmedDescription && trimmedDescription.length > 0
+            ? trimmedDescription
+            : undefined;
 
       return (
         <ListRow

@@ -1,4 +1,10 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   CalendarView,
@@ -50,6 +56,7 @@ export const CalendarScreen = ({
     [calendarEvents],
   );
   const [selectedDate, setSelectedDate] = useState<string>(initialDate);
+  const [selectedDateTouched, setSelectedDateTouched] = useState(false);
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
     accessibilityLabel: viewOptionsLabel,
@@ -88,6 +95,11 @@ export const CalendarScreen = ({
     [navigation],
   );
 
+  const handleDateChange = useCallback((nextDate: string) => {
+    setSelectedDateTouched(true);
+    setSelectedDate(nextDate);
+  }, []);
+
   const handleCreateInteraction = useCallback(() => {
     setQuickAddVisible(false);
     navigation.navigate("CalendarEventForm", { prefillDate: selectedDate });
@@ -107,6 +119,13 @@ export const CalendarScreen = ({
     });
   }, [navigation, headerRight]);
 
+  useEffect(() => {
+    if (selectedDateTouched) {
+      return;
+    }
+    setSelectedDate(initialDate);
+  }, [initialDate, selectedDateTouched]);
+
   return (
     <>
       <View style={styles.container}>
@@ -119,7 +138,7 @@ export const CalendarScreen = ({
             entityNamesForEvent={getEntityNamesForEvent}
             onEventPress={handleEventPress}
             selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
+            onDateChange={handleDateChange}
           />
         ) : (
           <TimelineView
@@ -129,7 +148,7 @@ export const CalendarScreen = ({
             entityNamesForEvent={getEntityNamesForEvent}
             onEventPress={handleEventPress}
             selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
+            onDateChange={handleDateChange}
           />
         )}
         <FloatingActionButton

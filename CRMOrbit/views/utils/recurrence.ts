@@ -14,8 +14,10 @@ const toDate = (value: Timestamp): Date | null => {
 
 export const getCalendarMonthRange = (selectedDate: string): CalendarRange => {
   const parsed = new Date(`${selectedDate}T00:00:00.000Z`);
-  const fallback = new Date();
-  const base = Number.isNaN(parsed.getTime()) ? fallback : parsed;
+  if (Number.isNaN(parsed.getTime())) {
+    throw new RangeError(`Invalid selectedDate: ${selectedDate}`);
+  }
+  const base = parsed;
 
   const year = base.getUTCFullYear();
   const month = base.getUTCMonth();

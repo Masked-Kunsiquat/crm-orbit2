@@ -219,7 +219,7 @@ export const RecurrenceRulePicker = ({
       { value: 5, label: t("calendarEvents.recurrence.weekday.fri") },
       { value: 6, label: t("calendarEvents.recurrence.weekday.sat") },
     ],
-    [],
+    [t],
   );
 
   return (
