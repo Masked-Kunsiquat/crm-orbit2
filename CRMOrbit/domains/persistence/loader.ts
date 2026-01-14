@@ -175,6 +175,60 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   };
 };
 
+const normalizeCalendarEventStatus = (
+  status: unknown,
+):
+  | "calendarEvent.status.scheduled"
+  | "calendarEvent.status.completed"
+  | "calendarEvent.status.canceled"
+  | undefined => {
+  if (status === "scheduled") {
+    return "calendarEvent.status.scheduled";
+  }
+  if (status === "completed") {
+    return "calendarEvent.status.completed";
+  }
+  if (status === "canceled") {
+    return "calendarEvent.status.canceled";
+  }
+  if (
+    status === "calendarEvent.status.scheduled" ||
+    status === "calendarEvent.status.completed" ||
+    status === "calendarEvent.status.canceled"
+  ) {
+    return status;
+  }
+  return undefined;
+};
+
+const normalizeLegacyEventPayload = (event: Event): Event => {
+  if (event.type !== "calendarEvent.scheduled") {
+    return event;
+  }
+
+  const payload = event.payload as Record<string, unknown> | null;
+  if (!payload || typeof payload !== "object") {
+    return event;
+  }
+
+  if (!("status" in payload)) {
+    return event;
+  }
+
+  const normalizedStatus = normalizeCalendarEventStatus(payload.status);
+  if (!normalizedStatus || normalizedStatus === payload.status) {
+    return event;
+  }
+
+  return {
+    ...event,
+    payload: {
+      ...payload,
+      status: normalizedStatus,
+    },
+  };
+};
+
 /**
  * Load the CRM state from persistence.
  * Returns the reconstructed document and all events.
@@ -190,14 +244,16 @@ export const loadPersistedState = async (
   logger.info(`Loaded ${eventRecords.length} event records from database`);
 
   // Parse events from records
-  const parsedEvents: Event[] = eventRecords.map((record) => ({
-    id: record.id,
-    type: record.type as Event["type"],
-    entityId: record.entityId ?? undefined,
-    payload: JSON.parse(record.payload),
-    timestamp: record.timestamp,
-    deviceId: record.deviceId,
-  }));
+  const parsedEvents: Event[] = eventRecords.map((record) =>
+    normalizeLegacyEventPayload({
+      id: record.id,
+      type: record.type as Event["type"],
+      entityId: record.entityId ?? undefined,
+      payload: JSON.parse(record.payload),
+      timestamp: record.timestamp,
+      deviceId: record.deviceId,
+    }),
+  );
   const events = sortEvents(parsedEvents);
 
   // Silence logs during event replay to avoid log spam

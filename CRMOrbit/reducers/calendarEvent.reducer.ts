@@ -29,11 +29,35 @@ const VALID_STATUSES: CalendarEventStatus[] = [
   "calendarEvent.status.canceled",
 ];
 
-const assertStatusValid = (status: CalendarEventStatus | undefined): void => {
-  if (!status) return;
-  if (!VALID_STATUSES.includes(status)) {
+type LegacyCalendarEventStatus = "scheduled" | "completed" | "canceled";
+
+const normalizeStatus = (
+  status: CalendarEventStatus | LegacyCalendarEventStatus | undefined,
+): CalendarEventStatus | undefined => {
+  if (!status) {
+    return undefined;
+  }
+  switch (status) {
+    case "scheduled":
+      return "calendarEvent.status.scheduled";
+    case "completed":
+      return "calendarEvent.status.completed";
+    case "canceled":
+      return "calendarEvent.status.canceled";
+    default:
+      return status;
+  }
+};
+
+const assertStatusValid = (
+  status: CalendarEventStatus | LegacyCalendarEventStatus | undefined,
+): CalendarEventStatus | undefined => {
+  const normalized = normalizeStatus(status);
+  if (!normalized) return undefined;
+  if (!VALID_STATUSES.includes(normalized)) {
     throw new Error(`Invalid calendar event status: ${status}`);
   }
+  return normalized;
 };
 
 const resolveDurationMinutes = (
@@ -77,11 +101,15 @@ const applyCalendarEventScheduled = (
     throw new Error("Audit events require accountId.");
   }
 
-  assertStatusValid(payload.status);
+  const normalizedStatus = assertStatusValid(payload.status);
   const durationMinutes = resolveDurationMinutes(payload.durationMinutes);
 
   const calendarEvent = buildCalendarEventFromScheduledPayload(
-    { ...payload, durationMinutes },
+    {
+      ...payload,
+      durationMinutes,
+      ...(normalizedStatus && { status: normalizedStatus }),
+    },
     event.timestamp,
   );
 

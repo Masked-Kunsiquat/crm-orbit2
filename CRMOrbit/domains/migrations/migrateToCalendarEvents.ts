@@ -17,7 +17,8 @@ const ensureAutomergeDoc = (doc: AutomergeDoc): Doc<AutomergeDoc> => {
     Automerge.save(candidate);
     return candidate;
   } catch {
-    return Automerge.from(doc);
+    const sanitized = JSON.parse(JSON.stringify(doc)) as AutomergeDoc;
+    return Automerge.from(sanitized);
   }
 };
 

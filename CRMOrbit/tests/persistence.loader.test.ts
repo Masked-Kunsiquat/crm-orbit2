@@ -10,6 +10,7 @@ import {
   type SnapshotRecord,
 } from "@domains/persistence/store";
 import { DEFAULT_CALENDAR_SETTINGS } from "@domains/settings";
+import { registerCoreReducers } from "@events/dispatcher";
 
 type StoredTables = {
   snapshots: SnapshotRecord[];
@@ -119,4 +120,32 @@ test("loadPersistedState defaults calendar settings", async () => {
     doc.settings.calendar.palette,
     DEFAULT_CALENDAR_SETTINGS.palette,
   );
+});
+
+test("loadPersistedState normalizes legacy calendar event statuses", async () => {
+  registerCoreReducers();
+  const { db } = createMemoryDb();
+
+  const legacyEvent: EventLogRecord = {
+    id: "evt-legacy-1",
+    type: "calendarEvent.scheduled",
+    entityId: "calendar-legacy",
+    payload: JSON.stringify({
+      id: "calendar-legacy",
+      type: "meeting",
+      summary: "Legacy status",
+      scheduledFor: "2026-01-02T10:00:00.000Z",
+      status: "scheduled",
+    }),
+    timestamp: "2026-01-01T09:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  await db.insert(eventLog).values(legacyEvent).run();
+
+  const { doc } = await loadPersistedState(db);
+  const event = doc.calendarEvents["calendar-legacy"];
+
+  assert.ok(event);
+  assert.equal(event.status, "calendarEvent.status.scheduled");
 });

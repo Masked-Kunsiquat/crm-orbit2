@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { initAutomergeDoc } from "@automerge/init";
 import { calendarEventReducer } from "@reducers/calendarEvent.reducer";
 import type { Event } from "@events/event";
+import type { CalendarEventStatus } from "@domains/calendarEvent";
 
 test("calendarEvent.scheduled uses provided linkId for linked entities", () => {
   const doc = initAutomergeDoc();
@@ -35,6 +36,30 @@ test("calendarEvent.scheduled uses provided linkId for linked entities", () => {
   assert.equal(link.calendarEventId, "calendar-1");
   assert.equal(link.entityType, "account");
   assert.equal(link.entityId, "account-1");
+});
+
+test("calendarEvent.scheduled normalizes legacy status values", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-cal-legacy",
+    type: "calendarEvent.scheduled",
+    entityId: "calendar-legacy",
+    payload: {
+      id: "calendar-legacy",
+      type: "meeting",
+      summary: "Legacy status",
+      scheduledFor: "2026-01-02T10:00:00.000Z",
+      status: "scheduled" as CalendarEventStatus,
+    },
+    timestamp: "2026-01-01T09:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = calendarEventReducer(doc, event);
+  assert.equal(
+    next.calendarEvents["calendar-legacy"].status,
+    "calendarEvent.status.scheduled",
+  );
 });
 
 test("calendarEvent.linked stores link at payload linkId", () => {
