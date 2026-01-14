@@ -1,3 +1,5 @@
+import Automerge from "automerge";
+import type { Doc } from "automerge";
 import { AutomergeDoc } from "../../automerge/schema";
 import {
   CalendarEvent,
@@ -9,7 +11,15 @@ import { Audit } from "../audit";
 import { EntityId } from "../shared/types";
 import { Event } from "../../events/event";
 import { CalendarEventScheduledPayload } from "../../events/calendarEventPayloads";
-import { nextId } from "../shared/idGenerator";
+const ensureAutomergeDoc = (doc: AutomergeDoc): Doc<AutomergeDoc> => {
+  const candidate = doc as Doc<AutomergeDoc>;
+  try {
+    Automerge.save(candidate);
+    return candidate;
+  } catch {
+    return Automerge.from(doc);
+  }
+};
 
 export interface MigrationResult {
   success: boolean;
@@ -36,11 +46,31 @@ export interface MigrationReport extends MigrationResult {
  * 4. Is idempotent - safe to run multiple times
  *
  * @param doc - The Automerge document to migrate
- * @returns Migration result with counts and errors
+ * @param deviceId - Device identifier for event attribution
+ * @returns Updated document plus migration report
  */
 export const migrateToCalendarEvents = (
   doc: AutomergeDoc,
-  deviceId: string = "migration",
+  deviceId: string,
+): { doc: AutomergeDoc; report: MigrationReport } => {
+  let report: MigrationReport | null = null;
+  const updatedDoc = Automerge.change(ensureAutomergeDoc(doc), (draft) => {
+    report = migrateToCalendarEventsDraft(draft as AutomergeDoc, deviceId);
+  });
+
+  if (!report) {
+    throw new Error("Calendar event migration did not produce a report.");
+  }
+
+  return {
+    doc: updatedDoc as AutomergeDoc,
+    report,
+  };
+};
+
+const migrateToCalendarEventsDraft = (
+  doc: AutomergeDoc,
+  deviceId: string,
 ): MigrationReport => {
   const result: MigrationReport = {
     success: true,
@@ -215,7 +245,7 @@ export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
     id: audit.id,
     type: "audit",
     status,
-    summary: `Audit for account ${audit.accountId}`, // Audits don't have a summary field
+    summary: audit.summary ?? "",
     description: audit.notes,
     scheduledFor: audit.scheduledFor,
     occurredAt:
@@ -352,7 +382,7 @@ const createCalendarEventScheduledEvent = (
   };
 
   return {
-    id: nextId("event"),
+    id: `migration:${calendarEvent.id}`,
     type: "calendarEvent.scheduled",
     entityId: calendarEvent.id,
     payload,

@@ -107,44 +107,47 @@ export const getCompletedMigrations = async (): Promise<string[]> => {
  * 6. Marks migration as complete if successful
  * 7. Returns detailed migration report
  *
- * @param doc - The Automerge document to migrate (will be mutated)
+ * @param doc - The Automerge document to migrate
  * @param db - The persistence database for storing generated events
  * @param deviceId - Device identifier for event attribution
- * @returns Promise resolving to migration report
+ * @returns Promise resolving to updated document and migration report
  * @throws Error if migration fails validation or persistence fails
  */
 export const runCalendarEventMigration = async (
   doc: AutomergeDoc,
   db: PersistenceDb,
-  deviceId: string = "migration",
-): Promise<MigrationReport> => {
+  deviceId: string,
+): Promise<{ doc: AutomergeDoc; report: MigrationReport }> => {
   // Check if migration has already run
   const alreadyRun = await hasMigrationRun(CALENDAR_EVENT_MIGRATION_ID);
   if (alreadyRun) {
     return {
-      success: true,
-      migratedInteractions: 0,
-      migratedAudits: 0,
-      migratedLinks: 0,
-      errors: [],
-      interactionIds: [],
-      auditIds: [],
-      linkIds: [],
-      events: [],
+      doc,
+      report: {
+        success: true,
+        migratedInteractions: 0,
+        migratedAudits: 0,
+        migratedLinks: 0,
+        errors: [],
+        interactionIds: [],
+        auditIds: [],
+        linkIds: [],
+        events: [],
+      },
     };
   }
 
   // Run migration (generates events for persistence)
-  const result = migrateToCalendarEvents(doc, deviceId);
+  const { doc: migratedDoc, report } = migrateToCalendarEvents(doc, deviceId);
 
-  if (result.errors.length > 0) {
-    console.error("Migration errors:", result.errors);
+  if (report.errors.length > 0) {
+    console.error("Migration errors:", report.errors);
   }
 
   // Persist generated events to database
-  if (result.events.length > 0) {
+  if (report.events.length > 0) {
     try {
-      await appendEvents(db, result.events);
+      await appendEvents(db, report.events);
     } catch (error) {
       console.error("Failed to persist migration events:", error);
       throw new Error(
@@ -154,7 +157,7 @@ export const runCalendarEventMigration = async (
   }
 
   // Validate migration
-  const validation = validateMigration(doc);
+  const validation = validateMigration(migratedDoc);
 
   if (!validation.valid) {
     console.error("Migration validation failed:", validation.issues);
@@ -166,7 +169,7 @@ export const runCalendarEventMigration = async (
   // Mark migration as complete
   await markMigrationComplete(CALENDAR_EVENT_MIGRATION_ID);
 
-  return result;
+  return { doc: migratedDoc, report };
 };
 
 /**

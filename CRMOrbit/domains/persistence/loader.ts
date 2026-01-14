@@ -229,17 +229,18 @@ export const loadPersistedState = async (
 
   // Run calendar event migration if needed
   try {
-    const migrationResult = await runCalendarEventMigration(
+    const { doc: migratedDoc, report } = await runCalendarEventMigration(
       doc,
       db,
       "migration-system",
     );
-    if (migrationResult.events.length > 0) {
+    doc = migratedDoc;
+    if (report.events.length > 0) {
       logger.info(
-        `Migration persisted ${migrationResult.events.length} events to database`,
+        `Migration persisted ${report.events.length} events to database`,
       );
       // Add migrated events to the events array so they're available to the app
-      events.push(...migrationResult.events);
+      events.push(...report.events);
     }
   } catch (error) {
     logger.error("Calendar event migration failed:", error);

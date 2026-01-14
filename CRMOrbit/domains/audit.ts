@@ -10,6 +10,7 @@ export interface Audit extends Entity {
   scheduledFor: Timestamp;
   durationMinutes: number;
   status: AuditStatus;
+  summary?: string;
   occurredAt?: Timestamp;
   score?: number;
   notes?: string;

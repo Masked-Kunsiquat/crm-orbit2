@@ -8,7 +8,7 @@ import {
 import { AutomergeDoc } from "../../automerge/schema";
 import { Interaction } from "../interaction";
 import { Audit } from "../audit";
-import { generateEntityId } from "../shared/idGenerator";
+import { nextId } from "../shared/idGenerator";
 
 // Helper to create a minimal AutomergeDoc
 const createEmptyDoc = (): AutomergeDoc => ({
@@ -33,7 +33,7 @@ const createEmptyDoc = (): AutomergeDoc => ({
 const createTestInteraction = (
   overrides: Partial<Interaction> = {},
 ): Interaction => ({
-  id: generateEntityId(),
+  id: nextId("interaction"),
   type: "meeting",
   status: "completed",
   summary: "Test meeting",
@@ -48,8 +48,8 @@ const createTestInteraction = (
 
 // Helper to create a test Audit
 const createTestAudit = (overrides: Partial<Audit> = {}): Audit => ({
-  id: generateEntityId(),
-  accountId: generateEntityId(),
+  id: nextId("audit"),
+  accountId: nextId("account"),
   status: "completed",
   summary: "Test audit",
   notes: "Audit notes",
@@ -174,7 +174,7 @@ describe("migrateAuditToCalendarEvent", () => {
     expect(calendarEvent.status).toBe("canceled");
   });
 
-  it("should use summary if provided, otherwise generate one", () => {
+  it("should use the audit summary as-is", () => {
     const auditWithSummary = createTestAudit({ summary: "Monthly audit" });
     const calendarEvent1 = migrateAuditToCalendarEvent(auditWithSummary);
     expect(calendarEvent1.summary).toBe("Monthly audit");
@@ -182,7 +182,7 @@ describe("migrateAuditToCalendarEvent", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auditWithoutSummary = createTestAudit({ summary: undefined as any });
     const calendarEvent2 = migrateAuditToCalendarEvent(auditWithoutSummary);
-    expect(calendarEvent2.summary).toContain("Audit for account");
+    expect(calendarEvent2.summary).toBe("");
   });
 });
 
@@ -195,15 +195,18 @@ describe("migrateToCalendarEvents", () => {
     doc.interactions[interaction1.id] = interaction1;
     doc.interactions[interaction2.id] = interaction2;
 
-    const result = migrateToCalendarEvents(doc);
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
 
-    expect(result.success).toBe(true);
-    expect(result.migratedInteractions).toBe(2);
-    expect(result.migratedAudits).toBe(0);
-    expect(result.errors).toHaveLength(0);
-    expect(result.events).toHaveLength(2); // Should generate 2 events
-    expect(doc.calendarEvents[interaction1.id]).toBeDefined();
-    expect(doc.calendarEvents[interaction2.id]).toBeDefined();
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(2);
+    expect(report.migratedAudits).toBe(0);
+    expect(report.errors).toHaveLength(0);
+    expect(report.events).toHaveLength(2); // Should generate 2 events
+    expect(migratedDoc.calendarEvents[interaction1.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[interaction2.id]).toBeDefined();
   });
 
   it("should migrate audits to calendar events", () => {
@@ -214,16 +217,19 @@ describe("migrateToCalendarEvents", () => {
     doc.audits[audit1.id] = audit1;
     doc.audits[audit2.id] = audit2;
 
-    const result = migrateToCalendarEvents(doc);
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
 
-    expect(result.success).toBe(true);
-    expect(result.migratedInteractions).toBe(0);
-    expect(result.migratedAudits).toBe(2);
-    expect(result.errors).toHaveLength(0);
-    expect(result.events).toHaveLength(2); // Should generate 2 events
-    expect(doc.calendarEvents[audit1.id]).toBeDefined();
-    expect(doc.calendarEvents[audit2.id]).toBeDefined();
-    expect(doc.calendarEvents[audit1.id].type).toBe("audit");
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(0);
+    expect(report.migratedAudits).toBe(2);
+    expect(report.errors).toHaveLength(0);
+    expect(report.events).toHaveLength(2); // Should generate 2 events
+    expect(migratedDoc.calendarEvents[audit1.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[audit2.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[audit1.id].type).toBe("audit");
   });
 
   it("should migrate both interactions and audits", () => {
@@ -234,23 +240,26 @@ describe("migrateToCalendarEvents", () => {
     doc.interactions[interaction.id] = interaction;
     doc.audits[audit.id] = audit;
 
-    const result = migrateToCalendarEvents(doc);
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
 
-    expect(result.success).toBe(true);
-    expect(result.migratedInteractions).toBe(1);
-    expect(result.migratedAudits).toBe(1);
-    expect(result.errors).toHaveLength(0);
-    expect(Object.keys(doc.calendarEvents)).toHaveLength(2);
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(1);
+    expect(report.migratedAudits).toBe(1);
+    expect(report.errors).toHaveLength(0);
+    expect(Object.keys(migratedDoc.calendarEvents)).toHaveLength(2);
   });
 
   it("should migrate entity links from interaction to calendarEvent", () => {
     const doc = createEmptyDoc();
     const interaction = createTestInteraction();
-    const accountId = generateEntityId();
+    const accountId = nextId("account");
 
     doc.interactions[interaction.id] = interaction;
 
-    const linkId = generateEntityId();
+    const linkId = nextId("link");
     doc.relations.entityLinks[linkId] = {
       linkType: "interaction",
       interactionId: interaction.id,
@@ -258,12 +267,15 @@ describe("migrateToCalendarEvents", () => {
       entityId: accountId,
     };
 
-    const result = migrateToCalendarEvents(doc);
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
 
-    expect(result.success).toBe(true);
-    expect(result.migratedLinks).toBe(1);
+    expect(report.success).toBe(true);
+    expect(report.migratedLinks).toBe(1);
 
-    const link = doc.relations.entityLinks[linkId];
+    const link = migratedDoc.relations.entityLinks[linkId];
     expect(link.linkType).toBe("calendarEvent");
     expect(link.calendarEventId).toBe(interaction.id);
     expect(link.interactionId).toBe(interaction.id); // Original preserved
@@ -277,22 +289,22 @@ describe("migrateToCalendarEvents", () => {
     doc.calendarEvents[interaction.id] =
       migrateInteractionToCalendarEvent(interaction);
 
-    const result = migrateToCalendarEvents(doc);
+    const { report } = migrateToCalendarEvents(doc, "test-device");
 
-    expect(result.success).toBe(true);
-    expect(result.migratedInteractions).toBe(0); // Already migrated
-    expect(result.errors).toHaveLength(0);
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(0); // Already migrated
+    expect(report.errors).toHaveLength(0);
   });
 
   it("should handle empty document", () => {
     const doc = createEmptyDoc();
-    const result = migrateToCalendarEvents(doc);
+    const { report } = migrateToCalendarEvents(doc, "test-device");
 
-    expect(result.success).toBe(true);
-    expect(result.migratedInteractions).toBe(0);
-    expect(result.migratedAudits).toBe(0);
-    expect(result.migratedLinks).toBe(0);
-    expect(result.errors).toHaveLength(0);
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(0);
+    expect(report.migratedAudits).toBe(0);
+    expect(report.migratedLinks).toBe(0);
+    expect(report.errors).toHaveLength(0);
   });
 
   it("should continue migrating even if one entity fails", () => {
@@ -306,11 +318,11 @@ describe("migrateToCalendarEvents", () => {
     doc.interactions[goodInteraction.id] = goodInteraction;
     doc.interactions["bad-id"] = badInteraction;
 
-    const result = migrateToCalendarEvents(doc);
+    const { report } = migrateToCalendarEvents(doc, "test-device");
 
-    expect(result.success).toBe(true);
-    expect(result.migratedInteractions).toBeGreaterThan(0);
-    expect(result.errors.length).toBeGreaterThan(0);
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBeGreaterThan(0);
+    expect(report.errors.length).toBeGreaterThan(0);
   });
 });
 
@@ -368,12 +380,12 @@ describe("validateMigration", () => {
     doc.calendarEvents[interaction.id] =
       migrateInteractionToCalendarEvent(interaction);
 
-    const linkId = generateEntityId();
+    const linkId = nextId("link");
     doc.relations.entityLinks[linkId] = {
       linkType: "interaction",
       interactionId: interaction.id,
       entityType: "account",
-      entityId: generateEntityId(),
+      entityId: nextId("entity"),
       // calendarEventId not set - should fail validation
     };
 
@@ -387,12 +399,12 @@ describe("validateMigration", () => {
   it("should detect orphaned calendar event links", () => {
     const doc = createEmptyDoc();
 
-    const linkId = generateEntityId();
+    const linkId = nextId("link");
     doc.relations.entityLinks[linkId] = {
       linkType: "calendarEvent",
       calendarEventId: "non-existent-id",
       entityType: "account",
-      entityId: generateEntityId(),
+      entityId: nextId("entity"),
     };
 
     const result = validateMigration(doc);
@@ -436,16 +448,22 @@ describe("Migration Idempotency", () => {
     doc.audits[audit.id] = audit;
 
     // Run migration first time
-    const result1 = migrateToCalendarEvents(doc);
-    expect(result1.migratedInteractions).toBe(1);
-    expect(result1.migratedAudits).toBe(1);
+    const { doc: migratedDoc, report: report1 } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
+    expect(report1.migratedInteractions).toBe(1);
+    expect(report1.migratedAudits).toBe(1);
 
     // Run migration second time
-    const result2 = migrateToCalendarEvents(doc);
-    expect(result2.migratedInteractions).toBe(0); // Already migrated
-    expect(result2.migratedAudits).toBe(0); // Already migrated
+    const { report: report2 } = migrateToCalendarEvents(
+      migratedDoc,
+      "test-device",
+    );
+    expect(report2.migratedInteractions).toBe(0); // Already migrated
+    expect(report2.migratedAudits).toBe(0); // Already migrated
 
     // Should still have exactly 2 calendar events
-    expect(Object.keys(doc.calendarEvents)).toHaveLength(2);
+    expect(Object.keys(migratedDoc.calendarEvents)).toHaveLength(2);
   });
 });
