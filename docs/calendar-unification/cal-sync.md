@@ -20,6 +20,41 @@ Backend and app engineers working on Phase 7 calendar sync, plus reviewers who n
 
 ---
 
+## Phase 7 Implementation Plan
+
+### Phase 7.1 — Permissions + Single Calendar Selection
+- Request calendar permissions and enforce a single selected calendar.
+- Store `selectedExternalCalendarId` in device-local settings (not Automerge).
+- UI: selection screen + state restore on app start.
+
+### Phase 7.2 — Account Match Schema + Migration (Option B)
+- Add `Account.calendarMatch` typed field.
+- Migration: default to undefined, optionally backfill aliases from account name.
+- Reducers + events to update match aliases (if exposed in UI).
+
+### Phase 7.3 — External Link Model + Events
+- Add `CalendarEventExternalLink` persistence + (optional) Automerge mirror.
+- Introduce new semantic events: `calendarEvent.externalLinked`, `externalImported`, `externalUpdated`, `externalUnlinked` (optional).
+- Update i18n mappings for new events.
+
+### Phase 7.4 — Import Scan + Audit Matching Flow
+- Scan selected calendar for candidates (60 past / 180 future).
+- Exact-title match against account aliases; infer and prefill repeat audits.
+- Batch import UI with confirmation; append `crmOrbitId:<calendarEventId>` marker on import.
+
+### Phase 7.5 — Two-Way Sync for Linked Events
+- External → CRM: translate edits to semantic events (reschedule/update).
+- CRM → External: update title/time/notes and append audit completion details.
+- Sync only for linked events; avoid touching unrelated external events.
+
+### Phase 7.6 — Test + Verification
+- Reducer tests for new events + link behaviors.
+- Import mapping tests (exact match, alias inference).
+- Sync tests for external edits → CRM updates.
+- Snapshot tests for migration compatibility.
+
+---
+
 ## Core Principles (Must Hold)
 - Automerge is the source of truth.
 - Event log is append-only and semantic.
@@ -176,4 +211,3 @@ To reduce clicks for recurring audits:
 - Conflict resolution when both external and CRM change between syncs.
 - Whether import flow should allow non-audit event types in Phase 7.
 - Whether to expose alias management in UI or keep it implicit from imports.
-
