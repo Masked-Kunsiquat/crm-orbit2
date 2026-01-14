@@ -193,14 +193,7 @@ export const migrateInteractionToCalendarEvent = (
   interaction: Interaction,
 ): CalendarEvent => {
   // Determine status based on interaction state
-  let status: CalendarEventStatus;
-  if (interaction.status === "interaction.status.canceled") {
-    status = "calendarEvent.status.canceled";
-  } else if (interaction.occurredAt) {
-    status = "calendarEvent.status.completed";
-  } else {
-    status = "calendarEvent.status.scheduled";
-  }
+  const status = resolveInteractionStatus(interaction);
 
   // Map interaction type to calendar event type
   const type: CalendarEventType = mapInteractionType(interaction.type);
@@ -233,14 +226,7 @@ export const migrateInteractionToCalendarEvent = (
  */
 export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
   // Determine status based on audit state
-  let status: CalendarEventStatus;
-  if (audit.status === "audits.status.canceled") {
-    status = "calendarEvent.status.canceled";
-  } else if (audit.occurredAt) {
-    status = "calendarEvent.status.completed";
-  } else {
-    status = "calendarEvent.status.scheduled";
-  }
+  const status = resolveAuditStatus(audit);
 
   return {
     id: audit.id,
@@ -268,18 +254,62 @@ export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
   };
 };
 
+const resolveInteractionStatus = (
+  interaction: Interaction,
+): CalendarEventStatus => {
+  const status = interaction.status as string | undefined;
+  switch (status) {
+    case "interaction.status.canceled":
+    case "canceled":
+      return "calendarEvent.status.canceled";
+    case "interaction.status.scheduled":
+    case "scheduled":
+      return "calendarEvent.status.scheduled";
+    case "interaction.status.completed":
+    case "completed":
+      return "calendarEvent.status.completed";
+    default:
+      return interaction.occurredAt
+        ? "calendarEvent.status.completed"
+        : "calendarEvent.status.scheduled";
+  }
+};
+
+const resolveAuditStatus = (audit: Audit): CalendarEventStatus => {
+  const status = audit.status as string | undefined;
+  switch (status) {
+    case "audits.status.canceled":
+    case "canceled":
+      return "calendarEvent.status.canceled";
+    case "audits.status.scheduled":
+    case "scheduled":
+      return "calendarEvent.status.scheduled";
+    case "audits.status.completed":
+    case "completed":
+      return "calendarEvent.status.completed";
+    default:
+      return audit.occurredAt
+        ? "calendarEvent.status.completed"
+        : "calendarEvent.status.scheduled";
+  }
+};
+
 /**
  * Maps legacy Interaction type to CalendarEvent type.
  * Handles the 'interaction' type which should map to 'other'.
  */
 const mapInteractionType = (interactionType: string): CalendarEventType => {
   switch (interactionType) {
+    case "interaction.type.meeting":
     case "meeting":
       return "meeting";
+    case "interaction.type.call":
     case "call":
       return "call";
+    case "interaction.type.email":
     case "email":
       return "email";
+    case "interaction.type.other":
     case "interaction":
     case "other":
       return "other";

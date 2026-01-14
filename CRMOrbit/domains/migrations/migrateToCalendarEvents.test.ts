@@ -34,10 +34,9 @@ const createTestInteraction = (
   overrides: Partial<Interaction> = {},
 ): Interaction => ({
   id: nextId("interaction"),
-  type: "meeting",
-  status: "completed",
+  type: "interaction.type.meeting",
+  status: "interaction.status.completed",
   summary: "Test meeting",
-  notes: "Meeting notes",
   scheduledFor: "2026-01-15T10:00:00.000Z",
   occurredAt: "2026-01-15T10:05:00.000Z",
   durationMinutes: 60,
@@ -50,7 +49,7 @@ const createTestInteraction = (
 const createTestAudit = (overrides: Partial<Audit> = {}): Audit => ({
   id: nextId("audit"),
   accountId: nextId("account"),
-  status: "completed",
+  status: "audits.status.completed",
   summary: "Test audit",
   notes: "Audit notes",
   scheduledFor: "2026-01-15T14:00:00.000Z",
@@ -70,9 +69,9 @@ describe("migrateInteractionToCalendarEvent", () => {
 
     expect(calendarEvent.id).toBe(interaction.id);
     expect(calendarEvent.type).toBe("meeting");
-    expect(calendarEvent.status).toBe("completed");
+    expect(calendarEvent.status).toBe("calendarEvent.status.completed");
     expect(calendarEvent.summary).toBe(interaction.summary);
-    expect(calendarEvent.description).toBe(interaction.notes);
+    expect(calendarEvent.description).toBeUndefined();
     expect(calendarEvent.scheduledFor).toBe(interaction.scheduledFor);
     expect(calendarEvent.occurredAt).toBe(interaction.occurredAt);
     expect(calendarEvent.durationMinutes).toBe(interaction.durationMinutes);
@@ -82,28 +81,27 @@ describe("migrateInteractionToCalendarEvent", () => {
 
   it("should migrate a scheduled interaction", () => {
     const interaction = createTestInteraction({
-      status: "scheduled",
-      occurredAt: undefined,
+      status: "interaction.status.scheduled",
+      occurredAt: "2026-01-15T10:00:00.000Z",
     });
     const calendarEvent = migrateInteractionToCalendarEvent(interaction);
 
-    expect(calendarEvent.status).toBe("scheduled");
+    expect(calendarEvent.status).toBe("calendarEvent.status.scheduled");
     expect(calendarEvent.occurredAt).toBeUndefined();
   });
 
   it("should migrate a canceled interaction", () => {
     const interaction = createTestInteraction({
-      status: "canceled",
+      status: "interaction.status.canceled",
     });
     const calendarEvent = migrateInteractionToCalendarEvent(interaction);
 
-    expect(calendarEvent.status).toBe("canceled");
+    expect(calendarEvent.status).toBe("calendarEvent.status.canceled");
   });
 
   it("should handle interaction with only occurredAt (no scheduledFor)", () => {
     const interaction = createTestInteraction({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      scheduledFor: undefined as any,
+      scheduledFor: undefined,
       occurredAt: "2026-01-15T10:00:00.000Z",
     });
     const calendarEvent = migrateInteractionToCalendarEvent(interaction);
@@ -113,6 +111,10 @@ describe("migrateInteractionToCalendarEvent", () => {
 
   it("should map interaction types correctly", () => {
     const types: Array<{ input: string; expected: string }> = [
+      { input: "interaction.type.meeting", expected: "meeting" },
+      { input: "interaction.type.call", expected: "call" },
+      { input: "interaction.type.email", expected: "email" },
+      { input: "interaction.type.other", expected: "other" },
       { input: "meeting", expected: "meeting" },
       { input: "call", expected: "call" },
       { input: "email", expected: "email" },
@@ -121,8 +123,9 @@ describe("migrateInteractionToCalendarEvent", () => {
     ];
 
     types.forEach(({ input, expected }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const interaction = createTestInteraction({ type: input as any });
+      const interaction = createTestInteraction({
+        type: input as unknown as Interaction["type"],
+      });
       const calendarEvent = migrateInteractionToCalendarEvent(interaction);
       expect(calendarEvent.type).toBe(expected);
     });
@@ -136,7 +139,7 @@ describe("migrateAuditToCalendarEvent", () => {
 
     expect(calendarEvent.id).toBe(audit.id);
     expect(calendarEvent.type).toBe("audit");
-    expect(calendarEvent.status).toBe("completed");
+    expect(calendarEvent.status).toBe("calendarEvent.status.completed");
     expect(calendarEvent.scheduledFor).toBe(audit.scheduledFor);
     expect(calendarEvent.occurredAt).toBe(audit.occurredAt);
     expect(calendarEvent.durationMinutes).toBe(audit.durationMinutes);
@@ -149,14 +152,14 @@ describe("migrateAuditToCalendarEvent", () => {
 
   it("should migrate a scheduled audit", () => {
     const audit = createTestAudit({
-      status: "scheduled",
+      status: "audits.status.scheduled",
       occurredAt: undefined,
       score: undefined,
       floorsVisited: undefined,
     });
     const calendarEvent = migrateAuditToCalendarEvent(audit);
 
-    expect(calendarEvent.status).toBe("scheduled");
+    expect(calendarEvent.status).toBe("calendarEvent.status.scheduled");
     expect(calendarEvent.occurredAt).toBeUndefined();
     expect(calendarEvent.auditData).toEqual({
       accountId: audit.accountId,
@@ -167,11 +170,11 @@ describe("migrateAuditToCalendarEvent", () => {
 
   it("should migrate a canceled audit", () => {
     const audit = createTestAudit({
-      status: "canceled",
+      status: "audits.status.canceled",
     });
     const calendarEvent = migrateAuditToCalendarEvent(audit);
 
-    expect(calendarEvent.status).toBe("canceled");
+    expect(calendarEvent.status).toBe("calendarEvent.status.canceled");
   });
 
   it("should use the audit summary as-is", () => {
@@ -190,7 +193,9 @@ describe("migrateToCalendarEvents", () => {
   it("should migrate interactions to calendar events", () => {
     const doc = createEmptyDoc();
     const interaction1 = createTestInteraction();
-    const interaction2 = createTestInteraction({ type: "call" });
+    const interaction2 = createTestInteraction({
+      type: "interaction.type.call",
+    });
 
     doc.interactions[interaction1.id] = interaction1;
     doc.interactions[interaction2.id] = interaction2;
