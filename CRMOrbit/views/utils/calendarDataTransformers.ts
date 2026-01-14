@@ -313,7 +313,7 @@ export interface CalendarEventAgendaItem {
   startTimestamp: string;
   endTimestamp?: string;
   statusKey: string;
-  statusTone: "success" | "warning" | "default" | "muted";
+  statusTone: "success" | "warning" | "danger";
   subtitleKey: "calendarEvents.scheduledFor" | "calendarEvents.occurredAt";
   scoreValue?: string;
   floorsVisited?: number[];
@@ -341,12 +341,12 @@ export const buildCalendarEventAgendaItem = (
     event.durationMinutes,
   );
 
-  const statusTone: "success" | "warning" | "default" | "muted" =
+  const statusTone: "success" | "warning" | "danger" =
     event.status === "calendarEvent.status.completed"
       ? "success"
       : event.status === "calendarEvent.status.canceled"
-        ? "muted"
-        : "default";
+        ? "danger"
+        : "warning";
 
   const subtitleKey = isCompleted
     ? "calendarEvents.occurredAt"

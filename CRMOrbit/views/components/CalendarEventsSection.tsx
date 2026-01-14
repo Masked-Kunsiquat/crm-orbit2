@@ -57,14 +57,14 @@ const getEventTimestamp = (event: CalendarEvent): string | undefined => {
 
 const getStatusTone = (
   status: CalendarEvent["status"],
-): "success" | "warning" | "default" | "muted" => {
+): "success" | "warning" | "danger" => {
   if (status === "calendarEvent.status.completed") {
     return "success";
   }
   if (status === "calendarEvent.status.canceled") {
-    return "muted";
+    return "danger";
   }
-  return "default";
+  return "warning";
 };
 
 const getSortTimestamp = (event: CalendarEvent): number => {

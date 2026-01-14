@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import { buildDeleteEntityEvent } from "@domains/actions";
 import type {
   CalendarEventType,
   RecurrenceRule,
@@ -217,14 +216,15 @@ export const useCalendarEventActions = (deviceId: string) => {
       calendarEventId: EntityId,
       deleteEntireSeries?: boolean,
     ): DispatchResult => {
-      const event = buildDeleteEntityEvent(
-        "calendarEvent.deleted",
-        calendarEventId,
-        deviceId,
-        {
+      const event = buildEvent({
+        type: "calendarEvent.deleted",
+        entityId: calendarEventId,
+        payload: {
+          id: calendarEventId,
           ...(deleteEntireSeries !== undefined && { deleteEntireSeries }),
         },
-      );
+        deviceId,
+      });
 
       return dispatch([event]);
     },

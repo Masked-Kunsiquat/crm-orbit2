@@ -23,16 +23,14 @@ const formatTimestamp = (timestamp?: string): string => {
   return date.toLocaleString();
 };
 
-const getStatusTone = (
-  status: string,
-): "success" | "warning" | "default" | "muted" => {
+const getStatusTone = (status: string): "success" | "warning" | "danger" => {
   if (status === "calendarEvent.status.completed") {
     return "success";
   }
   if (status === "calendarEvent.status.canceled") {
-    return "muted";
+    return "danger";
   }
-  return "default";
+  return "warning";
 };
 
 export const CalendarEventsListScreen = ({ navigation }: Props) => {
