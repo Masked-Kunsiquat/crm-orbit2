@@ -9,6 +9,7 @@ export type AccountAuditFrequency =
 export type AccountAuditFrequencyChangeTiming =
   | "account.auditFrequencyChange.immediate"
   | "account.auditFrequencyChange.nextPeriod";
+export type AccountCalendarMatchMode = "exact";
 
 export interface Address {
   street: string;
@@ -30,6 +31,11 @@ export interface SocialMediaLinks {
   instagram?: string;
 }
 
+export interface AccountCalendarMatch {
+  mode: AccountCalendarMatchMode;
+  aliases: string[];
+}
+
 export interface Account extends Entity {
   organizationId: EntityId;
   name: string;
@@ -45,5 +51,6 @@ export interface Account extends Entity {
   excludedFloors?: number[];
   website?: string;
   socialMedia?: SocialMediaLinks;
+  calendarMatch?: AccountCalendarMatch;
   metadata?: Record<string, unknown>;
 }

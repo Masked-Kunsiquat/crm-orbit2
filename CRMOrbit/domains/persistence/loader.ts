@@ -12,6 +12,7 @@ import {
   getMonthStartTimestamp,
   isAccountAuditFrequency,
   resolveAccountAuditFrequency,
+  sanitizeAccountCalendarMatch,
 } from "@domains/account.utils";
 import { applyEvents } from "@events/dispatcher";
 import type { Event } from "@events/event";
@@ -133,6 +134,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
         auditFrequencyPending && account.auditFrequencyPendingEffectiveAt
           ? account.auditFrequencyPendingEffectiveAt
           : undefined;
+      const calendarMatch = sanitizeAccountCalendarMatch(account.calendarMatch);
 
       return [
         id,
@@ -143,6 +145,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
           auditFrequencyAnchorAt,
           auditFrequencyPending,
           auditFrequencyPendingEffectiveAt,
+          calendarMatch,
         },
       ];
     }),

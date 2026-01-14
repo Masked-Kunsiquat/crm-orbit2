@@ -2,6 +2,7 @@ import type {
   Account,
   AccountAuditFrequency,
   AccountAuditFrequencyChangeTiming,
+  AccountCalendarMatch,
   AccountStatus,
 } from "./account";
 
@@ -39,6 +40,47 @@ export const isAccountAuditFrequencyChangeTiming = (
   value: unknown,
 ): value is AccountAuditFrequencyChangeTiming =>
   typeof value === "string" && value in ACCOUNT_AUDIT_FREQUENCY_CHANGE_TIMINGS;
+
+const normalizeCalendarMatchAliases = (aliases: unknown): string[] => {
+  if (!Array.isArray(aliases)) {
+    return [];
+  }
+  const unique = new Set<string>();
+  const normalized: string[] = [];
+  for (const alias of aliases) {
+    if (typeof alias !== "string") continue;
+    const trimmed = alias.trim();
+    if (!trimmed || unique.has(trimmed)) continue;
+    unique.add(trimmed);
+    normalized.push(trimmed);
+  }
+  return normalized;
+};
+
+export const sanitizeAccountCalendarMatch = (
+  value: unknown,
+): AccountCalendarMatch | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const match = value as { mode?: unknown; aliases?: unknown };
+  if (match.mode !== "exact") {
+    return undefined;
+  }
+  const aliases = normalizeCalendarMatchAliases(match.aliases);
+  if (aliases.length === 0) {
+    return undefined;
+  }
+  return {
+    mode: "exact",
+    aliases,
+  };
+};
+
+export const isAccountCalendarMatch = (
+  value: unknown,
+): value is AccountCalendarMatch =>
+  sanitizeAccountCalendarMatch(value) !== undefined;
 
 const toMonthIndex = (date: Date): number =>
   date.getUTCFullYear() * 12 + date.getUTCMonth();
@@ -187,6 +229,14 @@ export const buildAccountFromPayload = (
     }
   }
 
+  const hasCalendarMatch = Object.prototype.hasOwnProperty.call(
+    payload,
+    "calendarMatch",
+  );
+  const calendarMatch = hasCalendarMatch
+    ? sanitizeAccountCalendarMatch(payload.calendarMatch)
+    : existing?.calendarMatch;
+
   return {
     id,
     organizationId:
@@ -224,6 +274,7 @@ export const buildAccountFromPayload = (
       payload.socialMedia !== undefined
         ? (payload.socialMedia as Account["socialMedia"])
         : existing?.socialMedia,
+    calendarMatch,
     metadata:
       payload.metadata !== undefined
         ? (payload.metadata as Record<string, unknown>)
