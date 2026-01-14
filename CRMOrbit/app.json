@@ -4,7 +4,7 @@
     "slug": "crm-orbit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/icon.png",
+    "icon": "./assets/icons/adaptive-icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -21,7 +21,7 @@
     },
     "android": {
       "package": "com.crmorbit.app",
-      "icon": "./assets/icons/icon.png",
+      "icon": "./assets/icons/adaptive-icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "monochromeImage": "./assets/icons/adaptive-icon.png",

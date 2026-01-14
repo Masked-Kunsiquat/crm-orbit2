@@ -19,6 +19,7 @@ import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
 import { createLogger, silenceLogs, unsilenceLogs } from "@utils/logger";
+import { runCalendarEventMigration } from "@domains/migrations/runMigration";
 
 const logger = createLogger("PersistenceLoader");
 
@@ -30,6 +31,7 @@ const EMPTY_DOC: AutomergeDoc = {
   notes: {},
   interactions: {},
   codes: {},
+  calendarEvents: {},
   settings: DEFAULT_SETTINGS,
   relations: {
     accountContacts: {},
@@ -60,6 +62,8 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
   const existingAudits = doc.audits ?? ({} as AutomergeDoc["audits"]);
   const existingAccounts = doc.accounts ?? ({} as AutomergeDoc["accounts"]);
+  const existingCalendarEvents =
+    doc.calendarEvents ?? ({} as AutomergeDoc["calendarEvents"]);
 
   const normalizedAudits = Object.fromEntries(
     Object.entries(existingAudits).map(([id, audit]) => {
@@ -161,6 +165,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     accounts: normalizedAccounts,
     codes: normalizedCodes,
     audits: normalizedAudits,
+    calendarEvents: existingCalendarEvents,
     settings: normalizedSettings,
     relations: {
       ...doc.relations,
@@ -219,8 +224,17 @@ export const loadPersistedState = async (
 
   // Log summary of what was loaded
   logger.info(
-    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.audits).length} audits, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes`,
+    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.audits).length} audits, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes, ${Object.keys(doc.calendarEvents).length} calendar events`,
   );
+
+  // Run calendar event migration if needed
+  try {
+    await runCalendarEventMigration(doc);
+  } catch (error) {
+    logger.error("Calendar event migration failed:", error);
+    // Don't throw - allow app to continue even if migration fails
+    // The migration will be retried on next load
+  }
 
   return { doc, events };
 };

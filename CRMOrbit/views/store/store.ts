@@ -411,13 +411,13 @@ export const useCalendarEvent = (
   calendarEventId: EntityId,
 ): CalendarEvent | undefined => {
   const selector = (state: CrmStoreState) =>
-    state.doc.calendarEvents[calendarEventId];
+    state.doc.calendarEvents?.[calendarEventId];
   return crmStore(selector);
 };
 
 export const useAllCalendarEvents = (): CalendarEvent[] => {
   const selector = (state: CrmStoreState) =>
-    Object.values(state.doc.calendarEvents);
+    Object.values(state.doc.calendarEvents ?? {});
   return crmStore(useShallow(selector));
 };
 
@@ -432,7 +432,7 @@ export const useCalendarEvents = (
       entityId,
     );
     return calendarEventIds
-      .map((id) => state.doc.calendarEvents[id])
+      .map((id) => state.doc.calendarEvents?.[id])
       .filter((event): event is CalendarEvent => Boolean(event));
   };
   return crmStore(useShallow(selector));
