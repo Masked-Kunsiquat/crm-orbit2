@@ -9,7 +9,7 @@ import { Audit } from "../audit";
 import { EntityId } from "../shared/types";
 import { Event } from "../../events/event";
 import { CalendarEventScheduledPayload } from "../../events/calendarEventPayloads";
-import { generateEntityId } from "../shared/idGenerator";
+import { nextId } from "../shared/idGenerator";
 
 export interface MigrationResult {
   success: boolean;
@@ -163,12 +163,12 @@ export const migrateInteractionToCalendarEvent = (
 ): CalendarEvent => {
   // Determine status based on interaction state
   let status: CalendarEventStatus;
-  if (interaction.status === "canceled") {
-    status = "canceled";
+  if (interaction.status === "interaction.status.canceled") {
+    status = "calendarEvent.status.canceled";
   } else if (interaction.occurredAt) {
-    status = "completed";
+    status = "calendarEvent.status.completed";
   } else {
-    status = "scheduled";
+    status = "calendarEvent.status.scheduled";
   }
 
   // Map interaction type to calendar event type
@@ -179,9 +179,12 @@ export const migrateInteractionToCalendarEvent = (
     type,
     status,
     summary: interaction.summary,
-    description: interaction.notes,
+    description: undefined, // Interactions don't have a notes/description field
     scheduledFor: interaction.scheduledFor || interaction.occurredAt,
-    occurredAt: status === "completed" ? interaction.occurredAt : undefined,
+    occurredAt:
+      status === "calendarEvent.status.completed"
+        ? interaction.occurredAt
+        : undefined,
     durationMinutes: interaction.durationMinutes,
     location: undefined, // Interactions don't have location field
     recurrenceRule: undefined, // Legacy interactions don't have recurrence
@@ -200,22 +203,25 @@ export const migrateInteractionToCalendarEvent = (
 export const migrateAuditToCalendarEvent = (audit: Audit): CalendarEvent => {
   // Determine status based on audit state
   let status: CalendarEventStatus;
-  if (audit.status === "canceled") {
-    status = "canceled";
+  if (audit.status === "audits.status.canceled") {
+    status = "calendarEvent.status.canceled";
   } else if (audit.occurredAt) {
-    status = "completed";
+    status = "calendarEvent.status.completed";
   } else {
-    status = "scheduled";
+    status = "calendarEvent.status.scheduled";
   }
 
   return {
     id: audit.id,
     type: "audit",
     status,
-    summary: audit.summary || `Audit for account ${audit.accountId}`,
+    summary: `Audit for account ${audit.accountId}`, // Audits don't have a summary field
     description: audit.notes,
     scheduledFor: audit.scheduledFor,
-    occurredAt: status === "completed" ? audit.occurredAt : undefined,
+    occurredAt:
+      status === "calendarEvent.status.completed"
+        ? audit.occurredAt
+        : undefined,
     durationMinutes: audit.durationMinutes,
     location: undefined, // Audits don't have location field
     recurrenceRule: undefined, // Legacy audits don't have recurrence
@@ -329,6 +335,9 @@ const createCalendarEventScheduledEvent = (
   deviceId: string,
   originalTimestamp: string,
 ): Event => {
+  // Status is already in full enum format from migration
+  const fullStatus = calendarEvent.status;
+
   const payload: CalendarEventScheduledPayload = {
     id: calendarEvent.id,
     type: calendarEvent.type,
@@ -336,14 +345,14 @@ const createCalendarEventScheduledEvent = (
     scheduledFor: calendarEvent.scheduledFor,
     description: calendarEvent.description,
     durationMinutes: calendarEvent.durationMinutes,
-    status: calendarEvent.status,
+    status: fullStatus,
     location: calendarEvent.location,
     recurrenceRule: calendarEvent.recurrenceRule,
     accountId: calendarEvent.auditData?.accountId,
   };
 
   return {
-    id: generateEntityId(),
+    id: nextId("event"),
     type: "calendarEvent.scheduled",
     entityId: calendarEvent.id,
     payload,
