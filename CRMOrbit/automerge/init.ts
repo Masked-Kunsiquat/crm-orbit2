@@ -9,6 +9,7 @@ export const initAutomergeDoc = (): AutomergeDoc => ({
   notes: {},
   interactions: {},
   codes: {},
+  calendarEvents: {},
   settings: DEFAULT_SETTINGS,
   relations: {
     accountContacts: {},
