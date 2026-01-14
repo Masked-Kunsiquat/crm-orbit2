@@ -2,6 +2,7 @@ import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
+import type { CalendarEventType } from "@domains/calendarEvent";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import type { EntityId } from "../../domains/shared/types";
 import type { AccountContactRole } from "../../domains/relations/accountContact";
@@ -31,6 +32,7 @@ export type RootStackParamList = {
       entityType: EntityLinkType;
     };
   };
+  // DEPRECATED - kept for backward compatibility during migration
   InteractionDetail: { interactionId: EntityId };
   InteractionForm: {
     interactionId?: EntityId;
@@ -40,10 +42,25 @@ export type RootStackParamList = {
     };
     prefillDate?: string;
   };
-  CodeDetail: { codeId: EntityId };
-  CodeForm: { codeId?: EntityId; accountId?: EntityId };
   AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
   AuditDetail: { auditId: EntityId };
+  // NEW - unified calendar event screens
+  CalendarEventDetail: {
+    calendarEventId: EntityId;
+    occurrenceTimestamp?: string;
+  };
+  CalendarEventForm: {
+    calendarEventId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+    accountId?: EntityId; // For audits
+    prefillDate?: string;
+    prefillType?: CalendarEventType;
+  };
+  CodeDetail: { codeId: EntityId };
+  CodeForm: { codeId?: EntityId; accountId?: EntityId };
 };
 
 // Root tab navigator
@@ -75,10 +92,10 @@ export type AccountsStackParamList = {
 // Events stack navigator
 export type EventsStackParamList = {
   EventsLanding: undefined;
+  // DEPRECATED - kept for backward compatibility during migration
   AuditsList: undefined;
   AuditDetail: { auditId: EntityId };
   AuditForm: { auditId?: EntityId; accountId?: EntityId; prefillDate?: string };
-  Calendar: undefined;
   InteractionsList: undefined;
   InteractionDetail: { interactionId: EntityId };
   InteractionForm: {
@@ -88,6 +105,23 @@ export type EventsStackParamList = {
       entityType: EntityLinkType;
     };
     prefillDate?: string;
+  };
+  // NEW - unified calendar event screens
+  Calendar: undefined;
+  CalendarEventsList: undefined;
+  CalendarEventDetail: {
+    calendarEventId: EntityId;
+    occurrenceTimestamp?: string;
+  };
+  CalendarEventForm: {
+    calendarEventId?: EntityId;
+    entityToLink?: {
+      entityId: EntityId;
+      entityType: EntityLinkType;
+    };
+    accountId?: EntityId; // For audits
+    prefillDate?: string;
+    prefillType?: CalendarEventType;
   };
 };
 

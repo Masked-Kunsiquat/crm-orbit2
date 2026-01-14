@@ -2,46 +2,56 @@ import React, { useCallback, useMemo } from "react";
 import {
   CalendarProvider,
   ExpandableCalendar,
+  Timeline,
   TimelineList,
 } from "react-native-calendars";
-import type { TimelineEventProps } from "react-native-calendars";
+import type {
+  TimelineEventProps,
+  TimelineListRenderItemInfo,
+  TimelineProps,
+} from "react-native-calendars";
 import type { DateData } from "react-native-calendars";
 
-import type { Audit } from "@domains/audit";
-import type { Interaction } from "@domains/interaction";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import { useTheme } from "../hooks";
 import { buildCalendarTheme } from "../utils/calendarTheme";
-import { getAuditEndTimestamp, getAuditStartTimestamp } from "../utils/audits";
 import { addMinutesToTimestamp } from "../utils/duration";
-import { buildMarkedDates, toISODate } from "../utils/calendarDataTransformers";
-import { resolveCalendarPalette } from "../utils/calendarColors";
+import {
+  buildMarkedDatesFromCalendarEvents,
+  toISODate,
+} from "../utils/calendarDataTransformers";
+import {
+  getCalendarEventDotColor,
+  resolveCalendarPalette,
+} from "../utils/calendarColors";
+import {
+  expandCalendarEventsInRange,
+  getCalendarMonthRange,
+} from "../utils/recurrence";
 import { useCalendarSettings } from "../store/store";
 
 export interface TimelineViewProps {
-  audits: Audit[];
-  interactions: Interaction[];
+  calendarEvents: CalendarEvent[];
   accountNames: Map<string, string>;
-  fallbackUnknownEntity: string;
-  entityNamesForInteraction: (interactionId: string) => string;
-  onAuditPress: (auditId: string) => void;
-  onInteractionPress: (interactionId: string) => void;
+  unknownEntityLabel: string;
+  entityNamesForEvent?: (calendarEventId: string) => string;
+  onEventPress: (calendarEventId: string, occurrenceTimestamp?: string) => void;
   selectedDate: string;
   onDateChange: (date: string) => void;
 }
 
 interface TimelineEvent extends TimelineEventProps {
   id: string;
-  kind: "audit" | "interaction";
+  calendarEventId: string;
+  occurrenceTimestamp?: string;
 }
 
 export const TimelineView = ({
-  audits,
-  interactions,
+  calendarEvents,
   accountNames,
-  fallbackUnknownEntity,
-  entityNamesForInteraction,
-  onAuditPress,
-  onInteractionPress,
+  unknownEntityLabel,
+  entityNamesForEvent,
+  onEventPress,
   selectedDate,
   onDateChange,
 }: TimelineViewProps) => {
@@ -55,109 +65,139 @@ export const TimelineView = ({
     () => resolveCalendarPalette(colors, calendarSettings.palette),
     [colors, calendarSettings.palette],
   );
+  const calendarRange = useMemo(
+    () => getCalendarMonthRange(selectedDate),
+    [selectedDate],
+  );
+  const expandedEvents = useMemo(
+    () =>
+      expandCalendarEventsInRange(
+        calendarEvents,
+        calendarRange.start,
+        calendarRange.end,
+      ),
+    [calendarEvents, calendarRange],
+  );
 
   // Build marked dates for calendar
   const markedDates = useMemo(
     () =>
-      buildMarkedDates(
-        audits,
-        interactions,
+      buildMarkedDatesFromCalendarEvents(
+        expandedEvents,
         calendarPalette,
         colors.accent,
         selectedDate,
       ),
-    [audits, interactions, selectedDate, calendarPalette, colors.accent],
+    [expandedEvents, selectedDate, calendarPalette, colors.accent],
   );
 
   // Build timeline events grouped by date
   const timelineEventsByDate = useMemo<Record<string, TimelineEvent[]>>(() => {
     const eventsByDate: Record<string, TimelineEvent[]> = {};
 
-    // Add audit events
-    for (const audit of audits) {
-      const startTimestamp = getAuditStartTimestamp(audit);
+    for (const event of expandedEvents) {
+      const sourceEventId = event.recurrenceId ?? event.id;
+      const occurrenceTimestamp = event.recurrenceId
+        ? event.scheduledFor
+        : undefined;
+      const isCompleted = event.status === "calendarEvent.status.completed";
+      const startTimestamp = isCompleted
+        ? (event.occurredAt ?? event.scheduledFor)
+        : event.scheduledFor;
+
       if (!startTimestamp) continue;
 
-      const endTimestamp = getAuditEndTimestamp(audit) ?? startTimestamp;
       const dateKey = toISODate(startTimestamp);
       if (!dateKey) continue;
 
+      const endTimestamp =
+        addMinutesToTimestamp(startTimestamp, event.durationMinutes) ??
+        startTimestamp;
       const accountName =
-        accountNames.get(audit.accountId) ?? fallbackUnknownEntity;
+        event.type === "calendarEvent.type.audit" && event.auditData?.accountId
+          ? (accountNames.get(event.auditData.accountId) ?? unknownEntityLabel)
+          : undefined;
+      const title =
+        event.type === "calendarEvent.type.audit" && accountName
+          ? accountName
+          : event.summary;
+      const linkedNames = entityNamesForEvent?.(sourceEventId)?.trim();
+      const summaryParts: string[] = [];
+      const auditAccountId = event.auditData?.accountId;
+      const legacyAuditSummary =
+        event.type === "calendarEvent.type.audit" &&
+        !!event.summary &&
+        ((auditAccountId && event.summary.includes(auditAccountId)) ||
+          event.summary.toLowerCase().startsWith("audit for account"));
 
-      if (!eventsByDate[dateKey]) {
-        eventsByDate[dateKey] = [];
+      if (event.type === "calendarEvent.type.audit") {
+        if (event.summary?.trim() && !legacyAuditSummary) {
+          summaryParts.push(event.summary.trim());
+        }
+      } else if (linkedNames) {
+        summaryParts.push(linkedNames);
       }
 
-      eventsByDate[dateKey].push({
-        id: audit.id,
-        kind: "audit",
-        start: startTimestamp,
-        end: endTimestamp,
-        title: accountName,
-        summary: audit.notes ?? "",
-        color: calendarPalette.timeline.audit,
-      });
-    }
+      if (event.location?.trim()) summaryParts.push(event.location.trim());
+      if (event.description?.trim())
+        summaryParts.push(event.description.trim());
 
-    // Add interaction events
-    for (const interaction of interactions) {
-      const resolvedStatus =
-        interaction.status ?? "interaction.status.completed";
-      const usesScheduledTimestamp =
-        resolvedStatus !== "interaction.status.completed";
-      const startTimestamp = usesScheduledTimestamp
-        ? (interaction.scheduledFor ?? interaction.occurredAt)
-        : interaction.occurredAt;
-
-      if (!startTimestamp) continue;
-
-      const endTimestamp = addMinutesToTimestamp(
-        startTimestamp,
-        interaction.durationMinutes,
+      const summary = summaryParts.join(" · ");
+      const color = getCalendarEventDotColor(
+        calendarPalette,
+        event.status,
+        event.type,
       );
 
-      const dateKey = toISODate(startTimestamp);
-      if (!dateKey) continue;
-
-      const entityName = entityNamesForInteraction(interaction.id);
-
       if (!eventsByDate[dateKey]) {
         eventsByDate[dateKey] = [];
       }
 
       eventsByDate[dateKey].push({
-        id: interaction.id,
-        kind: "interaction",
+        id: event.id,
+        calendarEventId: sourceEventId,
+        occurrenceTimestamp,
         start: startTimestamp,
-        end: endTimestamp ?? startTimestamp,
-        title: interaction.summary,
-        summary: entityName,
-        color: calendarPalette.timeline.interaction,
+        end: endTimestamp,
+        title,
+        summary,
+        color,
       });
     }
 
     return eventsByDate;
   }, [
-    audits,
-    interactions,
+    expandedEvents,
     accountNames,
-    entityNamesForInteraction,
-    fallbackUnknownEntity,
-    calendarPalette.timeline.audit,
-    calendarPalette.timeline.interaction,
+    unknownEntityLabel,
+    entityNamesForEvent,
+    calendarPalette,
   ]);
+
+  const eventsKey = useMemo(
+    () =>
+      expandedEvents
+        .map(
+          (event) =>
+            `${event.id}:${event.scheduledFor}:${event.occurredAt ?? ""}:${event.status}`,
+        )
+        .join("|"),
+    [expandedEvents],
+  );
 
   const handleEventPress = useCallback(
     (event: TimelineEventProps) => {
+      if (!event) return;
       const timelineEvent = event as TimelineEvent;
-      if (timelineEvent.kind === "audit") {
-        onAuditPress(timelineEvent.id);
-      } else {
-        onInteractionPress(timelineEvent.id);
+      const rawId =
+        typeof timelineEvent.id === "string" ? timelineEvent.id : "";
+      const baseId = rawId.split("::")[0];
+      const calendarEventId = timelineEvent.calendarEventId ?? baseId;
+      if (calendarEventId) {
+        onEventPress(calendarEventId, timelineEvent.occurrenceTimestamp);
       }
     },
-    [onAuditPress, onInteractionPress],
+    [onEventPress],
   );
 
   const handleDayPress = useCallback(
@@ -165,6 +205,22 @@ export const TimelineView = ({
       onDateChange(day.dateString);
     },
     [onDateChange],
+  );
+
+  const renderTimelineItem = useCallback(
+    (timelineProps: TimelineProps, info: TimelineListRenderItemInfo) => {
+      const rest = { ...timelineProps } as TimelineProps & { key?: string };
+      delete rest.key;
+      return (
+        <Timeline
+          key={info.item}
+          {...rest}
+          onEventPress={handleEventPress}
+          eventTapped={handleEventPress}
+        />
+      );
+    },
+    [handleEventPress],
   );
 
   return (
@@ -182,16 +238,20 @@ export const TimelineView = ({
         closeOnDayPress={true}
       />
       <TimelineList
+        key={eventsKey}
         events={timelineEventsByDate}
+        renderItem={renderTimelineItem}
         timelineProps={{
           format24h: true,
           onEventPress: handleEventPress,
+          eventTapped: handleEventPress,
           start: 6,
           end: 22,
           unavailableHours: [
             { start: 0, end: 6 },
             { start: 22, end: 24 },
           ],
+          unavailableHoursColor: colors.surfaceElevated,
           overlapEventsSpacing: 8,
           theme: calendarTheme,
         }}

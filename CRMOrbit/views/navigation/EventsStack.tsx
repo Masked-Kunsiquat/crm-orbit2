@@ -7,6 +7,11 @@ import {
   AuditDetailScreen,
   AuditFormScreen,
 } from "../screens/audits";
+import {
+  CalendarEventDetailScreen,
+  CalendarEventFormScreen,
+  CalendarEventsListScreen,
+} from "../screens/calendarEvents";
 import { CalendarScreen } from "../screens/calendar";
 import {
   InteractionsListScreen,
@@ -69,35 +74,38 @@ export const EventsStack = () => {
               emptyTitle: t("calendar.emptyTitle"),
               emptyHint: t("calendar.emptyHint"),
               unknownValue: t("common.unknown"),
-              audit: {
-                scheduledForLabel: t("audits.fields.scheduledFor"),
+              event: {
+                scheduledForLabel: t("interactions.scheduledFor"),
+                occurredAtLabel: t("interactions.occurredAt"),
                 endsAtLabel: t("audits.fields.endsAt"),
                 scoreLabel: t("audits.fields.score"),
                 floorsVisitedLabel: t("audits.fields.floorsVisited"),
-              },
-              interaction: {
+                durationLabel: t("audits.fields.duration"),
                 statusLabel: t("interactions.statusLabel"),
-                endsAtLabel: t("interactions.fields.endsAt"),
-                subtitleLabels: {
-                  "interactions.scheduledFor": t("interactions.scheduledFor"),
-                  "interactions.occurredAt": t("interactions.occurredAt"),
-                },
-                statusLabels: {
-                  "interaction.status.scheduled": t(
-                    "interaction.status.scheduled",
-                  ),
-                  "interaction.status.completed": t(
-                    "interaction.status.completed",
-                  ),
-                  "interaction.status.canceled": t(
-                    "interaction.status.canceled",
-                  ),
-                },
               },
             }}
           />
         )}
       </Stack.Screen>
+      <Stack.Screen
+        name="CalendarEventsList"
+        component={CalendarEventsListScreen}
+        options={{ title: t("calendarEvents.listTitle") }}
+      />
+      <Stack.Screen
+        name="CalendarEventDetail"
+        component={CalendarEventDetailScreen}
+        options={{ title: t("calendarEvents.detailTitle") }}
+      />
+      <Stack.Screen
+        name="CalendarEventForm"
+        component={CalendarEventFormScreen}
+        options={({ route }) => ({
+          title: route.params?.calendarEventId
+            ? t("calendarEvents.editTitle")
+            : t("calendarEvents.createTitle"),
+        })}
+      />
       <Stack.Screen
         name="InteractionsList"
         component={InteractionsListScreen}

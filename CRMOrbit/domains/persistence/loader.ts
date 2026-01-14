@@ -1,5 +1,6 @@
 import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
+import { normalizeCalendarEventType } from "@domains/calendarEvent";
 import {
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_SECURITY_SETTINGS,
@@ -19,6 +20,7 @@ import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
 import { createLogger, silenceLogs, unsilenceLogs } from "@utils/logger";
+import { runCalendarEventMigration } from "@domains/migrations/runMigration";
 
 const logger = createLogger("PersistenceLoader");
 
@@ -30,6 +32,7 @@ const EMPTY_DOC: AutomergeDoc = {
   notes: {},
   interactions: {},
   codes: {},
+  calendarEvents: {},
   settings: DEFAULT_SETTINGS,
   relations: {
     accountContacts: {},
@@ -60,6 +63,24 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
   const existingCodes = doc.codes ?? ({} as AutomergeDoc["codes"]);
   const existingAudits = doc.audits ?? ({} as AutomergeDoc["audits"]);
   const existingAccounts = doc.accounts ?? ({} as AutomergeDoc["accounts"]);
+  const existingCalendarEvents =
+    doc.calendarEvents ?? ({} as AutomergeDoc["calendarEvents"]);
+
+  const normalizedCalendarEvents = Object.fromEntries(
+    Object.entries(existingCalendarEvents).map(([id, event]) => {
+      const normalizedType = normalizeCalendarEventType(event.type);
+      if (!normalizedType || normalizedType === event.type) {
+        return [id, event];
+      }
+      return [
+        id,
+        {
+          ...event,
+          type: normalizedType,
+        },
+      ];
+    }),
+  ) as AutomergeDoc["calendarEvents"];
 
   const normalizedAudits = Object.fromEntries(
     Object.entries(existingAudits).map(([id, audit]) => {
@@ -161,11 +182,77 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     accounts: normalizedAccounts,
     codes: normalizedCodes,
     audits: normalizedAudits,
+    calendarEvents: normalizedCalendarEvents,
     settings: normalizedSettings,
     relations: {
       ...doc.relations,
       entityLinks: mergedLinks,
       accountCodes: existingAccountCodes,
+    },
+  };
+};
+
+const normalizeCalendarEventStatus = (
+  status: unknown,
+):
+  | "calendarEvent.status.scheduled"
+  | "calendarEvent.status.completed"
+  | "calendarEvent.status.canceled"
+  | undefined => {
+  if (status === "scheduled") {
+    return "calendarEvent.status.scheduled";
+  }
+  if (status === "completed") {
+    return "calendarEvent.status.completed";
+  }
+  if (status === "canceled") {
+    return "calendarEvent.status.canceled";
+  }
+  if (
+    status === "calendarEvent.status.scheduled" ||
+    status === "calendarEvent.status.completed" ||
+    status === "calendarEvent.status.canceled"
+  ) {
+    return status;
+  }
+  return undefined;
+};
+
+const normalizeLegacyEventPayload = (event: Event): Event => {
+  if (event.type !== "calendarEvent.scheduled") {
+    return event;
+  }
+
+  const payload = event.payload as Record<string, unknown> | null;
+  if (!payload || typeof payload !== "object") {
+    return event;
+  }
+
+  const normalizedType = normalizeCalendarEventType(payload.type);
+  if (!("status" in payload)) {
+    return normalizedType
+      ? { ...event, payload: { ...payload, type: normalizedType } }
+      : event;
+  }
+
+  const normalizedStatus = normalizeCalendarEventStatus(payload.status);
+  const nextPayload = {
+    ...payload,
+    ...(normalizedType &&
+      normalizedType !== payload.type && { type: normalizedType }),
+  };
+
+  if (!normalizedStatus || normalizedStatus === payload.status) {
+    return normalizedType && normalizedType !== payload.type
+      ? { ...event, payload: nextPayload }
+      : event;
+  }
+
+  return {
+    ...event,
+    payload: {
+      ...nextPayload,
+      status: normalizedStatus,
     },
   };
 };
@@ -185,15 +272,17 @@ export const loadPersistedState = async (
   logger.info(`Loaded ${eventRecords.length} event records from database`);
 
   // Parse events from records
-  const parsedEvents: Event[] = eventRecords.map((record) => ({
-    id: record.id,
-    type: record.type as Event["type"],
-    entityId: record.entityId ?? undefined,
-    payload: JSON.parse(record.payload),
-    timestamp: record.timestamp,
-    deviceId: record.deviceId,
-  }));
-  const events = sortEvents(parsedEvents);
+  const parsedEvents: Event[] = eventRecords.map((record) =>
+    normalizeLegacyEventPayload({
+      id: record.id,
+      type: record.type as Event["type"],
+      entityId: record.entityId ?? undefined,
+      payload: JSON.parse(record.payload),
+      timestamp: record.timestamp,
+      deviceId: record.deviceId,
+    }),
+  );
+  let events = sortEvents(parsedEvents);
 
   // Silence logs during event replay to avoid log spam
   silenceLogs();
@@ -219,8 +308,29 @@ export const loadPersistedState = async (
 
   // Log summary of what was loaded
   logger.info(
-    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.audits).length} audits, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes`,
+    `State reconstructed: ${Object.keys(doc.organizations).length} orgs, ${Object.keys(doc.accounts).length} accounts, ${Object.keys(doc.audits).length} audits, ${Object.keys(doc.contacts).length} contacts, ${Object.keys(doc.notes).length} notes, ${Object.keys(doc.interactions).length} interactions, ${Object.keys(doc.codes).length} codes, ${Object.keys(doc.calendarEvents).length} calendar events`,
   );
+
+  // Run calendar event migration if needed
+  try {
+    const { doc: migratedDoc, report } = await runCalendarEventMigration(
+      doc,
+      db,
+      "migration-system",
+    );
+    doc = migratedDoc;
+    if (report.events.length > 0) {
+      logger.info(
+        `Migration persisted ${report.events.length} events to database`,
+      );
+      // Add migrated events to the events array so they're available to the app
+      events = sortEvents([...events, ...report.events]);
+    }
+  } catch (error) {
+    logger.error("Calendar event migration failed:", error);
+    // Don't throw - allow app to continue even if migration fails
+    // The migration will be retried on next load
+  }
 
   return { doc, events };
 };

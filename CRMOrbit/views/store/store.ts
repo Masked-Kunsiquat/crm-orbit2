@@ -6,6 +6,7 @@ import type { AutomergeDoc } from "@automerge/schema";
 import type { Event } from "@events/event";
 import type { Account } from "@domains/account";
 import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Code } from "@domains/code";
 import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
@@ -19,6 +20,8 @@ import { EntityId } from "@domains/shared/types";
 import { buildTimelineForEntity, type TimelineItem } from "./timeline";
 import { t } from "@i18n/index";
 import {
+  getCalendarEventsForEntity,
+  getEntitiesForCalendarEvent,
   getEntitiesForInteraction,
   getEntitiesForNote,
   getInteractionsForEntity,
@@ -40,11 +43,12 @@ const crmStore = create<CrmStoreState>((set) => ({
   doc: {
     organizations: {},
     accounts: {},
-    audits: {},
+    audits: {}, // DEPRECATED - migrating to calendarEvents
     contacts: {},
     notes: {},
-    interactions: {},
+    interactions: {}, // DEPRECATED - migrating to calendarEvents
     codes: {},
+    calendarEvents: {}, // NEW unified calendar events
     settings: DEFAULT_SETTINGS,
     relations: {
       accountContacts: {},
@@ -396,6 +400,58 @@ export const useAllInteractions = (): Interaction[] => {
   const selector = (state: CrmStoreState) =>
     Object.values(state.doc.interactions);
   return crmStore(useShallow(selector));
+};
+
+/**
+ * Calendar Event Hooks
+ * Unified hooks for calendar events (replaces interactions + audits)
+ */
+
+export const useCalendarEvent = (
+  calendarEventId: EntityId,
+): CalendarEvent | undefined => {
+  const selector = (state: CrmStoreState) =>
+    state.doc.calendarEvents?.[calendarEventId];
+  return crmStore(selector);
+};
+
+export const useAllCalendarEvents = (): CalendarEvent[] => {
+  const selector = (state: CrmStoreState) =>
+    Object.values(state.doc.calendarEvents ?? {});
+  return crmStore(useShallow(selector));
+};
+
+export const useCalendarEvents = (
+  entityType: EntityLinkType,
+  entityId: EntityId,
+): CalendarEvent[] => {
+  const selector = (state: CrmStoreState) => {
+    const calendarEventIds = getCalendarEventsForEntity(
+      state.doc,
+      entityType,
+      entityId,
+    );
+    return calendarEventIds
+      .map((id) => state.doc.calendarEvents?.[id])
+      .filter((event): event is CalendarEvent => Boolean(event));
+  };
+  return crmStore(useShallow(selector));
+};
+
+export const useEntitiesForCalendarEvent = (
+  calendarEventId: EntityId,
+): LinkedEntityInfo[] => {
+  const cacheRef = useRef<LinkedEntityInfo[] | null>(null);
+  const selector = (state: CrmStoreState) => {
+    const next = getEntitiesForCalendarEvent(state.doc, calendarEventId);
+    const cached = cacheRef.current;
+    if (cached && areLinkedEntitiesEqual(cached, next)) {
+      return cached;
+    }
+    cacheRef.current = next;
+    return next;
+  };
+  return crmStore(selector);
 };
 
 export const useDoc = (): AutomergeDoc => {

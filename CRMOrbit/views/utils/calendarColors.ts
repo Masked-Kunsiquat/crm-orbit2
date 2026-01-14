@@ -178,3 +178,36 @@ export const getInteractionDotColor = (
       return palette.interaction.canceled;
   }
 };
+
+/**
+ * Get the appropriate calendar dot color for a unified calendar event
+ * For audit-type events, uses audit colors; for others, uses interaction colors
+ */
+export const getCalendarEventDotColor = (
+  palette: CalendarPaletteColors,
+  status:
+    | "calendarEvent.status.scheduled"
+    | "calendarEvent.status.completed"
+    | "calendarEvent.status.canceled",
+  type:
+    | "calendarEvent.type.meeting"
+    | "calendarEvent.type.call"
+    | "calendarEvent.type.email"
+    | "calendarEvent.type.audit"
+    | "calendarEvent.type.task"
+    | "calendarEvent.type.reminder"
+    | "calendarEvent.type.other",
+): string => {
+  // Use audit colors for audit events, interaction colors for others
+  const colorSet =
+    type === "calendarEvent.type.audit" ? palette.audit : palette.interaction;
+
+  switch (status) {
+    case "calendarEvent.status.scheduled":
+      return colorSet.scheduled;
+    case "calendarEvent.status.completed":
+      return colorSet.completed;
+    case "calendarEvent.status.canceled":
+      return colorSet.canceled;
+  }
+};

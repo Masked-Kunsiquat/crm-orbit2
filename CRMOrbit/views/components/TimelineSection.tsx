@@ -415,6 +415,52 @@ export const TimelineSection = ({
     if (item.kind !== "event") return null;
 
     const payload = item.event.payload as Record<string, unknown>;
+    const resolveAuditAccountName = (
+      accountId?: string | null,
+    ): string | null => {
+      if (!accountId) return null;
+      const account = doc.accounts[accountId];
+      return account?.name || t("common.unknown");
+    };
+    const isLegacyAuditSummary = (
+      summary: string,
+      accountId?: string | null,
+    ): boolean => {
+      if (accountId && summary.includes(accountId)) {
+        return true;
+      }
+      return summary.toLowerCase().startsWith("audit for account");
+    };
+    const resolveCalendarEventSummary = (
+      calendarEventId: string | null,
+      summaryOverride?: string | null,
+    ): string | null => {
+      const trimmedOverride =
+        typeof summaryOverride === "string" && summaryOverride.trim()
+          ? summaryOverride.trim()
+          : null;
+      const calendarEvent = calendarEventId
+        ? doc.calendarEvents[calendarEventId]
+        : undefined;
+      const storedSummary =
+        calendarEvent?.summary && calendarEvent.summary.trim()
+          ? calendarEvent.summary.trim()
+          : null;
+      const summary = trimmedOverride ?? storedSummary;
+
+      if (calendarEvent?.type === "calendarEvent.type.audit") {
+        const accountId = calendarEvent.auditData?.accountId;
+        const accountName = resolveAuditAccountName(accountId);
+        if (!summary) {
+          return accountName;
+        }
+        if (isLegacyAuditSummary(summary, accountId)) {
+          return accountName ?? summary;
+        }
+      }
+
+      return summary;
+    };
     const resolveLinkedEntity = (
       entityType: string | null,
       entityId: string | null,
@@ -435,6 +481,9 @@ export const TimelineSection = ({
         const audit = doc.audits[entityId];
         const stamp = audit?.occurredAt ?? audit?.scheduledFor ?? audit?.id;
         entityName = stamp ? `Audit ${stamp}` : t("common.unknown");
+      } else if (entityType === "calendarEvent") {
+        entityName =
+          resolveCalendarEventSummary(entityId) || t("common.unknown");
       } else if (entityType === "contact") {
         const contact = doc.contacts[entityId];
         entityName = contact ? getContactName(contact) : t("common.unknown");
@@ -657,6 +706,51 @@ export const TimelineSection = ({
       }
 
       return entityContext ?? interactionSummary;
+    }
+
+    // For calendar event link events
+    if (
+      item.event.type === "calendarEvent.linked" ||
+      item.event.type === "calendarEvent.unlinked"
+    ) {
+      const calendarEventId =
+        typeof payload?.calendarEventId === "string"
+          ? payload.calendarEventId
+          : (item.event.entityId ?? null);
+      const entityType =
+        typeof payload?.entityType === "string" ? payload.entityType : null;
+      const entityId =
+        typeof payload?.entityId === "string" ? payload.entityId : null;
+
+      const entityContext = resolveLinkedEntity(entityType, entityId);
+      const summary = resolveCalendarEventSummary(calendarEventId);
+
+      if (entityContext && summary) {
+        return `${entityContext} • ${summary}`;
+      }
+
+      return entityContext ?? summary;
+    }
+
+    // For other calendar event events, prefer summary from payload or doc
+    if (item.event.type.startsWith("calendarEvent.")) {
+      const summaryOverride =
+        typeof payload?.summary === "string" ? payload.summary : null;
+      const calendarEventId =
+        typeof payload?.id === "string"
+          ? payload.id
+          : typeof payload?.calendarEventId === "string"
+            ? payload.calendarEventId
+            : (item.event.entityId ?? null);
+
+      const summary = resolveCalendarEventSummary(
+        calendarEventId,
+        summaryOverride,
+      );
+
+      if (summary) {
+        return summary;
+      }
     }
 
     // Extract name from payload if available (fallback)

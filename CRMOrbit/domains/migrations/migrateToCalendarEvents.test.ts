@@ -1,0 +1,482 @@
+import { describe, it, expect } from "@jest/globals";
+import {
+  migrateToCalendarEvents,
+  migrateInteractionToCalendarEvent,
+  migrateAuditToCalendarEvent,
+  validateMigration,
+} from "./migrateToCalendarEvents";
+import { AutomergeDoc } from "../../automerge/schema";
+import { Interaction } from "../interaction";
+import { Audit } from "../audit";
+import { nextId } from "../shared/idGenerator";
+
+// Helper to create a minimal AutomergeDoc
+const createEmptyDoc = (): AutomergeDoc => ({
+  organizations: {},
+  accounts: {},
+  audits: {},
+  contacts: {},
+  notes: {},
+  interactions: {},
+  codes: {},
+  calendarEvents: {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  settings: {} as any, // Simplified for testing
+  relations: {
+    accountContacts: {},
+    accountCodes: {},
+    entityLinks: {},
+  },
+});
+
+// Helper to create a test Interaction
+const createTestInteraction = (
+  overrides: Partial<Interaction> = {},
+): Interaction => ({
+  id: nextId("interaction"),
+  type: "interaction.type.meeting",
+  status: "interaction.status.completed",
+  summary: "Test meeting",
+  scheduledFor: "2026-01-15T10:00:00.000Z",
+  occurredAt: "2026-01-15T10:05:00.000Z",
+  durationMinutes: 60,
+  createdAt: "2026-01-14T12:00:00.000Z",
+  updatedAt: "2026-01-14T12:00:00.000Z",
+  ...overrides,
+});
+
+// Helper to create a test Audit
+const createTestAudit = (overrides: Partial<Audit> = {}): Audit => ({
+  id: nextId("audit"),
+  accountId: nextId("account"),
+  status: "audits.status.completed",
+  summary: "Test audit",
+  notes: "Audit notes",
+  scheduledFor: "2026-01-15T14:00:00.000Z",
+  occurredAt: "2026-01-15T14:30:00.000Z",
+  score: 95,
+  floorsVisited: [1, 2, 3],
+  durationMinutes: 90,
+  createdAt: "2026-01-14T12:00:00.000Z",
+  updatedAt: "2026-01-14T12:00:00.000Z",
+  ...overrides,
+});
+
+describe("migrateInteractionToCalendarEvent", () => {
+  it("should migrate a completed interaction", () => {
+    const interaction = createTestInteraction();
+    const calendarEvent = migrateInteractionToCalendarEvent(interaction);
+
+    expect(calendarEvent.id).toBe(interaction.id);
+    expect(calendarEvent.type).toBe("calendarEvent.type.meeting");
+    expect(calendarEvent.status).toBe("calendarEvent.status.completed");
+    expect(calendarEvent.summary).toBe(interaction.summary);
+    expect(calendarEvent.description).toBeUndefined();
+    expect(calendarEvent.scheduledFor).toBe(interaction.scheduledFor);
+    expect(calendarEvent.occurredAt).toBe(interaction.occurredAt);
+    expect(calendarEvent.durationMinutes).toBe(interaction.durationMinutes);
+    expect(calendarEvent.auditData).toBeUndefined();
+    expect(calendarEvent.recurrenceRule).toBeUndefined();
+  });
+
+  it("should migrate a scheduled interaction", () => {
+    const interaction = createTestInteraction({
+      status: "interaction.status.scheduled",
+      occurredAt: "2026-01-15T10:00:00.000Z",
+    });
+    const calendarEvent = migrateInteractionToCalendarEvent(interaction);
+
+    expect(calendarEvent.status).toBe("calendarEvent.status.scheduled");
+    expect(calendarEvent.occurredAt).toBeUndefined();
+  });
+
+  it("should migrate a canceled interaction", () => {
+    const interaction = createTestInteraction({
+      status: "interaction.status.canceled",
+    });
+    const calendarEvent = migrateInteractionToCalendarEvent(interaction);
+
+    expect(calendarEvent.status).toBe("calendarEvent.status.canceled");
+  });
+
+  it("should handle interaction with only occurredAt (no scheduledFor)", () => {
+    const interaction = createTestInteraction({
+      scheduledFor: undefined,
+      occurredAt: "2026-01-15T10:00:00.000Z",
+    });
+    const calendarEvent = migrateInteractionToCalendarEvent(interaction);
+
+    expect(calendarEvent.scheduledFor).toBe(interaction.occurredAt);
+  });
+
+  it("should map interaction types correctly", () => {
+    const types: Array<{ input: string; expected: string }> = [
+      {
+        input: "interaction.type.meeting",
+        expected: "calendarEvent.type.meeting",
+      },
+      { input: "interaction.type.call", expected: "calendarEvent.type.call" },
+      { input: "interaction.type.email", expected: "calendarEvent.type.email" },
+      {
+        input: "interaction.type.other",
+        expected: "calendarEvent.type.other",
+      },
+      { input: "meeting", expected: "calendarEvent.type.meeting" },
+      { input: "call", expected: "calendarEvent.type.call" },
+      { input: "email", expected: "calendarEvent.type.email" },
+      { input: "interaction", expected: "calendarEvent.type.other" },
+      { input: "other", expected: "calendarEvent.type.other" },
+    ];
+
+    types.forEach(({ input, expected }) => {
+      const interaction = createTestInteraction({
+        type: input as unknown as Interaction["type"],
+      });
+      const calendarEvent = migrateInteractionToCalendarEvent(interaction);
+      expect(calendarEvent.type).toBe(expected);
+    });
+  });
+});
+
+describe("migrateAuditToCalendarEvent", () => {
+  it("should migrate a completed audit", () => {
+    const audit = createTestAudit();
+    const calendarEvent = migrateAuditToCalendarEvent(audit);
+
+    expect(calendarEvent.id).toBe(audit.id);
+    expect(calendarEvent.type).toBe("calendarEvent.type.audit");
+    expect(calendarEvent.status).toBe("calendarEvent.status.completed");
+    expect(calendarEvent.scheduledFor).toBe(audit.scheduledFor);
+    expect(calendarEvent.occurredAt).toBe(audit.occurredAt);
+    expect(calendarEvent.durationMinutes).toBe(audit.durationMinutes);
+    expect(calendarEvent.auditData).toEqual({
+      accountId: audit.accountId,
+      score: audit.score,
+      floorsVisited: audit.floorsVisited,
+    });
+  });
+
+  it("should migrate a scheduled audit", () => {
+    const audit = createTestAudit({
+      status: "audits.status.scheduled",
+      occurredAt: undefined,
+      score: undefined,
+      floorsVisited: undefined,
+    });
+    const calendarEvent = migrateAuditToCalendarEvent(audit);
+
+    expect(calendarEvent.status).toBe("calendarEvent.status.scheduled");
+    expect(calendarEvent.occurredAt).toBeUndefined();
+    expect(calendarEvent.auditData).toEqual({
+      accountId: audit.accountId,
+      score: undefined,
+      floorsVisited: undefined,
+    });
+  });
+
+  it("should migrate a canceled audit", () => {
+    const audit = createTestAudit({
+      status: "audits.status.canceled",
+    });
+    const calendarEvent = migrateAuditToCalendarEvent(audit);
+
+    expect(calendarEvent.status).toBe("calendarEvent.status.canceled");
+  });
+
+  it("should use the audit summary as-is", () => {
+    const auditWithSummary = createTestAudit({ summary: "Monthly audit" });
+    const calendarEvent1 = migrateAuditToCalendarEvent(auditWithSummary);
+    expect(calendarEvent1.summary).toBe("Monthly audit");
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const auditWithoutSummary = createTestAudit({ summary: undefined as any });
+    const calendarEvent2 = migrateAuditToCalendarEvent(auditWithoutSummary);
+    expect(calendarEvent2.summary).toBe("");
+  });
+});
+
+describe("migrateToCalendarEvents", () => {
+  it("should migrate interactions to calendar events", () => {
+    const doc = createEmptyDoc();
+    const interaction1 = createTestInteraction();
+    const interaction2 = createTestInteraction({
+      type: "interaction.type.call",
+    });
+
+    doc.interactions[interaction1.id] = interaction1;
+    doc.interactions[interaction2.id] = interaction2;
+
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(2);
+    expect(report.migratedAudits).toBe(0);
+    expect(report.errors).toHaveLength(0);
+    expect(report.events).toHaveLength(4); // scheduled + completed for each interaction
+    expect(migratedDoc.calendarEvents[interaction1.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[interaction2.id]).toBeDefined();
+  });
+
+  it("should migrate audits to calendar events", () => {
+    const doc = createEmptyDoc();
+    const audit1 = createTestAudit();
+    const audit2 = createTestAudit();
+
+    doc.audits[audit1.id] = audit1;
+    doc.audits[audit2.id] = audit2;
+
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(0);
+    expect(report.migratedAudits).toBe(2);
+    expect(report.errors).toHaveLength(0);
+    expect(report.events).toHaveLength(4); // scheduled + completed for each audit
+    expect(migratedDoc.calendarEvents[audit1.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[audit2.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[audit1.id].type).toBe(
+      "calendarEvent.type.audit",
+    );
+  });
+
+  it("should migrate both interactions and audits", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+    const audit = createTestAudit();
+
+    doc.interactions[interaction.id] = interaction;
+    doc.audits[audit.id] = audit;
+
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(1);
+    expect(report.migratedAudits).toBe(1);
+    expect(report.errors).toHaveLength(0);
+    expect(Object.keys(migratedDoc.calendarEvents)).toHaveLength(2);
+  });
+
+  it("should migrate entity links from interaction to calendarEvent", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+    const accountId = nextId("account");
+
+    doc.interactions[interaction.id] = interaction;
+
+    const linkId = nextId("link");
+    doc.relations.entityLinks[linkId] = {
+      linkType: "interaction",
+      interactionId: interaction.id,
+      entityType: "account",
+      entityId: accountId,
+    };
+
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
+
+    expect(report.success).toBe(true);
+    expect(report.migratedLinks).toBe(1);
+
+    const link = migratedDoc.relations.entityLinks[linkId];
+    expect(link.linkType).toBe("calendarEvent");
+    expect(link.calendarEventId).toBe(interaction.id);
+    expect(link.interactionId).toBe(interaction.id); // Original preserved
+  });
+
+  it("should skip already migrated entities (idempotency)", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+
+    doc.interactions[interaction.id] = interaction;
+    doc.calendarEvents[interaction.id] =
+      migrateInteractionToCalendarEvent(interaction);
+
+    const { report } = migrateToCalendarEvents(doc, "test-device");
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(0); // Already migrated
+    expect(report.errors).toHaveLength(0);
+  });
+
+  it("should handle empty document", () => {
+    const doc = createEmptyDoc();
+    const { report } = migrateToCalendarEvents(doc, "test-device");
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(0);
+    expect(report.migratedAudits).toBe(0);
+    expect(report.migratedLinks).toBe(0);
+    expect(report.errors).toHaveLength(0);
+  });
+
+  it("should continue migrating even if one entity fails", () => {
+    const doc = createEmptyDoc();
+    const goodInteraction = createTestInteraction();
+    const badInteraction = createTestInteraction({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      id: null as any, // Will cause error
+    });
+
+    doc.interactions[goodInteraction.id] = goodInteraction;
+    doc.interactions["bad-id"] = badInteraction;
+
+    const { report } = migrateToCalendarEvents(doc, "test-device");
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBeGreaterThan(0);
+    expect(report.errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe("validateMigration", () => {
+  it("should pass validation when all entities are migrated", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+    const audit = createTestAudit();
+
+    doc.interactions[interaction.id] = interaction;
+    doc.audits[audit.id] = audit;
+    doc.calendarEvents[interaction.id] =
+      migrateInteractionToCalendarEvent(interaction);
+    doc.calendarEvents[audit.id] = migrateAuditToCalendarEvent(audit);
+
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(true);
+    expect(result.issues).toHaveLength(0);
+  });
+
+  it("should fail validation when interactions are not migrated", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+
+    doc.interactions[interaction.id] = interaction;
+    // Not migrated
+
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(result.issues[0]).toContain("unmigrated interactions");
+  });
+
+  it("should fail validation when audits are not migrated", () => {
+    const doc = createEmptyDoc();
+    const audit = createTestAudit();
+
+    doc.audits[audit.id] = audit;
+    // Not migrated
+
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(result.issues[0]).toContain("unmigrated audits");
+  });
+
+  it("should fail validation when entity links are not migrated", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+
+    doc.interactions[interaction.id] = interaction;
+    doc.calendarEvents[interaction.id] =
+      migrateInteractionToCalendarEvent(interaction);
+
+    const linkId = nextId("link");
+    doc.relations.entityLinks[linkId] = {
+      linkType: "interaction",
+      interactionId: interaction.id,
+      entityType: "account",
+      entityId: nextId("entity"),
+      // calendarEventId not set - should fail validation
+    };
+
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(result.issues[0]).toContain("unmigrated interaction links");
+  });
+
+  it("should detect orphaned calendar event links", () => {
+    const doc = createEmptyDoc();
+
+    const linkId = nextId("link");
+    doc.relations.entityLinks[linkId] = {
+      linkType: "calendarEvent",
+      calendarEventId: "non-existent-id",
+      entityType: "account",
+      entityId: nextId("entity"),
+    };
+
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.length).toBeGreaterThan(0);
+    expect(result.issues[0]).toContain("orphaned");
+  });
+
+  it("should pass validation for empty document", () => {
+    const doc = createEmptyDoc();
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(true);
+    expect(result.issues).toHaveLength(0);
+  });
+
+  it("should pass validation when legacy interactions exist but calendar events also exist", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+
+    // Both old and new exist (backward compatibility phase)
+    doc.interactions[interaction.id] = interaction;
+    doc.calendarEvents[interaction.id] =
+      migrateInteractionToCalendarEvent(interaction);
+
+    const result = validateMigration(doc);
+
+    expect(result.valid).toBe(true);
+    expect(result.issues).toHaveLength(0);
+  });
+});
+
+describe("Migration Idempotency", () => {
+  it("should be safe to run migration multiple times", () => {
+    const doc = createEmptyDoc();
+    const interaction = createTestInteraction();
+    const audit = createTestAudit();
+
+    doc.interactions[interaction.id] = interaction;
+    doc.audits[audit.id] = audit;
+
+    // Run migration first time
+    const { doc: migratedDoc, report: report1 } = migrateToCalendarEvents(
+      doc,
+      "test-device",
+    );
+    expect(report1.migratedInteractions).toBe(1);
+    expect(report1.migratedAudits).toBe(1);
+
+    // Run migration second time
+    const { report: report2 } = migrateToCalendarEvents(
+      migratedDoc,
+      "test-device",
+    );
+    expect(report2.migratedInteractions).toBe(0); // Already migrated
+    expect(report2.migratedAudits).toBe(0); // Already migrated
+
+    // Should still have exactly 2 calendar events
+    expect(Object.keys(migratedDoc.calendarEvents)).toHaveLength(2);
+  });
+});

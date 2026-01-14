@@ -17,6 +17,7 @@ type EntityLinkPayload = {
   entityId: EntityId;
   noteId?: EntityId;
   interactionId?: EntityId;
+  calendarEventId?: EntityId;
 };
 
 const ensureEntityExists = (
@@ -55,6 +56,11 @@ const ensureEntityExists = (
         throw new Error(`Interaction not found: ${entityId}`);
       }
       return;
+    case "calendarEvent":
+      if (!doc.calendarEvents[entityId]) {
+        throw new Error(`Calendar event not found: ${entityId}`);
+      }
+      return;
     default: {
       const exhaustive: never = entityType;
       throw new Error(`Unsupported entity link type: ${exhaustive}`);
@@ -67,15 +73,26 @@ const ensureSourceExists = (
   linkType: EntityLinkSourceType,
   sourceId: EntityId,
 ): void => {
-  if (linkType === "note") {
-    if (!doc.notes[sourceId]) {
-      throw new Error(`Note not found: ${sourceId}`);
+  switch (linkType) {
+    case "note":
+      if (!doc.notes[sourceId]) {
+        throw new Error(`Note not found: ${sourceId}`);
+      }
+      return;
+    case "interaction":
+      if (!doc.interactions[sourceId]) {
+        throw new Error(`Interaction not found: ${sourceId}`);
+      }
+      return;
+    case "calendarEvent":
+      if (!doc.calendarEvents[sourceId]) {
+        throw new Error(`Calendar event not found: ${sourceId}`);
+      }
+      return;
+    default: {
+      const exhaustive: never = linkType;
+      throw new Error(`Unsupported entity link source: ${exhaustive}`);
     }
-    return;
-  }
-
-  if (!doc.interactions[sourceId]) {
-    throw new Error(`Interaction not found: ${sourceId}`);
   }
 };
 
@@ -97,6 +114,9 @@ const findExistingLinkId = (
     if (linkType === "interaction" && link.interactionId !== sourceId) {
       return false;
     }
+    if (linkType === "calendarEvent" && link.calendarEventId !== sourceId) {
+      return false;
+    }
     return link.entityType === entityType && link.entityId === entityId;
   });
 };
@@ -107,6 +127,9 @@ const resolveLinkType = (event: Event): EntityLinkSourceType => {
   }
   if (event.type.startsWith("interaction.")) {
     return "interaction";
+  }
+  if (event.type.startsWith("calendarEvent.")) {
+    return "calendarEvent";
   }
   throw new Error(`Unsupported entity link event: ${event.type}`);
 };
@@ -120,6 +143,9 @@ const resolveSourceId = (
   }
   if (linkType === "interaction" && payload.interactionId) {
     return payload.interactionId;
+  }
+  if (linkType === "calendarEvent" && payload.calendarEventId) {
+    return payload.calendarEventId;
   }
   throw new Error(`${linkType}Id is required for linking.`);
 };
@@ -172,7 +198,9 @@ const applyEntityLinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     entityId: payload.entityId,
     ...(linkType === "note"
       ? { noteId: sourceId }
-      : { interactionId: sourceId }),
+      : linkType === "interaction"
+        ? { interactionId: sourceId }
+        : { calendarEventId: sourceId }),
   };
 
   logger.info("Entity linked", {

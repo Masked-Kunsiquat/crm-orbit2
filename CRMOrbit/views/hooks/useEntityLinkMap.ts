@@ -10,7 +10,7 @@ import { useDoc } from "../store/store";
  * link IDs for unlinking operations. Instead of 14 lines of duplicate memoization
  * logic, components can use this single hook.
  *
- * @param linkType - The type of linked entity ("note" or "interaction")
+ * @param linkType - The type of linked entity ("note", "interaction", or "calendarEvent")
  * @param entityType - The parent entity type (e.g., "account", "contact")
  * @param entityId - The parent entity ID
  * @returns Map from linked entity ID to link ID
@@ -24,7 +24,7 @@ import { useDoc } from "../store/store";
  * ```
  */
 export const useEntityLinkMap = (
-  linkType: "note" | "interaction",
+  linkType: "note" | "interaction" | "calendarEvent",
   entityType: string,
   entityId: EntityId,
 ): Map<EntityId, EntityId> => {
