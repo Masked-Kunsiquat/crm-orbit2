@@ -209,18 +209,15 @@ export const RecurrenceRulePicker = ({
     }
   }, [untilDate]);
 
-  const weekDayOptions = useMemo(
-    () => [
-      { value: 0, label: t("calendarEvents.recurrence.weekday.sun") },
-      { value: 1, label: t("calendarEvents.recurrence.weekday.mon") },
-      { value: 2, label: t("calendarEvents.recurrence.weekday.tue") },
-      { value: 3, label: t("calendarEvents.recurrence.weekday.wed") },
-      { value: 4, label: t("calendarEvents.recurrence.weekday.thu") },
-      { value: 5, label: t("calendarEvents.recurrence.weekday.fri") },
-      { value: 6, label: t("calendarEvents.recurrence.weekday.sat") },
-    ],
-    [t],
-  );
+  const weekDayOptions = [
+    { value: 0, label: t("calendarEvents.recurrence.weekday.sun") },
+    { value: 1, label: t("calendarEvents.recurrence.weekday.mon") },
+    { value: 2, label: t("calendarEvents.recurrence.weekday.tue") },
+    { value: 3, label: t("calendarEvents.recurrence.weekday.wed") },
+    { value: 4, label: t("calendarEvents.recurrence.weekday.thu") },
+    { value: 5, label: t("calendarEvents.recurrence.weekday.fri") },
+    { value: 6, label: t("calendarEvents.recurrence.weekday.sat") },
+  ];
 
   return (
     <View style={styles.container}>
