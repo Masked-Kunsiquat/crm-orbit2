@@ -282,7 +282,7 @@ export const loadPersistedState = async (
       deviceId: record.deviceId,
     }),
   );
-  const events = sortEvents(parsedEvents);
+  let events = sortEvents(parsedEvents);
 
   // Silence logs during event replay to avoid log spam
   silenceLogs();
@@ -324,7 +324,7 @@ export const loadPersistedState = async (
         `Migration persisted ${report.events.length} events to database`,
       );
       // Add migrated events to the events array so they're available to the app
-      events.push(...report.events);
+      events = sortEvents([...events, ...report.events]);
     }
   } catch (error) {
     logger.error("Calendar event migration failed:", error);

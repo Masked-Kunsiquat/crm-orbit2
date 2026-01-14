@@ -56,6 +56,10 @@ const CALENDAR_EVENT_TYPES: Array<{
   { label: "calendarEvent.type.email", value: "calendarEvent.type.email" },
   { label: "calendarEvent.type.audit", value: "calendarEvent.type.audit" },
   { label: "calendarEvent.type.task", value: "calendarEvent.type.task" },
+  {
+    label: "calendarEvent.type.reminder",
+    value: "calendarEvent.type.reminder",
+  },
   { label: "calendarEvent.type.other", value: "calendarEvent.type.other" },
 ];
 
