@@ -104,8 +104,13 @@ const applyCalendarEventScheduled = (
     const newLinks = { ...doc.relations.entityLinks };
 
     payload.linkedEntities.forEach((link) => {
-      const linkId = `link_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      newLinks[linkId] = {
+      if (!link.linkId) {
+        throw new Error("Linked entities require a linkId.");
+      }
+      if (newLinks[link.linkId]) {
+        throw new Error(`Entity link already exists: ${link.linkId}`);
+      }
+      newLinks[link.linkId] = {
         linkType: "calendarEvent",
         calendarEventId: id,
         entityType: link.entityType,
@@ -148,6 +153,7 @@ const applyCalendarEventUpdated = (
 
   const durationMinutes = resolveDurationMinutes(payload.durationMinutes);
 
+  const nextType = payload.type ?? existing.type;
   const updated: CalendarEvent = {
     ...existing,
     ...(payload.type !== undefined && { type: payload.type }),
@@ -159,6 +165,28 @@ const applyCalendarEventUpdated = (
     ...(payload.location !== undefined && { location: payload.location }),
     updatedAt: event.timestamp,
   };
+
+  if (nextType === "audit") {
+    const accountId = payload.accountId ?? existing.auditData?.accountId;
+    if (!accountId) {
+      throw new Error("Audit events require accountId for updates.");
+    }
+    if (
+      payload.accountId !== undefined ||
+      payload.score !== undefined ||
+      payload.floorsVisited !== undefined ||
+      !existing.auditData
+    ) {
+      updated.auditData = {
+        ...existing.auditData,
+        accountId,
+        ...(payload.score !== undefined && { score: payload.score }),
+        ...(payload.floorsVisited !== undefined && {
+          floorsVisited: payload.floorsVisited,
+        }),
+      };
+    }
+  }
 
   logger.info("Calendar event updated", { id });
 
@@ -210,9 +238,13 @@ const applyCalendarEventCompleted = (
 
   // Update audit-specific data if this is an audit
   if (existing.type === "audit") {
+    const accountId = payload.accountId ?? existing.auditData?.accountId;
+    if (!accountId) {
+      throw new Error("Audit events require accountId when completing.");
+    }
     updated.auditData = {
       ...existing.auditData,
-      accountId: existing.auditData?.accountId ?? "",
+      accountId,
       ...(payload.score !== undefined && { score: payload.score }),
       ...(payload.floorsVisited !== undefined && {
         floorsVisited: payload.floorsVisited,
@@ -258,6 +290,21 @@ const applyCalendarEventCanceled = (
     updatedAt: event.timestamp,
   };
 
+  if (existing.type === "audit") {
+    const accountId = payload.accountId ?? existing.auditData?.accountId;
+    if (!accountId) {
+      throw new Error("Audit events require accountId when canceling.");
+    }
+    updated.auditData = {
+      ...existing.auditData,
+      accountId,
+      ...(payload.score !== undefined && { score: payload.score }),
+      ...(payload.floorsVisited !== undefined && {
+        floorsVisited: payload.floorsVisited,
+      }),
+    };
+  }
+
   logger.info("Calendar event canceled", { id });
 
   return {
@@ -296,6 +343,8 @@ const applyCalendarEventRescheduled = (
 
   const updated: CalendarEvent = {
     ...existing,
+    status: "calendarEvent.status.scheduled",
+    occurredAt: undefined,
     scheduledFor: payload.scheduledFor,
     updatedAt: event.timestamp,
   };
@@ -381,8 +430,11 @@ const applyCalendarEventLinked = (
     throw new Error(`Calendar event not found: ${calendarEventId}`);
   }
 
-  // Generate link ID
-  const linkId = `link_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const linkId = payload.linkId;
+
+  if (doc.relations.entityLinks[linkId]) {
+    throw new Error(`Entity link already exists: ${linkId}`);
+  }
 
   const newLink = {
     linkType: "calendarEvent" as const,

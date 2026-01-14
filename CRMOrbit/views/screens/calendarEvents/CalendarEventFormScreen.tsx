@@ -42,6 +42,7 @@ import { buildTimestampFromDate } from "../../utils/date";
 import {
   parseScore,
   parseFloorsVisited,
+  areFloorsEqual,
 } from "../../utils/auditFormValidation";
 import type { EventsStackScreenProps } from "../../navigation/types";
 import type { EntityId } from "../../../domains/shared/types";
@@ -404,9 +405,14 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
       return;
     }
 
+    const trimmedAccountId = accountId.trim();
+    const scoreValue = type === "audit" ? parseScore(score) : undefined;
+    const floorsVisited =
+      type === "audit" ? parseFloorsVisited(floorsVisitedInput) : undefined;
+
     // Audit-specific validation
     if (type === "audit") {
-      if (!accountId.trim()) {
+      if (!trimmedAccountId) {
         showAlert(
           t("common.error"),
           t("calendarEvents.validation.accountRequired"),
@@ -415,7 +421,6 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         return;
       }
 
-      const scoreValue = parseScore(score);
       if (score.trim() && scoreValue === undefined) {
         showAlert(
           t("common.error"),
@@ -425,7 +430,6 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         return;
       }
 
-      const floorsVisited = parseFloorsVisited(floorsVisitedInput);
       if (floorsVisitedInput.trim() && !floorsVisited) {
         showAlert(
           t("common.error"),
@@ -467,6 +471,39 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         hasChanges = true;
       }
 
+      if (type === "audit") {
+        const auditUpdates: NonNullable<
+          Parameters<typeof updateCalendarEvent>[1]["auditData"]
+        > = {};
+        let hasAuditChanges = false;
+
+        if (calendarEvent?.auditData?.accountId !== trimmedAccountId) {
+          auditUpdates.accountId = trimmedAccountId as EntityId;
+          hasAuditChanges = true;
+        }
+
+        if (status === "calendarEvent.status.completed") {
+          if (calendarEvent?.auditData?.score !== scoreValue) {
+            auditUpdates.score = scoreValue;
+            hasAuditChanges = true;
+          }
+          if (
+            !areFloorsEqual(
+              calendarEvent?.auditData?.floorsVisited,
+              floorsVisited,
+            )
+          ) {
+            auditUpdates.floorsVisited = floorsVisited;
+            hasAuditChanges = true;
+          }
+        }
+
+        if (hasAuditChanges) {
+          updateFields.auditData = auditUpdates;
+          hasChanges = true;
+        }
+      }
+
       if (hasChanges) {
         const result = updateCalendarEvent(calendarEventId, updateFields);
         if (!result.success) {
@@ -483,19 +520,17 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
       if (calendarEvent?.status !== status) {
         if (status === "calendarEvent.status.completed") {
           const occurredAtValue = occurredAt || scheduledFor;
-          const scoreValue = type === "audit" ? parseScore(score) : undefined;
-          const floorsVisited =
-            type === "audit"
-              ? parseFloorsVisited(floorsVisitedInput)
-              : undefined;
 
           const result = completeCalendarEvent(
             calendarEventId,
             occurredAtValue,
             {
               description: trimmedDescription,
+              ...(type === "audit" && {
+                accountId: trimmedAccountId as EntityId,
+              }),
               ...(scoreValue !== undefined && { score: scoreValue }),
-              ...(floorsVisited && { floorsVisited }),
+              ...(floorsVisited !== undefined && { floorsVisited }),
             },
           );
           if (!result.success) {
@@ -507,7 +542,13 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
             return;
           }
         } else if (status === "calendarEvent.status.canceled") {
-          const result = cancelCalendarEvent(calendarEventId);
+          const result = cancelCalendarEvent(calendarEventId, {
+            ...(type === "audit" && {
+              accountId: trimmedAccountId as EntityId,
+            }),
+            ...(scoreValue !== undefined && { score: scoreValue }),
+            ...(floorsVisited !== undefined && { floorsVisited }),
+          });
           if (!result.success) {
             showAlert(
               t("common.error"),
@@ -522,7 +563,8 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
       // Handle rescheduling
       if (
         status === "calendarEvent.status.scheduled" &&
-        calendarEvent?.scheduledFor !== scheduledFor
+        (calendarEvent?.scheduledFor !== scheduledFor ||
+          calendarEvent?.status !== "calendarEvent.status.scheduled")
       ) {
         const result = rescheduleCalendarEvent(calendarEventId, scheduledFor);
         if (!result.success) {
@@ -579,7 +621,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         durationMinutes: durationValue,
         description: trimmedDescription,
         location: trimmedLocation,
-        ...(type === "audit" && { accountId: accountId as EntityId }),
+        ...(type === "audit" && { accountId: trimmedAccountId as EntityId }),
         linkedEntities,
         ...(normalizedRecurrenceRule && {
           recurrenceRule: normalizedRecurrenceRule,
@@ -591,19 +633,17 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
         // If status is completed, complete the event
         if (status === "calendarEvent.status.completed") {
           const occurredAtValue = occurredAt || scheduledFor;
-          const scoreValue = type === "audit" ? parseScore(score) : undefined;
-          const floorsVisited =
-            type === "audit"
-              ? parseFloorsVisited(floorsVisitedInput)
-              : undefined;
 
           const completeResult = completeCalendarEvent(
             newCalendarEventId,
             occurredAtValue,
             {
               description: trimmedDescription,
+              ...(type === "audit" && {
+                accountId: trimmedAccountId as EntityId,
+              }),
               ...(scoreValue !== undefined && { score: scoreValue }),
-              ...(floorsVisited && { floorsVisited }),
+              ...(floorsVisited !== undefined && { floorsVisited }),
             },
           );
           if (!completeResult.success) {

@@ -31,6 +31,7 @@ export const useCalendarEventActions = (deviceId: string) => {
         location?: string;
         accountId?: EntityId; // Required for type='audit'
         linkedEntities?: Array<{
+          linkId?: EntityId;
           entityType: EntityLinkType;
           entityId: EntityId;
         }>;
@@ -39,6 +40,13 @@ export const useCalendarEventActions = (deviceId: string) => {
       },
     ): DispatchResult => {
       const id = options?.calendarEventId ?? nextId("calendarEvent");
+      const resolvedLinkedEntities = options?.linkedEntities
+        ? options.linkedEntities.map((link) => ({
+            linkId: link.linkId ?? nextId("link"),
+            entityType: link.entityType,
+            entityId: link.entityId,
+          }))
+        : undefined;
       const event = buildEvent({
         type: "calendarEvent.scheduled",
         entityId: id,
@@ -53,8 +61,8 @@ export const useCalendarEventActions = (deviceId: string) => {
           ...(options?.description && { description: options.description }),
           ...(options?.location && { location: options.location }),
           ...(options?.accountId && { accountId: options.accountId }),
-          ...(options?.linkedEntities && {
-            linkedEntities: options.linkedEntities,
+          ...(resolvedLinkedEntities && {
+            linkedEntities: resolvedLinkedEntities,
           }),
           ...(options?.recurrenceRule && {
             recurrenceRule: options.recurrenceRule,
@@ -81,14 +89,25 @@ export const useCalendarEventActions = (deviceId: string) => {
         description?: string;
         durationMinutes?: number;
         location?: string;
+        auditData?: {
+          accountId?: EntityId;
+          score?: number;
+          floorsVisited?: number[];
+        };
       },
     ): DispatchResult => {
+      const { auditData, ...fields } = updates;
       const event = buildEvent({
         type: "calendarEvent.updated",
         entityId: calendarEventId,
         payload: {
           id: calendarEventId,
-          ...updates,
+          ...fields,
+          ...(auditData?.accountId && { accountId: auditData.accountId }),
+          ...(auditData?.score !== undefined && { score: auditData.score }),
+          ...(auditData?.floorsVisited !== undefined && {
+            floorsVisited: auditData.floorsVisited,
+          }),
         },
         deviceId,
       });
@@ -107,6 +126,7 @@ export const useCalendarEventActions = (deviceId: string) => {
       calendarEventId: EntityId,
       occurredAt: string,
       options?: {
+        accountId?: EntityId;
         score?: number; // For audits
         floorsVisited?: number[]; // For audits
         description?: string; // Completion notes
@@ -118,8 +138,9 @@ export const useCalendarEventActions = (deviceId: string) => {
         payload: {
           id: calendarEventId,
           occurredAt,
+          ...(options?.accountId && { accountId: options.accountId }),
           ...(options?.score !== undefined && { score: options.score }),
-          ...(options?.floorsVisited && {
+          ...(options?.floorsVisited !== undefined && {
             floorsVisited: options.floorsVisited,
           }),
           ...(options?.description && { description: options.description }),
@@ -136,12 +157,24 @@ export const useCalendarEventActions = (deviceId: string) => {
    * Cancel calendar event
    */
   const cancelCalendarEvent = useCallback(
-    (calendarEventId: EntityId): DispatchResult => {
+    (
+      calendarEventId: EntityId,
+      options?: {
+        accountId?: EntityId;
+        score?: number;
+        floorsVisited?: number[];
+      },
+    ): DispatchResult => {
       const event = buildEvent({
         type: "calendarEvent.canceled",
         entityId: calendarEventId,
         payload: {
           id: calendarEventId,
+          ...(options?.accountId && { accountId: options.accountId }),
+          ...(options?.score !== undefined && { score: options.score }),
+          ...(options?.floorsVisited !== undefined && {
+            floorsVisited: options.floorsVisited,
+          }),
         },
         deviceId,
       });
@@ -207,10 +240,12 @@ export const useCalendarEventActions = (deviceId: string) => {
       entityType: EntityLinkType,
       entityId: EntityId,
     ): DispatchResult => {
+      const linkId = nextId("link");
       const event = buildEvent({
         type: "calendarEvent.linked",
         entityId: calendarEventId,
         payload: {
+          linkId,
           calendarEventId,
           entityType,
           entityId,
@@ -235,7 +270,7 @@ export const useCalendarEventActions = (deviceId: string) => {
     ): DispatchResult => {
       const event = buildEvent({
         type: "calendarEvent.unlinked",
-        entityId: calendarEventId,
+        ...(calendarEventId && { entityId: calendarEventId }),
         payload: {
           linkId,
           ...(calendarEventId && { calendarEventId }),

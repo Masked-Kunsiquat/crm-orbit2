@@ -27,6 +27,7 @@ export type CalendarEventScheduledPayload = {
   accountId?: EntityId; // Required if type='audit'
   // Optional initial entity links
   linkedEntities?: Array<{
+    linkId: EntityId;
     entityType: EntityLinkType;
     entityId: EntityId;
   }>;
@@ -40,6 +41,10 @@ export type CalendarEventUpdatedPayload = {
   description?: string;
   durationMinutes?: number;
   location?: string;
+  // Audit-specific fields
+  accountId?: EntityId;
+  score?: number;
+  floorsVisited?: number[];
   // Note: scheduledFor changes use calendarEvent.rescheduled instead
   // Note: status changes use calendarEvent.completed or calendarEvent.canceled
 };
@@ -49,6 +54,7 @@ export type CalendarEventCompletedPayload = {
   id: EntityId;
   occurredAt: Timestamp; // When it actually occurred
   // Audit-specific completion data
+  accountId?: EntityId;
   score?: number; // For audits: 0-100
   floorsVisited?: number[]; // For audits: floors inspected
   description?: string; // Optional completion notes
@@ -57,6 +63,10 @@ export type CalendarEventCompletedPayload = {
 // calendarEvent.canceled
 export type CalendarEventCanceledPayload = {
   id: EntityId;
+  // Audit-specific data to persist on cancel
+  accountId?: EntityId;
+  score?: number;
+  floorsVisited?: number[];
 };
 
 // calendarEvent.rescheduled
@@ -74,6 +84,7 @@ export type CalendarEventDeletedPayload = {
 
 // calendarEvent.linked
 export type CalendarEventLinkedPayload = {
+  linkId: EntityId;
   calendarEventId: EntityId;
   entityType: EntityLinkType;
   entityId: EntityId;
