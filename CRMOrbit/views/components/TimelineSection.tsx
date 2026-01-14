@@ -415,6 +415,52 @@ export const TimelineSection = ({
     if (item.kind !== "event") return null;
 
     const payload = item.event.payload as Record<string, unknown>;
+    const resolveAuditAccountName = (
+      accountId?: string | null,
+    ): string | null => {
+      if (!accountId) return null;
+      const account = doc.accounts[accountId];
+      return account?.name || t("common.unknown");
+    };
+    const isLegacyAuditSummary = (
+      summary: string,
+      accountId?: string | null,
+    ): boolean => {
+      if (accountId && summary.includes(accountId)) {
+        return true;
+      }
+      return summary.toLowerCase().startsWith("audit for account");
+    };
+    const resolveCalendarEventSummary = (
+      calendarEventId: string | null,
+      summaryOverride?: string | null,
+    ): string | null => {
+      const trimmedOverride =
+        typeof summaryOverride === "string" && summaryOverride.trim()
+          ? summaryOverride.trim()
+          : null;
+      const calendarEvent = calendarEventId
+        ? doc.calendarEvents[calendarEventId]
+        : undefined;
+      const storedSummary =
+        calendarEvent?.summary && calendarEvent.summary.trim()
+          ? calendarEvent.summary.trim()
+          : null;
+      const summary = trimmedOverride ?? storedSummary;
+
+      if (calendarEvent?.type === "calendarEvent.type.audit") {
+        const accountId = calendarEvent.auditData?.accountId;
+        const accountName = resolveAuditAccountName(accountId);
+        if (!summary) {
+          return accountName;
+        }
+        if (isLegacyAuditSummary(summary, accountId)) {
+          return accountName ?? summary;
+        }
+      }
+
+      return summary;
+    };
     const resolveLinkedEntity = (
       entityType: string | null,
       entityId: string | null,
@@ -436,8 +482,8 @@ export const TimelineSection = ({
         const stamp = audit?.occurredAt ?? audit?.scheduledFor ?? audit?.id;
         entityName = stamp ? `Audit ${stamp}` : t("common.unknown");
       } else if (entityType === "calendarEvent") {
-        const calendarEvent = doc.calendarEvents[entityId];
-        entityName = calendarEvent?.summary || t("common.unknown");
+        entityName =
+          resolveCalendarEventSummary(entityId) || t("common.unknown");
       } else if (entityType === "contact") {
         const contact = doc.contacts[entityId];
         entityName = contact ? getContactName(contact) : t("common.unknown");
@@ -450,26 +496,6 @@ export const TimelineSection = ({
       const displayType =
         entityType.charAt(0).toUpperCase() + entityType.slice(1);
       return `${displayType}: ${entityName}`;
-    };
-
-    const resolveCalendarEventSummary = (
-      calendarEventId: string | null,
-      summaryOverride?: string | null,
-    ): string | null => {
-      if (summaryOverride && summaryOverride.trim()) {
-        return summaryOverride.trim();
-      }
-
-      if (!calendarEventId) {
-        return null;
-      }
-
-      const calendarEvent = doc.calendarEvents[calendarEventId];
-      if (calendarEvent?.summary) {
-        return calendarEvent.summary;
-      }
-
-      return null;
     };
 
     // For contact method added events

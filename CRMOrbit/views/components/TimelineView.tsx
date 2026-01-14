@@ -122,9 +122,17 @@ export const TimelineView = ({
           : event.summary;
       const linkedNames = entityNamesForEvent?.(sourceEventId)?.trim();
       const summaryParts: string[] = [];
+      const auditAccountId = event.auditData?.accountId;
+      const legacyAuditSummary =
+        event.type === "calendarEvent.type.audit" &&
+        !!event.summary &&
+        ((auditAccountId && event.summary.includes(auditAccountId)) ||
+          event.summary.toLowerCase().startsWith("audit for account"));
 
       if (event.type === "calendarEvent.type.audit") {
-        if (event.summary?.trim()) summaryParts.push(event.summary.trim());
+        if (event.summary?.trim() && !legacyAuditSummary) {
+          summaryParts.push(event.summary.trim());
+        }
       } else if (linkedNames) {
         summaryParts.push(linkedNames);
       }
@@ -165,14 +173,20 @@ export const TimelineView = ({
     calendarPalette,
   ]);
 
+  const visibleTimelineEvents = useMemo(
+    () => ({
+      [selectedDate]: timelineEventsByDate[selectedDate] ?? [],
+    }),
+    [selectedDate, timelineEventsByDate],
+  );
+
   const handleEventPress = useCallback(
     (event: TimelineEventProps) => {
+      if (!event) return;
       const timelineEvent = event as TimelineEvent;
-      if (timelineEvent.calendarEventId) {
-        onEventPress(
-          timelineEvent.calendarEventId,
-          timelineEvent.occurrenceTimestamp,
-        );
+      const calendarEventId = timelineEvent.calendarEventId ?? timelineEvent.id;
+      if (calendarEventId) {
+        onEventPress(calendarEventId, timelineEvent.occurrenceTimestamp);
       }
     },
     [onEventPress],
@@ -211,7 +225,7 @@ export const TimelineView = ({
         closeOnDayPress={true}
       />
       <TimelineList
-        events={timelineEventsByDate}
+        events={visibleTimelineEvents}
         renderItem={renderTimelineItem}
         timelineProps={{
           format24h: true,

@@ -13,6 +13,7 @@ import type { CalendarEventAgendaItem } from "../utils/calendarDataTransformers"
 import {
   buildCalendarEventAgendaItem,
   buildMarkedDatesFromCalendarEvents,
+  toISODate,
 } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
 import {
@@ -102,6 +103,12 @@ export const CalendarView = ({
 
     return items;
   }, [expandedEvents, accountNames, entityNamesForEvent, unknownEntityLabel]);
+
+  const filteredAgendaItems = useMemo(() => {
+    return agendaItems.filter(
+      (item) => toISODate(item.startTimestamp) === selectedDate,
+    );
+  }, [agendaItems, selectedDate]);
 
   // Build marked dates
   const markedDates = useMemo(
@@ -289,7 +296,7 @@ export const CalendarView = ({
         style={[styles.agendaContainer, { backgroundColor: colors.canvas }]}
       >
         <FlashList
-          data={agendaItems}
+          data={filteredAgendaItems}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
