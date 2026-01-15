@@ -76,7 +76,8 @@ export const useExternalCalendarSelection = ({
       } else {
         setSelectedCalendarId(storedId);
       }
-    } catch {
+    } catch (err) {
+      console.error("Failed to load external calendars.", err);
       setHasError(true);
     } finally {
       setIsLoading(false);
@@ -91,14 +92,20 @@ export const useExternalCalendarSelection = ({
     await loadCalendars();
   }, [loadCalendars]);
 
-  const selectCalendar = useCallback(async (calendarId: string) => {
-    setSelectedCalendarId(calendarId);
-    try {
-      await setStoredExternalCalendarId(calendarId);
-    } catch {
-      setHasError(true);
-    }
-  }, []);
+  const selectCalendar = useCallback(
+    async (calendarId: string) => {
+      const previousId = selectedCalendarId;
+      setSelectedCalendarId(calendarId);
+      try {
+        await setStoredExternalCalendarId(calendarId);
+      } catch (err) {
+        console.error("Failed to store external calendar selection.", err);
+        setSelectedCalendarId(previousId);
+        setHasError(true);
+      }
+    },
+    [selectedCalendarId],
+  );
 
   return useMemo(
     () => ({

@@ -6,10 +6,6 @@ import type {
   CalendarEventExternalUnlinkedPayload,
   CalendarEventExternalUpdatedPayload,
 } from "../events/calendarEventPayloads";
-import { createLogger } from "../utils/logger";
-
-const logger = createLogger("CalendarEventExternalReducer");
-
 const assertCalendarEventExists = (
   doc: AutomergeDoc,
   calendarEventId: string,
@@ -38,11 +34,6 @@ const applyExternalLinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   assertProviderValid(payload.provider);
   assertCalendarEventExists(doc, payload.calendarEventId);
 
-  logger.info("External calendar linked", {
-    linkId: payload.linkId,
-    calendarEventId: payload.calendarEventId,
-  });
-
   return doc;
 };
 
@@ -55,11 +46,6 @@ const applyExternalImported = (
   assertProviderValid(payload.provider);
   assertCalendarEventExists(doc, payload.calendarEventId);
 
-  logger.info("External calendar imported", {
-    linkId: payload.linkId,
-    calendarEventId: payload.calendarEventId,
-  });
-
   return doc;
 };
 
@@ -70,10 +56,6 @@ const applyExternalUpdated = (
   const payload = event.payload as CalendarEventExternalUpdatedPayload;
   assertProviderValid(payload.provider);
   assertCalendarEventExists(doc, payload.calendarEventId);
-
-  logger.info("External calendar updated", {
-    calendarEventId: payload.calendarEventId,
-  });
 
   return doc;
 };
@@ -91,11 +73,6 @@ const applyExternalUnlinked = (
     assertCalendarEventExists(doc, payload.calendarEventId);
   }
 
-  logger.info("External calendar unlinked", {
-    linkId: payload.linkId,
-    calendarEventId: payload.calendarEventId,
-  });
-
   return doc;
 };
 
@@ -103,8 +80,6 @@ export const calendarEventExternalReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
-  logger.debug("Processing calendar external event", { type: event.type });
-
   switch (event.type) {
     case "calendarEvent.externalLinked":
       return applyExternalLinked(doc, event);
@@ -115,7 +90,6 @@ export const calendarEventExternalReducer = (
     case "calendarEvent.externalUnlinked":
       return applyExternalUnlinked(doc, event);
     default:
-      logger.error("Unhandled event type", { type: event.type });
       throw new Error(
         `calendarEventExternal.reducer does not handle event type: ${event.type}`,
       );
