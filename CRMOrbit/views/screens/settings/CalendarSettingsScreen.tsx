@@ -605,6 +605,11 @@ export const CalendarSettingsScreen = () => {
       : (externalCalendarImport.candidates.find(
           (candidate) => candidate.externalEventId === accountPickerCandidateId,
         ) ?? null);
+  const accountPickerCandidateExternalId =
+    accountPickerCandidate?.externalEventId ?? null;
+  const accountIdsToShow = accountPickerCandidate?.matchedAccountIds?.length
+    ? accountPickerCandidate.matchedAccountIds
+    : Array.from(accountsById.keys());
 
   const getSelectedAccountId = useCallback(
     (candidateId: string, fallbackId?: string, matchIds?: string[]) => {
@@ -1382,42 +1387,50 @@ export const CalendarSettingsScreen = () => {
               {t("calendar.import.accountPickerTitle")}
             </Text>
             <ScrollView style={styles.pickerList}>
-              {accountPickerCandidate?.matchedAccountIds.map((accountId) => {
-                const account = accountsById.get(accountId);
-                if (!account) {
-                  return null;
-                }
-                const isSelected =
-                  accountSelections[accountPickerCandidate.externalEventId] ===
-                  accountId;
-                return (
-                  <TouchableOpacity
-                    key={accountId}
-                    style={[
-                      styles.pickerItem,
-                      { borderBottomColor: colors.borderLight },
-                      isSelected && { backgroundColor: colors.surfaceElevated },
-                    ]}
-                    onPress={() => {
-                      setAccountSelections((prev) => ({
-                        ...prev,
-                        [accountPickerCandidate.externalEventId]: accountId,
-                      }));
-                      setAccountPickerCandidateId(null);
-                    }}
-                  >
-                    <Text
+              {accountIdsToShow.length === 0 ? (
+                <Text style={[styles.pickerEmpty, { color: colors.textMuted }]}>
+                  {t("calendarEvents.form.accountEmptyHint")}
+                </Text>
+              ) : (
+                accountIdsToShow.map((accountId) => {
+                  const account = accountsById.get(accountId);
+                  if (!account || !accountPickerCandidateExternalId) {
+                    return null;
+                  }
+                  const isSelected =
+                    accountSelections[accountPickerCandidateExternalId] ===
+                    accountId;
+                  return (
+                    <TouchableOpacity
+                      key={accountId}
                       style={[
-                        styles.pickerItemText,
-                        { color: colors.textPrimary },
-                        isSelected && { color: colors.accent },
+                        styles.pickerItem,
+                        { borderBottomColor: colors.borderLight },
+                        isSelected && {
+                          backgroundColor: colors.surfaceElevated,
+                        },
                       ]}
+                      onPress={() => {
+                        setAccountSelections((prev) => ({
+                          ...prev,
+                          [accountPickerCandidateExternalId]: accountId,
+                        }));
+                        setAccountPickerCandidateId(null);
+                      }}
                     >
-                      {account.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                      <Text
+                        style={[
+                          styles.pickerItemText,
+                          { color: colors.textPrimary },
+                          isSelected && { color: colors.accent },
+                        ]}
+                      >
+                        {account.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
             </ScrollView>
           </View>
         </View>
@@ -1690,6 +1703,11 @@ const styles = StyleSheet.create({
   },
   pickerList: {
     flexGrow: 0,
+  },
+  pickerEmpty: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 14,
   },
   pickerItem: {
     paddingVertical: 12,
