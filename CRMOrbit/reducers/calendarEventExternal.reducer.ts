@@ -6,6 +6,8 @@ import type {
   CalendarEventExternalUnlinkedPayload,
   CalendarEventExternalUpdatedPayload,
 } from "../events/calendarEventPayloads";
+import type { ExternalCalendarProvider } from "../domains/relations/calendarEventExternalLink";
+
 const assertCalendarEventExists = (
   doc: AutomergeDoc,
   calendarEventId: string,
@@ -15,7 +17,7 @@ const assertCalendarEventExists = (
   }
 };
 
-const assertProviderValid = (provider: string): void => {
+const assertProviderValid = (provider: ExternalCalendarProvider): void => {
   if (provider !== "expo-calendar") {
     throw new Error(`Unsupported external calendar provider: ${provider}`);
   }
@@ -28,42 +30,27 @@ const assertLinkId = (linkId: string | undefined): string => {
   return linkId;
 };
 
-const applyExternalLinked = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
+const validateExternalLinked = (doc: AutomergeDoc, event: Event): void => {
   const payload = event.payload as CalendarEventExternalLinkedPayload;
   assertLinkId(payload.linkId);
   assertProviderValid(payload.provider);
   assertCalendarEventExists(doc, payload.calendarEventId);
-
-  return doc;
 };
 
-const applyExternalImported = (
-  doc: AutomergeDoc,
-  event: Event,
-): AutomergeDoc => {
+const validateExternalImported = (doc: AutomergeDoc, event: Event): void => {
   const payload = event.payload as CalendarEventExternalImportedPayload;
   assertLinkId(payload.linkId);
   assertProviderValid(payload.provider);
   assertCalendarEventExists(doc, payload.calendarEventId);
-
-  return doc;
 };
 
-const applyExternalUpdated = (
-  doc: AutomergeDoc,
-  event: Event,
-): AutomergeDoc => {
+const validateExternalUpdated = (doc: AutomergeDoc, event: Event): void => {
   const payload = event.payload as CalendarEventExternalUpdatedPayload;
   assertProviderValid(payload.provider);
   assertCalendarEventExists(doc, payload.calendarEventId);
-
-  return doc;
 };
 
-const applyExternalUnlinked = (
-  doc: AutomergeDoc,
-  event: Event,
-): AutomergeDoc => {
+const validateExternalUnlinked = (doc: AutomergeDoc, event: Event): void => {
   const payload = event.payload as CalendarEventExternalUnlinkedPayload;
   assertLinkId(payload.linkId);
   if (payload.provider) {
@@ -72,23 +59,27 @@ const applyExternalUnlinked = (
   if (payload.calendarEventId) {
     assertCalendarEventExists(doc, payload.calendarEventId);
   }
-
-  return doc;
 };
 
 export const calendarEventExternalReducer = (
   doc: AutomergeDoc,
   event: Event,
 ): AutomergeDoc => {
+  // External link details live in the local persistence table, not Automerge.
+  // These events are validated here to keep reducers deterministic and pure.
   switch (event.type) {
     case "calendarEvent.externalLinked":
-      return applyExternalLinked(doc, event);
+      validateExternalLinked(doc, event);
+      return doc;
     case "calendarEvent.externalImported":
-      return applyExternalImported(doc, event);
+      validateExternalImported(doc, event);
+      return doc;
     case "calendarEvent.externalUpdated":
-      return applyExternalUpdated(doc, event);
+      validateExternalUpdated(doc, event);
+      return doc;
     case "calendarEvent.externalUnlinked":
-      return applyExternalUnlinked(doc, event);
+      validateExternalUnlinked(doc, event);
+      return doc;
     default:
       throw new Error(
         `calendarEventExternal.reducer does not handle event type: ${event.type}`,
