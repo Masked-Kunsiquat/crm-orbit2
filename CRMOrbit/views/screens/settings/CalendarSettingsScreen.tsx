@@ -1,30 +1,37 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
   Linking,
   Modal,
+  type NativeMethods,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  type TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import * as Calendar from "expo-calendar";
 import { Ionicons } from "@expo/vector-icons";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import Carousel from "react-native-reanimated-carousel";
 
 import { t } from "@i18n/index";
 import {
   ActionButton,
   FormField,
   FormScreenLayout,
-  ListRow,
   PrimaryActionButton,
   Section,
   SegmentedOptionGroup,
   TextField,
 } from "../../components";
+import { FormScrollProvider } from "../../components/FormScrollContext";
 import {
   useDeviceId,
   useTheme,
@@ -43,12 +50,379 @@ import {
   useDoc,
 } from "../../store/store";
 import { formatTimestamp } from "@domains/shared/dateFormatting";
+import type { Account } from "@domains/account";
+import type { CalendarEventStatus } from "@domains/calendarEvent";
 import {
   CALENDAR_PALETTES,
   resolveCalendarPalette,
 } from "../../utils/calendarColors";
+import {
+  parseFloorsVisited,
+  parseScore,
+} from "../../utils/auditFormValidation";
+import type { ExternalCalendarImportCandidate } from "../../utils/externalCalendarImport";
+import type {
+  ExternalCalendarImportDetails,
+  ExternalCalendarImportResult,
+} from "../../hooks/useExternalCalendarImport";
 
 type AuditAlarmOption = "0" | "30" | "60" | "120" | "custom";
+type ImportDraft = {
+  status: CalendarEventStatus;
+  scoreInput: string;
+  floorsVisitedInput: string;
+};
+
+type ImportCandidateSlideProps = {
+  candidate: ExternalCalendarImportCandidate;
+  colors: ReturnType<typeof useTheme>["colors"];
+  accountsById: Map<string, Account>;
+  getSelectedAccountId: (
+    candidateId: string,
+    fallbackId?: string,
+    matchIds?: string[],
+  ) => string | undefined;
+  resolveImportDraft: (candidateId: string) => ImportDraft;
+  updateImportDraft: (
+    candidateId: string,
+    updates: Partial<ImportDraft>,
+  ) => void;
+  importStatusOptions: Array<{ value: CalendarEventStatus; label: string }>;
+  onRequestAccountPicker: (candidateId: string) => void;
+  onImportCandidate: (
+    candidate: ExternalCalendarImportCandidate,
+    accountId: string,
+    details?: ExternalCalendarImportDetails,
+  ) => Promise<ExternalCalendarImportResult>;
+  onClearDraft: (candidateId: string) => void;
+  isImporting: boolean;
+};
+
+const ImportCandidateSlide = ({
+  candidate,
+  colors,
+  accountsById,
+  getSelectedAccountId,
+  resolveImportDraft,
+  updateImportDraft,
+  importStatusOptions,
+  onRequestAccountPicker,
+  onImportCandidate,
+  onClearDraft,
+  isImporting,
+}: ImportCandidateSlideProps) => {
+  const scrollRef = useRef<ScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const basePadding = 24;
+  const [keyboardPadding, setKeyboardPadding] = useState(basePadding);
+  const scrollToInput = useCallback((inputRef: TextInput | null) => {
+    if (!scrollRef.current || !contentRef.current || !inputRef) {
+      return;
+    }
+    const schedule =
+      globalThis.requestAnimationFrame ??
+      ((cb: () => void) => globalThis.setTimeout(cb, 0));
+    schedule(() => {
+      const relativeTo = contentRef.current as unknown as
+        | number
+        | NativeMethods;
+      inputRef.measureLayout(
+        relativeTo,
+        (_x, y) => {
+          scrollRef.current?.scrollTo({
+            y: Math.max(0, y - 24),
+            animated: true,
+          });
+        },
+        () => {},
+      );
+    });
+  }, []);
+  const contextValue = useMemo(() => ({ scrollToInput }), [scrollToInput]);
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "android" ? "keyboardDidShow" : "keyboardWillShow";
+    const hideEvent =
+      Platform.OS === "android" ? "keyboardDidHide" : "keyboardWillHide";
+    const handleShow = (event: { endCoordinates?: { height: number } }) => {
+      const height = event.endCoordinates?.height ?? 0;
+      const nextPadding = Math.max(
+        basePadding,
+        Math.min(basePadding + height, 220),
+      );
+      setKeyboardPadding(nextPadding);
+    };
+    const handleHide = () => {
+      setKeyboardPadding(basePadding);
+    };
+    const showListener = Keyboard.addListener(showEvent, handleShow);
+    const hideListener = Keyboard.addListener(hideEvent, handleHide);
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, [basePadding]);
+
+  const draft = resolveImportDraft(candidate.externalEventId);
+  const isCompleted = draft.status === "calendarEvent.status.completed";
+  const matchedNames = candidate.matchedAccountIds
+    .map((id) => accountsById.get(id)?.name)
+    .filter((value): value is string => Boolean(value));
+  const selectedAccountId = getSelectedAccountId(
+    candidate.externalEventId,
+    candidate.suggestedAccountId,
+    candidate.matchedAccountIds,
+  );
+  const selectedAccountName = selectedAccountId
+    ? accountsById.get(selectedAccountId)?.name
+    : undefined;
+  const suggestedAccountName = candidate.suggestedAccountId
+    ? accountsById.get(candidate.suggestedAccountId)?.name
+    : undefined;
+  const scoreValue = isCompleted ? parseScore(draft.scoreInput) : undefined;
+  const floorsVisited = isCompleted
+    ? parseFloorsVisited(draft.floorsVisitedInput)
+    : undefined;
+  const scoreInvalid =
+    isCompleted &&
+    draft.scoreInput.trim().length > 0 &&
+    scoreValue === undefined;
+  const floorsInvalid =
+    isCompleted &&
+    draft.floorsVisitedInput.trim().length > 0 &&
+    floorsVisited === undefined;
+  const canImport =
+    Boolean(selectedAccountId) && !scoreInvalid && !floorsInvalid;
+
+  return (
+    <FormScrollProvider value={contextValue}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.importSlide}
+        contentContainerStyle={[
+          styles.importSlideScrollContent,
+          { paddingBottom: keyboardPadding },
+        ]}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+        showsVerticalScrollIndicator
+      >
+        <View ref={contentRef} style={styles.importSlideContent}>
+          <View style={styles.importSlideHeader}>
+            <Text
+              style={[styles.importSlideTitle, { color: colors.textPrimary }]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {candidate.title}
+            </Text>
+            <Text
+              style={[styles.importSlideMeta, { color: colors.textSecondary }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {formatTimestamp(candidate.scheduledFor)}
+            </Text>
+            {candidate.location ? (
+              <Text
+                style={[
+                  styles.importSlideMeta,
+                  { color: colors.textSecondary },
+                ]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {candidate.location}
+              </Text>
+            ) : null}
+          </View>
+
+          <FormField label={t("calendarEvents.form.accountLabel")}>
+            <TouchableOpacity
+              style={[
+                styles.importAccountButton,
+                {
+                  borderColor: colors.borderLight,
+                  backgroundColor: colors.surfaceElevated,
+                },
+              ]}
+              onPress={() => onRequestAccountPicker(candidate.externalEventId)}
+            >
+              <Text
+                style={[
+                  styles.importAccountText,
+                  {
+                    color: selectedAccountName
+                      ? colors.textPrimary
+                      : colors.textSecondary,
+                  },
+                ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {selectedAccountName ?? t("calendar.import.chooseAccount")}
+              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={18}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+            {matchedNames.length > 0 ? (
+              <Text style={[styles.syncHint, { color: colors.textMuted }]}>
+                {t("calendar.import.matchesLabel")}: {matchedNames.join(", ")}
+              </Text>
+            ) : null}
+            {!selectedAccountName && suggestedAccountName ? (
+              <Text style={[styles.syncHint, { color: colors.textMuted }]}>
+                {t("calendar.import.suggestedLabel")}: {suggestedAccountName}
+              </Text>
+            ) : null}
+          </FormField>
+
+          <FormField label={t("calendarEvents.statusLabel")}>
+            <SegmentedControl
+              values={importStatusOptions.map((option) => option.label)}
+              selectedIndex={Math.max(
+                0,
+                importStatusOptions.findIndex(
+                  (option) => option.value === draft.status,
+                ),
+              )}
+              onChange={(event) => {
+                const nextIndex = event.nativeEvent.selectedSegmentIndex;
+                const nextStatus =
+                  importStatusOptions[nextIndex]?.value ??
+                  importStatusOptions[0]?.value ??
+                  "calendarEvent.status.scheduled";
+                updateImportDraft(candidate.externalEventId, {
+                  status: nextStatus as CalendarEventStatus,
+                });
+              }}
+              tintColor={colors.accent}
+              backgroundColor={colors.surface}
+              fontStyle={{
+                color: colors.textSecondary,
+                fontSize: 12,
+                fontWeight: "600",
+              }}
+              activeFontStyle={{
+                color: colors.onAccent,
+                fontSize: 12,
+                fontWeight: "600",
+              }}
+              style={styles.importStatusControl}
+              tabStyle={styles.importStatusTab}
+              sliderStyle={{ backgroundColor: colors.accent }}
+            />
+          </FormField>
+
+          {isCompleted ? (
+            <View style={styles.importCompletedGrid}>
+              <View style={styles.importGridItem}>
+                <Text
+                  style={[
+                    styles.importFieldLabel,
+                    { color: colors.textPrimary },
+                  ]}
+                >
+                  {t("calendarEvents.fields.score")}
+                </Text>
+                <TextField
+                  value={draft.scoreInput}
+                  onChangeText={(value) =>
+                    updateImportDraft(candidate.externalEventId, {
+                      scoreInput: value,
+                    })
+                  }
+                  placeholder={t("audits.form.scorePlaceholder")}
+                  keyboardType="decimal-pad"
+                />
+                {scoreInvalid ? (
+                  <Text
+                    style={[styles.importFieldError, { color: colors.error }]}
+                  >
+                    {t("audits.validation.scoreInvalid")}
+                  </Text>
+                ) : null}
+              </View>
+              <View style={styles.importGridItem}>
+                <Text
+                  style={[
+                    styles.importFieldLabel,
+                    { color: colors.textPrimary },
+                  ]}
+                >
+                  {t("calendarEvents.fields.floorsVisited")}
+                </Text>
+                <TextField
+                  value={draft.floorsVisitedInput}
+                  onChangeText={(value) =>
+                    updateImportDraft(candidate.externalEventId, {
+                      floorsVisitedInput: value,
+                    })
+                  }
+                  placeholder={t("audits.form.floorsVisitedPlaceholder")}
+                  autoCapitalize="none"
+                />
+                {floorsInvalid ? (
+                  <Text
+                    style={[styles.importFieldError, { color: colors.error }]}
+                  >
+                    {t("audits.validation.floorsInvalid")}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
+          <PrimaryActionButton
+            label={
+              isImporting
+                ? t("calendar.import.importing")
+                : t("calendar.import.importButton")
+            }
+            onPress={() => {
+              if (!selectedAccountId) {
+                onRequestAccountPicker(candidate.externalEventId);
+                return;
+              }
+              const shouldIncludeDetails =
+                draft.status !== "calendarEvent.status.scheduled";
+              const details = shouldIncludeDetails
+                ? {
+                    status: draft.status,
+                    ...(isCompleted && scoreValue !== undefined
+                      ? { score: scoreValue }
+                      : {}),
+                    ...(isCompleted && floorsVisited !== undefined
+                      ? { floorsVisited }
+                      : {}),
+                    ...(isCompleted
+                      ? { occurredAt: candidate.scheduledFor }
+                      : {}),
+                  }
+                : undefined;
+              void onImportCandidate(
+                candidate,
+                selectedAccountId,
+                details,
+              ).then((result) => {
+                if (!result.ok) {
+                  return;
+                }
+                onClearDraft(candidate.externalEventId);
+              });
+            }}
+            size="block"
+            disabled={!canImport || isImporting}
+          />
+        </View>
+      </ScrollView>
+    </FormScrollProvider>
+  );
+};
 
 export const CalendarSettingsScreen = () => {
   const { colors } = useTheme();
@@ -71,6 +445,13 @@ export const CalendarSettingsScreen = () => {
   const [collapsedExternalGroups, setCollapsedExternalGroups] = useState<
     Record<string, boolean>
   >({});
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importCarouselIndex, setImportCarouselIndex] = useState(0);
+  const [importDrafts, setImportDrafts] = useState<Record<string, ImportDraft>>(
+    {},
+  );
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const [maxWindowHeight, setMaxWindowHeight] = useState(windowHeight);
 
   const toggleExternalGroup = useCallback((groupKey: string) => {
     setCollapsedExternalGroups((prev) => ({
@@ -170,6 +551,29 @@ export const CalendarSettingsScreen = () => {
       label: t("calendar.sync.auditAlarmOption.custom"),
     },
   ];
+  const importStatusOptions = [
+    {
+      value: "calendarEvent.status.scheduled" as CalendarEventStatus,
+      label: t("calendarEvent.status.scheduled"),
+    },
+    {
+      value: "calendarEvent.status.completed" as CalendarEventStatus,
+      label: t("calendarEvent.status.completed"),
+    },
+    {
+      value: "calendarEvent.status.canceled" as CalendarEventStatus,
+      label: t("calendarEvent.status.canceled"),
+    },
+  ];
+  useEffect(() => {
+    if (windowHeight > maxWindowHeight) {
+      setMaxWindowHeight(windowHeight);
+    }
+  }, [windowHeight, maxWindowHeight]);
+
+  const modalWidth = Math.min(windowWidth * 0.9, 520);
+  const carouselWidth = Math.max(0, modalWidth - 32);
+  const carouselHeight = Math.min(maxWindowHeight * 0.7, 560);
 
   const handleRequestPermission = useCallback(async () => {
     try {
@@ -213,6 +617,86 @@ export const CalendarSettingsScreen = () => {
       return undefined;
     },
     [accountSelections],
+  );
+  const resolveImportDraft = useCallback(
+    (candidateId: string): ImportDraft => {
+      const draft = importDrafts[candidateId];
+      if (draft) {
+        return draft;
+      }
+      return {
+        status: "calendarEvent.status.scheduled",
+        scoreInput: "",
+        floorsVisitedInput: "",
+      };
+    },
+    [importDrafts],
+  );
+  const updateImportDraft = useCallback(
+    (candidateId: string, updates: Partial<ImportDraft>) => {
+      setImportDrafts((prev) => ({
+        ...prev,
+        [candidateId]: {
+          ...resolveImportDraft(candidateId),
+          ...updates,
+        },
+      }));
+    },
+    [resolveImportDraft],
+  );
+  const clearImportDraft = useCallback((candidateId: string) => {
+    setImportDrafts((prev) => {
+      const next = { ...prev };
+      delete next[candidateId];
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isImportModalOpen) {
+      return;
+    }
+    const count = externalCalendarImport.candidates.length;
+    if (count === 0) {
+      setIsImportModalOpen(false);
+      setImportCarouselIndex(0);
+      return;
+    }
+    if (importCarouselIndex > count - 1) {
+      setImportCarouselIndex(Math.max(0, count - 1));
+    }
+  }, [
+    externalCalendarImport.candidates.length,
+    importCarouselIndex,
+    isImportModalOpen,
+  ]);
+  const renderImportSlide = useCallback(
+    ({ item }: { item: ExternalCalendarImportCandidate }) => (
+      <ImportCandidateSlide
+        candidate={item}
+        colors={colors}
+        accountsById={accountsById}
+        getSelectedAccountId={getSelectedAccountId}
+        resolveImportDraft={resolveImportDraft}
+        updateImportDraft={updateImportDraft}
+        importStatusOptions={importStatusOptions}
+        onRequestAccountPicker={setAccountPickerCandidateId}
+        onImportCandidate={externalCalendarImport.importCandidate}
+        onClearDraft={clearImportDraft}
+        isImporting={externalCalendarImport.isImporting}
+      />
+    ),
+    [
+      accountsById,
+      clearImportDraft,
+      colors,
+      externalCalendarImport.importCandidate,
+      externalCalendarImport.isImporting,
+      getSelectedAccountId,
+      importStatusOptions,
+      resolveImportDraft,
+      updateImportDraft,
+    ],
   );
 
   return (
@@ -577,86 +1061,36 @@ export const CalendarSettingsScreen = () => {
               <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
                 {t("calendar.import.empty")}
               </Text>
-            ) : (
-              <View style={styles.importList}>
-                {externalCalendarImport.candidates.map((candidate) => {
-                  const matchedNames = candidate.matchedAccountIds
-                    .map((id) => accountsById.get(id)?.name)
-                    .filter((value): value is string => Boolean(value));
-                  const selectedAccountId = getSelectedAccountId(
-                    candidate.externalEventId,
-                    candidate.suggestedAccountId,
-                    candidate.matchedAccountIds,
-                  );
-                  const selectedAccountName = selectedAccountId
-                    ? accountsById.get(selectedAccountId)?.name
-                    : undefined;
-                  const suggestedAccountName = candidate.suggestedAccountId
-                    ? accountsById.get(candidate.suggestedAccountId)?.name
-                    : undefined;
-                  const hasManualSelection =
-                    accountSelections[candidate.externalEventId] !== undefined;
-
-                  return (
-                    <ListRow
-                      key={candidate.externalEventId}
-                      title={candidate.title}
-                      onPress={() => {
-                        setAccountPickerCandidateId(candidate.externalEventId);
-                      }}
-                      subtitle={formatTimestamp(candidate.scheduledFor)}
-                      description={
-                        matchedNames.length > 0
-                          ? `${t("calendar.import.matchesLabel")}: ${matchedNames.join(", ")}`
-                          : undefined
-                      }
-                      footnote={
-                        hasManualSelection && selectedAccountName
-                          ? `${t("calendar.import.selectedLabel")}: ${selectedAccountName}`
-                          : !hasManualSelection && selectedAccountName
-                            ? `${t("calendar.import.suggestedLabel")}: ${suggestedAccountName ?? selectedAccountName ?? t("common.unknownEntity")}`
-                            : undefined
-                      }
-                      variant="outlined"
-                    >
-                      <View style={styles.importRowActions}>
-                        <ActionButton
-                          label={t("calendar.import.chooseAccount")}
-                          onPress={() =>
-                            setAccountPickerCandidateId(
-                              candidate.externalEventId,
-                            )
-                          }
-                          tone="link"
-                          size="compact"
-                        />
-                        <PrimaryActionButton
-                          label={
-                            externalCalendarImport.isImporting
-                              ? t("calendar.import.importing")
-                              : t("calendar.import.importButton")
-                          }
-                          onPress={() => {
-                            if (!selectedAccountId) {
-                              setAccountPickerCandidateId(
-                                candidate.externalEventId,
-                              );
-                              return;
-                            }
-                            void externalCalendarImport.importCandidate(
-                              candidate,
-                              selectedAccountId,
-                            );
-                          }}
-                          size="compact"
-                          disabled={!selectedAccountId}
-                        />
-                      </View>
-                    </ListRow>
-                  );
-                })}
+            ) : externalCalendarImport.candidates.length > 0 ? (
+              <View
+                style={[
+                  styles.importReviewCard,
+                  {
+                    backgroundColor: colors.surfaceElevated,
+                    borderColor: colors.borderLight,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.syncHint, { color: colors.textSecondary }]}
+                >
+                  {t("calendar.import.reviewHint", {
+                    count: externalCalendarImport.candidates.length,
+                  })}
+                </Text>
+                <PrimaryActionButton
+                  label={t("calendar.import.reviewButton", {
+                    count: externalCalendarImport.candidates.length,
+                  })}
+                  onPress={() => {
+                    setImportCarouselIndex(0);
+                    setIsImportModalOpen(true);
+                  }}
+                  size="compact"
+                  disabled={externalCalendarImport.isImporting}
+                />
               </View>
-            )}
+            ) : null}
             {externalCalendarImport.importError ? (
               <Text style={[styles.syncHint, { color: colors.error }]}>
                 {t("calendar.import.importFailed")}
@@ -831,6 +1265,85 @@ export const CalendarSettingsScreen = () => {
       <Modal
         transparent
         animationType="fade"
+        visible={isImportModalOpen}
+        onRequestClose={() => setIsImportModalOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsImportModalOpen(false)}
+          />
+          <KeyboardAvoidingView
+            enabled={Platform.OS === "ios"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.modalKeyboard}
+          >
+            <View
+              style={[
+                styles.importModal,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  width: modalWidth,
+                },
+              ]}
+            >
+              <View style={styles.importModalHeader}>
+                <Text
+                  style={[
+                    styles.importModalTitle,
+                    { color: colors.textPrimary },
+                  ]}
+                >
+                  {t("calendar.import.title")}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setIsImportModalOpen(false)}
+                  style={styles.importModalClose}
+                >
+                  <Ionicons
+                    name="close"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={[
+                  styles.importModalSubtitle,
+                  { color: colors.textMuted },
+                ]}
+              >
+                {t("calendar.import.progress", {
+                  current: Math.min(
+                    importCarouselIndex + 1,
+                    externalCalendarImport.candidates.length || 0,
+                  ),
+                  total: externalCalendarImport.candidates.length,
+                })}
+              </Text>
+              <Carousel
+                width={carouselWidth}
+                height={carouselHeight}
+                data={externalCalendarImport.candidates}
+                onSnapToItem={setImportCarouselIndex}
+                renderItem={renderImportSlide}
+                enabled={externalCalendarImport.candidates.length > 1}
+                style={styles.importCarousel}
+                defaultIndex={importCarouselIndex}
+              />
+              {externalCalendarImport.importError ? (
+                <Text style={[styles.syncHint, { color: colors.error }]}>
+                  {t("calendar.import.importFailed")}
+                </Text>
+              ) : null}
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+      <Modal
+        transparent
+        animationType="fade"
         visible={accountPickerCandidate !== null}
         onRequestClose={() => setAccountPickerCandidateId(null)}
       >
@@ -914,12 +1427,105 @@ const styles = StyleSheet.create({
   importActions: {
     gap: 8,
   },
-  importList: {
+  importReviewCard: {
     gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
     marginTop: 12,
   },
-  importRowActions: {
-    gap: 8,
+  importModal: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    width: "90%",
+    maxWidth: 520,
+    maxHeight: "85%",
+    alignSelf: "center",
+    overflow: "hidden",
+  },
+  importModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 4,
+  },
+  importModalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  importModalClose: {
+    padding: 4,
+  },
+  importModalSubtitle: {
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  importCarousel: {
+    alignSelf: "center",
+  },
+  importSlide: {
+    flex: 1,
+    width: "100%",
+  },
+  importSlideScrollContent: {},
+  importSlideContent: {
+    gap: 12,
+    paddingHorizontal: 0,
+  },
+  importSlideHeader: {
+    gap: 4,
+    paddingHorizontal: 0,
+  },
+  importSlideTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    lineHeight: 22,
+    flexShrink: 1,
+  },
+  importSlideMeta: {
+    fontSize: 12,
+    lineHeight: 16,
+    flexShrink: 1,
+  },
+  importCompletedGrid: {
+    flexDirection: "row",
+    flexWrap: "nowrap",
+    gap: 12,
+  },
+  importGridItem: {
+    flex: 1,
+    minWidth: 0,
+    gap: 6,
+  },
+  importFieldLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  importFieldError: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  importAccountButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  importAccountText: {
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+    marginRight: 8,
+  },
+  importStatusControl: {
+    height: 36,
+  },
+  importStatusTab: {
+    paddingVertical: 6,
   },
   externalCalendarList: {
     gap: 10,
@@ -1043,6 +1649,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 24,
     backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  modalKeyboard: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
   },
   pickerModal: {
     borderRadius: 12,

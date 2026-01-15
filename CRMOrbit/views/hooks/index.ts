@@ -46,6 +46,7 @@ export type {
 export { useExternalCalendarImport } from "./useExternalCalendarImport";
 export type {
   ExternalCalendarImportState,
+  ExternalCalendarImportDetails,
   UseExternalCalendarImportParams,
 } from "./useExternalCalendarImport";
 export { useExternalCalendarSync } from "./useExternalCalendarSync";

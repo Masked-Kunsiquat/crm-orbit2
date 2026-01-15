@@ -2,8 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import * as Calendar from "expo-calendar";
 
 import type { Account } from "@domains/account";
-import type { CalendarEvent } from "@domains/calendarEvent";
-import type { EntityId } from "@domains/shared/types";
+import type {
+  CalendarEvent,
+  CalendarEventStatus,
+} from "@domains/calendarEvent";
+import type { EntityId, Timestamp } from "@domains/shared/types";
 import { buildEvent } from "@events/dispatcher";
 import { nextId } from "@domains/shared/idGenerator";
 import { buildAccountCalendarMatchUpdate } from "@domains/account.utils";
@@ -47,6 +50,7 @@ export type ExternalCalendarImportState = {
   importCandidate: (
     candidate: ExternalCalendarImportCandidate,
     accountId: EntityId,
+    details?: ExternalCalendarImportDetails,
   ) => Promise<ExternalCalendarImportResult>;
   clearErrors: () => void;
 };
@@ -55,6 +59,13 @@ export type UseExternalCalendarImportParams = {
   permissionGranted: boolean;
   accounts: Account[];
   calendarEvents: CalendarEvent[];
+};
+
+export type ExternalCalendarImportDetails = {
+  status?: CalendarEventStatus;
+  score?: number;
+  floorsVisited?: number[];
+  occurredAt?: Timestamp;
 };
 
 export const useExternalCalendarImport = ({
@@ -154,6 +165,7 @@ export const useExternalCalendarImport = ({
     async (
       candidate: ExternalCalendarImportCandidate,
       accountId: EntityId,
+      details?: ExternalCalendarImportDetails,
     ): Promise<ExternalCalendarImportResult> => {
       if (isImporting) {
         return { ok: false, error: "importInProgress" };
@@ -195,6 +207,42 @@ export const useExternalCalendarImport = ({
           deviceId,
         });
 
+        const followUpEvents = [];
+        if (details?.status === "calendarEvent.status.completed") {
+          followUpEvents.push(
+            buildEvent({
+              type: "calendarEvent.completed",
+              entityId: calendarEventId,
+              payload: {
+                id: calendarEventId,
+                occurredAt: details.occurredAt ?? candidate.scheduledFor,
+                accountId,
+                ...(details.score !== undefined && { score: details.score }),
+                ...(details.floorsVisited !== undefined && {
+                  floorsVisited: details.floorsVisited,
+                }),
+              },
+              deviceId,
+            }),
+          );
+        } else if (details?.status === "calendarEvent.status.canceled") {
+          followUpEvents.push(
+            buildEvent({
+              type: "calendarEvent.canceled",
+              entityId: calendarEventId,
+              payload: {
+                id: calendarEventId,
+                accountId,
+                ...(details.score !== undefined && { score: details.score }),
+                ...(details.floorsVisited !== undefined && {
+                  floorsVisited: details.floorsVisited,
+                }),
+              },
+              deviceId,
+            }),
+          );
+        }
+
         const nextMatch = buildAccountCalendarMatchUpdate(
           account,
           candidate.title,
@@ -215,6 +263,7 @@ export const useExternalCalendarImport = ({
         const events = accountUpdateEvent
           ? [scheduleEvent, externalImportedEvent, accountUpdateEvent]
           : [scheduleEvent, externalImportedEvent];
+        events.push(...followUpEvents);
 
         const result = dispatch(events);
         if (!result.success) {
