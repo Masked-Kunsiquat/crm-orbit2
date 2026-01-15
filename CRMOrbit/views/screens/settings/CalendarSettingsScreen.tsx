@@ -113,31 +113,46 @@ const ImportCandidateSlide = ({
 }: ImportCandidateSlideProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
+  const focusedInputRef = useRef<TextInput | null>(null);
   const basePadding = 24;
   const [keyboardPadding, setKeyboardPadding] = useState(basePadding);
-  const scrollToInput = useCallback((inputRef: TextInput | null) => {
+  const performScrollToInput = useCallback((inputRef: TextInput | null) => {
     if (!scrollRef.current || !contentRef.current || !inputRef) {
       return;
     }
-    const schedule =
-      globalThis.requestAnimationFrame ??
-      ((cb: () => void) => globalThis.setTimeout(cb, 0));
-    schedule(() => {
-      const relativeTo = contentRef.current as unknown as
-        | number
-        | NativeMethods;
-      inputRef.measureLayout(
-        relativeTo,
-        (_x, y) => {
-          scrollRef.current?.scrollTo({
-            y: Math.max(0, y - 24),
-            animated: true,
-          });
-        },
-        () => {},
-      );
-    });
+    const relativeTo = contentRef.current as unknown as number | NativeMethods;
+    inputRef.measureLayout(
+      relativeTo,
+      (_x, y) => {
+        scrollRef.current?.scrollTo({
+          y: Math.max(0, y - 24),
+          animated: true,
+        });
+      },
+      () => {},
+    );
   }, []);
+  const scheduleScroll = useCallback(
+    (inputRef: TextInput | null) => {
+      if (!inputRef) {
+        return;
+      }
+      const schedule =
+        globalThis.requestAnimationFrame ??
+        ((cb: () => void) => globalThis.setTimeout(cb, 0));
+      schedule(() => {
+        performScrollToInput(inputRef);
+      });
+    },
+    [performScrollToInput],
+  );
+  const scrollToInput = useCallback(
+    (inputRef: TextInput | null) => {
+      focusedInputRef.current = inputRef;
+      scheduleScroll(inputRef);
+    },
+    [scheduleScroll],
+  );
   const contextValue = useMemo(() => ({ scrollToInput }), [scrollToInput]);
   useEffect(() => {
     const showEvent =
@@ -151,6 +166,10 @@ const ImportCandidateSlide = ({
         Math.min(basePadding + height, 220),
       );
       setKeyboardPadding(nextPadding);
+      globalThis.setTimeout(
+        () => scheduleScroll(focusedInputRef.current),
+        Platform.OS === "android" ? 80 : 40,
+      );
     };
     const handleHide = () => {
       setKeyboardPadding(basePadding);
@@ -161,7 +180,7 @@ const ImportCandidateSlide = ({
       showListener.remove();
       hideListener.remove();
     };
-  }, [basePadding]);
+  }, [basePadding, scheduleScroll]);
 
   const draft = resolveImportDraft(candidate.externalEventId);
   const isCompleted = draft.status === "calendarEvent.status.completed";
