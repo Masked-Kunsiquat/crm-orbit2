@@ -8,6 +8,7 @@ import { buildEvent } from "@events/dispatcher";
 import { nextId } from "@domains/shared/idGenerator";
 import { buildAccountCalendarMatchUpdate } from "@domains/account.utils";
 import { getDatabase } from "@domains/persistence/database";
+import { createLogger } from "@utils/logger";
 import {
   insertCalendarEventExternalLink,
   listExternalLinksForCalendar,
@@ -23,6 +24,8 @@ import {
 } from "../utils/externalCalendarImport";
 import { useDispatch } from "./useDispatch";
 import { useDeviceId } from "./useDeviceId";
+
+const logger = createLogger("ExternalCalendarImport");
 
 export type ExternalCalendarImportScanError =
   | "permissionDenied"
@@ -76,14 +79,17 @@ export const useExternalCalendarImport = ({
 
   const scanCandidates = useCallback(async () => {
     if (!permissionGranted) {
+      logger.warn("Scan blocked: calendar permission not granted.");
       setScanError("permissionDenied");
       return;
     }
     setIsScanning(true);
     setScanError(null);
+    logger.debug("Scanning external calendar for audit candidates.");
     try {
       const calendarId = await getStoredExternalCalendarId();
       if (!calendarId) {
+        logger.warn("Scan blocked: no external calendar selected.");
         setScanError("calendarNotSelected");
         return;
       }
@@ -102,8 +108,13 @@ export const useExternalCalendarImport = ({
         linkedExternalEventIds,
       );
       setCandidates(nextCandidates);
+      logger.info("External calendar scan completed.", {
+        externalEvents: events.length,
+        linkedExternalEvents: links.length,
+        candidates: nextCandidates.length,
+      });
     } catch (err) {
-      console.error("Failed to scan external calendar events.", err);
+      logger.error("Failed to scan external calendar events.", err);
       setScanError("loadFailed");
     } finally {
       setIsScanning(false);
@@ -124,6 +135,7 @@ export const useExternalCalendarImport = ({
       }
       setIsImporting(true);
       setImportError(null);
+      logger.debug("Importing external calendar event.");
       try {
         const calendarEventId = nextId("calendarEvent");
         const linkId = nextId("calendarExternalLink");
@@ -212,9 +224,10 @@ export const useExternalCalendarImport = ({
           ),
         );
 
+        logger.info("External calendar event imported.");
         return { ok: true, calendarEventId };
       } catch (err) {
-        console.error("Failed to import external calendar event.", err);
+        logger.error("Failed to import external calendar event.", err);
         setImportError("importFailed");
         return { ok: false, error: "importFailed" };
       } finally {

@@ -5,6 +5,7 @@ import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Timestamp } from "@domains/shared/types";
 import { buildEvent } from "@events/dispatcher";
 import { getDatabase } from "@domains/persistence/database";
+import { createLogger } from "@utils/logger";
 import {
   listExternalLinksForCalendar,
   updateCalendarEventExternalLinkSyncState,
@@ -19,6 +20,7 @@ import { useDispatch } from "./useDispatch";
 import { useDeviceId } from "./useDeviceId";
 
 const TIMESTAMP_EPSILON_MS = 1000;
+const logger = createLogger("ExternalCalendarSync");
 
 type SyncDirection = "crmToExternal" | "externalToCrm" | "noop";
 
@@ -450,20 +452,24 @@ export const useExternalCalendarSync = ({
 
   const syncLinkedEvents = useCallback(async () => {
     if (!permissionGranted) {
+      logger.warn("Sync blocked: calendar permission not granted.");
       setSyncError("permissionDenied");
       return;
     }
     if (isSyncing) {
+      logger.debug("Sync already in progress; skipping.");
       return;
     }
 
     setIsSyncing(true);
     setSyncError(null);
     setSyncSummary(null);
+    logger.debug("Starting external linked event sync.");
 
     try {
       const calendarId = await getStoredExternalCalendarId();
       if (!calendarId) {
+        logger.warn("Sync blocked: no external calendar selected.");
         setSyncError("calendarNotSelected");
         return;
       }
@@ -475,6 +481,10 @@ export const useExternalCalendarSync = ({
       const eventsById = new Map(
         calendarEvents.map((event) => [event.id, event]),
       );
+      logger.info("Loaded linked external events for sync.", {
+        links: links.length,
+        calendarEvents: calendarEvents.length,
+      });
 
       const summary: ExternalCalendarSyncSummary = {
         processed: 0,
@@ -487,6 +497,7 @@ export const useExternalCalendarSync = ({
       for (const link of links) {
         const calendarEvent = eventsById.get(link.calendarEventId);
         if (!calendarEvent) {
+          logger.warn("Linked calendar event missing during sync.");
           summary.errors += 1;
           continue;
         }
@@ -503,7 +514,7 @@ export const useExternalCalendarSync = ({
           summary.externalToCrm += result.externalToCrm ? 1 : 0;
           summary.unchanged += result.unchanged ? 1 : 0;
         } catch (err) {
-          console.error("Failed to sync external calendar event.", err);
+          logger.error("Failed to sync external calendar event.", err);
           summary.errors += 1;
         }
       }
@@ -512,8 +523,9 @@ export const useExternalCalendarSync = ({
       if (summary.errors > 0) {
         setSyncError("syncFailed");
       }
+      logger.info("External linked event sync completed.", summary);
     } catch (err) {
-      console.error("Failed to sync external calendar events.", err);
+      logger.error("Failed to sync external calendar events.", err);
       setSyncError("syncFailed");
     } finally {
       setIsSyncing(false);

@@ -7,8 +7,10 @@ import {
   findAccountsMatchingCalendarTitle,
   resolveAccountCalendarAliases,
 } from "@domains/account.utils";
+import { createLogger } from "@utils/logger";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const logger = createLogger("ExternalCalendarImportUtils");
 
 export type ExternalCalendarImportWindow = {
   start: Date;
@@ -116,13 +118,17 @@ export const loadExternalCalendarEvents = async (
   calendarId: string,
   window: ExternalCalendarImportWindow,
 ): Promise<ExternalCalendarEvent[]> => {
+  logger.debug("Loading external calendar events.", {
+    windowStart: window.start.toISOString(),
+    windowEnd: window.end.toISOString(),
+  });
   const events = await Calendar.getEventsAsync(
     [calendarId],
     window.start,
     window.end,
   );
 
-  return events.flatMap((event) => {
+  const normalized = events.flatMap((event) => {
     if (!event.title || !event.id) {
       return [];
     }
@@ -144,6 +150,9 @@ export const loadExternalCalendarEvents = async (
       },
     ];
   });
+
+  logger.info("Loaded external calendar events.", { count: normalized.length });
+  return normalized;
 };
 
 export const buildExternalCalendarImportCandidates = (

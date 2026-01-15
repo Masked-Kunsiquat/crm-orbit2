@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
+import { createLogger } from "@utils/logger";
 
 export const DEFAULT_DEVICE_CALENDAR_NAME = "CRMOrbit";
 export const DEFAULT_AUDIT_ALARM_OFFSET_MINUTES = 60;
@@ -11,6 +12,8 @@ const CALENDAR_EVENT_MAP_KEY = "calendar.sync.eventMap";
 const CALENDAR_LAST_SYNC_KEY = "calendar.sync.lastSync";
 const CALENDAR_AUDIT_ALARM_OFFSET_KEY = "calendar.sync.auditAlarmOffsetMinutes";
 const EXTERNAL_CALENDAR_ID_KEY = "calendar.external.selectedId";
+
+const logger = createLogger("DeviceCalendar");
 
 export type CalendarSyncEvent = {
   key: string;
@@ -164,9 +167,11 @@ export const ensureDeviceCalendar = async (
             name: desiredName,
           });
         }
+        logger.debug("Using existing device calendar.");
         return storedId;
       }
     } catch {
+      logger.warn("Failed to load existing device calendar; recreating.");
       // Fall through to create a new calendar.
     }
   }
@@ -184,6 +189,7 @@ export const ensureDeviceCalendar = async (
   });
 
   await setStoredCalendarId(calendarId);
+  logger.info("Created device calendar.");
   return calendarId;
 };
 
@@ -191,6 +197,7 @@ export const syncDeviceCalendarEvents = async (
   calendarId: string,
   events: CalendarSyncEvent[],
 ): Promise<CalendarSyncSummary> => {
+  logger.debug("Syncing device calendar events.", { events: events.length });
   const existingMap = await getStoredEventMap();
   const nextMap: Record<string, string> = {};
   let created = 0;
@@ -214,6 +221,7 @@ export const syncDeviceCalendarEvents = async (
         updated += 1;
         continue;
       } catch {
+        logger.warn("Failed to update device calendar event; recreating.");
         // If the event is missing, recreate it below.
       }
     }
@@ -230,6 +238,7 @@ export const syncDeviceCalendarEvents = async (
       nextMap[event.key] = newId;
       created += 1;
     } catch {
+      logger.warn("Failed to create device calendar event.");
       // Skip events that fail to sync.
     }
   }
@@ -240,6 +249,7 @@ export const syncDeviceCalendarEvents = async (
       await Calendar.deleteEventAsync(eventId);
       deleted += 1;
     } catch {
+      logger.warn("Failed to delete device calendar event.");
       // Ignore delete errors for missing events.
     }
   }
@@ -247,5 +257,6 @@ export const syncDeviceCalendarEvents = async (
   await setStoredEventMap(nextMap);
   await setLastCalendarSync(new Date().toISOString());
 
+  logger.info("Device calendar sync summary.", { created, updated, deleted });
   return { created, updated, deleted };
 };

@@ -72,10 +72,50 @@ export const CalendarSettingsScreen = () => {
     Record<string, boolean>
   >({});
 
+  const toggleExternalGroup = useCallback((groupKey: string) => {
+    setCollapsedExternalGroups((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
+  }, []);
+
+  const calendarSync = useCalendarSync({
+    permissionGranted: permission?.granted ?? false,
+    audits,
+    interactions,
+    accounts,
+    doc,
+  });
+  const externalCalendarSelection = useExternalCalendarSelection({
+    permissionGranted: permission?.granted ?? false,
+  });
+  const externalCalendarImport = useExternalCalendarImport({
+    permissionGranted: permission?.granted ?? false,
+    accounts,
+    calendarEvents,
+  });
+  const externalCalendarSync = useExternalCalendarSync({
+    permissionGranted: permission?.granted ?? false,
+    calendarEvents,
+  });
   const accountsById = useMemo(
     () => new Map(accounts.map((account) => [account.id, account])),
     [accounts],
   );
+  const selectedExternalCalendar = useMemo(() => {
+    if (!externalCalendarSelection.selectedCalendarId) {
+      return null;
+    }
+    return (
+      externalCalendarSelection.calendars.find(
+        (calendar) =>
+          calendar.id === externalCalendarSelection.selectedCalendarId,
+      ) ?? null
+    );
+  }, [
+    externalCalendarSelection.calendars,
+    externalCalendarSelection.selectedCalendarId,
+  ]);
   const unknownSourceLabel = t("common.unknown");
   const externalCalendarGroups = useMemo(() => {
     const groups = new Map<
@@ -107,33 +147,6 @@ export const CalendarSettingsScreen = () => {
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
   }, [externalCalendarSelection.calendars, unknownSourceLabel]);
-
-  const toggleExternalGroup = useCallback((groupKey: string) => {
-    setCollapsedExternalGroups((prev) => ({
-      ...prev,
-      [groupKey]: !prev[groupKey],
-    }));
-  }, []);
-
-  const calendarSync = useCalendarSync({
-    permissionGranted: permission?.granted ?? false,
-    audits,
-    interactions,
-    accounts,
-    doc,
-  });
-  const externalCalendarSelection = useExternalCalendarSelection({
-    permissionGranted: permission?.granted ?? false,
-  });
-  const externalCalendarImport = useExternalCalendarImport({
-    permissionGranted: permission?.granted ?? false,
-    accounts,
-    calendarEvents,
-  });
-  const externalCalendarSync = useExternalCalendarSync({
-    permissionGranted: permission?.granted ?? false,
-    calendarEvents,
-  });
 
   const alarmOptions: Array<{ value: AuditAlarmOption; label: string }> = [
     {
@@ -295,9 +308,11 @@ export const CalendarSettingsScreen = () => {
       </Section>
       {Platform.OS !== "web" && permission?.granted ? (
         <Section title={t("calendar.external.title")}>
+          <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
+            {t("calendar.external.hint")}
+          </Text>
           <FormField
             label={t("calendar.external.label")}
-            hint={t("calendar.external.hint")}
             accessory={
               <ActionButton
                 label={t("calendar.external.refresh")}
@@ -329,9 +344,51 @@ export const CalendarSettingsScreen = () => {
               </Text>
             ) : (
               <View style={styles.externalCalendarGroups}>
+                {selectedExternalCalendar ? (
+                  <View
+                    style={[
+                      styles.externalCalendarSelectedCard,
+                      {
+                        borderColor: colors.borderLight,
+                        backgroundColor: colors.surfaceElevated,
+                      },
+                    ]}
+                  >
+                    <View style={styles.externalCalendarRow}>
+                      <View style={styles.externalCalendarText}>
+                        <Text
+                          style={[
+                            styles.externalCalendarTitle,
+                            { color: colors.textPrimary },
+                          ]}
+                        >
+                          {selectedExternalCalendar.title}
+                        </Text>
+                        {selectedExternalCalendar.source ? (
+                          <Text
+                            style={[
+                              styles.externalCalendarSubtitle,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
+                            {selectedExternalCalendar.source}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <Text
+                        style={[
+                          styles.externalCalendarBadge,
+                          { color: colors.accent },
+                        ]}
+                      >
+                        {t("calendar.external.selected")}
+                      </Text>
+                    </View>
+                  </View>
+                ) : null}
                 {externalCalendarGroups.map((group) => {
                   const isCollapsed =
-                    collapsedExternalGroups[group.key] ?? false;
+                    collapsedExternalGroups[group.key] ?? true;
                   return (
                     <View key={group.key} style={styles.externalCalendarGroup}>
                       <Pressable
@@ -869,6 +926,12 @@ const styles = StyleSheet.create({
   },
   externalCalendarGroups: {
     gap: 16,
+  },
+  externalCalendarSelectedCard: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   externalCalendarGroup: {
     gap: 10,

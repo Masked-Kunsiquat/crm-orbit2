@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as Calendar from "expo-calendar";
 
+import { createLogger } from "@utils/logger";
 import {
   getStoredExternalCalendarId,
   setStoredExternalCalendarId,
@@ -24,6 +25,8 @@ export type ExternalCalendarSelectionState = {
 export type UseExternalCalendarSelectionParams = {
   permissionGranted: boolean;
 };
+
+const logger = createLogger("ExternalCalendarSelection");
 
 const normalizeCalendars = (
   calendars: Calendar.Calendar[],
@@ -50,6 +53,7 @@ export const useExternalCalendarSelection = ({
 
   const loadCalendars = useCallback(async () => {
     if (!permissionGranted) {
+      logger.debug("Skipping external calendar load (no permission).");
       setCalendars([]);
       setIsLoading(false);
       setHasError(false);
@@ -58,6 +62,7 @@ export const useExternalCalendarSelection = ({
 
     setIsLoading(true);
     setHasError(false);
+    logger.debug("Loading external calendars.");
     try {
       const [storedId, available] = await Promise.all([
         getStoredExternalCalendarId(),
@@ -66,18 +71,23 @@ export const useExternalCalendarSelection = ({
 
       const normalized = normalizeCalendars(available);
       setCalendars(normalized);
+      logger.info("Loaded external calendars.", {
+        count: normalized.length,
+        hasStoredSelection: Boolean(storedId),
+      });
 
       if (
         storedId &&
         !normalized.some((calendar) => calendar.id === storedId)
       ) {
+        logger.warn("Stored external calendar selection missing; clearing.");
         await setStoredExternalCalendarId(null);
         setSelectedCalendarId(null);
       } else {
         setSelectedCalendarId(storedId);
       }
     } catch (err) {
-      console.error("Failed to load external calendars.", err);
+      logger.error("Failed to load external calendars.", err);
       setHasError(true);
     } finally {
       setIsLoading(false);
@@ -89,6 +99,7 @@ export const useExternalCalendarSelection = ({
   }, [loadCalendars]);
 
   const refreshCalendars = useCallback(async () => {
+    logger.debug("Refreshing external calendars.");
     await loadCalendars();
   }, [loadCalendars]);
 
@@ -96,10 +107,12 @@ export const useExternalCalendarSelection = ({
     async (calendarId: string) => {
       const previousId = selectedCalendarId;
       setSelectedCalendarId(calendarId);
+      logger.info("Selecting external calendar.");
       try {
         await setStoredExternalCalendarId(calendarId);
+        logger.debug("External calendar selection stored.");
       } catch (err) {
-        console.error("Failed to store external calendar selection.", err);
+        logger.error("Failed to store external calendar selection.", err);
         setSelectedCalendarId(previousId);
         setHasError(true);
       }
