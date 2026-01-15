@@ -7,7 +7,21 @@ import type { ColorScheme } from "@domains/shared/theme/colors";
 export const buildCalendarTheme = (
   colors: ColorScheme,
   isDark: boolean,
+  selectedDate?: string,
 ): Theme => {
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${`${today.getMonth() + 1}`.padStart(
+    2,
+    "0",
+  )}-${`${today.getDate()}`.padStart(2, "0")}`;
+  const isTodaySelected = selectedDate === todayKey;
+  const todayBackground = isTodaySelected
+    ? isDark
+      ? colors.surfaceElevated
+      : colors.borderLight
+    : "transparent";
+  const todayTextColor = isTodaySelected ? colors.accent : colors.textPrimary;
+
   return {
     // Background colors
     backgroundColor: colors.canvas,
@@ -17,7 +31,7 @@ export const buildCalendarTheme = (
     textSectionTitleColor: colors.textMuted,
     textSectionTitleDisabledColor: colors.textFaint,
     dayTextColor: colors.textPrimary,
-    todayTextColor: colors.accent,
+    todayTextColor,
     selectedDayTextColor: colors.onAccent,
     monthTextColor: colors.textPrimary,
     textDisabledColor: colors.textFaint,
@@ -121,14 +135,12 @@ export const buildCalendarTheme = (
             color: colors.textPrimary,
           },
           today: {
-            backgroundColor: isDark
-              ? colors.surfaceElevated
-              : colors.borderLight,
+            backgroundColor: todayBackground,
             borderRadius: 16,
           },
           todayText: {
-            color: colors.accent,
-            fontWeight: "600" as const,
+            color: todayTextColor,
+            fontWeight: isTodaySelected ? ("600" as const) : ("400" as const),
           },
           selected: {
             backgroundColor: colors.accent,

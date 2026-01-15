@@ -61,8 +61,8 @@ export const CalendarView = ({
   const { colors, isDark } = useTheme();
   const calendarSettings = useCalendarSettings();
   const calendarTheme = useMemo(
-    () => buildCalendarTheme(colors, isDark),
-    [colors, isDark],
+    () => buildCalendarTheme(colors, isDark, selectedDate),
+    [colors, isDark, selectedDate],
   );
   const calendarPalette = useMemo(
     () => resolveCalendarPalette(colors, calendarSettings.palette),
