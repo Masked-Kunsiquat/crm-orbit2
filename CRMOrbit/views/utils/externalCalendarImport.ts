@@ -214,6 +214,18 @@ export const appendCrmOrbitMarkerToNotes = (
   return `${notes.trim()}\n${marker}`;
 };
 
+export const replaceCrmOrbitMarkerInNotes = (
+  notes: string | undefined,
+  calendarEventId: string,
+): string => {
+  const cleaned = stripCrmOrbitMetadataFromNotes(notes);
+  const marker = buildCrmOrbitMarker(calendarEventId);
+  if (!cleaned) {
+    return marker;
+  }
+  return `${cleaned}\n${marker}`;
+};
+
 const stripCrmOrbitMetadataLine = (line: string): boolean => {
   const trimmed = line.trim();
   return (

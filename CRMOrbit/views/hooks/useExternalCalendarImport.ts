@@ -11,15 +11,16 @@ import { getDatabase } from "@domains/persistence/database";
 import { createLogger } from "@utils/logger";
 import {
   insertCalendarEventExternalLink,
+  deleteCalendarEventExternalLink,
   listExternalLinksForCalendar,
   updateCalendarEventExternalLinkSyncState,
 } from "@domains/persistence/calendarEventExternalLinks";
 import { getStoredExternalCalendarId } from "../utils/deviceCalendar";
 import {
-  appendCrmOrbitMarkerToNotes,
   buildExternalCalendarImportCandidates,
   buildExternalCalendarImportWindow,
   loadExternalCalendarEvents,
+  replaceCrmOrbitMarkerInNotes,
   type ExternalCalendarImportCandidate,
 } from "../utils/externalCalendarImport";
 import { useDispatch } from "./useDispatch";
@@ -98,8 +99,36 @@ export const useExternalCalendarImport = ({
         loadExternalCalendarEvents(calendarId, window),
         listExternalLinksForCalendar(getDatabase(), calendarId),
       ]);
+      const existingCalendarEventIds = new Set(
+        calendarEvents.map((event) => event.id),
+      );
+      const staleLinks = links.filter(
+        (link) => !existingCalendarEventIds.has(link.calendarEventId),
+      );
+      const activeLinks = links.filter((link) =>
+        existingCalendarEventIds.has(link.calendarEventId),
+      );
+
+      if (staleLinks.length > 0) {
+        logger.warn("Removing stale external calendar links.", {
+          count: staleLinks.length,
+        });
+        await Promise.all(
+          staleLinks.map((link) =>
+            deleteCalendarEventExternalLink(getDatabase(), link.id).catch(
+              (error) => {
+                logger.error(
+                  "Failed to delete stale external calendar link.",
+                  error,
+                );
+              },
+            ),
+          ),
+        );
+      }
+
       const linkedExternalEventIds = new Set(
-        links.map((link) => link.externalEventId),
+        activeLinks.map((link) => link.externalEventId),
       );
       const nextCandidates = buildExternalCalendarImportCandidates(
         events,
@@ -204,7 +233,7 @@ export const useExternalCalendarImport = ({
           lastExternalModifiedAt: null,
         });
 
-        const nextNotes = appendCrmOrbitMarkerToNotes(
+        const nextNotes = replaceCrmOrbitMarkerInNotes(
           candidate.notes,
           calendarEventId,
         );

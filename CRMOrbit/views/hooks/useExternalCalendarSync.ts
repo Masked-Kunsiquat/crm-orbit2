@@ -7,6 +7,7 @@ import { buildEvent } from "@events/dispatcher";
 import { getDatabase } from "@domains/persistence/database";
 import { createLogger } from "@utils/logger";
 import {
+  deleteCalendarEventExternalLink,
   listExternalLinksForCalendar,
   updateCalendarEventExternalLinkSyncState,
   type CalendarEventExternalLinkRecord,
@@ -498,6 +499,15 @@ export const useExternalCalendarSync = ({
         const calendarEvent = eventsById.get(link.calendarEventId);
         if (!calendarEvent) {
           logger.warn("Linked calendar event missing during sync.");
+          try {
+            await deleteCalendarEventExternalLink(getDatabase(), link.id);
+            logger.info("Removed stale external calendar link.");
+          } catch (error) {
+            logger.error(
+              "Failed to remove stale external calendar link.",
+              error,
+            );
+          }
           summary.errors += 1;
           continue;
         }
