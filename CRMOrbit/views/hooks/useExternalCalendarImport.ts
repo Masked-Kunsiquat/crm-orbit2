@@ -11,6 +11,7 @@ import { getDatabase } from "@domains/persistence/database";
 import {
   insertCalendarEventExternalLink,
   listExternalLinksForCalendar,
+  updateCalendarEventExternalLinkSyncState,
 } from "@domains/persistence/calendarEventExternalLinks";
 import { getStoredExternalCalendarId } from "../utils/deviceCalendar";
 import {
@@ -197,6 +198,12 @@ export const useExternalCalendarImport = ({
         );
         await Calendar.updateEventAsync(candidate.externalEventId, {
           notes: nextNotes,
+        });
+        const syncedAt = new Date().toISOString();
+        await updateCalendarEventExternalLinkSyncState(getDatabase(), linkId, {
+          lastSyncedAt: syncedAt,
+          lastExternalModifiedAt: syncedAt,
+          updatedAt: syncedAt,
         });
 
         setCandidates((prev) =>

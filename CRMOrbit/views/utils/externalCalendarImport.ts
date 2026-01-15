@@ -39,6 +39,7 @@ export type ExternalCalendarImportCandidate = {
 };
 
 const CRM_ORBIT_MARKER_PREFIX = "crmOrbitId:";
+const CRM_ORBIT_AUDIT_PREFIX = "crmOrbitAudit:";
 
 export const buildExternalCalendarImportWindow = (
   now: Date = new Date(),
@@ -95,6 +96,22 @@ const resolveDurationMinutes = (start: Date, end: Date): number | undefined => {
   return Math.round(diffMs / (60 * 1000));
 };
 
+const parseCalendarDate = (
+  value: string | Date | null | undefined,
+): Date | null => {
+  if (!value) {
+    return null;
+  }
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value : null;
+  }
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) {
+    return null;
+  }
+  return parsed;
+};
+
 export const loadExternalCalendarEvents = async (
   calendarId: string,
   window: ExternalCalendarImportWindow,
@@ -105,18 +122,28 @@ export const loadExternalCalendarEvents = async (
     window.end,
   );
 
-  return events
-    .filter((event) => Boolean(event.title && event.id))
-    .map((event) => ({
-      externalEventId: event.id,
-      calendarId,
-      title: event.title ?? "",
-      startDate: event.startDate,
-      endDate: event.endDate ?? event.startDate,
-      location: event.location ?? undefined,
-      notes: event.notes ?? undefined,
-      isAllDay: event.allDay ?? undefined,
-    }));
+  return events.flatMap((event) => {
+    if (!event.title || !event.id) {
+      return [];
+    }
+    const startDate = parseCalendarDate(event.startDate);
+    if (!startDate) {
+      return [];
+    }
+    const endDate = parseCalendarDate(event.endDate) ?? startDate;
+    return [
+      {
+        externalEventId: event.id,
+        calendarId,
+        title: event.title ?? "",
+        startDate,
+        endDate,
+        location: event.location ?? undefined,
+        notes: event.notes ?? undefined,
+        isAllDay: event.allDay ?? undefined,
+      },
+    ];
+  });
 };
 
 export const buildExternalCalendarImportCandidates = (
@@ -176,4 +203,66 @@ export const appendCrmOrbitMarkerToNotes = (
     return notes;
   }
   return `${notes.trim()}\n${marker}`;
+};
+
+const stripCrmOrbitMetadataLine = (line: string): boolean => {
+  const trimmed = line.trim();
+  return (
+    trimmed.startsWith(CRM_ORBIT_MARKER_PREFIX) ||
+    trimmed.startsWith(CRM_ORBIT_AUDIT_PREFIX)
+  );
+};
+
+export const stripCrmOrbitMetadataFromNotes = (
+  notes: string | undefined,
+): string => {
+  if (!notes) {
+    return "";
+  }
+  return notes
+    .split(/\r?\n/)
+    .filter((line) => !stripCrmOrbitMetadataLine(line))
+    .join("\n")
+    .trim();
+};
+
+const buildCrmOrbitAuditMetadata = (
+  calendarEvent: CalendarEvent,
+): string | null => {
+  if (
+    calendarEvent.type !== "calendarEvent.type.audit" ||
+    calendarEvent.status !== "calendarEvent.status.completed"
+  ) {
+    return null;
+  }
+
+  const payload: Record<string, unknown> = {};
+  if (calendarEvent.occurredAt) {
+    payload.occurredAt = calendarEvent.occurredAt;
+  }
+  if (calendarEvent.auditData?.score !== undefined) {
+    payload.score = calendarEvent.auditData.score;
+  }
+  if (calendarEvent.auditData?.floorsVisited !== undefined) {
+    payload.floorsVisited = calendarEvent.auditData.floorsVisited;
+  }
+
+  return `${CRM_ORBIT_AUDIT_PREFIX}${JSON.stringify(payload)}`;
+};
+
+export const buildExternalEventNotes = (
+  notes: string | undefined,
+  calendarEvent: CalendarEvent,
+): string => {
+  const cleaned = stripCrmOrbitMetadataFromNotes(notes);
+  const lines = [];
+  if (cleaned) {
+    lines.push(cleaned);
+  }
+  lines.push(buildCrmOrbitMarker(calendarEvent.id));
+  const auditMetadata = buildCrmOrbitAuditMetadata(calendarEvent);
+  if (auditMetadata) {
+    lines.push(auditMetadata);
+  }
+  return lines.join("\n");
 };

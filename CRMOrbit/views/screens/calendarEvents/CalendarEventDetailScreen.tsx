@@ -34,6 +34,7 @@ import {
   addMinutesToTimestamp,
   formatDurationLabel,
 } from "../../utils/duration";
+import { openMapsWithAddress } from "@domains/linking.utils";
 import type { EventsStackScreenProps } from "../../navigation/types";
 import type { LinkedEntityInfo } from "../../store/selectors";
 
@@ -196,6 +197,7 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
     calendarEvent.auditData.floorsVisited.length > 0
       ? calendarEvent.auditData.floorsVisited.join(", ")
       : null;
+  const location = calendarEvent.location?.trim() ?? "";
 
   return (
     <DetailScreenLayout>
@@ -288,16 +290,32 @@ export const CalendarEventDetailScreen = ({ route, navigation }: Props) => {
         </View>
       </Section>
 
-      {calendarEvent.description || calendarEvent.location ? (
+      {calendarEvent.description || location ? (
         <Section>
           {calendarEvent.description ? (
             <DetailField label={t("calendarEvents.fields.description")}>
               {calendarEvent.description}
             </DetailField>
           ) : null}
-          {calendarEvent.location ? (
+          {location ? (
             <DetailField label={t("calendarEvents.fields.location")}>
-              {calendarEvent.location}
+              <View style={styles.locationRow}>
+                <Text
+                  style={[styles.locationText, { color: colors.textPrimary }]}
+                >
+                  {location}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => void openMapsWithAddress(location)}
+                  style={styles.mapIconButton}
+                >
+                  <Ionicons
+                    name="location-outline"
+                    size={22}
+                    color={colors.accent}
+                  />
+                </TouchableOpacity>
+              </View>
             </DetailField>
           ) : null}
         </Section>
@@ -472,6 +490,19 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     marginTop: 2,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  locationText: {
+    flex: 1,
+    fontSize: 16,
+  },
+  mapIconButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   sectionHeader: {
     flexDirection: "row",

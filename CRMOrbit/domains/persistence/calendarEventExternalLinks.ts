@@ -64,3 +64,31 @@ export const listExternalLinksForCalendar = async (
     .from(calendarEventExternalLinks)
     .where(eq(calendarEventExternalLinks.calendarId, calendarId));
 };
+
+export type CalendarEventExternalLinkSyncUpdate = {
+  lastSyncedAt?: string | null;
+  lastExternalModifiedAt?: string | null;
+  updatedAt?: string;
+};
+
+export const updateCalendarEventExternalLinkSyncState = async (
+  db: DrizzleDb,
+  linkId: string,
+  update: CalendarEventExternalLinkSyncUpdate,
+): Promise<void> => {
+  const values: Record<string, string | null> = {
+    updatedAt: update.updatedAt ?? new Date().toISOString(),
+  };
+
+  if (update.lastSyncedAt !== undefined) {
+    values.lastSyncedAt = update.lastSyncedAt;
+  }
+  if (update.lastExternalModifiedAt !== undefined) {
+    values.lastExternalModifiedAt = update.lastExternalModifiedAt;
+  }
+
+  await db
+    .update(calendarEventExternalLinks)
+    .set(values)
+    .where(eq(calendarEventExternalLinks.id, linkId));
+};

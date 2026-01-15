@@ -48,6 +48,13 @@ export type {
   ExternalCalendarImportState,
   UseExternalCalendarImportParams,
 } from "./useExternalCalendarImport";
+export { useExternalCalendarSync } from "./useExternalCalendarSync";
+export type {
+  ExternalCalendarSyncError,
+  ExternalCalendarSyncState,
+  ExternalCalendarSyncSummary,
+  UseExternalCalendarSyncParams,
+} from "./useExternalCalendarSync";
 export { useOrganizationAccountManagement } from "./useOrganizationAccountManagement";
 export type {
   OrganizationAccountManagementState,

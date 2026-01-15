@@ -30,6 +30,7 @@ import {
   useCalendarSync,
   useExternalCalendarSelection,
   useExternalCalendarImport,
+  useExternalCalendarSync,
   useSettingsActions,
 } from "../../hooks";
 import {
@@ -85,6 +86,10 @@ export const CalendarSettingsScreen = () => {
   const externalCalendarImport = useExternalCalendarImport({
     permissionGranted: permission?.granted ?? false,
     accounts,
+    calendarEvents,
+  });
+  const externalCalendarSync = useExternalCalendarSync({
+    permissionGranted: permission?.granted ?? false,
     calendarEvents,
   });
 
@@ -346,6 +351,48 @@ export const CalendarSettingsScreen = () => {
                 })}
               </View>
             )}
+          </FormField>
+          <FormField
+            label={t("calendar.external.syncLabel")}
+            hint={t("calendar.external.syncHint")}
+          >
+            <View style={styles.importActions}>
+              <PrimaryActionButton
+                label={
+                  externalCalendarSync.isSyncing
+                    ? t("calendar.external.syncing")
+                    : t("calendar.external.syncButton")
+                }
+                onPress={() => {
+                  void externalCalendarSync.syncLinkedEvents();
+                }}
+                size="compact"
+                disabled={externalCalendarSync.isSyncing}
+              />
+              {externalCalendarSync.syncError ? (
+                <Text style={[styles.syncHint, { color: colors.error }]}>
+                  {externalCalendarSync.syncError === "permissionDenied"
+                    ? t("calendar.import.permissionRequired")
+                    : externalCalendarSync.syncError === "calendarNotSelected"
+                      ? t("calendar.import.selectCalendar")
+                      : t("calendar.sync.error")}
+                </Text>
+              ) : null}
+              {externalCalendarSync.syncSummary ? (
+                <Text
+                  style={[styles.syncHint, { color: colors.textSecondary }]}
+                >
+                  {t("calendar.external.syncSummary", {
+                    externalToCrm:
+                      externalCalendarSync.syncSummary.externalToCrm,
+                    crmToExternal:
+                      externalCalendarSync.syncSummary.crmToExternal,
+                    unchanged: externalCalendarSync.syncSummary.unchanged,
+                    errors: externalCalendarSync.syncSummary.errors,
+                  })}
+                </Text>
+              ) : null}
+            </View>
           </FormField>
         </Section>
       ) : null}
