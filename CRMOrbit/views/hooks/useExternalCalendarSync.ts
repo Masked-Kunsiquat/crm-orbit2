@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import * as Calendar from "expo-calendar";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
@@ -441,6 +441,7 @@ export const useExternalCalendarSync = ({
   const deviceId = useDeviceId();
   const { dispatch } = useDispatch();
   const [isSyncing, setIsSyncing] = useState(false);
+  const isSyncingRef = useRef(false);
   const [syncError, setSyncError] = useState<ExternalCalendarSyncError | null>(
     null,
   );
@@ -457,11 +458,12 @@ export const useExternalCalendarSync = ({
       setSyncError("permissionDenied");
       return;
     }
-    if (isSyncing) {
+    if (isSyncingRef.current) {
       logger.debug("Sync already in progress; skipping.");
       return;
     }
 
+    isSyncingRef.current = true;
     setIsSyncing(true);
     setSyncError(null);
     setSyncSummary(null);
@@ -538,9 +540,10 @@ export const useExternalCalendarSync = ({
       logger.error("Failed to sync external calendar events.", err);
       setSyncError("syncFailed");
     } finally {
+      isSyncingRef.current = false;
       setIsSyncing(false);
     }
-  }, [calendarEvents, deviceId, dispatch, isSyncing, permissionGranted]);
+  }, [calendarEvents, deviceId, dispatch, permissionGranted]);
 
   return useMemo(
     () => ({

@@ -502,20 +502,19 @@ export const CalendarSettingsScreen = () => {
     () => new Map(accounts.map((account) => [account.id, account])),
     [accounts],
   );
+  const externalCalendars = externalCalendarSelection.calendars;
+  const selectedExternalCalendarId =
+    externalCalendarSelection.selectedCalendarId;
   const selectedExternalCalendar = useMemo(() => {
-    if (!externalCalendarSelection.selectedCalendarId) {
+    if (!selectedExternalCalendarId) {
       return null;
     }
     return (
-      externalCalendarSelection.calendars.find(
-        (calendar) =>
-          calendar.id === externalCalendarSelection.selectedCalendarId,
+      externalCalendars.find(
+        (calendar) => calendar.id === selectedExternalCalendarId,
       ) ?? null
     );
-  }, [
-    externalCalendarSelection.calendars,
-    externalCalendarSelection.selectedCalendarId,
-  ]);
+  }, [externalCalendars, selectedExternalCalendarId]);
   const unknownSourceLabel = t("common.unknown");
   const externalCalendarGroups = useMemo(() => {
     const groups = new Map<
@@ -523,11 +522,11 @@ export const CalendarSettingsScreen = () => {
       {
         key: string;
         label: string;
-        calendars: typeof externalCalendarSelection.calendars;
+        calendars: typeof externalCalendars;
       }
     >();
 
-    externalCalendarSelection.calendars.forEach((calendar) => {
+    externalCalendars.forEach((calendar) => {
       const label = calendar.source?.trim() || unknownSourceLabel;
       const key = label.toLowerCase();
       const group = groups.get(key);
@@ -546,7 +545,7 @@ export const CalendarSettingsScreen = () => {
         ),
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
-  }, [externalCalendarSelection.calendars, unknownSourceLabel]);
+  }, [externalCalendars, unknownSourceLabel]);
 
   const alarmOptions: Array<{ value: AuditAlarmOption; label: string }> = [
     {
@@ -570,20 +569,23 @@ export const CalendarSettingsScreen = () => {
       label: t("calendar.sync.auditAlarmOption.custom"),
     },
   ];
-  const importStatusOptions = [
-    {
-      value: "calendarEvent.status.scheduled" as CalendarEventStatus,
-      label: t("calendarEvent.status.scheduled"),
-    },
-    {
-      value: "calendarEvent.status.completed" as CalendarEventStatus,
-      label: t("calendarEvent.status.completed"),
-    },
-    {
-      value: "calendarEvent.status.canceled" as CalendarEventStatus,
-      label: t("calendarEvent.status.canceled"),
-    },
-  ];
+  const importStatusOptions = useMemo(
+    () => [
+      {
+        value: "calendarEvent.status.scheduled" as CalendarEventStatus,
+        label: t("calendarEvent.status.scheduled"),
+      },
+      {
+        value: "calendarEvent.status.completed" as CalendarEventStatus,
+        label: t("calendarEvent.status.completed"),
+      },
+      {
+        value: "calendarEvent.status.canceled" as CalendarEventStatus,
+        label: t("calendarEvent.status.canceled"),
+      },
+    ],
+    [t],
+  );
   useEffect(() => {
     if (windowHeight > maxWindowHeight) {
       setMaxWindowHeight(windowHeight);

@@ -19,9 +19,9 @@ import {
 } from "./calendarColors";
 
 /**
- * Converts a timestamp string to ISO date format (YYYY-MM-DD)
+ * Converts a timestamp string to a local date key (YYYY-MM-DD)
  */
-export const toISODate = (timestamp?: string): string | null => {
+export const toDateKey = (timestamp?: string): string | null => {
   if (!timestamp) return null;
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return null;
@@ -180,7 +180,7 @@ export const groupAgendaItemsByDate = (
         : item.interaction.occurredAt;
     }
 
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const existing = itemsByDate.get(dateKey) ?? [];
@@ -212,7 +212,7 @@ export const buildMarkedDates = (
   // Mark dates with audits
   for (const audit of audits) {
     const timestamp = getAuditStartTimestamp(audit);
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const status = resolveAuditStatus(audit);
@@ -237,7 +237,7 @@ export const buildMarkedDates = (
     const timestamp = usesScheduledTimestamp
       ? (interaction.scheduledFor ?? interaction.occurredAt)
       : interaction.occurredAt;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const color = getInteractionDotColor(palette, resolvedStatus);
@@ -282,7 +282,7 @@ export const getInitialCalendarDate = (
 
   for (const audit of audits) {
     const timestamp = getAuditStartTimestamp(audit);
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (dateKey) dates.push(dateKey);
   }
 
@@ -293,7 +293,7 @@ export const getInitialCalendarDate = (
     const timestamp = usesScheduledTimestamp
       ? (interaction.scheduledFor ?? interaction.occurredAt)
       : interaction.occurredAt;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (dateKey) dates.push(dateKey);
   }
 
@@ -421,7 +421,7 @@ export const buildMarkedDatesFromCalendarEvents = (
     const timestamp = isCompleted
       ? (event.occurredAt ?? event.scheduledFor)
       : event.scheduledFor;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const color = getCalendarEventDotColor(palette, event.status, event.type);
@@ -468,7 +468,7 @@ export const getInitialCalendarDateFromEvents = (
     const timestamp = isCompleted
       ? (event.occurredAt ?? event.scheduledFor)
       : event.scheduledFor;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (dateKey) dates.push(dateKey);
   }
 

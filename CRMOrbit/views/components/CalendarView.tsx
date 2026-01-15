@@ -13,7 +13,7 @@ import type { CalendarEventAgendaItem } from "../utils/calendarDataTransformers"
 import {
   buildCalendarEventAgendaItem,
   buildMarkedDatesFromCalendarEvents,
-  toISODate,
+  toDateKey,
 } from "../utils/calendarDataTransformers";
 import { resolveCalendarPalette } from "../utils/calendarColors";
 import {
@@ -117,7 +117,7 @@ export const CalendarView = ({
 
   const filteredAgendaItems = useMemo(() => {
     return agendaItems.filter(
-      (item) => toISODate(item.startTimestamp) === selectedDate,
+      (item) => toDateKey(item.startTimestamp) === selectedDate,
     );
   }, [agendaItems, selectedDate]);
 

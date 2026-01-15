@@ -18,7 +18,7 @@ import { buildCalendarTheme } from "../utils/calendarTheme";
 import { addMinutesToTimestamp } from "../utils/duration";
 import {
   buildMarkedDatesFromCalendarEvents,
-  toISODate,
+  toDateKey,
 } from "../utils/calendarDataTransformers";
 import {
   getCalendarEventDotColor,
@@ -107,7 +107,7 @@ export const TimelineView = ({
 
       if (!startTimestamp) continue;
 
-      const dateKey = toISODate(startTimestamp);
+      const dateKey = toDateKey(startTimestamp);
       if (!dateKey) continue;
 
       const endTimestamp =
