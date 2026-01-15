@@ -54,3 +54,13 @@ export const listCalendarEventExternalLinks = async (
     .from(calendarEventExternalLinks)
     .where(eq(calendarEventExternalLinks.calendarEventId, calendarEventId));
 };
+
+export const listExternalLinksForCalendar = async (
+  db: DrizzleDb,
+  calendarId: string,
+): Promise<CalendarEventExternalLinkRecord[]> => {
+  return await db
+    .select()
+    .from(calendarEventExternalLinks)
+    .where(eq(calendarEventExternalLinks.calendarId, calendarId));
+};

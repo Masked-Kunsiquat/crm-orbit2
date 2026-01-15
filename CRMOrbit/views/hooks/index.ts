@@ -43,6 +43,11 @@ export type {
   ExternalCalendarSelectionState,
   UseExternalCalendarSelectionParams,
 } from "./useExternalCalendarSelection";
+export { useExternalCalendarImport } from "./useExternalCalendarImport";
+export type {
+  ExternalCalendarImportState,
+  UseExternalCalendarImportParams,
+} from "./useExternalCalendarImport";
 export { useOrganizationAccountManagement } from "./useOrganizationAccountManagement";
 export type {
   OrganizationAccountManagementState,

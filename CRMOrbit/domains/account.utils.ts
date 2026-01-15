@@ -41,6 +41,8 @@ export const isAccountAuditFrequencyChangeTiming = (
 ): value is AccountAuditFrequencyChangeTiming =>
   typeof value === "string" && value in ACCOUNT_AUDIT_FREQUENCY_CHANGE_TIMINGS;
 
+const normalizeCalendarMatchValue = (value: string): string => value.trim();
+
 const normalizeCalendarMatchAliases = (aliases: unknown): string[] => {
   if (!Array.isArray(aliases)) {
     return [];
@@ -81,6 +83,68 @@ export const isAccountCalendarMatch = (
   value: unknown,
 ): value is AccountCalendarMatch =>
   sanitizeAccountCalendarMatch(value) !== undefined;
+
+const buildDefaultCalendarAliases = (account: Account): string[] => [
+  account.name,
+  `Audit - ${account.name}`,
+];
+
+export const resolveAccountCalendarAliases = (account: Account): string[] => {
+  const base = buildDefaultCalendarAliases(account).map(
+    normalizeCalendarMatchValue,
+  );
+  const extras =
+    sanitizeAccountCalendarMatch(account.calendarMatch)?.aliases ?? [];
+  const unique = new Set<string>();
+  const resolved: string[] = [];
+  for (const alias of [...base, ...extras]) {
+    if (!alias || unique.has(alias)) continue;
+    unique.add(alias);
+    resolved.push(alias);
+  }
+  return resolved;
+};
+
+export const findAccountsMatchingCalendarTitle = (
+  accounts: Account[],
+  title: string,
+): Account[] => {
+  const normalizedTitle = normalizeCalendarMatchValue(title);
+  if (!normalizedTitle) {
+    return [];
+  }
+  return accounts.filter((account) =>
+    resolveAccountCalendarAliases(account).includes(normalizedTitle),
+  );
+};
+
+export const buildAccountCalendarMatchUpdate = (
+  account: Account,
+  title: string,
+): AccountCalendarMatch | undefined => {
+  const normalizedTitle = normalizeCalendarMatchValue(title);
+  if (!normalizedTitle) {
+    return account.calendarMatch;
+  }
+
+  const defaultAliases = buildDefaultCalendarAliases(account).map(
+    normalizeCalendarMatchValue,
+  );
+  if (defaultAliases.includes(normalizedTitle)) {
+    return account.calendarMatch;
+  }
+
+  const sanitized = sanitizeAccountCalendarMatch(account.calendarMatch);
+  const existingAliases = sanitized?.aliases ?? [];
+  if (existingAliases.includes(normalizedTitle)) {
+    return account.calendarMatch ?? sanitized;
+  }
+
+  return {
+    mode: "exact",
+    aliases: [...existingAliases, normalizedTitle],
+  };
+};
 
 const toMonthIndex = (date: Date): number =>
   date.getUTCFullYear() * 12 + date.getUTCMonth();
