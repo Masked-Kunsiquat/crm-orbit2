@@ -569,23 +569,6 @@ export const CalendarSettingsScreen = () => {
       label: t("calendar.sync.auditAlarmOption.custom"),
     },
   ];
-  const importStatusOptions = useMemo(
-    () => [
-      {
-        value: "calendarEvent.status.scheduled" as CalendarEventStatus,
-        label: t("calendarEvent.status.scheduled"),
-      },
-      {
-        value: "calendarEvent.status.completed" as CalendarEventStatus,
-        label: t("calendarEvent.status.completed"),
-      },
-      {
-        value: "calendarEvent.status.canceled" as CalendarEventStatus,
-        label: t("calendarEvent.status.canceled"),
-      },
-    ],
-    [t],
-  );
   useEffect(() => {
     if (windowHeight > maxWindowHeight) {
       setMaxWindowHeight(windowHeight);
@@ -692,21 +675,38 @@ export const CalendarSettingsScreen = () => {
     isImportModalOpen,
   ]);
   const renderImportSlide = useCallback(
-    ({ item }: { item: ExternalCalendarImportCandidate }) => (
-      <ImportCandidateSlide
-        candidate={item}
-        colors={colors}
-        accountsById={accountsById}
-        getSelectedAccountId={getSelectedAccountId}
-        resolveImportDraft={resolveImportDraft}
-        updateImportDraft={updateImportDraft}
-        importStatusOptions={importStatusOptions}
-        onRequestAccountPicker={setAccountPickerCandidateId}
-        onImportCandidate={externalCalendarImport.importCandidate}
-        onClearDraft={clearImportDraft}
-        isImporting={externalCalendarImport.isImporting}
-      />
-    ),
+    ({ item }: { item: ExternalCalendarImportCandidate }) => {
+      const importStatusOptions = [
+        {
+          value: "calendarEvent.status.scheduled" as CalendarEventStatus,
+          label: t("calendarEvent.status.scheduled"),
+        },
+        {
+          value: "calendarEvent.status.completed" as CalendarEventStatus,
+          label: t("calendarEvent.status.completed"),
+        },
+        {
+          value: "calendarEvent.status.canceled" as CalendarEventStatus,
+          label: t("calendarEvent.status.canceled"),
+        },
+      ];
+
+      return (
+        <ImportCandidateSlide
+          candidate={item}
+          colors={colors}
+          accountsById={accountsById}
+          getSelectedAccountId={getSelectedAccountId}
+          resolveImportDraft={resolveImportDraft}
+          updateImportDraft={updateImportDraft}
+          importStatusOptions={importStatusOptions}
+          onRequestAccountPicker={setAccountPickerCandidateId}
+          onImportCandidate={externalCalendarImport.importCandidate}
+          onClearDraft={clearImportDraft}
+          isImporting={externalCalendarImport.isImporting}
+        />
+      );
+    },
     [
       accountsById,
       clearImportDraft,
@@ -714,7 +714,6 @@ export const CalendarSettingsScreen = () => {
       externalCalendarImport.importCandidate,
       externalCalendarImport.isImporting,
       getSelectedAccountId,
-      importStatusOptions,
       resolveImportDraft,
       updateImportDraft,
     ],
