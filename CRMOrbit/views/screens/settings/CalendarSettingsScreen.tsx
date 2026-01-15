@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import * as Calendar from "expo-calendar";
+import { Ionicons } from "@expo/vector-icons";
 
 import { t } from "@i18n/index";
 import {
@@ -67,11 +68,52 @@ export const CalendarSettingsScreen = () => {
     Record<string, string>
   >({});
   const [hasScannedExternal, setHasScannedExternal] = useState(false);
+  const [collapsedExternalGroups, setCollapsedExternalGroups] = useState<
+    Record<string, boolean>
+  >({});
 
   const accountsById = useMemo(
     () => new Map(accounts.map((account) => [account.id, account])),
     [accounts],
   );
+  const unknownSourceLabel = t("common.unknown");
+  const externalCalendarGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      {
+        key: string;
+        label: string;
+        calendars: typeof externalCalendarSelection.calendars;
+      }
+    >();
+
+    externalCalendarSelection.calendars.forEach((calendar) => {
+      const label = calendar.source?.trim() || unknownSourceLabel;
+      const key = label.toLowerCase();
+      const group = groups.get(key);
+      if (group) {
+        group.calendars.push(calendar);
+      } else {
+        groups.set(key, { key, label, calendars: [calendar] });
+      }
+    });
+
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        calendars: [...group.calendars].sort((left, right) =>
+          left.title.localeCompare(right.title),
+        ),
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+  }, [externalCalendarSelection.calendars, unknownSourceLabel]);
+
+  const toggleExternalGroup = useCallback((groupKey: string) => {
+    setCollapsedExternalGroups((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
+  }, []);
 
   const calendarSync = useCalendarSync({
     permissionGranted: permission?.granted ?? false,
@@ -286,67 +328,102 @@ export const CalendarSettingsScreen = () => {
                 {t("calendar.external.empty")}
               </Text>
             ) : (
-              <View style={styles.externalCalendarList}>
-                {externalCalendarSelection.calendars.map((calendar) => {
-                  const isSelected =
-                    calendar.id ===
-                    externalCalendarSelection.selectedCalendarId;
+              <View style={styles.externalCalendarGroups}>
+                {externalCalendarGroups.map((group) => {
+                  const isCollapsed =
+                    collapsedExternalGroups[group.key] ?? false;
                   return (
-                    <Pressable
-                      key={calendar.id}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: isSelected }}
-                      onPress={() => {
-                        if (!isSelected) {
-                          void externalCalendarSelection.selectCalendar(
-                            calendar.id,
-                          );
-                        }
-                      }}
-                      style={({ pressed }) => [
-                        styles.externalCalendarCard,
-                        {
-                          borderColor: isSelected
-                            ? colors.accent
-                            : colors.borderLight,
-                          backgroundColor: colors.surfaceElevated,
-                        },
-                        pressed && styles.paletteCardPressed,
-                      ]}
-                    >
-                      <View style={styles.externalCalendarRow}>
-                        <View style={styles.externalCalendarText}>
+                    <View key={group.key} style={styles.externalCalendarGroup}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{ expanded: !isCollapsed }}
+                        onPress={() => toggleExternalGroup(group.key)}
+                        style={({ pressed }) => [
+                          styles.externalCalendarGroupHeader,
+                          pressed && styles.paletteCardPressed,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.externalCalendarGroupTitle,
+                            { color: colors.textPrimary },
+                          ]}
+                        >
+                          {group.label}
+                        </Text>
+                        <View style={styles.externalCalendarGroupMeta}>
                           <Text
                             style={[
-                              styles.externalCalendarTitle,
-                              { color: colors.textPrimary },
+                              styles.externalCalendarGroupCount,
+                              { color: colors.textSecondary },
                             ]}
                           >
-                            {calendar.title}
+                            {group.calendars.length}
                           </Text>
-                          {calendar.source ? (
-                            <Text
-                              style={[
-                                styles.externalCalendarSubtitle,
-                                { color: colors.textSecondary },
-                              ]}
-                            >
-                              {calendar.source}
-                            </Text>
-                          ) : null}
+                          <Ionicons
+                            name={isCollapsed ? "chevron-down" : "chevron-up"}
+                            size={18}
+                            color={colors.textSecondary}
+                          />
                         </View>
-                        {isSelected ? (
-                          <Text
-                            style={[
-                              styles.externalCalendarBadge,
-                              { color: colors.accent },
-                            ]}
-                          >
-                            {t("calendar.external.selected")}
-                          </Text>
-                        ) : null}
-                      </View>
-                    </Pressable>
+                      </Pressable>
+                      {isCollapsed ? null : (
+                        <View style={styles.externalCalendarList}>
+                          {group.calendars.map((calendar) => {
+                            const isSelected =
+                              calendar.id ===
+                              externalCalendarSelection.selectedCalendarId;
+                            return (
+                              <Pressable
+                                key={calendar.id}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: isSelected }}
+                                onPress={() => {
+                                  if (!isSelected) {
+                                    void externalCalendarSelection.selectCalendar(
+                                      calendar.id,
+                                    );
+                                  }
+                                }}
+                                style={({ pressed }) => [
+                                  styles.externalCalendarCard,
+                                  {
+                                    borderColor: isSelected
+                                      ? colors.accent
+                                      : colors.borderLight,
+                                    backgroundColor: colors.surfaceElevated,
+                                  },
+                                  pressed && styles.paletteCardPressed,
+                                ]}
+                              >
+                                <View style={styles.externalCalendarRow}>
+                                  <View style={styles.externalCalendarText}>
+                                    <Text
+                                      style={[
+                                        styles.externalCalendarTitle,
+                                        { color: colors.textPrimary },
+                                      ]}
+                                    >
+                                      {calendar.title}
+                                    </Text>
+                                  </View>
+                                  {isSelected ? (
+                                    <Text
+                                      style={[
+                                        styles.externalCalendarBadge,
+                                        { color: colors.accent },
+                                      ]}
+                                    >
+                                      {t("calendar.external.selected")}
+                                    </Text>
+                                  ) : null}
+                                </View>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      )}
+                    </View>
                   );
                 })}
               </View>
@@ -789,6 +866,31 @@ const styles = StyleSheet.create({
   },
   externalCalendarList: {
     gap: 10,
+  },
+  externalCalendarGroups: {
+    gap: 16,
+  },
+  externalCalendarGroup: {
+    gap: 10,
+  },
+  externalCalendarGroupHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+  },
+  externalCalendarGroupTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  externalCalendarGroupMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  externalCalendarGroupCount: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   externalCalendarCard: {
     borderRadius: 10,
