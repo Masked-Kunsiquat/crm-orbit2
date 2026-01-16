@@ -11,7 +11,10 @@ import {
 } from "@domains/persistence/database";
 import { loadLatestDeviceId } from "@domains/persistence/deviceId";
 import { loadPersistedState } from "@domains/persistence/loader";
-import { persistExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
+import {
+  commitAndPersistExternalCalendarChanges,
+  syncExternalCalendarLinks,
+} from "./externalCalendarSyncService";
 import { getDeviceIdFromEnv } from "@views/hooks/useDeviceId";
 import { getStoredExternalCalendarId } from "@views/utils/deviceCalendar";
 import {
@@ -20,7 +23,6 @@ import {
   releaseExternalCalendarSyncLock,
   setExternalBackgroundSyncStatus,
 } from "@views/utils/externalCalendarBackground";
-import { syncExternalCalendarLinks } from "./externalCalendarSyncService";
 
 const logger = createLogger("ExternalCalendarBackground");
 const EXTERNAL_CALENDAR_BACKGROUND_TASK = "external-calendar-sync";
@@ -106,7 +108,11 @@ const runExternalCalendarBackgroundSync = async (): Promise<void> => {
       deviceId,
     });
 
-    await persistExternalCalendarChanges(persistenceDb, changes);
+    await commitAndPersistExternalCalendarChanges({
+      changes,
+      commitEvents: async () => undefined,
+      persistenceDb,
+    });
 
     await setExternalBackgroundSyncStatus({
       lastRunAt: new Date().toISOString(),

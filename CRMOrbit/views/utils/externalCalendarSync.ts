@@ -256,13 +256,13 @@ export const buildExternalToCrmEvents = (
     };
 
     if (hasSummaryChange) {
-      payload.summary = trimmedExternalTitle;
+      payload.summary = external.title;
     }
     if (hasDescriptionChange) {
       payload.description = externalDescription;
     }
     if (hasLocationChange) {
-      payload.location = external.location ? external.location.trim() : "";
+      payload.location = external.location ?? "";
     }
     if (hasDurationChange) {
       payload.durationMinutes = externalDurationMinutes;

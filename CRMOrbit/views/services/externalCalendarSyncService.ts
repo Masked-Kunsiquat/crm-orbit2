@@ -2,6 +2,8 @@ import * as Calendar from "expo-calendar";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
 import type { ExternalCalendarChange } from "@domains/externalCalendarSync";
+import type { Event } from "@events/event";
+import { commitExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
 import { getDatabase } from "@domains/persistence/database";
 import {
   deleteCalendarEventExternalLink,
@@ -9,6 +11,7 @@ import {
   updateCalendarEventExternalLinkSyncState,
   type CalendarEventExternalLinkRecord,
 } from "@domains/persistence/calendarEventExternalLinks";
+import { appendEvents, type PersistenceDb } from "@domains/persistence/store";
 import { createLogger } from "@utils/logger";
 import {
   buildCrmToExternalUpdate,
@@ -248,4 +251,30 @@ export const syncExternalCalendarLinks = async ({
 
   logger.info("External linked event sync completed.", summary);
   return { summary, changes };
+};
+
+export type ExternalCalendarChangeCommitter = (
+  events: Event[],
+) => Promise<void>;
+
+export const commitAndPersistExternalCalendarChanges = async ({
+  changes,
+  commitEvents,
+  persistenceDb,
+}: {
+  changes: ExternalCalendarChange[];
+  commitEvents: ExternalCalendarChangeCommitter;
+  persistenceDb?: PersistenceDb;
+}): Promise<Event[]> => {
+  const events = commitExternalCalendarChanges(changes);
+  if (events.length === 0) {
+    return [];
+  }
+
+  await commitEvents(events);
+  if (persistenceDb) {
+    await appendEvents(persistenceDb, events);
+  }
+
+  return events;
 };

@@ -3,6 +3,7 @@ import { StyleSheet, Text } from "react-native";
 import { PrimaryActionButton, Section } from "@views/components";
 import { useAccountActions, useDeviceId, useTheme } from "@views/hooks";
 import { useAccounts, useOrganizations } from "@views/store/store";
+import { t } from "@i18n/index";
 
 export const AccountsScreen = () => {
   const organizations = useOrganizations();
@@ -35,12 +36,12 @@ export const AccountsScreen = () => {
       />
       {organizations.length === 0 ? (
         <Text style={[styles.hint, { color: colors.warning }]}>
-          Add an organization first.
+          {t("accounts.emptyOrganizationHint")}
         </Text>
       ) : null}
       {accounts.length === 0 ? (
         <Text style={[styles.empty, { color: colors.textMuted }]}>
-          No accounts yet.
+          {t("accounts.emptyTitle")}
         </Text>
       ) : (
         accounts.map((account) => (

@@ -166,8 +166,6 @@ const applyAppearanceSettingsUpdated = (
     palette: nextAppearance.palette,
   };
 
-  logger.info("Appearance settings updated", nextAppearance);
-
   return {
     ...doc,
     settings: {

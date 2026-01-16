@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 
 import type { EventLogRecord, PersistenceDb } from "@domains/persistence/store";
-import { persistExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
+import { commitExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
 import type { ExternalCalendarChange } from "@domains/externalCalendarSync";
+import { commitAndPersistExternalCalendarChanges } from "@views/services/externalCalendarSyncService";
 
 const createPersistenceDb = () => {
   let inserted: EventLogRecord[] | undefined;
@@ -32,7 +33,30 @@ const createPersistenceDb = () => {
   };
 };
 
-test("persistExternalCalendarChanges writes event log records", async () => {
+test("commitExternalCalendarChanges maps changes into events", () => {
+  const changes: ExternalCalendarChange[] = [
+    {
+      type: "calendarEvent.updated",
+      entityId: "calendar-1",
+      payload: { id: "calendar-1", summary: "Updated" },
+      timestamp: "2026-02-01T10:00:00.000Z",
+      deviceId: "device-1",
+    },
+  ];
+
+  const events = commitExternalCalendarChanges(changes);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0]?.type, "calendarEvent.updated");
+  assert.equal(events[0]?.entityId, "calendar-1");
+  assert.equal(events[0]?.deviceId, "device-1");
+  assert.deepEqual(events[0]?.payload, {
+    id: "calendar-1",
+    summary: "Updated",
+  });
+});
+
+test("commitAndPersistExternalCalendarChanges persists event log records", async () => {
   const { db, getInserted } = createPersistenceDb();
   const changes: ExternalCalendarChange[] = [
     {
@@ -44,9 +68,26 @@ test("persistExternalCalendarChanges writes event log records", async () => {
     },
   ];
 
-  const events = await persistExternalCalendarChanges(db, changes);
+  let committed: EventLogRecord[] | null = null;
+  const events = await commitAndPersistExternalCalendarChanges({
+    changes,
+    commitEvents: async (nextEvents) => {
+      committed = nextEvents.map((event) => ({
+        id: event.id,
+        type: event.type,
+        entityId: event.entityId ?? null,
+        payload: JSON.stringify(event.payload),
+        timestamp: event.timestamp,
+        deviceId: event.deviceId,
+      }));
+    },
+    persistenceDb: db,
+  });
 
   assert.equal(events.length, 1);
+  assert.ok(committed);
+  assert.equal(committed.length, 1);
+  assert.equal(committed[0]?.type, "calendarEvent.updated");
   const inserted = getInserted();
   assert.ok(inserted);
   assert.equal(inserted.length, 1);
@@ -59,10 +100,14 @@ test("persistExternalCalendarChanges writes event log records", async () => {
   });
 });
 
-test("persistExternalCalendarChanges skips persistence when empty", async () => {
+test("commitAndPersistExternalCalendarChanges skips persistence when empty", async () => {
   const { db, getInserted } = createPersistenceDb();
 
-  const events = await persistExternalCalendarChanges(db, []);
+  const events = await commitAndPersistExternalCalendarChanges({
+    changes: [],
+    commitEvents: async () => undefined,
+    persistenceDb: db,
+  });
 
   assert.equal(events.length, 0);
   assert.equal(getInserted(), undefined);

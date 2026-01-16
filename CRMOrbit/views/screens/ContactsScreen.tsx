@@ -4,6 +4,7 @@ import { PrimaryActionButton, Section } from "@views/components";
 import { useContactActions, useDeviceId, useTheme } from "@views/hooks";
 import { useAccounts, useAllContacts } from "@views/store/store";
 import { nextId } from "@domains/shared/idGenerator";
+import { t } from "@i18n/index";
 
 export const ContactsScreen = () => {
   const accounts = useAccounts();
@@ -56,7 +57,7 @@ export const ContactsScreen = () => {
       <PrimaryActionButton label="Add contact" onPress={handleAddContact} />
       {allContacts.length === 0 ? (
         <Text style={[styles.empty, { color: colors.textMuted }]}>
-          No contacts yet.
+          {t("contacts.emptyTitle")}
         </Text>
       ) : (
         allContacts.map((contact) => (

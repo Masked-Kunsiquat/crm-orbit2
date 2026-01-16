@@ -20,76 +20,77 @@ export type ExternalCalendarBackgroundSyncState = {
   toggleEnabled: (nextEnabled: boolean) => Promise<void>;
 };
 
-export const useExternalCalendarBackgroundSync =
-  (): ExternalCalendarBackgroundSyncState => {
-    const [enabled, setEnabled] = useState(false);
-    const [status, setStatus] = useState<ExternalBackgroundSyncStatus>({
-      lastRunAt: null,
-      lastOutcome: null,
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const [hasError, setHasError] = useState(false);
-    const latestToggleRequestId = useRef(0);
+export const useExternalCalendarBackgroundSync = (
+  deviceId: string,
+): ExternalCalendarBackgroundSyncState => {
+  const [enabled, setEnabled] = useState(false);
+  const [status, setStatus] = useState<ExternalBackgroundSyncStatus>({
+    lastRunAt: null,
+    lastOutcome: null,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const latestToggleRequestId = useRef(0);
 
-    const loadState = useCallback(async () => {
-      setIsLoading(true);
+  const loadState = useCallback(async () => {
+    setIsLoading(true);
+    setHasError(false);
+    try {
+      const [nextEnabled, nextStatus] = await Promise.all([
+        getExternalBackgroundSyncEnabled(),
+        getExternalBackgroundSyncStatus(),
+      ]);
+      setEnabled(nextEnabled);
+      setStatus(nextStatus);
+    } catch (error) {
+      logger.error("Failed to load background sync state.", error);
+      setHasError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!deviceId) {
+      return;
+    }
+    void loadState();
+  }, [deviceId, loadState]);
+
+  const toggleEnabled = useCallback(
+    async (nextEnabled: boolean) => {
+      const requestId = latestToggleRequestId.current + 1;
+      latestToggleRequestId.current = requestId;
+      const previous = enabled;
+      setEnabled(nextEnabled);
       setHasError(false);
       try {
-        const [nextEnabled, nextStatus] = await Promise.all([
-          getExternalBackgroundSyncEnabled(),
-          getExternalBackgroundSyncStatus(),
-        ]);
-        setEnabled(nextEnabled);
-        setStatus(nextStatus);
+        await setExternalBackgroundSyncEnabled(nextEnabled);
+        await ensureExternalCalendarBackgroundSync().catch((error) => {
+          logger.error("Failed to ensure background sync registration.", error);
+          throw error;
+        });
       } catch (error) {
-        logger.error("Failed to load background sync state.", error);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }, []);
-
-    useEffect(() => {
-      void loadState();
-    }, [loadState]);
-
-    const toggleEnabled = useCallback(
-      async (nextEnabled: boolean) => {
-        const requestId = latestToggleRequestId.current + 1;
-        latestToggleRequestId.current = requestId;
-        const previous = enabled;
-        setEnabled(nextEnabled);
-        setHasError(false);
-        try {
-          await setExternalBackgroundSyncEnabled(nextEnabled);
-          await ensureExternalCalendarBackgroundSync().catch((error) => {
-            logger.error(
-              "Failed to ensure background sync registration.",
-              error,
-            );
-            throw error;
-          });
-        } catch (error) {
-          logger.error("Failed to toggle background sync.", error);
-          if (requestId !== latestToggleRequestId.current) {
-            return;
-          }
-          setEnabled(previous);
-          setHasError(true);
+        logger.error("Failed to toggle background sync.", error);
+        if (requestId !== latestToggleRequestId.current) {
+          return;
         }
-      },
-      [enabled],
-    );
+        setEnabled(previous);
+        setHasError(true);
+      }
+    },
+    [enabled],
+  );
 
-    return useMemo(
-      () => ({
-        enabled,
-        status,
-        isLoading,
-        hasError,
-        refreshStatus: loadState,
-        toggleEnabled,
-      }),
-      [enabled, status, isLoading, hasError, loadState, toggleEnabled],
-    );
-  };
+  return useMemo(
+    () => ({
+      enabled,
+      status,
+      isLoading,
+      hasError,
+      refreshStatus: loadState,
+      toggleEnabled,
+    }),
+    [enabled, status, isLoading, hasError, loadState, toggleEnabled],
+  );
+};

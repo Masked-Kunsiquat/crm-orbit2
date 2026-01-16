@@ -4,6 +4,7 @@
   "accounts.sameAsSiteAddress": "Same as site address",
   "accounts.emptyTitle": "No accounts yet.",
   "accounts.emptyHint": "Create your first account to get started.",
+  "accounts.emptyOrganizationHint": "Add an organization first.",
   "accounts.includeInactiveHint": "Tap the menu to include inactive",
   "accounts.menuIncludeInactive": "Include inactive",
   "accounts.menuHideInactive": "Hide inactive",

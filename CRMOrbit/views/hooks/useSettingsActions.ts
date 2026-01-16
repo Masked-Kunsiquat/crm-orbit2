@@ -11,6 +11,7 @@ import type {
 import type { AppPaletteId } from "../../domains/shared/theme/colors";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
+import { createLogger } from "@utils/logger";
 
 type SecuritySettingsUpdate = {
   biometricAuth?: SecurityBiometricSetting;
@@ -29,6 +30,7 @@ type AppearanceSettingsUpdate = {
 
 export const useSettingsActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
+  const logger = createLogger("SettingsActions");
 
   const updateSecuritySettings = useCallback(
     (updates: SecuritySettingsUpdate): DispatchResult => {
@@ -58,6 +60,7 @@ export const useSettingsActions = (deviceId: string) => {
 
   const updateAppearanceSettings = useCallback(
     (updates: AppearanceSettingsUpdate): DispatchResult => {
+      logger.info("Appearance settings update requested", updates);
       const event = buildEvent({
         type: "settings.appearance.updated",
         payload: updates,
@@ -66,7 +69,7 @@ export const useSettingsActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch],
+    [deviceId, dispatch, logger],
   );
 
   return {
