@@ -1,22 +1,34 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 
 import { t } from "@i18n/index";
-import {
-  FormField,
-  FormScreenLayout,
-  SegmentedOptionGroup,
-} from "../../components";
+import { FormField, FormScreenLayout } from "../../components";
 import { useDeviceId, useTheme } from "../../hooks";
 import { useSettingsActions } from "../../hooks/useSettingsActions";
 import { useAppearanceSettings } from "../../store/store";
 import { APP_PALETTES } from "@domains/shared/theme/colors";
 import { APP_PALETTE_I18N_KEYS } from "@i18n/enums";
+import type { AppearanceThemeMode } from "@domains/settings";
 
 export const AppearanceSettingsScreen = () => {
   const deviceId = useDeviceId();
   const { colors, isDark } = useTheme();
   const appearance = useAppearanceSettings();
   const { updateAppearanceSettings } = useSettingsActions(deviceId);
+  const modeOptions: { value: AppearanceThemeMode; label: string }[] = [
+    {
+      value: "system",
+      label: t("settings.appearance.mode.system"),
+    },
+    {
+      value: "light",
+      label: t("settings.appearance.mode.light"),
+    },
+    {
+      value: "dark",
+      label: t("settings.appearance.mode.dark"),
+    },
+  ];
 
   const paletteOptions = Object.values(APP_PALETTES).map((palette) => {
     const preview = isDark ? palette.dark : palette.light;
@@ -30,23 +42,33 @@ export const AppearanceSettingsScreen = () => {
   return (
     <FormScreenLayout>
       <FormField label={t("settings.appearance.mode.label")}>
-        <SegmentedOptionGroup
-          options={[
-            {
-              value: "system",
-              label: t("settings.appearance.mode.system"),
-            },
-            {
-              value: "light",
-              label: t("settings.appearance.mode.light"),
-            },
-            {
-              value: "dark",
-              label: t("settings.appearance.mode.dark"),
-            },
-          ]}
-          value={appearance.mode}
-          onChange={(value) => updateAppearanceSettings({ mode: value })}
+        <SegmentedControl
+          values={modeOptions.map((option) => option.label)}
+          selectedIndex={Math.max(
+            0,
+            modeOptions.findIndex((option) => option.value === appearance.mode),
+          )}
+          onChange={(event) => {
+            const nextIndex = event.nativeEvent.selectedSegmentIndex;
+            const nextValue =
+              modeOptions[nextIndex]?.value ?? modeOptions[0].value;
+            updateAppearanceSettings({ mode: nextValue });
+          }}
+          tintColor={colors.accent}
+          backgroundColor={colors.surface}
+          fontStyle={{
+            color: colors.textSecondary,
+            fontSize: 12,
+            fontWeight: "600",
+          }}
+          activeFontStyle={{
+            color: colors.onAccent,
+            fontSize: 12,
+            fontWeight: "600",
+          }}
+          style={styles.segmentedControl}
+          tabStyle={styles.segmentedTab}
+          sliderStyle={{ backgroundColor: colors.accent }}
         />
       </FormField>
 
@@ -93,24 +115,6 @@ export const AppearanceSettingsScreen = () => {
                       },
                     ]}
                   />
-                  <View
-                    style={[
-                      styles.swatch,
-                      {
-                        backgroundColor: palette.preview.surface,
-                        borderColor: colors.borderLight,
-                      },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.swatch,
-                      {
-                        backgroundColor: palette.preview.textPrimary,
-                        borderColor: colors.borderLight,
-                      },
-                    ]}
-                  />
                 </View>
               </Pressable>
             );
@@ -122,6 +126,12 @@ export const AppearanceSettingsScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  segmentedControl: {
+    minHeight: 36,
+  },
+  segmentedTab: {
+    paddingVertical: 6,
+  },
   paletteList: {
     gap: 12,
   },
@@ -129,6 +139,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   paletteCardPressed: {
     opacity: 0.9,
@@ -136,16 +149,16 @@ const styles = StyleSheet.create({
   paletteLabel: {
     fontSize: 15,
     fontWeight: "600",
-    marginBottom: 8,
+    flex: 1,
+    marginRight: 12,
   },
   swatchRow: {
     flexDirection: "row",
-    gap: 8,
   },
   swatch: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     borderWidth: 1,
   },
 });
