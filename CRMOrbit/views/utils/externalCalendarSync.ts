@@ -120,7 +120,7 @@ export const resolveSyncDirection = (
     if (externalModifiedAt && crmUpdatedAt > externalModifiedAt) {
       return "crmToExternal";
     }
-    return "noop";
+    return "crmToExternal";
   }
   if (externalChanged) {
     return "externalToCrm";

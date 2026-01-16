@@ -13,6 +13,8 @@ import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 import { createLogger } from "@utils/logger";
 
+const logger = createLogger("SettingsActions");
+
 type SecuritySettingsUpdate = {
   biometricAuth?: SecurityBiometricSetting;
   blurTimeout?: SecurityBlurTimeout;
@@ -30,7 +32,6 @@ type AppearanceSettingsUpdate = {
 
 export const useSettingsActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
-  const logger = createLogger("SettingsActions");
 
   const updateSecuritySettings = useCallback(
     (updates: SecuritySettingsUpdate): DispatchResult => {
@@ -69,7 +70,7 @@ export const useSettingsActions = (deviceId: string) => {
 
       return dispatch([event]);
     },
-    [deviceId, dispatch, logger],
+    [deviceId, dispatch],
   );
 
   return {
