@@ -40,6 +40,7 @@ import {
   useTheme,
   useCalendarSync,
   useConfirmDialog,
+  useExternalCalendarBackgroundSync,
   useExternalCalendarSelection,
   useExternalCalendarImport,
   useExternalCalendarSync,
@@ -498,6 +499,7 @@ export const CalendarSettingsScreen = () => {
   const externalCalendarSelection = useExternalCalendarSelection({
     permissionGranted: permission?.granted ?? false,
   });
+  const externalCalendarBackgroundSync = useExternalCalendarBackgroundSync();
   const externalCalendarImport = useExternalCalendarImport({
     permissionGranted: permission?.granted ?? false,
     accounts,
@@ -578,6 +580,34 @@ export const CalendarSettingsScreen = () => {
       label: t("calendar.sync.auditAlarmOption.custom"),
     },
   ];
+  const backgroundSyncOptions = [
+    {
+      value: "enabled",
+      label: t("calendar.external.backgroundOn"),
+    },
+    {
+      value: "disabled",
+      label: t("calendar.external.backgroundOff"),
+    },
+  ];
+  const backgroundSyncValue = externalCalendarBackgroundSync.enabled
+    ? "enabled"
+    : "disabled";
+  const backgroundSyncStatus = externalCalendarBackgroundSync.status.lastOutcome
+    ? t(
+        `calendar.external.backgroundStatus.${externalCalendarBackgroundSync.status.lastOutcome}`,
+      )
+    : t("calendar.external.backgroundNotSynced");
+  const backgroundSyncStatusMessage = externalCalendarBackgroundSync.status
+    .lastRunAt
+    ? t("calendar.external.backgroundLastRun", {
+        time: formatTimestamp(
+          externalCalendarBackgroundSync.status.lastRunAt,
+          t("calendar.external.backgroundNotSynced"),
+        ),
+        status: backgroundSyncStatus,
+      })
+    : backgroundSyncStatus;
   useEffect(() => {
     if (windowHeight > maxWindowHeight) {
       setMaxWindowHeight(windowHeight);
@@ -1052,6 +1082,30 @@ export const CalendarSettingsScreen = () => {
                   })}
                 </Text>
               ) : null}
+            </View>
+          </FormField>
+          <FormField
+            label={t("calendar.external.backgroundLabel")}
+            hint={t("calendar.external.backgroundHint")}
+          >
+            <View style={styles.importActions}>
+              <SegmentedOptionGroup
+                options={backgroundSyncOptions}
+                value={backgroundSyncValue}
+                onChange={(value) => {
+                  void externalCalendarBackgroundSync.toggleEnabled(
+                    value === "enabled",
+                  );
+                }}
+              />
+              {externalCalendarBackgroundSync.hasError ? (
+                <Text style={[styles.syncHint, { color: colors.error }]}>
+                  {t("calendar.external.backgroundToggleError")}
+                </Text>
+              ) : null}
+              <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
+                {backgroundSyncStatusMessage}
+              </Text>
             </View>
           </FormField>
         </Section>

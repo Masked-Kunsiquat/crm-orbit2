@@ -28,6 +28,7 @@ export {
   useContactImportLabels,
 } from "./useContactsLabels";
 export { useContactImport } from "./useContactImport";
+export { useConfirmDialog } from "./useConfirmDialog";
 export { useSettingsListLabels, useMiscStackTitles } from "./useSettingsLabels";
 export { useHeaderMenu } from "./useHeaderMenu";
 export { useInactiveFilter } from "./useInactiveFilter";
@@ -49,6 +50,8 @@ export type {
   ExternalCalendarImportDetails,
   UseExternalCalendarImportParams,
 } from "./useExternalCalendarImport";
+export { useExternalCalendarBackgroundSync } from "./useExternalCalendarBackgroundSync";
+export type { ExternalCalendarBackgroundSyncState } from "./useExternalCalendarBackgroundSync";
 export { useExternalCalendarSync } from "./useExternalCalendarSync";
 export type {
   ExternalCalendarSyncError,
