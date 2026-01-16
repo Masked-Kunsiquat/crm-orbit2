@@ -37,6 +37,9 @@ export interface MigrationReport extends MigrationResult {
   events: Event[]; // Events generated during migration for persistence
 }
 
+const sanitizeCalendarEvent = (event: CalendarEvent): CalendarEvent =>
+  JSON.parse(JSON.stringify(event)) as CalendarEvent;
+
 /**
  * Migrates Interaction and Audit entities to unified CalendarEvent model.
  *
@@ -55,6 +58,10 @@ export const migrateToCalendarEvents = (
   deviceId: string,
 ): { doc: AutomergeDoc; report: MigrationReport } => {
   let report: MigrationReport | null = null;
+  const sourceDoc = JSON.parse(JSON.stringify(doc)) as AutomergeDoc;
+  const interactionEntries = Object.entries(sourceDoc.interactions || {});
+  const auditEntries = Object.entries(sourceDoc.audits || {});
+  const linkEntries = Object.entries(sourceDoc.relations?.entityLinks || {});
   const updatedDoc = Automerge.change(ensureAutomergeDoc(doc), (draft) => {
     const result: MigrationReport = {
       success: true,
@@ -71,17 +78,19 @@ export const migrateToCalendarEvents = (
 
     try {
       // Step 1: Migrate interactions to calendar events
-      for (const [id, interaction] of Object.entries(
-        migrationDoc.interactions || {},
-      )) {
+      for (const [id, interaction] of interactionEntries) {
         try {
+          if (!interaction.id || interaction.id !== id) {
+            throw new Error(`Invalid interaction id for ${id}`);
+          }
           // Skip if already migrated
           if (migrationDoc.calendarEvents[id]) {
             continue;
           }
 
           const calendarEvent = migrateInteractionToCalendarEvent(interaction);
-          migrationDoc.calendarEvents[id] = calendarEvent;
+          migrationDoc.calendarEvents[id] =
+            sanitizeCalendarEvent(calendarEvent);
           result.migratedInteractions++;
           result.interactionIds.push(id);
 
@@ -103,15 +112,19 @@ export const migrateToCalendarEvents = (
       }
 
       // Step 2: Migrate audits to calendar events
-      for (const [id, audit] of Object.entries(migrationDoc.audits || {})) {
+      for (const [id, audit] of auditEntries) {
         try {
+          if (!audit.id || audit.id !== id) {
+            throw new Error(`Invalid audit id for ${id}`);
+          }
           // Skip if already migrated
           if (migrationDoc.calendarEvents[id]) {
             continue;
           }
 
           const calendarEvent = migrateAuditToCalendarEvent(audit);
-          migrationDoc.calendarEvents[id] = calendarEvent;
+          migrationDoc.calendarEvents[id] =
+            sanitizeCalendarEvent(calendarEvent);
           result.migratedAudits++;
           result.auditIds.push(id);
 
@@ -133,10 +146,12 @@ export const migrateToCalendarEvents = (
       }
 
       // Step 3: Migrate entity links
-      for (const [linkId, link] of Object.entries(
-        migrationDoc.relations.entityLinks || {},
-      )) {
+      for (const [linkId, link] of linkEntries) {
         try {
+          const draftLink = migrationDoc.relations.entityLinks[linkId];
+          if (!draftLink) {
+            continue;
+          }
           // Skip if not an interaction link
           if (link.linkType !== "interaction" || !link.interactionId) {
             continue;
@@ -157,8 +172,8 @@ export const migrateToCalendarEvents = (
           }
 
           // Update link to use calendarEventId
-          link.linkType = "calendarEvent";
-          link.calendarEventId = calendarEventId;
+          draftLink.linkType = "calendarEvent";
+          draftLink.calendarEventId = calendarEventId;
           result.migratedLinks++;
           result.linkIds.push(linkId);
         } catch (error) {
@@ -388,7 +403,7 @@ export const validateMigration = (
   );
   if (orphanedLinks.length > 0) {
     issues.push(
-      `Found ${orphanedLinks.length} calendar event links referencing non-existent events`,
+      `Found ${orphanedLinks.length} orphaned calendar event links referencing non-existent events`,
     );
   }
 
