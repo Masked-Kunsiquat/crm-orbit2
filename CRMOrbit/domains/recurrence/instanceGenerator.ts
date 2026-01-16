@@ -182,10 +182,11 @@ export const generateRecurrenceInstances = (
 
       while (weekStart <= rangeEndDate && generatedCount < maxCount) {
         for (const day of resolvedWeekDays) {
+          const occurrenceDate = addDaysUtc(weekStart, day);
           const occurrence = createUtcDate(
-            weekStart.getUTCFullYear(),
-            weekStart.getUTCMonth(),
-            weekStart.getUTCDate() + day,
+            occurrenceDate.getUTCFullYear(),
+            occurrenceDate.getUTCMonth(),
+            occurrenceDate.getUTCDate(),
             timeParts,
           );
           if (!occurrence) continue;
