@@ -2,7 +2,7 @@ import * as Calendar from "expo-calendar";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Timestamp } from "@domains/shared/types";
-import { buildEvent } from "@events/dispatcher";
+import type { EventType } from "@events/eventTypes";
 import {
   buildExternalEventNotes,
   stripCrmOrbitMetadataFromNotes,
@@ -20,6 +20,14 @@ export type ExternalCalendarSnapshot = {
   startDate: Date;
   endDate: Date;
   lastModifiedAt: Date | null;
+};
+
+export type ExternalCalendarChange = {
+  type: EventType;
+  entityId: string;
+  payload: Record<string, unknown>;
+  timestamp: Timestamp;
+  deviceId: string;
 };
 
 export const parseIsoTimestamp = (
@@ -114,7 +122,13 @@ export const resolveSyncDirection = (
     : false;
 
   if (crmChanged && externalChanged) {
-    return "crmToExternal";
+    if (externalModifiedAt && externalModifiedAt > crmUpdatedAt) {
+      return "externalToCrm";
+    }
+    if (externalModifiedAt && crmUpdatedAt > externalModifiedAt) {
+      return "crmToExternal";
+    }
+    return "noop";
   }
   if (externalChanged) {
     return "externalToCrm";
@@ -180,17 +194,17 @@ export const buildExternalToCrmEvents = (
   external: ExternalCalendarSnapshot,
   deviceId: string,
   timestamp: Timestamp,
-) => {
+): ExternalCalendarChange[] => {
   if (external.status === Calendar.EventStatus.CANCELED) {
     if (calendarEvent.status !== "calendarEvent.status.canceled") {
       return [
-        buildEvent({
+        {
           type: "calendarEvent.canceled",
           entityId: calendarEvent.id,
           payload: { id: calendarEvent.id },
           timestamp,
           deviceId,
-        }),
+        },
       ];
     }
     return [];
@@ -200,18 +214,16 @@ export const buildExternalToCrmEvents = (
   const internalStart = parseIsoTimestamp(calendarEvent.scheduledFor);
 
   if (internalStart && !timestampsEqual(internalStart, external.startDate)) {
-    events.push(
-      buildEvent({
-        type: "calendarEvent.rescheduled",
-        entityId: calendarEvent.id,
-        payload: {
-          id: calendarEvent.id,
-          scheduledFor: external.startDate.toISOString(),
-        },
-        timestamp,
-        deviceId,
-      }),
-    );
+    events.push({
+      type: "calendarEvent.rescheduled",
+      entityId: calendarEvent.id,
+      payload: {
+        id: calendarEvent.id,
+        scheduledFor: external.startDate.toISOString(),
+      },
+      timestamp,
+      deviceId,
+    });
   }
 
   const externalDurationMinutes = resolveExternalDurationMinutes(
@@ -257,15 +269,13 @@ export const buildExternalToCrmEvents = (
       payload.durationMinutes = externalDurationMinutes;
     }
 
-    events.push(
-      buildEvent({
-        type: "calendarEvent.updated",
-        entityId: calendarEvent.id,
-        payload,
-        timestamp,
-        deviceId,
-      }),
-    );
+    events.push({
+      type: "calendarEvent.updated",
+      entityId: calendarEvent.id,
+      payload,
+      timestamp,
+      deviceId,
+    });
   }
 
   return events;

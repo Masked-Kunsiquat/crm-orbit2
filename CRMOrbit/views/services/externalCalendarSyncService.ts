@@ -9,6 +9,7 @@ import {
   type CalendarEventExternalLinkRecord,
 } from "@domains/persistence/calendarEventExternalLinks";
 import type { Event } from "@events/event";
+import { buildEvent } from "@events/dispatcher";
 import { createLogger } from "@utils/logger";
 import {
   buildCrmToExternalUpdate,
@@ -113,14 +114,23 @@ const syncLink = async ({
 
   if (direction === "externalToCrm") {
     const eventTimestamp = externalModifiedAt?.toISOString() ?? syncTimestamp;
-    const events = buildExternalToCrmEvents(
+    const changes = buildExternalToCrmEvents(
       calendarEvent,
       snapshot,
       deviceId,
       eventTimestamp,
     );
 
-    if (events.length > 0) {
+    if (changes.length > 0) {
+      const events = changes.map((change) =>
+        buildEvent({
+          type: change.type,
+          entityId: change.entityId,
+          payload: change.payload,
+          timestamp: change.timestamp,
+          deviceId: change.deviceId,
+        }),
+      );
       await commitEvents(events);
     }
 
@@ -133,8 +143,8 @@ const syncLink = async ({
 
     return {
       crmToExternal: false,
-      externalToCrm: events.length > 0,
-      unchanged: events.length === 0,
+      externalToCrm: changes.length > 0,
+      unchanged: changes.length === 0,
     };
   }
 

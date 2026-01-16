@@ -22,8 +22,10 @@ import { RootStack } from "./views/navigation";
 import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
 import { ensureExternalCalendarBackgroundSync } from "./views/services/externalCalendarBackgroundTask";
 import { nextId } from "./domains/shared/idGenerator";
+import { createLogger } from "@utils/logger";
 
 registerCoreReducers();
+const logger = createLogger("App");
 
 /**
  * Root application component that initializes persistence, hydrates the CRM store, and renders navigation or an error/loading UI.
@@ -94,7 +96,12 @@ export default function App() {
         store.getState().setEvents(events);
 
         setIsLoading(false);
-        void ensureExternalCalendarBackgroundSync();
+        ensureExternalCalendarBackgroundSync().catch((error) => {
+          logger.error(
+            "Failed to ensure external calendar background sync.",
+            error,
+          );
+        });
       } catch (err) {
         console.error("Failed to load data:", err);
         setError(err instanceof Error ? err.message : "Failed to load data");

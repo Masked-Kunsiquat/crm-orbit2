@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createLogger } from "@utils/logger";
 import {
@@ -29,6 +29,7 @@ export const useExternalCalendarBackgroundSync =
     });
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
+    const latestToggleRequestId = useRef(0);
 
     const loadState = useCallback(async () => {
       setIsLoading(true);
@@ -54,14 +55,25 @@ export const useExternalCalendarBackgroundSync =
 
     const toggleEnabled = useCallback(
       async (nextEnabled: boolean) => {
+        const requestId = latestToggleRequestId.current + 1;
+        latestToggleRequestId.current = requestId;
         const previous = enabled;
         setEnabled(nextEnabled);
         setHasError(false);
         try {
           await setExternalBackgroundSyncEnabled(nextEnabled);
-          await ensureExternalCalendarBackgroundSync();
+          await ensureExternalCalendarBackgroundSync().catch((error) => {
+            logger.error(
+              "Failed to ensure background sync registration.",
+              error,
+            );
+            throw error;
+          });
         } catch (error) {
           logger.error("Failed to toggle background sync.", error);
+          if (requestId !== latestToggleRequestId.current) {
+            return;
+          }
           setEnabled(previous);
           setHasError(true);
         }

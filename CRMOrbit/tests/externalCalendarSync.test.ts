@@ -41,16 +41,16 @@ test("buildExternalToCrmEvents emits canceled when external cancels", () => {
     status: Calendar.EventStatus.CANCELED,
   });
 
-  const events = buildExternalToCrmEvents(
+  const changes = buildExternalToCrmEvents(
     calendarEvent,
     external,
     "device-1",
     "2026-01-10T09:30:00.000Z",
   );
 
-  assert.equal(events.length, 1);
-  assert.equal(events[0]?.type, "calendarEvent.canceled");
-  assert.deepEqual(events[0]?.payload, { id: calendarEvent.id });
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0]?.type, "calendarEvent.canceled");
+  assert.deepEqual(changes[0]?.payload, { id: calendarEvent.id });
 });
 
 test("buildExternalToCrmEvents emits reschedule events for time changes", () => {
@@ -60,16 +60,16 @@ test("buildExternalToCrmEvents emits reschedule events for time changes", () => 
     endDate: new Date("2026-01-10T13:00:00.000Z"),
   });
 
-  const events = buildExternalToCrmEvents(
+  const changes = buildExternalToCrmEvents(
     calendarEvent,
     external,
     "device-1",
     "2026-01-10T11:30:00.000Z",
   );
 
-  assert.equal(events.length, 1);
-  assert.equal(events[0]?.type, "calendarEvent.rescheduled");
-  assert.deepEqual(events[0]?.payload, {
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0]?.type, "calendarEvent.rescheduled");
+  assert.deepEqual(changes[0]?.payload, {
     id: calendarEvent.id,
     scheduledFor: "2026-01-10T12:00:00.000Z",
   });
@@ -84,16 +84,16 @@ test("buildExternalToCrmEvents emits updates for content changes", () => {
     endDate: new Date("2026-01-10T11:30:00.000Z"),
   });
 
-  const events = buildExternalToCrmEvents(
+  const changes = buildExternalToCrmEvents(
     calendarEvent,
     external,
     "device-1",
     "2026-01-10T11:00:00.000Z",
   );
 
-  assert.equal(events.length, 1);
-  assert.equal(events[0]?.type, "calendarEvent.updated");
-  assert.deepEqual(events[0]?.payload, {
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0]?.type, "calendarEvent.updated");
+  assert.deepEqual(changes[0]?.payload, {
     id: calendarEvent.id,
     summary: "Quarterly review (updated)",
     description: "New notes",
@@ -106,12 +106,12 @@ test("buildExternalToCrmEvents returns empty when no changes detected", () => {
   const calendarEvent = createCalendarEvent();
   const external = createExternalSnapshot();
 
-  const events = buildExternalToCrmEvents(
+  const changes = buildExternalToCrmEvents(
     calendarEvent,
     external,
     "device-1",
     "2026-01-10T11:00:00.000Z",
   );
 
-  assert.equal(events.length, 0);
+  assert.equal(changes.length, 0);
 });
