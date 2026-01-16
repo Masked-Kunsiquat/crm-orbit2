@@ -95,3 +95,39 @@ test("settings.calendar.updated rejects invalid palette", () => {
     message: "Invalid calendar palette: neon",
   });
 });
+
+test("settings.appearance.updated updates appearance settings", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-settings-6",
+    type: "settings.appearance.updated",
+    payload: {
+      palette: "ember",
+      mode: "dark",
+    },
+    timestamp: "2024-03-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = settingsReducer(doc, event);
+
+  assert.equal(next.settings.appearance.palette, "ember");
+  assert.equal(next.settings.appearance.mode, "dark");
+});
+
+test("settings.appearance.updated rejects invalid mode", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-settings-7",
+    type: "settings.appearance.updated",
+    payload: {
+      mode: "dim",
+    },
+    timestamp: "2024-03-07T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => settingsReducer(doc, event), {
+    message: "Invalid theme mode: dim",
+  });
+});

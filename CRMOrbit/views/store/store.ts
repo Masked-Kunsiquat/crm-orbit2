@@ -12,7 +12,11 @@ import type { Contact } from "@domains/contact";
 import type { Interaction } from "@domains/interaction";
 import type { Note } from "@domains/note";
 import type { Organization } from "@domains/organization";
-import type { CalendarSettings, SecuritySettings } from "@domains/settings";
+import type {
+  AppearanceSettings,
+  CalendarSettings,
+  SecuritySettings,
+} from "@domains/settings";
 import { DEFAULT_SETTINGS } from "@domains/settings";
 import { registerBackupRestoreHandler } from "@domains/persistence/backupOperations";
 import type { EntityLinkType } from "@domains/relations/entityLink";
@@ -339,6 +343,9 @@ export const useSecuritySettings = (): SecuritySettings =>
 
 export const useCalendarSettings = (): CalendarSettings =>
   crmStore(useShallow((state) => state.doc.settings.calendar));
+
+export const useAppearanceSettings = (): AppearanceSettings =>
+  crmStore(useShallow((state) => state.doc.settings.appearance));
 
 export const useCode = (id: EntityId): Code | undefined =>
   crmStore(useShallow((state) => state.doc.codes[id]));

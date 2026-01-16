@@ -9,7 +9,10 @@ import {
   type PersistenceDb,
   type SnapshotRecord,
 } from "@domains/persistence/store";
-import { DEFAULT_CALENDAR_SETTINGS } from "@domains/settings";
+import {
+  DEFAULT_APPEARANCE_SETTINGS,
+  DEFAULT_CALENDAR_SETTINGS,
+} from "@domains/settings";
 import { registerCoreReducers } from "@events/dispatcher";
 
 jest.mock("@react-native-async-storage/async-storage", () => {
@@ -140,6 +143,11 @@ test("loadPersistedState defaults calendar settings", async () => {
     doc.settings.calendar.palette,
     DEFAULT_CALENDAR_SETTINGS.palette,
   );
+  assert.equal(
+    doc.settings.appearance.palette,
+    DEFAULT_APPEARANCE_SETTINGS.palette,
+  );
+  assert.equal(doc.settings.appearance.mode, DEFAULT_APPEARANCE_SETTINGS.mode);
 });
 
 test("loadPersistedState sanitizes account calendar match", async () => {

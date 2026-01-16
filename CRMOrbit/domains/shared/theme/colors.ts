@@ -167,7 +167,6 @@ export type AppPaletteId = "orbit" | "meadow" | "ember";
 
 export type AppPalette = {
   id: AppPaletteId;
-  label: string;
   light: ColorScheme;
   dark: ColorScheme;
 };
@@ -203,19 +202,16 @@ export const emberDarkColors: ColorScheme = {
 export const APP_PALETTES: Record<AppPaletteId, AppPalette> = {
   orbit: {
     id: "orbit",
-    label: "Orbit",
     light: lightColors,
     dark: darkColors,
   },
   meadow: {
     id: "meadow",
-    label: "Meadow",
     light: meadowLightColors,
     dark: meadowDarkColors,
   },
   ember: {
     id: "ember",
-    label: "Ember",
     light: emberLightColors,
     dark: emberDarkColors,
   },

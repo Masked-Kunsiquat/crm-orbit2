@@ -19,6 +19,10 @@ export const SettingsListScreen = ({ navigation }: Props) => {
     navigation.navigate("CalendarSettings");
   };
 
+  const handleAppearancePress = () => {
+    navigation.navigate("AppearanceSettings");
+  };
+
   const handleBackupPress = () => {
     navigation.navigate("BackupSettings");
   };
@@ -60,6 +64,26 @@ export const SettingsListScreen = ({ navigation }: Props) => {
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               {labels.calendarDescription}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleAppearancePress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="palette"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {labels.appearanceTitle}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {labels.appearanceDescription}
             </Text>
           </View>
         </View>

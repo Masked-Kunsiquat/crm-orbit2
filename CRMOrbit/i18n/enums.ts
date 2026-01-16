@@ -2,12 +2,19 @@ import type {
   CalendarEventStatus,
   CalendarEventType,
 } from "@domains/calendarEvent";
+import type { AppPaletteId } from "@domains/shared/theme/colors";
 import type { CalendarPaletteId } from "@domains/settings";
 
 export const CALENDAR_PALETTE_I18N_KEYS: Record<CalendarPaletteId, string> = {
   orbit: "calendar.colors.palette.orbit",
   meadow: "calendar.colors.palette.meadow",
   ember: "calendar.colors.palette.ember",
+};
+
+export const APP_PALETTE_I18N_KEYS: Record<AppPaletteId, string> = {
+  orbit: "settings.appearance.palette.orbit",
+  meadow: "settings.appearance.palette.meadow",
+  ember: "settings.appearance.palette.ember",
 };
 
 export const CALENDAR_EVENT_TYPE_I18N_KEYS: Record<CalendarEventType, string> =
