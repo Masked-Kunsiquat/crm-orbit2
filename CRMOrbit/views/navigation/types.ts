@@ -166,6 +166,7 @@ export type MiscStackParamList = {
   BackupSettings: undefined;
   SecuritySettings: undefined;
   CalendarSettings: undefined;
+  AppearanceSettings: undefined;
 };
 
 // Screen props types

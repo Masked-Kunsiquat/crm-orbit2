@@ -357,7 +357,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         transparent
         onRequestClose={() => contactManagement.setShowContactsModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <View
             style={[
               styles.modalContent,
@@ -402,7 +407,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         animationType="fade"
         onRequestClose={() => contactManagement.setShowLinkModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => contactManagement.setShowLinkModal(false)}
@@ -483,7 +493,12 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
         animationType="fade"
         onRequestClose={() => contactManagement.setShowCreateModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => contactManagement.setShowCreateModal(false)}
@@ -634,7 +649,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   modalContent: {
     borderRadius: 12,

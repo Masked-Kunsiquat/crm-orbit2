@@ -95,6 +95,42 @@ export const CALENDAR_PALETTES: ReadonlyArray<CalendarPaletteConfig> = [
       interaction: "accent",
     },
   },
+  {
+    id: "tide",
+    labelKey: CALENDAR_PALETTE_I18N_KEYS.tide,
+    audit: {
+      scheduled: "accent",
+      completed: "success",
+      canceled: "textMuted",
+    },
+    interaction: {
+      scheduled: "warning",
+      completed: "success",
+      canceled: "textMuted",
+    },
+    timeline: {
+      audit: "accent",
+      interaction: "warning",
+    },
+  },
+  {
+    id: "rose",
+    labelKey: CALENDAR_PALETTE_I18N_KEYS.rose,
+    audit: {
+      scheduled: "accent",
+      completed: "success",
+      canceled: "textMuted",
+    },
+    interaction: {
+      scheduled: "warning",
+      completed: "success",
+      canceled: "textMuted",
+    },
+    timeline: {
+      audit: "accent",
+      interaction: "warning",
+    },
+  },
 ] as const;
 
 const resolveTokenColor = (

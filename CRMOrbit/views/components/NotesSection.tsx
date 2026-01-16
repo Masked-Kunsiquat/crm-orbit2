@@ -188,7 +188,12 @@ export const NotesSection = ({
         transparent
         onRequestClose={() => setShowAllModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <View
             style={[
               styles.modalContent,
@@ -335,7 +340,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   modalContent: {
     borderRadius: 12,

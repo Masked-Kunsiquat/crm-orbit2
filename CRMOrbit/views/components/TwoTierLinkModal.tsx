@@ -162,7 +162,12 @@ export const TwoTierLinkModal = ({
         visible={visible}
         onRequestClose={handleClose}
       >
-        <View style={styles.overlay}>
+        <View
+          style={[
+            styles.overlay,
+            { backgroundColor: colors.overlayScrimStrong },
+          ]}
+        >
           <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
           <View
             style={[
@@ -295,7 +300,6 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   modal: {
     borderTopLeftRadius: 20,

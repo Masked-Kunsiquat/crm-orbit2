@@ -1,14 +1,16 @@
 import { StyleSheet, Text } from "react-native";
 
 import { PrimaryActionButton, Section } from "@views/components";
-import { useAccountActions, useDeviceId } from "@views/hooks";
+import { useAccountActions, useDeviceId, useTheme } from "@views/hooks";
 import { useAccounts, useOrganizations } from "@views/store/store";
+import { t } from "@i18n/index";
 
 export const AccountsScreen = () => {
   const organizations = useOrganizations();
   const accounts = useAccounts();
   const deviceId = useDeviceId();
   const { createAccount } = useAccountActions(deviceId);
+  const { colors } = useTheme();
 
   const handleAddAccount = () => {
     const organization = organizations[0];
@@ -33,13 +35,20 @@ export const AccountsScreen = () => {
         disabled={organizations.length === 0}
       />
       {organizations.length === 0 ? (
-        <Text style={styles.hint}>Add an organization first.</Text>
+        <Text style={[styles.hint, { color: colors.warning }]}>
+          {t("accounts.emptyOrganizationHint")}
+        </Text>
       ) : null}
       {accounts.length === 0 ? (
-        <Text style={styles.empty}>No accounts yet.</Text>
+        <Text style={[styles.empty, { color: colors.textMuted }]}>
+          {t("accounts.emptyTitle")}
+        </Text>
       ) : (
         accounts.map((account) => (
-          <Text key={account.id} style={styles.item}>
+          <Text
+            key={account.id}
+            style={[styles.item, { color: colors.textPrimary }]}
+          >
             {account.name} (org {account.organizationId})
           </Text>
         ))
@@ -52,16 +61,13 @@ const styles = StyleSheet.create({
   item: {
     fontSize: 14,
     marginBottom: 6,
-    color: "#2a2a2a",
   },
   empty: {
     fontSize: 13,
-    color: "#7a7a7a",
     fontStyle: "italic",
   },
   hint: {
     fontSize: 12,
-    color: "#8a6f00",
     marginBottom: 8,
   },
 });

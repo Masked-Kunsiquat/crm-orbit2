@@ -13,6 +13,7 @@ type SegmentedOptionGroupProps<T extends string> = {
   onChange: (value: T) => void;
   layout?: "row" | "wrap";
   maxLabelLines?: number;
+  disabled?: boolean;
 };
 
 export const SegmentedOptionGroup = <T extends string>({
@@ -21,6 +22,7 @@ export const SegmentedOptionGroup = <T extends string>({
   onChange,
   layout = "row",
   maxLabelLines,
+  disabled = false,
 }: SegmentedOptionGroupProps<T>) => {
   const { colors } = useTheme();
   const isWrap = layout === "wrap";
@@ -34,6 +36,7 @@ export const SegmentedOptionGroup = <T extends string>({
           <Pressable
             key={option.value}
             onPress={() => onChange(option.value)}
+            disabled={disabled}
             style={({ pressed }) => [
               styles.option,
               !isWrap ? styles.optionFill : styles.optionWrap,
@@ -42,7 +45,8 @@ export const SegmentedOptionGroup = <T extends string>({
                 backgroundColor: colors.accent,
                 borderColor: colors.accent,
               },
-              pressed && !isSelected ? styles.optionPressed : null,
+              disabled ? styles.optionDisabled : null,
+              pressed && !isSelected && !disabled ? styles.optionPressed : null,
             ]}
           >
             <Text
@@ -50,6 +54,7 @@ export const SegmentedOptionGroup = <T extends string>({
                 styles.optionText,
                 { color: colors.textSecondary },
                 isSelected && { color: colors.onAccent },
+                disabled ? styles.optionTextDisabled : null,
               ]}
               numberOfLines={labelLines}
               ellipsizeMode="tail"
@@ -88,9 +93,15 @@ const styles = StyleSheet.create({
   optionPressed: {
     opacity: 0.85,
   },
+  optionDisabled: {
+    opacity: 0.6,
+  },
   optionText: {
     fontSize: 13,
     fontWeight: "500",
     textAlign: "center",
+  },
+  optionTextDisabled: {
+    opacity: 0.8,
   },
 });

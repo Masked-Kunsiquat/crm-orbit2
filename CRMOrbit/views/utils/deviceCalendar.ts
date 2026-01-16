@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
 import { createLogger } from "@utils/logger";
+import { colors } from "@domains/shared/theme/colors";
 
 export const DEFAULT_DEVICE_CALENDAR_NAME = "CRMOrbit";
 export const DEFAULT_AUDIT_ALARM_OFFSET_MINUTES = 60;
@@ -180,7 +181,7 @@ export const ensureDeviceCalendar = async (
   const calendarId = await Calendar.createCalendarAsync({
     title: desiredName,
     name: desiredName,
-    color: "#2F855A",
+    color: colors.accent,
     entityType: Calendar.EntityTypes.EVENT,
     sourceId: source.id,
     source,

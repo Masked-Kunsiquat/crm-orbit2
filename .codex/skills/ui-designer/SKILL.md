@@ -96,6 +96,7 @@ Depending on the task, you may output:
 - Prefer systemization over one-offs
 - Prefer boring patterns that work
 - Prefer native behavior when available
+- Use existing theme tokens; avoid hardcoded hex/rgb/rgba colors unless extending the theme.
 
 ---
 
@@ -172,6 +173,7 @@ Anything developers must know to implement correctly.
 - Hidden primary actions
 - Motion without user control
 - Color-only meaning
+- Hardcoded colors bypassing theme tokens
 
 ---
 

@@ -492,7 +492,12 @@ export const SyncScreen = () => {
                 barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
               />
               {scanBusy ? (
-                <View style={styles.scannerOverlay}>
+                <View
+                  style={[
+                    styles.scannerOverlay,
+                    { backgroundColor: colors.overlayScrimLight },
+                  ]}
+                >
                   <ActivityIndicator size="large" color={colors.accent} />
                 </View>
               ) : null}
@@ -616,7 +621,6 @@ const styles = StyleSheet.create({
     inset: 0,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
   scanProgress: {
     marginTop: 16,

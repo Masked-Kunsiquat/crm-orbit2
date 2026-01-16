@@ -605,7 +605,12 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
         visible={isAccountPickerOpen}
         onRequestClose={() => setIsAccountPickerOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setIsAccountPickerOpen(false)}
@@ -708,7 +713,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   pickerModal: {
     borderRadius: 12,

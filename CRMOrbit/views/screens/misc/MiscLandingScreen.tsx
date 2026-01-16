@@ -15,55 +15,12 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
     navigation.navigate("SettingsList");
   };
 
-  const handleSyncPress = () => {
-    navigation.navigate("Sync");
-  };
   const handleRandomizerPress = () => {
     navigation.navigate("Randomizer");
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvas }]}>
-      <ListCard onPress={handleSettingsPress}>
-        <View style={styles.cardContent}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons
-              name="cog-outline"
-              size={32}
-              color={colors.accent}
-            />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("settings.title")}
-            </Text>
-            <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("settings.description")}
-            </Text>
-          </View>
-        </View>
-      </ListCard>
-
-      <ListCard onPress={handleSyncPress}>
-        <View style={styles.cardContent}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons
-              name="sync"
-              size={32}
-              color={colors.accent}
-            />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {t("sync.title")}
-            </Text>
-            <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {t("sync.description")}
-            </Text>
-          </View>
-        </View>
-      </ListCard>
-
       <ListCard onPress={handleRandomizerPress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
@@ -79,6 +36,26 @@ export const MiscLandingScreen = ({ navigation }: Props) => {
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               {t("randomizer.description")}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={handleSettingsPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="cog-outline"
+              size={32}
+              color={colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {t("settings.title")}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {t("settings.description")}
             </Text>
           </View>
         </View>

@@ -20,6 +20,14 @@ export type ColorScheme = {
   border: string;
   borderLight: string;
 
+  // Effects
+  shadow: string;
+  overlayScrimLight: string;
+  overlayScrim: string;
+  overlayScrimStrong: string;
+  overlayScrimHeavy: string;
+  tooltipBackground: string;
+
   // Semantic colors
   success: string;
   successBg: string;
@@ -66,6 +74,14 @@ export const lightColors: ColorScheme = {
   // Borders
   border: "#e0e0e0",
   borderLight: "#f0f0f0",
+
+  // Effects
+  shadow: "#000000",
+  overlayScrimLight: "rgba(0, 0, 0, 0.2)",
+  overlayScrim: "rgba(0, 0, 0, 0.35)",
+  overlayScrimStrong: "rgba(0, 0, 0, 0.4)",
+  overlayScrimHeavy: "rgba(0, 0, 0, 0.5)",
+  tooltipBackground: "rgba(0, 0, 0, 0.85)",
 
   // Semantic colors
   success: "#4caf50",
@@ -114,6 +130,14 @@ export const darkColors: ColorScheme = {
   border: "#3a3a3a",
   borderLight: "#404040",
 
+  // Effects
+  shadow: "#000000",
+  overlayScrimLight: "rgba(0, 0, 0, 0.2)",
+  overlayScrim: "rgba(0, 0, 0, 0.35)",
+  overlayScrimStrong: "rgba(0, 0, 0, 0.4)",
+  overlayScrimHeavy: "rgba(0, 0, 0, 0.5)",
+  tooltipBackground: "rgba(0, 0, 0, 0.85)",
+
   // Semantic colors
   success: "#4ade80",
   successBg: "#1e3a1e",
@@ -137,6 +161,98 @@ export const darkColors: ColorScheme = {
   contactTypeExternalText: "#ffb74d",
   contactTypeVendorBg: "#2a1a3a",
   contactTypeVendorText: "#ba68c8",
+};
+
+export type AppPaletteId = "orbit" | "meadow" | "ember" | "tide" | "rose";
+
+export type AppPalette = {
+  id: AppPaletteId;
+  light: ColorScheme;
+  dark: ColorScheme;
+};
+
+export const meadowLightColors: ColorScheme = {
+  ...lightColors,
+  accent: "#2f855a",
+  accentMuted: "#b7d8c3",
+  link: "#2f855a",
+};
+
+export const meadowDarkColors: ColorScheme = {
+  ...darkColors,
+  accent: "#34d399",
+  accentMuted: "#3b8f6f",
+  link: "#34d399",
+};
+
+export const emberLightColors: ColorScheme = {
+  ...lightColors,
+  accent: "#d97706",
+  accentMuted: "#f1c184",
+  link: "#d97706",
+};
+
+export const emberDarkColors: ColorScheme = {
+  ...darkColors,
+  accent: "#f59e0b",
+  accentMuted: "#b7791f",
+  link: "#f59e0b",
+};
+
+export const tideLightColors: ColorScheme = {
+  ...lightColors,
+  accent: "#0ea5a4",
+  accentMuted: "#9ddfd9",
+  link: "#0ea5a4",
+};
+
+export const tideDarkColors: ColorScheme = {
+  ...darkColors,
+  accent: "#2dd4bf",
+  accentMuted: "#268c7e",
+  link: "#2dd4bf",
+};
+
+export const roseLightColors: ColorScheme = {
+  ...lightColors,
+  accent: "#e11d48",
+  accentMuted: "#f3b4c4",
+  link: "#e11d48",
+};
+
+export const roseDarkColors: ColorScheme = {
+  ...darkColors,
+  accent: "#fb7185",
+  accentMuted: "#b24b63",
+  link: "#fb7185",
+};
+
+export const APP_PALETTES: Record<AppPaletteId, AppPalette> = {
+  orbit: {
+    id: "orbit",
+    light: lightColors,
+    dark: darkColors,
+  },
+  meadow: {
+    id: "meadow",
+    light: meadowLightColors,
+    dark: meadowDarkColors,
+  },
+  ember: {
+    id: "ember",
+    light: emberLightColors,
+    dark: emberDarkColors,
+  },
+  tide: {
+    id: "tide",
+    light: tideLightColors,
+    dark: tideDarkColors,
+  },
+  rose: {
+    id: "rose",
+    light: roseLightColors,
+    dark: roseDarkColors,
+  },
 };
 
 // Default export for backward compatibility

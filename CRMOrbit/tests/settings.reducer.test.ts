@@ -76,6 +76,7 @@ test("settings.calendar.updated updates calendar palette", () => {
   const next = settingsReducer(doc, event);
 
   assert.equal(next.settings.calendar.palette, "meadow");
+  assert.equal(next.settings.appearance.palette, "meadow");
   assert.equal(next.settings.security.biometricAuth, "enabled");
 });
 
@@ -93,5 +94,42 @@ test("settings.calendar.updated rejects invalid palette", () => {
 
   assert.throws(() => settingsReducer(doc, event), {
     message: "Invalid calendar palette: neon",
+  });
+});
+
+test("settings.appearance.updated updates appearance settings", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-settings-6",
+    type: "settings.appearance.updated",
+    payload: {
+      palette: "ember",
+      mode: "dark",
+    },
+    timestamp: "2024-03-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = settingsReducer(doc, event);
+
+  assert.equal(next.settings.appearance.palette, "ember");
+  assert.equal(next.settings.appearance.mode, "dark");
+  assert.equal(next.settings.calendar.palette, "ember");
+});
+
+test("settings.appearance.updated rejects invalid mode", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-settings-7",
+    type: "settings.appearance.updated",
+    payload: {
+      mode: "dim",
+    },
+    timestamp: "2024-03-07T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => settingsReducer(doc, event), {
+    message: "Invalid theme mode: dim",
   });
 });

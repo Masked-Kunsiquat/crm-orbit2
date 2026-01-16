@@ -77,7 +77,8 @@
           "calendarPermission": "Allow CRM Orbit to access your calendar."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-background-task"
     ],
     "extra": {
       "eas": {

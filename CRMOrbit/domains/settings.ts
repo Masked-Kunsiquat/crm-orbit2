@@ -1,3 +1,5 @@
+import type { AppPaletteId } from "./shared/theme/colors";
+
 export type SecurityBiometricSetting = "enabled" | "disabled";
 export type SecurityBlurTimeout = "15" | "30" | "60" | "never";
 export type SecurityAuthFrequency = "each" | "session";
@@ -8,15 +10,23 @@ export type SecuritySettings = {
   authFrequency: SecurityAuthFrequency;
 };
 
-export type CalendarPaletteId = "orbit" | "meadow" | "ember";
+export type CalendarPaletteId = AppPaletteId;
 
 export type CalendarSettings = {
   palette: CalendarPaletteId;
 };
 
+export type AppearanceThemeMode = "system" | "light" | "dark";
+
+export type AppearanceSettings = {
+  palette: AppPaletteId;
+  mode: AppearanceThemeMode;
+};
+
 export type Settings = {
   security: SecuritySettings;
   calendar: CalendarSettings;
+  appearance: AppearanceSettings;
 };
 
 export const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
@@ -29,9 +39,15 @@ export const DEFAULT_CALENDAR_SETTINGS: CalendarSettings = {
   palette: "orbit",
 };
 
+export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
+  palette: "orbit",
+  mode: "system",
+};
+
 export const DEFAULT_SETTINGS: Settings = {
   security: DEFAULT_SECURITY_SETTINGS,
   calendar: DEFAULT_CALENDAR_SETTINGS,
+  appearance: DEFAULT_APPEARANCE_SETTINGS,
 };
 
 const BIOMETRIC_VALUES = new Set<SecurityBiometricSetting>([
@@ -48,10 +64,18 @@ const AUTH_FREQUENCY_VALUES = new Set<SecurityAuthFrequency>([
   "each",
   "session",
 ]);
-const CALENDAR_PALETTE_VALUES = new Set<CalendarPaletteId>([
+const APP_PALETTE_VALUES = new Set<AppPaletteId>([
   "orbit",
   "meadow",
   "ember",
+  "tide",
+  "rose",
+]);
+const CALENDAR_PALETTE_VALUES = APP_PALETTE_VALUES;
+const APPEARANCE_MODE_VALUES = new Set<AppearanceThemeMode>([
+  "system",
+  "light",
+  "dark",
 ]);
 
 export const isSecurityBiometricSetting = (
@@ -77,3 +101,12 @@ export const isCalendarPaletteId = (
 ): value is CalendarPaletteId =>
   typeof value === "string" &&
   CALENDAR_PALETTE_VALUES.has(value as CalendarPaletteId);
+
+export const isAppPaletteId = (value: unknown): value is AppPaletteId =>
+  typeof value === "string" && APP_PALETTE_VALUES.has(value as AppPaletteId);
+
+export const isAppearanceThemeMode = (
+  value: unknown,
+): value is AppearanceThemeMode =>
+  typeof value === "string" &&
+  APPEARANCE_MODE_VALUES.has(value as AppearanceThemeMode);

@@ -9,6 +9,8 @@ import {
   type ViewStyle,
 } from "react-native";
 
+import { useTheme } from "../hooks";
+
 interface TooltipProps {
   content: string;
   children: React.ReactElement;
@@ -20,6 +22,7 @@ export const Tooltip = ({
   children,
   containerStyle,
 }: TooltipProps) => {
+  const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({
     x: 0,
@@ -83,10 +86,14 @@ export const Tooltip = ({
                 {
                   top: position.y,
                   left: position.calculatedLeft,
+                  backgroundColor: colors.tooltipBackground,
+                  shadowColor: colors.shadow,
                 },
               ]}
             >
-              <Text style={styles.tooltipText}>{content}</Text>
+              <Text style={[styles.tooltipText, { color: colors.onAccent }]}>
+                {content}
+              </Text>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -102,19 +109,16 @@ const styles = StyleSheet.create({
   },
   tooltip: {
     position: "absolute",
-    backgroundColor: "rgba(0, 0, 0, 0.85)",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
     maxWidth: 300,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
   tooltipText: {
-    color: "#fff",
     fontSize: 13,
   },
 });

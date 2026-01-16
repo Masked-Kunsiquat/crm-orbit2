@@ -572,7 +572,11 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
               },
             ]}
           >
-            {useSameForParking && <Text style={styles.checkmark}>✓</Text>}
+            {useSameForParking && (
+              <Text style={[styles.checkmark, { color: colors.onAccent }]}>
+                ✓
+              </Text>
+            )}
           </View>
           <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>
             {t("accounts.form.useSameAddressForParking")}
@@ -628,7 +632,12 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         visible={isOrganizationPickerOpen}
         onRequestClose={() => setIsOrganizationPickerOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setIsOrganizationPickerOpen(false)}
@@ -700,7 +709,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   pickerModal: {
     borderRadius: 12,
@@ -749,7 +757,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   checkmark: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

@@ -20,7 +20,7 @@ import {
   expandCalendarEventsInRange,
   getCalendarMonthRange,
 } from "../utils/recurrence";
-import { useCalendarSettings } from "../store/store";
+import { useAppearanceSettings } from "../store/store";
 
 export interface CalendarViewProps {
   calendarEvents: CalendarEvent[];
@@ -59,14 +59,14 @@ export const CalendarView = ({
   onDateChange,
 }: CalendarViewProps) => {
   const { colors, isDark } = useTheme();
-  const calendarSettings = useCalendarSettings();
+  const appearanceSettings = useAppearanceSettings();
   const calendarTheme = useMemo(
     () => buildCalendarTheme(colors, isDark, selectedDate),
     [colors, isDark, selectedDate],
   );
   const calendarPalette = useMemo(
-    () => resolveCalendarPalette(colors, calendarSettings.palette),
-    [colors, calendarSettings.palette],
+    () => resolveCalendarPalette(colors, appearanceSettings.palette),
+    [colors, appearanceSettings.palette],
   );
   const calendarRange = useMemo(() => {
     try {

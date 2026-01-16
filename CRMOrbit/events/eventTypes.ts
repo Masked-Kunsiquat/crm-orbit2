@@ -60,6 +60,7 @@ export const EVENT_TYPES = [
   "code.deleted",
   "settings.security.updated",
   "settings.calendar.updated",
+  "settings.appearance.updated",
   "device.registered",
 ] as const;
 

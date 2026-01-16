@@ -14,6 +14,8 @@ const withAndroidLinkingQueries = (config) => {
       { action: "android.intent.action.SENDTO", scheme: "sms" },
       { action: "android.intent.action.SENDTO", scheme: "mailto" },
       { action: "android.intent.action.VIEW", scheme: "geo" },
+      { action: "android.intent.action.VIEW", scheme: "http" },
+      { action: "android.intent.action.VIEW", scheme: "https" },
     ];
 
     // Initialize queries array if it doesn't exist
@@ -67,6 +69,16 @@ const withAndroidLinkingQueries = (config) => {
           {
             action: [{ $: { "android:name": "android.intent.action.VIEW" } }],
             data: [{ $: { "android:scheme": "geo" } }],
+          },
+          // Web/http intent
+          {
+            action: [{ $: { "android:name": "android.intent.action.VIEW" } }],
+            data: [{ $: { "android:scheme": "http" } }],
+          },
+          // Web/https intent
+          {
+            action: [{ $: { "android:name": "android.intent.action.VIEW" } }],
+            data: [{ $: { "android:scheme": "https" } }],
           },
         ],
       });

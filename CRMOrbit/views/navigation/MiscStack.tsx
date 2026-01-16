@@ -4,6 +4,7 @@ import type { MiscStackParamList } from "./types";
 import { MiscLandingScreen } from "../screens/misc/MiscLandingScreen";
 import { RandomizerScreen } from "../screens/misc/RandomizerScreen";
 import {
+  AppearanceSettingsScreen,
   CalendarSettingsScreen,
   BackupSettingsScreen,
   SecuritySettingsScreen,
@@ -55,6 +56,11 @@ export const MiscStack = () => {
         name="CalendarSettings"
         component={CalendarSettingsScreen}
         options={{ title: titles.calendar }}
+      />
+      <Stack.Screen
+        name="AppearanceSettings"
+        component={AppearanceSettingsScreen}
+        options={{ title: titles.appearance }}
       />
     </Stack.Navigator>
   );

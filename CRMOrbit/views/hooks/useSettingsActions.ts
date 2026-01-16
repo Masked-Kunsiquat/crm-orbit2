@@ -2,13 +2,18 @@ import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
 import type {
+  AppearanceThemeMode,
   CalendarPaletteId,
   SecurityAuthFrequency,
   SecurityBiometricSetting,
   SecurityBlurTimeout,
 } from "../../domains/settings";
+import type { AppPaletteId } from "../../domains/shared/theme/colors";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
+import { createLogger } from "@utils/logger";
+
+const logger = createLogger("SettingsActions");
 
 type SecuritySettingsUpdate = {
   biometricAuth?: SecurityBiometricSetting;
@@ -18,6 +23,11 @@ type SecuritySettingsUpdate = {
 
 type CalendarSettingsUpdate = {
   palette?: CalendarPaletteId;
+};
+
+type AppearanceSettingsUpdate = {
+  palette?: AppPaletteId;
+  mode?: AppearanceThemeMode;
 };
 
 export const useSettingsActions = (deviceId: string) => {
@@ -49,8 +59,23 @@ export const useSettingsActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  const updateAppearanceSettings = useCallback(
+    (updates: AppearanceSettingsUpdate): DispatchResult => {
+      logger.info("Appearance settings update requested", updates);
+      const event = buildEvent({
+        type: "settings.appearance.updated",
+        payload: updates,
+        deviceId,
+      });
+
+      return dispatch([event]);
+    },
+    [deviceId, dispatch],
+  );
+
   return {
     updateSecuritySettings,
     updateCalendarSettings,
+    updateAppearanceSettings,
   };
 };

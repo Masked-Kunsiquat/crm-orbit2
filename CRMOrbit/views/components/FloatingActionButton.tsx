@@ -23,7 +23,10 @@ export const FloatingActionButton = ({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
-      style={[styles.fab, { backgroundColor: buttonColor }]}
+      style={[
+        styles.fab,
+        { backgroundColor: buttonColor, shadowColor: colors.shadow },
+      ]}
     >
       <Text style={[styles.fabText, { color: colors.onAccent }]}>{label}</Text>
     </Pressable>
@@ -40,7 +43,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

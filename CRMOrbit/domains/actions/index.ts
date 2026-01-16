@@ -1,5 +1,6 @@
 export { buildTypedEvent } from "./eventBuilder";
 export type { BuildTypedEventInput } from "./eventBuilder";
+export { commitExternalCalendarChanges } from "./externalCalendarSyncActions";
 export { buildDeleteEntityEvent } from "./entityHelpers";
 export type { DeletableEntityType } from "./entityHelpers";
 export {

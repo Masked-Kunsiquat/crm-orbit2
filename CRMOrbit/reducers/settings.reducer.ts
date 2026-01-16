@@ -1,8 +1,11 @@
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
 import {
+  DEFAULT_APPEARANCE_SETTINGS,
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_SECURITY_SETTINGS,
+  isAppPaletteId,
+  isAppearanceThemeMode,
   isCalendarPaletteId,
   isSecurityAuthFrequency,
   isSecurityBiometricSetting,
@@ -20,6 +23,11 @@ type SecuritySettingsUpdatedPayload = {
 
 type CalendarSettingsUpdatedPayload = {
   palette?: string;
+};
+
+type AppearanceSettingsUpdatedPayload = {
+  palette?: string;
+  mode?: string;
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -99,6 +107,8 @@ const applyCalendarSettingsUpdated = (
 
   const payload = event.payload as CalendarSettingsUpdatedPayload;
   const current = doc.settings?.calendar ?? DEFAULT_CALENDAR_SETTINGS;
+  const currentAppearance =
+    doc.settings?.appearance ?? DEFAULT_APPEARANCE_SETTINGS;
 
   if (payload.palette !== undefined && !isCalendarPaletteId(payload.palette)) {
     throw new Error(`Invalid calendar palette: ${payload.palette}`);
@@ -107,6 +117,10 @@ const applyCalendarSettingsUpdated = (
   const nextCalendar = {
     palette: payload.palette !== undefined ? payload.palette : current.palette,
   };
+  const nextAppearance = {
+    ...currentAppearance,
+    palette: nextCalendar.palette,
+  };
 
   logger.info("Calendar settings updated", nextCalendar);
 
@@ -114,6 +128,49 @@ const applyCalendarSettingsUpdated = (
     ...doc,
     settings: {
       ...doc.settings,
+      calendar: nextCalendar,
+      appearance: nextAppearance,
+    },
+  };
+};
+
+const applyAppearanceSettingsUpdated = (
+  doc: AutomergeDoc,
+  event: Event,
+): AutomergeDoc => {
+  if (!isObject(event.payload)) {
+    logger.error("Invalid settings.appearance.updated payload", {
+      payload: event.payload,
+    });
+    throw new Error("settings.appearance.updated payload must be an object");
+  }
+
+  const payload = event.payload as AppearanceSettingsUpdatedPayload;
+  const current = doc.settings?.appearance ?? DEFAULT_APPEARANCE_SETTINGS;
+  const currentCalendar = doc.settings?.calendar ?? DEFAULT_CALENDAR_SETTINGS;
+
+  if (payload.palette !== undefined && !isAppPaletteId(payload.palette)) {
+    throw new Error(`Invalid app palette: ${payload.palette}`);
+  }
+
+  if (payload.mode !== undefined && !isAppearanceThemeMode(payload.mode)) {
+    throw new Error(`Invalid theme mode: ${payload.mode}`);
+  }
+
+  const nextAppearance = {
+    palette: payload.palette !== undefined ? payload.palette : current.palette,
+    mode: payload.mode !== undefined ? payload.mode : current.mode,
+  };
+  const nextCalendar = {
+    ...currentCalendar,
+    palette: nextAppearance.palette,
+  };
+
+  return {
+    ...doc,
+    settings: {
+      ...doc.settings,
+      appearance: nextAppearance,
       calendar: nextCalendar,
     },
   };
@@ -133,6 +190,8 @@ export const settingsReducer = (
       return applySecuritySettingsUpdated(doc, event);
     case "settings.calendar.updated":
       return applyCalendarSettingsUpdated(doc, event);
+    case "settings.appearance.updated":
+      return applyAppearanceSettingsUpdated(doc, event);
     default:
       logger.error("Unhandled event type", { type: event.type });
       throw new Error(

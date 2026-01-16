@@ -2,9 +2,12 @@ import type { AutomergeDoc } from "@automerge/schema";
 import type { EntityLinkType } from "@domains/relations/entityLink";
 import { normalizeCalendarEventType } from "@domains/calendarEvent";
 import {
+  DEFAULT_APPEARANCE_SETTINGS,
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_SECURITY_SETTINGS,
   DEFAULT_SETTINGS,
+  isAppearanceThemeMode,
+  isAppPaletteId,
   isCalendarPaletteId,
 } from "@domains/settings";
 import {
@@ -169,14 +172,27 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     : existingLinks;
 
   const paletteValue = doc.settings?.calendar?.palette;
-  const resolvedPalette = isCalendarPaletteId(paletteValue)
+  const resolvedCalendarPalette = isCalendarPaletteId(paletteValue)
     ? paletteValue
     : DEFAULT_CALENDAR_SETTINGS.palette;
+  const appearancePaletteValue = doc.settings?.appearance?.palette;
+  const resolvedAppearancePalette = isAppPaletteId(appearancePaletteValue)
+    ? appearancePaletteValue
+    : resolvedCalendarPalette;
+  const appearanceModeValue = doc.settings?.appearance?.mode;
+  const resolvedAppearanceMode = isAppearanceThemeMode(appearanceModeValue)
+    ? appearanceModeValue
+    : DEFAULT_APPEARANCE_SETTINGS.mode;
   const normalizedSettings = {
     security: doc.settings?.security ?? DEFAULT_SECURITY_SETTINGS,
     calendar: {
       ...DEFAULT_CALENDAR_SETTINGS,
-      palette: resolvedPalette,
+      palette: resolvedAppearancePalette,
+    },
+    appearance: {
+      ...DEFAULT_APPEARANCE_SETTINGS,
+      palette: resolvedAppearancePalette,
+      mode: resolvedAppearanceMode,
     },
   };
 

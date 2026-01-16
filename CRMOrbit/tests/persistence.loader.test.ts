@@ -9,8 +9,31 @@ import {
   type PersistenceDb,
   type SnapshotRecord,
 } from "@domains/persistence/store";
-import { DEFAULT_CALENDAR_SETTINGS } from "@domains/settings";
+import {
+  DEFAULT_APPEARANCE_SETTINGS,
+  DEFAULT_CALENDAR_SETTINGS,
+} from "@domains/settings";
 import { registerCoreReducers } from "@events/dispatcher";
+
+jest.mock("@react-native-async-storage/async-storage", () => {
+  const storage = new Map<string, string>();
+  return {
+    __esModule: true,
+    default: {
+      getItem: jest.fn((key: string) =>
+        Promise.resolve(storage.get(key) ?? null),
+      ),
+      setItem: jest.fn((key: string, value: string) => {
+        storage.set(key, value);
+        return Promise.resolve();
+      }),
+      removeItem: jest.fn((key: string) => {
+        storage.delete(key);
+        return Promise.resolve();
+      }),
+    },
+  };
+});
 
 type StoredTables = {
   snapshots: SnapshotRecord[];
@@ -120,6 +143,11 @@ test("loadPersistedState defaults calendar settings", async () => {
     doc.settings.calendar.palette,
     DEFAULT_CALENDAR_SETTINGS.palette,
   );
+  assert.equal(
+    doc.settings.appearance.palette,
+    DEFAULT_APPEARANCE_SETTINGS.palette,
+  );
+  assert.equal(doc.settings.appearance.mode, DEFAULT_APPEARANCE_SETTINGS.mode);
 });
 
 test("loadPersistedState sanitizes account calendar match", async () => {

@@ -12,7 +12,12 @@ export const Section = ({ title, children }: SectionProps) => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.section, { backgroundColor: colors.surface }]}>
+    <View
+      style={[
+        styles.section,
+        { backgroundColor: colors.surface, shadowColor: colors.shadow },
+      ]}
+    >
       {title && (
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {title}
@@ -28,7 +33,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000000",
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },

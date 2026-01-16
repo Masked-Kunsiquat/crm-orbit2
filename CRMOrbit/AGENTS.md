@@ -17,6 +17,7 @@
 - **No explicit `any`:** use navigation types from `views/navigation/types.ts`.
 - **Locale-neutral persistence:** store i18n keys in state and events; update `i18n/enums.ts` and `i18n/events.ts` for new enums/events.
 - **Reducers are pure:** no persistence, no i18n, no event emission.
+- **No hardcoded colors in views:** use theme tokens from `@domains/shared/theme/colors` via `useTheme` or `views/utils/calendarTheme.ts`.
 - **Events are semantic:** append-only, emitted before reducers, never inferred from state diffs.
 
 ## Common pitfalls

@@ -606,7 +606,7 @@ const createStyles = (colors: ColorScheme) =>
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: colors.overlayScrimHeavy,
       justifyContent: "flex-end",
     },
     modalContent: {

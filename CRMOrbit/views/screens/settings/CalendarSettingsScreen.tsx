@@ -36,30 +36,25 @@ import {
 } from "../../components";
 import { FormScrollProvider } from "../../components/FormScrollContext";
 import {
-  useDeviceId,
   useTheme,
   useCalendarSync,
   useConfirmDialog,
+  useDeviceId,
+  useExternalCalendarBackgroundSync,
   useExternalCalendarSelection,
   useExternalCalendarImport,
   useExternalCalendarSync,
-  useSettingsActions,
 } from "../../hooks";
 import {
   useAccounts,
   useAllAudits,
   useAllCalendarEvents,
   useAllInteractions,
-  useCalendarSettings,
   useDoc,
 } from "../../store/store";
 import { formatTimestamp } from "@domains/shared/dateFormatting";
 import type { Account } from "@domains/account";
 import type { CalendarEventStatus } from "@domains/calendarEvent";
-import {
-  CALENDAR_PALETTES,
-  resolveCalendarPalette,
-} from "../../utils/calendarColors";
 import {
   parseFloorsVisited,
   parseScore,
@@ -452,10 +447,8 @@ const ImportCandidateSlide = ({
 
 export const CalendarSettingsScreen = () => {
   const { colors } = useTheme();
-  const { dialogProps, showAlert } = useConfirmDialog();
   const deviceId = useDeviceId();
-  const calendarSettings = useCalendarSettings();
-  const { updateCalendarSettings } = useSettingsActions(deviceId);
+  const { dialogProps, showAlert } = useConfirmDialog();
   const audits = useAllAudits();
   const interactions = useAllInteractions();
   const accounts = useAccounts();
@@ -498,6 +491,8 @@ export const CalendarSettingsScreen = () => {
   const externalCalendarSelection = useExternalCalendarSelection({
     permissionGranted: permission?.granted ?? false,
   });
+  const externalCalendarBackgroundSync =
+    useExternalCalendarBackgroundSync(deviceId);
   const externalCalendarImport = useExternalCalendarImport({
     permissionGranted: permission?.granted ?? false,
     accounts,
@@ -578,6 +573,34 @@ export const CalendarSettingsScreen = () => {
       label: t("calendar.sync.auditAlarmOption.custom"),
     },
   ];
+  const backgroundSyncOptions = [
+    {
+      value: "enabled",
+      label: t("calendar.external.backgroundOn"),
+    },
+    {
+      value: "disabled",
+      label: t("calendar.external.backgroundOff"),
+    },
+  ];
+  const backgroundSyncValue = externalCalendarBackgroundSync.enabled
+    ? "enabled"
+    : "disabled";
+  const backgroundSyncStatus = externalCalendarBackgroundSync.status.lastOutcome
+    ? t(
+        `calendar.external.backgroundStatus.${externalCalendarBackgroundSync.status.lastOutcome}`,
+      )
+    : t("calendar.external.backgroundNotSynced");
+  const backgroundSyncStatusMessage = externalCalendarBackgroundSync.status
+    .lastRunAt
+    ? t("calendar.external.backgroundLastRun", {
+        time: formatTimestamp(
+          externalCalendarBackgroundSync.status.lastRunAt,
+          t("calendar.external.backgroundNotSynced"),
+        ),
+        status: backgroundSyncStatus,
+      })
+    : backgroundSyncStatus;
   useEffect(() => {
     if (windowHeight > maxWindowHeight) {
       setMaxWindowHeight(windowHeight);
@@ -601,12 +624,6 @@ export const CalendarSettingsScreen = () => {
   const handleOpenSettings = useCallback(() => {
     void Linking.openSettings();
   }, []);
-
-  const paletteOptions = CALENDAR_PALETTES.map((palette) => ({
-    id: palette.id,
-    label: t(palette.labelKey),
-    preview: resolveCalendarPalette(colors, palette.id),
-  }));
 
   const accountPickerCandidate =
     accountPickerCandidateId === null
@@ -743,95 +760,6 @@ export const CalendarSettingsScreen = () => {
 
   return (
     <FormScreenLayout>
-      <Section title={t("calendar.colors.title")}>
-        <FormField
-          label={t("calendar.colors.paletteLabel")}
-          hint={t("calendar.colors.paletteHint")}
-        >
-          <View style={styles.paletteList}>
-            {paletteOptions.map((palette) => {
-              const isSelected = palette.id === calendarSettings.palette;
-              return (
-                <Pressable
-                  key={palette.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => {
-                    if (!isSelected) {
-                      updateCalendarSettings({ palette: palette.id });
-                    }
-                  }}
-                  style={({ pressed }) => [
-                    styles.paletteCardRow,
-                    {
-                      backgroundColor: colors.surfaceElevated,
-                      borderColor: isSelected
-                        ? colors.accent
-                        : colors.borderLight,
-                    },
-                    pressed && styles.paletteCardPressed,
-                  ]}
-                >
-                  <Text
-                    style={[styles.paletteLabel, { color: colors.textPrimary }]}
-                  >
-                    {palette.label}
-                  </Text>
-                  <View style={styles.swatchRow}>
-                    <View
-                      style={[
-                        styles.swatch,
-                        {
-                          backgroundColor: palette.preview.audit.scheduled,
-                          borderColor: colors.borderLight,
-                        },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.swatch,
-                        {
-                          backgroundColor: palette.preview.audit.completed,
-                          borderColor: colors.borderLight,
-                        },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.swatch,
-                        {
-                          backgroundColor:
-                            palette.preview.interaction.scheduled,
-                          borderColor: colors.borderLight,
-                        },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.swatch,
-                        {
-                          backgroundColor:
-                            palette.preview.interaction.completed,
-                          borderColor: colors.borderLight,
-                        },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.swatch,
-                        {
-                          backgroundColor: palette.preview.audit.canceled,
-                          borderColor: colors.borderLight,
-                        },
-                      ]}
-                    />
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        </FormField>
-      </Section>
       {Platform.OS !== "web" && permission?.granted ? (
         <Section title={t("calendar.external.title")}>
           <Text style={[styles.syncHint, { color: colors.textSecondary }]}>
@@ -1054,6 +982,35 @@ export const CalendarSettingsScreen = () => {
               ) : null}
             </View>
           </FormField>
+          {Platform.OS === "android" ? (
+            <FormField
+              label={t("calendar.external.backgroundLabel")}
+              hint={t("calendar.external.backgroundHint")}
+            >
+              <View style={styles.importActions}>
+                <SegmentedOptionGroup
+                  options={backgroundSyncOptions}
+                  value={backgroundSyncValue}
+                  disabled={externalCalendarBackgroundSync.isLoading}
+                  onChange={(value) => {
+                    void externalCalendarBackgroundSync.toggleEnabled(
+                      value === "enabled",
+                    );
+                  }}
+                />
+                {externalCalendarBackgroundSync.hasError ? (
+                  <Text style={[styles.syncHint, { color: colors.error }]}>
+                    {t("calendar.external.backgroundToggleError")}
+                  </Text>
+                ) : null}
+                <Text
+                  style={[styles.syncHint, { color: colors.textSecondary }]}
+                >
+                  {backgroundSyncStatusMessage}
+                </Text>
+              </View>
+            </FormField>
+          ) : null}
         </Section>
       ) : null}
       {Platform.OS !== "web" ? (
@@ -1310,7 +1267,12 @@ export const CalendarSettingsScreen = () => {
         visible={isImportModalOpen}
         onRequestClose={() => setIsImportModalOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setIsImportModalOpen(false)}
@@ -1390,7 +1352,12 @@ export const CalendarSettingsScreen = () => {
         visible={accountPickerCandidate !== null}
         onRequestClose={() => setAccountPickerCandidateId(null)}
       >
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.overlayScrim },
+          ]}
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setAccountPickerCandidateId(null)}
@@ -1460,20 +1427,6 @@ export const CalendarSettingsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  paletteList: {
-    gap: 12,
-  },
-  paletteCardRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
   paletteCardPressed: {
     opacity: 0.85,
   },
@@ -1642,21 +1595,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textTransform: "uppercase",
   },
-  paletteLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  swatchRow: {
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-  },
-  swatch: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
   alarmInputRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1701,7 +1639,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   modalKeyboard: {
     width: "100%",
