@@ -337,6 +337,34 @@ describe("migrateToCalendarEvents", () => {
     expect(report.migratedInteractions).toBeGreaterThan(0);
     expect(report.errors.length).toBeGreaterThan(0);
   });
+
+  it("should handle legacy snapshots missing calendarEvents and relations", () => {
+    const interaction = createTestInteraction();
+    const audit = createTestAudit();
+    const legacyDoc = {
+      organizations: {},
+      accounts: {},
+      audits: { [audit.id]: audit },
+      contacts: {},
+      notes: {},
+      interactions: { [interaction.id]: interaction },
+      codes: {},
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      settings: {} as any,
+    } as AutomergeDoc;
+
+    const { doc: migratedDoc, report } = migrateToCalendarEvents(
+      legacyDoc,
+      "test-device",
+    );
+
+    expect(report.success).toBe(true);
+    expect(report.migratedInteractions).toBe(1);
+    expect(report.migratedAudits).toBe(1);
+    expect(migratedDoc.calendarEvents[interaction.id]).toBeDefined();
+    expect(migratedDoc.calendarEvents[audit.id]).toBeDefined();
+    expect(migratedDoc.relations.entityLinks).toBeDefined();
+  });
 });
 
 describe("validateMigration", () => {

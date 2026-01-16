@@ -77,6 +77,26 @@ export const migrateToCalendarEvents = (
     const migrationDoc = draft as AutomergeDoc;
 
     try {
+      if (!migrationDoc.calendarEvents) {
+        migrationDoc.calendarEvents = {};
+      }
+      if (!migrationDoc.relations) {
+        migrationDoc.relations = {
+          accountContacts: {},
+          accountCodes: {},
+          entityLinks: {},
+        };
+      } else {
+        migrationDoc.relations.accountContacts =
+          migrationDoc.relations.accountContacts ?? {};
+        migrationDoc.relations.accountCodes =
+          migrationDoc.relations.accountCodes ?? {};
+        migrationDoc.relations.entityLinks =
+          migrationDoc.relations.entityLinks ?? {};
+      }
+      migrationDoc.interactions = migrationDoc.interactions ?? {};
+      migrationDoc.audits = migrationDoc.audits ?? {};
+
       // Step 1: Migrate interactions to calendar events
       for (const [id, interaction] of interactionEntries) {
         try {
