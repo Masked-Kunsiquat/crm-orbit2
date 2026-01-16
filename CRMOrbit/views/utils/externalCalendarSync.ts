@@ -1,8 +1,8 @@
 import * as Calendar from "expo-calendar";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
+import type { ExternalCalendarChange } from "@domains/externalCalendarSync";
 import type { Timestamp } from "@domains/shared/types";
-import type { EventType } from "@events/eventTypes";
 import {
   buildExternalEventNotes,
   stripCrmOrbitMetadataFromNotes,
@@ -20,14 +20,6 @@ export type ExternalCalendarSnapshot = {
   startDate: Date;
   endDate: Date;
   lastModifiedAt: Date | null;
-};
-
-export type ExternalCalendarChange = {
-  type: EventType;
-  entityId: string;
-  payload: Record<string, unknown>;
-  timestamp: Timestamp;
-  deviceId: string;
 };
 
 export const parseIsoTimestamp = (

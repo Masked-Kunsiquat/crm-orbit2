@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
+import { commitExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
 import { createLogger } from "@utils/logger";
 import {
   acquireExternalCalendarSyncLock,
@@ -85,18 +86,20 @@ export const useExternalCalendarSync = ({
         return;
       }
 
-      const summary = await syncExternalCalendarLinks({
+      const { summary, changes } = await syncExternalCalendarLinks({
         calendarId,
         calendarEvents,
         deviceId,
-        commitEvents: async (events) => {
-          if (events.length === 0) return;
+      });
+
+      if (changes.length > 0) {
+        await commitExternalCalendarChanges(changes, async (events) => {
           const result = dispatch(events);
           if (!result.success) {
             throw new Error(result.error ?? "dispatchFailed");
           }
-        },
-      });
+        });
+      }
 
       setSyncSummary(summary);
       if (summary.errors > 0) {

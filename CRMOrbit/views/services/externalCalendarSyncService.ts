@@ -1,6 +1,7 @@
 import * as Calendar from "expo-calendar";
 
 import type { CalendarEvent } from "@domains/calendarEvent";
+import type { ExternalCalendarChange } from "@domains/externalCalendarSync";
 import { getDatabase } from "@domains/persistence/database";
 import {
   deleteCalendarEventExternalLink,
@@ -8,8 +9,6 @@ import {
   updateCalendarEventExternalLinkSyncState,
   type CalendarEventExternalLinkRecord,
 } from "@domains/persistence/calendarEventExternalLinks";
-import type { Event } from "@events/event";
-import { buildEvent } from "@events/dispatcher";
 import { createLogger } from "@utils/logger";
 import {
   buildCrmToExternalUpdate,
@@ -30,8 +29,6 @@ export type ExternalCalendarSyncSummary = {
 };
 
 type SyncDirection = "crmToExternal" | "externalToCrm" | "noop";
-
-type CommitEvents = (events: Event[]) => Promise<void>;
 
 const updateLinkSyncState = async (
   linkId: string,
@@ -81,18 +78,20 @@ const syncLink = async ({
   link,
   calendarEvent,
   deviceId,
-  commitEvents,
 }: {
   link: CalendarEventExternalLinkRecord;
   calendarEvent: CalendarEvent;
   deviceId: string;
-  commitEvents: CommitEvents;
 }): Promise<{
   crmToExternal: boolean;
   externalToCrm: boolean;
   unchanged: boolean;
+  changes: ExternalCalendarChange[];
 }> => {
   const externalEvent = await Calendar.getEventAsync(link.externalEventId);
+  if (!externalEvent) {
+    throw new Error("externalEventMissing");
+  }
   const snapshot = buildExternalSnapshot(externalEvent);
   if (!snapshot) {
     throw new Error("externalEventInvalid");
@@ -121,19 +120,6 @@ const syncLink = async ({
       eventTimestamp,
     );
 
-    if (changes.length > 0) {
-      const events = changes.map((change) =>
-        buildEvent({
-          type: change.type,
-          entityId: change.entityId,
-          payload: change.payload,
-          timestamp: change.timestamp,
-          deviceId: change.deviceId,
-        }),
-      );
-      await commitEvents(events);
-    }
-
     await updateLinkSyncState(
       link.id,
       syncTimestamp,
@@ -145,6 +131,7 @@ const syncLink = async ({
       crmToExternal: false,
       externalToCrm: changes.length > 0,
       unchanged: changes.length === 0,
+      changes,
     };
   }
 
@@ -166,6 +153,7 @@ const syncLink = async ({
       crmToExternal: Boolean(update),
       externalToCrm: false,
       unchanged: !update,
+      changes: [],
     };
   }
 
@@ -176,20 +164,28 @@ const syncLink = async ({
     false,
   );
 
-  return { crmToExternal: false, externalToCrm: false, unchanged: true };
+  return {
+    crmToExternal: false,
+    externalToCrm: false,
+    unchanged: true,
+    changes: [],
+  };
+};
+
+export type ExternalCalendarSyncResult = {
+  summary: ExternalCalendarSyncSummary;
+  changes: ExternalCalendarChange[];
 };
 
 export const syncExternalCalendarLinks = async ({
   calendarId,
   calendarEvents,
   deviceId,
-  commitEvents,
 }: {
   calendarId: string;
   calendarEvents: CalendarEvent[];
   deviceId: string;
-  commitEvents: CommitEvents;
-}): Promise<ExternalCalendarSyncSummary> => {
+}): Promise<ExternalCalendarSyncResult> => {
   const links = await listExternalLinksForCalendar(getDatabase(), calendarId);
   const eventsById = new Map(calendarEvents.map((event) => [event.id, event]));
   logger.info("Loaded linked external events for sync.", {
@@ -204,6 +200,7 @@ export const syncExternalCalendarLinks = async ({
     unchanged: 0,
     errors: 0,
   };
+  const changes: ExternalCalendarChange[] = [];
 
   for (const link of links) {
     const calendarEvent = eventsById.get(link.calendarEventId);
@@ -224,18 +221,31 @@ export const syncExternalCalendarLinks = async ({
         link,
         calendarEvent,
         deviceId,
-        commitEvents,
       });
       summary.processed += 1;
       summary.crmToExternal += result.crmToExternal ? 1 : 0;
       summary.externalToCrm += result.externalToCrm ? 1 : 0;
       summary.unchanged += result.unchanged ? 1 : 0;
+      if (result.changes.length > 0) {
+        changes.push(...result.changes);
+      }
     } catch (error) {
+      if (error instanceof Error && error.message === "externalEventMissing") {
+        try {
+          await deleteCalendarEventExternalLink(getDatabase(), link.id);
+          logger.info("Removed stale external calendar link.");
+        } catch (removeError) {
+          logger.error(
+            "Failed to remove stale external calendar link.",
+            removeError,
+          );
+        }
+      }
       logger.error("Failed to sync external calendar event.", error);
       summary.errors += 1;
     }
   }
 
   logger.info("External linked event sync completed.", summary);
-  return summary;
+  return { summary, changes };
 };

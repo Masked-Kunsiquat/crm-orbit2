@@ -79,7 +79,7 @@ afterAll(() => {
   unsilenceLogs();
 });
 
-test("syncExternalCalendarLinks emits external-to-crm events", async () => {
+test("syncExternalCalendarLinks emits external-to-crm changes", async () => {
   const link = buildLink();
   (listExternalLinksForCalendar as jest.Mock).mockResolvedValue([link]);
   mockedCalendar.getEventAsync.mockResolvedValue({
@@ -95,19 +95,16 @@ test("syncExternalCalendarLinks emits external-to-crm events", async () => {
   });
 
   const calendarEvent = buildCalendarEvent();
-  const committed: string[] = [];
-  const summary = await syncExternalCalendarLinks({
+  const result = await syncExternalCalendarLinks({
     calendarId: link.calendarId,
     calendarEvents: [calendarEvent],
     deviceId: "device-1",
-    commitEvents: async (events) => {
-      committed.push(...events.map((event) => event.type));
-    },
   });
 
-  assert.equal(summary.externalToCrm, 1);
-  assert.equal(summary.crmToExternal, 0);
-  assert.deepEqual(committed, ["calendarEvent.canceled"]);
+  assert.equal(result.summary.externalToCrm, 1);
+  assert.equal(result.summary.crmToExternal, 0);
+  assert.equal(result.changes.length, 1);
+  assert.equal(result.changes[0]?.type, "calendarEvent.canceled");
   expect(updateCalendarEventExternalLinkSyncState).toHaveBeenCalledWith(
     {},
     link.id,
@@ -138,14 +135,14 @@ test("syncExternalCalendarLinks updates external event when CRM changed", async 
     updatedAt: "2026-01-02T00:00:00.000Z",
   });
 
-  const summary = await syncExternalCalendarLinks({
+  const result = await syncExternalCalendarLinks({
     calendarId: link.calendarId,
     calendarEvents: [calendarEvent],
     deviceId: "device-1",
-    commitEvents: async () => {},
   });
 
-  assert.equal(summary.crmToExternal, 1);
+  assert.equal(result.summary.crmToExternal, 1);
+  assert.equal(result.changes.length, 0);
   expect(mockedCalendar.updateEventAsync).toHaveBeenCalledWith(
     link.externalEventId,
     expect.objectContaining({ title: "Quarterly review" }),
@@ -156,13 +153,27 @@ test("syncExternalCalendarLinks prunes missing calendar events", async () => {
   const link = buildLink();
   (listExternalLinksForCalendar as jest.Mock).mockResolvedValue([link]);
 
-  const summary = await syncExternalCalendarLinks({
+  const result = await syncExternalCalendarLinks({
     calendarId: link.calendarId,
     calendarEvents: [],
     deviceId: "device-1",
-    commitEvents: async () => {},
   });
 
-  assert.equal(summary.errors, 1);
+  assert.equal(result.summary.errors, 1);
+  expect(deleteCalendarEventExternalLink).toHaveBeenCalledWith({}, link.id);
+});
+
+test("syncExternalCalendarLinks prunes missing external events", async () => {
+  const link = buildLink();
+  (listExternalLinksForCalendar as jest.Mock).mockResolvedValue([link]);
+  mockedCalendar.getEventAsync.mockResolvedValue(null);
+
+  const result = await syncExternalCalendarLinks({
+    calendarId: link.calendarId,
+    calendarEvents: [buildCalendarEvent()],
+    deviceId: "device-1",
+  });
+
+  assert.equal(result.summary.errors, 1);
   expect(deleteCalendarEventExternalLink).toHaveBeenCalledWith({}, link.id);
 });
