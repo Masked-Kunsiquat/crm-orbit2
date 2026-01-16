@@ -62,6 +62,7 @@ export const HeaderMenu = ({
               top,
               backgroundColor: colors.surface,
               borderColor: colors.border,
+              shadowColor: colors.shadow,
             },
           ]}
         >
@@ -81,7 +82,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 6,
     minWidth: MENU_WIDTH,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,

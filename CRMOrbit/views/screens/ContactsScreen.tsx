@@ -1,7 +1,7 @@
 import { StyleSheet, Text } from "react-native";
 
 import { PrimaryActionButton, Section } from "@views/components";
-import { useContactActions, useDeviceId } from "@views/hooks";
+import { useContactActions, useDeviceId, useTheme } from "@views/hooks";
 import { useAccounts, useAllContacts } from "@views/store/store";
 import { nextId } from "@domains/shared/idGenerator";
 
@@ -10,6 +10,7 @@ export const ContactsScreen = () => {
   const allContacts = useAllContacts();
   const deviceId = useDeviceId();
   const { createContact } = useContactActions(deviceId);
+  const { colors } = useTheme();
 
   const handleAddContact = () => {
     // Use timestamp-based identifier (locale-neutral)
@@ -54,10 +55,15 @@ export const ContactsScreen = () => {
     <Section title="Contacts">
       <PrimaryActionButton label="Add contact" onPress={handleAddContact} />
       {allContacts.length === 0 ? (
-        <Text style={styles.empty}>No contacts yet.</Text>
+        <Text style={[styles.empty, { color: colors.textMuted }]}>
+          No contacts yet.
+        </Text>
       ) : (
         allContacts.map((contact) => (
-          <Text key={contact.id} style={styles.item}>
+          <Text
+            key={contact.id}
+            style={[styles.item, { color: colors.textPrimary }]}
+          >
             {contact.name} ({contact.type})
           </Text>
         ))
@@ -70,11 +76,9 @@ const styles = StyleSheet.create({
   item: {
     fontSize: 14,
     marginBottom: 6,
-    color: "#2a2a2a",
   },
   empty: {
     fontSize: 13,
-    color: "#7a7a7a",
     fontStyle: "italic",
   },
 });

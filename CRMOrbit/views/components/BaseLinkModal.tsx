@@ -58,7 +58,12 @@ export const BaseLinkModal = <T,>({
         visible={visible}
         onRequestClose={onClose}
       >
-        <View style={styles.overlay}>
+        <View
+          style={[
+            styles.overlay,
+            { backgroundColor: colors.overlayScrimStrong },
+          ]}
+        >
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
           <View
             style={[
@@ -124,7 +129,6 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   modal: {
     borderTopLeftRadius: 20,

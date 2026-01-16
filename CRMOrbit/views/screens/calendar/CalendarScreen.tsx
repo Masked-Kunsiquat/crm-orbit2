@@ -157,7 +157,11 @@ export const CalendarScreen = ({
           <View
             style={[
               styles.quickAddMenu,
-              { backgroundColor: colors.surface, borderColor: colors.border },
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                shadowColor: colors.shadow,
+              },
             ]}
           >
             <Pressable
@@ -243,7 +247,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingVertical: 6,
     marginBottom: 72,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,

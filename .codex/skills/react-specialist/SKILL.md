@@ -149,6 +149,7 @@ When delivering work, provide:
 - unstable props causing rerender cascades
 - effects doing too much or missing deps
 - accessibility regressions (missing labels, trap focus bugs, non-keyboard UI)
+- hardcoded colors instead of theme tokens
 
 ---
 

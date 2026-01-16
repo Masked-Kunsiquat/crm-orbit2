@@ -35,7 +35,9 @@ export const ConfirmDialog = ({
       visible={visible}
       {...(handleRequestClose ? { onRequestClose: handleRequestClose } : {})}
     >
-      <View style={styles.overlay}>
+      <View
+        style={[styles.overlay, { backgroundColor: colors.overlayScrimHeavy }]}
+      >
         {onCancel ? (
           <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
         ) : null}
@@ -105,7 +107,6 @@ export const ConfirmDialog = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,

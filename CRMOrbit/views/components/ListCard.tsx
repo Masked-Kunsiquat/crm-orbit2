@@ -26,7 +26,7 @@ export const ListCard = ({
         styles.base,
         { backgroundColor: colors.surface },
         variant === "elevated"
-          ? styles.elevated
+          ? [styles.elevated, { shadowColor: colors.shadow }]
           : [styles.outlined, { borderColor: colors.border }],
         style,
       ]}
@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   elevated: {
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
