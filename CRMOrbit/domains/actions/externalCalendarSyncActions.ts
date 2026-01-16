@@ -1,6 +1,7 @@
 import type { Event } from "@events/event";
 import { buildTypedEvent } from "./eventBuilder";
 import type { ExternalCalendarChange } from "@domains/externalCalendarSync";
+import { appendEvents, type PersistenceDb } from "@domains/persistence/store";
 
 export type ExternalCalendarChangeCommitter = (
   events: Event[],
@@ -27,3 +28,11 @@ export const commitExternalCalendarChanges = async (
   await commitEvents(events);
   return events;
 };
+
+export const persistExternalCalendarChanges = async (
+  db: PersistenceDb,
+  changes: ExternalCalendarChange[],
+): Promise<Event[]> =>
+  commitExternalCalendarChanges(changes, async (events) => {
+    await appendEvents(db, events);
+  });

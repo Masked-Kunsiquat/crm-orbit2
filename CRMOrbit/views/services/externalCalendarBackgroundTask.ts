@@ -11,8 +11,7 @@ import {
 } from "@domains/persistence/database";
 import { loadLatestDeviceId } from "@domains/persistence/deviceId";
 import { loadPersistedState } from "@domains/persistence/loader";
-import { appendEvents } from "@domains/persistence/store";
-import { commitExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
+import { persistExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
 import { getDeviceIdFromEnv } from "@views/hooks/useDeviceId";
 import { getStoredExternalCalendarId } from "@views/utils/deviceCalendar";
 import {
@@ -107,11 +106,7 @@ const runExternalCalendarBackgroundSync = async (): Promise<void> => {
       deviceId,
     });
 
-    if (changes.length > 0) {
-      await commitExternalCalendarChanges(changes, async (events) => {
-        await appendEvents(persistenceDb, events);
-      });
-    }
+    await persistExternalCalendarChanges(persistenceDb, changes);
 
     await setExternalBackgroundSyncStatus({
       lastRunAt: new Date().toISOString(),

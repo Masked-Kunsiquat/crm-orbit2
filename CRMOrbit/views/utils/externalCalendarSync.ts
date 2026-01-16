@@ -147,9 +147,16 @@ export const buildCrmToExternalUpdate = (
   );
   const desiredDurationMinutes =
     calendarEvent.durationMinutes ?? externalDurationMinutes;
-  const desiredEnd = desiredDurationMinutes
-    ? new Date(desiredStart.getTime() + desiredDurationMinutes * 60 * 1000)
-    : external.endDate;
+  let desiredEnd: Date;
+  if (desiredDurationMinutes) {
+    desiredEnd = new Date(
+      desiredStart.getTime() + desiredDurationMinutes * 60 * 1000,
+    );
+  } else if (external.endDate > desiredStart) {
+    desiredEnd = external.endDate;
+  } else {
+    desiredEnd = desiredStart;
+  }
 
   const desiredNotes = buildExternalEventNotes(
     calendarEvent.description ?? "",
@@ -202,7 +209,7 @@ export const buildExternalToCrmEvents = (
     return [];
   }
 
-  const events = [];
+  const events: ExternalCalendarChange[] = [];
   const internalStart = parseIsoTimestamp(calendarEvent.scheduledFor);
 
   if (internalStart && !timestampsEqual(internalStart, external.startDate)) {
