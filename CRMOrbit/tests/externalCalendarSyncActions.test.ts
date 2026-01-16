@@ -1,5 +1,16 @@
 import assert from "node:assert/strict";
 
+// Mock expo-sqlite to avoid native module errors in Jest
+jest.mock("expo-sqlite", () => ({
+  openDatabaseSync: jest.fn(),
+}));
+
+// Mock expo-calendar to avoid native module errors in Jest
+jest.mock("expo-calendar", () => ({
+  getEventsAsync: jest.fn(),
+  updateEventAsync: jest.fn(),
+}));
+
 import type { EventLogRecord, PersistenceDb } from "@domains/persistence/store";
 import { commitExternalCalendarChanges } from "@domains/actions/externalCalendarSyncActions";
 import type { ExternalCalendarChange } from "@domains/externalCalendarSync";
