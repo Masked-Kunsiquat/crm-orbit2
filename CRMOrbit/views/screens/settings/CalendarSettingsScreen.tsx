@@ -19,11 +19,14 @@ import {
 import * as Calendar from "expo-calendar";
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import Carousel from "react-native-reanimated-carousel";
+import Carousel, {
+  type ICarouselInstance,
+} from "react-native-reanimated-carousel";
 
 import { t } from "@i18n/index";
 import {
   ActionButton,
+  ConfirmDialog,
   FormField,
   FormScreenLayout,
   PrimaryActionButton,
@@ -36,6 +39,7 @@ import {
   useDeviceId,
   useTheme,
   useCalendarSync,
+  useConfirmDialog,
   useExternalCalendarSelection,
   useExternalCalendarImport,
   useExternalCalendarSync,
@@ -94,6 +98,7 @@ type ImportCandidateSlideProps = {
     accountId: string,
     details?: ExternalCalendarImportDetails,
   ) => Promise<ExternalCalendarImportResult>;
+  onImportError: (externalEventId: string, error: string) => void;
   onClearDraft: (candidateId: string) => void;
   isImporting: boolean;
 };
@@ -108,6 +113,7 @@ const ImportCandidateSlide = ({
   importStatusOptions,
   onRequestAccountPicker,
   onImportCandidate,
+  onImportError,
   onClearDraft,
   isImporting,
 }: ImportCandidateSlideProps) => {
@@ -429,6 +435,7 @@ const ImportCandidateSlide = ({
                 details,
               ).then((result) => {
                 if (!result.ok) {
+                  onImportError(candidate.externalEventId, result.error);
                   return;
                 }
                 onClearDraft(candidate.externalEventId);
@@ -445,6 +452,7 @@ const ImportCandidateSlide = ({
 
 export const CalendarSettingsScreen = () => {
   const { colors } = useTheme();
+  const { dialogProps, showAlert } = useConfirmDialog();
   const deviceId = useDeviceId();
   const calendarSettings = useCalendarSettings();
   const { updateCalendarSettings } = useSettingsActions(deviceId);
@@ -469,6 +477,7 @@ export const CalendarSettingsScreen = () => {
   const [importDrafts, setImportDrafts] = useState<Record<string, ImportDraft>>(
     {},
   );
+  const importCarouselRef = useRef<ICarouselInstance | null>(null);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [maxWindowHeight, setMaxWindowHeight] = useState(windowHeight);
 
@@ -671,58 +680,66 @@ export const CalendarSettingsScreen = () => {
       setImportCarouselIndex(0);
       return;
     }
-    if (importCarouselIndex > count - 1) {
-      setImportCarouselIndex(Math.max(0, count - 1));
+    const nextIndex = Math.min(importCarouselIndex, count - 1);
+    if (nextIndex !== importCarouselIndex) {
+      setImportCarouselIndex(nextIndex);
+      return;
+    }
+    const currentIndex = importCarouselRef.current?.getCurrentIndex();
+    if (currentIndex !== undefined && currentIndex !== nextIndex) {
+      importCarouselRef.current?.scrollTo({
+        index: nextIndex,
+        animated: false,
+      });
     }
   }, [
     externalCalendarImport.candidates.length,
     importCarouselIndex,
     isImportModalOpen,
   ]);
-  const renderImportSlide = useCallback(
-    ({ item }: { item: ExternalCalendarImportCandidate }) => {
-      const importStatusOptions = [
-        {
-          value: "calendarEvent.status.scheduled" as CalendarEventStatus,
-          label: t("calendarEvent.status.scheduled"),
-        },
-        {
-          value: "calendarEvent.status.completed" as CalendarEventStatus,
-          label: t("calendarEvent.status.completed"),
-        },
-        {
-          value: "calendarEvent.status.canceled" as CalendarEventStatus,
-          label: t("calendarEvent.status.canceled"),
-        },
-      ];
+  const renderImportSlide = ({
+    item,
+  }: {
+    item: ExternalCalendarImportCandidate;
+  }) => {
+    const importStatusOptions = [
+      {
+        value: "calendarEvent.status.scheduled" as CalendarEventStatus,
+        label: t("calendarEvent.status.scheduled"),
+      },
+      {
+        value: "calendarEvent.status.completed" as CalendarEventStatus,
+        label: t("calendarEvent.status.completed"),
+      },
+      {
+        value: "calendarEvent.status.canceled" as CalendarEventStatus,
+        label: t("calendarEvent.status.canceled"),
+      },
+    ];
 
-      return (
-        <ImportCandidateSlide
-          candidate={item}
-          colors={colors}
-          accountsById={accountsById}
-          getSelectedAccountId={getSelectedAccountId}
-          resolveImportDraft={resolveImportDraft}
-          updateImportDraft={updateImportDraft}
-          importStatusOptions={importStatusOptions}
-          onRequestAccountPicker={setAccountPickerCandidateId}
-          onImportCandidate={externalCalendarImport.importCandidate}
-          onClearDraft={clearImportDraft}
-          isImporting={externalCalendarImport.isImporting}
-        />
-      );
-    },
-    [
-      accountsById,
-      clearImportDraft,
-      colors,
-      externalCalendarImport.importCandidate,
-      externalCalendarImport.isImporting,
-      getSelectedAccountId,
-      resolveImportDraft,
-      updateImportDraft,
-    ],
-  );
+    return (
+      <ImportCandidateSlide
+        candidate={item}
+        colors={colors}
+        accountsById={accountsById}
+        getSelectedAccountId={getSelectedAccountId}
+        resolveImportDraft={resolveImportDraft}
+        updateImportDraft={updateImportDraft}
+        importStatusOptions={importStatusOptions}
+        onRequestAccountPicker={setAccountPickerCandidateId}
+        onImportCandidate={externalCalendarImport.importCandidate}
+        onImportError={(externalEventId, error) => {
+          showAlert(
+            t("common.error"),
+            `${t("calendar.import.importFailed")} (${externalEventId}: ${error})`,
+            t("common.ok"),
+          );
+        }}
+        onClearDraft={clearImportDraft}
+        isImporting={externalCalendarImport.isImporting}
+      />
+    );
+  };
 
   return (
     <FormScreenLayout>
@@ -1348,6 +1365,7 @@ export const CalendarSettingsScreen = () => {
                 })}
               </Text>
               <Carousel
+                ref={importCarouselRef}
                 width={carouselWidth}
                 height={carouselHeight}
                 data={externalCalendarImport.candidates}
@@ -1355,7 +1373,7 @@ export const CalendarSettingsScreen = () => {
                 renderItem={renderImportSlide}
                 enabled={externalCalendarImport.candidates.length > 1}
                 style={styles.importCarousel}
-                defaultIndex={importCarouselIndex}
+                defaultIndex={0}
               />
               {externalCalendarImport.importError ? (
                 <Text style={[styles.syncHint, { color: colors.error }]}>
@@ -1435,6 +1453,8 @@ export const CalendarSettingsScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
   );
 };
