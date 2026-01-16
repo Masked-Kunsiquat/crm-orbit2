@@ -12,6 +12,26 @@ import {
 import { DEFAULT_CALENDAR_SETTINGS } from "@domains/settings";
 import { registerCoreReducers } from "@events/dispatcher";
 
+jest.mock("@react-native-async-storage/async-storage", () => {
+  const storage = new Map<string, string>();
+  return {
+    __esModule: true,
+    default: {
+      getItem: jest.fn((key: string) =>
+        Promise.resolve(storage.get(key) ?? null),
+      ),
+      setItem: jest.fn((key: string, value: string) => {
+        storage.set(key, value);
+        return Promise.resolve();
+      }),
+      removeItem: jest.fn((key: string) => {
+        storage.delete(key);
+        return Promise.resolve();
+      }),
+    },
+  };
+});
+
 type StoredTables = {
   snapshots: SnapshotRecord[];
   events: EventLogRecord[];
