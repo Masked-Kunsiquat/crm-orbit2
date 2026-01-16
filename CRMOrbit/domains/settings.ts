@@ -10,7 +10,7 @@ export type SecuritySettings = {
   authFrequency: SecurityAuthFrequency;
 };
 
-export type CalendarPaletteId = "orbit" | "meadow" | "ember";
+export type CalendarPaletteId = AppPaletteId;
 
 export type CalendarSettings = {
   palette: CalendarPaletteId;
@@ -64,12 +64,8 @@ const AUTH_FREQUENCY_VALUES = new Set<SecurityAuthFrequency>([
   "each",
   "session",
 ]);
-const CALENDAR_PALETTE_VALUES = new Set<CalendarPaletteId>([
-  "orbit",
-  "meadow",
-  "ember",
-]);
 const APP_PALETTE_VALUES = new Set<AppPaletteId>(["orbit", "meadow", "ember"]);
+const CALENDAR_PALETTE_VALUES = APP_PALETTE_VALUES;
 const APPEARANCE_MODE_VALUES = new Set<AppearanceThemeMode>([
   "system",
   "light",

@@ -76,6 +76,7 @@ test("settings.calendar.updated updates calendar palette", () => {
   const next = settingsReducer(doc, event);
 
   assert.equal(next.settings.calendar.palette, "meadow");
+  assert.equal(next.settings.appearance.palette, "meadow");
   assert.equal(next.settings.security.biometricAuth, "enabled");
 });
 
@@ -113,6 +114,7 @@ test("settings.appearance.updated updates appearance settings", () => {
 
   assert.equal(next.settings.appearance.palette, "ember");
   assert.equal(next.settings.appearance.mode, "dark");
+  assert.equal(next.settings.calendar.palette, "ember");
 });
 
 test("settings.appearance.updated rejects invalid mode", () => {

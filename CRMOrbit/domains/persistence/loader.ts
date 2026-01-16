@@ -172,13 +172,13 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     : existingLinks;
 
   const paletteValue = doc.settings?.calendar?.palette;
-  const resolvedPalette = isCalendarPaletteId(paletteValue)
+  const resolvedCalendarPalette = isCalendarPaletteId(paletteValue)
     ? paletteValue
     : DEFAULT_CALENDAR_SETTINGS.palette;
   const appearancePaletteValue = doc.settings?.appearance?.palette;
   const resolvedAppearancePalette = isAppPaletteId(appearancePaletteValue)
     ? appearancePaletteValue
-    : DEFAULT_APPEARANCE_SETTINGS.palette;
+    : resolvedCalendarPalette;
   const appearanceModeValue = doc.settings?.appearance?.mode;
   const resolvedAppearanceMode = isAppearanceThemeMode(appearanceModeValue)
     ? appearanceModeValue
@@ -187,7 +187,7 @@ const normalizeSnapshot = (doc: AutomergeDoc): AutomergeDoc => {
     security: doc.settings?.security ?? DEFAULT_SECURITY_SETTINGS,
     calendar: {
       ...DEFAULT_CALENDAR_SETTINGS,
-      palette: resolvedPalette,
+      palette: resolvedAppearancePalette,
     },
     appearance: {
       ...DEFAULT_APPEARANCE_SETTINGS,

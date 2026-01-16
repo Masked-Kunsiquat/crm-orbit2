@@ -107,6 +107,8 @@ const applyCalendarSettingsUpdated = (
 
   const payload = event.payload as CalendarSettingsUpdatedPayload;
   const current = doc.settings?.calendar ?? DEFAULT_CALENDAR_SETTINGS;
+  const currentAppearance =
+    doc.settings?.appearance ?? DEFAULT_APPEARANCE_SETTINGS;
 
   if (payload.palette !== undefined && !isCalendarPaletteId(payload.palette)) {
     throw new Error(`Invalid calendar palette: ${payload.palette}`);
@@ -114,6 +116,10 @@ const applyCalendarSettingsUpdated = (
 
   const nextCalendar = {
     palette: payload.palette !== undefined ? payload.palette : current.palette,
+  };
+  const nextAppearance = {
+    ...currentAppearance,
+    palette: nextCalendar.palette,
   };
 
   logger.info("Calendar settings updated", nextCalendar);
@@ -123,6 +129,7 @@ const applyCalendarSettingsUpdated = (
     settings: {
       ...doc.settings,
       calendar: nextCalendar,
+      appearance: nextAppearance,
     },
   };
 };
@@ -140,6 +147,7 @@ const applyAppearanceSettingsUpdated = (
 
   const payload = event.payload as AppearanceSettingsUpdatedPayload;
   const current = doc.settings?.appearance ?? DEFAULT_APPEARANCE_SETTINGS;
+  const currentCalendar = doc.settings?.calendar ?? DEFAULT_CALENDAR_SETTINGS;
 
   if (payload.palette !== undefined && !isAppPaletteId(payload.palette)) {
     throw new Error(`Invalid app palette: ${payload.palette}`);
@@ -153,6 +161,10 @@ const applyAppearanceSettingsUpdated = (
     palette: payload.palette !== undefined ? payload.palette : current.palette,
     mode: payload.mode !== undefined ? payload.mode : current.mode,
   };
+  const nextCalendar = {
+    ...currentCalendar,
+    palette: nextAppearance.palette,
+  };
 
   logger.info("Appearance settings updated", nextAppearance);
 
@@ -161,6 +173,7 @@ const applyAppearanceSettingsUpdated = (
     settings: {
       ...doc.settings,
       appearance: nextAppearance,
+      calendar: nextCalendar,
     },
   };
 };
