@@ -87,15 +87,22 @@ export const migrateToCalendarEvents = (
           entityLinks: {},
         };
       } else {
-        migrationDoc.relations.accountContacts =
-          migrationDoc.relations.accountContacts ?? {};
-        migrationDoc.relations.accountCodes =
-          migrationDoc.relations.accountCodes ?? {};
-        migrationDoc.relations.entityLinks =
-          migrationDoc.relations.entityLinks ?? {};
+        if (!migrationDoc.relations.accountContacts) {
+          migrationDoc.relations.accountContacts = {};
+        }
+        if (!migrationDoc.relations.accountCodes) {
+          migrationDoc.relations.accountCodes = {};
+        }
+        if (!migrationDoc.relations.entityLinks) {
+          migrationDoc.relations.entityLinks = {};
+        }
       }
-      migrationDoc.interactions = migrationDoc.interactions ?? {};
-      migrationDoc.audits = migrationDoc.audits ?? {};
+      if (!migrationDoc.interactions) {
+        migrationDoc.interactions = {};
+      }
+      if (!migrationDoc.audits) {
+        migrationDoc.audits = {};
+      }
 
       // Step 1: Migrate interactions to calendar events
       for (const [id, interaction] of interactionEntries) {
