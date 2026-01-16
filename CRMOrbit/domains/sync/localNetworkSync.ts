@@ -282,6 +282,7 @@ class LocalNetworkSyncService {
   private rateLimitMaxConnections = DEFAULT_RATE_LIMIT_MAX;
   private authToken: string | null = null;
   private outgoingTokenResolver: ((peer: DeviceInfo) => string) | null = null;
+  private zeroconfErrorListener: ((error: unknown) => void) | null = null;
   private activeSockets = new Set<TcpSocketLike>();
   private socketHandlers = new Map<
     TcpSocketLike,
@@ -340,10 +341,19 @@ class LocalNetworkSyncService {
     useSyncStore.getState().setStatus("error");
   };
 
+  private getZeroconfErrorListener(): (error: unknown) => void {
+    if (!this.zeroconfErrorListener) {
+      this.zeroconfErrorListener = (error: unknown) => {
+        this.handleError(error);
+      };
+    }
+    return this.zeroconfErrorListener;
+  }
+
   private setupListeners() {
     this.zeroconf.on("resolved", this.handleResolved);
     this.zeroconf.on("remove", this.handleRemove);
-    this.zeroconf.on("error", this.handleError);
+    this.zeroconf.on("error", this.getZeroconfErrorListener());
     this.listenersAttached = true;
   }
 
@@ -419,7 +429,9 @@ class LocalNetworkSyncService {
     if (!this.listenersAttached) return;
     this.detachZeroconfListener("resolved", this.handleResolved);
     this.detachZeroconfListener("remove", this.handleRemove);
-    this.detachZeroconfListener("error", this.handleError);
+    if (this.zeroconfErrorListener) {
+      this.detachZeroconfListener("error", this.zeroconfErrorListener);
+    }
   }
 
   private detachSocketListener(
