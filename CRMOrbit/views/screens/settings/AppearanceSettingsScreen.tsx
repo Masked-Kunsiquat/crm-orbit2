@@ -8,7 +8,10 @@ import { useSettingsActions } from "../../hooks/useSettingsActions";
 import { useAppearanceSettings } from "../../store/store";
 import { APP_PALETTES } from "@domains/shared/theme/colors";
 import { APP_PALETTE_I18N_KEYS } from "@i18n/enums";
-import type { AppearanceThemeMode } from "@domains/settings";
+import {
+  DEFAULT_APPEARANCE_SETTINGS,
+  type AppearanceThemeMode,
+} from "@domains/settings";
 
 export const AppearanceSettingsScreen = () => {
   const deviceId = useDeviceId();
@@ -38,6 +41,10 @@ export const AppearanceSettingsScreen = () => {
       preview,
     };
   });
+
+  const sortedPaletteOptions = paletteOptions.sort((left, right) =>
+    left.label.localeCompare(right.label),
+  );
 
   return (
     <FormScreenLayout>
@@ -77,8 +84,10 @@ export const AppearanceSettingsScreen = () => {
         hint={t("settings.appearance.palette.hint")}
       >
         <View style={styles.paletteList}>
-          {paletteOptions.map((palette) => {
+          {sortedPaletteOptions.map((palette) => {
             const isSelected = palette.id === appearance.palette;
+            const isDefault =
+              palette.id === DEFAULT_APPEARANCE_SETTINGS.palette;
             return (
               <Pressable
                 key={palette.id}
@@ -100,11 +109,33 @@ export const AppearanceSettingsScreen = () => {
                   pressed && styles.paletteCardPressed,
                 ]}
               >
-                <Text
-                  style={[styles.paletteLabel, { color: colors.textPrimary }]}
-                >
-                  {palette.label}
-                </Text>
+                <View style={styles.paletteInfo}>
+                  <Text
+                    style={[styles.paletteLabel, { color: colors.textPrimary }]}
+                  >
+                    {palette.label}
+                  </Text>
+                  {isDefault ? (
+                    <View
+                      style={[
+                        styles.defaultBadge,
+                        {
+                          backgroundColor: colors.surface,
+                          borderColor: colors.borderLight,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.defaultBadgeText,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        {t("settings.appearance.palette.default")}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
                 <View style={styles.swatchRow}>
                   <View
                     style={[
@@ -146,11 +177,26 @@ const styles = StyleSheet.create({
   paletteCardPressed: {
     opacity: 0.9,
   },
+  paletteInfo: {
+    flex: 1,
+    marginRight: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
   paletteLabel: {
     fontSize: 15,
     fontWeight: "600",
-    flex: 1,
-    marginRight: 12,
+  },
+  defaultBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  defaultBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
   },
   swatchRow: {
     flexDirection: "row",

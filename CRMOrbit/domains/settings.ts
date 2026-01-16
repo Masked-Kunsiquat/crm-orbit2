@@ -64,7 +64,13 @@ const AUTH_FREQUENCY_VALUES = new Set<SecurityAuthFrequency>([
   "each",
   "session",
 ]);
-const APP_PALETTE_VALUES = new Set<AppPaletteId>(["orbit", "meadow", "ember"]);
+const APP_PALETTE_VALUES = new Set<AppPaletteId>([
+  "orbit",
+  "meadow",
+  "ember",
+  "tide",
+  "rose",
+]);
 const CALENDAR_PALETTE_VALUES = APP_PALETTE_VALUES;
 const APPEARANCE_MODE_VALUES = new Set<AppearanceThemeMode>([
   "system",

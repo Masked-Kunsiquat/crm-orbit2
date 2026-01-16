@@ -163,7 +163,7 @@ export const darkColors: ColorScheme = {
   contactTypeVendorText: "#ba68c8",
 };
 
-export type AppPaletteId = "orbit" | "meadow" | "ember";
+export type AppPaletteId = "orbit" | "meadow" | "ember" | "tide" | "rose";
 
 export type AppPalette = {
   id: AppPaletteId;
@@ -199,6 +199,34 @@ export const emberDarkColors: ColorScheme = {
   link: "#f59e0b",
 };
 
+export const tideLightColors: ColorScheme = {
+  ...lightColors,
+  accent: "#0ea5a4",
+  accentMuted: "#9ddfd9",
+  link: "#0ea5a4",
+};
+
+export const tideDarkColors: ColorScheme = {
+  ...darkColors,
+  accent: "#2dd4bf",
+  accentMuted: "#268c7e",
+  link: "#2dd4bf",
+};
+
+export const roseLightColors: ColorScheme = {
+  ...lightColors,
+  accent: "#e11d48",
+  accentMuted: "#f3b4c4",
+  link: "#e11d48",
+};
+
+export const roseDarkColors: ColorScheme = {
+  ...darkColors,
+  accent: "#fb7185",
+  accentMuted: "#b24b63",
+  link: "#fb7185",
+};
+
 export const APP_PALETTES: Record<AppPaletteId, AppPalette> = {
   orbit: {
     id: "orbit",
@@ -214,6 +242,16 @@ export const APP_PALETTES: Record<AppPaletteId, AppPalette> = {
     id: "ember",
     light: emberLightColors,
     dark: emberDarkColors,
+  },
+  tide: {
+    id: "tide",
+    light: tideLightColors,
+    dark: tideDarkColors,
+  },
+  rose: {
+    id: "rose",
+    light: roseLightColors,
+    dark: roseDarkColors,
   },
 };
 
