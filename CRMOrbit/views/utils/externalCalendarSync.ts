@@ -3,7 +3,10 @@ import * as Calendar from "expo-calendar";
 import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Timestamp } from "@domains/shared/types";
 import { buildEvent } from "@events/dispatcher";
-import { stripCrmOrbitMetadataFromNotes } from "./externalCalendarImport";
+import {
+  buildExternalEventNotes,
+  stripCrmOrbitMetadataFromNotes,
+} from "./externalCalendarImport";
 
 const TIMESTAMP_EPSILON_MS = 1000;
 
@@ -45,6 +48,131 @@ export const resolveExternalDurationMinutes = (
     return undefined;
   }
   return Math.round(diffMs / (60 * 1000));
+};
+
+const parseCalendarDate = (
+  value: string | Date | null | undefined,
+): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value : null;
+  }
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) {
+    return null;
+  }
+  return parsed;
+};
+
+export const buildExternalSnapshot = (
+  event: Calendar.Event,
+): ExternalCalendarSnapshot | null => {
+  const startDate = parseCalendarDate(event.startDate);
+  if (!startDate) {
+    return null;
+  }
+  const endDate = parseCalendarDate(event.endDate) ?? startDate;
+  const lastModifiedAt = parseCalendarDate(
+    event.lastModifiedDate ?? event.creationDate,
+  );
+
+  return {
+    externalEventId: event.id,
+    calendarId: event.calendarId,
+    title: event.title ?? "",
+    notes: event.notes ?? "",
+    location: event.location ?? undefined,
+    status: event.status,
+    startDate,
+    endDate,
+    lastModifiedAt,
+  };
+};
+
+export const resolveSyncDirection = (
+  crmUpdatedAt: Date | null,
+  externalModifiedAt: Date | null,
+  lastSyncedAt: Date | null,
+  lastExternalModifiedAt: Date | null,
+): "crmToExternal" | "externalToCrm" | "noop" => {
+  if (!crmUpdatedAt) {
+    return "noop";
+  }
+
+  if (!lastSyncedAt) {
+    if (externalModifiedAt && externalModifiedAt > crmUpdatedAt) {
+      return "externalToCrm";
+    }
+    return "crmToExternal";
+  }
+
+  const crmChanged = crmUpdatedAt > lastSyncedAt;
+  const externalChanged = externalModifiedAt
+    ? lastExternalModifiedAt
+      ? externalModifiedAt > lastExternalModifiedAt
+      : externalModifiedAt > lastSyncedAt
+    : false;
+
+  if (crmChanged && externalChanged) {
+    return "crmToExternal";
+  }
+  if (externalChanged) {
+    return "externalToCrm";
+  }
+  if (crmChanged) {
+    return "crmToExternal";
+  }
+  return "noop";
+};
+
+export const buildCrmToExternalUpdate = (
+  calendarEvent: CalendarEvent,
+  external: ExternalCalendarSnapshot,
+): Partial<Calendar.Event> | null => {
+  const desiredTitle = calendarEvent.summary.trim();
+  const desiredStart = parseIsoTimestamp(calendarEvent.scheduledFor);
+  if (!desiredStart) {
+    return null;
+  }
+
+  const externalDurationMinutes = resolveExternalDurationMinutes(
+    external.startDate,
+    external.endDate,
+  );
+  const desiredDurationMinutes =
+    calendarEvent.durationMinutes ?? externalDurationMinutes;
+  const desiredEnd = desiredDurationMinutes
+    ? new Date(desiredStart.getTime() + desiredDurationMinutes * 60 * 1000)
+    : external.endDate;
+
+  const desiredNotes = buildExternalEventNotes(
+    calendarEvent.description ?? "",
+    calendarEvent,
+  );
+  const desiredLocation = calendarEvent.location?.trim() ?? "";
+
+  const updates: Partial<Calendar.Event> = {};
+
+  if (normalizeText(desiredTitle) !== normalizeText(external.title)) {
+    updates.title = desiredTitle;
+  }
+
+  if (!timestampsEqual(desiredStart, external.startDate)) {
+    updates.startDate = desiredStart;
+    updates.endDate = desiredEnd;
+  } else if (!timestampsEqual(desiredEnd, external.endDate)) {
+    updates.endDate = desiredEnd;
+  }
+
+  if (normalizeText(desiredNotes) !== normalizeText(external.notes)) {
+    updates.notes = desiredNotes;
+  }
+
+  if (normalizeText(desiredLocation) !== normalizeText(external.location)) {
+    updates.location = desiredLocation;
+  }
+
+  return Object.keys(updates).length > 0 ? updates : null;
 };
 
 export const buildExternalToCrmEvents = (
