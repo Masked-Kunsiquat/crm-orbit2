@@ -79,7 +79,7 @@ test("commitAndPersistExternalCalendarChanges persists event log records", async
     },
   ];
 
-  let committed: EventLogRecord[] | null = null;
+  let committed: EventLogRecord[] = [];
   const events = await commitAndPersistExternalCalendarChanges({
     changes,
     commitEvents: async (nextEvents) => {
@@ -96,7 +96,6 @@ test("commitAndPersistExternalCalendarChanges persists event log records", async
   });
 
   assert.equal(events.length, 1);
-  assert.ok(committed);
   assert.equal(committed.length, 1);
   assert.equal(committed[0]?.type, "calendarEvent.updated");
   const inserted = getInserted();

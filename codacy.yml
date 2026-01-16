@@ -1,0 +1,9 @@
+---
+exclude_paths:
+  - "README.md"
+  - "CRMOrbit/.codex/*"
+  - "CRMOrbit/docs/*"
+  - "CRMOrbit/*.md"
+  - "CRMOrbit/*/*.md"
+  - "*.md"
+  
