@@ -28,6 +28,16 @@
           <img alt="ESLint" src="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/eslint.yml/badge.svg" />
         </a>
       </td>
+      <td>
+        <a href="https://app.codacy.com/gh/Masked-Kunsiquat/crm-orbit2/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade">
+          <img alt="Codacy Grade" src="https://app.codacy.com/project/badge/Grade/55db8c1a95f74f078cafef5ede9701ff" />
+        </a>
+      </td>
+      <td>
+        <a href="https://app.codacy.com/gh/Masked-Kunsiquat/crm-orbit2/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage">
+          <img alt="Codacy Coverage" src="https://app.codacy.com/project/badge/Coverage/55db8c1a95f74f078cafef5ede9701ff" />
+        </a>
+      </td>
     </tr>
   </tbody>
 </table>
