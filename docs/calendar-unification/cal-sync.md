@@ -59,6 +59,26 @@ Backend and app engineers working on Phase 7 calendar sync, plus reviewers who n
 - Snapshot tests for migration compatibility.
  - Code: tests in `CRMOrbit/tests` + migration fixture updates.
 
+### Phase 7.7 — Background Sync Foundations (Android-first)
+- Add `expo-background-task` + `expo-task-manager` dependencies.
+- Define background task entry + registration helpers.
+- Store device-local background sync state (enabled, last run).
+- Ensure logs are PII-safe and summary-only.
+
+### Phase 7.8 — Background Worker (Linked Events Only)
+- Background flow: permission + calendar selection check, load persisted state, sync linked events, persist events.
+- Add a storage-backed lock to prevent overlap with foreground sync.
+- Skip auto-import; background sync only touches already-linked events.
+
+### Phase 7.9 — Settings UX
+- Toggle background sync on/off.
+- Display last background sync time + status.
+- Optional: manual “Run background sync now” trigger (foreground call).
+
+### Phase 7.10 — Verification
+- Unit tests for background sync service + lock behavior.
+- Manual testing using `triggerTaskWorkerForTestingAsync` (dev-only).
+
 ---
 
 ## Core Principles (Must Hold)
