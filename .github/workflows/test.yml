@@ -1,0 +1,42 @@
+name: Tests & Coverage
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  test:
+    name: Run Tests & Upload Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: CRMOrbit/package-lock.json
+
+      - name: Install dependencies
+        working-directory: CRMOrbit
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: CRMOrbit
+        run: npm run test:coverage -- --coverageReporters=lcov --coverageReporters=text
+
+      - name: Upload coverage to Codacy
+        working-directory: CRMOrbit
+        env:
+          CODACY_API_TOKEN: ${{ secrets.CODACY_API_TOKEN }}
+          CODACY_ORGANIZATION_PROVIDER: gh
+          CODACY_USERNAME: Masked-Kunsiquat
+          CODACY_PROJECT_NAME: crm-orbit2
+        run: |
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+            --coverage-reports coverage/lcov.info
