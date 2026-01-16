@@ -13,16 +13,16 @@ const toDate = (value: Timestamp): Date | null => {
 };
 
 export const getCalendarMonthRange = (selectedDate: string): CalendarRange => {
-  const parsed = new Date(`${selectedDate}T00:00:00.000Z`);
+  const parsed = new Date(`${selectedDate}T00:00:00`);
   if (Number.isNaN(parsed.getTime())) {
     throw new RangeError(`Invalid selectedDate: ${selectedDate}`);
   }
   const base = parsed;
 
-  const year = base.getUTCFullYear();
-  const month = base.getUTCMonth();
-  const start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-  const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+  const year = base.getFullYear();
+  const month = base.getMonth();
+  const start = new Date(year, month, 1, 0, 0, 0, 0);
+  const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
   return {
     start: start.toISOString(),

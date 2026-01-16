@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   CalendarView,
@@ -17,7 +11,6 @@ import { useAccounts, useAllCalendarEvents, useDoc } from "../../store/store";
 import type { EventsStackScreenProps } from "../../navigation/types";
 import { getEntitiesForCalendarEvent } from "../../store/selectors";
 import { useHeaderMenu, useTheme } from "../../hooks";
-import { getInitialCalendarDateFromEvents } from "../../utils/calendarDataTransformers";
 
 type CalendarViewMode = "agenda" | "timeline";
 
@@ -51,12 +44,13 @@ export const CalendarScreen = ({
   const calendarEvents = useAllCalendarEvents();
   const accounts = useAccounts();
   const doc = useDoc();
-  const initialDate = useMemo(
-    () => getInitialCalendarDateFromEvents(calendarEvents),
-    [calendarEvents],
-  );
-  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
-  const [selectedDateTouched, setSelectedDateTouched] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = `${today.getMonth() + 1}`.padStart(2, "0");
+    const day = `${today.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
 
   const { menuVisible, menuAnchorRef, closeMenu, headerRight } = useHeaderMenu({
     accessibilityLabel: viewOptionsLabel,
@@ -95,15 +89,9 @@ export const CalendarScreen = ({
     [navigation],
   );
 
-  const handleDateChange = useCallback(
-    (nextDate: string) => {
-      if (!selectedDateTouched && nextDate !== initialDate) {
-        setSelectedDateTouched(true);
-      }
-      setSelectedDate(nextDate);
-    },
-    [initialDate, selectedDateTouched],
-  );
+  const handleDateChange = useCallback((nextDate: string) => {
+    setSelectedDate(nextDate);
+  }, []);
 
   const handleCreateInteraction = useCallback(() => {
     setQuickAddVisible(false);
@@ -123,16 +111,6 @@ export const CalendarScreen = ({
       headerRight,
     });
   }, [navigation, headerRight]);
-
-  useEffect(() => {
-    if (selectedDateTouched) {
-      return;
-    }
-    const newInitial = getInitialCalendarDateFromEvents(calendarEvents);
-    if (newInitial !== selectedDate) {
-      setSelectedDate(newInitial);
-    }
-  }, [calendarEvents, initialDate, selectedDate, selectedDateTouched]);
 
   return (
     <>

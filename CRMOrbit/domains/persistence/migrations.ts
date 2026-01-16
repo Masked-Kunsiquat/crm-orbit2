@@ -31,6 +31,22 @@ export const MIGRATIONS: Migration[] = [
     );`,
     rollback: "drop table if exists automerge_snapshots;",
   },
+  {
+    version: 3,
+    name: "create_calendar_event_external_links",
+    sql: `create table if not exists calendar_event_external_links (
+      id text primary key,
+      calendar_event_id text not null,
+      provider text not null,
+      calendar_id text not null,
+      external_event_id text not null,
+      created_at text not null,
+      updated_at text not null,
+      last_synced_at text,
+      last_external_modified_at text
+    );`,
+    rollback: "drop table if exists calendar_event_external_links;",
+  },
 ];
 
 export type MigrationDb = {

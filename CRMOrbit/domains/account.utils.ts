@@ -2,6 +2,7 @@ import type {
   Account,
   AccountAuditFrequency,
   AccountAuditFrequencyChangeTiming,
+  AccountCalendarMatch,
   AccountStatus,
 } from "./account";
 
@@ -39,6 +40,111 @@ export const isAccountAuditFrequencyChangeTiming = (
   value: unknown,
 ): value is AccountAuditFrequencyChangeTiming =>
   typeof value === "string" && value in ACCOUNT_AUDIT_FREQUENCY_CHANGE_TIMINGS;
+
+const normalizeCalendarMatchValue = (value: string): string => value.trim();
+
+const normalizeCalendarMatchAliases = (aliases: unknown): string[] => {
+  if (!Array.isArray(aliases)) {
+    return [];
+  }
+  const unique = new Set<string>();
+  const normalized: string[] = [];
+  for (const alias of aliases) {
+    if (typeof alias !== "string") continue;
+    const trimmed = alias.trim();
+    if (!trimmed || unique.has(trimmed)) continue;
+    unique.add(trimmed);
+    normalized.push(trimmed);
+  }
+  return normalized;
+};
+
+export const sanitizeAccountCalendarMatch = (
+  value: unknown,
+): AccountCalendarMatch | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const match = value as { mode?: unknown; aliases?: unknown };
+  if (match.mode !== "exact") {
+    return undefined;
+  }
+  const aliases = normalizeCalendarMatchAliases(match.aliases);
+  if (aliases.length === 0) {
+    return undefined;
+  }
+  return {
+    mode: "exact",
+    aliases,
+  };
+};
+
+export const isAccountCalendarMatch = (
+  value: unknown,
+): value is AccountCalendarMatch =>
+  sanitizeAccountCalendarMatch(value) !== undefined;
+
+const buildDefaultCalendarAliases = (account: Account): string[] => [
+  account.name,
+  `Audit - ${account.name}`,
+];
+
+export const resolveAccountCalendarAliases = (account: Account): string[] => {
+  const base = buildDefaultCalendarAliases(account).map(
+    normalizeCalendarMatchValue,
+  );
+  const extras =
+    sanitizeAccountCalendarMatch(account.calendarMatch)?.aliases ?? [];
+  const unique = new Set<string>();
+  const resolved: string[] = [];
+  for (const alias of [...base, ...extras]) {
+    if (!alias || unique.has(alias)) continue;
+    unique.add(alias);
+    resolved.push(alias);
+  }
+  return resolved;
+};
+
+export const findAccountsMatchingCalendarTitle = (
+  accounts: Account[],
+  title: string,
+): Account[] => {
+  const normalizedTitle = normalizeCalendarMatchValue(title);
+  if (!normalizedTitle) {
+    return [];
+  }
+  return accounts.filter((account) =>
+    resolveAccountCalendarAliases(account).includes(normalizedTitle),
+  );
+};
+
+export const buildAccountCalendarMatchUpdate = (
+  account: Account,
+  title: string,
+): AccountCalendarMatch | undefined => {
+  const normalizedTitle = normalizeCalendarMatchValue(title);
+  if (!normalizedTitle) {
+    return account.calendarMatch;
+  }
+
+  const defaultAliases = buildDefaultCalendarAliases(account).map(
+    normalizeCalendarMatchValue,
+  );
+  if (defaultAliases.includes(normalizedTitle)) {
+    return account.calendarMatch;
+  }
+
+  const sanitized = sanitizeAccountCalendarMatch(account.calendarMatch);
+  const existingAliases = sanitized?.aliases ?? [];
+  if (existingAliases.includes(normalizedTitle)) {
+    return account.calendarMatch ?? sanitized;
+  }
+
+  return {
+    mode: "exact",
+    aliases: [...existingAliases, normalizedTitle],
+  };
+};
 
 const toMonthIndex = (date: Date): number =>
   date.getUTCFullYear() * 12 + date.getUTCMonth();
@@ -187,6 +293,14 @@ export const buildAccountFromPayload = (
     }
   }
 
+  const hasCalendarMatch = Object.prototype.hasOwnProperty.call(
+    payload,
+    "calendarMatch",
+  );
+  const calendarMatch = hasCalendarMatch
+    ? sanitizeAccountCalendarMatch(payload.calendarMatch)
+    : existing?.calendarMatch;
+
   return {
     id,
     organizationId:
@@ -224,6 +338,7 @@ export const buildAccountFromPayload = (
       payload.socialMedia !== undefined
         ? (payload.socialMedia as Account["socialMedia"])
         : existing?.socialMedia,
+    calendarMatch,
     metadata:
       payload.metadata !== undefined
         ? (payload.metadata as Record<string, unknown>)

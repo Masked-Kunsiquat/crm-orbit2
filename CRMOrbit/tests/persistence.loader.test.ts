@@ -122,6 +122,41 @@ test("loadPersistedState defaults calendar settings", async () => {
   );
 });
 
+test("loadPersistedState sanitizes account calendar match", async () => {
+  const { db } = createMemoryDb();
+  const baseDoc = initAutomergeDoc();
+  const legacyDoc = {
+    ...baseDoc,
+    accounts: {
+      "acct-1": {
+        id: "acct-1",
+        organizationId: "org-1",
+        name: "ACME Retail",
+        status: "account.status.active",
+        auditFrequency: "account.auditFrequency.monthly",
+        auditFrequencyUpdatedAt: "2024-01-02T00:00:00.000Z",
+        auditFrequencyAnchorAt: "2024-01-01T00:00:00.000Z",
+        calendarMatch: {
+          mode: "exact",
+          aliases: ["", "  "],
+        },
+        createdAt: "2024-01-02T00:00:00.000Z",
+        updatedAt: "2024-01-02T00:00:00.000Z",
+      },
+    },
+  };
+
+  await saveSnapshot(db, {
+    id: "snap-2",
+    doc: JSON.stringify(legacyDoc),
+    timestamp: "2024-01-02T00:00:00.000Z",
+  });
+
+  const { doc } = await loadPersistedState(db);
+
+  assert.equal(doc.accounts["acct-1"]?.calendarMatch, undefined);
+});
+
 test("loadPersistedState normalizes legacy calendar event statuses", async () => {
   registerCoreReducers();
   const { db } = createMemoryDb();

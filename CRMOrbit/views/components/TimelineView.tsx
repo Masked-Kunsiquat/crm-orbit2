@@ -18,7 +18,7 @@ import { buildCalendarTheme } from "../utils/calendarTheme";
 import { addMinutesToTimestamp } from "../utils/duration";
 import {
   buildMarkedDatesFromCalendarEvents,
-  toISODate,
+  toDateKey,
 } from "../utils/calendarDataTransformers";
 import {
   getCalendarEventDotColor,
@@ -58,8 +58,8 @@ export const TimelineView = ({
   const { colors, isDark } = useTheme();
   const calendarSettings = useCalendarSettings();
   const calendarTheme = useMemo(
-    () => buildCalendarTheme(colors, isDark),
-    [colors, isDark],
+    () => buildCalendarTheme(colors, isDark, selectedDate),
+    [colors, isDark, selectedDate],
   );
   const calendarPalette = useMemo(
     () => resolveCalendarPalette(colors, calendarSettings.palette),
@@ -107,7 +107,7 @@ export const TimelineView = ({
 
       if (!startTimestamp) continue;
 
-      const dateKey = toISODate(startTimestamp);
+      const dateKey = toDateKey(startTimestamp);
       if (!dateKey) continue;
 
       const endTimestamp =

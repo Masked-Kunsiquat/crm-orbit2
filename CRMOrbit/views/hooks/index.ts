@@ -38,6 +38,24 @@ export type {
   CalendarSyncState,
   UseCalendarSyncParams,
 } from "./useCalendarSync";
+export { useExternalCalendarSelection } from "./useExternalCalendarSelection";
+export type {
+  ExternalCalendarSelectionState,
+  UseExternalCalendarSelectionParams,
+} from "./useExternalCalendarSelection";
+export { useExternalCalendarImport } from "./useExternalCalendarImport";
+export type {
+  ExternalCalendarImportState,
+  ExternalCalendarImportDetails,
+  UseExternalCalendarImportParams,
+} from "./useExternalCalendarImport";
+export { useExternalCalendarSync } from "./useExternalCalendarSync";
+export type {
+  ExternalCalendarSyncError,
+  ExternalCalendarSyncState,
+  ExternalCalendarSyncSummary,
+  UseExternalCalendarSyncParams,
+} from "./useExternalCalendarSync";
 export { useOrganizationAccountManagement } from "./useOrganizationAccountManagement";
 export type {
   OrganizationAccountManagementState,

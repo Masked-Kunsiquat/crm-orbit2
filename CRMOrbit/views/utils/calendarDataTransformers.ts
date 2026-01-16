@@ -19,14 +19,29 @@ import {
 } from "./calendarColors";
 
 /**
- * Converts a timestamp string to ISO date format (YYYY-MM-DD)
+ * Converts a timestamp string to a local date key (YYYY-MM-DD)
  */
-export const toISODate = (timestamp?: string): string | null => {
+export const toDateKey = (timestamp?: string): string | null => {
   if (!timestamp) return null;
-  const parsed = Date.parse(timestamp);
-  if (Number.isNaN(parsed)) return null;
-  const date = new Date(parsed);
-  return date.toISOString().split("T")[0];
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return null;
+  return formatLocalDate(date);
+};
+
+const formatLocalDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseLocalDate = (dateKey: string): Date | null => {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!year || !month || !day) {
+    return null;
+  }
+  const parsed = new Date(year, month - 1, day);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 /**
@@ -165,7 +180,7 @@ export const groupAgendaItemsByDate = (
         : item.interaction.occurredAt;
     }
 
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const existing = itemsByDate.get(dateKey) ?? [];
@@ -197,7 +212,7 @@ export const buildMarkedDates = (
   // Mark dates with audits
   for (const audit of audits) {
     const timestamp = getAuditStartTimestamp(audit);
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const status = resolveAuditStatus(audit);
@@ -222,7 +237,7 @@ export const buildMarkedDates = (
     const timestamp = usesScheduledTimestamp
       ? (interaction.scheduledFor ?? interaction.occurredAt)
       : interaction.occurredAt;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const color = getInteractionDotColor(palette, resolvedStatus);
@@ -260,14 +275,14 @@ export const getInitialCalendarDate = (
   interactions: Interaction[],
 ): string => {
   const today = new Date();
-  const todayISO = today.toISOString().split("T")[0];
-  const todayMidnight = new Date(todayISO);
+  const todayISO = formatLocalDate(today);
+  const todayMidnight = parseLocalDate(todayISO) ?? today;
 
   const dates: string[] = [];
 
   for (const audit of audits) {
     const timestamp = getAuditStartTimestamp(audit);
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (dateKey) dates.push(dateKey);
   }
 
@@ -278,7 +293,7 @@ export const getInitialCalendarDate = (
     const timestamp = usesScheduledTimestamp
       ? (interaction.scheduledFor ?? interaction.occurredAt)
       : interaction.occurredAt;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (dateKey) dates.push(dateKey);
   }
 
@@ -288,7 +303,8 @@ export const getInitialCalendarDate = (
   let smallestDifference = Number.POSITIVE_INFINITY;
 
   for (const dateKey of dates) {
-    const dateValue = new Date(dateKey);
+    const dateValue = parseLocalDate(dateKey);
+    if (!dateValue) continue;
     const difference = Math.abs(dateValue.getTime() - todayMidnight.getTime());
     if (difference < smallestDifference) {
       smallestDifference = difference;
@@ -405,7 +421,7 @@ export const buildMarkedDatesFromCalendarEvents = (
     const timestamp = isCompleted
       ? (event.occurredAt ?? event.scheduledFor)
       : event.scheduledFor;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (!dateKey) continue;
 
     const color = getCalendarEventDotColor(palette, event.status, event.type);
@@ -442,8 +458,8 @@ export const getInitialCalendarDateFromEvents = (
   calendarEvents: CalendarEvent[],
 ): string => {
   const today = new Date();
-  const todayISO = today.toISOString().split("T")[0];
-  const todayMidnight = new Date(todayISO);
+  const todayISO = formatLocalDate(today);
+  const todayMidnight = parseLocalDate(todayISO) ?? today;
 
   const dates: string[] = [];
 
@@ -452,7 +468,7 @@ export const getInitialCalendarDateFromEvents = (
     const timestamp = isCompleted
       ? (event.occurredAt ?? event.scheduledFor)
       : event.scheduledFor;
-    const dateKey = toISODate(timestamp);
+    const dateKey = toDateKey(timestamp);
     if (dateKey) dates.push(dateKey);
   }
 
@@ -462,7 +478,8 @@ export const getInitialCalendarDateFromEvents = (
   let smallestDifference = Number.POSITIVE_INFINITY;
 
   for (const dateKey of dates) {
-    const dateValue = new Date(dateKey);
+    const dateValue = parseLocalDate(dateKey);
+    if (!dateValue) continue;
     const difference = Math.abs(dateValue.getTime() - todayMidnight.getTime());
     if (difference < smallestDifference) {
       smallestDifference = difference;

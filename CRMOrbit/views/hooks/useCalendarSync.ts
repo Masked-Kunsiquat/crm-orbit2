@@ -4,6 +4,7 @@ import type { Audit } from "@domains/audit";
 import type { Interaction } from "@domains/interaction";
 import type { Account } from "@domains/account";
 import { t } from "@i18n/index";
+import { createLogger } from "@utils/logger";
 import {
   DEFAULT_DEVICE_CALENDAR_NAME,
   DEFAULT_AUDIT_ALARM_OFFSET_MINUTES,
@@ -21,6 +22,8 @@ import { resolveAuditStatus } from "../utils/audits";
 
 type SyncStatus = "idle" | "syncing" | "success" | "error";
 type AuditAlarmOption = "0" | "30" | "60" | "120" | "custom";
+
+const logger = createLogger("CalendarSync");
 
 /**
  * Resolves a numeric alarm offset to its preset option.
@@ -163,13 +166,12 @@ export const useCalendarSync = ({
           setCalendarId(id);
           setCalendarError(null);
         }
+        logger.info("Device calendar ready.");
       } catch (error) {
         if (mounted) {
           setCalendarError(t("calendar.sync.error"));
         }
-        if (__DEV__) {
-          console.error("Failed to ensure device calendar.", error);
-        }
+        logger.error("Failed to ensure device calendar.", error);
       }
     };
     void ensureCalendar();
@@ -236,6 +238,7 @@ export const useCalendarSync = ({
     if (isSavingName) return;
     setIsSavingName(true);
     const nextName = calendarName.trim() || DEFAULT_DEVICE_CALENDAR_NAME;
+    logger.debug("Saving device calendar name.");
     try {
       await setStoredCalendarName(nextName);
       setCalendarName(nextName);
@@ -244,8 +247,10 @@ export const useCalendarSync = ({
         setCalendarId(id);
       }
       setSyncMessage(t("calendar.sync.nameSaved"));
-    } catch {
+      logger.info("Device calendar name saved.");
+    } catch (error) {
       setSyncMessage(t("calendar.sync.nameSaveError"));
+      logger.error("Failed to save device calendar name.", error);
     } finally {
       setIsSavingName(false);
     }
@@ -290,15 +295,18 @@ export const useCalendarSync = ({
       return;
     }
     const rounded = Math.round(parsed);
+    logger.debug("Saving audit alarm offset.");
     try {
       await setStoredAuditAlarmOffsetMinutes(rounded);
       setAuditAlarmOffset(`${rounded}`);
       setAuditAlarmPreset(resolveAlarmPreset(rounded));
       setAuditAlarmMessage(t("calendar.sync.auditAlarmSaved"));
       setAuditAlarmStatus("saved");
-    } catch {
+      logger.info("Audit alarm offset saved.");
+    } catch (error) {
       setAuditAlarmMessage(t("calendar.sync.auditAlarmSaveError"));
       setAuditAlarmStatus("error");
+      logger.error("Failed to save audit alarm offset.", error);
     } finally {
       setIsSavingAlarm(false);
     }
@@ -309,6 +317,7 @@ export const useCalendarSync = ({
     if (!permissionGranted || syncStatus === "syncing") return;
     setSyncStatus("syncing");
     setSyncMessage(null);
+    logger.debug("Syncing device calendar events.");
     try {
       const nextName = calendarName.trim() || DEFAULT_DEVICE_CALENDAR_NAME;
       await setStoredCalendarName(nextName);
@@ -326,9 +335,11 @@ export const useCalendarSync = ({
           deleted: summary.deleted,
         }),
       );
-    } catch {
+      logger.info("Device calendar sync complete.", summary);
+    } catch (error) {
       setSyncStatus("error");
       setSyncMessage(t("calendar.sync.error"));
+      logger.error("Device calendar sync failed.", error);
     }
   }, [buildCalendarEvents, calendarName, permissionGranted, syncStatus]);
 

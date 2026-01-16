@@ -186,6 +186,87 @@ test("account.updated records audit frequency changes", () => {
   assert.equal(account.auditFrequencyAnchorAt, "2024-02-01T00:00:00.000Z");
 });
 
+test("account.updated stores calendar match aliases", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      calendarMatch: {
+        mode: "exact",
+        aliases: [
+          "  Comcast Center  ",
+          "Comcast Center",
+          "",
+          "Audit - Comcast",
+        ],
+      },
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.deepEqual(account.calendarMatch, {
+    mode: "exact",
+    aliases: ["Comcast Center", "Audit - Comcast"],
+  });
+});
+
+test("account.updated clears calendar match when set to null", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      calendarMatch: {
+        mode: "exact",
+        aliases: ["Comcast Center"],
+      },
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      calendarMatch: null,
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.calendarMatch, undefined);
+});
+
 test("account.deleted removes the account when no contacts are linked", () => {
   const doc = initAutomergeDoc();
   const orgDoc = organizationReducer(doc, createOrganization());

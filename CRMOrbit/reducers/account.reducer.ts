@@ -5,6 +5,7 @@ import type {
   AccountStatus,
   AccountAddresses,
   SocialMediaLinks,
+  AccountCalendarMatch,
 } from "../domains/account";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
@@ -19,6 +20,7 @@ import {
   getPeriodStartFromAnchor,
   addMonthsToPeriodStart,
   resolveAccountAuditFrequency,
+  sanitizeAccountCalendarMatch,
 } from "../domains/account.utils";
 
 const logger = createLogger("AccountReducer");
@@ -35,6 +37,7 @@ type AccountCreatedPayload = {
   excludedFloors?: number[];
   website?: string;
   socialMedia?: SocialMediaLinks;
+  calendarMatch?: AccountCalendarMatch;
   metadata?: Record<string, unknown>;
 };
 
@@ -56,6 +59,7 @@ type AccountUpdatedPayload = {
   excludedFloors?: number[];
   website?: string;
   socialMedia?: SocialMediaLinks;
+  calendarMatch?: AccountCalendarMatch | null;
 };
 
 const assertValidFloorConfig = (
@@ -144,6 +148,7 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
   const frequencyUpdatedAt = event.timestamp;
   const frequencyAnchorAt =
     getMonthStartTimestamp(event.timestamp) ?? event.timestamp;
+  const calendarMatch = sanitizeAccountCalendarMatch(payload.calendarMatch);
 
   const account: Account = {
     id,
@@ -159,6 +164,7 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     excludedFloors: payload.excludedFloors,
     website: payload.website,
     socialMedia: payload.socialMedia,
+    calendarMatch,
     metadata: payload.metadata,
     createdAt: event.timestamp,
     updatedAt: event.timestamp,
@@ -291,6 +297,14 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     }
   }
 
+  const hasCalendarMatch = Object.prototype.hasOwnProperty.call(
+    payload,
+    "calendarMatch",
+  );
+  const nextCalendarMatch = hasCalendarMatch
+    ? sanitizeAccountCalendarMatch(payload.calendarMatch)
+    : existing.calendarMatch;
+
   logger.debug("Updating account", { id, updates: payload });
 
   return {
@@ -329,6 +343,7 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         ...(payload.socialMedia !== undefined && {
           socialMedia: payload.socialMedia,
         }),
+        ...(hasCalendarMatch && { calendarMatch: nextCalendarMatch }),
         updatedAt: event.timestamp,
       },
     },

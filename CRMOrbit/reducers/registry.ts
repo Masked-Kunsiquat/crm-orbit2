@@ -4,6 +4,7 @@ import { accountContactReducer } from "./accountContact.reducer";
 import { accountReducer } from "./account.reducer";
 import { auditReducer } from "./audit.reducer";
 import { calendarEventReducer } from "./calendarEvent.reducer";
+import { calendarEventExternalReducer } from "./calendarEventExternal.reducer";
 import { contactReducer } from "./contact.reducer";
 import { interactionReducer } from "./interaction.reducer";
 import { entityLinkReducer } from "./entityLink.reducer";
@@ -61,6 +62,10 @@ export const REDUCER_MAP: Partial<Record<EventType, Reducer>> = {
   "calendarEvent.deleted": calendarEventReducer,
   "calendarEvent.linked": calendarEventReducer,
   "calendarEvent.unlinked": calendarEventReducer,
+  "calendarEvent.externalLinked": calendarEventExternalReducer,
+  "calendarEvent.externalImported": calendarEventExternalReducer,
+  "calendarEvent.externalUpdated": calendarEventExternalReducer,
+  "calendarEvent.externalUnlinked": calendarEventExternalReducer,
   "calendarEvent.recurrence.created": calendarEventReducer,
   "calendarEvent.recurrence.updated": calendarEventReducer,
   "calendarEvent.recurrence.deleted": calendarEventReducer,
