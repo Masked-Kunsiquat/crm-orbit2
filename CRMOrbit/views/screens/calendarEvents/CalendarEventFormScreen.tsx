@@ -631,14 +631,39 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
     } else {
       // Create new event
       const newCalendarEventId = nextId("calendarEvent");
-      const linkedEntities = entityToLink
-        ? [
-            {
-              entityType: entityToLink.entityType,
-              entityId: entityToLink.entityId,
-            },
-          ]
-        : undefined;
+
+      // Build linked entities array
+      const linkedEntitiesArray: Array<{
+        entityType: string;
+        entityId: string;
+      }> = [];
+
+      // If there's an entity to link from navigation params, add it
+      if (entityToLink) {
+        linkedEntitiesArray.push({
+          entityType: entityToLink.entityType,
+          entityId: entityToLink.entityId,
+        });
+      }
+
+      // For audits, always link to the account if not already linked
+      if (
+        type === "calendarEvent.type.audit" &&
+        normalizedAccountId &&
+        !linkedEntitiesArray.some(
+          (link) =>
+            link.entityType === "account" &&
+            link.entityId === normalizedAccountId,
+        )
+      ) {
+        linkedEntitiesArray.push({
+          entityType: "account",
+          entityId: normalizedAccountId,
+        });
+      }
+
+      const linkedEntities =
+        linkedEntitiesArray.length > 0 ? linkedEntitiesArray : undefined;
 
       const result = scheduleCalendarEvent(
         type,
