@@ -25,6 +25,10 @@ import {
   getAuditTimestampLabelKey,
   formatAuditScore,
   resolveAuditStatus,
+  getAuditAccountId,
+  getAuditFloorsVisited,
+  getAuditNotes,
+  getAuditScore,
 } from "../../utils/audits";
 import { formatDurationLabel } from "../../utils/duration";
 import type { EventsStackScreenProps } from "../../navigation/types";
@@ -45,8 +49,9 @@ const formatTimestamp = (timestamp?: string): string => {
 export const AuditDetailScreen = ({ route, navigation }: Props) => {
   const { auditId } = route.params;
   const audit = useAudit(auditId);
-  const account = useAccount(audit?.accountId ?? "");
-  const auditsForAccount = useAuditsByAccount(audit?.accountId ?? "");
+  const accountId = audit ? getAuditAccountId(audit) : undefined;
+  const account = useAccount(accountId ?? "");
+  const auditsForAccount = useAuditsByAccount(accountId ?? "");
   const deviceId = useDeviceId();
   const { deleteAudit } = useAuditActions(deviceId);
   const { colors } = useTheme();
@@ -100,15 +105,17 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
     });
   };
 
+  const floorsVisitedArray = getAuditFloorsVisited(audit);
   const floorsVisited =
-    audit.floorsVisited && audit.floorsVisited.length > 0
-      ? audit.floorsVisited.join(", ")
+    floorsVisitedArray && floorsVisitedArray.length > 0
+      ? floorsVisitedArray.join(", ")
       : null;
+  const notes = getAuditNotes(audit);
   const hasFloorsMatrix = Boolean(floorsMatrix);
   const status = resolveAuditStatus(audit);
   const startTimestamp = getAuditStartTimestamp(audit);
   const endTimestamp = getAuditEndTimestamp(audit);
-  const scoreLabel = formatAuditScore(audit.score);
+  const scoreLabel = formatAuditScore(getAuditScore(audit));
   const primaryTimestampLabel = t(getAuditTimestampLabelKey(status));
   const stats: Array<{ label: string; value: string }> = [
     {
@@ -130,7 +137,7 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
 
   stats.push({
     label: t("audits.fields.duration"),
-    value: formatDurationLabel(audit.durationMinutes),
+    value: formatDurationLabel(audit.durationMinutes ?? 60),
   });
 
   if (endTimestamp) {
@@ -208,7 +215,7 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
         </View>
       </Section>
 
-      {hasFloorsMatrix || floorsVisited || audit.notes ? (
+      {hasFloorsMatrix || floorsVisited || notes ? (
         <Section>
           {floorsMatrix ? (
             <DetailField label={t("audits.fields.floorsVisited")}>
@@ -220,10 +227,8 @@ export const AuditDetailScreen = ({ route, navigation }: Props) => {
             </DetailField>
           ) : null}
 
-          {audit.notes ? (
-            <DetailField label={t("audits.fields.notes")}>
-              {audit.notes}
-            </DetailField>
+          {notes ? (
+            <DetailField label={t("audits.fields.notes")}>{notes}</DetailField>
           ) : null}
         </Section>
       ) : null}

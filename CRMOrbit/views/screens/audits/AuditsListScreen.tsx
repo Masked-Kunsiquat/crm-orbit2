@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import { t } from "@i18n/index";
 import { ListRow, ListScreenLayout, StatusBadge } from "../../components";
 import { useAccounts, useAllAudits } from "../../store/store";
@@ -12,6 +12,10 @@ import {
   formatAuditScore,
   resolveAuditStatus,
   sortAuditsByDescendingTime,
+  getAuditAccountId,
+  getAuditFloorsVisited,
+  getAuditNotes,
+  getAuditScore,
 } from "../../utils/audits";
 import type { EventsStackScreenProps } from "../../navigation/types";
 
@@ -40,7 +44,7 @@ export const AuditsListScreen = ({ navigation }: Props) => {
     return [...audits].sort(sortAuditsByDescendingTime);
   }, [audits]);
 
-  const handlePress = (audit: Audit) => {
+  const handlePress = (audit: CalendarEvent) => {
     navigation.navigate("AuditDetail", { auditId: audit.id });
   };
 
@@ -48,9 +52,11 @@ export const AuditsListScreen = ({ navigation }: Props) => {
     navigation.navigate("AuditForm", {});
   };
 
-  const renderItem = ({ item }: { item: Audit }) => {
-    const accountName =
-      accountNames.get(item.accountId) ?? t("common.unknownEntity");
+  const renderItem = ({ item }: { item: CalendarEvent }) => {
+    const accountId = getAuditAccountId(item);
+    const accountName = accountId
+      ? (accountNames.get(accountId) ?? t("common.unknownEntity"))
+      : t("common.unknownEntity");
     const status = resolveAuditStatus(item);
     const timestampLabel = t(getAuditTimestampLabelKey(status));
     const timestampValue = formatTimestamp(getAuditStartTimestamp(item));
@@ -58,15 +64,17 @@ export const AuditsListScreen = ({ navigation }: Props) => {
     const endTimestampValue = endTimestamp
       ? formatTimestamp(endTimestamp)
       : undefined;
-    const scoreValue = formatAuditScore(item.score);
+    const scoreValue = formatAuditScore(getAuditScore(item));
     const scoreLabel = scoreValue
       ? `${t("audits.fields.score")}: ${scoreValue}`
       : undefined;
+    const floorsVisited = getAuditFloorsVisited(item);
     const floorsLabel =
-      item.floorsVisited && item.floorsVisited.length > 0
-        ? `${t("audits.fields.floorsVisited")}: ${item.floorsVisited.join(", ")}`
+      floorsVisited && floorsVisited.length > 0
+        ? `${t("audits.fields.floorsVisited")}: ${floorsVisited.join(", ")}`
         : undefined;
-    const footnote = item.notes?.trim() || floorsLabel;
+    const notes = getAuditNotes(item);
+    const footnote = notes?.trim() || floorsLabel;
     const subtitle = `${timestampLabel}: ${timestampValue}`;
     const descriptionLines = [
       endTimestampValue

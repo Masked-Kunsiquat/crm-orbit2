@@ -15,9 +15,15 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 
 import { nextId } from "@domains/shared/idGenerator";
-import type { AuditStatus } from "@domains/audit";
 import { t } from "@i18n/index";
 import { useAudit, useAccounts } from "../../store/store";
+import type { AuditStatus } from "../../utils/audits";
+import {
+  getAuditAccountId,
+  getAuditFloorsVisited,
+  getAuditNotes,
+  resolveAuditStatus,
+} from "../../utils/audits";
 import {
   useAuditActions,
   useDeviceId,
@@ -322,12 +328,12 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
     }
 
     const results = [];
-    const existingStatus =
-      audit.status ??
-      (audit.occurredAt
-        ? "audits.status.completed"
-        : "audits.status.scheduled");
-    if (audit.accountId !== trimmedAccountId) {
+    const existingStatus = resolveAuditStatus(audit);
+    const existingAccountId = getAuditAccountId(audit);
+    const existingNotes = getAuditNotes(audit);
+    const existingFloorsVisited = getAuditFloorsVisited(audit);
+
+    if (existingAccountId !== trimmedAccountId) {
       results.push(reassignAuditAccount(audit.id, trimmedAccountId));
     }
     if (
@@ -352,12 +358,12 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
           floorsVisited,
         ),
       );
-      if ((audit.notes ?? "") !== (notesValue ?? "") && !notesValue) {
+      if ((existingNotes ?? "") !== (notesValue ?? "") && !notesValue) {
         results.push(updateAuditNotes(audit.id, notesValue));
       }
       if (
         floorsVisited === undefined &&
-        !areFloorsEqual(audit.floorsVisited, floorsVisited)
+        !areFloorsEqual(existingFloorsVisited, floorsVisited)
       ) {
         results.push(updateAuditFloorsVisited(audit.id, floorsVisited ?? []));
       }
@@ -366,14 +372,14 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
       existingStatus !== "audits.status.canceled"
     ) {
       results.push(cancelAudit(audit.id));
-      if ((audit.notes ?? "") !== (notesValue ?? "")) {
+      if ((existingNotes ?? "") !== (notesValue ?? "")) {
         results.push(updateAuditNotes(audit.id, notesValue));
       }
     } else {
-      if ((audit.notes ?? "") !== (notesValue ?? "")) {
+      if ((existingNotes ?? "") !== (notesValue ?? "")) {
         results.push(updateAuditNotes(audit.id, notesValue));
       }
-      if (!areFloorsEqual(audit.floorsVisited, floorsVisited)) {
+      if (!areFloorsEqual(existingFloorsVisited, floorsVisited)) {
         results.push(updateAuditFloorsVisited(audit.id, floorsVisited ?? []));
       }
     }
@@ -391,9 +397,9 @@ export const AuditFormScreen = ({ route, navigation }: Props) => {
     navigation.goBack();
   };
 
-  const resolvedStatus =
-    audit?.status ??
-    (audit?.occurredAt ? "audits.status.completed" : "audits.status.scheduled");
+  const resolvedStatus = audit
+    ? resolveAuditStatus(audit)
+    : "audits.status.scheduled";
   const canToggleStatus = resolvedStatus !== "audits.status.completed";
 
   const durationOptions: Array<{ label: string; value: DurationPreset }> = [
