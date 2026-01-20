@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Account } from "@domains/account";
 import { t } from "@i18n/index";
 
@@ -24,11 +24,14 @@ import {
   formatAuditScore,
   resolveAuditStatus,
   sortAuditsByDescendingTime,
+  getAuditScore,
+  getAuditFloorsVisited,
+  getAuditNotes,
 } from "../utils/audits";
 import { getAuditScheduleStatus } from "../utils/auditSchedule";
 
 type AuditsSectionProps = {
-  audits: Audit[];
+  audits: CalendarEvent[];
   account: Account;
   accountId: string;
   navigation: {
@@ -152,11 +155,12 @@ export const AuditsSection = ({
           const status = resolveAuditStatus(audit);
           const timestampLabel = t(getAuditTimestampLabelKey(status));
           const timestampValue = formatTimestamp(getAuditStartTimestamp(audit));
-          const scoreValue = formatAuditScore(audit.score);
+          const scoreValue = formatAuditScore(getAuditScore(audit));
           const scoreLabel = scoreValue
             ? `${t("audits.fields.score")}: ${scoreValue}`
             : null;
-          const floorsLabel = formatFloors(audit.floorsVisited);
+          const floorsLabel = formatFloors(getAuditFloorsVisited(audit));
+          const notes = getAuditNotes(audit);
           return (
             <View
               key={audit.id}
@@ -208,7 +212,7 @@ export const AuditsSection = ({
                       {t("audits.fields.floorsVisited")}: {floorsLabel}
                     </Text>
                   ) : null}
-                  {audit.notes ? (
+                  {notes ? (
                     <Text
                       style={[
                         styles.auditNotes,
@@ -216,7 +220,7 @@ export const AuditsSection = ({
                       ]}
                       numberOfLines={2}
                     >
-                      {audit.notes}
+                      {notes}
                     </Text>
                   ) : null}
                 </View>
