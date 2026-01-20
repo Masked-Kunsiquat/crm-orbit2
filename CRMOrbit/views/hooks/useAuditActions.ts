@@ -1,15 +1,24 @@
 import { useCallback } from "react";
 
 import { buildEvent } from "../../events/dispatcher";
-import { buildDeleteEntityEvent } from "@domains/actions";
 import { nextId } from "../../domains/shared/idGenerator";
 import type { EntityId } from "../../domains/shared/types";
 import type { DispatchResult } from "./useDispatch";
 import { useDispatch } from "./useDispatch";
 
+/**
+ * Actions for managing audits (as CalendarEvents with type="calendarEvent.type.audit")
+ *
+ * This hook provides all audit-related actions that dispatch CalendarEvent events.
+ * Audits are stored as CalendarEvents with auditData containing account, score, and floors.
+ */
 export const useAuditActions = (deviceId: string) => {
   const { dispatch } = useDispatch();
 
+  /**
+   * Create a new audit
+   * Creates a CalendarEvent with type="audit" and links to the account
+   */
   const createAudit = useCallback(
     (
       accountId: EntityId,
@@ -19,30 +28,59 @@ export const useAuditActions = (deviceId: string) => {
       floorsVisited?: number[],
       auditId?: EntityId,
     ): DispatchResult => {
-      const id = auditId ?? nextId("audit");
+      const id = auditId ?? nextId("calendarEvent");
+      const linkId = nextId("link");
+
       const event = buildEvent({
-        type: "audit.created",
+        type: "calendarEvent.scheduled",
         entityId: id,
         payload: {
           id,
-          accountId,
+          type: "calendarEvent.type.audit",
+          summary: "", // Audits display account name, summary not needed
           scheduledFor,
           durationMinutes,
-          ...(notes !== undefined && { notes }),
-          ...(floorsVisited !== undefined && { floorsVisited }),
+          accountId,
+          ...(notes !== undefined && { description: notes }),
+          // Link the audit to the account
+          linkedEntities: [
+            {
+              linkId,
+              entityType: "account",
+              entityId: accountId,
+            },
+          ],
         },
         deviceId,
       });
+
+      // If floorsVisited is provided, we need to update after creation
+      // since the scheduled event doesn't support floorsVisited
+      if (floorsVisited && floorsVisited.length > 0) {
+        const updateEvent = buildEvent({
+          type: "calendarEvent.updated",
+          entityId: id,
+          payload: {
+            id,
+            floorsVisited,
+          },
+          deviceId,
+        });
+        return dispatch([event, updateEvent]);
+      }
 
       return dispatch([event]);
     },
     [deviceId, dispatch],
   );
 
+  /**
+   * Reschedule an audit to a new date/time
+   */
   const rescheduleAudit = useCallback(
     (auditId: EntityId, scheduledFor: string): DispatchResult => {
       const event = buildEvent({
-        type: "audit.rescheduled",
+        type: "calendarEvent.rescheduled",
         entityId: auditId,
         payload: {
           id: auditId,
@@ -56,6 +94,9 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  /**
+   * Mark an audit as completed with optional score and floors data
+   */
   const completeAudit = useCallback(
     (
       auditId: EntityId,
@@ -65,33 +106,52 @@ export const useAuditActions = (deviceId: string) => {
       notes?: string,
       floorsVisited?: number[],
     ): DispatchResult => {
-      const event = buildEvent({
-        type: "audit.completed",
+      // First update duration if needed (calendarEvent.completed doesn't include duration)
+      const events = [];
+
+      // Update duration and notes via update event
+      const updateEvent = buildEvent({
+        type: "calendarEvent.updated",
+        entityId: auditId,
+        payload: {
+          id: auditId,
+          durationMinutes,
+          ...(notes !== undefined && { description: notes }),
+        },
+        deviceId,
+      });
+      events.push(updateEvent);
+
+      // Then complete with audit-specific data
+      const completeEvent = buildEvent({
+        type: "calendarEvent.completed",
         entityId: auditId,
         payload: {
           id: auditId,
           occurredAt,
-          durationMinutes,
           ...(score !== undefined && { score }),
-          ...(notes !== undefined && { notes }),
           ...(floorsVisited !== undefined && { floorsVisited }),
         },
         deviceId,
       });
+      events.push(completeEvent);
 
-      return dispatch([event]);
+      return dispatch(events);
     },
     [deviceId, dispatch],
   );
 
+  /**
+   * Update audit notes (stored as description on CalendarEvent)
+   */
   const updateAuditNotes = useCallback(
     (auditId: EntityId, notes?: string): DispatchResult => {
       const event = buildEvent({
-        type: "audit.notes.updated",
+        type: "calendarEvent.updated",
         entityId: auditId,
         payload: {
           id: auditId,
-          notes,
+          description: notes,
         },
         deviceId,
       });
@@ -101,10 +161,13 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  /**
+   * Update floors visited for an audit
+   */
   const updateAuditFloorsVisited = useCallback(
     (auditId: EntityId, floorsVisited: number[]): DispatchResult => {
       const event = buildEvent({
-        type: "audit.floorsVisited.updated",
+        type: "calendarEvent.updated",
         entityId: auditId,
         payload: {
           id: auditId,
@@ -118,14 +181,18 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  /**
+   * Reassign audit to a different account
+   * Updates auditData.accountId and recreates the entity link
+   */
   const reassignAuditAccount = useCallback(
     (auditId: EntityId, accountId: EntityId): DispatchResult => {
       const event = buildEvent({
-        type: "audit.account.reassigned",
+        type: "calendarEvent.updated",
         entityId: auditId,
         payload: {
           id: auditId,
-          accountId,
+          accountId, // This updates auditData.accountId via the reducer
         },
         deviceId,
       });
@@ -135,17 +202,32 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  /**
+   * Delete an audit
+   */
   const deleteAudit = useCallback(
     (auditId: EntityId): DispatchResult => {
-      return dispatch([buildDeleteEntityEvent("audit", auditId, deviceId)]);
+      const event = buildEvent({
+        type: "calendarEvent.deleted",
+        entityId: auditId,
+        payload: {
+          id: auditId,
+        },
+        deviceId,
+      });
+
+      return dispatch([event]);
     },
     [deviceId, dispatch],
   );
 
+  /**
+   * Cancel a scheduled audit
+   */
   const cancelAudit = useCallback(
     (auditId: EntityId): DispatchResult => {
       const event = buildEvent({
-        type: "audit.canceled",
+        type: "calendarEvent.canceled",
         entityId: auditId,
         payload: {
           id: auditId,
@@ -158,10 +240,13 @@ export const useAuditActions = (deviceId: string) => {
     [deviceId, dispatch],
   );
 
+  /**
+   * Update audit duration
+   */
   const updateAuditDuration = useCallback(
     (auditId: EntityId, durationMinutes: number): DispatchResult => {
       const event = buildEvent({
-        type: "audit.duration.updated",
+        type: "calendarEvent.updated",
         entityId: auditId,
         payload: {
           id: auditId,
