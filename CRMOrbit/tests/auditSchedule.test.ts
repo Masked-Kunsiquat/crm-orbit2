@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 import type { Account } from "@domains/account";
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import { getAuditScheduleStatus } from "@views/utils/auditSchedule";
 
 const baseAccount = (overrides: Partial<Account> = {}): Account => ({
@@ -17,15 +17,19 @@ const baseAccount = (overrides: Partial<Account> = {}): Account => ({
   ...overrides,
 });
 
-const completedAudit = (overrides: Partial<Audit> = {}): Audit => ({
+const completedAuditEvent = (
+  overrides: Partial<CalendarEvent> = {},
+): CalendarEvent => ({
   id: "audit-1",
-  accountId: "acct-1",
+  type: "calendarEvent.type.audit",
+  status: "calendarEvent.status.completed",
+  summary: "Test Audit",
   scheduledFor: "2024-01-05T00:00:00.000Z",
   durationMinutes: 60,
-  status: "audits.status.completed",
   occurredAt: "2024-01-05T00:00:00.000Z",
   createdAt: "2024-01-05T00:00:00.000Z",
   updatedAt: "2024-01-05T00:00:00.000Z",
+  auditData: { accountId: "acct-1" },
   ...overrides,
 });
 
@@ -43,7 +47,9 @@ test("audit schedule marks missing when no audits exist past due", () => {
 
 test("audit schedule warns when current period has no audit scheduled", () => {
   const account = baseAccount();
-  const audits = [completedAudit({ occurredAt: "2024-01-10T00:00:00.000Z" })];
+  const audits = [
+    completedAuditEvent({ occurredAt: "2024-01-10T00:00:00.000Z" }),
+  ];
   const result = getAuditScheduleStatus(
     account,
     audits,
@@ -60,7 +66,9 @@ test("audit schedule flags missing when a closed period has no audit", () => {
     auditFrequencyUpdatedAt: "2024-01-01T00:00:00.000Z",
     auditFrequencyAnchorAt: "2024-01-01T00:00:00.000Z",
   });
-  const audits = [completedAudit({ occurredAt: "2024-01-05T00:00:00.000Z" })];
+  const audits = [
+    completedAuditEvent({ occurredAt: "2024-01-05T00:00:00.000Z" }),
+  ];
   const result = getAuditScheduleStatus(
     account,
     audits,
