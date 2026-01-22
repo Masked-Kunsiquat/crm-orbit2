@@ -1,4 +1,5 @@
 import { t } from "@i18n/index";
+import type { UpdateStatus } from "./useAppUpdates";
 
 export const useSettingsListLabels = () => ({
   appearanceTitle: t("settings.appearance.title"),
@@ -11,6 +12,29 @@ export const useSettingsListLabels = () => ({
   securityDescription: t("settings.security.description"),
   syncTitle: t("sync.title"),
   syncDescription: t("sync.description"),
+});
+
+export const useVersionLabels = () => ({
+  getVersionTitle: (version: string) =>
+    t("settings.version.title", { version }),
+  devBuild: t("settings.version.devBuild"),
+  getUpdateStatus: (status: UpdateStatus, isUpdateReady: boolean): string => {
+    if (isUpdateReady) return t("settings.version.ready");
+    switch (status) {
+      case "checking":
+        return t("settings.version.checking");
+      case "downloading":
+        return t("settings.version.downloading");
+      case "ready":
+        return t("settings.version.ready");
+      case "up-to-date":
+        return t("settings.version.upToDate");
+      case "error":
+        return t("settings.version.error");
+      default:
+        return t("settings.version.checkForUpdates");
+    }
+  },
 });
 
 export const useMiscStackTitles = () => ({

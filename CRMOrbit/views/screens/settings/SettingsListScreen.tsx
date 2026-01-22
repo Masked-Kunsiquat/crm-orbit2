@@ -9,33 +9,14 @@ import {
   useSettingsListLabels,
   useTheme,
 } from "../../hooks";
+import { useVersionLabels } from "../../hooks/useSettingsLabels";
 
 type Props = MiscStackScreenProps<"SettingsList">;
-
-const getUpdateStatusText = (
-  status: string,
-  isUpdateReady: boolean,
-): string => {
-  if (isUpdateReady) return "Update ready - tap to install";
-  switch (status) {
-    case "checking":
-      return "Checking for updates...";
-    case "downloading":
-      return "Downloading update...";
-    case "ready":
-      return "Update ready - tap to install";
-    case "up-to-date":
-      return "Up to date";
-    case "error":
-      return "Update check failed";
-    default:
-      return "Tap to check for updates";
-  }
-};
 
 export const SettingsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const labels = useSettingsListLabels();
+  const versionLabels = useVersionLabels();
   const appVersion = getAppVersion();
   const {
     status: updateStatus,
@@ -176,7 +157,7 @@ export const SettingsListScreen = ({ navigation }: Props) => {
       </ListCard>
 
       {/* Version & Updates Section */}
-      <View style={styles.versionSection}>
+      <View style={[styles.versionSection, { borderTopColor: colors.border }]}>
         <ListCard onPress={updatesEnabled ? handleVersionPress : undefined}>
           <View style={styles.cardContent}>
             <View style={styles.iconContainer}>
@@ -192,14 +173,14 @@ export const SettingsListScreen = ({ navigation }: Props) => {
             </View>
             <View style={styles.textContainer}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>
-                CRMOrbit v{appVersion}
+                {versionLabels.getVersionTitle(appVersion)}
               </Text>
               <Text
                 style={[styles.description, { color: colors.textSecondary }]}
               >
                 {updatesEnabled
-                  ? getUpdateStatusText(updateStatus, isUpdateReady)
-                  : "Development build"}
+                  ? versionLabels.getUpdateStatus(updateStatus, isUpdateReady)
+                  : versionLabels.devBuild}
               </Text>
             </View>
           </View>
@@ -236,6 +217,5 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "rgba(128, 128, 128, 0.3)",
   },
 });
