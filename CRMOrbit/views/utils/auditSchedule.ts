@@ -137,11 +137,21 @@ const buildPeriod = (
   return { start: periodStart, end: periodEnd, status: "missing" };
 };
 
+type GetAuditPeriodsOptions = {
+  /**
+   * Allow periods before the account's audit frequency anchor date.
+   * Useful for displaying backlogged historical audits in the matrix.
+   * Default: false (respects anchor date boundary)
+   */
+  allowBeforeAnchor?: boolean;
+};
+
 export const getAuditPeriods = (
   account: Account,
   audits: CalendarEvent[],
   reference: Date = new Date(),
   count = 3,
+  options: GetAuditPeriodsOptions = {},
 ): AuditPeriod[] | null => {
   if (count <= 0) return [];
 
@@ -165,7 +175,11 @@ export const getAuditPeriods = (
 
   for (let index = 0; index < count; index += 1) {
     const currentStartTime = parseTimestamp(currentStart);
-    if (anchorTime !== null && currentStartTime !== null) {
+    if (
+      !options.allowBeforeAnchor &&
+      anchorTime !== null &&
+      currentStartTime !== null
+    ) {
       if (currentStartTime < anchorTime) break;
     }
 
