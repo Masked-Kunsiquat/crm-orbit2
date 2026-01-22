@@ -7,7 +7,7 @@ import { t } from "@i18n/index";
 const logger = createLogger("AppUpdates");
 
 type UpdatesWithPending = typeof Updates & {
-  isUpdatePending?: () => Promise<boolean>;
+  isUpdatePending?: boolean;
 };
 const updatesWithPending = Updates as UpdatesWithPending;
 
@@ -108,9 +108,10 @@ export const useAppUpdates = (
             );
           }
         } else {
-          const isPending = updatesWithPending.isUpdatePending
-            ? await updatesWithPending.isUpdatePending()
-            : (Updates.latestContext?.isUpdatePending ?? false);
+          const isPending =
+            updatesWithPending.isUpdatePending ??
+            Updates.latestContext?.isUpdatePending ??
+            false;
 
           if (isPending) {
             logger.info("Update already downloaded; pending reload");
@@ -162,6 +163,7 @@ export const useAppUpdates = (
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "Unknown error";
       logger.error("Failed to apply update:", errorMessage);
+      setStatus("error");
       setError(errorMessage);
     }
   }, [isUpdateReady]);
