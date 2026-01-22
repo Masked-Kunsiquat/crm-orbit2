@@ -6,6 +6,11 @@ import { t } from "@i18n/index";
 
 const logger = createLogger("AppUpdates");
 
+type UpdatesWithPending = typeof Updates & {
+  isUpdatePending?: () => Promise<boolean>;
+};
+const updatesWithPending = Updates as UpdatesWithPending;
+
 export type UpdateStatus =
   | "idle"
   | "checking"
@@ -56,11 +61,6 @@ export const useAppUpdates = (
   const [isUpdateReady, setIsUpdateReady] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  type UpdatesWithPending = typeof Updates & {
-    isUpdatePending?: () => Promise<boolean>;
-  };
-  const updatesWithPending = Updates as UpdatesWithPending;
 
   // expo-updates is disabled in development mode
   const isEnabled = !__DEV__ && Updates.isEnabled;
