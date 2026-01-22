@@ -6,7 +6,7 @@ import { useTheme } from "../hooks";
 
 type ListCardProps = {
   children: ReactNode;
-  onPress: () => void;
+  onPress?: () => void;
   variant?: "elevated" | "outlined";
   style?: StyleProp<ViewStyle>;
 };

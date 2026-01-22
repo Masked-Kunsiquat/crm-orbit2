@@ -1,5 +1,5 @@
 import type { Account } from "@domains/account";
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import {
   addMonthsToPeriodStart,
   getAccountAuditFrequencyMonths,
@@ -25,7 +25,9 @@ export type AuditPeriod = {
   status: AuditPeriodStatus;
 };
 
-const getLatestCompletedAuditTimestamp = (audits: Audit[]): string | null => {
+const getLatestCompletedAuditTimestamp = (
+  audits: CalendarEvent[],
+): string | null => {
   let latest: string | null = null;
   let latestTime = Number.NEGATIVE_INFINITY;
 
@@ -53,7 +55,7 @@ const parseTimestamp = (timestamp: string | undefined): number | null => {
 };
 
 const isAuditInPeriod = (
-  audit: Audit,
+  audit: CalendarEvent,
   startTime: number,
   endTime: number,
 ): boolean => {
@@ -101,7 +103,7 @@ const selectActiveFrequency = (
 };
 
 const buildPeriod = (
-  audits: Audit[],
+  audits: CalendarEvent[],
   reference: Date,
   periodStart: string,
   periodEnd: string,
@@ -137,7 +139,7 @@ const buildPeriod = (
 
 export const getAuditPeriods = (
   account: Account,
-  audits: Audit[],
+  audits: CalendarEvent[],
   reference: Date = new Date(),
   count = 3,
 ): AuditPeriod[] | null => {
@@ -183,7 +185,7 @@ export const getAuditPeriods = (
 
 export const getAuditScheduleStatus = (
   account: Account,
-  audits: Audit[],
+  audits: CalendarEvent[],
   now: Date = new Date(),
 ): AuditScheduleResult | null => {
   const periods = getAuditPeriods(account, audits, now, 2);

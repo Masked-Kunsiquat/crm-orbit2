@@ -1,15 +1,38 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
-import { useSettingsListLabels, useTheme } from "../../hooks";
+import {
+  getAppVersion,
+  useAppUpdates,
+  useSettingsListLabels,
+  useTheme,
+} from "../../hooks";
+import { useVersionLabels } from "../../hooks/useSettingsLabels";
 
 type Props = MiscStackScreenProps<"SettingsList">;
 
 export const SettingsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const labels = useSettingsListLabels();
+  const versionLabels = useVersionLabels();
+  const appVersion = getAppVersion();
+  const {
+    status: updateStatus,
+    isUpdateReady,
+    checkForUpdate,
+    applyUpdate,
+    isEnabled: updatesEnabled,
+  } = useAppUpdates({ checkOnMount: true, showAlertOnUpdate: true });
+
+  const handleVersionPress = () => {
+    if (isUpdateReady) {
+      void applyUpdate();
+    } else if (updateStatus !== "checking" && updateStatus !== "downloading") {
+      void checkForUpdate();
+    }
+  };
 
   const handleSecurityPress = () => {
     navigation.navigate("SecuritySettings");
@@ -132,6 +155,37 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           </View>
         </View>
       </ListCard>
+
+      {/* Version & Updates Section */}
+      <View style={[styles.versionSection, { borderTopColor: colors.border }]}>
+        <ListCard onPress={updatesEnabled ? handleVersionPress : undefined}>
+          <View style={styles.cardContent}>
+            <View style={styles.iconContainer}>
+              {updateStatus === "checking" || updateStatus === "downloading" ? (
+                <ActivityIndicator color={colors.accent} size={32} />
+              ) : (
+                <MaterialCommunityIcons
+                  color={isUpdateReady ? colors.success : colors.accent}
+                  name={isUpdateReady ? "download" : "information-outline"}
+                  size={32}
+                />
+              )}
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                {versionLabels.getVersionTitle(appVersion)}
+              </Text>
+              <Text
+                style={[styles.description, { color: colors.textSecondary }]}
+              >
+                {updatesEnabled
+                  ? versionLabels.getUpdateStatus(updateStatus, isUpdateReady)
+                  : versionLabels.devBuild}
+              </Text>
+            </View>
+          </View>
+        </ListCard>
+      </View>
     </View>
   );
 };
@@ -158,5 +212,10 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
+  },
+  versionSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

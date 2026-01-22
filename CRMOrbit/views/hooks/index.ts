@@ -71,3 +71,10 @@ export type {
   DurationPreset,
 } from "./useAuditFormState";
 export { useCalendarEventActions } from "./useCalendarEventActions";
+export {
+  useAppUpdates,
+  getAppVersion,
+  getRuntimeVersion,
+  getUpdateId,
+} from "./useAppUpdates";
+export type { UpdateStatus, UseAppUpdatesReturn } from "./useAppUpdates";

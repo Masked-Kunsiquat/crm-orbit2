@@ -1,0 +1,13 @@
+---
+exclude_paths:
+  - "README.md"
+  - ".codex/*"
+  - ".claude/*"
+  - "CRMOrbit/*.md"
+  - "CRMOrbit/*/*.md"
+  - "*.md"
+  - "node_modules/**"
+  - ".expo/**"
+  - "dist/**"
+  - "build/**"
+  - "docs/**"

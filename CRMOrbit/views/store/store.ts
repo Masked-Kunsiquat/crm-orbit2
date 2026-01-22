@@ -5,7 +5,6 @@ import { useShallow } from "zustand/react/shallow";
 import type { AutomergeDoc } from "@automerge/schema";
 import type { Event } from "@events/event";
 import type { Account } from "@domains/account";
-import type { Audit } from "@domains/audit";
 import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Code } from "@domains/code";
 import type { Contact } from "@domains/contact";
@@ -260,10 +259,12 @@ export const useInteractions = (
   return crmStore(useShallow(selector));
 };
 
-export const useAuditsByAccount = (accountId: EntityId): Audit[] => {
+export const useAuditsByAccount = (accountId: EntityId): CalendarEvent[] => {
   const selector = (state: CrmStoreState) =>
-    Object.values(state.doc.audits).filter(
-      (audit): audit is Audit => audit.accountId === accountId,
+    Object.values(state.doc.calendarEvents ?? {}).filter(
+      (event): event is CalendarEvent =>
+        event.type === "calendarEvent.type.audit" &&
+        event.auditData?.accountId === accountId,
     );
   return crmStore(useShallow(selector));
 };
@@ -326,8 +327,13 @@ export const useOrganization = (id: EntityId): Organization | undefined =>
 export const useAccount = (id: EntityId): Account | undefined =>
   crmStore(useShallow((state) => state.doc.accounts[id]));
 
-export const useAudit = (id: EntityId): Audit | undefined =>
-  crmStore(useShallow((state) => state.doc.audits[id]));
+export const useAudit = (id: EntityId): CalendarEvent | undefined =>
+  crmStore(
+    useShallow((state) => {
+      const event = state.doc.calendarEvents?.[id];
+      return event?.type === "calendarEvent.type.audit" ? event : undefined;
+    }),
+  );
 
 export const useContact = (id: EntityId): Contact | undefined =>
   crmStore(useShallow((state) => state.doc.contacts[id]));
@@ -388,8 +394,12 @@ export const useAllNotes = (): Note[] => {
   return crmStore(useShallow(selector));
 };
 
-export const useAllAudits = (): Audit[] => {
-  const selector = (state: CrmStoreState) => Object.values(state.doc.audits);
+export const useAllAudits = (): CalendarEvent[] => {
+  const selector = (state: CrmStoreState) =>
+    Object.values(state.doc.calendarEvents ?? {}).filter(
+      (event): event is CalendarEvent =>
+        event.type === "calendarEvent.type.audit",
+    );
   return crmStore(useShallow(selector));
 };
 

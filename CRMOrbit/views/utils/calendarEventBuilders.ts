@@ -1,5 +1,5 @@
 import type { AutomergeDoc } from "@automerge/schema";
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Interaction } from "@domains/interaction";
 import type { Account } from "@domains/account";
 import { formatAddressForMaps } from "@domains/linking.utils";
@@ -7,6 +7,10 @@ import {
   formatAuditScore,
   getAuditEndTimestamp,
   getAuditStartTimestamp,
+  getAuditAccountId,
+  getAuditFloorsVisited,
+  getAuditNotes,
+  getAuditScore,
   resolveAuditStatus,
 } from "./audits";
 import { addMinutesToTimestamp } from "./duration";
@@ -62,7 +66,7 @@ export type InteractionCalendarLabels = {
  * Includes status, parking address, score, floors visited, and audit notes.
  */
 const buildAuditNotes = (
-  audit: Audit,
+  audit: CalendarEvent,
   labels: AuditCalendarLabels,
   parkingAddress?: string,
 ): string | undefined => {
@@ -71,17 +75,17 @@ const buildAuditNotes = (
   if (parkingAddress) {
     lines.push(`${labels.parkingAddressLabel}: ${parkingAddress}`);
   }
-  const scoreValue = formatAuditScore(audit.score);
+  const scoreValue = formatAuditScore(getAuditScore(audit));
   if (scoreValue) {
     lines.push(`${labels.scoreLabel}: ${scoreValue}`);
   }
-  if (audit.floorsVisited && audit.floorsVisited.length > 0) {
-    lines.push(
-      `${labels.floorsVisitedLabel}: ${audit.floorsVisited.join(", ")}`,
-    );
+  const floorsVisited = getAuditFloorsVisited(audit);
+  if (floorsVisited && floorsVisited.length > 0) {
+    lines.push(`${labels.floorsVisitedLabel}: ${floorsVisited.join(", ")}`);
   }
-  if (audit.notes?.trim()) {
-    lines.push(`${labels.notesLabel}: ${audit.notes.trim()}`);
+  const notes = getAuditNotes(audit);
+  if (notes?.trim()) {
+    lines.push(`${labels.notesLabel}: ${notes.trim()}`);
   }
   return lines.length > 0 ? lines.join("\n") : undefined;
 };
@@ -107,14 +111,14 @@ const buildInteractionNotes = (
 /**
  * Builds a calendar event for an audit.
  *
- * @param audit - The audit entity
+ * @param audit - The audit CalendarEvent entity
  * @param account - The associated account (optional, falls back to "Unknown")
  * @param alarmOffsetMinutes - Minutes before event to trigger alarm (0 = no alarm)
  * @param labels - Pre-localized labels for calendar content
  * @returns CalendarSyncEvent or null if audit has no valid start date
  */
 export const buildAuditCalendarEvent = (
-  audit: Audit,
+  audit: CalendarEvent,
   account: Account | undefined,
   alarmOffsetMinutes: number,
   labels: AuditCalendarLabels,
@@ -229,13 +233,13 @@ export const buildInteractionCalendarEvent = (
  * @returns Array of calendar sync events
  */
 export const buildAllCalendarEvents = (
-  audits: Audit[],
+  audits: CalendarEvent[],
   interactions: Interaction[],
   accountMap: Map<string, Account>,
   doc: AutomergeDoc,
   auditAlarmOffsetMinutes: number,
   labels: {
-    audit: (audit: Audit) => AuditCalendarLabels;
+    audit: (audit: CalendarEvent) => AuditCalendarLabels;
     interaction: (interaction: Interaction) => InteractionCalendarLabels;
   },
 ): CalendarSyncEvent[] => {
@@ -243,7 +247,8 @@ export const buildAllCalendarEvents = (
 
   // Build audit events
   for (const audit of audits) {
-    const account = accountMap.get(audit.accountId);
+    const accountId = getAuditAccountId(audit);
+    const account = accountId ? accountMap.get(accountId) : undefined;
     const auditLabels = labels.audit(audit);
     const event = buildAuditCalendarEvent(
       audit,

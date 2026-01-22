@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Audit, AuditStatus } from "@domains/audit";
-import { formatAuditScoreInput } from "@views/utils/audits";
+import type { CalendarEvent } from "@domains/calendarEvent";
+import {
+  formatAuditScoreInput,
+  resolveAuditStatus,
+  getAuditAccountId,
+  getAuditNotes,
+  getAuditScore,
+  getAuditFloorsVisited,
+  type AuditStatus,
+} from "@views/utils/audits";
 import { splitDurationMinutes } from "@views/utils/duration";
 import { buildTimestampFromDate } from "@views/utils/date";
 
@@ -47,7 +55,7 @@ export type AuditFormState = {
 };
 
 export type UseAuditFormStateParams = {
-  audit?: Audit;
+  audit?: CalendarEvent;
   prefillAccountId?: string;
   prefillDate?: string;
 };
@@ -80,19 +88,16 @@ export const useAuditFormState = ({
   // Initialize form state from audit or prefill data
   useEffect(() => {
     if (audit) {
-      setAccountId(audit.accountId);
+      setAccountId(getAuditAccountId(audit) ?? "");
       setScheduledFor(audit.scheduledFor);
       setOccurredAt(audit.occurredAt ?? "");
-      setStatus(
-        audit.status ??
-          (audit.occurredAt
-            ? "audits.status.completed"
-            : "audits.status.scheduled"),
+      setStatus(resolveAuditStatus(audit));
+      setNotes(getAuditNotes(audit) ?? "");
+      setScore(formatAuditScoreInput(getAuditScore(audit)));
+      setFloorsVisitedInput(getAuditFloorsVisited(audit)?.join(", ") ?? "");
+      const { hours, minutes } = splitDurationMinutes(
+        audit.durationMinutes ?? 60,
       );
-      setNotes(audit.notes ?? "");
-      setScore(formatAuditScoreInput(audit.score));
-      setFloorsVisitedInput(audit.floorsVisited?.join(", ") ?? "");
-      const { hours, minutes } = splitDurationMinutes(audit.durationMinutes);
       setDurationHours(hours ? `${hours}` : "");
       setDurationMinutesInput(minutes ? `${minutes}` : "");
       const preset = DURATION_PRESETS.find(

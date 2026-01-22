@@ -7,7 +7,7 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Account } from "@domains/account";
 import type { EntityId } from "@domains/shared/types";
 import {
@@ -15,6 +15,7 @@ import {
   getAuditSortTimestamp,
   resolveAuditStatus,
   sortAuditsByDescendingTime,
+  getAuditFloorsVisited,
 } from "../utils/audits";
 import {
   getAuditPeriods,
@@ -37,7 +38,7 @@ export type FloorsVisitedMatrixData = {
 };
 
 type BuildMatrixOptions = {
-  audits: Audit[];
+  audits: CalendarEvent[];
   account?: Account;
   currentAuditId?: EntityId;
   maxVisits?: number;
@@ -88,10 +89,10 @@ const formatAuditLabel = (timestamp?: string): string => {
 };
 
 const selectAudits = (
-  audits: Audit[],
+  audits: CalendarEvent[],
   currentAuditId?: EntityId,
   maxVisits?: number,
-): Audit[] => {
+): CalendarEvent[] => {
   const sorted = [...audits].sort(sortAuditsByDescendingTime);
   if (sorted.length === 0) return [];
   if (!maxVisits) return sorted;
@@ -105,7 +106,7 @@ const selectAudits = (
     return sorted.slice(0, maxVisits);
   }
 
-  const selected: Audit[] = [current];
+  const selected: CalendarEvent[] = [current];
   for (const audit of sorted) {
     if (selected.length >= maxVisits) break;
     if (audit.id === currentAuditId) continue;
@@ -183,7 +184,10 @@ export const buildFloorsVisitedMatrix = ({
           completedAudits[0] ??
           (period.status !== "missing" ? scheduledAudits[0] : undefined);
         const visited = new Set<number>();
-        selectedAudit?.floorsVisited?.forEach((floor) => {
+        const floorsVisited = selectedAudit
+          ? getAuditFloorsVisited(selectedAudit)
+          : undefined;
+        floorsVisited?.forEach((floor) => {
           const normalized = normalizeFloor(floor);
           if (normalized !== null) {
             visited.add(normalized);
@@ -209,7 +213,8 @@ export const buildFloorsVisitedMatrix = ({
         )
         .map((audit) => {
           const visited = new Set<number>();
-          audit.floorsVisited?.forEach((floor) => {
+          const floorsVisited = getAuditFloorsVisited(audit);
+          floorsVisited?.forEach((floor) => {
             const normalized = normalizeFloor(floor);
             if (normalized !== null) {
               visited.add(normalized);
@@ -225,7 +230,8 @@ export const buildFloorsVisitedMatrix = ({
 
   const derivedFloors = new Set<number>();
   selectedAudits.forEach((audit) => {
-    audit.floorsVisited?.forEach((floor) => {
+    const floorsVisited = getAuditFloorsVisited(audit);
+    floorsVisited?.forEach((floor) => {
       const normalized = normalizeFloor(floor);
       if (normalized !== null) {
         derivedFloors.add(normalized);

@@ -1,4 +1,3 @@
-import type { Audit } from "@domains/audit";
 import type { Interaction, InteractionStatus } from "@domains/interaction";
 import type { CalendarEvent } from "@domains/calendarEvent";
 import type { MarkedDates } from "react-native-calendars/src/types";
@@ -7,6 +6,9 @@ import {
   getAuditEndTimestamp,
   getAuditStartTimestamp,
   getAuditStatusTone,
+  getAuditFloorsVisited,
+  getAuditNotes,
+  getAuditScore,
   resolveAuditStatus,
   type AuditStatusTone,
 } from "./audits";
@@ -50,7 +52,7 @@ const parseLocalDate = (dateKey: string): Date | null => {
 export interface AuditAgendaItem {
   kind: "audit";
   id: string;
-  audit: Audit;
+  audit: CalendarEvent;
   accountName: string;
   startTimestamp: string;
   endTimestamp?: string;
@@ -92,7 +94,7 @@ export interface AgendaSection {
  * Builds an agenda item for an audit
  */
 export const buildAuditAgendaItem = (
-  audit: Audit,
+  audit: CalendarEvent,
   accountName: string,
 ): AuditAgendaItem | null => {
   const status = resolveAuditStatus(audit);
@@ -100,12 +102,13 @@ export const buildAuditAgendaItem = (
   if (!startTimestamp) return null;
 
   const endTimestamp = getAuditEndTimestamp(audit);
-  const scoreValue = formatAuditScore(audit.score);
+  const scoreValue = formatAuditScore(getAuditScore(audit));
+  const auditFloorsVisited = getAuditFloorsVisited(audit);
   const floorsVisited =
-    audit.floorsVisited && audit.floorsVisited.length > 0
-      ? audit.floorsVisited
+    auditFloorsVisited && auditFloorsVisited.length > 0
+      ? auditFloorsVisited
       : undefined;
-  const notes = audit.notes?.trim() || undefined;
+  const notes = getAuditNotes(audit)?.trim() ?? undefined;
 
   return {
     kind: "audit",
@@ -201,7 +204,7 @@ export const groupAgendaItemsByDate = (
  * Uses multi-dot marking to show different event types
  */
 export const buildMarkedDates = (
-  audits: Audit[],
+  audits: CalendarEvent[],
   interactions: Interaction[],
   palette: CalendarPaletteColors,
   accentColor: string,
@@ -271,7 +274,7 @@ export const buildMarkedDates = (
  * Gets the most recent date with events, or today's date
  */
 export const getInitialCalendarDate = (
-  audits: Audit[],
+  audits: CalendarEvent[],
   interactions: Interaction[],
 ): string => {
   const today = new Date();
