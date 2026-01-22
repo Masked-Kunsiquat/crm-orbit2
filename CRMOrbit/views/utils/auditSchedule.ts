@@ -68,8 +68,11 @@ const selectActiveFrequency = (
   account: Account,
   reference: Date,
 ): { frequency: Account["auditFrequency"]; anchorAt: string } | null => {
+  // Fallback chain for anchor: explicit anchor -> activeAt -> frequency update -> created
   const baseAnchor =
     account.auditFrequencyAnchorAt ??
+    getMonthStartTimestamp(account.activeAt ?? "") ??
+    account.activeAt ??
     getMonthStartTimestamp(
       account.auditFrequencyUpdatedAt ?? account.createdAt ?? "",
     ) ??

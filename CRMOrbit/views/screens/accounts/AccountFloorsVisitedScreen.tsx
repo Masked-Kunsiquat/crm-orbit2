@@ -81,13 +81,11 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
           <Text style={[styles.accountName, { color: colors.textPrimary }]}>
             {account.name}
           </Text>
-          <View style={styles.filterContainer}>
-            <SegmentedOptionGroup
-              options={DATE_RANGE_OPTIONS}
-              value={dateRange}
-              onChange={setDateRange}
-            />
-          </View>
+          <SegmentedOptionGroup
+            options={DATE_RANGE_OPTIONS}
+            value={dateRange}
+            onChange={setDateRange}
+          />
         </View>
         {floorsMatrix ? (
           <FloorsVisitedMatrix data={floorsMatrix} variant="full" />
@@ -109,9 +107,6 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  filterContainer: {
-    flexDirection: "row",
   },
   emptyText: {
     fontSize: 14,

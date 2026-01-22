@@ -40,6 +40,10 @@ export interface Account extends Entity {
   organizationId: EntityId;
   name: string;
   status: AccountStatus;
+  /** When this account became active/was assigned (can be backdated) */
+  activeAt?: Timestamp;
+  /** When this account became inactive (only set when status is inactive) */
+  inactiveAt?: Timestamp;
   auditFrequency: AccountAuditFrequency;
   auditFrequencyUpdatedAt: Timestamp;
   auditFrequencyAnchorAt: Timestamp;
