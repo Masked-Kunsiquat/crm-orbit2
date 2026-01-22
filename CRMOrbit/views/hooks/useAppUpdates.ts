@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import { createLogger } from "@utils/logger";
+import { t } from "@i18n/index";
 
 const logger = createLogger("AppUpdates");
 
@@ -88,12 +89,12 @@ export const useAppUpdates = (
 
           if (showAlertOnUpdate) {
             Alert.alert(
-              "Update Available",
-              "A new version has been downloaded. Restart the app to apply the update.",
+              t("settings.version.alertTitle"),
+              t("settings.version.alertMessage"),
               [
-                { text: "Later", style: "cancel" },
+                { text: t("settings.version.alertLater"), style: "cancel" },
                 {
-                  text: "Restart Now",
+                  text: t("settings.version.alertRestart"),
                   onPress: () => {
                     Updates.reloadAsync();
                   },
