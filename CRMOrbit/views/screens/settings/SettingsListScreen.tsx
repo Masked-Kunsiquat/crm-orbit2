@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
-import { ListCard } from "../../components";
+import { ChangelogModal, ListCard } from "../../components";
 import {
   getAppVersion,
   useAppUpdates,
@@ -18,6 +19,7 @@ export const SettingsListScreen = ({ navigation }: Props) => {
   const labels = useSettingsListLabels();
   const versionLabels = useVersionLabels();
   const appVersion = getAppVersion();
+  const [changelogVisible, setChangelogVisible] = useState(false);
   const {
     status: updateStatus,
     isUpdateReady,
@@ -158,7 +160,10 @@ export const SettingsListScreen = ({ navigation }: Props) => {
 
       {/* Version & Updates Section */}
       <View style={[styles.versionSection, { borderTopColor: colors.border }]}>
-        <ListCard onPress={updatesEnabled ? handleVersionPress : undefined}>
+        <ListCard
+          onLongPress={() => setChangelogVisible(true)}
+          onPress={updatesEnabled ? handleVersionPress : undefined}
+        >
           <View style={styles.cardContent}>
             <View style={styles.iconContainer}>
               {updateStatus === "checking" || updateStatus === "downloading" ? (
@@ -186,6 +191,11 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           </View>
         </ListCard>
       </View>
+
+      <ChangelogModal
+        onClose={() => setChangelogVisible(false)}
+        visible={changelogVisible}
+      />
     </View>
   );
 };
