@@ -1,0 +1,19 @@
+---
+engines:
+  eslint:
+    enabled: true
+    # Use the project's ESLint configuration instead of Codacy defaults
+    config_file: CRMOrbit/eslint.config.mjs
+
+exclude_paths:
+  - "README.md"
+  - "CRMOrbit/.codex/*"
+  - "CRMOrbit/docs/*"
+  - "CRMOrbit/*.md"
+  - "CRMOrbit/*/*.md"
+  - "*.md"
+  - "node_modules/**"
+  - ".expo/**"
+  - "dist/**"
+  - "build/**"
+  - "docs/**"
