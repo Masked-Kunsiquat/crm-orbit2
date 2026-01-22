@@ -108,7 +108,7 @@ export const buildAuditAgendaItem = (
     auditFloorsVisited && auditFloorsVisited.length > 0
       ? auditFloorsVisited
       : undefined;
-  const notes = getAuditNotes(audit)?.trim() || undefined;
+  const notes = getAuditNotes(audit)?.trim() ?? undefined;
 
   return {
     kind: "audit",

@@ -19,7 +19,7 @@ export type UpdateStatus =
   | "error"
   | "up-to-date";
 
-export type UseAppUpdatesReturn = {
+export interface UseAppUpdatesReturn {
   /** Current update status */
   status: UpdateStatus;
   /** Whether an update is available */
@@ -36,7 +36,7 @@ export type UseAppUpdatesReturn = {
   applyUpdate: () => Promise<void>;
   /** Whether updates are enabled (false in dev mode) */
   isEnabled: boolean;
-};
+}
 
 /**
  * Hook for managing OTA updates via expo-updates.
@@ -171,7 +171,7 @@ export const useAppUpdates = (
   // Check for updates on mount if enabled
   useEffect(() => {
     if (checkOnMount && isEnabled) {
-      checkForUpdate();
+      void checkForUpdate();
     }
   }, [checkOnMount, isEnabled, checkForUpdate]);
 

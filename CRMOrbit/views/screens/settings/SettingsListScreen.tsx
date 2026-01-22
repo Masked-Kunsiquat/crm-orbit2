@@ -28,9 +28,9 @@ export const SettingsListScreen = ({ navigation }: Props) => {
 
   const handleVersionPress = () => {
     if (isUpdateReady) {
-      applyUpdate();
+      void applyUpdate();
     } else if (updateStatus !== "checking" && updateStatus !== "downloading") {
-      checkForUpdate();
+      void checkForUpdate();
     }
   };
 
@@ -162,12 +162,12 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           <View style={styles.cardContent}>
             <View style={styles.iconContainer}>
               {updateStatus === "checking" || updateStatus === "downloading" ? (
-                <ActivityIndicator size={32} color={colors.accent} />
+                <ActivityIndicator color={colors.accent} size={32} />
               ) : (
                 <MaterialCommunityIcons
+                  color={isUpdateReady ? colors.success : colors.accent}
                   name={isUpdateReady ? "download" : "information-outline"}
                   size={32}
-                  color={isUpdateReady ? colors.success : colors.accent}
                 />
               )}
             </View>

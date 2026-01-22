@@ -74,7 +74,7 @@ export const AuditsListScreen = ({ navigation }: Props) => {
         ? `${t("audits.fields.floorsVisited")}: ${floorsVisited.join(", ")}`
         : undefined;
     const notes = getAuditNotes(item);
-    const footnote = notes?.trim() || floorsLabel;
+    const footnote = notes?.trim() ?? floorsLabel;
     const subtitle = `${timestampLabel}: ${timestampValue}`;
     const descriptionLines = [
       endTimestampValue
