@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
@@ -57,7 +63,10 @@ export const SettingsListScreen = ({ navigation }: Props) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.canvas }]}>
+    <ScrollView
+      contentContainerStyle={styles.content}
+      style={[styles.container, { backgroundColor: colors.canvas }]}
+    >
       <ListCard onPress={handleAppearancePress}>
         <View style={styles.cardContent}>
           <View style={styles.iconContainer}>
@@ -196,14 +205,17 @@ export const SettingsListScreen = ({ navigation }: Props) => {
         onClose={() => setChangelogVisible(false)}
         visible={changelogVisible}
       />
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
     padding: 16,
+    paddingBottom: 24,
   },
   cardContent: {
     flexDirection: "row",
