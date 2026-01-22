@@ -3,6 +3,7 @@ import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import { createLogger } from "@utils/logger";
 import { t } from "@i18n/index";
+import packageJson from "../../package.json";
 
 const logger = createLogger("AppUpdates");
 
@@ -135,6 +136,10 @@ export const useAppUpdates = (
               );
             }
           } else {
+            logger.info("No pending update found");
+            setIsUpdateAvailable(false);
+            setIsUpdateReady(false);
+            setDownloadProgress(null);
             setStatus("up-to-date");
           }
         }
@@ -201,8 +206,6 @@ export const getAppVersion = (): string => {
   }
 
   // Fallback to package.json version (imported at build time)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const packageJson = require("../../package.json") as { version: string };
   return packageJson.version;
 };
 
