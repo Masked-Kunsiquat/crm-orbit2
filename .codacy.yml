@@ -1,13 +1,14 @@
 ---
 exclude_paths:
-  - "README.md"
+  # All markdown files
+  - "**/*.md"
+  # Config/tooling directories
   - ".codex/**"
   - ".claude/**"
-  - "CRMOrbit/*.md"
-  - "CRMOrbit/**/*.md"
-  - "*.md"
-  - "node_modules/**"
   - ".expo/**"
+  # Build artifacts
+  - "node_modules/**"
   - "dist/**"
   - "build/**"
+  # Documentation
   - "docs/**"
