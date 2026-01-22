@@ -281,14 +281,14 @@ export const AuditsSection = ({
                 );
                 return (
                   <Pressable
-                    style={[
-                      styles.modalItem,
-                      { borderBottomColor: colors.borderLight },
-                    ]}
                     onPress={() => {
                       setShowAllModal(false);
                       navigation.navigate("AuditDetail", { auditId: item.id });
                     }}
+                    style={[
+                      styles.modalItem,
+                      { borderBottomColor: colors.borderLight },
+                    ]}
                   >
                     <View style={styles.modalItemRow}>
                       <Text
