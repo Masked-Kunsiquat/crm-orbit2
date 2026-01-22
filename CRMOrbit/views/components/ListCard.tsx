@@ -7,6 +7,7 @@ import { useTheme } from "../hooks";
 type ListCardProps = {
   children: ReactNode;
   onPress?: () => void;
+  onLongPress?: () => void;
   variant?: "elevated" | "outlined";
   style?: StyleProp<ViewStyle>;
 };
@@ -14,6 +15,7 @@ type ListCardProps = {
 export const ListCard = ({
   children,
   onPress,
+  onLongPress,
   variant = "elevated",
   style,
 }: ListCardProps) => {
@@ -21,6 +23,7 @@ export const ListCard = ({
 
   return (
     <Pressable
+      onLongPress={onLongPress}
       onPress={onPress}
       style={[
         styles.base,

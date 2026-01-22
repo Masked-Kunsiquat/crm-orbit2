@@ -78,3 +78,5 @@ export {
   getUpdateId,
 } from "./useAppUpdates";
 export type { UpdateStatus, UseAppUpdatesReturn } from "./useAppUpdates";
+export { useChangelog } from "./useChangelog";
+export type { Changelog, ChangelogCommit } from "./useChangelog";

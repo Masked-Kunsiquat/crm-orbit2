@@ -11,7 +11,9 @@
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watchAll",
     "lint": "eslint .",
-    "prepare": "cd .. && husky CRMOrbit/.husky"
+    "prepare": "cd .. && husky CRMOrbit/.husky",
+    "changelog": "node scripts/generate-changelog.js",
+    "preupdate": "npm run changelog"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
