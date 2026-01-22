@@ -57,6 +57,11 @@ export const useAppUpdates = (
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  type UpdatesWithPending = typeof Updates & {
+    isUpdatePending?: () => Promise<boolean>;
+  };
+  const updatesWithPending = Updates as UpdatesWithPending;
+
   // expo-updates is disabled in development mode
   const isEnabled = !__DEV__ && Updates.isEnabled;
 
@@ -103,7 +108,34 @@ export const useAppUpdates = (
             );
           }
         } else {
-          setStatus("up-to-date");
+          const isPending = updatesWithPending.isUpdatePending
+            ? await updatesWithPending.isUpdatePending()
+            : (Updates.latestContext?.isUpdatePending ?? false);
+
+          if (isPending) {
+            logger.info("Update already downloaded; pending reload");
+            setIsUpdateReady(true);
+            setStatus("ready");
+            setDownloadProgress(1);
+
+            if (showAlertOnUpdate) {
+              Alert.alert(
+                t("settings.version.alertTitle"),
+                t("settings.version.alertMessage"),
+                [
+                  { text: t("settings.version.alertLater"), style: "cancel" },
+                  {
+                    text: t("settings.version.alertRestart"),
+                    onPress: () => {
+                      Updates.reloadAsync();
+                    },
+                  },
+                ],
+              );
+            }
+          } else {
+            setStatus("up-to-date");
+          }
         }
       } else {
         logger.info("App is up to date");
