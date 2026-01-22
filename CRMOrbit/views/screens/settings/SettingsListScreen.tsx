@@ -1,15 +1,57 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
 import { ListCard } from "../../components";
-import { useSettingsListLabels, useTheme } from "../../hooks";
+import {
+  getAppVersion,
+  useAppUpdates,
+  useSettingsListLabels,
+  useTheme,
+} from "../../hooks";
 
 type Props = MiscStackScreenProps<"SettingsList">;
+
+const getUpdateStatusText = (
+  status: string,
+  isUpdateReady: boolean,
+): string => {
+  if (isUpdateReady) return "Update ready - tap to install";
+  switch (status) {
+    case "checking":
+      return "Checking for updates...";
+    case "downloading":
+      return "Downloading update...";
+    case "ready":
+      return "Update ready - tap to install";
+    case "up-to-date":
+      return "Up to date";
+    case "error":
+      return "Update check failed";
+    default:
+      return "Tap to check for updates";
+  }
+};
 
 export const SettingsListScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const labels = useSettingsListLabels();
+  const appVersion = getAppVersion();
+  const {
+    status: updateStatus,
+    isUpdateReady,
+    checkForUpdate,
+    applyUpdate,
+    isEnabled: updatesEnabled,
+  } = useAppUpdates({ checkOnMount: true, showAlertOnUpdate: true });
+
+  const handleVersionPress = () => {
+    if (isUpdateReady) {
+      applyUpdate();
+    } else if (updateStatus !== "checking" && updateStatus !== "downloading") {
+      checkForUpdate();
+    }
+  };
 
   const handleSecurityPress = () => {
     navigation.navigate("SecuritySettings");
@@ -132,6 +174,37 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           </View>
         </View>
       </ListCard>
+
+      {/* Version & Updates Section */}
+      <View style={styles.versionSection}>
+        <ListCard onPress={updatesEnabled ? handleVersionPress : undefined}>
+          <View style={styles.cardContent}>
+            <View style={styles.iconContainer}>
+              {updateStatus === "checking" || updateStatus === "downloading" ? (
+                <ActivityIndicator size={32} color={colors.accent} />
+              ) : (
+                <MaterialCommunityIcons
+                  name={isUpdateReady ? "download" : "information-outline"}
+                  size={32}
+                  color={isUpdateReady ? colors.success : colors.accent}
+                />
+              )}
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                CRMOrbit v{appVersion}
+              </Text>
+              <Text
+                style={[styles.description, { color: colors.textSecondary }]}
+              >
+                {updatesEnabled
+                  ? getUpdateStatusText(updateStatus, isUpdateReady)
+                  : "Development build"}
+              </Text>
+            </View>
+          </View>
+        </ListCard>
+      </View>
     </View>
   );
 };
@@ -158,5 +231,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
+  },
+  versionSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "rgba(128, 128, 128, 0.3)",
   },
 });

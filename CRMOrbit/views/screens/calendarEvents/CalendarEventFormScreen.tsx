@@ -46,6 +46,7 @@ import {
 } from "../../utils/auditFormValidation";
 import type { EventsStackScreenProps } from "../../navigation/types";
 import type { EntityId } from "../../../domains/shared/types";
+import type { EntityLinkType } from "../../../domains/relations/entityLink";
 
 const CALENDAR_EVENT_TYPES: Array<{
   label: string;
@@ -634,7 +635,7 @@ export const CalendarEventFormScreen = ({ route, navigation }: Props) => {
 
       // Build linked entities array
       const linkedEntitiesArray: Array<{
-        entityType: string;
+        entityType: EntityLinkType;
         entityId: string;
       }> = [];
 

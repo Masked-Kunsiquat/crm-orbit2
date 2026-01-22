@@ -78,7 +78,8 @@
         }
       ],
       "expo-font",
-      "expo-background-task"
+      "expo-background-task",
+      "expo-updates"
     ],
     "extra": {
       "eas": {

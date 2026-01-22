@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AutomergeDoc } from "@automerge/schema";
-import type { Audit } from "@domains/audit";
+import type { CalendarEvent } from "@domains/calendarEvent";
 import type { Interaction } from "@domains/interaction";
 import type { Account } from "@domains/account";
 import { t } from "@i18n/index";
@@ -67,7 +67,7 @@ export type CalendarSyncState = {
 
 export type UseCalendarSyncParams = {
   permissionGranted: boolean;
-  audits: Audit[];
+  audits: CalendarEvent[];
   interactions: Interaction[];
   accounts: Account[];
   doc: AutomergeDoc;
