@@ -236,7 +236,10 @@ const CommitItem = ({
         pressed && { backgroundColor: colors.surfaceElevated },
       ]}
       accessibilityRole="link"
-      accessibilityLabel={`Commit ${item.hash}: ${item.message}. Tap to view on GitHub.`}
+      accessibilityLabel={t("settings.changelog.commitAccessibility", {
+        hash: item.hash,
+        message: item.message,
+      })}
     >
       {/* Timeline */}
       <View style={styles.timeline}>
@@ -457,7 +460,7 @@ export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
             <Text
               style={[styles.versionBarText, { color: colors.textSecondary }]}
             >
-              {commitCount} {commitCount === 1 ? "commit" : "commits"}
+              {t("settings.changelog.commitCount", { count: commitCount })}
             </Text>
           </View>
         </View>
@@ -499,7 +502,7 @@ export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
               {t("settings.changelog.empty")}
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
-              No commits found in the changelog
+              {t("settings.changelog.emptySubtitle")}
             </Text>
           </View>
         )}
