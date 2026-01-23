@@ -11,8 +11,7 @@ jobs:
     steps:
       - name: Check required GitHub Actions runs
         env:
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.repository }}
+          REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -23,7 +22,7 @@ jobs:
           fi
 
           workflows=("eslint.yml" "test.yml")
-          api_base="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows"
+          api_base="https://api.github.com/repos/${REPO}/actions/workflows"
 
           for workflow in "${workflows[@]}"; do
             echo "Checking ${workflow} for commit ${SHA}"
@@ -37,7 +36,7 @@ jobs:
                 -H "Accept: application/vnd.github+json" \
                 "${api_base}/${workflow}/runs?head_sha=${SHA}&per_page=1")
 
-              status_line=$(echo "${response}" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const run=j.workflow_runs && j.workflow_runs[0];if(!run){console.log('missing:');return;}console.log(`${run.status}:${run.conclusion || ''}`);});")
+              status_line=$(echo "${response}" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const run=j.workflow_runs && j.workflow_runs[0];if(!run){console.log('missing:');return;}console.log(run.status + ':' + (run.conclusion || ''));});")
               status="${status_line%%:*}"
               conclusion="${status_line#*:}"
 

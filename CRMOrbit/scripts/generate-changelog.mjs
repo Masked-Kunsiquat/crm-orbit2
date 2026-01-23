@@ -7,7 +7,7 @@
  * Usage: node scripts/generate-changelog.mjs [--count=10]
  */
 
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -26,10 +26,14 @@ try {
   // Get recent commits - use %cs for short date which works better cross-platform
   // Format: hash|shortHash|date|message (pipe-separated to avoid JSON escaping issues)
   // %H = full hash (for GitHub links), %h = short hash (for display)
-  const gitLog = execSync(`git log --pretty=format:"%H|%h|%cs|%s" -${count}`, {
-    encoding: "utf-8",
-    cwd: join(__dirname, ".."),
-  });
+  const gitLog = execFileSync(
+    "git",
+    ["log", "--pretty=format:%H|%h|%cs|%s", `-${count}`],
+    {
+      encoding: "utf-8",
+      cwd: join(__dirname, ".."),
+    },
+  );
 
   // Parse each line
   const commits = gitLog

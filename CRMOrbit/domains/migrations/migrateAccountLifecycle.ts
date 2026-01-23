@@ -120,7 +120,12 @@ export const migrateAccountLifecycle = (
             payload.inactiveAt = null;
           }
 
-          const eventTimestamp = account.updatedAt ?? account.createdAt;
+          const eventTimestamp =
+            account.updatedAt ??
+            account.createdAt ??
+            account.activeAt ??
+            payload.activeAt ??
+            new Date().toISOString();
           result.events.push(
             buildLifecycleEvent(id, payload, eventTimestamp, deviceId),
           );
