@@ -23,7 +23,7 @@ const count =
 const outputPath = join(__dirname, "..", "changelog.json");
 
 try {
-  // Get recent commits - use %ci for ISO date which works better cross-platform
+  // Get recent commits - use %cs for short date which works better cross-platform
   // Format: hash|shortHash|date|message (pipe-separated to avoid JSON escaping issues)
   // %H = full hash (for GitHub links), %h = short hash (for display)
   const gitLog = execSync(`git log --pretty=format:"%H|%h|%cs|%s" -${count}`, {

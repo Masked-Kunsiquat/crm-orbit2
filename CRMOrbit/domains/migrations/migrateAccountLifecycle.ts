@@ -129,6 +129,7 @@ export const migrateAccountLifecycle = (
         } catch (error) {
           const errorMsg = `Failed to migrate account ${id}: ${(error as Error).message}`;
           console.error(errorMsg);
+          result.success = false;
           result.errors.push(errorMsg);
         }
       }
