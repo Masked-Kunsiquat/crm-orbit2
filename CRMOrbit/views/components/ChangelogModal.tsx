@@ -1,7 +1,7 @@
 import {
-  FlatList,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -9,8 +9,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import { useTheme, useChangelog } from "../hooks";
-import type { ChangelogCommit } from "../hooks";
+import { useTheme, useChangelog, useUpdateHistory } from "../hooks";
+import type { ChangelogCommit, UpdateHistoryEntry } from "../hooks";
 import { t } from "@i18n/index";
 
 type ChangelogModalProps = {
@@ -40,10 +40,77 @@ const CommitItem = ({ item }: { item: ChangelogCommit }) => {
   );
 };
 
+const UpdateItem = ({
+  item,
+  isCurrent,
+}: {
+  item: UpdateHistoryEntry;
+  isCurrent: boolean;
+}) => {
+  const { colors } = useTheme();
+  const receivedDate = new Date(item.receivedAt).toLocaleDateString();
+
+  return (
+    <View
+      style={[styles.updateItem, { borderBottomColor: colors.borderLight }]}
+    >
+      <View style={styles.updateHeader}>
+        <View style={styles.updateDateRow}>
+          <Text style={[styles.updateDate, { color: colors.textMuted }]}>
+            {receivedDate}
+          </Text>
+          {isCurrent ? (
+            <View
+              style={[styles.currentBadge, { backgroundColor: colors.success }]}
+            >
+              <Text
+                style={[styles.currentBadgeText, { color: colors.onError }]}
+              >
+                {t("settings.changelog.currentUpdate")}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        <Text style={[styles.updateId, { color: colors.textMuted }]}>
+          {t("settings.changelog.updateId", {
+            id: item.updateId.substring(0, 8),
+          })}
+        </Text>
+      </View>
+      <Text style={[styles.updateMessage, { color: colors.textPrimary }]}>
+        {item.message ?? t("settings.changelog.noMessage")}
+      </Text>
+    </View>
+  );
+};
+
+const SectionHeader = ({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: "cloud-download" | "source-commit";
+}) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.sectionHeader, { borderBottomColor: colors.border }]}>
+      <MaterialCommunityIcons color={colors.accent} name={icon} size={18} />
+      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+        {title}
+      </Text>
+    </View>
+  );
+};
+
 export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
   const { colors } = useTheme();
   const changelog = useChangelog();
+  const { history, currentUpdate, isLoading } = useUpdateHistory();
   const insets = useSafeAreaInsets();
+
+  const hasUpdates = history.length > 0;
+  const hasCommits = changelog.commits.length > 0;
 
   return (
     <Modal
@@ -93,25 +160,58 @@ export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
           </Text>
         </View>
 
-        {changelog.commits.length > 0 ? (
-          <FlatList
-            contentContainerStyle={styles.listContent}
-            data={changelog.commits}
-            keyExtractor={(item) => item.hash}
-            renderItem={({ item }) => <CommitItem item={item} />}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          style={styles.scrollView}
+        >
+          {/* OTA Updates Section */}
+          <SectionHeader
+            icon="cloud-download"
+            title={t("settings.changelog.updatesTitle")}
           />
-        ) : (
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons
-              color={colors.textMuted}
-              name="information-outline"
-              size={48}
-            />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {t("settings.changelog.empty")}
-            </Text>
-          </View>
-        )}
+          {isLoading ? (
+            <View style={styles.emptySection}>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                Loading...
+              </Text>
+            </View>
+          ) : hasUpdates ? (
+            <View style={styles.listSection}>
+              {history.map((item) => (
+                <UpdateItem
+                  isCurrent={currentUpdate?.updateId === item.updateId}
+                  item={item}
+                  key={item.updateId}
+                />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptySection}>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                {t("settings.changelog.updatesEmpty")}
+              </Text>
+            </View>
+          )}
+
+          {/* Git Commits Section */}
+          <SectionHeader
+            icon="source-commit"
+            title={t("settings.changelog.commitsTitle")}
+          />
+          {hasCommits ? (
+            <View style={styles.listSection}>
+              {changelog.commits.map((item) => (
+                <CommitItem item={item} key={item.hash} />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptySection}>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                {t("settings.changelog.empty")}
+              </Text>
+            </View>
+          )}
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -153,8 +253,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  listContent: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  listSection: {
+    paddingHorizontal: 16,
+  },
+  emptySection: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
   },
   commitItem: {
     paddingVertical: 12,
@@ -178,13 +305,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
+  updateItem: {
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  emptyText: {
+  updateHeader: {
+    marginBottom: 4,
+  },
+  updateDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 2,
+  },
+  updateDate: {
+    fontSize: 12,
+  },
+  updateId: {
+    fontSize: 11,
+    fontFamily: "monospace",
+  },
+  updateMessage: {
     fontSize: 14,
+    lineHeight: 20,
+  },
+  currentBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  currentBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
   },
 });
