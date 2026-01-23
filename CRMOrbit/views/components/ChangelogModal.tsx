@@ -24,87 +24,67 @@ type ChangelogModalProps = {
   onClose: () => void;
 };
 
+import type { ColorScheme } from "@domains/shared/theme/colors";
+
 /**
- * Conventional commit type configuration with colors
+ * Conventional commit type configuration with theme token keys
  */
 type CommitTypeConfig = {
   label: string;
-  bgLight: string;
-  bgDark: string;
-  textLight: string;
-  textDark: string;
+  bgToken: keyof ColorScheme;
+  textToken: keyof ColorScheme;
 };
 
 const COMMIT_TYPES: Record<string, CommitTypeConfig> = {
   feat: {
     label: "feat",
-    bgLight: "#dbeafe",
-    bgDark: "#1e3a5f",
-    textLight: "#1d4ed8",
-    textDark: "#60a5fa",
+    bgToken: "commitTypeFeatBg",
+    textToken: "commitTypeFeatText",
   },
   fix: {
     label: "fix",
-    bgLight: "#fee2e2",
-    bgDark: "#5f1e1e",
-    textLight: "#dc2626",
-    textDark: "#f87171",
+    bgToken: "commitTypeFixBg",
+    textToken: "commitTypeFixText",
   },
   chore: {
     label: "chore",
-    bgLight: "#f3f4f6",
-    bgDark: "#374151",
-    textLight: "#6b7280",
-    textDark: "#9ca3af",
+    bgToken: "commitTypeChoreBg",
+    textToken: "commitTypeChoreText",
   },
   docs: {
     label: "docs",
-    bgLight: "#fef3c7",
-    bgDark: "#5f4b1e",
-    textLight: "#d97706",
-    textDark: "#fbbf24",
+    bgToken: "commitTypeDocsBg",
+    textToken: "commitTypeDocsText",
   },
   style: {
     label: "style",
-    bgLight: "#fce7f3",
-    bgDark: "#5f1e4b",
-    textLight: "#db2777",
-    textDark: "#f472b6",
+    bgToken: "commitTypeStyleBg",
+    textToken: "commitTypeStyleText",
   },
   refactor: {
     label: "refactor",
-    bgLight: "#e0e7ff",
-    bgDark: "#312e81",
-    textLight: "#4f46e5",
-    textDark: "#818cf8",
+    bgToken: "commitTypeRefactorBg",
+    textToken: "commitTypeRefactorText",
   },
   perf: {
     label: "perf",
-    bgLight: "#d1fae5",
-    bgDark: "#1e5f3a",
-    textLight: "#059669",
-    textDark: "#34d399",
+    bgToken: "commitTypePerfBg",
+    textToken: "commitTypePerfText",
   },
   test: {
     label: "test",
-    bgLight: "#ccfbf1",
-    bgDark: "#1e5f5f",
-    textLight: "#0d9488",
-    textDark: "#2dd4bf",
+    bgToken: "commitTypeTestBg",
+    textToken: "commitTypeTestText",
   },
   build: {
     label: "build",
-    bgLight: "#e9d5ff",
-    bgDark: "#4b1e5f",
-    textLight: "#9333ea",
-    textDark: "#c084fc",
+    bgToken: "commitTypeBuildBg",
+    textToken: "commitTypeBuildText",
   },
   ci: {
     label: "ci",
-    bgLight: "#fae8ff",
-    bgDark: "#5f1e5f",
-    textLight: "#a855f7",
-    textDark: "#d946ef",
+    bgToken: "commitTypeCiBg",
+    textToken: "commitTypeCiText",
   },
 };
 
@@ -157,29 +137,16 @@ const getCurrentUpdateMessage = (): string | null => {
 /**
  * Commit type badge component
  */
-const CommitTypeBadge = ({
-  type,
-  isDark,
-}: {
-  type: string;
-  isDark: boolean;
-}) => {
+const CommitTypeBadge = ({ type }: { type: string }) => {
+  const { colors } = useTheme();
   const config = COMMIT_TYPES[type];
   if (!config) return null;
 
   return (
     <View
-      style={[
-        styles.typeBadge,
-        { backgroundColor: isDark ? config.bgDark : config.bgLight },
-      ]}
+      style={[styles.typeBadge, { backgroundColor: colors[config.bgToken] }]}
     >
-      <Text
-        style={[
-          styles.typeBadgeText,
-          { color: isDark ? config.textDark : config.textLight },
-        ]}
-      >
+      <Text style={[styles.typeBadgeText, { color: colors[config.textToken] }]}>
         {config.label}
       </Text>
     </View>
@@ -189,20 +156,11 @@ const CommitTypeBadge = ({
 /**
  * Scope badge component
  */
-const ScopeBadge = ({ scope, isDark }: { scope: string; isDark: boolean }) => {
+const ScopeBadge = ({ scope }: { scope: string }) => {
+  const { colors } = useTheme();
   return (
-    <View
-      style={[
-        styles.scopeBadge,
-        { backgroundColor: isDark ? "#374151" : "#f3f4f6" },
-      ]}
-    >
-      <Text
-        style={[
-          styles.scopeBadgeText,
-          { color: isDark ? "#9ca3af" : "#6b7280" },
-        ]}
-      >
+    <View style={[styles.scopeBadge, { backgroundColor: colors.scopeBadgeBg }]}>
+      <Text style={[styles.scopeBadgeText, { color: colors.scopeBadgeText }]}>
         {scope}
       </Text>
     </View>
@@ -220,7 +178,7 @@ const CommitItem = ({
   isFirst: boolean;
   isLast: boolean;
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const parsed = parseCommitMessage(item.message);
 
   const handlePress = useCallback(() => {
@@ -325,10 +283,8 @@ const CommitItem = ({
 
         {/* Message with type badges */}
         <View style={styles.messageContainer}>
-          {parsed.type && (
-            <CommitTypeBadge type={parsed.type} isDark={isDark} />
-          )}
-          {parsed.scope && <ScopeBadge scope={parsed.scope} isDark={isDark} />}
+          {parsed.type && <CommitTypeBadge type={parsed.type} />}
+          {parsed.scope && <ScopeBadge scope={parsed.scope} />}
           <Text
             style={[styles.itemMessage, { color: colors.textPrimary }]}
             numberOfLines={3}

@@ -51,6 +51,32 @@ export type ColorScheme = {
   contactTypeExternalText: string;
   contactTypeVendorBg: string;
   contactTypeVendorText: string;
+
+  // Commit type badges
+  commitTypeFeatBg: string;
+  commitTypeFeatText: string;
+  commitTypeFixBg: string;
+  commitTypeFixText: string;
+  commitTypeChoreBg: string;
+  commitTypeChoreText: string;
+  commitTypeDocsBg: string;
+  commitTypeDocsText: string;
+  commitTypeStyleBg: string;
+  commitTypeStyleText: string;
+  commitTypeRefactorBg: string;
+  commitTypeRefactorText: string;
+  commitTypePerfBg: string;
+  commitTypePerfText: string;
+  commitTypeTestBg: string;
+  commitTypeTestText: string;
+  commitTypeBuildBg: string;
+  commitTypeBuildText: string;
+  commitTypeCiBg: string;
+  commitTypeCiText: string;
+
+  // Scope badge (generic)
+  scopeBadgeBg: string;
+  scopeBadgeText: string;
 };
 
 export const lightColors: ColorScheme = {
@@ -106,6 +132,32 @@ export const lightColors: ColorScheme = {
   contactTypeExternalText: "#e65100",
   contactTypeVendorBg: "#f3e5f5",
   contactTypeVendorText: "#6a1b9a",
+
+  // Commit type badges
+  commitTypeFeatBg: "#dbeafe",
+  commitTypeFeatText: "#1d4ed8",
+  commitTypeFixBg: "#fee2e2",
+  commitTypeFixText: "#dc2626",
+  commitTypeChoreBg: "#f3f4f6",
+  commitTypeChoreText: "#6b7280",
+  commitTypeDocsBg: "#fef3c7",
+  commitTypeDocsText: "#d97706",
+  commitTypeStyleBg: "#fce7f3",
+  commitTypeStyleText: "#db2777",
+  commitTypeRefactorBg: "#e0e7ff",
+  commitTypeRefactorText: "#4f46e5",
+  commitTypePerfBg: "#d1fae5",
+  commitTypePerfText: "#059669",
+  commitTypeTestBg: "#ccfbf1",
+  commitTypeTestText: "#0d9488",
+  commitTypeBuildBg: "#e9d5ff",
+  commitTypeBuildText: "#9333ea",
+  commitTypeCiBg: "#fae8ff",
+  commitTypeCiText: "#a855f7",
+
+  // Scope badge
+  scopeBadgeBg: "#f3f4f6",
+  scopeBadgeText: "#6b7280",
 };
 
 export const darkColors: ColorScheme = {
@@ -161,6 +213,32 @@ export const darkColors: ColorScheme = {
   contactTypeExternalText: "#ffb74d",
   contactTypeVendorBg: "#2a1a3a",
   contactTypeVendorText: "#ba68c8",
+
+  // Commit type badges
+  commitTypeFeatBg: "#1e3a5f",
+  commitTypeFeatText: "#60a5fa",
+  commitTypeFixBg: "#5f1e1e",
+  commitTypeFixText: "#f87171",
+  commitTypeChoreBg: "#374151",
+  commitTypeChoreText: "#9ca3af",
+  commitTypeDocsBg: "#5f4b1e",
+  commitTypeDocsText: "#fbbf24",
+  commitTypeStyleBg: "#5f1e4b",
+  commitTypeStyleText: "#f472b6",
+  commitTypeRefactorBg: "#312e81",
+  commitTypeRefactorText: "#818cf8",
+  commitTypePerfBg: "#1e5f3a",
+  commitTypePerfText: "#34d399",
+  commitTypeTestBg: "#1e5f5f",
+  commitTypeTestText: "#2dd4bf",
+  commitTypeBuildBg: "#4b1e5f",
+  commitTypeBuildText: "#c084fc",
+  commitTypeCiBg: "#5f1e5f",
+  commitTypeCiText: "#d946ef",
+
+  // Scope badge
+  scopeBadgeBg: "#374151",
+  scopeBadgeText: "#9ca3af",
 };
 
 export type AppPaletteId = "orbit" | "meadow" | "ember" | "tide" | "rose";
