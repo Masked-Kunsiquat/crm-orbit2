@@ -23,17 +23,17 @@ const CommitItem = ({ item }: { item: ChangelogCommit }) => {
 
   return (
     <View
-      style={[styles.commitItem, { borderBottomColor: colors.borderLight }]}
+      style={[styles.itemContainer, { borderBottomColor: colors.borderLight }]}
     >
-      <View style={styles.commitHeader}>
-        <Text style={[styles.commitHash, { color: colors.accent }]}>
-          {item.hash}
-        </Text>
-        <Text style={[styles.commitDate, { color: colors.textMuted }]}>
+      <View style={styles.itemHeader}>
+        <Text style={[styles.itemDate, { color: colors.textMuted }]}>
           {item.date}
         </Text>
+        <Text style={[styles.itemId, { color: colors.textMuted }]}>
+          {item.hash}
+        </Text>
       </View>
-      <Text style={[styles.commitMessage, { color: colors.textPrimary }]}>
+      <Text style={[styles.itemMessage, { color: colors.textPrimary }]}>
         {item.message}
       </Text>
     </View>
@@ -52,11 +52,11 @@ const UpdateItem = ({
 
   return (
     <View
-      style={[styles.updateItem, { borderBottomColor: colors.borderLight }]}
+      style={[styles.itemContainer, { borderBottomColor: colors.borderLight }]}
     >
-      <View style={styles.updateHeader}>
-        <View style={styles.updateDateRow}>
-          <Text style={[styles.updateDate, { color: colors.textMuted }]}>
+      <View style={styles.itemHeader}>
+        <View style={styles.itemDateRow}>
+          <Text style={[styles.itemDate, { color: colors.textMuted }]}>
             {receivedDate}
           </Text>
           {isCurrent ? (
@@ -71,13 +71,13 @@ const UpdateItem = ({
             </View>
           ) : null}
         </View>
-        <Text style={[styles.updateId, { color: colors.textMuted }]}>
+        <Text style={[styles.itemId, { color: colors.textMuted }]}>
           {t("settings.changelog.updateId", {
             id: item.updateId.substring(0, 8),
           })}
         </Text>
       </View>
-      <Text style={[styles.updateMessage, { color: colors.textPrimary }]}>
+      <Text style={[styles.itemMessage, { color: colors.textPrimary }]}>
         {item.message ?? t("settings.changelog.noMessage")}
       </Text>
     </View>
@@ -283,49 +283,27 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
   },
-  commitItem: {
+  itemContainer: {
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  commitHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  itemHeader: {
     marginBottom: 4,
   },
-  commitHash: {
-    fontSize: 12,
-    fontFamily: "monospace",
-    fontWeight: "600",
-  },
-  commitDate: {
-    fontSize: 12,
-  },
-  commitMessage: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  updateItem: {
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  updateHeader: {
-    marginBottom: 4,
-  },
-  updateDateRow: {
+  itemDateRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     marginBottom: 2,
   },
-  updateDate: {
+  itemDate: {
     fontSize: 12,
   },
-  updateId: {
+  itemId: {
     fontSize: 11,
     fontFamily: "monospace",
   },
-  updateMessage: {
+  itemMessage: {
     fontSize: 14,
     lineHeight: 20,
   },

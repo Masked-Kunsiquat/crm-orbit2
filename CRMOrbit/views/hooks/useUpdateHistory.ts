@@ -24,8 +24,15 @@ type ExpoManifestExtra = {
   expoClient?: {
     extra?: {
       message?: string;
+      eas?: {
+        message?: string;
+      };
     };
   };
+};
+
+type ExpoManifestMetadata = {
+  message?: string;
 };
 
 type ExpoManifest = {
@@ -33,17 +40,38 @@ type ExpoManifest = {
   createdAt?: string;
   runtimeVersion?: string;
   extra?: ExpoManifestExtra;
+  metadata?: ExpoManifestMetadata;
+  // Direct message field (some versions)
+  message?: string;
 };
 
 /**
  * Extract the update message from the manifest.
- * The --message from `eas update` is stored in manifest.extra.expoClient.extra.message
+ * The --message from `eas update` can be in different locations depending on Expo version:
+ * - manifest.metadata.message (newer)
+ * - manifest.extra.expoClient.extra.message (documented)
+ * - manifest.extra.expoClient.extra.eas.message (alternate)
+ * - manifest.message (direct)
  */
 const extractMessage = (manifest: ExpoManifest | null): string | null => {
-  if (!manifest?.extra?.expoClient?.extra?.message) {
+  if (!manifest) {
     return null;
   }
-  return manifest.extra.expoClient.extra.message;
+
+  // Log manifest structure for debugging (only in dev)
+  if (__DEV__) {
+    logger.debug("Manifest structure:", JSON.stringify(manifest, null, 2));
+  }
+
+  // Check various possible locations
+  const message =
+    manifest.metadata?.message ??
+    manifest.extra?.expoClient?.extra?.message ??
+    manifest.extra?.expoClient?.extra?.eas?.message ??
+    manifest.message ??
+    null;
+
+  return message;
 };
 
 /**
