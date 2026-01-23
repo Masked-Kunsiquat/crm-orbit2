@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { useTheme, useChangelog } from "../hooks";
@@ -42,6 +43,7 @@ const CommitItem = ({ item }: { item: ChangelogCommit }) => {
 export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
   const { colors } = useTheme();
   const changelog = useChangelog();
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal
@@ -51,7 +53,12 @@ export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
       visible={visible}
     >
       <View style={[styles.container, { backgroundColor: colors.surface }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View
+          style={[
+            styles.header,
+            { borderBottomColor: colors.border, paddingTop: insets.top + 12 },
+          ]}
+        >
           <View style={styles.headerContent}>
             <MaterialCommunityIcons
               color={colors.accent}

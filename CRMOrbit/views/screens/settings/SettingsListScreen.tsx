@@ -9,7 +9,7 @@ import {
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import type { MiscStackScreenProps } from "../../navigation/types";
-import { ChangelogModal, ListCard } from "../../components";
+import { ChangelogModal, ConfirmDialog, ListCard } from "../../components";
 import {
   getAppVersion,
   useAppUpdates,
@@ -17,6 +17,7 @@ import {
   useTheme,
 } from "../../hooks";
 import { useVersionLabels } from "../../hooks/useSettingsLabels";
+import { t } from "@i18n/index";
 
 type Props = MiscStackScreenProps<"SettingsList">;
 
@@ -32,6 +33,8 @@ export const SettingsListScreen = ({ navigation }: Props) => {
     checkForUpdate,
     applyUpdate,
     isEnabled: updatesEnabled,
+    showUpdatePrompt,
+    dismissUpdatePrompt,
   } = useAppUpdates({ checkOnMount: true, showAlertOnUpdate: true });
 
   const handleVersionPress = () => {
@@ -204,6 +207,19 @@ export const SettingsListScreen = ({ navigation }: Props) => {
       <ChangelogModal
         onClose={() => setChangelogVisible(false)}
         visible={changelogVisible}
+      />
+
+      <ConfirmDialog
+        visible={showUpdatePrompt}
+        title={t("settings.version.alertTitle")}
+        message={t("settings.version.alertMessage")}
+        confirmLabel={t("settings.version.alertRestart")}
+        cancelLabel={t("settings.version.alertLater")}
+        onConfirm={() => {
+          dismissUpdatePrompt();
+          void applyUpdate();
+        }}
+        onCancel={dismissUpdatePrompt}
       />
     </ScrollView>
   );
