@@ -2,6 +2,7 @@ import changelog from "../../changelog.json";
 
 export type ChangelogCommit = {
   hash: string;
+  fullHash: string;
   date: string;
   message: string;
 };

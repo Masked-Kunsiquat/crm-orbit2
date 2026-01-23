@@ -142,6 +142,7 @@ export default [
       ".expo/**",
       "dist/**",
       "build/**",
+      "scripts/**",
       "**/*.config.js",
       "**/*.config.mjs",
     ],
