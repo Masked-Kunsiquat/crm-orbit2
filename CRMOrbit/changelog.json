@@ -1,10 +1,10 @@
 {
   "version": "2.0.0",
-  "generatedAt": "2026-01-23T22:56:44.136Z",
+  "generatedAt": "2026-01-23T22:58:32.266Z",
   "commits": [
     {
-      "hash": "b9afaa7",
-      "fullHash": "b9afaa71a1108bcb4930f5974540586a8d2f4e24",
+      "hash": "3e663c3",
+      "fullHash": "3e663c356b14b70a1b7640620176209715dccc93",
       "date": "2026-01-23",
       "message": "feat(changelog): add commit linking and refresh UI design"
     },
