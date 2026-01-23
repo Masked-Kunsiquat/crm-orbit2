@@ -12,7 +12,9 @@ const path = require("path");
 
 const args = process.argv.slice(2);
 const countArg = args.find((arg) => arg.startsWith("--count="));
-const count = countArg ? parseInt(countArg.split("=")[1], 10) : 10;
+const parsedCount = countArg ? parseInt(countArg.split("=")[1], 10) : NaN;
+const count =
+  Number.isInteger(parsedCount) && parsedCount > 0 ? parsedCount : 10;
 
 const outputPath = path.join(__dirname, "..", "changelog.json");
 
