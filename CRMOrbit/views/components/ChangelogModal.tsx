@@ -1,16 +1,17 @@
 import {
+  FlatList,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import * as Updates from "expo-updates";
 
-import { useTheme, useChangelog, useUpdateHistory } from "../hooks";
-import type { ChangelogCommit, UpdateHistoryEntry } from "../hooks";
+import { useTheme, useChangelog } from "../hooks";
+import type { ChangelogCommit } from "../hooks";
 import { t } from "@i18n/index";
 
 type ChangelogModalProps = {
@@ -18,37 +19,40 @@ type ChangelogModalProps = {
   onClose: () => void;
 };
 
-const CommitItem = ({ item }: { item: ChangelogCommit }) => {
-  const { colors } = useTheme();
+/**
+ * Get the message from the currently running OTA update (if any).
+ * Returns null in dev mode or if no update is running.
+ */
+const getCurrentUpdateMessage = (): string | null => {
+  if (__DEV__ || !Updates.isEnabled || !Updates.updateId) {
+    return null;
+  }
+
+  type ManifestWithMessage = {
+    metadata?: { message?: string };
+    extra?: { expoClient?: { extra?: { message?: string } } };
+    message?: string;
+  };
+
+  const manifest = Updates.manifest as ManifestWithMessage | null;
+  if (!manifest) return null;
 
   return (
-    <View
-      style={[styles.itemContainer, { borderBottomColor: colors.borderLight }]}
-    >
-      <View style={styles.itemHeader}>
-        <Text style={[styles.itemDate, { color: colors.textMuted }]}>
-          {item.date}
-        </Text>
-        <Text style={[styles.itemId, { color: colors.textMuted }]}>
-          {item.hash}
-        </Text>
-      </View>
-      <Text style={[styles.itemMessage, { color: colors.textPrimary }]}>
-        {item.message}
-      </Text>
-    </View>
+    manifest.metadata?.message ??
+    manifest.extra?.expoClient?.extra?.message ??
+    manifest.message ??
+    null
   );
 };
 
-const UpdateItem = ({
+const CommitItem = ({
   item,
-  isCurrent,
+  isCurrentlyRunning,
 }: {
-  item: UpdateHistoryEntry;
-  isCurrent: boolean;
+  item: ChangelogCommit;
+  isCurrentlyRunning: boolean;
 }) => {
   const { colors } = useTheme();
-  const receivedDate = new Date(item.receivedAt).toLocaleDateString();
 
   return (
     <View
@@ -57,9 +61,9 @@ const UpdateItem = ({
       <View style={styles.itemHeader}>
         <View style={styles.itemDateRow}>
           <Text style={[styles.itemDate, { color: colors.textMuted }]}>
-            {receivedDate}
+            {item.date}
           </Text>
-          {isCurrent ? (
+          {isCurrentlyRunning ? (
             <View
               style={[styles.currentBadge, { backgroundColor: colors.success }]}
             >
@@ -72,32 +76,11 @@ const UpdateItem = ({
           ) : null}
         </View>
         <Text style={[styles.itemId, { color: colors.textMuted }]}>
-          {t("settings.changelog.updateId", {
-            id: item.updateId.substring(0, 8),
-          })}
+          {item.hash}
         </Text>
       </View>
       <Text style={[styles.itemMessage, { color: colors.textPrimary }]}>
-        {item.message ?? t("settings.changelog.noMessage")}
-      </Text>
-    </View>
-  );
-};
-
-const SectionHeader = ({
-  title,
-  icon,
-}: {
-  title: string;
-  icon: "cloud-download" | "source-commit";
-}) => {
-  const { colors } = useTheme();
-
-  return (
-    <View style={[styles.sectionHeader, { borderBottomColor: colors.border }]}>
-      <MaterialCommunityIcons color={colors.accent} name={icon} size={18} />
-      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-        {title}
+        {item.message}
       </Text>
     </View>
   );
@@ -106,11 +89,31 @@ const SectionHeader = ({
 export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
   const { colors } = useTheme();
   const changelog = useChangelog();
-  const { history, currentUpdate, isLoading } = useUpdateHistory();
   const insets = useSafeAreaInsets();
 
-  const hasUpdates = history.length > 0;
-  const hasCommits = changelog.commits.length > 0;
+  // Get the current update message to match against commits
+  const currentUpdateMessage = getCurrentUpdateMessage();
+
+  // Find which commit is currently running by matching the message
+  const findCurrentCommitIndex = (): number => {
+    if (!currentUpdateMessage) {
+      // In dev mode or no update, don't highlight any commit
+      return -1;
+    }
+
+    // Try to find a commit whose message matches the update message
+    // The update message might be the full commit message or just the first line
+    return changelog.commits.findIndex((commit) => {
+      const commitFirstLine = commit.message.split("\n")[0].trim();
+      const updateFirstLine = currentUpdateMessage.split("\n")[0].trim();
+      return (
+        commit.message === currentUpdateMessage ||
+        commitFirstLine === updateFirstLine
+      );
+    });
+  };
+
+  const currentCommitIndex = findCurrentCommitIndex();
 
   return (
     <Modal
@@ -160,58 +163,30 @@ export const ChangelogModal = ({ visible, onClose }: ChangelogModalProps) => {
           </Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          style={styles.scrollView}
-        >
-          {/* OTA Updates Section */}
-          <SectionHeader
-            icon="cloud-download"
-            title={t("settings.changelog.updatesTitle")}
+        {changelog.commits.length > 0 ? (
+          <FlatList
+            contentContainerStyle={styles.listContent}
+            data={changelog.commits}
+            keyExtractor={(item) => item.hash}
+            renderItem={({ item, index }) => (
+              <CommitItem
+                isCurrentlyRunning={index === currentCommitIndex}
+                item={item}
+              />
+            )}
           />
-          {isLoading ? (
-            <View style={styles.emptySection}>
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                Loading...
-              </Text>
-            </View>
-          ) : hasUpdates ? (
-            <View style={styles.listSection}>
-              {history.map((item) => (
-                <UpdateItem
-                  isCurrent={currentUpdate?.updateId === item.updateId}
-                  item={item}
-                  key={item.updateId}
-                />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptySection}>
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                {t("settings.changelog.updatesEmpty")}
-              </Text>
-            </View>
-          )}
-
-          {/* Git Commits Section */}
-          <SectionHeader
-            icon="source-commit"
-            title={t("settings.changelog.commitsTitle")}
-          />
-          {hasCommits ? (
-            <View style={styles.listSection}>
-              {changelog.commits.map((item) => (
-                <CommitItem item={item} key={item.hash} />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptySection}>
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                {t("settings.changelog.empty")}
-              </Text>
-            </View>
-          )}
-        </ScrollView>
+        ) : (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons
+              color={colors.textMuted}
+              name="information-outline"
+              size={48}
+            />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              {t("settings.changelog.empty")}
+            </Text>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -253,32 +228,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  scrollView: {
+  listContent: {
+    paddingHorizontal: 16,
+  },
+  emptyState: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    textTransform: "uppercase",
-  },
-  listSection: {
-    paddingHorizontal: 16,
-  },
-  emptySection: {
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
   },
   emptyText: {
     fontSize: 14,

@@ -80,8 +80,3 @@ export {
 export type { UpdateStatus, UseAppUpdatesReturn } from "./useAppUpdates";
 export { useChangelog } from "./useChangelog";
 export type { Changelog, ChangelogCommit } from "./useChangelog";
-export {
-  useUpdateHistory,
-  recordCurrentUpdateToHistory,
-} from "./useUpdateHistory";
-export type { UpdateHistoryEntry } from "./useUpdateHistory";

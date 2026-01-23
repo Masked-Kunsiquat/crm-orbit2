@@ -19,12 +19,7 @@ import { appendEvents } from "./domains/persistence/store";
 import { buildCodeEncryptionEvents } from "./domains/migrations/codeEncryption";
 import { __internal_getCrmStore } from "./views/store/store";
 import { RootStack } from "./views/navigation";
-import {
-  getDeviceIdFromEnv,
-  setDeviceId,
-  useTheme,
-  recordCurrentUpdateToHistory,
-} from "./views/hooks";
+import { getDeviceIdFromEnv, setDeviceId, useTheme } from "./views/hooks";
 import { ensureExternalCalendarBackgroundSync } from "./views/services/externalCalendarBackgroundTask";
 import { nextId } from "./domains/shared/idGenerator";
 import { createLogger } from "@utils/logger";
@@ -101,11 +96,6 @@ export default function App() {
         store.getState().setEvents(events);
 
         setIsLoading(false);
-
-        // Record OTA update to history (non-blocking)
-        recordCurrentUpdateToHistory().catch((error) => {
-          logger.error("Failed to record update to history.", error);
-        });
 
         ensureExternalCalendarBackgroundSync().catch((error) => {
           logger.error(
