@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { Platform } from "react-native";
 import {
   ScrollView,
   StyleSheet,
@@ -8,19 +8,17 @@ import {
   Modal,
   Pressable,
 } from "react-native";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
 import { t } from "@i18n/index";
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import { useAccount, useOrganizations } from "../../store/store";
 import { useAccountActions, useDeviceId } from "../../hooks";
-import type {
-  Address,
-  AccountAddresses,
-  AccountAuditFrequency,
-  AccountAuditFrequencyChangeTiming,
-  SocialMediaLinks,
-} from "@domains/account";
-import { DEFAULT_ACCOUNT_AUDIT_FREQUENCY } from "@domains/account.utils";
+import type { AccountAddresses, SocialMediaLinks } from "@domains/account";
+import { formatDate } from "@domains/shared/dateFormatting";
 import { useTheme } from "../../hooks/useTheme";
 import {
   AddressFields,
@@ -32,8 +30,79 @@ import {
   ConfirmDialog,
 } from "../../components";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import { useAccountFormState } from "../../hooks/useAccountFormState";
 
 type Props = AccountsStackScreenProps<"AccountForm">;
+
+// Static option configurations
+const statusOptions = [
+  { value: "account.status.active", label: t("status.active") },
+  { value: "account.status.inactive", label: t("status.inactive") },
+] as const;
+
+const auditFrequencyOptions = [
+  {
+    value: "account.auditFrequency.monthly",
+    label: t("account.auditFrequency.monthly"),
+  },
+  {
+    value: "account.auditFrequency.bimonthly",
+    label: t("account.auditFrequency.bimonthly"),
+  },
+  {
+    value: "account.auditFrequency.quarterly",
+    label: t("account.auditFrequency.quarterly"),
+  },
+  {
+    value: "account.auditFrequency.triannually",
+    label: t("account.auditFrequency.triannually"),
+  },
+] as const;
+
+const auditFrequencyTimingOptions = [
+  {
+    value: "account.auditFrequencyChange.immediate",
+    label: t("accounts.auditFrequencyChange.immediate"),
+  },
+  {
+    value: "account.auditFrequencyChange.nextPeriod",
+    label: t("accounts.auditFrequencyChange.nextPeriod"),
+  },
+] as const;
+
+// Validation helpers
+const parseFloorValue = (value: string): number | undefined | null => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed)) {
+    return null;
+  }
+  return parsed;
+};
+
+const parseExcludedFloors = (value: string): number[] | undefined | null => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const parts = trimmed.split(",");
+  const floors: number[] = [];
+  for (const part of parts) {
+    const entry = part.trim();
+    if (!entry) {
+      continue;
+    }
+    const parsed = Number(entry);
+    if (!Number.isInteger(parsed)) {
+      return null;
+    }
+    floors.push(parsed);
+  }
+  return floors.length > 0 ? floors : undefined;
+};
 
 export const AccountFormScreen = ({ route, navigation }: Props) => {
   const { accountId, organizationId: prefillOrganizationId } =
@@ -50,230 +119,81 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
     a.name.localeCompare(b.name),
   );
 
-  const [name, setName] = useState("");
-  const [organizationId, setOrganizationId] = useState("");
-  const [status, setStatus] = useState<
-    "account.status.active" | "account.status.inactive"
-  >("account.status.active");
-  const [auditFrequency, setAuditFrequency] = useState<AccountAuditFrequency>(
-    DEFAULT_ACCOUNT_AUDIT_FREQUENCY,
-  );
-  const [auditFrequencyChangeTiming, setAuditFrequencyChangeTiming] =
-    useState<AccountAuditFrequencyChangeTiming>(
-      "account.auditFrequencyChange.immediate",
-    );
-  const [initialAuditFrequency, setInitialAuditFrequency] =
-    useState<AccountAuditFrequency>(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
-  const [siteAddress, setSiteAddress] = useState<Address>({
-    street: "",
-    city: "",
-    state: "",
-    zipCode: "",
+  const formState = useAccountFormState({
+    account: account ?? undefined,
+    prefillOrganizationId,
+    defaultOrganizationId: organizations[0]?.id,
   });
-  const [parkingAddress, setParkingAddress] = useState<Address>({
-    street: "",
-    city: "",
-    state: "",
-    zipCode: "",
-  });
-  const [useSameForParking, setUseSameForParking] = useState(false);
-  const [website, setWebsite] = useState("");
-  const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
-  const [minFloorInput, setMinFloorInput] = useState("");
-  const [maxFloorInput, setMaxFloorInput] = useState("");
-  const [excludedFloorsInput, setExcludedFloorsInput] = useState("");
-  const [isOrganizationPickerOpen, setIsOrganizationPickerOpen] =
-    useState(false);
-  const lastAccountIdRef = useRef<string | undefined>(undefined);
-  const statusOptions = [
-    { value: "account.status.active", label: t("status.active") },
-    { value: "account.status.inactive", label: t("status.inactive") },
-  ] as const;
-  const auditFrequencyOptions = [
-    {
-      value: "account.auditFrequency.monthly",
-      label: t("account.auditFrequency.monthly"),
-    },
-    {
-      value: "account.auditFrequency.bimonthly",
-      label: t("account.auditFrequency.bimonthly"),
-    },
-    {
-      value: "account.auditFrequency.quarterly",
-      label: t("account.auditFrequency.quarterly"),
-    },
-    {
-      value: "account.auditFrequency.triannually",
-      label: t("account.auditFrequency.triannually"),
-    },
-  ] as const;
-  const auditFrequencyTimingOptions = [
-    {
-      value: "account.auditFrequencyChange.immediate",
-      label: t("accounts.auditFrequencyChange.immediate"),
-    },
-    {
-      value: "account.auditFrequencyChange.nextPeriod",
-      label: t("accounts.auditFrequencyChange.nextPeriod"),
-    },
-  ] as const;
 
-  useEffect(() => {
-    if (!accountId && prefillOrganizationId) {
-      setOrganizationId(prefillOrganizationId);
-    }
-  }, [accountId, prefillOrganizationId]);
+  const {
+    name,
+    setName,
+    organizationId,
+    setOrganizationId,
+    status,
+    activeAt,
+    inactiveAt,
+    activeDatePicker,
+    setActiveDatePicker,
+    getLifecycleDate,
+    updateLifecycleDate,
+    auditFrequency,
+    auditFrequencyChangeTiming,
+    setAuditFrequencyChangeTiming,
+    isFrequencyChanged,
+    siteAddress,
+    parkingAddress,
+    useSameForParking,
+    minFloorInput,
+    setMinFloorInput,
+    maxFloorInput,
+    setMaxFloorInput,
+    excludedFloorsInput,
+    setExcludedFloorsInput,
+    website,
+    setWebsite,
+    socialMedia,
+    isOrganizationPickerOpen,
+    setIsOrganizationPickerOpen,
+    handleSiteAddressChange,
+    handleParkingAddressChange,
+    handleUseSameForParkingChange,
+    handleSocialMediaChange,
+    handleAuditFrequencyChange,
+    handleStatusChange,
+  } = formState;
 
-  // Only populate form fields on initial mount or when switching to a different account
-  useEffect(() => {
-    const currentAccountId = accountId ?? undefined;
-    const isAccountChanged = currentAccountId !== lastAccountIdRef.current;
-
-    if (isAccountChanged) {
-      lastAccountIdRef.current = currentAccountId;
-
-      if (account) {
-        const pendingEffectiveAt = account.auditFrequencyPendingEffectiveAt
-          ? Date.parse(account.auditFrequencyPendingEffectiveAt)
-          : Number.NaN;
-        const resolvedAuditFrequency =
-          account.auditFrequencyPending &&
-          !Number.isNaN(pendingEffectiveAt) &&
-          Date.now() >= pendingEffectiveAt
-            ? account.auditFrequencyPending
-            : (account.auditFrequency ?? DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
-        setName(account.name);
-        setOrganizationId(account.organizationId);
-        setStatus(account.status);
-        setAuditFrequency(resolvedAuditFrequency);
-        setInitialAuditFrequency(resolvedAuditFrequency);
-        setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
-        setSiteAddress(
-          account.addresses?.site ?? {
-            street: "",
-            city: "",
-            state: "",
-            zipCode: "",
-          },
-        );
-        setParkingAddress(
-          account.addresses?.parking ?? {
-            street: "",
-            city: "",
-            state: "",
-            zipCode: "",
-          },
-        );
-        setUseSameForParking(account.addresses?.useSameForParking ?? false);
-        setWebsite(account.website || "");
-        setSocialMedia(account.socialMedia || {});
-        setMinFloorInput(
-          account.minFloor !== undefined ? `${account.minFloor}` : "",
-        );
-        setMaxFloorInput(
-          account.maxFloor !== undefined ? `${account.maxFloor}` : "",
-        );
-        setExcludedFloorsInput(
-          account.excludedFloors?.length
-            ? account.excludedFloors.join(", ")
-            : "",
-        );
-      } else {
-        // New account - reset to defaults
-        setName("");
-        setOrganizationId(organizations[0]?.id ?? "");
-        setStatus("account.status.active");
-        setAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
-        setInitialAuditFrequency(DEFAULT_ACCOUNT_AUDIT_FREQUENCY);
-        setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
-        setSiteAddress({ street: "", city: "", state: "", zipCode: "" });
-        setParkingAddress({ street: "", city: "", state: "", zipCode: "" });
-        setUseSameForParking(false);
-        setWebsite("");
-        setSocialMedia({});
-        setMinFloorInput("");
-        setMaxFloorInput("");
-        setExcludedFloorsInput("");
-      }
-    }
-  }, [accountId, account, organizations]);
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-  };
-
-  const handleStatusChange = (
-    value: "account.status.active" | "account.status.inactive",
+  // Date picker handlers
+  const handleDatePickerChange = (
+    field: "activeAt" | "inactiveAt",
+    event: DateTimePickerEvent,
+    date?: Date,
   ) => {
-    setStatus(value);
+    if (event.type === "dismissed") {
+      setActiveDatePicker(null);
+      return;
+    }
+    if (date) {
+      updateLifecycleDate(field, date);
+    }
+    setActiveDatePicker(null);
   };
 
-  const handleAuditFrequencyChange = (value: AccountAuditFrequency) => {
-    setAuditFrequency(value);
-    if (value !== initialAuditFrequency) {
-      setAuditFrequencyChangeTiming("account.auditFrequencyChange.immediate");
+  const openDatePicker = (field: "activeAt" | "inactiveAt") => {
+    if (Platform.OS === "android") {
+      const currentDate = getLifecycleDate(field);
+      DateTimePickerAndroid.open({
+        mode: "date",
+        value: currentDate,
+        onChange: (event, date) => {
+          if (event.type === "set" && date) {
+            updateLifecycleDate(field, date);
+          }
+        },
+      });
+    } else {
+      setActiveDatePicker(field);
     }
-  };
-
-  const handleSiteAddressChange = (field: keyof Address, value: string) => {
-    setSiteAddress((prev) => ({ ...prev, [field]: value }));
-    if (useSameForParking) {
-      setParkingAddress((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const handleParkingAddressChange = (field: keyof Address, value: string) => {
-    setParkingAddress((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleUseSameForParkingChange = (value: boolean) => {
-    setUseSameForParking(value);
-    if (value) {
-      setParkingAddress(siteAddress);
-    }
-  };
-
-  const handleSocialMediaChange = (
-    platform: keyof SocialMediaLinks,
-    value: string,
-  ) => {
-    setSocialMedia((prev) => ({
-      ...prev,
-      [platform]: value.trim() || undefined,
-    }));
-  };
-
-  const parseFloorValue = (value: string): number | undefined | null => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-    const parsed = Number(trimmed);
-    if (!Number.isInteger(parsed)) {
-      return null;
-    }
-    return parsed;
-  };
-
-  const parseExcludedFloors = (value: string): number[] | undefined | null => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-    const parts = trimmed.split(",");
-    const floors: number[] = [];
-    for (const part of parts) {
-      const entry = part.trim();
-      if (!entry) {
-        continue;
-      }
-      const parsed = Number(entry);
-      if (!Number.isInteger(parsed)) {
-        return null;
-      }
-      floors.push(parsed);
-    }
-    return floors.length > 0 ? floors : undefined;
   };
 
   const handleSave = () => {
@@ -400,8 +320,6 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       }
     }
 
-    const isFrequencyChanged = auditFrequency !== initialAuditFrequency;
-
     if (accountId) {
       const result = updateAccount(
         accountId,
@@ -417,6 +335,8 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         auditFrequency,
         isFrequencyChanged ? auditFrequencyChangeTiming : undefined,
         account ?? undefined,
+        activeAt || undefined,
+        inactiveAt || null,
       );
       if (result.success) {
         navigation.goBack();
@@ -439,6 +359,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         maxFloorParsed,
         excludedFloorsParsed,
         auditFrequency,
+        activeAt || undefined,
       );
       if (result.success) {
         navigation.goBack();
@@ -461,7 +382,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       <FormField label={`${t("accounts.fields.name")} *`}>
         <TextField
           value={name}
-          onChangeText={handleNameChange}
+          onChangeText={setName}
           placeholder={t("accounts.form.namePlaceholder")}
         />
       </FormField>
@@ -504,6 +425,40 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         />
       </FormField>
 
+      <FormField label={t("accounts.fields.activeAt")}>
+        <TouchableOpacity
+          style={[
+            styles.dateButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          onPress={() => openDatePicker("activeAt")}
+        >
+          <Text style={[styles.dateButtonText, { color: colors.textPrimary }]}>
+            {activeAt ? formatDate(activeAt) : t("accounts.form.selectDate")}
+          </Text>
+        </TouchableOpacity>
+      </FormField>
+
+      {status === "account.status.inactive" ? (
+        <FormField label={t("accounts.fields.inactiveAt")}>
+          <TouchableOpacity
+            style={[
+              styles.dateButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            onPress={() => openDatePicker("inactiveAt")}
+          >
+            <Text
+              style={[styles.dateButtonText, { color: colors.textPrimary }]}
+            >
+              {inactiveAt
+                ? formatDate(inactiveAt)
+                : t("accounts.form.selectDate")}
+            </Text>
+          </TouchableOpacity>
+        </FormField>
+      ) : null}
+
       <FormField label={t("accounts.fields.auditFrequency")}>
         <SegmentedOptionGroup
           options={auditFrequencyOptions}
@@ -511,7 +466,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
           onChange={handleAuditFrequencyChange}
         />
       </FormField>
-      {auditFrequency !== initialAuditFrequency ? (
+      {isFrequencyChanged ? (
         <FormField label={t("accounts.fields.auditFrequencyChangeTiming")}>
           <SegmentedOptionGroup
             options={auditFrequencyTimingOptions}
@@ -595,9 +550,7 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
       <FormField label={t("accounts.fields.website")}>
         <TextField
           value={website}
-          onChangeText={(value) => {
-            setWebsite(value);
-          }}
+          onChangeText={setWebsite}
           placeholder={t("common.placeholders.website")}
           keyboardType="url"
           autoCapitalize="none"
@@ -684,6 +637,16 @@ export const AccountFormScreen = ({ route, navigation }: Props) => {
         </View>
       </Modal>
 
+      {activeDatePicker && Platform.OS === "ios" ? (
+        <DateTimePicker
+          value={getLifecycleDate(activeDatePicker)}
+          mode="date"
+          onChange={(event, date) =>
+            handleDatePickerChange(activeDatePicker, event, date)
+          }
+        />
+      ) : null}
+
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
   );
@@ -700,6 +663,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   pickerButtonText: {
+    fontSize: 16,
+  },
+  dateButton: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  dateButtonText: {
     fontSize: 16,
   },
   pickerChevron: {

@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -7,6 +8,10 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { persistImage, deletePersistedImage } from "@utils/imageStorage";
 
 import { t } from "@i18n/index";
@@ -14,6 +19,8 @@ import type { OrganizationsStackScreenProps } from "@views/navigation/types";
 import { useOrganization } from "@views/store/store";
 import { useDeviceId, useOrganizationActions } from "@views/hooks";
 import type { SocialMediaLinks } from "@domains/organization";
+import { formatDate } from "@domains/shared/dateFormatting";
+import type { Timestamp } from "@domains/shared/types";
 import { nextId } from "@domains/shared/idGenerator";
 import { useTheme } from "@views/hooks/useTheme";
 import {
@@ -25,6 +32,10 @@ import {
   ConfirmDialog,
 } from "@views/components";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
+
+type OrganizationStatus =
+  | "organization.status.active"
+  | "organization.status.inactive";
 
 type Props = OrganizationsStackScreenProps<"OrganizationForm">;
 
@@ -38,9 +49,14 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
   const { dialogProps, showAlert } = useConfirmDialog();
 
   const [name, setName] = useState("");
-  const [status, setStatus] = useState<
-    "organization.status.active" | "organization.status.inactive"
-  >("organization.status.active");
+  const [status, setStatus] = useState<OrganizationStatus>(
+    "organization.status.active",
+  );
+  const [activeAt, setActiveAt] = useState<Timestamp>("");
+  const [inactiveAt, setInactiveAt] = useState<Timestamp>("");
+  const [activeDatePicker, setActiveDatePicker] = useState<
+    "activeAt" | "inactiveAt" | null
+  >(null);
   const [logoUri, setLogoUri] = useState<string | undefined>(undefined);
   const [website, setWebsite] = useState("");
   const [socialMedia, setSocialMedia] = useState<SocialMediaLinks>({});
@@ -62,6 +78,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
       if (organization) {
         setName(organization.name);
         setStatus(organization.status);
+        setActiveAt(organization.activeAt ?? "");
+        setInactiveAt(organization.inactiveAt ?? "");
         setLogoUri(organization.logoUri);
         setWebsite(organization.website || "");
         setSocialMedia(organization.socialMedia || {});
@@ -69,6 +87,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         // New organization - reset to defaults
         setName("");
         setStatus("organization.status.active");
+        setActiveAt(new Date().toISOString()); // Auto-fill today for new orgs
+        setInactiveAt("");
         setLogoUri(undefined);
         setWebsite("");
         setSocialMedia({});
@@ -80,10 +100,76 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
     setName(value);
   };
 
-  const handleStatusChange = (
-    value: "organization.status.active" | "organization.status.inactive",
+  const handleStatusChange = useCallback(
+    (value: OrganizationStatus) => {
+      setStatus(value);
+      // Auto-set inactiveAt when becoming inactive
+      if (value === "organization.status.inactive" && !inactiveAt) {
+        setInactiveAt(new Date().toISOString());
+      }
+      // Clear inactiveAt when becoming active
+      if (value === "organization.status.active") {
+        setInactiveAt("");
+      }
+    },
+    [inactiveAt],
+  );
+
+  // Lifecycle date helpers
+  const getLifecycleDate = useCallback(
+    (field: "activeAt" | "inactiveAt") => {
+      const timestamp = field === "activeAt" ? activeAt : inactiveAt;
+      const date = new Date(timestamp || new Date().toISOString());
+      if (Number.isNaN(date.getTime())) {
+        return new Date();
+      }
+      return date;
+    },
+    [activeAt, inactiveAt],
+  );
+
+  const updateLifecycleDate = useCallback(
+    (field: "activeAt" | "inactiveAt", date: Date) => {
+      const timestamp = date.toISOString();
+      if (field === "activeAt") {
+        setActiveAt(timestamp);
+      } else {
+        setInactiveAt(timestamp);
+      }
+    },
+    [],
+  );
+
+  const handleDatePickerChange = (
+    field: "activeAt" | "inactiveAt",
+    event: DateTimePickerEvent,
+    date?: Date,
   ) => {
-    setStatus(value);
+    if (event.type === "dismissed") {
+      setActiveDatePicker(null);
+      return;
+    }
+    if (date) {
+      updateLifecycleDate(field, date);
+    }
+    setActiveDatePicker(null);
+  };
+
+  const openDatePicker = (field: "activeAt" | "inactiveAt") => {
+    if (Platform.OS === "android") {
+      const currentDate = getLifecycleDate(field);
+      DateTimePickerAndroid.open({
+        mode: "date",
+        value: currentDate,
+        onChange: (event, date) => {
+          if (event.type === "set" && date) {
+            updateLifecycleDate(field, date);
+          }
+        },
+      });
+    } else {
+      setActiveDatePicker(field);
+    }
   };
 
   const handlePickImage = async () => {
@@ -183,6 +269,8 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
         organization ?? undefined,
+        activeAt || undefined,
+        inactiveAt || null,
       );
       if (result.success) {
         navigation.goBack();
@@ -230,6 +318,7 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         website.trim() || undefined,
         hasSocialMedia ? socialMediaData : undefined,
         newOrganizationId,
+        activeAt || undefined,
       );
       if (result.success) {
         navigation.goBack();
@@ -315,6 +404,42 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
         />
       </FormField>
 
+      <FormField label={t("organizations.fields.activeAt")}>
+        <TouchableOpacity
+          style={[
+            styles.dateButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          onPress={() => openDatePicker("activeAt")}
+        >
+          <Text style={[styles.dateButtonText, { color: colors.textPrimary }]}>
+            {activeAt
+              ? formatDate(activeAt)
+              : t("organizations.form.selectDate")}
+          </Text>
+        </TouchableOpacity>
+      </FormField>
+
+      {status === "organization.status.inactive" ? (
+        <FormField label={t("organizations.fields.inactiveAt")}>
+          <TouchableOpacity
+            style={[
+              styles.dateButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            onPress={() => openDatePicker("inactiveAt")}
+          >
+            <Text
+              style={[styles.dateButtonText, { color: colors.textPrimary }]}
+            >
+              {inactiveAt
+                ? formatDate(inactiveAt)
+                : t("organizations.form.selectDate")}
+            </Text>
+          </TouchableOpacity>
+        </FormField>
+      ) : null}
+
       <TouchableOpacity
         style={[styles.saveButton, { backgroundColor: colors.accent }]}
         onPress={handleSave}
@@ -325,6 +450,16 @@ export const OrganizationFormScreen = ({ route, navigation }: Props) => {
             : t("organizations.form.createButton")}
         </Text>
       </TouchableOpacity>
+
+      {activeDatePicker && Platform.OS === "ios" ? (
+        <DateTimePicker
+          value={getLifecycleDate(activeDatePicker)}
+          mode="date"
+          onChange={(event, date) =>
+            handleDatePickerChange(activeDatePicker, event, date)
+          }
+        />
+      ) : null}
 
       {dialogProps ? <ConfirmDialog {...dialogProps} /> : null}
     </FormScreenLayout>
@@ -368,5 +503,14 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  dateButton: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  dateButtonText: {
+    fontSize: 16,
   },
 });
