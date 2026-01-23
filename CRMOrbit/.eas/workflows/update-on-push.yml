@@ -6,8 +6,13 @@ on:
       - "master"
 
 jobs:
+  manual_approval:
+    name: Require production approval
+    type: require-approval
+
   publish_update:
+    needs: [manual_approval]
     type: update
     params:
       channel: production
-      message: ${{ github.event.head_commit.message }}
+      message: Production update (${{ github.sha }})
