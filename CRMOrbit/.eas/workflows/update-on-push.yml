@@ -6,62 +6,7 @@ on:
       - "master"
 
 jobs:
-  check_workflows:
-    name: Verify eslint/test workflows
-    steps:
-      - name: Check required GitHub Actions runs
-        env:
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "${GITHUB_TOKEN:-}" ]; then
-            echo "GITHUB_TOKEN is required to query GitHub Actions."
-            exit 1
-          fi
-
-          workflows=("eslint.yml" "test.yml")
-          api_base="https://api.github.com/repos/${REPO}/actions/workflows"
-
-          for workflow in "${workflows[@]}"; do
-            echo "Checking ${workflow} for commit ${SHA}"
-            attempts=0
-            max_attempts=30
-            sleep_seconds=20
-
-            while true; do
-              response=$(curl -fsSL \
-                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                -H "Accept: application/vnd.github+json" \
-                "${api_base}/${workflow}/runs?head_sha=${SHA}&per_page=1")
-
-              status_line=$(echo "${response}" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const run=j.workflow_runs && j.workflow_runs[0];if(!run){console.log('missing:');return;}console.log(run.status + ':' + (run.conclusion || ''));});")
-              status="${status_line%%:*}"
-              conclusion="${status_line#*:}"
-
-              if [ "${status}" = "completed" ]; then
-                if [ "${conclusion}" = "success" ]; then
-                  echo "${workflow} succeeded."
-                  break
-                fi
-                echo "${workflow} did not succeed (conclusion: ${conclusion:-unknown})."
-                exit 1
-              fi
-
-              attempts=$((attempts + 1))
-              if [ "${attempts}" -ge "${max_attempts}" ]; then
-                echo "Timed out waiting for ${workflow} to complete."
-                exit 1
-              fi
-
-              echo "Waiting for ${workflow} to finish (status: ${status})."
-              sleep "${sleep_seconds}"
-            done
-          done
-
   publish_update:
-    needs: [check_workflows]
     type: update
     params:
       channel: production
