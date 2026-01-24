@@ -172,6 +172,20 @@ test("getChangesSinceLastSync returns incremental changes after checkpoint", asy
   assertDocsEqual(docV2, merged);
 });
 
+test("getChangesSinceLastSync falls back to snapshot on diverged histories", async () => {
+  const peerId = "peer-diverged";
+  const docV1 = createDocWithOrganizationForActor("org-1", "Acme", "actor-a");
+  await saveSyncCheckpoint(docV1, peerId);
+
+  const docV2 = createDocWithOrganizationForActor("org-2", "Bravo", "actor-b");
+
+  const changes = await getChangesSinceLastSync(docV2, peerId);
+  const emptyDoc = Automerge.from(initAutomergeDoc());
+  const merged = applyReceivedChanges(emptyDoc, changes);
+
+  assertDocsEqual(docV2, merged);
+});
+
 test("createSyncBundle and parseSyncBundle round-trip changes", async () => {
   const doc = createDocWithOrganization("org-3", "Orbit");
   const emptyDoc = Automerge.from(initAutomergeDoc());

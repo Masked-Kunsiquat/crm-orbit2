@@ -444,13 +444,13 @@ test("code.reducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-code-unknown",
-    type: "code.unknown",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-02-01T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => codeReducer(doc, event), {
-    message: "code.reducer does not handle event type: code.unknown",
+    message: "code.reducer does not handle event type: organization.created",
   });
 });

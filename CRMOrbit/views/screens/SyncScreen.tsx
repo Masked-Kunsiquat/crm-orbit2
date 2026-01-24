@@ -18,7 +18,7 @@ import {
 import QRCode from "qrcode";
 import Svg, { Path, Rect } from "react-native-svg";
 
-import type { DeviceInfo } from "@domains/sync/types";
+import type { DeviceInfo, SyncDirection } from "@domains/sync/types";
 import type { SyncQRCodeBatch } from "@domains/sync/qrCodeSync";
 import { syncOrchestrator } from "@domains/sync/syncOrchestrator";
 import { useSyncStore } from "@domains/sync/syncState";
@@ -106,6 +106,7 @@ export const SyncScreen = () => {
   const [scanBusy, setScanBusy] = useState(false);
   const [scanArmed, setScanArmed] = useState(false);
   const [syncingPeerId, setSyncingPeerId] = useState<string | null>(null);
+  const [directionPeer, setDirectionPeer] = useState<DeviceInfo | null>(null);
 
   const peerList = useMemo(
     () =>
@@ -191,7 +192,10 @@ export const SyncScreen = () => {
     __internal_updateCrmDoc(updatedDoc);
   };
 
-  const handleSyncWithPeer = async (peer: DeviceInfo) => {
+  const handleSyncWithPeer = async (
+    peer: DeviceInfo,
+    direction: SyncDirection = "bidirectional",
+  ) => {
     if (syncingPeerId) return;
     if (!peer.ipAddress) {
       showAlert(
@@ -204,7 +208,9 @@ export const SyncScreen = () => {
 
     setSyncingPeerId(peer.deviceId);
     try {
-      const updatedDoc = await syncOrchestrator.syncWithPeer(peer);
+      const updatedDoc = await syncOrchestrator.syncWithPeer(peer, {
+        direction,
+      });
       updateSyncedDoc(updatedDoc);
     } catch (error) {
       const message =
@@ -213,6 +219,26 @@ export const SyncScreen = () => {
     } finally {
       setSyncingPeerId(null);
     }
+  };
+
+  const handleSelectPeer = (peer: DeviceInfo) => {
+    if (syncingPeerId) return;
+    if (!peer.ipAddress) {
+      showAlert(
+        t("common.error"),
+        t("sync.errors.webrtcUnavailable"),
+        t("common.ok"),
+      );
+      return;
+    }
+    setDirectionPeer(peer);
+  };
+
+  const handleDirectionChoice = (direction: SyncDirection) => {
+    if (!directionPeer) return;
+    const selectedPeer = directionPeer;
+    setDirectionPeer(null);
+    void handleSyncWithPeer(selectedPeer, direction);
   };
 
   const handleGenerateQR = async () => {
@@ -351,7 +377,7 @@ export const SyncScreen = () => {
                 description={t("sync.peers.lastSeen", {
                   time: new Date(peer.lastSeen).toLocaleTimeString(),
                 })}
-                onPress={() => handleSyncWithPeer(peer)}
+                onPress={() => handleSelectPeer(peer)}
                 titleAccessory={
                   syncingPeerId === peer.deviceId ? (
                     <ActivityIndicator size="small" color={colors.accent} />
@@ -444,6 +470,65 @@ export const SyncScreen = () => {
           ) : null}
         </Section>
       </ScrollView>
+
+      <Modal
+        transparent
+        visible={Boolean(directionPeer)}
+        animationType="fade"
+        onRequestClose={() => setDirectionPeer(null)}
+      >
+        <View
+          style={[
+            styles.directionOverlay,
+            { backgroundColor: colors.overlayScrimHeavy },
+          ]}
+        >
+          <View
+            style={[
+              styles.directionCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Text
+              style={[styles.directionTitle, { color: colors.textPrimary }]}
+            >
+              {t("sync.direction.title")}
+            </Text>
+            <Text
+              style={[styles.directionMessage, { color: colors.textSecondary }]}
+            >
+              {t("sync.direction.message", {
+                deviceName: directionPeer?.deviceName ?? t("common.unknown"),
+              })}
+            </Text>
+            <View style={styles.directionActions}>
+              <PrimaryActionButton
+                label={t("sync.direction.send", {
+                  deviceName: directionPeer?.deviceName ?? t("common.unknown"),
+                })}
+                onPress={() => handleDirectionChoice("push")}
+                size="block"
+              />
+              <PrimaryActionButton
+                label={t("sync.direction.receive", {
+                  deviceName: directionPeer?.deviceName ?? t("common.unknown"),
+                })}
+                onPress={() => handleDirectionChoice("pull")}
+                size="block"
+                stacked
+              />
+            </View>
+            <View style={styles.directionCancel}>
+              <ActionButton
+                label={t("common.cancel")}
+                onPress={() => setDirectionPeer(null)}
+                tone="link"
+                size="compact"
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showQRScanner}
@@ -587,6 +672,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 8,
+  },
+  directionOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+  },
+  directionCard: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  directionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  directionMessage: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  directionActions: {
+    gap: 12,
+  },
+  directionCancel: {
+    alignItems: "center",
+    marginTop: 4,
   },
   qrHint: {
     fontSize: 13,

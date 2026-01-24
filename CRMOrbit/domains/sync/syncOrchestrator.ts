@@ -19,7 +19,13 @@ import {
   type SyncQRCodeBatch,
   type SyncQRCodeChunk,
 } from "./qrCodeSync";
-import type { DeviceInfo, SyncMessage, SyncMethod, SyncSession } from "./types";
+import type {
+  DeviceInfo,
+  SyncDirection,
+  SyncMessage,
+  SyncMethod,
+  SyncSession,
+} from "./types";
 
 const logger = createLogger("SyncOrchestrator");
 
@@ -169,6 +175,9 @@ const decodeString = (value: Uint8Array): string => {
   return decodeUtf8Fallback(value);
 };
 
+const resolveSyncDirection = (direction?: SyncDirection): SyncDirection =>
+  direction ?? "bidirectional";
+
 const encodeSyncMessage = (message: SyncMessage): Uint8Array => {
   const wire: WireSyncMessage = {
     ...message,
@@ -200,6 +209,7 @@ class SyncOrchestrator {
   private currentDoc: AutomergeDoc | null = null;
   private pendingQrBundles = new Map<string, Map<number, SyncQRCodeChunk>>();
   private sessionByPeer = new Map<string, string>();
+  private directionByPeer = new Map<string, SyncDirection>();
   private pendingWebRTCResponses = new Map<
     string,
     {
@@ -250,14 +260,18 @@ class SyncOrchestrator {
    */
   async syncWithPeer(
     peer: DeviceInfo,
-    options?: { getWebRTCAnswer?: (offer: string) => Promise<string> },
+    options?: {
+      getWebRTCAnswer?: (offer: string) => Promise<string>;
+      direction?: SyncDirection;
+    },
   ): Promise<AutomergeDoc> {
     if (!this.currentDoc) throw new Error("Document not initialized");
+    const direction = resolveSyncDirection(options?.direction);
 
     try {
       if (peer.ipAddress) {
         logger.info("Attempting local network sync", { peer: peer.deviceId });
-        return await this.syncViaLocalNetwork(peer);
+        return await this.syncViaLocalNetwork(peer, direction);
       }
 
       if (!options?.getWebRTCAnswer) {
@@ -269,7 +283,7 @@ class SyncOrchestrator {
       logger.info("Local network unavailable, using WebRTC", {
         peer: peer.deviceId,
       });
-      return await this.syncViaWebRTC(peer, options.getWebRTCAnswer);
+      return await this.syncViaWebRTC(peer, direction, options.getWebRTCAnswer);
     } catch (error) {
       logger.error("Peer sync failed", { peer: peer.deviceId }, error);
       useSyncStore.getState().setStatus("error");
@@ -328,16 +342,20 @@ class SyncOrchestrator {
     return { status: "applied", doc: updatedDoc };
   }
 
-  private async syncViaLocalNetwork(peer: DeviceInfo): Promise<AutomergeDoc> {
+  private async syncViaLocalNetwork(
+    peer: DeviceInfo,
+    direction: SyncDirection,
+  ): Promise<AutomergeDoc> {
     if (!this.currentDoc) throw new Error("Document not initialized");
 
     const sessionId = this.startSession(peer.deviceId, "local-network");
+    const resolvedDirection = resolveSyncDirection(direction);
     try {
       const localDeviceId = this.getLocalDeviceId();
-      const outgoingChanges = await getChangesSinceLastSync(
-        this.currentDoc,
-        peer.deviceId,
-      );
+      const outgoingChanges =
+        resolvedDirection === "pull"
+          ? new Uint8Array()
+          : await getChangesSinceLastSync(this.currentDoc, peer.deviceId);
       this.updateSession(sessionId, {
         status: "syncing",
         changesSent: outgoingChanges.length,
@@ -348,6 +366,7 @@ class SyncOrchestrator {
         deviceId: localDeviceId,
         timestamp: new Date().toISOString(),
         changes: outgoingChanges,
+        direction: resolvedDirection,
       };
 
       const responsePayload = await localNetworkSync.syncWithPeer(
@@ -360,13 +379,15 @@ class SyncOrchestrator {
         throw new Error("Unexpected sync response type.");
       }
 
-      const updatedDoc = this.applyIncomingChanges(
-        response.changes ?? new Uint8Array(),
-      );
+      const incomingChanges = response.changes ?? new Uint8Array();
+      const shouldApplyIncoming = resolvedDirection !== "push";
+      const updatedDoc = shouldApplyIncoming
+        ? this.applyIncomingChanges(incomingChanges)
+        : this.currentDoc;
       await saveSyncCheckpoint(updatedDoc, peer.deviceId);
 
       this.updateSession(sessionId, {
-        changesReceived: response.changes?.length ?? 0,
+        changesReceived: shouldApplyIncoming ? incomingChanges.length : 0,
       });
 
       this.completeSession(sessionId);
@@ -379,12 +400,15 @@ class SyncOrchestrator {
 
   private async syncViaWebRTC(
     peer: DeviceInfo,
+    direction: SyncDirection,
     getAnswer: (offer: string) => Promise<string>,
   ): Promise<AutomergeDoc> {
     if (!this.currentDoc) throw new Error("Document not initialized");
 
     const sessionId = this.startSession(peer.deviceId, "webrtc");
     this.sessionByPeer.set(peer.deviceId, sessionId);
+    const resolvedDirection = resolveSyncDirection(direction);
+    this.directionByPeer.set(peer.deviceId, resolvedDirection);
     const responsePromise = new Promise<AutomergeDoc>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         this.rejectPendingWebRTCResponse(
@@ -408,16 +432,17 @@ class SyncOrchestrator {
       const answerSDP = await getAnswer(offerSDP);
       await connection.acceptAnswer(answerSDP);
 
-      const changes = await getChangesSinceLastSync(
-        this.currentDoc,
-        peer.deviceId,
-      );
+      const changes =
+        resolvedDirection === "pull"
+          ? new Uint8Array()
+          : await getChangesSinceLastSync(this.currentDoc, peer.deviceId);
       connection.sendData(
         encodeSyncMessage({
           type: "sync-request",
           deviceId: this.getLocalDeviceId(),
           timestamp: new Date().toISOString(),
           changes,
+          direction: resolvedDirection,
         }),
       );
 
@@ -435,6 +460,7 @@ class SyncOrchestrator {
       throw error;
     } finally {
       this.sessionByPeer.delete(peer.deviceId);
+      this.directionByPeer.delete(peer.deviceId);
     }
   }
 
@@ -449,19 +475,25 @@ class SyncOrchestrator {
     }
 
     const peerId = request.deviceId;
+    const direction = resolveSyncDirection(request.direction);
+    const incomingChanges = request.changes ?? new Uint8Array();
+    const shouldApplyIncoming = direction !== "pull";
     const sessionId = this.startSession(peerId, "local-network");
 
     try {
       this.updateSession(sessionId, {
         status: "syncing",
-        changesReceived: request.changes?.length ?? 0,
+        changesReceived: shouldApplyIncoming ? incomingChanges.length : 0,
       });
 
-      const updatedDoc = this.applyIncomingChanges(
-        request.changes ?? new Uint8Array(),
-      );
+      const updatedDoc = shouldApplyIncoming
+        ? this.applyIncomingChanges(incomingChanges)
+        : this.currentDoc;
 
-      const outgoingChanges = await getChangesSinceLastSync(updatedDoc, peerId);
+      const outgoingChanges =
+        direction === "push"
+          ? new Uint8Array()
+          : await getChangesSinceLastSync(updatedDoc, peerId);
       await saveSyncCheckpoint(updatedDoc, peerId);
 
       this.updateSession(sessionId, {
@@ -475,6 +507,7 @@ class SyncOrchestrator {
         deviceId: this.getLocalDeviceId(),
         timestamp: new Date().toISOString(),
         changes: outgoingChanges,
+        direction,
       };
       return encodeSyncMessage(response);
     } catch (error) {
@@ -494,30 +527,43 @@ class SyncOrchestrator {
 
     try {
       const message = decodeSyncMessage(payload);
+      const direction = resolveSyncDirection(message.direction);
+      const sessionDirection = resolveSyncDirection(
+        this.directionByPeer.get(peerId),
+      );
+      const incomingChanges = message.changes ?? new Uint8Array();
+      const shouldApplyIncoming =
+        message.type === "sync-response"
+          ? sessionDirection !== "push"
+          : direction !== "pull";
 
       let updatedDoc = this.currentDoc;
-      if (message.changes) {
-        updatedDoc = this.applyIncomingChanges(message.changes);
-        await saveSyncCheckpoint(updatedDoc, peerId);
+      if (incomingChanges.length > 0 && shouldApplyIncoming) {
+        updatedDoc = this.applyIncomingChanges(incomingChanges);
         const sessionId = this.sessionByPeer.get(peerId);
         if (sessionId) {
           this.updateSession(sessionId, {
-            changesReceived: message.changes.length,
+            changesReceived: incomingChanges.length,
           });
         }
       }
 
+      if (message.type === "sync-request" || message.type === "sync-response") {
+        await saveSyncCheckpoint(updatedDoc, peerId);
+      }
+
       if (message.type === "sync-request") {
-        const outgoingChanges = await getChangesSinceLastSync(
-          updatedDoc,
-          peerId,
-        );
+        const outgoingChanges =
+          direction === "push"
+            ? new Uint8Array()
+            : await getChangesSinceLastSync(updatedDoc, peerId);
         connection.sendData(
           encodeSyncMessage({
             type: "sync-response",
             deviceId: this.getLocalDeviceId(),
             timestamp: new Date().toISOString(),
             changes: outgoingChanges,
+            direction,
           }),
         );
 

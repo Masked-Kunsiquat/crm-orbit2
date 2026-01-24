@@ -777,14 +777,15 @@ test("entityLinkReducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-link-23",
-    type: "unknown.linked",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-05-03T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => entityLinkReducer(doc, event), {
-    message: "entityLink.reducer does not handle event type: unknown.linked",
+    message:
+      "entityLink.reducer does not handle event type: organization.created",
   });
 });
 

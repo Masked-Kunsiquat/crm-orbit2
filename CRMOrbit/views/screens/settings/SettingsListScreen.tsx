@@ -13,6 +13,9 @@ import { ChangelogModal, ConfirmDialog, ListCard } from "../../components";
 import {
   getAppVersion,
   useAppUpdates,
+  useConfirmDialog,
+  useDataWipe,
+  useDeviceId,
   useSettingsListLabels,
   useTheme,
 } from "../../hooks";
@@ -26,7 +29,14 @@ export const SettingsListScreen = ({ navigation }: Props) => {
   const labels = useSettingsListLabels();
   const versionLabels = useVersionLabels();
   const appVersion = getAppVersion();
+  const deviceId = useDeviceId();
   const [changelogVisible, setChangelogVisible] = useState(false);
+  const {
+    dialogProps: wipeDialogProps,
+    showAlert,
+    showDialog,
+  } = useConfirmDialog();
+  const { isWiping, requestWipe } = useDataWipe(deviceId);
   const {
     status: updateStatus,
     isUpdateReady,
@@ -63,6 +73,43 @@ export const SettingsListScreen = ({ navigation }: Props) => {
 
   const handleSyncPress = () => {
     navigation.navigate("Sync");
+  };
+
+  const handleWipePress = () => {
+    if (isWiping) return;
+    showDialog({
+      title: t("settings.wipe.confirmTitle"),
+      message: t("settings.wipe.confirmMessage"),
+      confirmLabel: t("settings.wipe.confirmAction"),
+      cancelLabel: t("common.cancel"),
+      confirmVariant: "danger",
+      onConfirm: () => {
+        void (async () => {
+          try {
+            const outcome = await requestWipe();
+            if (outcome.ok) {
+              showAlert(
+                t("settings.wipe.successTitle"),
+                t("settings.wipe.successMessage"),
+                t("common.ok"),
+              );
+            } else {
+              showAlert(
+                t("common.error"),
+                outcome.error.message || t("settings.wipe.errorMessage"),
+                t("common.ok"),
+              );
+            }
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : t("settings.wipe.errorMessage");
+            showAlert(t("common.error"), message, t("common.ok"));
+          }
+        })();
+      },
+    });
   };
 
   return (
@@ -105,6 +152,30 @@ export const SettingsListScreen = ({ navigation }: Props) => {
             </Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               {labels.backupDescription}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
+      <ListCard onPress={isWiping ? undefined : handleWipePress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            {isWiping ? (
+              <ActivityIndicator color={colors.error} size={32} />
+            ) : (
+              <MaterialCommunityIcons
+                name="trash-can-outline"
+                size={32}
+                color={colors.error}
+              />
+            )}
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {labels.wipeTitle}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {labels.wipeDescription}
             </Text>
           </View>
         </View>
@@ -221,6 +292,8 @@ export const SettingsListScreen = ({ navigation }: Props) => {
         }}
         onCancel={dismissUpdatePrompt}
       />
+
+      {wipeDialogProps ? <ConfirmDialog {...wipeDialogProps} /> : null}
     </ScrollView>
   );
 };

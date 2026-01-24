@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 
 import { initAutomergeDoc } from "@automerge/init";
 import type { AutomergeDoc } from "@automerge/schema";
+import type { SyncDirection } from "@domains/sync/types";
+import { fromByteArray } from "base64-js";
 import type { SyncQRCodeChunk } from "@domains/sync/qrCodeSync";
 
 const mockLocalNetworkSync = {
@@ -76,6 +78,31 @@ const encodeJson = (message: Record<string, unknown>): Uint8Array => {
   return Uint8Array.from(Array.from(payload).map((char) => char.charCodeAt(0)));
 };
 
+const decodeJsonPayload = (payload: Uint8Array): Record<string, unknown> => {
+  const Decoder = globalThis.TextDecoder;
+  if (Decoder) {
+    return JSON.parse(new Decoder().decode(payload)) as Record<string, unknown>;
+  }
+  const nodeBuffer = (
+    globalThis as {
+      Buffer?: {
+        from: (input: Uint8Array) => { toString: (encoding: string) => string };
+      };
+    }
+  ).Buffer;
+  if (nodeBuffer) {
+    return JSON.parse(nodeBuffer.from(payload).toString("utf8")) as Record<
+      string,
+      unknown
+    >;
+  }
+  return JSON.parse(
+    Array.from(payload)
+      .map((byte) => String.fromCharCode(byte))
+      .join(""),
+  ) as Record<string, unknown>;
+};
+
 beforeEach(() => {
   mockLocalNetworkSync.startAdvertising.mockReset();
   mockLocalNetworkSync.startScanning.mockReset();
@@ -115,7 +142,10 @@ const loadOrchestrator = () => {
             ipAddress?: string;
             port?: number;
           },
-          options?: { getWebRTCAnswer?: (offer: string) => Promise<string> },
+          options?: {
+            getWebRTCAnswer?: (offer: string) => Promise<string>;
+            direction?: SyncDirection;
+          },
         ) => Promise<AutomergeDoc>;
         applyManualSyncQR: (
           qrData: string,
@@ -189,6 +219,59 @@ test("syncWithPeer uses local network when peer has IP", async () => {
   assert.equal(result, updatedDoc);
   assert.equal(mockLocalNetworkSync.syncWithPeer.mock.calls.length, 1);
   assert.equal(mockSaveSyncCheckpoint.mock.calls.length, 1);
+});
+
+test("syncWithPeer pull direction skips outgoing changes", async () => {
+  const syncOrchestrator = await loadOrchestrator();
+  const peer = {
+    deviceId: "peer-pull",
+    deviceName: "Peer",
+    lastSeen: "2025-04-01T00:00:00.000Z",
+    ipAddress: "192.168.1.11",
+    port: 8765,
+  };
+
+  mockLocalNetworkSync.syncWithPeer.mockResolvedValue(
+    encodeJson({
+      type: "sync-response",
+      deviceId: peer.deviceId,
+      timestamp: "2025-04-01T00:00:00.000Z",
+    }),
+  );
+
+  await syncOrchestrator.syncWithPeer(peer, { direction: "pull" });
+
+  assert.equal(mockGetChangesSinceLastSync.mock.calls.length, 0);
+  const payload = mockLocalNetworkSync.syncWithPeer.mock.calls[0]?.[1];
+  assert.ok(payload);
+  const request = decodeJsonPayload(payload as Uint8Array);
+  assert.equal(request.direction, "pull");
+  assert.equal(request.changes, "");
+});
+
+test("syncWithPeer push direction ignores response changes", async () => {
+  const syncOrchestrator = await loadOrchestrator();
+  const peer = {
+    deviceId: "peer-push",
+    deviceName: "Peer",
+    lastSeen: "2025-04-01T00:00:00.000Z",
+    ipAddress: "192.168.1.12",
+    port: 8765,
+  };
+
+  mockGetChangesSinceLastSync.mockResolvedValue(new Uint8Array([1]));
+  mockLocalNetworkSync.syncWithPeer.mockResolvedValue(
+    encodeJson({
+      type: "sync-response",
+      deviceId: peer.deviceId,
+      timestamp: "2025-04-01T00:00:00.000Z",
+      changes: fromByteArray(new Uint8Array([9, 9])),
+    }),
+  );
+
+  await syncOrchestrator.syncWithPeer(peer, { direction: "push" });
+
+  assert.equal(mockApplyReceivedChanges.mock.calls.length, 0);
 });
 
 test("syncWithPeer requires WebRTC answer when no IP", async () => {

@@ -6,12 +6,53 @@ on:
       - "master"
 
 jobs:
+  fingerprint:
+    type: fingerprint
+    environment: production
+
+  get_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: android
+      profile: production
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+      wait_for_in_progress: true
+
+  plan_release:
+    needs: [get_build]
+    outputs:
+      should_build: ${{ steps.decide.outputs.should_build }}
+      should_update: ${{ steps.decide.outputs.should_update }}
+    steps:
+      - id: decide
+        env:
+          BUILD_ID: ${{ needs.get_build.outputs.build_id }}
+        run: |
+          if [ -n "${BUILD_ID}" ] && [ "${BUILD_ID}" != "null" ]; then
+            set-output should_build false
+            set-output should_update true
+          else
+            set-output should_build true
+            set-output should_update false
+          fi
+
+  build_android:
+    needs: [plan_release]
+    if: ${{ needs.plan_release.outputs.should_build == 'true' }}
+    type: build
+    params:
+      platform: android
+      profile: production
+      message: Production build (${{ github.sha }})
+
   publish_update:
+    needs: [plan_release]
+    if: ${{ needs.plan_release.outputs.should_update == 'true' }}
     steps:
       - uses: eas/checkout
       - name: Fetch git history for changelog
-        run: |
-          git fetch --prune --unshallow || git fetch --prune --depth=100
+        run: git fetch --prune --depth=50 || true
       - uses: eas/install_node_modules
       - name: Generate changelog
         run: node scripts/generate-changelog.js

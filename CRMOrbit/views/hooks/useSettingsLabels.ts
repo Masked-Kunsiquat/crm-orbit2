@@ -6,6 +6,8 @@ export const useSettingsListLabels = () => ({
   appearanceDescription: t("settings.appearance.description"),
   backupTitle: t("settings.backup.title"),
   backupDescription: t("settings.backup.description"),
+  wipeTitle: t("settings.wipe.title"),
+  wipeDescription: t("settings.wipe.description"),
   calendarTitle: t("settings.calendar.title"),
   calendarDescription: t("settings.calendar.description"),
   securityTitle: t("settings.security.title"),

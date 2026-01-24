@@ -646,7 +646,7 @@ test("accountContactReducer rejects unhandled event types", () => {
   const doc = baseDoc();
   const event: Event = {
     id: "evt-unknown-1",
-    type: "account.contact.unknown",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-01-06T00:00:00.000Z",
     deviceId: "device-1",
@@ -654,6 +654,6 @@ test("accountContactReducer rejects unhandled event types", () => {
 
   assert.throws(() => accountContactReducer(doc, event), {
     message:
-      "accountContact.reducer does not handle event type: account.contact.unknown",
+      "accountContact.reducer does not handle event type: organization.created",
   });
 });

@@ -471,6 +471,15 @@ const encodeSnapshot = (snapshot: Uint8Array | string): string => {
   return fromByteArray(bytes);
 };
 
+const buildSnapshotPayload = (doc: Doc<AutomergeDoc>): Uint8Array => {
+  const snapshotPayload = JSON.stringify({
+    format: SNAPSHOT_FORMAT,
+    snapshot: Automerge.save(doc),
+    encoding: "transit",
+  });
+  return getTextEncoder().encode(snapshotPayload);
+};
+
 const isBase64String = (value: string): boolean => {
   if (!value || value.length % 4 !== 0) {
     return false;
@@ -520,26 +529,30 @@ export const getChangesSinceLastSync = async (
 
     const current = ensureAutomergeDoc(currentDoc);
     if (!lastSyncSnapshot) {
-      const snapshotPayload = JSON.stringify({
-        format: SNAPSHOT_FORMAT,
-        snapshot: Automerge.save(current),
-        encoding: "transit",
-      });
       logger.info("First sync with peer, sending snapshot payload", { peerId });
-      return getTextEncoder().encode(snapshotPayload);
+      return buildSnapshotPayload(current);
     }
 
-    const changes = Automerge.getChanges(
-      loadSnapshot(lastSyncSnapshot),
-      current,
-    );
+    try {
+      const changes = Automerge.getChanges(
+        loadSnapshot(lastSyncSnapshot),
+        current,
+      );
 
-    logger.info("Generated changes for sync", {
-      peerId,
-      changeCount: changes.length,
-    });
+      logger.info("Generated changes for sync", {
+        peerId,
+        changeCount: changes.length,
+      });
 
-    return encodeChanges(changes);
+      return encodeChanges(changes);
+    } catch (error) {
+      logger.warn(
+        "Failed to diff against last sync snapshot; sending full snapshot",
+        { peerId },
+        error,
+      );
+      return buildSnapshotPayload(current);
+    }
   } catch (error) {
     logger.error("Failed to get changes for sync", { peerId }, error);
     throw error;

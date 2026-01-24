@@ -1,6 +1,10 @@
 import type { Event } from "../../events/event";
 import type { Timestamp } from "../shared/types";
-import { automergeSnapshots, eventLog } from "./schema";
+import {
+  automergeSnapshots,
+  calendarEventExternalLinks,
+  eventLog,
+} from "./schema";
 
 export type SnapshotRecord = {
   id: string;
@@ -71,6 +75,7 @@ export const appendEvents = async (
 
 export const clearPersistence = async (db: PersistenceDb): Promise<void> => {
   await db.delete(eventLog).run();
+  await db.delete(calendarEventExternalLinks).run();
   await db.delete(automergeSnapshots).run();
 };
 
