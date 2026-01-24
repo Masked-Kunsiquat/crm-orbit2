@@ -5,10 +5,13 @@ import {
   useBackupOperationsState,
 } from "@domains/persistence/backupOperations";
 
-export const useDataWipe = () => {
+export const useDataWipe = (deviceId: string) => {
   const { isWiping, lastError } = useBackupOperationsState();
 
-  const requestWipe = useCallback(async () => requestDataWipe(), []);
+  const requestWipe = useCallback(
+    async () => requestDataWipe(deviceId),
+    [deviceId],
+  );
 
   return { isWiping, lastError, requestWipe };
 };

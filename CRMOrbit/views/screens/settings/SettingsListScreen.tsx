@@ -15,6 +15,7 @@ import {
   useAppUpdates,
   useConfirmDialog,
   useDataWipe,
+  useDeviceId,
   useSettingsListLabels,
   useTheme,
 } from "../../hooks";
@@ -28,13 +29,14 @@ export const SettingsListScreen = ({ navigation }: Props) => {
   const labels = useSettingsListLabels();
   const versionLabels = useVersionLabels();
   const appVersion = getAppVersion();
+  const deviceId = useDeviceId();
   const [changelogVisible, setChangelogVisible] = useState(false);
   const {
     dialogProps: wipeDialogProps,
     showAlert,
     showDialog,
   } = useConfirmDialog();
-  const { isWiping, requestWipe } = useDataWipe();
+  const { isWiping, requestWipe } = useDataWipe(deviceId);
   const {
     status: updateStatus,
     isUpdateReady,
@@ -83,19 +85,27 @@ export const SettingsListScreen = ({ navigation }: Props) => {
       confirmVariant: "danger",
       onConfirm: () => {
         void (async () => {
-          const outcome = await requestWipe();
-          if (outcome.ok) {
-            showAlert(
-              t("settings.wipe.successTitle"),
-              t("settings.wipe.successMessage"),
-              t("common.ok"),
-            );
-          } else {
-            showAlert(
-              t("common.error"),
-              outcome.error.message || t("settings.wipe.errorMessage"),
-              t("common.ok"),
-            );
+          try {
+            const outcome = await requestWipe();
+            if (outcome.ok) {
+              showAlert(
+                t("settings.wipe.successTitle"),
+                t("settings.wipe.successMessage"),
+                t("common.ok"),
+              );
+            } else {
+              showAlert(
+                t("common.error"),
+                outcome.error.message || t("settings.wipe.errorMessage"),
+                t("common.ok"),
+              );
+            }
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : t("settings.wipe.errorMessage");
+            showAlert(t("common.error"), message, t("common.ok"));
           }
         })();
       },

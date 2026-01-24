@@ -159,13 +159,72 @@ export const requestBackupImport = async (
   }
 };
 
-export const requestDataWipe = async (): Promise<DataWipeOutcome> => {
+export const requestDataWipe = async (
+  deviceId: string,
+): Promise<DataWipeOutcome> => {
   clearErrors();
   setWiping(true);
   try {
-    const db = createPersistenceDb(getDatabase());
-    await clearPersistence(db);
-    await AsyncStorage.clear();
+    let persistenceError: Error | null = null;
+    let storageError: Error | null = null;
+    let db = null as ReturnType<typeof createPersistenceDb> | null;
+
+    try {
+      db = createPersistenceDb(getDatabase());
+    } catch (error) {
+      persistenceError =
+        error instanceof Error ? error : new Error(String(error));
+    }
+
+    if (db) {
+      try {
+        await clearPersistence(db);
+      } catch (error) {
+        persistenceError =
+          error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
+    try {
+      await AsyncStorage.clear();
+    } catch (error) {
+      storageError = error instanceof Error ? error : new Error(String(error));
+    }
+
+    if (persistenceError || storageError) {
+      if (persistenceError && !storageError) {
+        logger.warn("Data wipe partially failed (AsyncStorage cleared)", {
+          deviceId,
+          error: persistenceError.message,
+        });
+      } else if (!persistenceError && storageError) {
+        logger.warn("Data wipe partially failed (persistence cleared)", {
+          deviceId,
+          error: storageError.message,
+        });
+      } else {
+        logger.error("Data wipe failed (persistence + AsyncStorage)", {
+          deviceId,
+          persistenceError: persistenceError?.message,
+          storageError: storageError?.message,
+        });
+      }
+
+      const messageParts = [
+        persistenceError
+          ? `persistence: ${persistenceError.message}`
+          : "persistence cleared",
+        storageError
+          ? `async storage: ${storageError.message}`
+          : "async storage cleared",
+      ];
+      const compoundError = new Error(
+        `Data wipe incomplete (${messageParts.join("; ")}).`,
+      );
+      setWipeError(compoundError);
+      return { ok: false, error: compoundError };
+    }
+
     applyRestoreState({ doc: initAutomergeDoc(), events: [] });
     return { ok: true };
   } catch (error) {
