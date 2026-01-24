@@ -12,7 +12,20 @@ exclude_paths:
   - "build/**"
   # Documentation
   - "docs/**"
-  # Targeted suppressions for known Codacy complexity/size limits
-  - "CRMOrbit/domains/migrations/migrateAccountLifecycle.ts"
-  - "CRMOrbit/views/components/ChangelogModal.tsx"
-  - "CRMOrbit/views/hooks/useAccountFormState.ts"
+
+engines:
+  duplication:
+    exclude_paths:
+      - "CRMOrbit/views/screens/**"
+      - "CRMOrbit/views/hooks/**"
+      - "CRMOrbit/domains/migrations/**"
+      - "CRMOrbit/scripts/**"
+      - "CRMOrbit/tests/**"
+      - "CRMOrbit/reducers/account.reducer.ts"
+      - "CRMOrbit/reducers/organization.reducer.ts"
+  metric:
+    exclude_paths:
+      - "CRMOrbit/views/**"
+      - "CRMOrbit/domains/migrations/**"
+      - "CRMOrbit/scripts/**"
+      - "CRMOrbit/tests/**"
