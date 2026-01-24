@@ -380,14 +380,14 @@ test("contactReducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-contact-15",
-    type: "contact.unknown",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-03-05T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => contactReducer(doc, event), {
-    message: "contact.reducer does not handle event type: contact.unknown",
+    message: "contact.reducer does not handle event type: organization.created",
   });
 });
 

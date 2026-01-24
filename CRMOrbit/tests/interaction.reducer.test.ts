@@ -672,12 +672,14 @@ test("interaction.deleted removes associated entity links", () => {
         "link-1": {
           linkType: "interaction" as const,
           interactionId: "interaction-1",
-          accountId: "account-1",
+          entityType: "account" as const,
+          entityId: "account-1",
         },
         "link-2": {
           linkType: "note" as const,
           noteId: "note-1",
-          accountId: "account-1",
+          entityType: "account" as const,
+          entityId: "account-1",
         },
       },
     },
@@ -703,14 +705,13 @@ test("interactionReducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-interaction-1",
-    type: "interaction.unknown",
+    type: "note.created",
     payload: {},
     timestamp: "2024-06-01T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => interactionReducer(doc, event), {
-    message:
-      "interaction.reducer does not handle event type: interaction.unknown",
+    message: "interaction.reducer does not handle event type: note.created",
   });
 });

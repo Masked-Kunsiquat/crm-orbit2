@@ -280,13 +280,13 @@ test("settingsReducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-settings-17",
-    type: "settings.unknown",
+    type: "account.created",
     payload: {},
     timestamp: "2024-03-17T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => settingsReducer(doc, event), {
-    message: "settings.reducer does not handle event type: settings.unknown",
+    message: "settings.reducer does not handle event type: account.created",
   });
 });

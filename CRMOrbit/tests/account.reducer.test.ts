@@ -934,13 +934,13 @@ test("accountReducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-1",
-    type: "account.unknown",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-01-02T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => accountReducer(doc, event), {
-    message: "account.reducer does not handle event type: account.unknown",
+    message: "account.reducer does not handle event type: organization.created",
   });
 });

@@ -960,13 +960,13 @@ test("auditReducer rejects unhandled event types", () => {
   const doc = createDocWithAccount();
   const event: Event = {
     id: "evt-audit-1",
-    type: "audit.unknown",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-03-01T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => auditReducer(doc, event), {
-    message: "audit.reducer does not handle event type: audit.unknown",
+    message: "audit.reducer does not handle event type: organization.created",
   });
 });

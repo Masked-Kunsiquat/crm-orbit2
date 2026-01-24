@@ -416,13 +416,13 @@ test("note.reducer rejects unhandled event types", () => {
   const doc = initAutomergeDoc();
   const event: Event = {
     id: "evt-note-unknown",
-    type: "note.unknown",
+    type: "organization.created",
     payload: {},
     timestamp: "2024-04-01T00:00:00.000Z",
     deviceId: "device-1",
   };
 
   assert.throws(() => noteReducer(doc, event), {
-    message: "note.reducer does not handle event type: note.unknown",
+    message: "note.reducer does not handle event type: organization.created",
   });
 });
