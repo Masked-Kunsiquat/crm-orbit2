@@ -377,3 +377,596 @@ test("audit.duration.updated updates duration minutes", () => {
 
   assert.equal(updatedDoc.audits["audit-1"].durationMinutes, 120);
 });
+
+test("audit.created rejects missing scheduledFor", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit scheduledFor is required.",
+  });
+});
+
+test("audit.created rejects duplicate audit id", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = auditReducer(doc, event);
+
+  assert.throws(() => auditReducer(next, event), {
+    message: "Audit already exists: audit-1",
+  });
+});
+
+test("audit.created rejects non-integer floor values", () => {
+  const doc = createDocWithAccount({
+    minFloor: 1,
+    maxFloor: 5,
+  });
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+      floorsVisited: [1.5],
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit floors visited must be integers.",
+  });
+});
+
+test("audit.created rejects duplicate floors visited", () => {
+  const doc = createDocWithAccount({
+    minFloor: 1,
+    maxFloor: 5,
+  });
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+      floorsVisited: [1, 2, 1],
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit floors visited must be unique.",
+  });
+});
+
+test("audit.created rejects floors when account has no floor range", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+      floorsVisited: [1, 2],
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Account floor range is not configured for audits.",
+  });
+});
+
+test("audit.rescheduled updates scheduledFor", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const rescheduled: Event = {
+    id: "evt-audit-2",
+    type: "audit.rescheduled",
+    payload: {
+      id: "audit-1",
+      scheduledFor: "2024-03-15T14:00:00.000Z",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const rescheduledDoc = auditReducer(createdDoc, rescheduled);
+
+  assert.equal(
+    rescheduledDoc.audits["audit-1"].scheduledFor,
+    "2024-03-15T14:00:00.000Z",
+  );
+});
+
+test("audit.rescheduled rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.rescheduled",
+    payload: {
+      id: "audit-missing",
+      scheduledFor: "2024-03-15T14:00:00.000Z",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.rescheduled rejects missing scheduledFor", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const rescheduled: Event = {
+    id: "evt-audit-2",
+    type: "audit.rescheduled",
+    payload: {
+      id: "audit-1",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+
+  assert.throws(() => auditReducer(createdDoc, rescheduled), {
+    message: "Audit scheduledFor is required.",
+  });
+});
+
+test("audit.rescheduled rejects completed audits", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const completed: Event = {
+    id: "evt-audit-2",
+    type: "audit.completed",
+    payload: {
+      id: "audit-1",
+      occurredAt: "2024-03-01T13:00:00.000Z",
+    },
+    timestamp: "2024-03-01T13:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const rescheduled: Event = {
+    id: "evt-audit-3",
+    type: "audit.rescheduled",
+    payload: {
+      id: "audit-1",
+      scheduledFor: "2024-03-15T14:00:00.000Z",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const completedDoc = auditReducer(createdDoc, completed);
+
+  assert.throws(() => auditReducer(completedDoc, rescheduled), {
+    message: "Completed audits cannot be rescheduled.",
+  });
+});
+
+test("audit.rescheduled clears occurredAt for canceled audits", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const canceled: Event = {
+    id: "evt-audit-2",
+    type: "audit.canceled",
+    payload: {
+      id: "audit-1",
+    },
+    timestamp: "2024-03-01T10:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const rescheduled: Event = {
+    id: "evt-audit-3",
+    type: "audit.rescheduled",
+    payload: {
+      id: "audit-1",
+      scheduledFor: "2024-03-15T14:00:00.000Z",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const canceledDoc = auditReducer(createdDoc, canceled);
+  const rescheduledDoc = auditReducer(canceledDoc, rescheduled);
+  const audit = rescheduledDoc.audits["audit-1"];
+
+  assert.equal(audit.status, "audits.status.scheduled");
+  assert.equal(audit.occurredAt, undefined);
+});
+
+test("audit.completed rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.completed",
+    payload: {
+      id: "audit-missing",
+      occurredAt: "2024-03-01T13:00:00.000Z",
+    },
+    timestamp: "2024-03-01T13:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.completed rejects missing occurredAt", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const completed: Event = {
+    id: "evt-audit-2",
+    type: "audit.completed",
+    payload: {
+      id: "audit-1",
+    },
+    timestamp: "2024-03-01T13:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+
+  assert.throws(() => auditReducer(createdDoc, completed), {
+    message: "Audit occurredAt is required.",
+  });
+});
+
+test("audit.notes.updated updates notes", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+      notes: "Initial notes",
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-audit-2",
+    type: "audit.notes.updated",
+    payload: {
+      id: "audit-1",
+      notes: "Updated notes",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const updatedDoc = auditReducer(createdDoc, updated);
+
+  assert.equal(updatedDoc.audits["audit-1"].notes, "Updated notes");
+});
+
+test("audit.notes.updated rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.notes.updated",
+    payload: {
+      id: "audit-missing",
+      notes: "Some notes",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.floorsVisited.updated updates floors visited", () => {
+  const doc = createDocWithAccount({
+    minFloor: 1,
+    maxFloor: 5,
+  });
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+      floorsVisited: [1, 2],
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-audit-2",
+    type: "audit.floorsVisited.updated",
+    payload: {
+      id: "audit-1",
+      floorsVisited: [3, 4, 5],
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const updatedDoc = auditReducer(createdDoc, updated);
+
+  assert.deepEqual(updatedDoc.audits["audit-1"].floorsVisited, [3, 4, 5]);
+});
+
+test("audit.floorsVisited.updated rejects missing audit", () => {
+  const doc = createDocWithAccount({
+    minFloor: 1,
+    maxFloor: 5,
+  });
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.floorsVisited.updated",
+    payload: {
+      id: "audit-missing",
+      floorsVisited: [1, 2],
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.account.reassigned rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.account.reassigned",
+    payload: {
+      id: "audit-missing",
+      accountId: "acct-1",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.canceled rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.canceled",
+    payload: {
+      id: "audit-missing",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.canceled rejects completed audits", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const completed: Event = {
+    id: "evt-audit-2",
+    type: "audit.completed",
+    payload: {
+      id: "audit-1",
+      occurredAt: "2024-03-01T13:00:00.000Z",
+    },
+    timestamp: "2024-03-01T13:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const canceled: Event = {
+    id: "evt-audit-3",
+    type: "audit.canceled",
+    payload: {
+      id: "audit-1",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+  const completedDoc = auditReducer(createdDoc, completed);
+
+  assert.throws(() => auditReducer(completedDoc, canceled), {
+    message: "Completed audits cannot be canceled.",
+  });
+});
+
+test("audit.duration.updated rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.duration.updated",
+    payload: {
+      id: "audit-missing",
+      durationMinutes: 120,
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("audit.duration.updated rejects non-positive duration", () => {
+  const doc = createDocWithAccount();
+  const created: Event = {
+    id: "evt-audit-1",
+    type: "audit.created",
+    payload: {
+      id: "audit-1",
+      accountId: "acct-1",
+      scheduledFor: "2024-03-01T12:00:00.000Z",
+      durationMinutes: 60,
+    },
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-audit-2",
+    type: "audit.duration.updated",
+    payload: {
+      id: "audit-1",
+      durationMinutes: 0,
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = auditReducer(doc, created);
+
+  assert.throws(() => auditReducer(createdDoc, updated), {
+    message: "Audit durationMinutes must be a positive integer.",
+  });
+});
+
+test("audit.deleted rejects missing audit", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.deleted",
+    payload: {
+      id: "audit-missing",
+    },
+    timestamp: "2024-03-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "Audit not found: audit-missing",
+  });
+});
+
+test("auditReducer rejects unhandled event types", () => {
+  const doc = createDocWithAccount();
+  const event: Event = {
+    id: "evt-audit-1",
+    type: "audit.unknown",
+    payload: {},
+    timestamp: "2024-03-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => auditReducer(doc, event), {
+    message: "audit.reducer does not handle event type: audit.unknown",
+  });
+});
