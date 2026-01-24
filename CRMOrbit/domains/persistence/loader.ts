@@ -24,7 +24,10 @@ import type { PersistenceDb, EventLogRecord } from "./store";
 import { loadLatestSnapshot } from "./store";
 import { eventLog } from "./schema";
 import { createLogger, silenceLogs, unsilenceLogs } from "@utils/logger";
-import { runCalendarEventMigration } from "@domains/migrations/runMigration";
+import {
+  runAccountLifecycleMigration,
+  runCalendarEventMigration,
+} from "@domains/migrations/runMigration";
 
 const logger = createLogger("PersistenceLoader");
 
@@ -347,6 +350,26 @@ export const loadPersistedState = async (
     }
   } catch (error) {
     logger.error("Calendar event migration failed:", error);
+    // Don't throw - allow app to continue even if migration fails
+    // The migration will be retried on next load
+  }
+
+  // Run account lifecycle migration if needed
+  try {
+    const { doc: migratedDoc, report } = await runAccountLifecycleMigration(
+      doc,
+      db,
+      "migration-system",
+    );
+    doc = migratedDoc;
+    if (report.events.length > 0) {
+      logger.info(
+        `Account lifecycle migration persisted ${report.events.length} events to database`,
+      );
+      events = sortEvents([...events, ...report.events]);
+    }
+  } catch (error) {
+    logger.error("Account lifecycle migration failed:", error);
     // Don't throw - allow app to continue even if migration fails
     // The migration will be retried on next load
   }

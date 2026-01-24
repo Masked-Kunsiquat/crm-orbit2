@@ -50,6 +50,7 @@ import {
 import { t } from "@i18n/index";
 import { useConfirmDialog } from "@views/hooks/useConfirmDialog";
 import { openWebUrl } from "@domains/linking.utils";
+import { formatDate } from "@domains/shared/dateFormatting";
 
 type Props = OrganizationsStackScreenProps<"OrganizationDetail">;
 type OrganizationTab = "overview" | "details" | "notes" | "activity";
@@ -247,6 +248,29 @@ export const OrganizationDetailScreen = ({ route, navigation }: Props) => {
 
       {activeTab === "details" ? (
         <>
+          <Section>
+            {organization.activeAt ? (
+              <DetailField label={t("organizations.fields.activeAt")}>
+                <Text
+                  style={[styles.detailValue, { color: colors.textPrimary }]}
+                >
+                  {formatDate(organization.activeAt)}
+                </Text>
+              </DetailField>
+            ) : null}
+
+            {organization.status === "organization.status.inactive" &&
+            organization.inactiveAt ? (
+              <DetailField label={t("organizations.fields.inactiveAt")}>
+                <Text
+                  style={[styles.detailValue, { color: colors.textPrimary }]}
+                >
+                  {formatDate(organization.inactiveAt)}
+                </Text>
+              </DetailField>
+            ) : null}
+          </Section>
+
           {organization.website ? (
             <Section>
               <DetailField label={t("organizations.fields.website")}>
@@ -518,6 +542,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textTransform: "uppercase",
     fontWeight: "600",
+  },
+  detailValue: {
+    fontSize: 16,
   },
   logoContainer: {
     alignItems: "center",

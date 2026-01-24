@@ -5,7 +5,7 @@ import type {
   SocialMediaLinks,
 } from "../domains/organization";
 import type { Event } from "../events/event";
-import type { EntityId } from "../domains/shared/types";
+import type { EntityId, Timestamp } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
 import { createLogger } from "../utils/logger";
 
@@ -15,6 +15,7 @@ type OrganizationCreatedPayload = {
   id: EntityId;
   name: string;
   status: OrganizationStatus;
+  activeAt?: Timestamp;
   logoUri?: string;
   website?: string;
   socialMedia?: SocialMediaLinks;
@@ -24,12 +25,16 @@ type OrganizationCreatedPayload = {
 type OrganizationStatusUpdatedPayload = {
   id: EntityId;
   status: OrganizationStatus;
+  /** When the status change took effect (for backdating) */
+  effectiveAt?: Timestamp;
 };
 
 type OrganizationUpdatedPayload = {
   id: EntityId;
   name?: string;
   status?: OrganizationStatus;
+  activeAt?: Timestamp;
+  inactiveAt?: Timestamp | null;
   logoUri?: string | null;
   website?: string;
   socialMedia?: SocialMediaLinks;
@@ -49,10 +54,13 @@ const applyOrganizationCreated = (
     throw new Error(`Organization already exists: ${id}`);
   }
 
+  const activeAt = payload.activeAt ?? event.timestamp;
+
   const organization: Organization = {
     id,
     name: payload.name,
     status: payload.status,
+    activeAt,
     logoUri: payload.logoUri,
     website: payload.website,
     socialMedia: payload.socialMedia,
@@ -88,6 +96,13 @@ const applyOrganizationStatusUpdated = (
     throw new Error(`Organization not found: ${id}`);
   }
 
+  const isBecomingInactive =
+    payload.status === "organization.status.inactive" &&
+    existing.status !== "organization.status.inactive";
+  const isBecomingActive =
+    payload.status === "organization.status.active" &&
+    existing.status !== "organization.status.active";
+
   return {
     ...doc,
     organizations: {
@@ -95,6 +110,11 @@ const applyOrganizationStatusUpdated = (
       [id]: {
         ...existing,
         status: payload.status,
+        // Set inactiveAt when becoming inactive, clear when becoming active
+        ...(isBecomingInactive && {
+          inactiveAt: payload.effectiveAt ?? event.timestamp,
+        }),
+        ...(isBecomingActive && { inactiveAt: undefined }),
         updatedAt: event.timestamp,
       },
     },
@@ -116,8 +136,34 @@ const applyOrganizationUpdated = (
 
   logger.debug("Updating organization", { id, updates: payload });
 
+  // Handle status transitions for inactiveAt
+  const isBecomingInactive =
+    payload.status === "organization.status.inactive" &&
+    existing.status !== "organization.status.inactive";
+  const isBecomingActive =
+    payload.status === "organization.status.active" &&
+    existing.status !== "organization.status.active";
+
+  // Determine inactiveAt value
+  const hasInactiveAt = Object.prototype.hasOwnProperty.call(
+    payload,
+    "inactiveAt",
+  );
+  let nextInactiveAt = existing.inactiveAt;
+  if (hasInactiveAt) {
+    // Explicit value provided (can be null to clear)
+    nextInactiveAt = payload.inactiveAt ?? undefined;
+  } else if (isBecomingInactive) {
+    // Auto-set when becoming inactive
+    nextInactiveAt = event.timestamp;
+  } else if (isBecomingActive) {
+    // Clear when becoming active
+    nextInactiveAt = undefined;
+  }
+
   const updated: Organization = {
     ...existing,
+    inactiveAt: nextInactiveAt,
     updatedAt: event.timestamp,
   };
 
@@ -127,6 +173,9 @@ const applyOrganizationUpdated = (
   }
   if (payload.status !== undefined) {
     updated.status = payload.status;
+  }
+  if (payload.activeAt !== undefined) {
+    updated.activeAt = payload.activeAt;
   }
   if (payload.website !== undefined) {
     updated.website = payload.website;

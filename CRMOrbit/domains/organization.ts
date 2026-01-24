@@ -1,4 +1,4 @@
-import type { Entity } from "./shared/types";
+import type { Entity, Timestamp } from "./shared/types";
 
 export type OrganizationStatus =
   | "organization.status.active"
@@ -14,6 +14,10 @@ export interface SocialMediaLinks {
 export interface Organization extends Entity {
   name: string;
   status: OrganizationStatus;
+  /** When this organization became active (can be backdated) */
+  activeAt?: Timestamp;
+  /** When this organization became inactive (only set when status is inactive) */
+  inactiveAt?: Timestamp;
   logoUri?: string;
   website?: string;
   socialMedia?: SocialMediaLinks;

@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { buildDeleteEntityEvent } from "@domains/actions";
 import { nextId } from "../../domains/shared/idGenerator";
-import type { EntityId } from "../../domains/shared/types";
+import type { EntityId, Timestamp } from "../../domains/shared/types";
 import type {
   Organization,
   SocialMediaLinks,
@@ -22,6 +22,7 @@ export const useOrganizationActions = (deviceId: string) => {
       website?: string,
       socialMedia?: SocialMediaLinks,
       idOverride?: EntityId,
+      activeAt?: Timestamp,
     ): DispatchResult => {
       const id = idOverride ?? nextId("org");
       const event = buildEvent({
@@ -34,6 +35,7 @@ export const useOrganizationActions = (deviceId: string) => {
           logoUri,
           website,
           socialMedia,
+          ...(activeAt && { activeAt }),
           metadata: {},
         },
         deviceId,
@@ -69,6 +71,8 @@ export const useOrganizationActions = (deviceId: string) => {
       website?: string,
       socialMedia?: SocialMediaLinks,
       _previousOrganization?: Organization, // Kept for backwards compatibility, unused since change detection moved to view layer
+      activeAt?: Timestamp,
+      inactiveAt?: Timestamp | null, // null to clear the value
     ): DispatchResult => {
       const event = buildEvent({
         type: "organization.updated",
@@ -79,6 +83,8 @@ export const useOrganizationActions = (deviceId: string) => {
           logoUri: logoUri ?? null,
           website,
           socialMedia,
+          ...(activeAt && { activeAt }),
+          ...(inactiveAt !== undefined && { inactiveAt }),
         },
         deviceId,
       });

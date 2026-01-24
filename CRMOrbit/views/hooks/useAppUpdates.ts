@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as Updates from "expo-updates";
-import { Alert } from "react-native";
 import { createLogger } from "@utils/logger";
-import { t } from "@i18n/index";
 import packageJson from "../../package.json";
 
 const logger = createLogger("AppUpdates");
@@ -37,6 +35,10 @@ export interface UseAppUpdatesReturn {
   applyUpdate: () => Promise<void>;
   /** Whether updates are enabled (false in dev mode) */
   isEnabled: boolean;
+  /** Whether to show the update prompt dialog */
+  showUpdatePrompt: boolean;
+  /** Dismiss the update prompt (user chose "Later") */
+  dismissUpdatePrompt: () => void;
 }
 
 /**
@@ -62,6 +64,7 @@ export const useAppUpdates = (
   const [isUpdateReady, setIsUpdateReady] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
 
   // expo-updates is disabled in development mode
   const isEnabled = !__DEV__ && Updates.isEnabled;
@@ -94,19 +97,7 @@ export const useAppUpdates = (
           setDownloadProgress(1);
 
           if (showAlertOnUpdate) {
-            Alert.alert(
-              t("settings.version.alertTitle"),
-              t("settings.version.alertMessage"),
-              [
-                { text: t("settings.version.alertLater"), style: "cancel" },
-                {
-                  text: t("settings.version.alertRestart"),
-                  onPress: () => {
-                    Updates.reloadAsync();
-                  },
-                },
-              ],
-            );
+            setShowUpdatePrompt(true);
           }
         } else {
           const isPending =
@@ -121,19 +112,7 @@ export const useAppUpdates = (
             setDownloadProgress(1);
 
             if (showAlertOnUpdate) {
-              Alert.alert(
-                t("settings.version.alertTitle"),
-                t("settings.version.alertMessage"),
-                [
-                  { text: t("settings.version.alertLater"), style: "cancel" },
-                  {
-                    text: t("settings.version.alertRestart"),
-                    onPress: () => {
-                      Updates.reloadAsync();
-                    },
-                  },
-                ],
-              );
+              setShowUpdatePrompt(true);
             }
           } else {
             logger.info("No pending update found");
@@ -173,6 +152,10 @@ export const useAppUpdates = (
     }
   }, [isUpdateReady]);
 
+  const dismissUpdatePrompt = useCallback(() => {
+    setShowUpdatePrompt(false);
+  }, []);
+
   // Check for updates on mount if enabled
   useEffect(() => {
     if (checkOnMount && isEnabled) {
@@ -189,6 +172,8 @@ export const useAppUpdates = (
     checkForUpdate,
     applyUpdate,
     isEnabled,
+    showUpdatePrompt,
+    dismissUpdatePrompt,
   };
 };
 

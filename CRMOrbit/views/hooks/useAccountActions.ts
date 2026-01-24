@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { buildEvent } from "../../events/dispatcher";
 import { buildDeleteEntityEvent } from "@domains/actions";
 import { nextId } from "../../domains/shared/idGenerator";
-import type { EntityId } from "../../domains/shared/types";
+import type { EntityId, Timestamp } from "../../domains/shared/types";
 import type {
   Account,
   AccountAuditFrequency,
@@ -29,6 +29,7 @@ export const useAccountActions = (deviceId: string) => {
       maxFloor?: number,
       excludedFloors?: number[],
       auditFrequency?: AccountAuditFrequency,
+      activeAt?: Timestamp,
     ): DispatchResult => {
       const id = nextId("account");
       const event = buildEvent({
@@ -46,6 +47,7 @@ export const useAccountActions = (deviceId: string) => {
           ...(maxFloor !== undefined && { maxFloor }),
           ...(excludedFloors !== undefined && { excludedFloors }),
           ...(auditFrequency !== undefined && { auditFrequency }),
+          ...(activeAt && { activeAt }),
           metadata: {},
         },
         deviceId,
@@ -87,6 +89,8 @@ export const useAccountActions = (deviceId: string) => {
       auditFrequency?: AccountAuditFrequency,
       auditFrequencyChangeTiming?: AccountAuditFrequencyChangeTiming,
       _previousAccount?: Account, // Kept for backwards compatibility, unused since change detection moved to view layer
+      activeAt?: Timestamp,
+      inactiveAt?: Timestamp | null, // null to clear the value
     ): DispatchResult => {
       const event = buildEvent({
         type: "account.updated",
@@ -105,6 +109,8 @@ export const useAccountActions = (deviceId: string) => {
           ...(auditFrequencyChangeTiming !== undefined && {
             auditFrequencyChangeTiming,
           }),
+          ...(activeAt && { activeAt }),
+          ...(inactiveAt !== undefined && { inactiveAt }),
         },
         deviceId,
       });

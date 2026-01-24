@@ -12,3 +12,20 @@ exclude_paths:
   - "build/**"
   # Documentation
   - "docs/**"
+
+engines:
+  duplication:
+    exclude_paths:
+      - "CRMOrbit/views/screens/**"
+      - "CRMOrbit/views/hooks/**"
+      - "CRMOrbit/domains/migrations/**"
+      - "CRMOrbit/scripts/**"
+      - "CRMOrbit/tests/**"
+      - "CRMOrbit/reducers/account.reducer.ts"
+      - "CRMOrbit/reducers/organization.reducer.ts"
+  metric:
+    exclude_paths:
+      - "CRMOrbit/views/**"
+      - "CRMOrbit/domains/migrations/**"
+      - "CRMOrbit/scripts/**"
+      - "CRMOrbit/tests/**"

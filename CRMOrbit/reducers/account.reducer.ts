@@ -9,7 +9,7 @@ import type {
 } from "../domains/account";
 import type { AutomergeDoc } from "../automerge/schema";
 import type { Event } from "../events/event";
-import type { EntityId } from "../domains/shared/types";
+import type { EntityId, Timestamp } from "../domains/shared/types";
 import { resolveEntityId } from "./shared";
 import { createLogger } from "../utils/logger";
 import {
@@ -30,6 +30,7 @@ type AccountCreatedPayload = {
   organizationId: EntityId;
   name: string;
   status: AccountStatus;
+  activeAt?: Timestamp;
   auditFrequency?: AccountAuditFrequency;
   addresses?: AccountAddresses;
   minFloor?: number;
@@ -44,12 +45,16 @@ type AccountCreatedPayload = {
 type AccountStatusUpdatedPayload = {
   id: EntityId;
   status: AccountStatus;
+  /** When the status change took effect (for backdating) */
+  effectiveAt?: Timestamp;
 };
 
 type AccountUpdatedPayload = {
   id?: EntityId;
   name?: string;
   status?: AccountStatus;
+  activeAt?: Timestamp;
+  inactiveAt?: Timestamp | null;
   auditFrequency?: AccountAuditFrequency;
   auditFrequencyChangeTiming?: AccountAuditFrequencyChangeTiming;
   organizationId?: EntityId;
@@ -150,11 +155,14 @@ const applyAccountCreated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     getMonthStartTimestamp(event.timestamp) ?? event.timestamp;
   const calendarMatch = sanitizeAccountCalendarMatch(payload.calendarMatch);
 
+  const activeAt = payload.activeAt ?? event.timestamp;
+
   const account: Account = {
     id,
     organizationId: payload.organizationId,
     name: payload.name,
     status: payload.status,
+    activeAt,
     auditFrequency,
     auditFrequencyUpdatedAt: frequencyUpdatedAt,
     auditFrequencyAnchorAt: frequencyAnchorAt,
@@ -197,6 +205,13 @@ const applyAccountStatusUpdated = (
     throw new Error(`Account not found: ${id}`);
   }
 
+  const isBecomingInactive =
+    payload.status === "account.status.inactive" &&
+    existing.status !== "account.status.inactive";
+  const isBecomingActive =
+    payload.status === "account.status.active" &&
+    existing.status !== "account.status.active";
+
   return {
     ...doc,
     accounts: {
@@ -204,6 +219,11 @@ const applyAccountStatusUpdated = (
       [id]: {
         ...existing,
         status: payload.status,
+        // Set inactiveAt when becoming inactive, clear when becoming active
+        ...(isBecomingInactive && {
+          inactiveAt: payload.effectiveAt ?? event.timestamp,
+        }),
+        ...(isBecomingActive && { inactiveAt: undefined }),
         updatedAt: event.timestamp,
       },
     },
@@ -305,6 +325,31 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
     ? sanitizeAccountCalendarMatch(payload.calendarMatch)
     : existing.calendarMatch;
 
+  // Handle status transitions for inactiveAt
+  const isBecomingInactive =
+    payload.status === "account.status.inactive" &&
+    existing.status !== "account.status.inactive";
+  const isBecomingActive =
+    payload.status === "account.status.active" &&
+    existing.status !== "account.status.active";
+
+  // Determine inactiveAt value
+  const hasInactiveAt = Object.prototype.hasOwnProperty.call(
+    payload,
+    "inactiveAt",
+  );
+  let nextInactiveAt = existing.inactiveAt;
+  if (hasInactiveAt) {
+    // Explicit value provided (can be null to clear)
+    nextInactiveAt = payload.inactiveAt ?? undefined;
+  } else if (isBecomingInactive) {
+    // Auto-set when becoming inactive
+    nextInactiveAt = event.timestamp;
+  } else if (isBecomingActive) {
+    // Clear when becoming active
+    nextInactiveAt = undefined;
+  }
+
   logger.debug("Updating account", { id, updates: payload });
 
   return {
@@ -315,6 +360,8 @@ const applyAccountUpdated = (doc: AutomergeDoc, event: Event): AutomergeDoc => {
         ...existing,
         ...(payload.name !== undefined && { name: payload.name }),
         ...(payload.status !== undefined && { status: payload.status }),
+        ...(payload.activeAt !== undefined && { activeAt: payload.activeAt }),
+        inactiveAt: nextInactiveAt,
         auditFrequency: nextFrequency,
         auditFrequencyUpdatedAt: nextFrequencyUpdatedAt,
         auditFrequencyAnchorAt: nextFrequencyAnchorAt,

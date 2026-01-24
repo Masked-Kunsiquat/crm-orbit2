@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { StyleSheet, Text } from "react-native";
+import { useMemo, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 import type { AccountsStackScreenProps } from "../../navigation/types";
 import {
@@ -11,10 +11,36 @@ import {
   DetailScreenLayout,
   FloorsVisitedMatrix,
   Section,
+  SegmentedOptionGroup,
   buildFloorsVisitedMatrix,
 } from "../../components";
 import { useTheme } from "../../hooks";
 import { t } from "@i18n/index";
+
+type DateRangeFilter = "3m" | "6m" | "12m" | "all";
+
+const DATE_RANGE_OPTIONS: ReadonlyArray<{
+  value: DateRangeFilter;
+  label: string;
+}> = [
+  { value: "3m", label: "3 mo" },
+  { value: "6m", label: "6 mo" },
+  { value: "12m", label: "12 mo" },
+  { value: "all", label: "All" },
+];
+
+const getMaxVisitsForRange = (filter: DateRangeFilter): number | undefined => {
+  switch (filter) {
+    case "3m":
+      return 3;
+    case "6m":
+      return 6;
+    case "12m":
+      return 12;
+    case "all":
+      return undefined;
+  }
+};
 
 type Props = AccountsStackScreenProps<"AccountFloorsVisited">;
 
@@ -25,6 +51,7 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
   const { colors } = useTheme();
   const { notFoundKey, floorsVisitedTitleKey, emptyTitleKey } =
     useAccountFloorsVisitedLabels();
+  const [dateRange, setDateRange] = useState<DateRangeFilter>("6m");
 
   const floorsMatrix = useMemo(() => {
     if (!account) {
@@ -33,8 +60,9 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
     return buildFloorsVisitedMatrix({
       audits,
       account,
+      maxVisits: getMaxVisitsForRange(dateRange),
     });
-  }, [account, audits]);
+  }, [account, audits, dateRange]);
 
   if (!account) {
     return (
@@ -49,9 +77,16 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
   return (
     <DetailScreenLayout>
       <Section title={t(floorsVisitedTitleKey)}>
-        <Text style={[styles.accountName, { color: colors.textPrimary }]}>
-          {account.name}
-        </Text>
+        <View style={styles.header}>
+          <Text style={[styles.accountName, { color: colors.textPrimary }]}>
+            {account.name}
+          </Text>
+          <SegmentedOptionGroup
+            options={DATE_RANGE_OPTIONS}
+            value={dateRange}
+            onChange={setDateRange}
+          />
+        </View>
         {floorsMatrix ? (
           <FloorsVisitedMatrix data={floorsMatrix} variant="full" />
         ) : (
@@ -65,10 +100,13 @@ export const AccountFloorsVisitedScreen = ({ route }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    marginBottom: 12,
+    gap: 12,
+  },
   accountName: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,

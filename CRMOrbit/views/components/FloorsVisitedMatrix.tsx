@@ -23,6 +23,8 @@ import {
 } from "../utils/auditSchedule";
 import { useTheme } from "../hooks";
 
+const MATRIX_AUDIT_PERIODS_OPTIONS = { allowBeforeAnchor: true } as const;
+
 type FloorsVisitedMatrixVisit = {
   id: EntityId;
   label: string;
@@ -137,7 +139,13 @@ export const buildFloorsVisitedMatrix = ({
     : referenceDate;
   const maxPeriodCount = maxVisits ?? Math.max(selectedAudits.length, 1);
   const periods = account
-    ? getAuditPeriods(account, audits, resolvedReference, maxPeriodCount)
+    ? getAuditPeriods(
+        account,
+        audits,
+        resolvedReference,
+        maxPeriodCount,
+        MATRIX_AUDIT_PERIODS_OPTIONS,
+      )
     : null;
   const orderedPeriods = periods ? [...periods].reverse() : null;
 

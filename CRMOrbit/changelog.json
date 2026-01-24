@@ -1,56 +1,66 @@
 {
   "version": "2.0.0",
-  "generatedAt": "2026-01-22T13:53:24.612Z",
+  "generatedAt": "2026-01-23T22:58:32.266Z",
   "commits": [
     {
-      "hash": "92a359f",
-      "date": "2026-01-22",
-      "message": "Merge pull request #225 from Masked-Kunsiquat/2.0.0/tweaks"
+      "hash": "3e663c3",
+      "fullHash": "3e663c356b14b70a1b7640620176209715dccc93",
+      "date": "2026-01-23",
+      "message": "feat(changelog): add commit linking and refresh UI design"
     },
     {
-      "hash": "2968278",
-      "date": "2026-01-22",
-      "message": "update `.codacy` exclude_paths"
+      "hash": "a962c29",
+      "fullHash": "a962c29cfdb9c01ff23ac9411cb837d10106bb48",
+      "date": "2026-01-23",
+      "message": "refactor(changelog): simplify to single timeline with current update badge"
     },
     {
-      "hash": "d7cce96",
-      "date": "2026-01-22",
-      "message": "update wildcards"
+      "hash": "19db388",
+      "fullHash": "19db38889af5e362bd3884cbcb35f6069bfb2592",
+      "date": "2026-01-23",
+      "message": "ci(eas): add workflow to publish updates on merge to master"
     },
     {
-      "hash": "2f63e69",
-      "date": "2026-01-22",
-      "message": "Merge pull request #222 from Masked-Kunsiquat/2.0.0/tweaks"
+      "hash": "9ba7f25",
+      "fullHash": "9ba7f259ff1eb0f52ada021964b424b2b86569ff",
+      "date": "2026-01-23",
+      "message": "refactor(changelog): unify timeline styles and improve message extraction"
     },
     {
-      "hash": "3f519a9",
-      "date": "2026-01-22",
-      "message": "style: simplify Codacy config and sort props alphabetically"
+      "hash": "9835e54",
+      "fullHash": "9835e54c757c70f97af4b865e67b18d624ba36fc",
+      "date": "2026-01-23",
+      "message": "feat(changelog): add OTA update history tracking"
     },
     {
-      "hash": "d60ce71",
-      "date": "2026-01-22",
-      "message": "update `.codacy.yml`"
+      "hash": "8f46bc9",
+      "fullHash": "8f46bc96c390446e20e5506402c78467a79d63e5",
+      "date": "2026-01-23",
+      "message": "fix(settings): use themed dialog for update prompt and fix changelog safe area"
     },
     {
-      "hash": "70ebe5a",
-      "date": "2026-01-22",
-      "message": "chore(codacy): use project ESLint config and rename to .codacy.yml"
+      "hash": "4577b41",
+      "fullHash": "4577b410d410ea93251864cb53b74b8502b23d21",
+      "date": "2026-01-23",
+      "message": "feat(lifecycle): add lifecycle date pickers to Account and Organization forms"
     },
     {
-      "hash": "b7d239e",
+      "hash": "66b0f86",
+      "fullHash": "66b0f86697c81e7e23208597c83eff82a574ff35",
       "date": "2026-01-22",
-      "message": "fix(updates): reset UI state when no pending update and use JSON import"
+      "message": "feat(lifecycle): add activeAt/inactiveAt fields to Account and Organization"
     },
     {
-      "hash": "9c6fac6",
+      "hash": "710e013",
+      "fullHash": "710e013de243eeaab4bfa0d70ce1f1a450419273",
       "date": "2026-01-22",
-      "message": "style: apply Codacy lint fixes"
+      "message": "feat(matrix): add date range filter to account floors visited screen"
     },
     {
-      "hash": "b7b4157",
+      "hash": "8ed3776",
+      "fullHash": "8ed3776df6fb11b27d4e841ac4c1f6b2d21039a5",
       "date": "2026-01-22",
-      "message": "fix(updates): correct isUpdatePending type and set error status on apply failure"
+      "message": "fix(matrix): show backlogged audits before account anchor date"
     }
   ]
 }

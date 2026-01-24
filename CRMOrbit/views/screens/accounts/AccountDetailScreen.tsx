@@ -50,6 +50,7 @@ import { t } from "@i18n/index";
 import { useTheme } from "../../hooks/useTheme";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import { openWebUrl } from "@domains/linking.utils";
+import { formatDate } from "@domains/shared/dateFormatting";
 
 type Props = AccountsStackScreenProps<"AccountDetail">;
 type AccountTab = "overview" | "details" | "notes" | "activity";
@@ -263,6 +264,23 @@ export const AccountDetailScreen = ({ route, navigation }: Props) => {
 
       {activeTab === "details" ? (
         <Section>
+          {account.activeAt ? (
+            <DetailField label={t("accounts.fields.activeAt")}>
+              <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                {formatDate(account.activeAt)}
+              </Text>
+            </DetailField>
+          ) : null}
+
+          {account.status === "account.status.inactive" &&
+          account.inactiveAt ? (
+            <DetailField label={t("accounts.fields.inactiveAt")}>
+              <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                {formatDate(account.inactiveAt)}
+              </Text>
+            </DetailField>
+          ) : null}
+
           <DetailField label={t("accounts.fields.auditFrequency")}>
             <View>
               <Text style={[styles.detailValue, { color: colors.textPrimary }]}>

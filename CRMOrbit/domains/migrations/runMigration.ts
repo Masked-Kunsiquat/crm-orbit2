@@ -4,11 +4,17 @@ import {
   validateMigration,
   MigrationReport,
 } from "./migrateToCalendarEvents";
+import {
+  migrateAccountLifecycle,
+  validateAccountLifecycleMigration,
+  AccountLifecycleMigrationReport,
+} from "./migrateAccountLifecycle";
 import { AutomergeDoc } from "../../automerge/schema";
 import { PersistenceDb, appendEvents } from "../persistence/store";
 
 const MIGRATION_KEY = "completedMigrations";
 const CALENDAR_EVENT_MIGRATION_ID = "calendarEvent.v1";
+const ACCOUNT_LIFECYCLE_MIGRATION_ID = "account.lifecycle.v1";
 
 /**
  * Checks if a specific migration has already been run.
@@ -173,6 +179,78 @@ export const runCalendarEventMigration = async (
 };
 
 /**
+ * Runs the account lifecycle migration on the provided Automerge document.
+ *
+ * This function:
+ * 1. Checks if migration has already run (idempotency)
+ * 2. Backfills activeAt and clears inactiveAt for active accounts
+ * 3. Persists generated events to the database
+ * 4. Validates the migration results
+ * 5. Marks migration as complete if successful
+ *
+ * @param doc - The Automerge document to migrate
+ * @param db - The persistence database for storing generated events
+ * @param deviceId - Device identifier for event attribution
+ * @returns Promise resolving to updated document and migration report
+ * @throws Error if migration fails validation or persistence fails
+ */
+export const runAccountLifecycleMigration = async (
+  doc: AutomergeDoc,
+  db: PersistenceDb,
+  deviceId: string,
+): Promise<{ doc: AutomergeDoc; report: AccountLifecycleMigrationReport }> => {
+  const alreadyRun = await hasMigrationRun(ACCOUNT_LIFECYCLE_MIGRATION_ID);
+  if (alreadyRun) {
+    return {
+      doc,
+      report: {
+        success: true,
+        migratedAccounts: 0,
+        errors: [],
+        accountIds: [],
+        events: [],
+      },
+    };
+  }
+
+  const { doc: migratedDoc, report } = migrateAccountLifecycle(doc, deviceId);
+
+  if (report.errors.length > 0) {
+    console.error("Account lifecycle migration errors:", report.errors);
+  }
+
+  if (report.events.length > 0) {
+    try {
+      await appendEvents(db, report.events);
+    } catch (error) {
+      console.error(
+        "Failed to persist account lifecycle migration events:",
+        error,
+      );
+      throw new Error(
+        `Failed to persist account lifecycle migration events: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  const validation = validateAccountLifecycleMigration(migratedDoc);
+
+  if (!validation.valid) {
+    console.error(
+      "Account lifecycle migration validation failed:",
+      validation.issues,
+    );
+    throw new Error(
+      `Account lifecycle migration validation failed: ${validation.issues.join("; ")}`,
+    );
+  }
+
+  await markMigrationComplete(ACCOUNT_LIFECYCLE_MIGRATION_ID);
+
+  return { doc: migratedDoc, report };
+};
+
+/**
  * Forces the calendar event migration to run again by clearing its completion marker.
  * USE WITH CAUTION: This will cause the migration to run on next app load.
  *
@@ -189,6 +267,17 @@ export const resetCalendarEventMigration = async (): Promise<void> => {
 };
 
 /**
+ * Forces the account lifecycle migration to run again by clearing its completion marker.
+ * USE WITH CAUTION: This will cause the migration to run on next app load.
+ */
+export const resetAccountLifecycleMigration = async (): Promise<void> => {
+  console.warn(
+    "Resetting account lifecycle migration marker - migration will run again on next load",
+  );
+  await clearMigrationMarker(ACCOUNT_LIFECYCLE_MIGRATION_ID);
+};
+
+/**
  * Gets the status of the calendar event migration.
  *
  * @returns Promise resolving to migration status object
@@ -201,5 +290,21 @@ export const getCalendarEventMigrationStatus = async (): Promise<{
   return {
     hasRun,
     migrationId: CALENDAR_EVENT_MIGRATION_ID,
+  };
+};
+
+/**
+ * Gets the status of the account lifecycle migration.
+ *
+ * @returns Promise resolving to migration status object
+ */
+export const getAccountLifecycleMigrationStatus = async (): Promise<{
+  hasRun: boolean;
+  migrationId: string;
+}> => {
+  const hasRun = await hasMigrationRun(ACCOUNT_LIFECYCLE_MIGRATION_ID);
+  return {
+    hasRun,
+    migrationId: ACCOUNT_LIFECYCLE_MIGRATION_ID,
   };
 };

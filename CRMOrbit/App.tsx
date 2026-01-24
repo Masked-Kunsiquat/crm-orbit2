@@ -96,6 +96,7 @@ export default function App() {
         store.getState().setEvents(events);
 
         setIsLoading(false);
+
         ensureExternalCalendarBackgroundSync().catch((error) => {
           logger.error(
             "Failed to ensure external calendar background sync.",
