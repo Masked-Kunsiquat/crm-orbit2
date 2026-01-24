@@ -22,6 +22,7 @@ export { useLocalAuth } from "./useLocalAuth";
 export { useSettingsActions } from "./useSettingsActions";
 export { useBackupOperations } from "./useBackupOperations";
 export { useBackupLabels } from "./useBackupLabels";
+export { useDataWipe } from "./useDataWipe";
 export {
   useContactsListLabels,
   useContactsStackTitles,

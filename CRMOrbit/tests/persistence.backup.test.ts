@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 
 import type { Event } from "@events/event";
-import { automergeSnapshots, eventLog } from "@domains/persistence/schema";
+import {
+  automergeSnapshots,
+  calendarEventExternalLinks,
+  eventLog,
+} from "@domains/persistence/schema";
 import {
   appendEvents,
   type EventLogRecord,
@@ -16,12 +20,26 @@ import {
 type StoredTables = {
   snapshots: SnapshotRecord[];
   events: EventLogRecord[];
+  externalLinks: CalendarEventExternalLinkRecord[];
+};
+
+type CalendarEventExternalLinkRecord = {
+  id: string;
+  calendarEventId: string;
+  provider: string;
+  calendarId: string;
+  externalEventId: string;
+  createdAt: string;
+  updatedAt: string;
+  lastSyncedAt?: string | null;
+  lastExternalModifiedAt?: string | null;
 };
 
 const createMemoryDb = () => {
   const tables: StoredTables = {
     snapshots: [],
     events: [],
+    externalLinks: [],
   };
 
   const createDbInterface = (currentTables: StoredTables): PersistenceDb => ({
@@ -44,6 +62,14 @@ const createMemoryDb = () => {
             return;
           }
 
+          if (table === calendarEventExternalLinks) {
+            const rows = Array.isArray(value)
+              ? (value as CalendarEventExternalLinkRecord[])
+              : ([value] as CalendarEventExternalLinkRecord[]);
+            currentTables.externalLinks.push(...rows);
+            return;
+          }
+
           throw new Error("Unknown table.");
         },
       }),
@@ -57,6 +83,11 @@ const createMemoryDb = () => {
 
         if (table === eventLog) {
           currentTables.events = [];
+          return;
+        }
+
+        if (table === calendarEventExternalLinks) {
+          currentTables.externalLinks = [];
           return;
         }
 
@@ -74,6 +105,10 @@ const createMemoryDb = () => {
             return [...currentTables.events] as T[];
           }
 
+          if (table === calendarEventExternalLinks) {
+            return [...currentTables.externalLinks] as T[];
+          }
+
           throw new Error("Unknown table.");
         },
       }),
@@ -84,6 +119,7 @@ const createMemoryDb = () => {
       const shadowTables: StoredTables = {
         snapshots: [...currentTables.snapshots],
         events: [...currentTables.events],
+        externalLinks: [...currentTables.externalLinks],
       };
 
       const tx = createDbInterface(shadowTables);
@@ -91,6 +127,7 @@ const createMemoryDb = () => {
       const result = await fn(tx);
       currentTables.snapshots = shadowTables.snapshots;
       currentTables.events = shadowTables.events;
+      currentTables.externalLinks = shadowTables.externalLinks;
       return result;
     },
   });

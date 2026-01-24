@@ -8,6 +8,8 @@ export type DeviceInfo = {
   port?: number;
 };
 
+export type SyncDirection = "bidirectional" | "push" | "pull";
+
 export type SyncMethod = "local-network" | "webrtc" | "qr-code" | "manual";
 
 export type SyncStatus =
@@ -35,6 +37,7 @@ export type SyncMessage = {
   deviceId: string;
   timestamp: Timestamp;
   changes?: Uint8Array; // Automerge binary changes
+  direction?: SyncDirection;
   fromVersion?: string; // Last known sync point
   images?: ImageSyncManifest;
 };

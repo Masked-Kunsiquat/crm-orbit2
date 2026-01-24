@@ -1,17 +1,22 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
 import type { BackupImportMode, BackupImportResult } from "./backup";
+import { initAutomergeDoc } from "@automerge/init";
 import type {
   BackupFileInfo,
   BackupImportErrorKind,
   BackupRestoreState,
 } from "./backupService";
 import { exportBackupToFile, importBackupFromFile } from "./backupService";
+import { createPersistenceDb, getDatabase } from "./database";
+import { clearPersistence } from "./store";
 import { createLogger } from "@utils/logger";
 
 type BackupOperationsState = {
   isExporting: boolean;
   isImporting: boolean;
+  isWiping: boolean;
   lastExport: BackupFileInfo | null;
   lastImport: BackupImportResult | null;
   lastError: string | null;
@@ -32,9 +37,17 @@ export type BackupImportRequestOutcome =
   | { ok: true; result: BackupImportResult }
   | { ok: false; kind: BackupImportErrorKind; error: Error };
 
+export type DataWipeOutcome =
+  | { ok: true }
+  | {
+      ok: false;
+      error: Error;
+    };
+
 const useBackupOperationsStore = create<BackupOperationsState>(() => ({
   isExporting: false,
   isImporting: false,
+  isWiping: false,
   lastExport: null,
   lastImport: null,
   lastError: null,
@@ -47,6 +60,10 @@ const setExporting = (value: boolean): void => {
 
 const setImporting = (value: boolean): void => {
   useBackupOperationsStore.setState({ isImporting: value });
+};
+
+const setWiping = (value: boolean): void => {
+  useBackupOperationsStore.setState({ isWiping: value });
 };
 
 const clearErrors = (): void => {
@@ -72,6 +89,13 @@ const setImportError = (kind: BackupImportErrorKind, error: Error): void => {
   useBackupOperationsStore.setState({
     lastError: error.message,
     lastErrorKind: kind,
+  });
+};
+
+const setWipeError = (error: Error): void => {
+  useBackupOperationsStore.setState({
+    lastError: error.message,
+    lastErrorKind: null,
   });
 };
 
@@ -132,5 +156,23 @@ export const requestBackupImport = async (
     return { ok: false, kind: outcome.kind, error: outcome.error };
   } finally {
     setImporting(false);
+  }
+};
+
+export const requestDataWipe = async (): Promise<DataWipeOutcome> => {
+  clearErrors();
+  setWiping(true);
+  try {
+    const db = createPersistenceDb(getDatabase());
+    await clearPersistence(db);
+    await AsyncStorage.clear();
+    applyRestoreState({ doc: initAutomergeDoc(), events: [] });
+    return { ok: true };
+  } catch (error) {
+    const safeError = error instanceof Error ? error : new Error(String(error));
+    setWipeError(safeError);
+    return { ok: false, error: safeError };
+  } finally {
+    setWiping(false);
   }
 };
