@@ -7,7 +7,13 @@ on:
 
 jobs:
   publish_update:
-    type: update
-    params:
-      channel: production
-      message: Production update (${{ github.sha }})
+    steps:
+      - uses: eas/checkout
+      - name: Fetch git history for changelog
+        run: |
+          git fetch --prune --unshallow || git fetch --prune --depth=100
+      - uses: eas/install_node_modules
+      - name: Generate changelog
+        run: node scripts/generate-changelog.js
+      - name: Publish update
+        run: npx expo update --channel production --message "Production update (${{ github.sha }})" --non-interactive
