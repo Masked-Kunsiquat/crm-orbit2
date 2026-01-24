@@ -14,7 +14,7 @@ const FRAME_HEADER_BYTES = 4;
 const AUTH_HEADER_BYTES = 2;
 const MAX_FRAME_SIZE = 10 * 1024 * 1024;
 const MAX_AUTH_TOKEN_BYTES = 256;
-const DEFAULT_BIND_ADDRESS = "127.0.0.1";
+const DEFAULT_BIND_ADDRESS = "0.0.0.0";
 const DEFAULT_SYNC_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_CONCURRENT_CONNECTIONS = 8;
 const DEFAULT_MAX_CONNECTIONS_PER_IP = 4;
@@ -124,8 +124,11 @@ const resolveDeviceName = (deviceId: string): string => {
 
 const selectAddress = (addresses?: string[]): string | undefined => {
   if (!addresses || addresses.length === 0) return undefined;
-  const ipv4 = addresses.find((address) => address.includes("."));
-  return ipv4 || addresses[0];
+  const nonLoopback = addresses.filter(
+    (address) => !address.startsWith("127.") && address !== "::1",
+  );
+  const ipv4 = nonLoopback.find((address) => address.includes("."));
+  return ipv4 || nonLoopback[0] || addresses[0];
 };
 
 const encodeString = (value: string): Uint8Array => {

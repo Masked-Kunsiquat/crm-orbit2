@@ -3,12 +3,16 @@ import type { Change, Doc } from "automerge";
 import type { AutomergeDoc } from "@automerge/schema";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fromByteArray, toByteArray } from "base64-js";
+import { deflate, inflate } from "pako";
 import { createLogger } from "@utils/logger";
 
 const logger = createLogger("AutomergeSync");
 
 const LAST_SYNC_VERSION_KEY = "last_sync_version";
 const SNAPSHOT_FORMAT = "crm-sync-snapshot-v1";
+const COMPRESSED_BUNDLE_FORMAT = "crm-sync-bundle-v1";
+const COMPRESSED_BUNDLE_ENCODING = "deflate-base64";
+const COMPRESSED_BUNDLE_MIN_SIZE = 1024;
 
 const sanitizeDocForAutomerge = (doc: AutomergeDoc): AutomergeDoc => {
   try {
@@ -61,6 +65,79 @@ const getTextDecoder = (): TextDecoderLike => {
     throw new Error("TextDecoder is not available.");
   }
   return new Decoder();
+};
+
+const compressSyncBundle = (payload: string): string | null => {
+  if (payload.length < COMPRESSED_BUNDLE_MIN_SIZE) {
+    return null;
+  }
+  try {
+    const compressed = deflate(getTextEncoder().encode(payload));
+    const wrapped = JSON.stringify({
+      format: COMPRESSED_BUNDLE_FORMAT,
+      encoding: COMPRESSED_BUNDLE_ENCODING,
+      payload: fromByteArray(compressed),
+    });
+    if (wrapped.length >= payload.length) {
+      return null;
+    }
+    logger.info("Compressed sync bundle", {
+      originalSize: payload.length,
+      compressedSize: wrapped.length,
+    });
+    return wrapped;
+  } catch (error) {
+    logger.warn("Failed to compress sync bundle", {}, error);
+    return null;
+  }
+};
+
+const decompressSyncBundle = (payload: string): string | null => {
+  if (!payload.startsWith("{")) {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload) as unknown;
+  } catch {
+    return null;
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+
+  const {
+    format,
+    encoding,
+    payload: data,
+  } = parsed as {
+    format?: unknown;
+    encoding?: unknown;
+    payload?: unknown;
+  };
+
+  if (
+    format !== COMPRESSED_BUNDLE_FORMAT ||
+    encoding !== COMPRESSED_BUNDLE_ENCODING ||
+    typeof data !== "string"
+  ) {
+    return null;
+  }
+
+  try {
+    const inflated = inflate(toByteArray(data));
+    const decoded = getTextDecoder().decode(inflated);
+    logger.info("Decompressed sync bundle", {
+      compressedSize: payload.length,
+      decompressedSize: decoded.length,
+    });
+    return decoded;
+  } catch (error) {
+    logger.error("Failed to decompress sync bundle", {}, error);
+    throw error;
+  }
 };
 
 const parseJsonChanges = (changes: Uint8Array): Change[] => {
@@ -651,19 +728,21 @@ export const createSyncBundle = async (
     decodedPayload = null;
   }
 
-  if (decodedPayload?.startsWith("{") || decodedPayload?.startsWith("[")) {
-    return decodedPayload;
-  }
+  const payload =
+    decodedPayload?.startsWith("{") || decodedPayload?.startsWith("[")
+      ? decodedPayload
+      : fromByteArray(changes);
 
-  const bundle = fromByteArray(changes);
+  const compressed = compressSyncBundle(payload);
+  const finalPayload = compressed ?? payload;
 
-  if (bundle.length > 2000) {
+  if (finalPayload.length > 2000) {
     logger.warn("Sync bundle large, may need multiple QR codes", {
-      size: bundle.length,
+      size: finalPayload.length,
     });
   }
 
-  return bundle;
+  return finalPayload;
 };
 
 /**
@@ -672,8 +751,10 @@ export const createSyncBundle = async (
 export const parseSyncBundle = (qrData: string): Uint8Array => {
   const trimmed = qrData.trim();
   if (!trimmed) return new Uint8Array();
-  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-    return getTextEncoder().encode(trimmed);
+  const decompressed = decompressSyncBundle(trimmed);
+  const resolved = decompressed ?? trimmed;
+  if (resolved.startsWith("{") || resolved.startsWith("[")) {
+    return getTextEncoder().encode(resolved);
   }
-  return toByteArray(trimmed);
+  return toByteArray(resolved);
 };
