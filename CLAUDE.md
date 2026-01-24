@@ -48,7 +48,7 @@ npm run test -- tests/account.reducer.test.ts
 
 ### Data Flow
 
-```
+```text
 User Action → Event emitted → Reducer applies to Automerge → Zustand notifies views
 ```
 
@@ -56,7 +56,7 @@ Events express semantic intent (`contact.created`, `account.contact.setPrimary`)
 
 ### Path Aliases (tsconfig.json)
 
-```
+```text
 @views/*      → views/*
 @domains/*    → domains/*
 @events/*     → events/*

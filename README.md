@@ -1,6 +1,6 @@
 # Welcome to CRM Orbit!
 
-### Testing
+## Testing
 
 | Translation | CodeQL | Dependabot | ESLint | Codacy Grade | Codacy Coverage |
 |------------|--------|------------|--------|--------------|----------------|
