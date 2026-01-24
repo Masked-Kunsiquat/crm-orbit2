@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 
 import { initAutomergeDoc } from "@automerge/init";
+import { calendarEventReducer } from "@reducers/calendarEvent.reducer";
 import { entityLinkReducer } from "@reducers/entityLink.reducer";
 import { noteReducer } from "@reducers/note.reducer";
 import { interactionReducer } from "@reducers/interaction.reducer";
 import { organizationReducer } from "@reducers/organization.reducer";
 import { accountReducer } from "@reducers/account.reducer";
 import { auditReducer } from "@reducers/audit.reducer";
+import { contactReducer } from "@reducers/contact.reducer";
 import type { Event } from "@events/event";
 
 const createOrganization = (): Event => ({
@@ -21,11 +23,11 @@ const createOrganization = (): Event => ({
   deviceId: "device-1",
 });
 
-const createNote = (): Event => ({
-  id: "evt-note-1",
+const createNote = (id = "note-1"): Event => ({
+  id: `evt-note-${id}`,
   type: "note.created",
   payload: {
-    id: "note-1",
+    id,
     title: "Kickoff",
     body: "Initial meeting notes.",
   },
@@ -69,6 +71,36 @@ const createAudit = (): Event => ({
     durationMinutes: 60,
   },
   timestamp: "2024-05-04T09:00:00.000Z",
+  deviceId: "device-1",
+});
+
+const createContact = (id = "contact-1"): Event => ({
+  id: `evt-contact-${id}`,
+  type: "contact.created",
+  payload: {
+    id,
+    type: "contact.type.internal",
+    name: "Jordan Lee",
+    methods: {
+      emails: [],
+      phones: [],
+    },
+  },
+  timestamp: "2024-05-02T08:00:00.000Z",
+  deviceId: "device-1",
+});
+
+const createCalendarEvent = (id = "calendar-1"): Event => ({
+  id: `evt-calendar-${id}`,
+  type: "calendarEvent.scheduled",
+  entityId: id,
+  payload: {
+    id,
+    type: "calendarEvent.type.meeting",
+    summary: "Project sync",
+    scheduledFor: "2024-06-01T10:00:00.000Z",
+  },
+  timestamp: "2024-05-30T10:00:00.000Z",
   deviceId: "device-1",
 });
 
@@ -350,6 +382,135 @@ test("note.linked supports audit entities", () => {
   assert.equal(link.linkType, "note");
   assert.equal(link.entityType, "audit");
   assert.equal(link.entityId, "audit-1");
+});
+
+test("note.linked supports contact entities", () => {
+  const doc = initAutomergeDoc();
+  const withNote = noteReducer(doc, createNote());
+  const withContact = contactReducer(withNote, createContact());
+  const linked: Event = {
+    id: "evt-link-contact",
+    type: "note.linked",
+    payload: {
+      id: "link-contact",
+      noteId: "note-1",
+      entityType: "contact",
+      entityId: "contact-1",
+    },
+    timestamp: "2024-05-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = entityLinkReducer(withContact, linked);
+  const link = next.relations.entityLinks["link-contact"];
+
+  assert.ok(link);
+  assert.equal(link.linkType, "note");
+  assert.equal(link.entityType, "contact");
+  assert.equal(link.entityId, "contact-1");
+});
+
+test("note.linked supports note entities", () => {
+  const doc = initAutomergeDoc();
+  const withFirstNote = noteReducer(doc, createNote("note-1"));
+  const withSecondNote = noteReducer(withFirstNote, createNote("note-2"));
+  const linked: Event = {
+    id: "evt-link-note",
+    type: "note.linked",
+    payload: {
+      id: "link-note",
+      noteId: "note-1",
+      entityType: "note",
+      entityId: "note-2",
+    },
+    timestamp: "2024-05-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = entityLinkReducer(withSecondNote, linked);
+  const link = next.relations.entityLinks["link-note"];
+
+  assert.ok(link);
+  assert.equal(link.linkType, "note");
+  assert.equal(link.noteId, "note-1");
+  assert.equal(link.entityType, "note");
+  assert.equal(link.entityId, "note-2");
+});
+
+test("note.linked supports interaction entities", () => {
+  const doc = initAutomergeDoc();
+  const withNote = noteReducer(doc, createNote());
+  const withInteraction = interactionReducer(withNote, createInteraction());
+  const linked: Event = {
+    id: "evt-link-interaction",
+    type: "note.linked",
+    payload: {
+      id: "link-interaction",
+      noteId: "note-1",
+      entityType: "interaction",
+      entityId: "interaction-1",
+    },
+    timestamp: "2024-05-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = entityLinkReducer(withInteraction, linked);
+  const link = next.relations.entityLinks["link-interaction"];
+
+  assert.ok(link);
+  assert.equal(link.linkType, "note");
+  assert.equal(link.entityType, "interaction");
+  assert.equal(link.entityId, "interaction-1");
+});
+
+test("note.linked supports calendarEvent entities", () => {
+  const doc = initAutomergeDoc();
+  const withNote = noteReducer(doc, createNote());
+  const withCalendarEvent = calendarEventReducer(
+    withNote,
+    createCalendarEvent(),
+  );
+  const linked: Event = {
+    id: "evt-link-calendar",
+    type: "note.linked",
+    payload: {
+      id: "link-calendar",
+      noteId: "note-1",
+      entityType: "calendarEvent",
+      entityId: "calendar-1",
+    },
+    timestamp: "2024-05-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const next = entityLinkReducer(withCalendarEvent, linked);
+  const link = next.relations.entityLinks["link-calendar"];
+
+  assert.ok(link);
+  assert.equal(link.linkType, "note");
+  assert.equal(link.entityType, "calendarEvent");
+  assert.equal(link.entityId, "calendar-1");
+});
+
+test("note.linked rejects unsupported entity types", () => {
+  const doc = initAutomergeDoc();
+  const withNote = noteReducer(doc, createNote());
+  const event: Event = {
+    id: "evt-link-unsupported",
+    type: "note.linked",
+    payload: {
+      id: "link-unsupported",
+      noteId: "note-1",
+      entityType: "unsupported",
+      entityId: "whatever",
+    },
+    timestamp: "2024-05-06T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => entityLinkReducer(withNote, event), {
+    message: "Unsupported entity link type: unsupported",
+  });
 });
 
 test("note.linked rejects missing account entity", () => {

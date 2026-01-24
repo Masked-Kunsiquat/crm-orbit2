@@ -113,6 +113,34 @@ test("code.created rejects missing accounts", () => {
   });
 });
 
+test("code.created rejects existing accountCodes relation", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const accountDoc = accountReducer(orgDoc, createAccount());
+  accountDoc.relations.accountCodes["code-1"] = {
+    accountId: "acct-1",
+    codeId: "code-1",
+  };
+  const event: Event = {
+    id: "evt-code-1",
+    type: "code.created",
+    payload: {
+      id: "code-1",
+      accountId: "acct-1",
+      label: "Front Door",
+      codeValue: "1234",
+      isEncrypted: false,
+      type: "code.type.door",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => codeReducer(accountDoc, event), {
+    message: "Account code relation already exists: code-1",
+  });
+});
+
 test("code.updated updates fields and relation", () => {
   const doc = initAutomergeDoc();
   const orgDoc = organizationReducer(doc, createOrganization());
@@ -203,6 +231,98 @@ test("code.encrypted updates codeValue and marks encrypted", () => {
   assert.equal(code.codeValue, "encrypted-value");
   assert.equal(code.isEncrypted, true);
   assert.equal(code.updatedAt, encrypted.timestamp);
+});
+
+test("code.encrypted rejects missing codes", () => {
+  const doc = initAutomergeDoc();
+  const encrypted: Event = {
+    id: "evt-code-enc-1",
+    type: "code.encrypted",
+    entityId: "code-1",
+    payload: {
+      codeValue: "encrypted-value",
+      isEncrypted: true,
+    },
+    timestamp: "2024-02-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => codeReducer(doc, encrypted), {
+    message: "Code not found: code-1",
+  });
+});
+
+test("code.encrypted rejects missing codeValue", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const accountDoc = accountReducer(orgDoc, createAccount());
+  const created: Event = {
+    id: "evt-code-1",
+    type: "code.created",
+    payload: {
+      id: "code-1",
+      accountId: "acct-1",
+      label: "Front Door",
+      codeValue: "1234",
+      isEncrypted: false,
+      type: "code.type.door",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const encrypted: Event = {
+    id: "evt-code-enc-2",
+    type: "code.encrypted",
+    entityId: "code-1",
+    payload: {
+      isEncrypted: true,
+    },
+    timestamp: "2024-02-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = codeReducer(accountDoc, created);
+
+  assert.throws(() => codeReducer(createdDoc, encrypted), {
+    message: "Encrypted code payload missing codeValue: code-1",
+  });
+});
+
+test("code.encrypted rejects isEncrypted=false payloads", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const accountDoc = accountReducer(orgDoc, createAccount());
+  const created: Event = {
+    id: "evt-code-1",
+    type: "code.created",
+    payload: {
+      id: "code-1",
+      accountId: "acct-1",
+      label: "Front Door",
+      codeValue: "1234",
+      isEncrypted: false,
+      type: "code.type.door",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const encrypted: Event = {
+    id: "evt-code-enc-3",
+    type: "code.encrypted",
+    entityId: "code-1",
+    payload: {
+      codeValue: "encrypted-value",
+      isEncrypted: false,
+    },
+    timestamp: "2024-02-03T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = codeReducer(accountDoc, created);
+
+  assert.throws(() => codeReducer(createdDoc, encrypted), {
+    message: "Encrypted code payload must set isEncrypted: code-1",
+  });
 });
 
 test("code.updated rejects missing codes", () => {
@@ -301,4 +421,36 @@ test("code.deleted removes code and relation", () => {
   const deletedDoc = codeReducer(createdDoc, deleted);
   assert.equal(deletedDoc.codes["code-1"], undefined);
   assert.equal(deletedDoc.relations.accountCodes["code-1"], undefined);
+});
+
+test("code.deleted rejects missing codes", () => {
+  const doc = initAutomergeDoc();
+  const deleted: Event = {
+    id: "evt-code-2",
+    type: "code.deleted",
+    payload: {
+      id: "code-1",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => codeReducer(doc, deleted), {
+    message: "Code not found: code-1",
+  });
+});
+
+test("code.reducer rejects unhandled event types", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-code-unknown",
+    type: "code.unknown",
+    payload: {},
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => codeReducer(doc, event), {
+    message: "code.reducer does not handle event type: code.unknown",
+  });
 });
