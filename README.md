@@ -1,11 +1,46 @@
 # Welcome to CRM Orbit!
 
-## Testing
+## Status
+<table><tr>
+  <td><a href="https://hosted.weblate.org/engage/crm-orbit/"><img alt="Translation status" src="https://hosted.weblate.org/widget/crm-orbit/mobile-app/svg-badge.svg" /></a></td>
+  <td><a href="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql"><img alt="CodeQL" src="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql/badge.svg" /></a></td>
+  <td><a href="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/dependabot/dependabot-updates"><img alt="Dependabot Updates" src="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/dependabot/dependabot-updates/badge.svg" /></a></td>
+  <td><a href="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/eslint.yml"><img alt="ESLint" src="https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/eslint.yml/badge.svg" /></a></td>
+  <td><a href="https://app.codacy.com/gh/Masked-Kunsiquat/crm-orbit2/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img alt="Codacy Grade" src="https://app.codacy.com/project/badge/Grade/55db8c1a95f74f078cafef5ede9701ff" /></a></td>
+  <td><a href="https://app.codacy.com/gh/Masked-Kunsiquat/crm-orbit2/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage"><img alt="Codacy Coverage" src="https://app.codacy.com/project/badge/Coverage/55db8c1a95f74f078cafef5ede9701ff" /></a></td>
+</tr></table>
 
-| Translation | CodeQL | Dependabot | ESLint | Codacy Grade | Codacy Coverage |
-|------------|--------|------------|--------|--------------|----------------|
-| [![Translation status](https://hosted.weblate.org/widget/crm-orbit/mobile-app/svg-badge.svg)](https://hosted.weblate.org/engage/crm-orbit/) | [![CodeQL](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/github-code-scanning/codeql) | [![Dependabot Updates](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/dependabot/dependabot-updates) | [![ESLint](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/eslint.yml/badge.svg)](https://github.com/Masked-Kunsiquat/crm-orbit2/actions/workflows/eslint.yml) | [![Codacy Grade](https://app.codacy.com/project/badge/Grade/55db8c1a95f74f078cafef5ede9701ff)](https://app.codacy.com/gh/Masked-Kunsiquat/crm-orbit2/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) | [![Codacy Coverage](https://app.codacy.com/project/badge/Coverage/55db8c1a95f74f078cafef5ede9701ff)](https://app.codacy.com/gh/Masked-Kunsiquat/crm-orbit2/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage) |
+## Account Management
+<table><tr>
+  <td><img src="docs/images/README/Screenshot_20260227_195856_CRMOrbit.jpg" width="200" alt="Account Detail screen — overview tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195859_CRMOrbit.jpg" width="200" alt="Account Detail screen — details tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195904_CRMOrbit.jpg" width="200" alt="Account Detail screen — notes tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195909_CRMOrbit.jpg" width="200" alt="Account Detail screen — activity tab"/></td>
+</tr></table>
 
+## Event Management
+<table><tr>
+  <td><img src="docs/images/README/Screenshot_20260227_195959_CRMOrbit.jpg" width="200" alt="Event Detail screen"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_212107_CRMOrbit.jpg" width="200" alt="Calendar view"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200018_CRMOrbit.jpg" width="200" alt="Timeline view"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_211900_CRMOrbit.jpg" width="200" alt="Floor visitation matrix"/></td>
+</tr></table>
+
+## Contact Management
+<table><tr>
+  <td><img src="docs/images/README/Screenshot_20260227_200027_CRMOrbit.jpg" width="200" alt="Contact list screen"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200121_CRMOrbit.jpg" width="200" alt="Contact Detail screen — overview tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200124_CRMOrbit.jpg" width="200" alt="Contact Detail screen — details tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200152_CRMOrbit.jpg" width="200" alt="Contact Detail screen — notes tab"/></td>
+</tr></table>
+
+## Notes & Codes
+<table><tr>
+  <td><img src="docs/images/README/Screenshot_20260227_200213_CRMOrbit.jpg" width="200" alt="Notes & Codes list screen"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200216_CRMOrbit.jpg" width="200" alt="Code list screen — all codes"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_205546_CRMOrbit.jpg" width="200" alt="Code Detail screen — code hidden"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_205552_CRMOrbit.jpg" width="200" alt="Code Detail screen — code revealed"/></td>
+</tr></table>
 
 # Overview
 
