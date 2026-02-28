@@ -12,6 +12,17 @@ export const useSettingsListLabels = () => ({
   securityDescription: t("settings.security.description"),
   syncTitle: t("sync.title"),
   syncDescription: t("sync.description"),
+  dummyDataTitle: t("settings.dummyData.title"),
+  dummyDataDescription: t("settings.dummyData.description"),
+  dummyDataLoadTitle: t("settings.dummyData.loadTitle"),
+  dummyDataLoadMessage: t("settings.dummyData.loadMessage"),
+  dummyDataLoadConfirm: t("settings.dummyData.loadConfirm"),
+  dummyDataClearTitle: t("settings.dummyData.clearTitle"),
+  dummyDataClearMessage: t("settings.dummyData.clearMessage"),
+  dummyDataClearConfirm: t("settings.dummyData.clearConfirm"),
+  dummyDataCancel: t("settings.dummyData.cancel"),
+  dummyDataDemoBannerTitle: t("settings.dummyData.demoBannerTitle"),
+  dummyDataDemoBannerMessage: t("settings.dummyData.demoBannerMessage"),
 });
 
 export const useVersionLabels = () => ({

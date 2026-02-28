@@ -18,6 +18,10 @@ import {
 } from "../../hooks";
 import { useVersionLabels } from "../../hooks/useSettingsLabels";
 import { t } from "@i18n/index";
+import { useDoc, __internal_updateCrmDoc } from "@views/store/store";
+import { setDemoMode } from "@views/store/demoMode";
+import { DUMMY_DOC, DUMMY_ORG_ID } from "@domains/persistence/dummyData";
+import { DEFAULT_SETTINGS } from "@domains/settings";
 
 type Props = MiscStackScreenProps<"SettingsList">;
 
@@ -27,6 +31,45 @@ export const SettingsListScreen = ({ navigation }: Props) => {
   const versionLabels = useVersionLabels();
   const appVersion = getAppVersion();
   const [changelogVisible, setChangelogVisible] = useState(false);
+
+  const doc = useDoc();
+  const isDummyDataActive = Boolean(doc.organizations[DUMMY_ORG_ID]);
+  const [dummyDataDialogVisible, setDummyDataDialogVisible] = useState(false);
+
+  const handleDummyDataPress = () => {
+    setDummyDataDialogVisible(true);
+  };
+
+  const handleDummyDataConfirm = () => {
+    setDummyDataDialogVisible(false);
+    if (isDummyDataActive) {
+      __internal_updateCrmDoc({
+        organizations: {},
+        accounts: {},
+        audits: {},
+        contacts: {},
+        notes: {},
+        interactions: {},
+        codes: {},
+        calendarEvents: {},
+        settings: DEFAULT_SETTINGS,
+        relations: {
+          accountContacts: {},
+          accountCodes: {},
+          entityLinks: {},
+        },
+      });
+      setDemoMode(false);
+    } else {
+      __internal_updateCrmDoc(DUMMY_DOC);
+      setDemoMode(true);
+    }
+  };
+
+  const handleDummyDataCancel = () => {
+    setDummyDataDialogVisible(false);
+  };
+
   const {
     status: updateStatus,
     isUpdateReady,
@@ -170,6 +213,26 @@ export const SettingsListScreen = ({ navigation }: Props) => {
         </View>
       </ListCard>
 
+      <ListCard onPress={handleDummyDataPress}>
+        <View style={styles.cardContent}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name={isDummyDataActive ? "database-remove" : "database-import"}
+              size={32}
+              color={isDummyDataActive ? colors.warning : colors.accent}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {labels.dummyDataTitle}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              {labels.dummyDataDescription}
+            </Text>
+          </View>
+        </View>
+      </ListCard>
+
       {/* Version & Updates Section */}
       <View style={[styles.versionSection, { borderTopColor: colors.border }]}>
         <ListCard
@@ -203,6 +266,29 @@ export const SettingsListScreen = ({ navigation }: Props) => {
           </View>
         </ListCard>
       </View>
+
+      <ConfirmDialog
+        visible={dummyDataDialogVisible}
+        title={
+          isDummyDataActive
+            ? labels.dummyDataClearTitle
+            : labels.dummyDataLoadTitle
+        }
+        message={
+          isDummyDataActive
+            ? labels.dummyDataClearMessage
+            : labels.dummyDataLoadMessage
+        }
+        confirmLabel={
+          isDummyDataActive
+            ? labels.dummyDataClearConfirm
+            : labels.dummyDataLoadConfirm
+        }
+        cancelLabel={labels.dummyDataCancel}
+        onConfirm={handleDummyDataConfirm}
+        onCancel={handleDummyDataCancel}
+        confirmVariant={isDummyDataActive ? "danger" : "primary"}
+      />
 
       <ChangelogModal
         onClose={() => setChangelogVisible(false)}

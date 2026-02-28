@@ -16,6 +16,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
 
 import { useAccount, useCode, useSecuritySettings } from "../../store/store";
+import { useDemoMode } from "../../store/demoMode";
 import {
   useCodeAuthSession,
   useDeviceId,
@@ -68,6 +69,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
   const { isSessionAuthorized, markSessionAuthorized, resetSessionAuthorized } =
     useCodeAuthSession();
   const { dialogProps, showDialog, showAlert } = useConfirmDialog();
+  const isDemo = useDemoMode();
   const [isRevealed, setIsRevealed] = useState(false);
   const [revealedValue, setRevealedValue] = useState<string | null>(null);
   const [isShielded, setIsShielded] = useState(
@@ -255,25 +257,29 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
-      setIsShielded(state !== "active");
-      if (state !== "active") {
-        resetSessionAuthorized();
-        handleHide();
+      if (!isDemo) {
+        setIsShielded(state !== "active");
+        if (state !== "active") {
+          resetSessionAuthorized();
+          handleHide();
+        }
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [handleHide, resetSessionAuthorized]);
+  }, [handleHide, isDemo, resetSessionAuthorized]);
 
   useFocusEffect(
     useCallback(() => {
-      void ScreenCapture.preventScreenCaptureAsync();
+      if (!isDemo) {
+        void ScreenCapture.preventScreenCaptureAsync();
+      }
       return () => {
         void ScreenCapture.allowScreenCaptureAsync();
       };
-    }, []),
+    }, [isDemo]),
   );
 
   useEffect(() => {
@@ -323,6 +329,34 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
 
   return (
     <DetailScreenLayout>
+      {isDemo ? (
+        <View
+          style={[
+            styles.demoBanner,
+            { backgroundColor: colors.warningBg, borderColor: colors.warning },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name="flask-outline"
+            size={18}
+            color={colors.warning}
+          />
+          <View style={styles.demoBannerText}>
+            <Text style={[styles.demoBannerTitle, { color: colors.warning }]}>
+              {t("settings.dummyData.demoBannerTitle")}
+            </Text>
+            <Text
+              style={[
+                styles.demoBannerMessage,
+                { color: colors.textSecondary },
+              ]}
+            >
+              {t("settings.dummyData.demoBannerMessage")}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       <Section>
         <View style={styles.header}>
           <View style={styles.headerText}>
@@ -421,7 +455,7 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
         size="block"
       />
 
-      {isShielded ? (
+      {isShielded && !isDemo ? (
         <BlurView
           intensity={70}
           tint={isDark ? "dark" : "light"}
@@ -443,6 +477,27 @@ export const CodeDetailScreen = ({ route, navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  demoBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  demoBannerText: {
+    flex: 1,
+  },
+  demoBannerTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 1,
+  },
+  demoBannerMessage: {
+    fontSize: 12,
+  },
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
