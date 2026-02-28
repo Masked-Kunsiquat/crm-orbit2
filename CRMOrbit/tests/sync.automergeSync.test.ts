@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 
 import Automerge from "automerge";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fromByteArray } from "base64-js";
+import { deflate } from "pako";
 import { initAutomergeDoc } from "@automerge/init";
 import type { Organization } from "@domains/organization";
 import {
@@ -53,6 +55,26 @@ const encodePayload = (payload: string): Uint8Array => {
   }
   throw new Error(
     "No TextEncoder or Buffer available to encode UTF-8 in encodePayload",
+  );
+};
+
+const decodePayload = (payload: Uint8Array): string => {
+  const Decoder = globalThis.TextDecoder;
+  if (Decoder) {
+    return new Decoder().decode(payload);
+  }
+  const nodeBuffer = (
+    globalThis as {
+      Buffer?: {
+        from: (input: Uint8Array) => { toString: (encoding: string) => string };
+      };
+    }
+  ).Buffer;
+  if (nodeBuffer) {
+    return nodeBuffer.from(payload).toString("utf8");
+  }
+  throw new Error(
+    "No TextDecoder or Buffer available to decode UTF-8 in decodePayload",
   );
 };
 
@@ -159,6 +181,20 @@ test("createSyncBundle and parseSyncBundle round-trip changes", async () => {
   const merged = applyReceivedChanges(emptyDoc, changes);
 
   assertDocsEqual(doc, merged);
+});
+
+test("parseSyncBundle handles compressed bundle payloads", () => {
+  const payload = JSON.stringify([{ id: "org-1", name: "Orbit" }]);
+  const compressed = deflate(encodePayload(payload));
+  const wrapped = JSON.stringify({
+    format: "crm-sync-bundle-v1",
+    encoding: "deflate-base64",
+    payload: fromByteArray(compressed),
+  });
+
+  const changes = parseSyncBundle(wrapped);
+
+  assert.equal(decodePayload(changes), payload);
 });
 
 test("applyReceivedChanges returns original doc for empty payload", () => {

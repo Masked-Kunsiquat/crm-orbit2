@@ -411,3 +411,18 @@ test("note.deleted rejects missing notes", () => {
     message: "Note not found: note-1",
   });
 });
+
+test("note.reducer rejects unhandled event types", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-note-unknown",
+    type: "note.unknown",
+    payload: {},
+    timestamp: "2024-04-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => noteReducer(doc, event), {
+    message: "note.reducer does not handle event type: note.unknown",
+  });
+});

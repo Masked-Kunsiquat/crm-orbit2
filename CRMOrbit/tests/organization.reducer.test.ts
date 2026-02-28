@@ -211,3 +211,368 @@ test("organization.deleted rejects deletion when dependent accounts exist", () =
     message: "Cannot delete organization org-1: accounts still reference it",
   });
 });
+
+test("organization.updated rejects missing organization", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-1",
+    type: "organization.updated",
+    payload: {
+      id: "org-missing",
+      name: "Updated Name",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => organizationReducer(doc, event), {
+    message: "Organization not found: org-missing",
+  });
+});
+
+test("organization.updated sets inactiveAt when becoming inactive", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    payload: {
+      id: "org-1",
+      status: "organization.status.inactive",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.status, "organization.status.inactive");
+  assert.equal(org.inactiveAt, "2024-02-01T00:00:00.000Z");
+});
+
+test("organization.updated clears inactiveAt when becoming active", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.inactive",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    payload: {
+      id: "org-1",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  // Manually set inactiveAt
+  const docWithInactiveAt = {
+    ...createdDoc,
+    organizations: {
+      ...createdDoc.organizations,
+      "org-1": {
+        ...createdDoc.organizations["org-1"],
+        inactiveAt: "2024-01-01T00:00:00.000Z",
+      },
+    },
+  };
+  const updatedDoc = organizationReducer(docWithInactiveAt, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.status, "organization.status.active");
+  assert.equal(org.inactiveAt, undefined);
+});
+
+test("organization.updated with explicit inactiveAt overrides auto-set", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    payload: {
+      id: "org-1",
+      inactiveAt: "2024-01-15T00:00:00.000Z",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.inactiveAt, "2024-01-15T00:00:00.000Z");
+});
+
+test("organization.updated updates name, status, and website", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    payload: {
+      id: "org-1",
+      name: "Acme Corporation",
+      status: "organization.status.active",
+      website: "https://acme.com",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.name, "Acme Corporation");
+  assert.equal(org.website, "https://acme.com");
+  assert.equal(org.updatedAt, "2024-02-01T00:00:00.000Z");
+});
+
+test("organization.updated updates activeAt", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    payload: {
+      id: "org-1",
+      activeAt: "2023-12-15T00:00:00.000Z",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.activeAt, "2023-12-15T00:00:00.000Z");
+});
+
+test("organization.updated updates socialMedia", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.updated",
+    payload: {
+      id: "org-1",
+      socialMedia: {
+        linkedin: "https://linkedin.com/company/acme",
+      },
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.deepEqual(org.socialMedia, {
+    linkedin: "https://linkedin.com/company/acme",
+  });
+});
+
+test("organization.status.updated sets inactiveAt when becoming inactive", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.status.updated",
+    payload: {
+      id: "org-1",
+      status: "organization.status.inactive",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.status, "organization.status.inactive");
+  assert.equal(org.inactiveAt, "2024-02-01T00:00:00.000Z");
+});
+
+test("organization.status.updated clears inactiveAt when becoming active", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.inactive",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.status.updated",
+    payload: {
+      id: "org-1",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const docWithInactiveAt = {
+    ...createdDoc,
+    organizations: {
+      ...createdDoc.organizations,
+      "org-1": {
+        ...createdDoc.organizations["org-1"],
+        inactiveAt: "2024-01-01T00:00:00.000Z",
+      },
+    },
+  };
+  const updatedDoc = organizationReducer(docWithInactiveAt, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.status, "organization.status.active");
+  assert.equal(org.inactiveAt, undefined);
+});
+
+test("organization.status.updated with effectiveAt sets backdated inactiveAt", () => {
+  const doc = initAutomergeDoc();
+  const created: Event = {
+    id: "evt-1",
+    type: "organization.created",
+    payload: {
+      id: "org-1",
+      name: "Acme Corp",
+      status: "organization.status.active",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "organization.status.updated",
+    payload: {
+      id: "org-1",
+      status: "organization.status.inactive",
+      effectiveAt: "2024-01-15T00:00:00.000Z",
+    },
+    timestamp: "2024-02-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = organizationReducer(doc, created);
+  const updatedDoc = organizationReducer(createdDoc, updated);
+  const org = updatedDoc.organizations["org-1"];
+
+  assert.equal(org.status, "organization.status.inactive");
+  assert.equal(org.inactiveAt, "2024-01-15T00:00:00.000Z");
+});
+
+test("organization.deleted rejects missing organization", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-1",
+    type: "organization.deleted",
+    payload: {
+      id: "org-missing",
+    },
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => organizationReducer(doc, event), {
+    message: "Organization not found: org-missing",
+  });
+});
+
+test("organizationReducer rejects unhandled event types", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-1",
+    type: "organization.unknown",
+    payload: {},
+    timestamp: "2024-01-01T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => organizationReducer(doc, event), {
+    message:
+      "organization.reducer does not handle event type: organization.unknown",
+  });
+});

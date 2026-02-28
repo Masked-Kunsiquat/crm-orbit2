@@ -1,7 +1,35 @@
 name: Create Production Builds
 
+on:
+  push:
+    branches:
+      - "master"
+
 jobs:
+  check_runtime:
+    outputs:
+      should_build: ${{ steps.runtime.outputs.should_build }}
+    steps:
+      - uses: eas/checkout
+      - name: Check runtimeVersion change
+        id: runtime
+        run: |
+          set -euo pipefail
+          git fetch --prune --unshallow || git fetch --prune --depth=100
+
+          current=$(node -e "const app=require('./app.json'); const rv=app.expo.runtimeVersion; console.log(typeof rv==='string' ? rv : (rv && rv.policy) ? `policy:${rv.policy}` : '')")
+          previous=$(git show HEAD^:app.json | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const app=JSON.parse(d); const rv=app.expo.runtimeVersion; console.log(typeof rv==='string' ? rv : (rv && rv.policy) ? `policy:${rv.policy}` : '');});")
+
+          if [ "${current}" != "${previous}" ]; then
+            set-output should_build true
+          else
+            set-output should_build false
+          fi
+
   build_android:
+    needs: [check_runtime]
+    if: ${{ needs.check_runtime.outputs.should_build == 'true' }}
     type: build # This job type creates a production build for Android
     params:
       platform: android
+      profile: production
