@@ -428,3 +428,519 @@ test("account.updated rejects excluded floors outside the range", () => {
     message: "Account excluded floor 5 is outside the configured range.",
   });
 });
+
+test("account.created rejects excluded floors without floor range", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      excludedFloors: [1, 2],
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Account floor exclusions require minFloor and maxFloor.",
+  });
+});
+
+test("account.created rejects non-integer floor values", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: 1.5,
+      maxFloor: 10,
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Account floor range must use integer values.",
+  });
+});
+
+test("account.created rejects minFloor greater than maxFloor", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: 10,
+      maxFloor: 1,
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Account floor range is invalid: minFloor > maxFloor.",
+  });
+});
+
+test("account.created rejects duplicate excluded floors", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: 1,
+      maxFloor: 10,
+      excludedFloors: [2, 2],
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Account excluded floors must be unique.",
+  });
+});
+
+test("account.created rejects non-integer excluded floors", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      minFloor: 1,
+      maxFloor: 10,
+      excludedFloors: [2.5],
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Account excluded floors must be integers.",
+  });
+});
+
+test("account.created rejects invalid audit frequency", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const event: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      auditFrequency: "account.auditFrequency.invalid",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(orgDoc, event), {
+    message: "Invalid account audit frequency.",
+  });
+});
+
+test("account.updated rejects missing account", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-1",
+    type: "account.updated",
+    payload: {
+      id: "acct-missing",
+      name: "Updated Name",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(doc, event), {
+    message: "Account not found: acct-missing",
+  });
+});
+
+test("account.updated rejects invalid organization", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-nonexistent",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+
+  assert.throws(() => accountReducer(createdDoc, updated), {
+    message: "Organization not found: org-nonexistent",
+  });
+});
+
+test("account.updated rejects invalid audit frequency", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      auditFrequency: "account.auditFrequency.invalid",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+
+  assert.throws(() => accountReducer(createdDoc, updated), {
+    message: "Invalid account audit frequency.",
+  });
+});
+
+test("account.updated with nextPeriod timing sets pending frequency", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+      auditFrequency: "account.auditFrequency.quarterly",
+    },
+    timestamp: "2024-01-15T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      auditFrequency: "account.auditFrequency.monthly",
+      auditFrequencyChangeTiming: "account.auditFrequencyChange.nextPeriod",
+    },
+    timestamp: "2024-02-15T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.auditFrequency, "account.auditFrequency.quarterly");
+  assert.equal(account.auditFrequencyPending, "account.auditFrequency.monthly");
+  assert.ok(account.auditFrequencyPendingEffectiveAt);
+});
+
+test("account.status.updated sets inactiveAt when becoming inactive", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.status.updated",
+    payload: {
+      id: "acct-1",
+      status: "account.status.inactive",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.status, "account.status.inactive");
+  assert.equal(account.inactiveAt, "2024-02-02T00:00:00.000Z");
+});
+
+test("account.status.updated clears inactiveAt when becoming active", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.inactive",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.status.updated",
+    payload: {
+      id: "acct-1",
+      status: "account.status.active",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  // Manually set inactiveAt to simulate prior state
+  const docWithInactiveAt = {
+    ...createdDoc,
+    accounts: {
+      ...createdDoc.accounts,
+      "acct-1": {
+        ...createdDoc.accounts["acct-1"],
+        inactiveAt: "2024-01-02T00:00:00.000Z",
+      },
+    },
+  };
+  const updatedDoc = accountReducer(docWithInactiveAt, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.status, "account.status.active");
+  assert.equal(account.inactiveAt, undefined);
+});
+
+test("account.status.updated with effectiveAt sets backdated inactiveAt", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.status.updated",
+    payload: {
+      id: "acct-1",
+      status: "account.status.inactive",
+      effectiveAt: "2024-01-15T00:00:00.000Z",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.status, "account.status.inactive");
+  assert.equal(account.inactiveAt, "2024-01-15T00:00:00.000Z");
+});
+
+test("account.updated sets inactiveAt when status becomes inactive", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      status: "account.status.inactive",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.status, "account.status.inactive");
+  assert.equal(account.inactiveAt, "2024-02-02T00:00:00.000Z");
+});
+
+test("account.updated clears inactiveAt when status becomes active", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.inactive",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      status: "account.status.active",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const docWithInactiveAt = {
+    ...createdDoc,
+    accounts: {
+      ...createdDoc.accounts,
+      "acct-1": {
+        ...createdDoc.accounts["acct-1"],
+        inactiveAt: "2024-01-02T00:00:00.000Z",
+      },
+    },
+  };
+  const updatedDoc = accountReducer(docWithInactiveAt, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.status, "account.status.active");
+  assert.equal(account.inactiveAt, undefined);
+});
+
+test("account.updated with explicit inactiveAt overrides auto-set", () => {
+  const doc = initAutomergeDoc();
+  const orgDoc = organizationReducer(doc, createOrganization());
+  const created: Event = {
+    id: "evt-1",
+    type: "account.created",
+    payload: {
+      id: "acct-1",
+      organizationId: "org-1",
+      name: "ACME Retail",
+      status: "account.status.active",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+  const updated: Event = {
+    id: "evt-2",
+    type: "account.updated",
+    payload: {
+      id: "acct-1",
+      inactiveAt: "2024-01-15T00:00:00.000Z",
+    },
+    timestamp: "2024-02-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  const createdDoc = accountReducer(orgDoc, created);
+  const updatedDoc = accountReducer(createdDoc, updated);
+  const account = updatedDoc.accounts["acct-1"];
+
+  assert.equal(account.inactiveAt, "2024-01-15T00:00:00.000Z");
+});
+
+test("account.deleted rejects missing account", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-1",
+    type: "account.deleted",
+    payload: {
+      id: "acct-missing",
+    },
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(doc, event), {
+    message: "Account not found: acct-missing",
+  });
+});
+
+test("accountReducer rejects unhandled event types", () => {
+  const doc = initAutomergeDoc();
+  const event: Event = {
+    id: "evt-1",
+    type: "account.unknown",
+    payload: {},
+    timestamp: "2024-01-02T00:00:00.000Z",
+    deviceId: "device-1",
+  };
+
+  assert.throws(() => accountReducer(doc, event), {
+    message: "account.reducer does not handle event type: account.unknown",
+  });
+});

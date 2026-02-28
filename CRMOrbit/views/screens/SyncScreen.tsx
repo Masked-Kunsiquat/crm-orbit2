@@ -104,6 +104,7 @@ export const SyncScreen = () => {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanBusy, setScanBusy] = useState(false);
+  const [scanArmed, setScanArmed] = useState(false);
   const [syncingPeerId, setSyncingPeerId] = useState<string | null>(null);
 
   const peerList = useMemo(
@@ -179,6 +180,13 @@ export const SyncScreen = () => {
     void ensurePermission();
   }, [showQRScanner, permission?.granted, requestPermission]);
 
+  useEffect(() => {
+    if (!showQRScanner) {
+      setScanBusy(false);
+      setScanArmed(false);
+    }
+  }, [showQRScanner]);
+
   const updateSyncedDoc = (updatedDoc: typeof doc) => {
     __internal_updateCrmDoc(updatedDoc);
   };
@@ -225,6 +233,7 @@ export const SyncScreen = () => {
 
   const handleScanQR = () => {
     setQrProgress(null);
+    setScanArmed(false);
     setShowQRScanner(true);
   };
 
@@ -254,7 +263,8 @@ export const SyncScreen = () => {
   };
 
   const handleBarCodeScanned = ({ data }: BarcodeScanningResult) => {
-    if (scanBusy) return;
+    if (scanBusy || !scanArmed) return;
+    setScanArmed(false);
     void handleQRScanned(data);
   };
 
@@ -488,7 +498,10 @@ export const SyncScreen = () => {
             <View style={styles.scannerBody}>
               <CameraView
                 style={styles.scanner}
-                onBarcodeScanned={scanBusy ? undefined : handleBarCodeScanned}
+                autofocus="on"
+                onBarcodeScanned={
+                  scanBusy || !scanArmed ? undefined : handleBarCodeScanned
+                }
                 barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
               />
               {scanBusy ? (
@@ -499,6 +512,19 @@ export const SyncScreen = () => {
                   ]}
                 >
                   <ActivityIndicator size="large" color={colors.accent} />
+                </View>
+              ) : !scanArmed ? (
+                <View
+                  style={[
+                    styles.scannerOverlay,
+                    { backgroundColor: colors.overlayScrimLight },
+                  ]}
+                >
+                  <PrimaryActionButton
+                    label={t("sync.manual.scan")}
+                    onPress={() => setScanArmed(true)}
+                    size="block"
+                  />
                 </View>
               ) : null}
             </View>
