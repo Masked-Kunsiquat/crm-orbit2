@@ -12,34 +12,34 @@
 
 ## Account Management
 <table><tr>
-  <td><img src="docs/images/README/Screenshot_20260227_195856_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_195859_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_195904_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_195909_CRMOrbit.jpg" width="200"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195856_CRMOrbit.jpg" width="200" alt="Account Detail screen — overview tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195859_CRMOrbit.jpg" width="200" alt="Account Detail screen — details tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195904_CRMOrbit.jpg" width="200" alt="Account Detail screen — notes tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195909_CRMOrbit.jpg" width="200" alt="Account Detail screen — activity tab"/></td>
 </tr></table>
 
 ## Event Management
 <table><tr>
-  <td><img src="docs/images/README/Screenshot_20260227_195959_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_212107_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_200018_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_211900_CRMOrbit.jpg" width="200"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_195959_CRMOrbit.jpg" width="200" alt="Event Detail screen"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_212107_CRMOrbit.jpg" width="200" alt="Calendar view"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200018_CRMOrbit.jpg" width="200" alt="Timeline view"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_211900_CRMOrbit.jpg" width="200" alt="Floor visitation matrix"/></td>
 </tr></table>
 
 ## Contact Management
 <table><tr>
-  <td><img src="docs/images/README/Screenshot_20260227_200027_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_200121_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_200124_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_200152_CRMOrbit.jpg" width="200"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200027_CRMOrbit.jpg" width="200" alt="Contact list screen"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200121_CRMOrbit.jpg" width="200" alt="Contact Detail screen — overview tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200124_CRMOrbit.jpg" width="200" alt="Contact Detail screen — details tab"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200152_CRMOrbit.jpg" width="200" alt="Contact Detail screen — notes tab"/></td>
 </tr></table>
 
 ## Notes & Codes
 <table><tr>
-  <td><img src="docs/images/README/Screenshot_20260227_200213_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_200216_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_205546_CRMOrbit.jpg" width="200"/></td>
-  <td><img src="docs/images/README/Screenshot_20260227_205552_CRMOrbit.jpg" width="200"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200213_CRMOrbit.jpg" width="200" alt="Notes & Codes list screen"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_200216_CRMOrbit.jpg" width="200" alt="Code list screen — all codes"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_205546_CRMOrbit.jpg" width="200" alt="Code Detail screen — code hidden"/></td>
+  <td><img src="docs/images/README/Screenshot_20260227_205552_CRMOrbit.jpg" width="200" alt="Code Detail screen — code revealed"/></td>
 </tr></table>
 
 # Overview
